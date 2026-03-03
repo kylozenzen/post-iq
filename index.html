@@ -186,6 +186,36 @@
       font-weight: 600;
     }
 
+    .nav-subtext {
+      padding: 0 20px 10px 50px;
+      font-size: 10px;
+      color: var(--light);
+      line-height: 1.4;
+    }
+    .nav-item-external {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 20px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      text-decoration: none;
+      transition: background 0.1s, color 0.1s;
+    }
+    .nav-item-external:hover { background: var(--bg); color: var(--text); }
+    .nav-item-external .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+    .nav-external-badge {
+      margin-left: auto;
+      font-size: 9px;
+      color: var(--light);
+      letter-spacing: 0.04em;
+    }
     .sidebar-footer {
       margin-top: auto;
       padding: 16px 20px;
@@ -665,7 +695,7 @@
 <div id="apiGate">
   <div class="gate-card">
     <div class="gate-logo">Post<span>IQ</span></div>
-    <div class="gate-subtitle">Recycler &amp; Thread Splitter for Buffer</div>
+    <div class="gate-subtitle">Recycler · Thread Splitter · Buffer Publish</div>
 
     <label class="gate-label" for="gateKeyInput">Your Buffer Access Token</label>
     <div class="gate-input-row">
@@ -697,9 +727,15 @@
     <button class="nav-item active" data-view="recyclerView">
       <span class="nav-icon">♻️</span> Post Recycler
     </button>
+    <div class="nav-subtext">Repurpose your top text-based content. Best for Twitter/X, LinkedIn &amp; Threads.</div>
     <button class="nav-item" data-view="threadView">
       <span class="nav-icon">🧵</span> Thread Splitter
     </button>
+    <div class="sidebar-section">My Buffer</div>
+    <a class="nav-item-external" href="https://publish.buffer.com" target="_blank" rel="noopener">
+      <span class="nav-icon">📤</span> Buffer Publish
+      <span class="nav-external-badge">↗</span>
+    </a>
 
     <div class="sidebar-footer">
       <div class="api-pill" id="apiPill" style="display:none;">
@@ -797,27 +833,36 @@
           <div id="queuePanel">
             <div class="card">
               <div class="card-header">
-                <h2>Post to Buffer</h2>
+                <h2>Send to Buffer</h2>
               </div>
               <div class="card-body">
-                <p class="mb-8" style="font-size:13px;color:var(--muted);">Pick a channel:</p>
-                <div class="channel-chips" id="threadChannelPills"></div>
+                <div class="detail-channel-row">
+                  <span class="detail-section-label">Channel (Twitter/X &amp; Threads only)</span>
+                  <div class="channel-chips" id="threadChannelPills"></div>
+                  <p id="threadNoChannels" style="display:none;font-size:12px;color:var(--muted);margin-top:6px;">
+                    No Twitter/X or Threads channels found. Connect one in Buffer first.
+                  </p>
+                </div>
 
-                <div class="row mt-12">
-                  <button class="btn btn-success btn-wide" id="threadModeQueue">➕ Queue thread</button>
-                  <button class="btn btn-ghost" id="threadModeSchedule">🗓 Schedule</button>
+                <div class="detail-actions mt-12">
+                  <button class="btn btn-success btn-full" id="threadModeQueue">➕ Add thread to queue</button>
+                  <button class="btn btn-ghost btn-full" id="threadModeSchedule">🗓 Schedule for later</button>
                 </div>
 
                 <div id="threadDateTimePanel" style="display:none;margin-top:12px;">
-                  <label style="font-size:12px;color:var(--muted);font-weight:500;display:block;margin-bottom:5px;">Pick a time:</label>
-                  <input type="datetime-local" id="threadScheduleTime" style="max-width:280px;" />
+                  <label style="font-size:12px;color:var(--muted);font-weight:500;display:block;margin-bottom:5px;">Pick a date &amp; time:</label>
+                  <input type="datetime-local" id="threadScheduleTime" />
+                  <button class="btn btn-primary btn-full mt-8" id="btnQueueThread">Confirm schedule ↗</button>
                 </div>
 
-                <div class="row mt-12">
-                  <button class="btn btn-success btn-wide" id="btnQueueThread">Add thread to queue ↗</button>
-                  <button class="btn btn-ghost" id="btnCopyThread">📋 Copy all</button>
+                <div id="threadQueueConfirm" style="display:none;margin-top:10px;">
+                  <button class="btn btn-success btn-full" id="btnQueueThreadNow">Send thread to Buffer ↗</button>
                 </div>
-                <div id="queueStatus" style="font-size:12px;color:var(--muted);margin-top:8px;min-height:18px;"></div>
+
+                <div class="row mt-8" style="justify-content:flex-end;">
+                  <button class="btn btn-ghost btn-xs" id="btnCopyThread">📋 Copy all parts</button>
+                </div>
+                <div id="queueStatus" class="detail-status"></div>
               </div>
             </div>
           </div>
@@ -956,6 +1001,7 @@ const state = {
   synced: false,
   threadTweets: [],
   selectedThreadChannel: null,
+  selectedThreadService: null,
   threadMode: 'queue',
 };
 
@@ -1161,10 +1207,13 @@ function renderRecycler() {
         </div>
       </div>
       <div class="rp-actions">
-        <button class="btn btn-primary" onclick="event.stopPropagation();openRecyclerDetail('${post.id}')">Recycle →</button>
+        <button class="btn btn-primary" onclick="openRecyclerDetail('${post.id}')">Recycle →</button>
       </div>
     `;
-    card.addEventListener('click', () => openRecyclerDetail(post.id));
+    card.addEventListener('click', e => {
+      if (e.target.closest('.rp-actions')) return;
+      openRecyclerDetail(post.id);
+    });
     container.appendChild(card);
   });
 
@@ -1200,6 +1249,12 @@ function openRecyclerDetail(postId, editMode = false) {
       <span class="edit-char-count" id="editCount-${postId}">${post.text.length} chars</span>
     </div>
 
+    <div id="linkedinLinkRow-${postId}" style="display:none;margin-bottom:12px;">
+      <span class="detail-section-label">LinkedIn link attachment (optional)</span>
+      <input type="url" id="linkedinLink-${postId}" placeholder="https://…" style="font-size:13px;" />
+      <div style="font-size:11px;color:var(--muted);margin-top:3px;">Paste a URL to attach a link card to this post</div>
+    </div>
+
     <div class="detail-channel-row">
       <span class="detail-section-label">Post to:</span>
       <div class="channel-chips" id="detailChannelPills"></div>
@@ -1231,9 +1286,17 @@ function openRecyclerDetail(postId, editMode = false) {
       pills.querySelectorAll('.channel-chip').forEach(x => x.classList.remove('selected'));
       chip.classList.add('selected');
       selectedDetailChannel = c.id;
+      // Show link attachment row for LinkedIn channels
+      const linkRow = document.getElementById(`linkedinLinkRow-${postId}`);
+      if (linkRow) linkRow.style.display = c.service === 'linkedin' ? 'block' : 'none';
     });
     pills.appendChild(chip);
   });
+
+  // Show link row if initial channel is linkedin
+  const initChannel = state.channels.find(c => c.id === selectedDetailChannel);
+  const linkRow = document.getElementById(`linkedinLinkRow-${postId}`);
+  if (linkRow && initChannel) linkRow.style.display = initChannel.service === 'linkedin' ? 'block' : 'none';
 
   // Char count
   const ta = document.getElementById(`editText-${postId}`);
@@ -1260,13 +1323,18 @@ function openRecyclerDetail(postId, editMode = false) {
     if (schedBtn) schedBtn.disabled = true;
 
     const mutation = `mutation CreatePost($input: CreatePostInput!) { createPost(input: $input) { __typename } }`;
+    const linkUrl = (document.getElementById(`linkedinLink-${postId}`)?.value || '').trim();
+    const selectedCh = state.channels.find(c => c.id === selectedDetailChannel);
     const variables = {
       input: {
         channelId: selectedDetailChannel,
         text,
         schedulingType: 'automatic',
         mode: scheduledAt ? 'customScheduled' : 'addToQueue',
-        ...(scheduledAt ? { dueAt: scheduledAt } : {})
+        ...(scheduledAt ? { dueAt: scheduledAt } : {}),
+        ...(selectedCh?.service === 'linkedin' && linkUrl ? {
+          metadata: { linkedin: { linkAttachment: { url: linkUrl } } }
+        } : {})
       }
     };
     try {
@@ -1544,17 +1612,30 @@ function renderThreadPreview() {
 
 function renderThreadChannelPills() {
   const container = document.getElementById('threadChannelPills');
+  const noChannelMsg = document.getElementById('threadNoChannels');
   if (!container) return;
   container.innerHTML = '';
-  state.channels.forEach(c => {
+
+  // Only show Twitter/X and Threads channels
+  const supported = state.channels.filter(c => c.service === 'twitter' || c.service === 'threads');
+
+  if (!supported.length) {
+    if (noChannelMsg) noChannelMsg.style.display = 'block';
+    return;
+  }
+  if (noChannelMsg) noChannelMsg.style.display = 'none';
+
+  supported.forEach(c => {
     const chip = document.createElement('span');
     chip.className = 'channel-chip' + (c.id === state.selectedThreadChannel ? ' selected' : '');
     chip.textContent = `${serviceLabel(c.service)} ${c.displayName || c.name}`;
     chip.dataset.channelId = c.id;
+    chip.dataset.service = c.service;
     chip.addEventListener('click', () => {
       container.querySelectorAll('.channel-chip').forEach(x => x.classList.remove('selected'));
       chip.classList.add('selected');
       state.selectedThreadChannel = c.id;
+      state.selectedThreadService = c.service;
     });
     container.appendChild(chip);
   });
@@ -1563,6 +1644,7 @@ function renderThreadChannelPills() {
   if (first && !container.querySelector('.channel-chip.selected')) {
     first.classList.add('selected');
     state.selectedThreadChannel = first.dataset.channelId;
+    state.selectedThreadService = first.dataset.service;
   }
 }
 
@@ -1632,26 +1714,30 @@ document.getElementById('btnAddTweet').addEventListener('click', () => {
 // Thread mode toggle
 function setThreadMode(mode) {
   state.threadMode = mode;
-  const queueBtn   = document.getElementById('threadModeQueue');
-  const schedBtn   = document.getElementById('threadModeSchedule');
-  const dtPanel    = document.getElementById('threadDateTimePanel');
-  const queueBtnMain = document.getElementById('btnQueueThread');
+  const queueBtn    = document.getElementById('threadModeQueue');
+  const schedBtn    = document.getElementById('threadModeSchedule');
+  const dtPanel     = document.getElementById('threadDateTimePanel');
+  const queueNow    = document.getElementById('threadQueueConfirm');
 
   if (mode === 'schedule') {
-    if (dtPanel) dtPanel.style.display = 'block';
-    if (schedBtn) { schedBtn.className = 'btn btn-primary'; }
-    if (queueBtn) { queueBtn.className = 'btn btn-ghost btn-wide'; }
-    if (queueBtnMain) queueBtnMain.textContent = 'Schedule thread ↗';
+    if (dtPanel)   dtPanel.style.display = 'block';
+    if (queueNow)  queueNow.style.display = 'none';
+    if (schedBtn)  schedBtn.className = 'btn btn-primary btn-full';
+    if (queueBtn)  queueBtn.className = 'btn btn-ghost btn-full';
   } else {
-    if (dtPanel) dtPanel.style.display = 'none';
-    if (schedBtn) { schedBtn.className = 'btn btn-ghost'; }
-    if (queueBtn) { queueBtn.className = 'btn btn-success btn-wide'; }
-    if (queueBtnMain) queueBtnMain.textContent = 'Add thread to queue ↗';
+    if (dtPanel)   dtPanel.style.display = 'none';
+    if (queueNow)  queueNow.style.display = 'block';
+    if (schedBtn)  schedBtn.className = 'btn btn-ghost btn-full';
+    if (queueBtn)  queueBtn.className = 'btn btn-success btn-full';
   }
 }
 
-document.getElementById('threadModeQueue').addEventListener('click', () => setThreadMode('queue'));
-document.getElementById('threadModeSchedule').addEventListener('click', () => setThreadMode('schedule'));
+document.getElementById('threadModeQueue').addEventListener('click', () => {
+  setThreadMode('queue');
+});
+document.getElementById('threadModeSchedule').addEventListener('click', () => {
+  setThreadMode('schedule');
+});
 
 document.getElementById('btnCopyThread').addEventListener('click', async () => {
   const nodes = document.querySelectorAll('#threadPreview textarea');
@@ -1666,64 +1752,71 @@ document.getElementById('btnCopyThread').addEventListener('click', async () => {
   }
 });
 
-document.getElementById('btnQueueThread').addEventListener('click', async () => {
+// ── Shared thread send function ──────────────────────────────────────────────
+async function sendThreadToBuffer(scheduledAt) {
   const nodes = document.querySelectorAll('#threadPreview textarea');
-  const tweets = Array.from(nodes).map(n => n.value.trim()).filter(Boolean);
+  const parts = Array.from(nodes).map(n => n.value.trim()).filter(Boolean);
+  const statusEl = document.getElementById('queueStatus');
 
-  if (!tweets.length)                        { toast('No tweets to queue yet'); return; }
-  if (tweets.some(t => t.length > TWEET_MAX)){ toast('Some parts are over 280 chars — trim first.', 'error'); return; }
+  if (!parts.length)                         { toast('No parts to send yet'); return; }
+  if (parts.some(t => t.length > TWEET_MAX)) { toast('Some parts over 280 chars — trim first.', 'error'); return; }
   if (!state.selectedThreadChannel)          { toast('Pick a channel first', 'error'); return; }
 
-  const threadMode = state.threadMode || 'queue';
-  let scheduledAt  = null;
+  // Disable both send buttons
+  const btnNow  = document.getElementById('btnQueueThreadNow');
+  const btnSched = document.getElementById('btnQueueThread');
+  if (btnNow)  btnNow.disabled  = true;
+  if (btnSched) btnSched.disabled = true;
 
-  if (threadMode === 'schedule') {
-    const val = document.getElementById('threadScheduleTime').value;
-    if (!val) { toast('Please pick a date and time', 'error'); return; }
-    scheduledAt = new Date(val).toISOString();
-  }
+  statusEl.className = 'detail-status loading';
+  statusEl.textContent = scheduledAt ? 'Scheduling thread in Buffer…' : 'Sending thread to Buffer queue…';
 
-  const btn      = document.getElementById('btnQueueThread');
-  const statusEl = document.getElementById('queueStatus');
-  btn.disabled   = true;
-  statusEl.style.color = 'var(--muted)';
-  statusEl.textContent = threadMode === 'schedule' ? 'Scheduling thread parts in Buffer…' : 'Adding thread parts to your Buffer queue…';
+  const service = state.selectedThreadService || 'twitter';
+  const [firstPart, ...restParts] = parts;
 
-  let queued = 0;
-  const errors = [];
+  // Build native thread input — first part in text, rest in metadata thread array
+  const threadParts = restParts.map(text => ({ text }));
 
-  for (let i = 0; i < tweets.length; i++) {
-    try {
-      const mutation  = `mutation CreatePost($input: CreatePostInput!) { createPost(input: $input) { __typename } }`;
-      const variables = {
-        input: {
-          channelId: state.selectedThreadChannel,
-          text: tweets[i],
-          schedulingType: 'automatic',
-          mode: scheduledAt ? 'customScheduled' : 'addToQueue',
-          ...(scheduledAt ? { dueAt: scheduledAt } : {})
-        }
-      };
-      const res = await callBuffer(mutation, variables);
-      if (res?.errors?.length) throw new Error(res.errors[0].message);
-      queued++;
-    } catch (err) {
-      errors.push(`Tweet ${i + 1}: ${err.message}`);
+  const metadataKey = service === 'threads' ? 'threads' : 'twitter';
+  const metadataVal = service === 'threads'
+    ? { type: 'thread', thread: threadParts }
+    : { thread: threadParts };
+
+  const mutation = `mutation CreatePost($input: CreatePostInput!) { createPost(input: $input) { __typename } }`;
+  const variables = {
+    input: {
+      channelId: state.selectedThreadChannel,
+      text: firstPart,
+      schedulingType: 'automatic',
+      mode: scheduledAt ? 'customScheduled' : 'addToQueue',
+      ...(scheduledAt ? { dueAt: scheduledAt } : {}),
+      ...(threadParts.length ? { metadata: { [metadataKey]: metadataVal } } : {})
     }
-  }
+  };
 
-  if (!errors.length) {
-    statusEl.style.color = 'var(--green)';
-    statusEl.textContent = `✓ ${queued} parts ${threadMode === 'schedule' ? 'scheduled' : 'queued'} in Buffer`;
-    toast(`${queued} parts sent to Buffer ✓`, 'success');
-  } else {
-    statusEl.style.color = 'var(--red)';
-    statusEl.textContent = `${queued} added, ${errors.length} failed`;
-    toast(`Partial: ${queued}/${tweets.length} parts added`, 'error');
+  try {
+    const res = await callBuffer(mutation, variables);
+    if (res?.errors?.length) throw new Error(res.errors[0].message);
+    statusEl.className = 'detail-status success';
+    statusEl.textContent = `✓ Thread ${scheduledAt ? 'scheduled' : 'queued'} in Buffer — ${parts.length} parts`;
+    toast(`Thread sent to Buffer ✓`, 'success');
+  } catch (err) {
+    statusEl.className = 'detail-status error';
+    statusEl.textContent = 'Error: ' + err.message;
+    toast('Error: ' + err.message, 'error');
+    if (btnNow)   btnNow.disabled  = false;
+    if (btnSched) btnSched.disabled = false;
   }
+}
 
-  btn.disabled = false;
-  btn.textContent = threadMode === 'schedule' ? 'Schedule thread ↗' : 'Add thread to queue ↗';
+// Queue now button
+document.getElementById('btnQueueThreadNow')?.addEventListener('click', () => sendThreadToBuffer(null));
+
+// Schedule confirm button
+document.getElementById('btnQueueThread')?.addEventListener('click', () => {
+  const val = document.getElementById('threadScheduleTime').value;
+  if (!val) { toast('Pick a date and time first', 'error'); return; }
+  sendThreadToBuffer(new Date(val).toISOString());
 });
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
