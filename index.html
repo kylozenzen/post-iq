@@ -831,10 +831,10 @@ document.getElementById('gateSubmitBtn').addEventListener('click', async () => {
 
   // Quick sanity check: query the Buffer account
   try {
-    const res = await fetch('https://api.buffer.com', {
+    const res = await fetch('/.netlify/functions/buffer-proxy', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-      body: JSON.stringify({ query: 'query { account { email } }' })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: key, query: 'query { account { email } }' })
     });
     const data = await res.json();
     if (data?.errors?.length) {
@@ -903,10 +903,10 @@ async function callBuffer(query, variables = {}) {
   const token = getToken();
   if (!token) { showGate('Your session expired. Please reconnect.'); throw new Error('No token'); }
 
-  const res = await fetch('https://api.buffer.com', {
+  const res = await fetch('/.netlify/functions/buffer-proxy', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-    body: JSON.stringify({ query, variables })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, query, variables })
   });
   const text = await res.text();
   try {
