@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PostIQ — Recycler & Thread Splitter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #F5F6F8;
+      --surface: #FFFFFF;
+      --border: #E8EAED;
+      --border-focus: #2C4BFF;
+      --text: #1A1F36;
+      --muted: #6B7280;
+      --light: #9CA3AF;
+      --accent: #2C4BFF;
+      --accent-soft: #EEF1FF;
+      --green: #00B074;
+      --green-soft: #E6F7F2;
+      --red: #E53E3E;
+      --red-soft: #FFF5F5;
+      --yellow: #F59E0B;
+      --yellow-soft: #FFFBEB;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+
+      /* Unified button sizing tokens */
+      --btn-h: 36px;
+      --btn-px: 16px;
+      --btn-fs: 13px;
+      --btn-fw: 600;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── API Key Gate ── */
+    #apiGate {
+      position: fixed; inset: 0;
+      background: rgba(15, 17, 30, 0.85);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    #apiGate.hidden { display: none; }
+
+    .gate-card {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 36px 40px;
+      width: 100%;
+      max-width: 460px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    .gate-logo {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+    .gate-logo span { color: var(--text); }
+    .gate-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+    .gate-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      text-align: left;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .gate-input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .gate-input {
+      flex: 1;
+      height: var(--btn-h);
+      padding: 0 12px;
+      font-size: 13px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      outline: none;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.02em;
+      transition: border-color 0.15s;
+    }
+    .gate-input:focus { border-color: var(--accent); }
+    .gate-hint {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .gate-hint a { color: var(--accent); text-decoration: none; }
+    .gate-hint a:hover { text-decoration: underline; }
+    .gate-privacy {
+      margin-top: 16px;
+      font-size: 11px;
+      color: var(--light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    .gate-error {
+      font-size: 12px;
+      color: var(--red);
+      margin-top: 8px;
+      min-height: 18px;
+    }
+
+    /* ── Layout ── */
+    .app { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 220px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      padding: 20px 0;
+    }
+
+    .sidebar-logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    .sidebar-logo .logo-text {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.3px;
+    }
+    .sidebar-logo .logo-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 20px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 0;
+      transition: background 0.1s, color 0.1s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    .nav-item:hover { background: var(--bg); color: var(--text); }
+    .nav-item.active { background: var(--accent-soft); color: var(--accent); }
+    .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+    .sidebar-section {
+      padding: 16px 20px 6px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--light);
+      font-weight: 600;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* API key pill in sidebar footer */
+    .api-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--green-soft);
+      border: 1px solid #b2e8d6;
+      border-radius: var(--radius-sm);
+      padding: 7px 10px;
+      margin-bottom: 10px;
+      font-size: 11px;
+      color: var(--green);
+      font-weight: 600;
+    }
+    .api-pill .dot-ok { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+    .api-pill-key { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: monospace; font-size: 10px; }
+    .api-pill-change {
+      font-size: 10px;
+      color: var(--muted);
+      cursor: pointer;
+      text-decoration: underline;
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: inherit;
+    }
+
+    .sync-btn {
+      width: 100%;
+      height: var(--btn-h);
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: var(--btn-fs);
+      font-weight: var(--btn-fw);
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .sync-btn:hover { opacity: 0.9; }
+    .sync-btn:disabled { opacity: 0.5; cursor: default; }
+
+    .sync-status {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+      text-align: center;
+    }
+    .sync-status .dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--light);
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    .sync-status .dot.ok { background: var(--green); }
+    .sync-status .dot.err { background: var(--red); }
+
+    /* ── Main content ── */
+    .main { flex: 1; overflow-y: auto; padding: 32px; }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+    .page-header p { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .card-body { padding: 20px; }
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .card-header h2 { font-size: 14px; font-weight: 600; color: var(--text); }
+
+    /* ── Inputs & Controls ── */
+    textarea, select, input[type="text"], input[type="datetime-local"] {
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    textarea:focus, select:focus, input:focus { border-color: var(--accent); }
+    textarea { resize: vertical; }
+    select { cursor: pointer; }
+
+    /* ── UNIFIED BUTTON SYSTEM ── */
+    /* All buttons share the same height and font — only color varies */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: var(--btn-h);
+      padding: 0 var(--btn-px);
+      border-radius: var(--radius-sm);
+      font-size: var(--btn-fs);
+      font-weight: var(--btn-fw);
+      cursor: pointer;
+      border: none;
+      white-space: nowrap;
+      transition: opacity 0.15s, transform 0.1s;
+      line-height: 1;
+    }
+    .btn:hover { opacity: 0.88; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.45; cursor: default; transform: none; }
+
+    .btn-primary  { background: var(--accent); color: white; }
+    .btn-success  { background: var(--green); color: white; }
+    .btn-ghost    { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-danger   { background: var(--red); color: white; }
+
+    /* Size modifiers — only adjust padding/width, NOT height */
+    .btn-wide { min-width: 160px; }
+    .btn-full  { width: 100%; }
+
+    /* XS delete buttons inside thread cards */
+    .btn-xs {
+      height: 24px;
+      padding: 0 8px;
+      font-size: 11px;
+      border-radius: 5px;
+    }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-green  { background: var(--green-soft); color: var(--green); }
+    .badge-blue   { background: var(--accent-soft); color: var(--accent); }
+    .badge-yellow { background: var(--yellow-soft); color: var(--yellow); }
+    .badge-new {
+      background: var(--accent);
+      color: white;
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-left: 6px;
+    }
+
+    /* ── Filter row ── */
+    .filter-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .filter-row select, .filter-row input { width: auto; min-width: 160px; }
+
+    /* ── Recycler layout ── */
+    .recycler-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.8fr);
+      gap: 16px;
+    }
+    .recycler-detail {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 16px;
+      min-height: 220px;
+      position: sticky;
+      top: 84px;
+    }
+    .recycler-detail-empty { border-style: dashed; border-color: var(--border); }
+    .recycler-post.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+
+    @media (max-width: 900px) {
+      .recycler-layout { grid-template-columns: 1fr; }
+      .recycler-detail { position: static; margin-top: 12px; }
+    }
+
+    .rp-actions {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: stretch;
+      min-width: 148px;
+    }
+    .rp-actions .btn { width: 100%; }
+
+    .recycler-post {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      transition: box-shadow 0.15s, border-color 0.15s;
+      cursor: pointer;
+    }
+    .recycler-post:hover { box-shadow: var(--shadow-md); border-color: #D1D5DB; }
+
+    .rp-rank { font-size: 11px; font-weight: 700; color: var(--light); width: 20px; text-align: center; padding-top: 2px; flex-shrink: 0; }
+    .rp-rank.gold   { color: #F59E0B; }
+    .rp-rank.silver { color: #9CA3AF; }
+    .rp-rank.bronze { color: #CD7C2F; }
+
+    .rp-body { flex: 1; min-width: 0; }
+    .rp-channel {
+      font-size: 11px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+    }
+    .rp-text {
+      font-size: 14px; color: var(--text); line-height: 1.5; margin-bottom: 10px;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .rp-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .rp-score-bar { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 120px; }
+    .bar-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 2px; background: var(--green); transition: width 0.8s cubic-bezier(0.16,1,0.3,1); }
+    .bar-label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+    .schedule-picker-inline { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+    .schedule-picker-inline.open { display: block; }
+    .schedule-picker-inline label { font-size: 12px; color: var(--muted); font-weight: 500; display: block; margin-bottom: 5px; }
+    .schedule-actions { display: flex; gap: 8px; margin-top: 8px; }
+
+    /* ── Channel selector chips ── */
+    .channel-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+    .channel-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 10px; border-radius: 999px;
+      border: 1px solid var(--border); font-size: 12px; font-weight: 500;
+      color: var(--muted); cursor: pointer; background: var(--surface);
+      transition: all 0.12s; user-select: none;
+    }
+    .channel-chip:hover  { border-color: var(--accent); color: var(--accent); }
+    .channel-chip.selected { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+    .channel-chip .chip-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--light); }
+    .channel-chip.selected .chip-dot { background: var(--accent); }
+
+    /* ── Thread Splitter ── */
+    .thread-layout {
+      display: grid;
+      grid-template-columns: minmax(0,1fr) minmax(0,1.2fr);
+      gap: 16px;
+    }
+    @media (max-width: 900px) { .thread-layout { grid-template-columns: 1fr; } }
+
+    .thread-preview { display: flex; flex-direction: column; gap: 10px; }
+
+    .thread-tweet {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      position: relative;
+    }
+    .thread-tweet:hover { border-color: #D1D5DB; }
+
+    .thread-spine {
+      position: absolute;
+      left: 20px; top: 44px; bottom: -10px;
+      width: 2px; background: var(--border);
+    }
+
+    .thread-tweet-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .thread-tweet-index { font-size: 11px; font-weight: 700; color: var(--accent); }
+    .thread-tweet-type-badge {
+      font-size: 10px; font-weight: 600; color: var(--muted);
+      background: var(--bg); border-radius: 4px; padding: 1px 6px;
+      letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .thread-tweet-type-badge.hook   { background: var(--accent-soft); color: var(--accent); }
+    .thread-tweet-type-badge.cta    { background: var(--green-soft); color: var(--green); }
+    .thread-tweet-type-badge.bridge { background: var(--yellow-soft); color: var(--yellow); }
+
+    .thread-tweet-input {
+      width: 100%; resize: none;
+      border: 1px solid var(--border);
+      border-radius: 6px; padding: 8px 10px;
+      font-size: 13px; font-family: inherit; line-height: 1.5;
+    }
+    .thread-tweet-meta {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 6px;
+    }
+    .thread-tweet-meta span { font-size: 11px; color: var(--muted); }
+    .thread-tweet-meta .over { color: var(--red); font-weight: 600; }
+
+    .thread-summary {
+      background: var(--bg); border-radius: var(--radius-sm);
+      padding: 8px 12px; font-size: 12px; color: var(--muted);
+      display: flex; gap: 16px; margin-bottom: 10px;
+    }
+    .thread-summary strong { color: var(--text); }
+
+    /* Thread smarts panel */
+    .thread-ai-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: linear-gradient(135deg, #2C4BFF 0%, #7B5EA7 100%);
+      color: white; font-size: 10px; font-weight: 700;
+      padding: 2px 8px; border-radius: 4px;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      margin-left: 8px;
+    }
+
+    .thread-tips {
+      background: var(--accent-soft);
+      border: 1px solid #d4dcff;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: var(--accent);
+      display: none;
+    }
+    .thread-tips.show { display: block; }
+    .thread-tips ul { padding-left: 16px; margin-top: 4px; }
+    .thread-tips li { margin-top: 3px; }
+
+    /* Queue panel */
+    #queuePanel { display: none; margin-top: 16px; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(10px);
+      background: var(--text); color: white; padding: 10px 18px;
+      border-radius: 999px; font-size: 13px; font-weight: 500;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 1000; white-space: nowrap;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.success { background: var(--green); }
+    #toast.error   { background: var(--red); }
+
+    /* ── Empty states ── */
+    .empty-state {
+      text-align: center; padding: 48px 24px; color: var(--muted);
+    }
+    .empty-state .icon { font-size: 36px; margin-bottom: 12px; }
+    .empty-state h3 { font-size: 15px; color: var(--text); margin-bottom: 6px; }
+    .empty-state p  { font-size: 13px; max-width: 280px; margin: 0 auto; }
+
+    /* ── char count ── */
+    .char-count { font-size: 12px; color: var(--muted); }
+    .char-count.warn { color: var(--yellow); }
+    .char-count.over { color: var(--red); font-weight: 600; }
+    .edit-char-count { font-size: 11px; color: var(--muted); }
+    .edit-char-count.warn { color: var(--yellow); }
+
+    /* ── Row gap helpers ── */
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .row-stretch { display: flex; gap: 8px; align-items: stretch; }
+    .gap-4 { gap: 4px !important; }
+    .mt-8  { margin-top: 8px; }
+    .mt-12 { margin-top: 12px; }
+    .mt-16 { margin-top: 16px; }
+    .mb-8  { margin-bottom: 8px; }
+    .mb-12 { margin-bottom: 12px; }
+
+    /* Recycler list */
+    .recycler-list { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+  </style>
+</head>
+<body>
+
+<!-- ── API Key Gate ─────────────────────────────────────────────────── -->
+<div id="apiGate">
+  <div class="gate-card">
+    <div class="gate-logo">Post<span>IQ</span></div>
+    <div class="gate-subtitle">Recycler &amp; Thread Splitter for Buffer</div>
+
+    <label class="gate-label" for="gateKeyInput">Your Buffer Access Token</label>
+    <div class="gate-input-row">
+      <input id="gateKeyInput" class="gate-input" type="password"
+             placeholder="Paste your Buffer API token…" autocomplete="off" />
+      <button class="btn btn-primary" id="gateSubmitBtn" style="min-width:80px;">Connect</button>
+    </div>
+    <p class="gate-hint">
+      Find it at <a href="https://publish.buffer.com/app-password" target="_blank" rel="noopener">publish.buffer.com/app-password</a>.<br>
+      Your token <strong>never leaves your browser</strong> — it's only used to talk directly to Buffer's API.
+    </p>
+    <p id="gateError" class="gate-error"></p>
+    <div class="gate-privacy">
+      🔒 Stored in sessionStorage only — clears when you close the tab
+    </div>
+  </div>
+</div>
+
+<!-- ── App Shell ────────────────────────────────────────────────────── -->
+<div class="app">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-text">PostIQ</div>
+      <div class="logo-sub">Buffer toolkit</div>
+    </div>
+
+    <div class="sidebar-section">Tools</div>
+    <button class="nav-item active" data-view="recyclerView">
+      <span class="nav-icon">♻️</span> Post Recycler
+    </button>
+    <button class="nav-item" data-view="threadView">
+      <span class="nav-icon">🧵</span> Thread Splitter
+    </button>
+
+    <div class="sidebar-footer">
+      <div class="api-pill" id="apiPill" style="display:none;">
+        <span class="dot-ok"></span>
+        <span class="api-pill-key" id="apiPillKey"></span>
+        <button class="api-pill-change" id="apiChangeBtn">change</button>
+      </div>
+      <button class="sync-btn" id="btnSync">↻ Load from Buffer</button>
+      <div class="sync-status">
+        <span class="dot" id="syncDot"></span>
+        <span id="syncLabel">Not synced yet</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- ── Recycler View ── -->
+    <section id="recyclerView" class="view active">
+      <div class="page-header">
+        <h1>♻️ Post Recycler</h1>
+        <p>Surface your best evergreen posts — ranked by age, engagement, and repost potential.</p>
+      </div>
+
+      <div class="card mb-12">
+        <div class="card-body">
+          <div class="filter-row">
+            <select id="recyclerChannelFilter">
+              <option value="all">All channels</option>
+            </select>
+            <select id="recyclerSortFilter">
+              <option value="evergreen">🌿 Evergreen score</option>
+              <option value="engagement">📈 Engagement</option>
+              <option value="age">⏳ Oldest first</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="recycler-layout">
+        <div>
+          <div class="recycler-list" id="recyclerList">
+            <div class="empty-state">
+              <div class="icon">♻️</div>
+              <h3>No posts yet</h3>
+              <p>Connect your Buffer API key and click "Load from Buffer" to get started.</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="recycler-detail recycler-detail-empty" id="recyclerDetail">
+            <div class="empty-state">
+              <div class="icon">👈</div>
+              <h3>Select a post</h3>
+              <p>Click any post on the left to edit and reschedule it.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Thread Splitter View ── -->
+    <section id="threadView" class="view">
+      <div class="page-header">
+        <h1>🧵 Thread Splitter <span class="badge-new">SMART</span></h1>
+        <p>Paste any long-form content and get a perfectly structured thread — with a hook, body tweets, and a CTA. Edit inline, then queue to Buffer in one click.</p>
+      </div>
+
+      <div class="thread-layout">
+        <!-- Left: Input -->
+        <div>
+          <div class="card mb-12">
+            <div class="card-header">
+              <h2>Your content</h2>
+            </div>
+            <div class="card-body">
+              <textarea id="threadInput" placeholder="Paste a long post, blog intro, idea, or LinkedIn post here…" style="min-height:180px;"></textarea>
+
+              <div class="row mt-12">
+                <button class="btn btn-primary btn-wide" id="btnSplitThread">✂️ Split into thread</button>
+                <button class="btn btn-ghost" id="btnLoadSample">Try a sample</button>
+                <button class="btn btn-ghost" id="btnClearThread">Clear</button>
+              </div>
+
+              <div id="threadTips" class="thread-tips mt-12">
+                <strong>Thread tips:</strong>
+                <ul id="threadTipsList"></ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Queue panel -->
+          <div id="queuePanel">
+            <div class="card">
+              <div class="card-header">
+                <h2>Post to Buffer</h2>
+              </div>
+              <div class="card-body">
+                <p class="mb-8" style="font-size:13px;color:var(--muted);">Pick a channel:</p>
+                <div class="channel-chips" id="threadChannelPills"></div>
+
+                <div class="row mt-12">
+                  <button class="btn btn-success btn-wide" id="threadModeQueue">➕ Queue thread</button>
+                  <button class="btn btn-ghost" id="threadModeSchedule">🗓 Schedule</button>
+                </div>
+
+                <div id="threadDateTimePanel" style="display:none;margin-top:12px;">
+                  <label style="font-size:12px;color:var(--muted);font-weight:500;display:block;margin-bottom:5px;">Pick a time:</label>
+                  <input type="datetime-local" id="threadScheduleTime" style="max-width:280px;" />
+                </div>
+
+                <div class="row mt-12">
+                  <button class="btn btn-success btn-wide" id="btnQueueThread">Add thread to queue ↗</button>
+                  <button class="btn btn-ghost" id="btnCopyThread">📋 Copy all</button>
+                </div>
+                <div id="queueStatus" style="font-size:12px;color:var(--muted);margin-top:8px;min-height:18px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Preview -->
+        <div>
+          <div class="card">
+            <div class="card-header">
+              <h2>Thread preview</h2>
+              <div class="row gap-4">
+                <button class="btn btn-ghost btn-xs" id="btnAddTweet">+ Add tweet</button>
+              </div>
+            </div>
+            <div class="card-body" style="padding-bottom:8px;">
+              <div class="thread-summary" id="threadSummary">
+                <span>0 tweets</span><span>0 chars total</span>
+              </div>
+              <div id="threadPreview">
+                <div class="empty-state">
+                  <div class="icon">🧵</div>
+                  <h3>No thread yet</h3>
+                  <p>Paste your content on the left and hit "Split".</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─── API Key Management ────────────────────────────────────────────────────────
+const SESSION_KEY = 'postiq_buffer_token';
+
+function getToken() {
+  return sessionStorage.getItem(SESSION_KEY) || '';
+}
+
+function setToken(t) {
+  sessionStorage.setItem(SESSION_KEY, t);
+}
+
+function clearToken() {
+  sessionStorage.removeItem(SESSION_KEY);
+}
+
+function showGate(err) {
+  document.getElementById('apiGate').classList.remove('hidden');
+  document.getElementById('gateKeyInput').value = '';
+  document.getElementById('gateError').textContent = err || '';
+}
+
+function hideGate() {
+  document.getElementById('apiGate').classList.add('hidden');
+  updateApiPill();
+}
+
+function updateApiPill() {
+  const token = getToken();
+  const pill = document.getElementById('apiPill');
+  const pillKey = document.getElementById('apiPillKey');
+  if (token) {
+    pill.style.display = 'flex';
+    pillKey.textContent = token.slice(0,4) + '••••' + token.slice(-4);
+  } else {
+    pill.style.display = 'none';
+  }
+}
+
+document.getElementById('gateSubmitBtn').addEventListener('click', async () => {
+  const input = document.getElementById('gateKeyInput');
+  const key = (input.value || '').trim();
+  if (!key) {
+    document.getElementById('gateError').textContent = 'Please paste your Buffer access token.';
+    return;
+  }
+  const btn = document.getElementById('gateSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Verifying…';
+  document.getElementById('gateError').textContent = '';
+
+  // Quick sanity check: query the Buffer account
+  try {
+    const res = await fetch('https://api.buffer.com', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+      body: JSON.stringify({ query: 'query { account { email } }' })
+    });
+    const data = await res.json();
+    if (data?.errors?.length) {
+      throw new Error(data.errors[0].message);
+    }
+    if (!data?.data?.account) {
+      throw new Error('Could not verify token — check it and try again.');
+    }
+    setToken(key);
+    hideGate();
+    toast(`Connected as ${data.data.account.email} ✓`, 'success');
+  } catch (err) {
+    document.getElementById('gateError').textContent = err.message || 'Connection failed — is your token correct?';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Connect';
+});
+
+document.getElementById('gateKeyInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('gateSubmitBtn').click();
+});
+
+document.getElementById('apiChangeBtn').addEventListener('click', () => {
+  clearToken();
+  showGate();
+});
+
+// Show gate if no token
+if (!getToken()) {
+  showGate();
+} else {
+  hideGate();
+}
+
+// ─── App State ─────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+
+const state = {
+  posts: [],
+  channels: [],
+  orgId: null,
+  synced: false,
+  threadTweets: [],
+  selectedThreadChannel: null,
+  threadMode: 'queue',
+};
+
+// ─── Utilities ────────────────────────────────────────────────────────────────
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = type ? `show ${type}` : 'show';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.className = ''; }, 3000);
+}
+
+function setSyncStatus(label, st = '') {
+  document.getElementById('syncLabel').textContent = label;
+  const dot = document.getElementById('syncDot');
+  dot.className = 'dot' + (st ? ' ' + st : '');
+}
+
+// ─── Buffer API (direct, CORS-friendly) ────────────────────────────────────────
+async function callBuffer(query, variables = {}) {
+  const token = getToken();
+  if (!token) { showGate('Your session expired. Please reconnect.'); throw new Error('No token'); }
+
+  const res = await fetch('https://api.buffer.com', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ query, variables })
+  });
+  const text = await res.text();
+  try {
+    const data = JSON.parse(text);
+    if (data?.errors?.length) {
+      const msg = data.errors[0].message;
+      if (msg.toLowerCase().includes('unauthorized') || msg.toLowerCase().includes('unauthenticated')) {
+        clearToken(); showGate('Session expired — reconnect your API key.');
+      }
+      throw new Error(msg);
+    }
+    return data;
+  } catch (e) {
+    throw e;
+  }
+}
+
+function safe(str, max = 200) {
+  const s = (str || '').replace(/</g, '&lt;');
+  return s.length > max ? s.slice(0, max) + '…' : s;
+}
+
+function serviceLabel(s) {
+  const map = { twitter: '𝕏', instagram: '📸', facebook: '👤', linkedin: '💼', threads: '🧵', pinterest: '📌', tiktok: '🎵', mastodon: '🐘' };
+  return map[s] || '📡';
+}
+
+// ─── Navigation ───────────────────────────────────────────────────────────────
+document.querySelectorAll('[data-view]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    btn.classList.add('active');
+    const view = document.getElementById(btn.dataset.view);
+    if (view) view.classList.add('active');
+  });
+});
+
+// ─── Load Buffer Data ─────────────────────────────────────────────────────────
+async function loadData() {
+  const btn = document.getElementById('btnSync');
+  if (!getToken()) { showGate(); return; }
+  btn.disabled = true;
+  btn.textContent = 'Loading…';
+  setSyncStatus('Connecting…');
+
+  try {
+    const orgRes = await callBuffer('query { account { id email organizations { id name } } }');
+    const orgs = orgRes?.data?.account?.organizations || [];
+    state.orgId = (orgs[0] || {}).id || null;
+
+    const chanRes = await callBuffer(`query { channels(input: { organizationId: "${state.orgId}" }) { id name displayName service } }`);
+    state.channels = chanRes?.data?.channels || [];
+
+    const postsRes = await callBuffer(`query { posts(first: 100, input: { organizationId: "${state.orgId}", filter: { status: [sent] } }) { edges { node { id text createdAt channelId } } } }`);
+    const edges = postsRes?.data?.posts?.edges || [];
+    state.posts = edges.map(e => e.node);
+    state.synced = true;
+
+    renderRecycler();
+    renderThreadChannelPills();
+    setSyncStatus(`${state.posts.length} posts loaded`, 'ok');
+    toast(`Loaded ${state.posts.length} posts ✓`, 'success');
+  } catch (err) {
+    const msg = err.message || 'Unknown error';
+    setSyncStatus('Connection failed', 'err');
+    toast('Error: ' + msg, 'error');
+    console.error('Buffer API error:', err);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '↻ Load from Buffer';
+}
+
+document.getElementById('btnSync').addEventListener('click', loadData);
+
+// ─── Scoring ──────────────────────────────────────────────────────────────────
+function totalEngagement(post) {
+  const s = post.statistics || {};
+  return (s.likes || 0) + (s.comments || 0) + (s.shares || 0) + (s.reposts || 0);
+}
+
+function evergreenScore(post) {
+  const text = post.text || '';
+  const ageMs = Date.now() - new Date(post.createdAt).getTime();
+  const ageDays = ageMs / (1000 * 60 * 60 * 24);
+
+  let score = 40;
+  if (ageDays > 90)  score += 20;
+  if (ageDays > 180) score += 15;
+  if (ageDays > 365) score += 10;
+
+  const eng = totalEngagement(post);
+  const imp = post.statistics?.impressions || 0;
+  if (eng > 0) score += Math.min(25, eng * 2);
+  if (imp > 0) {
+    const rate = eng / imp;
+    score += Math.min(15, Math.round(rate * 300));
+  }
+
+  const hasTips    = /\d+\s*(tip|way|step|thing|reason|fact|hack|secret)/i.test(text);
+  const hasQ       = /\?/.test(text);
+  const isShort    = text.length < 180;
+  const isTimeless = !/(\d{4}|Q[1-4]\s*\d{4}|this year|this month|last week|yesterday)/i.test(text);
+
+  if (hasTips) score += 8;
+  if (hasQ)    score += 5;
+  if (isShort) score += 4;
+  if (isTimeless) score += 6;
+
+  return Math.min(100, Math.round(score));
+}
+
+// ─── Recycler ─────────────────────────────────────────────────────────────────
+let selectedPostId = null;
+
+function renderRecycler() {
+  const channelFilter = document.getElementById('recyclerChannelFilter').value || 'all';
+  const sortFilter    = document.getElementById('recyclerSortFilter').value || 'evergreen';
+  const list = document.getElementById('recyclerList');
+
+  // Update channel filter options
+  const cf = document.getElementById('recyclerChannelFilter');
+  const prev = cf.value;
+  cf.innerHTML = '<option value="all">All channels</option>';
+  state.channels.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id;
+    o.textContent = `${serviceLabel(c.service)} ${c.displayName || c.name}`;
+    cf.appendChild(o);
+  });
+  cf.value = prev;
+
+  let posts = state.posts;
+  if (channelFilter !== 'all') posts = posts.filter(p => p.channelId === channelFilter);
+
+  const scored = posts
+    .map(p => ({ ...p, _score: evergreenScore(p), _eng: totalEngagement(p) }))
+    .sort((a, b) => {
+      if (sortFilter === 'engagement') return b._eng - a._eng;
+      if (sortFilter === 'age') return new Date(a.createdAt) - new Date(b.createdAt);
+      return b._score - a._score;
+    })
+    .slice(0, 30);
+
+  if (!scored.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><h3>No posts found</h3><p>Try a different filter.</p></div>';
+    return;
+  }
+
+  const ranks = ['🥇', '🥈', '🥉'];
+  list.innerHTML = '';
+  const container = document.createElement('div');
+  container.className = 'recycler-list';
+
+  scored.forEach((post, idx) => {
+    const channel = state.channels.find(c => c.id === post.channelId);
+    const channelName = channel ? `${serviceLabel(channel.service)} ${channel.displayName || channel.name}` : 'Unknown channel';
+    const ageDays = Math.floor((Date.now() - new Date(post.createdAt).getTime()) / 86400000);
+    const ageLabel = ageDays < 30 ? `${ageDays}d ago` : ageDays < 365 ? `${Math.floor(ageDays/30)}mo ago` : `${Math.floor(ageDays/365)}y ago`;
+    const rankClass = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : '';
+
+    const card = document.createElement('div');
+    card.className = 'recycler-post' + (post.id === selectedPostId ? ' selected' : '');
+    card.dataset.postId = post.id;
+    card.innerHTML = `
+      <div class="rp-rank ${rankClass}">${idx < 3 ? ranks[idx] : idx + 1}</div>
+      <div class="rp-body">
+        <div class="rp-channel">${channelName} <span style="color:var(--light);font-weight:400;">${ageLabel}</span></div>
+        <div class="rp-text">${safe(post.text, 220)}</div>
+        <div class="rp-meta">
+          <div class="rp-score-bar">
+            <div class="bar-track"><div class="bar-fill" style="width:${post._score}%"></div></div>
+            <span class="bar-label">${post._score}/100</span>
+          </div>
+        </div>
+      </div>
+      <div class="rp-actions">
+        <button class="btn btn-success" onclick="openRecyclerDetail('${post.id}')">Recycle ↗</button>
+        <button class="btn btn-ghost" onclick="openRecyclerDetail('${post.id}',true)">✏️ Edit</button>
+      </div>
+    `;
+    card.addEventListener('click', e => {
+      if (e.target.closest('.btn')) return;
+      openRecyclerDetail(post.id);
+    });
+    container.appendChild(card);
+  });
+
+  list.innerHTML = '';
+  list.appendChild(container);
+}
+
+document.getElementById('recyclerChannelFilter').addEventListener('change', renderRecycler);
+document.getElementById('recyclerSortFilter').addEventListener('change', renderRecycler);
+
+function openRecyclerDetail(postId, editMode = false) {
+  selectedPostId = postId;
+  const post = state.posts.find(p => p.id === postId);
+  const detail = document.getElementById('recyclerDetail');
+  if (!post || !detail) return;
+
+  document.querySelectorAll('.recycler-post').forEach(c => {
+    c.classList.toggle('selected', c.dataset.postId === postId);
+  });
+
+  const channel = state.channels.find(c => c.id === post.channelId);
+  const channelName = channel ? `${serviceLabel(channel.service)} ${channel.displayName || channel.name}` : '';
+
+  detail.classList.remove('recycler-detail-empty');
+  detail.innerHTML = `
+    <div style="margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">${channelName}</div>
+      <textarea id="editText-${postId}" style="min-height:120px;font-size:13px;" >${(post.text||'').replace(/</g,'&lt;')}</textarea>
+      <div style="text-align:right;margin-top:4px;"><span class="edit-char-count" id="editCount-${postId}">${post.text.length} chars</span></div>
+    </div>
+
+    <div style="margin-bottom:10px;">
+      <p style="font-size:12px;color:var(--muted);font-weight:500;margin-bottom:6px;">Post to channel:</p>
+      <div class="channel-chips" id="detailChannelPills"></div>
+    </div>
+
+    <div class="row mb-8">
+      <button class="btn btn-success btn-wide" id="modeQueue-${postId}">➕ Add to queue</button>
+      <button class="btn btn-ghost" id="modeSchedule-${postId}">🗓 Schedule</button>
+    </div>
+
+    <div id="schedPicker-${postId}" class="schedule-picker-inline">
+      <label>Pick a time:</label>
+      <input type="datetime-local" id="schedTime-${postId}" />
+      <div class="schedule-actions">
+        <button class="btn btn-success" id="confirmBtn-${postId}">Schedule ↗</button>
+        <button class="btn btn-ghost" id="cancelBtn-${postId}">Cancel</button>
+      </div>
+    </div>
+    <div id="confirmQueue-${postId}" style="display:none;margin-top:8px;">
+      <button class="btn btn-success btn-wide" id="confirmQueueBtn-${postId}">Add to queue ↗</button>
+      <button class="btn btn-ghost" style="margin-left:8px;" id="cancelQueueBtn-${postId}">Cancel</button>
+    </div>
+    <div id="detailStatus-${postId}" style="font-size:12px;color:var(--muted);margin-top:8px;min-height:18px;"></div>
+  `;
+
+  // Populate channel pills
+  const pills = document.getElementById('detailChannelPills');
+  let selectedDetailChannel = post.channelId;
+  state.channels.forEach(c => {
+    const chip = document.createElement('span');
+    chip.className = 'channel-chip' + (c.id === selectedDetailChannel ? ' selected' : '');
+    chip.textContent = `${serviceLabel(c.service)} ${c.displayName || c.name}`;
+    chip.dataset.channelId = c.id;
+    chip.addEventListener('click', () => {
+      pills.querySelectorAll('.channel-chip').forEach(x => x.classList.remove('selected'));
+      chip.classList.add('selected');
+      selectedDetailChannel = c.id;
+    });
+    pills.appendChild(chip);
+  });
+
+  // Char count
+  const ta = document.getElementById(`editText-${postId}`);
+  const cc = document.getElementById(`editCount-${postId}`);
+  ta.addEventListener('input', () => {
+    const len = ta.value.length;
+    cc.textContent = `${len} chars`;
+    cc.className = 'edit-char-count' + (len > 700 ? ' warn' : '');
+  });
+
+  // Mode buttons
+  let detailMode = 'queue';
+  const qBtn = document.getElementById(`modeQueue-${postId}`);
+  const sBtn = document.getElementById(`modeSchedule-${postId}`);
+  const picker = document.getElementById(`schedPicker-${postId}`);
+  const queueConfirm = document.getElementById(`confirmQueue-${postId}`);
+
+  qBtn.addEventListener('click', () => {
+    detailMode = 'queue';
+    picker.classList.remove('open');
+    queueConfirm.style.display = 'block';
+    qBtn.className = 'btn btn-success btn-wide';
+    sBtn.className = 'btn btn-ghost';
+  });
+  sBtn.addEventListener('click', () => {
+    detailMode = 'schedule';
+    queueConfirm.style.display = 'none';
+    picker.classList.add('open');
+    sBtn.className = 'btn btn-primary';
+    qBtn.className = 'btn btn-ghost btn-wide';
+  });
+
+  async function submitRecycle(scheduledAt) {
+    const text = (ta.value || '').trim();
+    if (!text) { toast('Post text is empty', 'error'); return; }
+    const statusEl = document.getElementById(`detailStatus-${postId}`);
+    statusEl.style.color = 'var(--muted)';
+    statusEl.textContent = scheduledAt ? 'Scheduling…' : 'Adding to queue…';
+
+    const mutation = `mutation CreatePost($input: CreatePostInput!) { createPost(input: $input) { __typename } }`;
+    const variables = {
+      input: {
+        channelId: selectedDetailChannel,
+        text,
+        schedulingType: 'automatic',
+        mode: scheduledAt ? 'customScheduled' : 'addToQueue',
+        ...(scheduledAt ? { dueAt: scheduledAt } : {})
+      }
+    };
+    try {
+      const res = await callBuffer(mutation, variables);
+      if (res?.errors?.length) throw new Error(res.errors[0].message);
+      statusEl.style.color = 'var(--green)';
+      statusEl.textContent = scheduledAt ? '✓ Scheduled!' : '✓ Added to queue!';
+      toast(scheduledAt ? 'Post scheduled in Buffer ✓' : 'Post added to Buffer queue ✓', 'success');
+    } catch (err) {
+      statusEl.style.color = 'var(--red)';
+      statusEl.textContent = 'Error: ' + err.message;
+      toast('Error: ' + err.message, 'error');
+    }
+  }
+
+  document.getElementById(`confirmQueueBtn-${postId}`)?.addEventListener('click', () => submitRecycle(null));
+  document.getElementById(`cancelQueueBtn-${postId}`)?.addEventListener('click', () => {
+    queueConfirm.style.display = 'none';
+    qBtn.className = 'btn btn-success btn-wide';
+  });
+  document.getElementById(`confirmBtn-${postId}`)?.addEventListener('click', () => {
+    const val = document.getElementById(`schedTime-${postId}`).value;
+    if (!val) { toast('Pick a date/time first', 'error'); return; }
+    submitRecycle(new Date(val).toISOString());
+  });
+  document.getElementById(`cancelBtn-${postId}`)?.addEventListener('click', () => {
+    picker.classList.remove('open');
+    detailMode = 'queue';
+    sBtn.className = 'btn btn-ghost';
+    qBtn.className = 'btn btn-success btn-wide';
+  });
+}
+
+// ─── SMART Thread Splitter ────────────────────────────────────────────────────
+const TWEET_MAX        = 280;
+const TWEET_TARGET_MAX = 240;
+const TWEET_TARGET_MIN = 80;
+
+// Detect what role a tweet should play
+function classifyTweet(text, idx, total) {
+  if (idx === 0) return 'hook';
+  if (idx === total - 1) return 'cta';
+  if (/^(but|however|so|here's|this means|the key|in fact|what this|what that|which means)/i.test(text.trim())) return 'bridge';
+  return 'body';
+}
+
+// Generate tips based on analysis of the thread
+function analyzeThread(tweets) {
+  const tips = [];
+  const full = tweets.join(' ');
+
+  if (tweets[0] && tweets[0].length < 60) {
+    tips.push('Hook is short — consider adding a bold claim or surprising stat to pull readers in.');
+  }
+  if (!tweets[0]?.match(/\?|!|:/)) {
+    tips.push('Open with a question, strong claim, or ":" setup to increase click-throughs.');
+  }
+  const lastTweet = tweets[tweets.length - 1] || '';
+  if (!lastTweet.match(/follow|retweet|share|reply|comment|DM|link|check|grab|get|read|subscribe|newsletter/i)) {
+    tips.push('Last tweet needs a CTA — ask a question, invite replies, or link to something.');
+  }
+  if (tweets.some(t => t.length > TWEET_MAX)) {
+    tips.push('Some tweets are over 280 chars — trim or split them before posting.');
+  }
+  if (tweets.length < 3) {
+    tips.push('Short thread — consider expanding to at least 4–5 tweets for better reach.');
+  }
+  if (!/\d/.test(full) && tweets.length > 4) {
+    tips.push('Add a numbered tweet (e.g., "3 things…") to boost engagement.');
+  }
+  return tips;
+}
+
+function splitIntoTweets(rawText) {
+  const cleaned = (rawText || '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  if (!cleaned) return [];
+
+  // Split on double newlines first
+  const rawBlocks = cleaned.split(/\n{2,}/).map(b => b.trim()).filter(Boolean);
+  const blocks = [];
+
+  rawBlocks.forEach(block => {
+    // Bullet/list blocks pass through as-is
+    if (/^[-*•]/.test(block) || block.length <= TWEET_TARGET_MAX) {
+      blocks.push(block);
+    } else {
+      // Try splitting on sentence boundaries
+      const sentences = block.split(/(?<=[.!?])\s+(?=[A-Z0-9"'])/).filter(Boolean);
+      blocks.push(...sentences);
+    }
+  });
+
+  const tweets = [];
+  let current = '';
+
+  const pushCurrent = () => {
+    if (!current) return;
+    tweets.push(current.trim());
+    current = '';
+  };
+
+  for (const piece of blocks) {
+    const trimmed = piece.trim();
+    if (!trimmed) continue;
+
+    // Can append to current tweet?
+    if ((current + ' ' + trimmed).trim().length <= TWEET_TARGET_MAX) {
+      current = (current + ' ' + trimmed).trim();
+      continue;
+    }
+
+    // Flush current if it's long enough
+    if (current.length >= TWEET_TARGET_MIN) {
+      pushCurrent();
+    }
+
+    if (trimmed.length <= TWEET_MAX) {
+      if (trimmed.length > TWEET_TARGET_MAX) {
+        // Try phrase-level splits
+        const phraseParts = trimmed.split(/(?<=[,;:—])\s+/);
+        let chunk = '';
+        for (const part of phraseParts) {
+          if ((chunk + ' ' + part).trim().length <= TWEET_MAX) {
+            chunk = (chunk + ' ' + part).trim();
+          } else {
+            if (chunk) tweets.push(chunk);
+            chunk = part;
+          }
+        }
+        if (chunk) current = chunk;
+      } else {
+        current = trimmed;
+      }
+    } else {
+      // Hard split on word boundary
+      const words = trimmed.split(/\s+/);
+      let chunk = '';
+      for (const word of words) {
+        if ((chunk + ' ' + word).trim().length <= TWEET_MAX) {
+          chunk = (chunk + ' ' + word).trim();
+        } else {
+          if (chunk) tweets.push(chunk);
+          chunk = word;
+        }
+      }
+      if (chunk) current = chunk;
+    }
+  }
+
+  pushCurrent();
+
+  // Post-process: ensure first tweet looks like a hook
+  if (tweets.length > 0) {
+    const first = tweets[0];
+    // If first tweet doesn't end with punctuation, add "🧵" thread marker
+    if (!/[.!?:]$/.test(first.trim()) && tweets.length > 1) {
+      tweets[0] = first.trim() + ' 🧵';
+    }
+  }
+
+  // Ensure there's a CTA-friendly last tweet
+  if (tweets.length > 2) {
+    const last = tweets[tweets.length - 1];
+    // If last tweet is very short and has no question, suggest one
+    if (last.length < 60 && !last.includes('?')) {
+      // Don't auto-modify, just flag in tips
+    }
+  }
+
+  return tweets;
+}
+
+function renderThreadPreview() {
+  const container = document.getElementById('threadPreview');
+  const summary   = document.getElementById('threadSummary');
+  const tips      = document.getElementById('threadTips');
+  const tipsList  = document.getElementById('threadTipsList');
+  if (!container) return;
+
+  if (!state.threadTweets || !state.threadTweets.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">🧵</div>
+        <h3>No thread yet</h3>
+        <p>Paste your content on the left and hit "Split".</p>
+      </div>`;
+    summary.innerHTML = '<span>0 tweets</span><span>0 chars total</span>';
+    if (tips) tips.classList.remove('show');
+    return;
+  }
+
+  const total = state.threadTweets.length;
+  container.innerHTML = '';
+
+  state.threadTweets.forEach((t, idx) => {
+    const tweetText = (t || '').replace(/</g, '&lt;');
+    const length    = (t || '').length;
+    const type      = classifyTweet(t, idx, total);
+    const typeLabel = type === 'hook' ? 'Hook' : type === 'cta' ? 'CTA' : type === 'bridge' ? 'Bridge' : '';
+    const badgeCls  = typeLabel ? `thread-tweet-type-badge ${type}` : 'thread-tweet-type-badge';
+
+    const card = document.createElement('div');
+    card.className = 'thread-tweet';
+    card.innerHTML = `
+      ${idx < total - 1 ? '<div class="thread-spine"></div>' : ''}
+      <div class="thread-tweet-header">
+        <span class="thread-tweet-index">Tweet ${idx + 1}</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          ${typeLabel ? `<span class="${badgeCls}">${typeLabel}</span>` : ''}
+          <button type="button" class="btn btn-ghost btn-xs thread-delete" data-index="${idx}">✕</button>
+        </div>
+      </div>
+      <textarea class="thread-tweet-input" data-index="${idx}" rows="3">${tweetText}</textarea>
+      <div class="thread-tweet-meta">
+        <span></span>
+        <span class="${length > TWEET_MAX ? 'over' : ''}">${length} / ${TWEET_MAX}</span>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  // Bind textarea updates
+  container.querySelectorAll('.thread-tweet-input').forEach(el => {
+    el.addEventListener('input', e => {
+      const idx = +e.target.dataset.index;
+      state.threadTweets[idx] = e.target.value;
+      const meta = e.target.parentElement.querySelector('.thread-tweet-meta span:last-child');
+      const len  = e.target.value.length;
+      if (meta) {
+        meta.textContent = `${len} / ${TWEET_MAX}`;
+        meta.className = len > TWEET_MAX ? 'over' : '';
+      }
+      const totalChars = state.threadTweets.reduce((s, t) => s + (t || '').length, 0);
+      summary.innerHTML = `<span><strong>${state.threadTweets.length}</strong> tweets</span><span><strong>${totalChars}</strong> chars total</span>`;
+    });
+  });
+
+  // Delete buttons
+  container.querySelectorAll('.thread-delete').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const idx = +btn.dataset.index;
+      state.threadTweets.splice(idx, 1);
+      renderThreadPreview();
+    });
+  });
+
+  const totalChars = state.threadTweets.reduce((s, t) => s + (t || '').length, 0);
+  summary.innerHTML = `<span><strong>${total}</strong> tweets</span><span><strong>${totalChars}</strong> chars total</span>`;
+
+  // Smart tips
+  const threadTipItems = analyzeThread(state.threadTweets);
+  if (tips && tipsList) {
+    if (threadTipItems.length > 0) {
+      tipsList.innerHTML = threadTipItems.map(t => `<li>${t}</li>`).join('');
+      tips.classList.add('show');
+    } else {
+      tips.classList.remove('show');
+    }
+  }
+}
+
+function renderThreadChannelPills() {
+  const container = document.getElementById('threadChannelPills');
+  if (!container) return;
+  container.innerHTML = '';
+  state.channels.forEach(c => {
+    const chip = document.createElement('span');
+    chip.className = 'channel-chip' + (c.id === state.selectedThreadChannel ? ' selected' : '');
+    chip.textContent = `${serviceLabel(c.service)} ${c.displayName || c.name}`;
+    chip.dataset.channelId = c.id;
+    chip.addEventListener('click', () => {
+      container.querySelectorAll('.channel-chip').forEach(x => x.classList.remove('selected'));
+      chip.classList.add('selected');
+      state.selectedThreadChannel = c.id;
+    });
+    container.appendChild(chip);
+  });
+
+  const first = container.querySelector('.channel-chip');
+  if (first && !container.querySelector('.channel-chip.selected')) {
+    first.classList.add('selected');
+    state.selectedThreadChannel = first.dataset.channelId;
+  }
+}
+
+window.renderThreadChannelPills = renderThreadChannelPills;
+
+// ─── Thread controls ──────────────────────────────────────────────────────────
+document.getElementById('btnSplitThread').addEventListener('click', () => {
+  const input = document.getElementById('threadInput');
+  if (!input || !input.value.trim()) { toast('Paste some content first', 'error'); return; }
+  const tweets = splitIntoTweets(input.value);
+  state.threadTweets = tweets;
+  renderThreadPreview();
+  const panel = document.getElementById('queuePanel');
+  if (panel) panel.style.display = tweets.length ? 'block' : 'none';
+  if (tweets.length) renderThreadChannelPills();
+});
+
+document.getElementById('btnLoadSample').addEventListener('click', () => {
+  const input = document.getElementById('threadInput');
+  if (!input) return;
+  input.value = `Most social teams aren't failing at content.
+
+They're failing because the org expects them to do the wrong job.
+
+Social is asked to:
+• Drive all revenue
+• Handle all comms
+• Be the brand
+• Be support
+• Go viral
+• Stay "authentic"
+• Report on everything
+• Do it with 1–2 people.
+
+That's not a content problem. That's a structure problem.
+
+The best social teams I've seen have three things: a clear mandate, a small focused brief, and the freedom to say no.
+
+When you know what you're NOT doing, you can actually get great at what you ARE doing.
+
+Most brands don't need more content. They need more clarity.
+
+What's one thing your social team should probably stop doing?`;
+  state.threadTweets = [];
+  renderThreadPreview();
+  const panel = document.getElementById('queuePanel');
+  if (panel) panel.style.display = 'none';
+});
+
+document.getElementById('btnClearThread').addEventListener('click', () => {
+  const input = document.getElementById('threadInput');
+  if (input) input.value = '';
+  state.threadTweets = [];
+  renderThreadPreview();
+  const panel = document.getElementById('queuePanel');
+  if (panel) panel.style.display = 'none';
+  const tips = document.getElementById('threadTips');
+  if (tips) tips.classList.remove('show');
+});
+
+document.getElementById('btnAddTweet').addEventListener('click', () => {
+  if (!state.threadTweets) state.threadTweets = [];
+  state.threadTweets.push('');
+  renderThreadPreview();
+});
+
+// Thread mode toggle
+function setThreadMode(mode) {
+  state.threadMode = mode;
+  const queueBtn   = document.getElementById('threadModeQueue');
+  const schedBtn   = document.getElementById('threadModeSchedule');
+  const dtPanel    = document.getElementById('threadDateTimePanel');
+  const queueBtnMain = document.getElementById('btnQueueThread');
+
+  if (mode === 'schedule') {
+    if (dtPanel) dtPanel.style.display = 'block';
+    if (schedBtn) { schedBtn.className = 'btn btn-primary'; }
+    if (queueBtn) { queueBtn.className = 'btn btn-ghost btn-wide'; }
+    if (queueBtnMain) queueBtnMain.textContent = 'Schedule thread ↗';
+  } else {
+    if (dtPanel) dtPanel.style.display = 'none';
+    if (schedBtn) { schedBtn.className = 'btn btn-ghost'; }
+    if (queueBtn) { queueBtn.className = 'btn btn-success btn-wide'; }
+    if (queueBtnMain) queueBtnMain.textContent = 'Add thread to queue ↗';
+  }
+}
+
+document.getElementById('threadModeQueue').addEventListener('click', () => setThreadMode('queue'));
+document.getElementById('threadModeSchedule').addEventListener('click', () => setThreadMode('schedule'));
+
+document.getElementById('btnCopyThread').addEventListener('click', async () => {
+  const nodes = document.querySelectorAll('#threadPreview textarea');
+  const tweets = Array.from(nodes).map(n => n.value.trim()).filter(Boolean);
+  if (!tweets.length) { toast('Nothing to copy yet'); return; }
+  const blob = tweets.map((t, i) => `${i + 1}.\n${t}`).join('\n\n');
+  try {
+    await navigator.clipboard.writeText(blob);
+    toast('Thread copied to clipboard ✓', 'success');
+  } catch (err) {
+    toast('Could not copy to clipboard', 'error');
+  }
+});
+
+document.getElementById('btnQueueThread').addEventListener('click', async () => {
+  const nodes = document.querySelectorAll('#threadPreview textarea');
+  const tweets = Array.from(nodes).map(n => n.value.trim()).filter(Boolean);
+
+  if (!tweets.length)                        { toast('No tweets to queue yet'); return; }
+  if (tweets.some(t => t.length > TWEET_MAX)){ toast('Some tweets over 280 chars — trim first.', 'error'); return; }
+  if (!state.selectedThreadChannel)          { toast('Pick a channel first', 'error'); return; }
+
+  const threadMode = state.threadMode || 'queue';
+  let scheduledAt  = null;
+
+  if (threadMode === 'schedule') {
+    const val = document.getElementById('threadScheduleTime').value;
+    if (!val) { toast('Please pick a date and time', 'error'); return; }
+    scheduledAt = new Date(val).toISOString();
+  }
+
+  const btn      = document.getElementById('btnQueueThread');
+  const statusEl = document.getElementById('queueStatus');
+  btn.disabled   = true;
+  statusEl.style.color = 'var(--muted)';
+  statusEl.textContent = threadMode === 'schedule' ? 'Scheduling tweets in Buffer…' : 'Adding tweets to your Buffer queue…';
+
+  let queued = 0;
+  const errors = [];
+
+  for (let i = 0; i < tweets.length; i++) {
+    try {
+      const mutation  = `mutation CreatePost($input: CreatePostInput!) { createPost(input: $input) { __typename } }`;
+      const variables = {
+        input: {
+          channelId: state.selectedThreadChannel,
+          text: tweets[i],
+          schedulingType: 'automatic',
+          mode: scheduledAt ? 'customScheduled' : 'addToQueue',
+          ...(scheduledAt ? { dueAt: scheduledAt } : {})
+        }
+      };
+      const res = await callBuffer(mutation, variables);
+      if (res?.errors?.length) throw new Error(res.errors[0].message);
+      queued++;
+    } catch (err) {
+      errors.push(`Tweet ${i + 1}: ${err.message}`);
+    }
+  }
+
+  if (!errors.length) {
+    statusEl.style.color = 'var(--green)';
+    statusEl.textContent = `✓ ${queued} tweets ${threadMode === 'schedule' ? 'scheduled' : 'queued'} in Buffer`;
+    toast(`${queued} tweets sent to Buffer ✓`, 'success');
+  } else {
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = `${queued} added, ${errors.length} failed`;
+    toast(`Partial: ${queued}/${tweets.length} added`, 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = threadMode === 'schedule' ? 'Schedule thread ↗' : 'Add thread to queue ↗';
+});
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+setThreadMode('queue');
+renderThreadPreview();
+
+}); // end DOMContentLoaded
+</script>
+</body>
+</html>
