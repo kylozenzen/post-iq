@@ -979,58 +979,56 @@ function updateApiPill() {
   }
 }
 
-document.getElementById('gateSubmitBtn').addEventListener('click', async () => {
-  const input = document.getElementById('gateKeyInput');
-  const key = (input.value || '').trim();
-  if (!key) {
-    document.getElementById('gateError').textContent = 'Please paste your Buffer access token.';
-    return;
-  }
-  const btn = document.getElementById('gateSubmitBtn');
-  btn.disabled = true;
-  btn.textContent = 'Verifying…';
-  document.getElementById('gateError').textContent = '';
+// Gate listeners — wait for DOM
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('gateSubmitBtn').addEventListener('click', async () => {
+    const input = document.getElementById('gateKeyInput');
+    const key = (input.value || '').trim();
+    if (!key) {
+      document.getElementById('gateError').textContent = 'Please paste your Buffer access token.';
+      return;
+    }
+    const btn = document.getElementById('gateSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Verifying…';
+    document.getElementById('gateError').textContent = '';
 
-  // Quick sanity check: query the Buffer account
-  try {
-    const res = await fetch('/.netlify/functions/buffer-proxy', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: key, query: 'query { account { email } }' })
-    });
-    const data = await res.json();
-    if (data?.errors?.length) {
-      throw new Error(data.errors[0].message);
+    try {
+      const res = await fetch('/.netlify/functions/buffer-proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: key, query: 'query { account { email } }' })
+      });
+      const data = await res.json();
+      if (data?.errors?.length) throw new Error(data.errors[0].message);
+      if (!data?.data?.account) throw new Error('Could not verify token — check it and try again.');
+      setToken(key);
+      hideGate();
+      toast(`Connected as ${data.data.account.email} ✓`, 'success');
+    } catch (err) {
+      document.getElementById('gateError').textContent = err.message || 'Connection failed — is your token correct?';
     }
-    if (!data?.data?.account) {
-      throw new Error('Could not verify token — check it and try again.');
-    }
-    setToken(key);
+
+    btn.disabled = false;
+    btn.textContent = 'Connect';
+  });
+
+  document.getElementById('gateKeyInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('gateSubmitBtn').click();
+  });
+
+  document.getElementById('apiChangeBtn').addEventListener('click', () => {
+    clearToken();
+    showGate();
+  });
+
+  // Show gate if no token
+  if (!getToken()) {
+    showGate();
+  } else {
     hideGate();
-    toast(`Connected as ${data.data.account.email} ✓`, 'success');
-  } catch (err) {
-    document.getElementById('gateError').textContent = err.message || 'Connection failed — is your token correct?';
   }
-
-  btn.disabled = false;
-  btn.textContent = 'Connect';
 });
-
-document.getElementById('gateKeyInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('gateSubmitBtn').click();
-});
-
-document.getElementById('apiChangeBtn').addEventListener('click', () => {
-  clearToken();
-  showGate();
-});
-
-// Show gate if no token
-if (!getToken()) {
-  showGate();
-} else {
-  hideGate();
-}
 
 // ─── App State ─────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
