@@ -581,6 +581,82 @@
 
     /* Recycler list */
     .recycler-list { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+
+    /* ── Detail panel ── */
+    .detail-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      gap: 10px;
+    }
+    .detail-channel-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+    .detail-hint {
+      font-size: 11px;
+      color: var(--light);
+      font-style: italic;
+    }
+    .detail-textarea {
+      min-height: 140px;
+      font-size: 13px;
+      line-height: 1.6;
+      width: 100%;
+    }
+    .detail-char-row {
+      text-align: right;
+      margin-top: 4px;
+      margin-bottom: 12px;
+    }
+    .detail-channel-row {
+      margin-bottom: 14px;
+    }
+    .detail-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .detail-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .detail-status {
+      font-size: 12px;
+      min-height: 20px;
+      margin-top: 8px;
+      border-radius: var(--radius-sm);
+      padding: 0;
+      transition: all 0.2s;
+    }
+    .detail-status.loading { color: var(--muted); }
+    .detail-status.success {
+      color: var(--green);
+      background: var(--green-soft);
+      padding: 8px 12px;
+      font-weight: 600;
+      animation: statusPop 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    .detail-status.error {
+      color: var(--red);
+      background: var(--red-soft);
+      padding: 8px 12px;
+    }
+    @keyframes statusPop {
+      from { transform: scale(0.96); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
+    }
+
   </style>
 </head>
 <body>
@@ -691,7 +767,7 @@
     <section id="threadView" class="view">
       <div class="page-header">
         <h1>🧵 Thread Splitter <span class="badge-new">SMART</span></h1>
-        <p>Paste any long-form content and get a perfectly structured thread — with a hook, body tweets, and a CTA. Edit inline, then queue to Buffer in one click.</p>
+        <p>Paste any long-form content and get a perfectly structured thread — with a hook, body parts, and a CTA. Edit each part inline, then queue the whole thread to Buffer in one click.</p>
       </div>
 
       <div class="thread-layout">
@@ -758,7 +834,7 @@
             </div>
             <div class="card-body" style="padding-bottom:8px;">
               <div class="thread-summary" id="threadSummary">
-                <span>0 tweets</span><span>0 chars total</span>
+                <span>0 parts</span><span>0 chars total</span>
               </div>
               <div id="threadPreview">
                 <div class="empty-state">
@@ -1085,14 +1161,10 @@ function renderRecycler() {
         </div>
       </div>
       <div class="rp-actions">
-        <button class="btn btn-success" onclick="openRecyclerDetail('${post.id}')">Recycle ↗</button>
-        <button class="btn btn-ghost" onclick="openRecyclerDetail('${post.id}',true)">✏️ Edit</button>
+        <button class="btn btn-primary" onclick="event.stopPropagation();openRecyclerDetail('${post.id}')">Recycle →</button>
       </div>
     `;
-    card.addEventListener('click', e => {
-      if (e.target.closest('.btn')) return;
-      openRecyclerDetail(post.id);
-    });
+    card.addEventListener('click', () => openRecyclerDetail(post.id));
     container.appendChild(card);
   });
 
@@ -1118,35 +1190,33 @@ function openRecyclerDetail(postId, editMode = false) {
 
   detail.classList.remove('recycler-detail-empty');
   detail.innerHTML = `
-    <div style="margin-bottom:12px;">
-      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">${channelName}</div>
-      <textarea id="editText-${postId}" style="min-height:120px;font-size:13px;" >${(post.text||'').replace(/</g,'&lt;')}</textarea>
-      <div style="text-align:right;margin-top:4px;"><span class="edit-char-count" id="editCount-${postId}">${post.text.length} chars</span></div>
+    <div class="detail-header">
+      <div class="detail-channel-label">${channelName}</div>
+      <span class="detail-hint">Edit freely — nothing posts until you confirm</span>
     </div>
 
-    <div style="margin-bottom:10px;">
-      <p style="font-size:12px;color:var(--muted);font-weight:500;margin-bottom:6px;">Post to channel:</p>
+    <textarea id="editText-${postId}" class="detail-textarea">${(post.text||'').replace(/</g,'&lt;')}</textarea>
+    <div class="detail-char-row">
+      <span class="edit-char-count" id="editCount-${postId}">${post.text.length} chars</span>
+    </div>
+
+    <div class="detail-channel-row">
+      <span class="detail-section-label">Post to:</span>
       <div class="channel-chips" id="detailChannelPills"></div>
     </div>
 
-    <div class="row mb-8">
-      <button class="btn btn-success btn-wide" id="modeQueue-${postId}">➕ Add to queue</button>
-      <button class="btn btn-ghost" id="modeSchedule-${postId}">🗓 Schedule</button>
+    <div class="detail-actions">
+      <button class="btn btn-success btn-full" id="doQueue-${postId}">➕ Add to queue</button>
+      <button class="btn btn-ghost btn-full" id="doSchedule-${postId}">🗓 Schedule for later</button>
     </div>
 
     <div id="schedPicker-${postId}" class="schedule-picker-inline">
-      <label>Pick a time:</label>
+      <label>Pick a date &amp; time:</label>
       <input type="datetime-local" id="schedTime-${postId}" />
-      <div class="schedule-actions">
-        <button class="btn btn-success" id="confirmBtn-${postId}">Schedule ↗</button>
-        <button class="btn btn-ghost" id="cancelBtn-${postId}">Cancel</button>
-      </div>
+      <button class="btn btn-primary btn-full mt-8" id="confirmBtn-${postId}">Confirm schedule ↗</button>
     </div>
-    <div id="confirmQueue-${postId}" style="display:none;margin-top:8px;">
-      <button class="btn btn-success btn-wide" id="confirmQueueBtn-${postId}">Add to queue ↗</button>
-      <button class="btn btn-ghost" style="margin-left:8px;" id="cancelQueueBtn-${postId}">Cancel</button>
-    </div>
-    <div id="detailStatus-${postId}" style="font-size:12px;color:var(--muted);margin-top:8px;min-height:18px;"></div>
+
+    <div id="detailStatus-${postId}" class="detail-status"></div>
   `;
 
   // Populate channel pills
@@ -1174,34 +1244,20 @@ function openRecyclerDetail(postId, editMode = false) {
     cc.className = 'edit-char-count' + (len > 700 ? ' warn' : '');
   });
 
-  // Mode buttons
-  let detailMode = 'queue';
-  const qBtn = document.getElementById(`modeQueue-${postId}`);
-  const sBtn = document.getElementById(`modeSchedule-${postId}`);
+  // ── Action buttons: direct, no intermediate step ──────────────────────────
   const picker = document.getElementById(`schedPicker-${postId}`);
-  const queueConfirm = document.getElementById(`confirmQueue-${postId}`);
-
-  qBtn.addEventListener('click', () => {
-    detailMode = 'queue';
-    picker.classList.remove('open');
-    queueConfirm.style.display = 'block';
-    qBtn.className = 'btn btn-success btn-wide';
-    sBtn.className = 'btn btn-ghost';
-  });
-  sBtn.addEventListener('click', () => {
-    detailMode = 'schedule';
-    queueConfirm.style.display = 'none';
-    picker.classList.add('open');
-    sBtn.className = 'btn btn-primary';
-    qBtn.className = 'btn btn-ghost btn-wide';
-  });
 
   async function submitRecycle(scheduledAt) {
     const text = (ta.value || '').trim();
     if (!text) { toast('Post text is empty', 'error'); return; }
     const statusEl = document.getElementById(`detailStatus-${postId}`);
-    statusEl.style.color = 'var(--muted)';
+    const queueBtn = document.getElementById(`doQueue-${postId}`);
+    const schedBtn = document.getElementById(`doSchedule-${postId}`);
+
+    statusEl.className = 'detail-status loading';
     statusEl.textContent = scheduledAt ? 'Scheduling…' : 'Adding to queue…';
+    if (queueBtn) queueBtn.disabled = true;
+    if (schedBtn) schedBtn.disabled = true;
 
     const mutation = `mutation CreatePost($input: CreatePostInput!) { createPost(input: $input) { __typename } }`;
     const variables = {
@@ -1216,31 +1272,41 @@ function openRecyclerDetail(postId, editMode = false) {
     try {
       const res = await callBuffer(mutation, variables);
       if (res?.errors?.length) throw new Error(res.errors[0].message);
-      statusEl.style.color = 'var(--green)';
-      statusEl.textContent = scheduledAt ? '✓ Scheduled!' : '✓ Added to queue!';
-      toast(scheduledAt ? 'Post scheduled in Buffer ✓' : 'Post added to Buffer queue ✓', 'success');
+      statusEl.className = 'detail-status success';
+      statusEl.textContent = scheduledAt ? '✓ Scheduled in Buffer!' : '✓ Added to Buffer queue!';
+      toast(scheduledAt ? 'Post scheduled ✓' : 'Post queued ✓', 'success');
+      // Animate the card out after success
+      const selectedCard = document.querySelector('.recycler-post.selected');
+      if (selectedCard) {
+        selectedCard.style.transition = 'opacity 0.4s, transform 0.4s';
+        selectedCard.style.opacity = '0';
+        selectedCard.style.transform = 'translateX(12px)';
+        setTimeout(() => selectedCard.remove(), 420);
+      }
     } catch (err) {
-      statusEl.style.color = 'var(--red)';
+      statusEl.className = 'detail-status error';
       statusEl.textContent = 'Error: ' + err.message;
       toast('Error: ' + err.message, 'error');
+      if (queueBtn) queueBtn.disabled = false;
+      if (schedBtn) schedBtn.disabled = false;
     }
   }
 
-  document.getElementById(`confirmQueueBtn-${postId}`)?.addEventListener('click', () => submitRecycle(null));
-  document.getElementById(`cancelQueueBtn-${postId}`)?.addEventListener('click', () => {
-    queueConfirm.style.display = 'none';
-    qBtn.className = 'btn btn-success btn-wide';
+  // Queue — direct, one click
+  document.getElementById(`doQueue-${postId}`)?.addEventListener('click', () => {
+    picker.classList.remove('open');
+    submitRecycle(null);
   });
+
+  // Schedule — reveal date picker, then confirm
+  document.getElementById(`doSchedule-${postId}`)?.addEventListener('click', () => {
+    picker.classList.toggle('open');
+  });
+
   document.getElementById(`confirmBtn-${postId}`)?.addEventListener('click', () => {
     const val = document.getElementById(`schedTime-${postId}`).value;
     if (!val) { toast('Pick a date/time first', 'error'); return; }
     submitRecycle(new Date(val).toISOString());
-  });
-  document.getElementById(`cancelBtn-${postId}`)?.addEventListener('click', () => {
-    picker.classList.remove('open');
-    detailMode = 'queue';
-    sBtn.className = 'btn btn-ghost';
-    qBtn.className = 'btn btn-success btn-wide';
   });
 }
 
@@ -1273,10 +1339,10 @@ function analyzeThread(tweets) {
     tips.push('Last tweet needs a CTA — ask a question, invite replies, or link to something.');
   }
   if (tweets.some(t => t.length > TWEET_MAX)) {
-    tips.push('Some tweets are over 280 chars — trim or split them before posting.');
+    tips.push('Some parts are over 280 chars — trim or split them before posting.');
   }
   if (tweets.length < 3) {
-    tips.push('Short thread — consider expanding to at least 4–5 tweets for better reach.');
+    tips.push('Short thread — consider expanding to at least 4–5 parts for better reach.');
   }
   if (!/\d/.test(full) && tweets.length > 4) {
     tips.push('Add a numbered tweet (e.g., "3 things…") to boost engagement.');
@@ -1401,7 +1467,7 @@ function renderThreadPreview() {
         <h3>No thread yet</h3>
         <p>Paste your content on the left and hit "Split".</p>
       </div>`;
-    summary.innerHTML = '<span>0 tweets</span><span>0 chars total</span>';
+    summary.innerHTML = '<span>0 parts</span><span>0 chars total</span>';
     if (tips) tips.classList.remove('show');
     return;
   }
@@ -1421,7 +1487,7 @@ function renderThreadPreview() {
     card.innerHTML = `
       ${idx < total - 1 ? '<div class="thread-spine"></div>' : ''}
       <div class="thread-tweet-header">
-        <span class="thread-tweet-index">Tweet ${idx + 1}</span>
+        <span class="thread-tweet-index">Part ${idx + 1} / ${total}</span>
         <div style="display:flex;align-items:center;gap:6px;">
           ${typeLabel ? `<span class="${badgeCls}">${typeLabel}</span>` : ''}
           <button type="button" class="btn btn-ghost btn-xs thread-delete" data-index="${idx}">✕</button>
@@ -1448,7 +1514,7 @@ function renderThreadPreview() {
         meta.className = len > TWEET_MAX ? 'over' : '';
       }
       const totalChars = state.threadTweets.reduce((s, t) => s + (t || '').length, 0);
-      summary.innerHTML = `<span><strong>${state.threadTweets.length}</strong> tweets</span><span><strong>${totalChars}</strong> chars total</span>`;
+      summary.innerHTML = `<span><strong>${state.threadTweets.length}</strong> parts</span><span><strong>${totalChars}</strong> chars total</span>`;
     });
   });
 
@@ -1462,7 +1528,7 @@ function renderThreadPreview() {
   });
 
   const totalChars = state.threadTweets.reduce((s, t) => s + (t || '').length, 0);
-  summary.innerHTML = `<span><strong>${total}</strong> tweets</span><span><strong>${totalChars}</strong> chars total</span>`;
+  summary.innerHTML = `<span><strong>${total}</strong> parts</span><span><strong>${totalChars}</strong> chars total</span>`;
 
   // Smart tips
   const threadTipItems = analyzeThread(state.threadTweets);
@@ -1605,7 +1671,7 @@ document.getElementById('btnQueueThread').addEventListener('click', async () => 
   const tweets = Array.from(nodes).map(n => n.value.trim()).filter(Boolean);
 
   if (!tweets.length)                        { toast('No tweets to queue yet'); return; }
-  if (tweets.some(t => t.length > TWEET_MAX)){ toast('Some tweets over 280 chars — trim first.', 'error'); return; }
+  if (tweets.some(t => t.length > TWEET_MAX)){ toast('Some parts are over 280 chars — trim first.', 'error'); return; }
   if (!state.selectedThreadChannel)          { toast('Pick a channel first', 'error'); return; }
 
   const threadMode = state.threadMode || 'queue';
@@ -1621,7 +1687,7 @@ document.getElementById('btnQueueThread').addEventListener('click', async () => 
   const statusEl = document.getElementById('queueStatus');
   btn.disabled   = true;
   statusEl.style.color = 'var(--muted)';
-  statusEl.textContent = threadMode === 'schedule' ? 'Scheduling tweets in Buffer…' : 'Adding tweets to your Buffer queue…';
+  statusEl.textContent = threadMode === 'schedule' ? 'Scheduling thread parts in Buffer…' : 'Adding thread parts to your Buffer queue…';
 
   let queued = 0;
   const errors = [];
@@ -1648,12 +1714,12 @@ document.getElementById('btnQueueThread').addEventListener('click', async () => 
 
   if (!errors.length) {
     statusEl.style.color = 'var(--green)';
-    statusEl.textContent = `✓ ${queued} tweets ${threadMode === 'schedule' ? 'scheduled' : 'queued'} in Buffer`;
-    toast(`${queued} tweets sent to Buffer ✓`, 'success');
+    statusEl.textContent = `✓ ${queued} parts ${threadMode === 'schedule' ? 'scheduled' : 'queued'} in Buffer`;
+    toast(`${queued} parts sent to Buffer ✓`, 'success');
   } else {
     statusEl.style.color = 'var(--red)';
     statusEl.textContent = `${queued} added, ${errors.length} failed`;
-    toast(`Partial: ${queued}/${tweets.length} added`, 'error');
+    toast(`Partial: ${queued}/${tweets.length} parts added`, 'error');
   }
 
   btn.disabled = false;
