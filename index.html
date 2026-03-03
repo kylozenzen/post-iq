@@ -695,7 +695,7 @@
 <div id="apiGate">
   <div class="gate-card">
     <div class="gate-logo">Post<span>IQ</span></div>
-    <div class="gate-subtitle">Recycler · Thread Splitter · Buffer Publish</div>
+    <div class="gate-subtitle">Recycler · Thread Splitter · Your Buffer Account</div>
 
     <label class="gate-label" for="gateKeyInput">Your Buffer Access Token</label>
     <div class="gate-input-row">
@@ -728,12 +728,13 @@
       <span class="nav-icon">♻️</span> Post Recycler
     </button>
     <div class="nav-subtext">Repurpose your top text-based content. Best for Twitter/X, LinkedIn &amp; Threads.</div>
-    <button class="nav-item" data-view="threadView">
+    <button class="nav-item" id="navThreadSplitter" data-view="threadView" style="display:none;">
       <span class="nav-icon">🧵</span> Thread Splitter
     </button>
+    <div class="nav-subtext" id="navThreadSubtext" style="display:none;">Split long-form content into native threads. Twitter/X &amp; Threads only.</div>
     <div class="sidebar-section">My Buffer</div>
     <a class="nav-item-external" href="https://publish.buffer.com" target="_blank" rel="noopener">
-      <span class="nav-icon">📤</span> Buffer Publish
+      <span class="nav-icon">📤</span> Your Buffer Account
       <span class="nav-external-badge">↗</span>
     </a>
 
@@ -1090,6 +1091,15 @@ async function loadData() {
 
     renderRecycler();
     renderThreadChannelPills();
+
+    // Show Thread Splitter nav only if user has Twitter/X or Threads channels
+    const THREAD_SERVICES = ['twitter', 'threads', 'instagram_threads', 'thread', 'x'];
+    const hasThreadChannels = state.channels.some(c => THREAD_SERVICES.includes((c.service || '').toLowerCase()));
+    const navThread = document.getElementById('navThreadSplitter');
+    const navThreadSub = document.getElementById('navThreadSubtext');
+    if (navThread) navThread.style.display = hasThreadChannels ? 'flex' : 'none';
+    if (navThreadSub) navThreadSub.style.display = hasThreadChannels ? 'block' : 'none';
+
     setSyncStatus(`${state.posts.length} posts loaded`, 'ok');
     toast(`Loaded ${state.posts.length} posts ✓`, 'success');
   } catch (err) {
@@ -1617,7 +1627,10 @@ function renderThreadChannelPills() {
   container.innerHTML = '';
 
   // Only show Twitter/X and Threads channels
-  const supported = state.channels.filter(c => c.service === 'twitter' || c.service === 'threads');
+  // Buffer may return service as: twitter, threads, instagram_threads — log all to console for debugging
+  console.log('[PostIQ] All channels:', state.channels.map(c => ({ name: c.displayName || c.name, service: c.service })));
+  const THREAD_SERVICES = ['twitter', 'threads', 'instagram_threads', 'thread', 'x'];
+  const supported = state.channels.filter(c => THREAD_SERVICES.includes(c.service?.toLowerCase()));
 
   if (!supported.length) {
     if (noChannelMsg) noChannelMsg.style.display = 'block';
@@ -1630,7 +1643,7 @@ function renderThreadChannelPills() {
     chip.className = 'channel-chip' + (c.id === state.selectedThreadChannel ? ' selected' : '');
     chip.textContent = `${serviceLabel(c.service)} ${c.displayName || c.name}`;
     chip.dataset.channelId = c.id;
-    chip.dataset.service = c.service;
+    chip.dataset.service = (c.service || '').toLowerCase();
     chip.addEventListener('click', () => {
       container.querySelectorAll('.channel-chip').forEach(x => x.classList.remove('selected'));
       chip.classList.add('selected');
@@ -1777,8 +1790,9 @@ async function sendThreadToBuffer(scheduledAt) {
   // Build native thread input — first part in text, rest in metadata thread array
   const threadParts = restParts.map(text => ({ text }));
 
-  const metadataKey = service === 'threads' ? 'threads' : 'twitter';
-  const metadataVal = service === 'threads'
+  const isThreads = ['threads', 'instagram_threads', 'thread'].includes((service || '').toLowerCase());
+  const metadataKey = isThreads ? 'threads' : 'twitter';
+  const metadataVal = isThreads
     ? { type: 'thread', thread: threadParts }
     : { thread: threadParts };
 
