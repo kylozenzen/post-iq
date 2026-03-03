@@ -687,6 +687,36 @@
       to   { transform: scale(1);    opacity: 1; }
     }
 
+
+    /* ── Thread locked/upsell panel ── */
+    .thread-locked-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px 36px;
+      max-width: 520px;
+      text-align: center;
+    }
+    .thread-locked-icon { font-size: 40px; margin-bottom: 16px; }
+    .thread-locked-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+      letter-spacing: -0.2px;
+    }
+    .thread-locked-body {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+    .thread-locked-note {
+      font-size: 11px;
+      color: var(--light);
+      margin-top: 14px;
+    }
+
   </style>
 </head>
 <body>
@@ -728,10 +758,10 @@
       <span class="nav-icon">♻️</span> Post Recycler
     </button>
     <div class="nav-subtext">Repurpose your top text-based content. Best for Twitter/X, LinkedIn &amp; Threads.</div>
-    <button class="nav-item" id="navThreadSplitter" data-view="threadView" style="display:none;">
+    <button class="nav-item" id="navThreadSplitter" data-view="threadView">
       <span class="nav-icon">🧵</span> Thread Splitter
     </button>
-    <div class="nav-subtext" id="navThreadSubtext" style="display:none;">Split long-form content into native threads. Twitter/X &amp; Threads only.</div>
+    <div class="nav-subtext" id="navThreadSubtext">Split long-form content into native threads. Twitter/X &amp; Threads only.</div>
     <div class="sidebar-section">My Buffer</div>
     <a class="nav-item-external" href="https://publish.buffer.com" target="_blank" rel="noopener">
       <span class="nav-icon">📤</span> Your Buffer Account
@@ -807,7 +837,21 @@
         <p>Paste any long-form content and get a perfectly structured thread — with a hook, body parts, and a CTA. Edit each part inline, then queue the whole thread to Buffer in one click.</p>
       </div>
 
-      <div class="thread-layout">
+      <!-- No supported channels nudge panel -->
+      <div id="threadLockedPanel" style="display:none;">
+        <div class="thread-locked-card">
+          <div class="thread-locked-icon">🧵</div>
+          <h2 class="thread-locked-title">Connect Twitter/X or Threads to use this</h2>
+          <p class="thread-locked-body">Thread Splitter turns any long post into a perfectly structured native thread — hook, body, CTA — and sends it to Buffer as a single post, not separate ones.</p>
+          <p class="thread-locked-body">To get started, connect a <strong>Twitter/X</strong> or <strong>Threads</strong> account in Buffer, then come back and hit <strong>Load from Buffer</strong>.</p>
+          <a href="https://publish.buffer.com/channels/connect" target="_blank" rel="noopener" class="btn btn-primary btn-wide" style="margin-top:16px;text-decoration:none;">
+            Connect a channel in Buffer ↗
+          </a>
+          <div class="thread-locked-note">Already connected one? Hit "Load from Buffer" in the sidebar to refresh.</div>
+        </div>
+      </div>
+
+      <div id="threadActivePanel" class="thread-layout" style="display:none;">
         <!-- Left: Input -->
         <div>
           <div class="card mb-12">
@@ -846,18 +890,14 @@
                 </div>
 
                 <div class="detail-actions mt-12">
-                  <button class="btn btn-success btn-full" id="threadModeQueue">➕ Add thread to queue</button>
-                  <button class="btn btn-ghost btn-full" id="threadModeSchedule">🗓 Schedule for later</button>
+                  <button class="btn btn-success btn-full" id="btnQueueThreadNow">➕ Add to your queue</button>
+                  <button class="btn btn-ghost btn-full" id="threadModeSchedule">🗓 Schedule this thread</button>
                 </div>
 
-                <div id="threadDateTimePanel" style="display:none;margin-top:12px;">
+                <div id="threadDateTimePanel" style="display:none;margin-top:10px;">
                   <label style="font-size:12px;color:var(--muted);font-weight:500;display:block;margin-bottom:5px;">Pick a date &amp; time:</label>
                   <input type="datetime-local" id="threadScheduleTime" />
-                  <button class="btn btn-primary btn-full mt-8" id="btnQueueThread">Confirm schedule ↗</button>
-                </div>
-
-                <div id="threadQueueConfirm" style="display:none;margin-top:10px;">
-                  <button class="btn btn-success btn-full" id="btnQueueThreadNow">Send thread to Buffer ↗</button>
+                  <button class="btn btn-primary btn-full mt-8" id="btnQueueThread">Confirm &amp; schedule ↗</button>
                 </div>
 
                 <div class="row mt-8" style="justify-content:flex-end;">
@@ -893,10 +933,10 @@
           </div>
         </div>
       </div>
+      </div>
     </section>
 
-  </main>
-</div>
+    <!-- ──/div>
 
 <div id="toast"></div>
 
@@ -1092,13 +1132,13 @@ async function loadData() {
     renderRecycler();
     renderThreadChannelPills();
 
-    // Show Thread Splitter nav only if user has Twitter/X or Threads channels
+    // Show locked/active state in Thread Splitter based on available channels
     const THREAD_SERVICES = ['twitter', 'threads', 'instagram_threads', 'thread', 'x'];
     const hasThreadChannels = state.channels.some(c => THREAD_SERVICES.includes((c.service || '').toLowerCase()));
-    const navThread = document.getElementById('navThreadSplitter');
-    const navThreadSub = document.getElementById('navThreadSubtext');
-    if (navThread) navThread.style.display = hasThreadChannels ? 'flex' : 'none';
-    if (navThreadSub) navThreadSub.style.display = hasThreadChannels ? 'block' : 'none';
+    const lockedPanel = document.getElementById('threadLockedPanel');
+    const activePanel = document.getElementById('threadActivePanel');
+    if (lockedPanel) lockedPanel.style.display = hasThreadChannels ? 'none' : 'block';
+    if (activePanel) activePanel.style.display = hasThreadChannels ? 'grid' : 'none';
 
     setSyncStatus(`${state.posts.length} posts loaded`, 'ok');
     toast(`Loaded ${state.posts.length} posts ✓`, 'success');
@@ -1727,29 +1767,23 @@ document.getElementById('btnAddTweet').addEventListener('click', () => {
 // Thread mode toggle
 function setThreadMode(mode) {
   state.threadMode = mode;
-  const queueBtn    = document.getElementById('threadModeQueue');
-  const schedBtn    = document.getElementById('threadModeSchedule');
-  const dtPanel     = document.getElementById('threadDateTimePanel');
-  const queueNow    = document.getElementById('threadQueueConfirm');
+  const schedBtn = document.getElementById('threadModeSchedule');
+  const dtPanel  = document.getElementById('threadDateTimePanel');
 
   if (mode === 'schedule') {
-    if (dtPanel)   dtPanel.style.display = 'block';
-    if (queueNow)  queueNow.style.display = 'none';
-    if (schedBtn)  schedBtn.className = 'btn btn-primary btn-full';
-    if (queueBtn)  queueBtn.className = 'btn btn-ghost btn-full';
+    if (dtPanel)  dtPanel.style.display = 'block';
+    if (schedBtn) schedBtn.className = 'btn btn-primary btn-full';
   } else {
-    if (dtPanel)   dtPanel.style.display = 'none';
-    if (queueNow)  queueNow.style.display = 'block';
-    if (schedBtn)  schedBtn.className = 'btn btn-ghost btn-full';
-    if (queueBtn)  queueBtn.className = 'btn btn-success btn-full';
+    if (dtPanel)  dtPanel.style.display = 'none';
+    if (schedBtn) schedBtn.className = 'btn btn-ghost btn-full';
   }
 }
 
-document.getElementById('threadModeQueue').addEventListener('click', () => {
-  setThreadMode('queue');
-});
+// Schedule button toggles the date picker open/closed
 document.getElementById('threadModeSchedule').addEventListener('click', () => {
-  setThreadMode('schedule');
+  const dtPanel = document.getElementById('threadDateTimePanel');
+  const isOpen = dtPanel && dtPanel.style.display !== 'none';
+  setThreadMode(isOpen ? 'queue' : 'schedule');
 });
 
 document.getElementById('btnCopyThread').addEventListener('click', async () => {
