@@ -2,7 +2,7 @@
 // Accepts the Buffer token from the client request body.
 // The token is never stored — it's forwarded directly to Buffer's API.
 
-export async function handler(event) {
+exports.handler = async function(event) {
   const corsHeaders = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
@@ -44,7 +44,7 @@ export async function handler(event) {
   }
 
   try {
-    const res = await fetch("https://api.buffer.com", {
+    const res = await fetch("https://api.bufferapp.com/graphql", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
