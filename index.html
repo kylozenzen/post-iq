@@ -378,12 +378,25 @@
     .recycler-layout {
       display: grid;
       grid-template-columns: minmax(0, 1.35fr) minmax(0, 1.8fr);
-      gap: 16px; align-items: start;
+      gap: 16px;
+      align-items: start;
+      /* Both columns scroll independently within the viewport */
     }
     @media (max-width: 920px) {
       .recycler-layout { grid-template-columns: 1fr; }
       .recycler-detail { position: static; }
+      .recycler-left-col { max-height: none; overflow-y: visible; }
     }
+
+    /* Left column: independently scrollable */
+    .recycler-left-col {
+      max-height: calc(100vh - 200px);
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .recycler-left-col::-webkit-scrollbar { width: 3px; }
+    .recycler-left-col::-webkit-scrollbar-track { background: transparent; }
+    .recycler-left-col::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
 
     .recycler-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
 
@@ -593,7 +606,7 @@
       text-transform: uppercase; letter-spacing: .09em; font-family: 'DM Mono', monospace;
     }
     .detail-hint { font-size: 11px; color: var(--text-dim); font-style: italic; }
-    .detail-textarea { min-height: 140px; font-size: 13.5px; line-height: 1.6; }
+    .detail-textarea { min-height: 280px; font-size: 13.5px; line-height: 1.6; }
     .detail-char-row { text-align: right; margin-top: 4px; margin-bottom: 14px; }
     .detail-channel-row { margin-bottom: 14px; }
     .detail-section-label {
@@ -627,7 +640,126 @@
     .mb-12 { margin-bottom: 12px; }
     .mb-16 { margin-bottom: 16px; }
 
-    /* ── Content Calendar ─────────────────────────────────────── */
+    /* ── Calendar Composer Modal ──────────────────────────────── */
+    .cal-composer-backdrop {
+      position: fixed; inset: 0; z-index: 600;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(6px) saturate(0.6);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.22s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cal-composer-backdrop.open { opacity: 1; pointer-events: all; }
+
+    .cal-composer-modal {
+      background: var(--surface-1);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--r-xl);
+      width: 100%; max-width: 560px;
+      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,0.03) inset;
+      transform: translateY(16px) scale(0.98);
+      transition: transform 0.28s cubic-bezier(0.16,1,0.3,1);
+      overflow: hidden;
+    }
+    .cal-composer-backdrop.open .cal-composer-modal {
+      transform: translateY(0) scale(1);
+    }
+
+    .cal-composer-topbar {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .cal-composer-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px; font-weight: 700;
+      color: var(--text); letter-spacing: -0.2px;
+    }
+    .cal-composer-datebadge {
+      font-size: 10.5px; font-family: 'DM Mono', monospace;
+      color: var(--amber); background: var(--amber-dim);
+      border: 1px solid rgba(245,166,35,0.2);
+      border-radius: 999px; padding: 3px 10px;
+      margin-left: 10px;
+    }
+    .cal-composer-close {
+      width: 28px; height: 28px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--r-sm);
+      color: var(--text-muted); font-size: 14px;
+      cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .cal-composer-close:hover { color: var(--text); border-color: var(--border-hi); }
+
+    .cal-composer-body { padding: 20px; }
+
+    .cal-composer-textarea {
+      width: 100%; min-height: 180px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--r-md);
+      padding: 14px 16px;
+      font-size: 14px; color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      line-height: 1.6; resize: vertical; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .cal-composer-textarea::placeholder { color: var(--text-dim); }
+    .cal-composer-textarea:focus {
+      border-color: var(--amber);
+      box-shadow: 0 0 0 3px var(--amber-dim);
+    }
+
+    .cal-composer-meta {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-top: 6px; margin-bottom: 16px;
+    }
+    .cal-composer-charcount {
+      font-size: 11px; color: var(--text-dim);
+      font-family: 'DM Mono', monospace;
+    }
+    .cal-composer-charcount.warn { color: var(--yellow); }
+
+    .cal-composer-channel-label {
+      font-size: 9.5px; font-weight: 600; color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: .11em;
+      display: block; margin-bottom: 8px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .cal-composer-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      display: flex; gap: 8px; flex-direction: column;
+    }
+
+    .cal-composer-actions { display: flex; gap: 8px; }
+
+    .cal-composer-sched-row {
+      display: none;
+      padding-top: 12px; border-top: 1px solid var(--border);
+    }
+    .cal-composer-sched-row.open { display: block; }
+    .cal-composer-sched-row label {
+      font-size: 10px; color: var(--text-muted); font-weight: 600;
+      display: block; margin-bottom: 7px;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      font-family: 'DM Mono', monospace;
+    }
+    .cal-composer-sched-row .sched-confirm-row {
+      display: flex; gap: 8px; margin-top: 8px; align-items: center;
+    }
+    .cal-composer-status {
+      font-size: 12px; font-family: 'DM Mono', monospace;
+      min-height: 18px; margin-top: 4px;
+    }
+    .cal-composer-status.ok  { color: var(--green); }
+    .cal-composer-status.err { color: var(--red); }
     .cal-header {
       display: flex; align-items: center; justify-content: space-between;
       margin-bottom: 20px; gap: 12px; flex-wrap: wrap;
@@ -989,7 +1121,7 @@
       </div>
 
       <div class="recycler-layout">
-        <div>
+        <div class="recycler-left-col">
           <div class="recycler-list" id="recyclerList">
             <div class="empty-state">
               <div class="icon">♻️</div>
@@ -1135,6 +1267,42 @@
     </section>
 
   </main>
+</div>
+
+<!-- Calendar Composer Modal -->
+<div class="cal-composer-backdrop" id="calComposerBackdrop">
+  <div class="cal-composer-modal" id="calComposerModal">
+    <div class="cal-composer-topbar">
+      <div style="display:flex;align-items:center;gap:0;">
+        <span class="cal-composer-title">New Post</span>
+        <span class="cal-composer-datebadge" id="calComposerDateBadge">—</span>
+      </div>
+      <button class="cal-composer-close" id="calComposerClose">✕</button>
+    </div>
+    <div class="cal-composer-body">
+      <textarea class="cal-composer-textarea" id="calComposerText"
+        placeholder="What do you want to say?"></textarea>
+      <div class="cal-composer-meta">
+        <span class="cal-composer-charcount" id="calComposerCount">0 chars</span>
+      </div>
+      <span class="cal-composer-channel-label">Post to:</span>
+      <div class="channel-chips" id="calComposerChannels"></div>
+    </div>
+    <div class="cal-composer-footer">
+      <div class="cal-composer-actions">
+        <button class="btn btn-success" style="flex:1;" id="calComposerQueue">➕ Add to queue</button>
+        <button class="btn btn-ghost" id="calComposerSchedToggle">🗓 Schedule for this day</button>
+      </div>
+      <div class="cal-composer-sched-row" id="calComposerSchedRow">
+        <label>Date &amp; time:</label>
+        <div class="sched-confirm-row">
+          <input type="datetime-local" id="calComposerDT" style="flex:1;" />
+          <button class="btn btn-primary" id="calComposerConfirm">Schedule ↗</button>
+        </div>
+      </div>
+      <div class="cal-composer-status" id="calComposerStatus"></div>
+    </div>
+  </div>
 </div>
 
 <!-- Calendar drawer + overlay -->
@@ -2029,110 +2197,11 @@ document.addEventListener('DOMContentLoaded', function() {
       toast('Note deleted', '');
     });
 
-    // Open in composer handler
+    // Open in composer modal handler
     document.getElementById('calPostFromNote')?.addEventListener('click', () => {
       const noteVal = document.getElementById('calNoteInput')?.value
         || getCalNotes()[dateKey] || '';
-      closeCalDrawer();
-
-      // Switch to recycler view
-      document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      document.querySelector('[data-view="recyclerView"]')?.classList.add('active');
-      document.getElementById('recyclerView')?.classList.add('active');
-
-      const detail = document.getElementById('recyclerDetail');
-      if (!detail) return;
-      detail.classList.remove('recycler-detail-empty');
-
-      const schedDT = `${dateKey}T12:00`;
-
-      detail.innerHTML = `
-        <div class="detail-header">
-          <div class="detail-channel-label">📅 From calendar — ${MONTH_NAMES[m-1]} ${d}</div>
-          <span class="detail-hint">Edit freely — nothing posts until you confirm</span>
-        </div>
-        <textarea id="calComposeText" class="detail-textarea">${noteVal.replace(/</g,'&lt;')}</textarea>
-        <div class="detail-char-row">
-          <span class="edit-char-count" id="calComposeCount">${noteVal.length} chars</span>
-        </div>
-        <div class="detail-channel-row">
-          <span class="detail-section-label">Post to:</span>
-          <div class="channel-chips" id="calComposePills"></div>
-        </div>
-        <div class="detail-actions">
-          <button class="btn btn-success btn-full" id="calComposeQueue">➕ Add to queue</button>
-          <button class="btn btn-ghost btn-full" id="calComposeScheduleBtn">🗓 Schedule for ${MONTH_NAMES[m-1]} ${d}</button>
-        </div>
-        <div id="calComposeSchedRow" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
-          <label style="font-size:10px;color:var(--text-muted);font-weight:600;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em;font-family:'DM Mono',monospace;">Date &amp; time:</label>
-          <input type="datetime-local" id="calComposeDT" value="${schedDT}" />
-          <button class="btn btn-primary btn-full mt-8" id="calComposeConfirm">Confirm &amp; schedule ↗</button>
-        </div>
-        <div id="calComposeStatus" class="detail-status"></div>
-      `;
-
-      // Populate channel pills
-      const pills = document.getElementById('calComposePills');
-      let selectedCh = state.channels[0]?.id || null;
-      state.channels.forEach(c => {
-        const chip = document.createElement('span');
-        chip.className = 'channel-chip'+(c.id===selectedCh?' selected':'');
-        chip.textContent = `${serviceLabel(c.service)} ${c.displayName||c.name}`;
-        chip.dataset.channelId = c.id;
-        chip.addEventListener('click', () => {
-          pills.querySelectorAll('.channel-chip').forEach(x=>x.classList.remove('selected'));
-          chip.classList.add('selected');
-          selectedCh = c.id;
-        });
-        pills.appendChild(chip);
-      });
-
-      const ta = document.getElementById('calComposeText');
-      const cc = document.getElementById('calComposeCount');
-      ta?.addEventListener('input', () => {
-        cc.textContent = `${ta.value.length} chars`;
-        cc.className = 'edit-char-count'+(ta.value.length>700?' warn':'');
-      });
-
-      async function submitCalPost(scheduledAt) {
-        const text = (ta?.value||'').trim();
-        if (!text) { toast('Post text is empty','error'); return; }
-        const statusEl = document.getElementById('calComposeStatus');
-        statusEl.className = 'detail-status loading';
-        statusEl.textContent = scheduledAt?'Scheduling…':'Adding to queue…';
-        document.getElementById('calComposeQueue').disabled = true;
-        document.getElementById('calComposeScheduleBtn').disabled = true;
-        try {
-          const res = await callBuffer(
-            `mutation CreatePost($input: CreatePostInput!) { createPost(input: $input) { __typename } }`,
-            { input: { channelId:selectedCh, text, schedulingType:'automatic',
-              mode:scheduledAt?'customScheduled':'addToQueue',
-              ...(scheduledAt?{dueAt:scheduledAt}:{}) }}
-          );
-          if (res?.errors?.length) throw new Error(res.errors[0].message);
-          statusEl.className = 'detail-status success';
-          statusEl.textContent = scheduledAt?'✓ Scheduled in Buffer!':'✓ Added to Buffer queue!';
-          toast(scheduledAt?'Post scheduled ✓':'Post queued ✓','success');
-        } catch(err) {
-          statusEl.className = 'detail-status error';
-          statusEl.textContent = 'Error: '+err.message;
-          toast('Error: '+err.message,'error');
-          document.getElementById('calComposeQueue').disabled = false;
-          document.getElementById('calComposeScheduleBtn').disabled = false;
-        }
-      }
-
-      document.getElementById('calComposeQueue')?.addEventListener('click',()=>submitCalPost(null));
-      document.getElementById('calComposeScheduleBtn')?.addEventListener('click',()=>{
-        const row = document.getElementById('calComposeSchedRow');
-        row.style.display = row.style.display==='none'?'block':'none';
-      });
-      document.getElementById('calComposeConfirm')?.addEventListener('click',()=>{
-        const val = document.getElementById('calComposeDT')?.value;
-        if (!val) { toast('Pick a date/time first','error'); return; }
-        submitCalPost(new Date(val).toISOString());
-      });
+      openCalComposer(dateKey, noteVal);
     });
 
     document.getElementById('calDrawer').classList.add('open');
@@ -2144,6 +2213,107 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('calOverlay').classList.remove('open');
     calSelectedDate = null;
   }
+
+  // ── Calendar Composer Modal ──────────────────────────────────────────────
+  let calComposerSelectedCh = null;
+
+  function openCalComposer(dateKey, prefillText = '') {
+    const [y, m, d] = dateKey.split('-').map(Number);
+    const label = `${MONTH_NAMES[m-1]} ${d}, ${y}`;
+
+    document.getElementById('calComposerDateBadge').textContent = label;
+    document.getElementById('calComposerDT').value = `${dateKey}T12:00`;
+
+    const ta = document.getElementById('calComposerText');
+    ta.value = prefillText;
+    document.getElementById('calComposerCount').textContent = `${prefillText.length} chars`;
+    document.getElementById('calComposerCount').className = 'cal-composer-charcount';
+    document.getElementById('calComposerStatus').textContent = '';
+    document.getElementById('calComposerStatus').className = 'cal-composer-status';
+    document.getElementById('calComposerSchedRow').classList.remove('open');
+
+    // Populate channels
+    const pillsContainer = document.getElementById('calComposerChannels');
+    pillsContainer.innerHTML = '';
+    calComposerSelectedCh = state.channels[0]?.id || null;
+    state.channels.forEach(c => {
+      const chip = document.createElement('span');
+      chip.className = 'channel-chip'+(c.id===calComposerSelectedCh?' selected':'');
+      chip.textContent = `${serviceLabel(c.service)} ${c.displayName||c.name}`;
+      chip.addEventListener('click', () => {
+        pillsContainer.querySelectorAll('.channel-chip').forEach(x=>x.classList.remove('selected'));
+        chip.classList.add('selected');
+        calComposerSelectedCh = c.id;
+      });
+      pillsContainer.appendChild(chip);
+    });
+
+    document.getElementById('calComposerBackdrop').classList.add('open');
+    setTimeout(() => ta.focus(), 80);
+  }
+
+  function closeCalComposer() {
+    document.getElementById('calComposerBackdrop').classList.remove('open');
+  }
+
+  async function submitCalComposerPost(scheduledAt) {
+    const ta     = document.getElementById('calComposerText');
+    const text   = (ta?.value||'').trim();
+    const status = document.getElementById('calComposerStatus');
+    if (!text) { toast('Post text is empty','error'); return; }
+    if (!calComposerSelectedCh) { toast('Select a channel first','error'); return; }
+
+    status.className = 'cal-composer-status';
+    status.textContent = scheduledAt ? 'Scheduling…' : 'Adding to queue…';
+    document.getElementById('calComposerQueue').disabled = true;
+    document.getElementById('calComposerSchedToggle').disabled = true;
+
+    try {
+      const res = await callBuffer(
+        `mutation CreatePost($input: CreatePostInput!) { createPost(input: $input) { __typename } }`,
+        { input: {
+          channelId: calComposerSelectedCh,
+          text,
+          schedulingType: 'automatic',
+          mode: scheduledAt ? 'customScheduled' : 'addToQueue',
+          ...(scheduledAt ? { dueAt: scheduledAt } : {})
+        }}
+      );
+      if (res?.errors?.length) throw new Error(res.errors[0].message);
+      status.className = 'cal-composer-status ok';
+      status.textContent = scheduledAt ? '✓ Scheduled in Buffer!' : '✓ Added to Buffer queue!';
+      toast(scheduledAt ? 'Post scheduled ✓' : 'Post queued ✓', 'success');
+      setTimeout(closeCalComposer, 1400);
+    } catch(err) {
+      status.className = 'cal-composer-status err';
+      status.textContent = 'Error: ' + err.message;
+      toast('Error: '+err.message, 'error');
+      document.getElementById('calComposerQueue').disabled = false;
+      document.getElementById('calComposerSchedToggle').disabled = false;
+    }
+  }
+
+  // Composer modal events
+  document.getElementById('calComposerClose')?.addEventListener('click', closeCalComposer);
+  document.getElementById('calComposerBackdrop')?.addEventListener('click', e => {
+    if (e.target === document.getElementById('calComposerBackdrop')) closeCalComposer();
+  });
+  document.getElementById('calComposerText')?.addEventListener('input', () => {
+    const ta  = document.getElementById('calComposerText');
+    const cc  = document.getElementById('calComposerCount');
+    const len = ta.value.length;
+    cc.textContent = `${len} chars`;
+    cc.className = 'cal-composer-charcount' + (len > 700 ? ' warn' : '');
+  });
+  document.getElementById('calComposerQueue')?.addEventListener('click', () => submitCalComposerPost(null));
+  document.getElementById('calComposerSchedToggle')?.addEventListener('click', () => {
+    document.getElementById('calComposerSchedRow').classList.toggle('open');
+  });
+  document.getElementById('calComposerConfirm')?.addEventListener('click', () => {
+    const val = document.getElementById('calComposerDT')?.value;
+    if (!val) { toast('Pick a date/time first','error'); return; }
+    submitCalComposerPost(new Date(val).toISOString());
+  });
 
   function updateSyncToggle() {
     const el = document.getElementById('calSyncToggle');
