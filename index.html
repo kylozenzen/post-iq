@@ -626,6 +626,275 @@
     .mb-8  { margin-bottom: 8px; }
     .mb-12 { margin-bottom: 12px; }
     .mb-16 { margin-bottom: 16px; }
+
+    /* ── Content Calendar ─────────────────────────────────────── */
+    .cal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px; gap: 12px; flex-wrap: wrap;
+    }
+    .cal-nav {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .cal-month-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px; font-weight: 700;
+      color: var(--text); letter-spacing: -0.3px;
+      min-width: 160px; text-align: center;
+    }
+    .cal-nav-btn {
+      width: 32px; height: 32px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--r-sm);
+      color: var(--text-muted); font-size: 14px;
+      cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .cal-nav-btn:hover { border-color: var(--amber); color: var(--amber); }
+
+    .cal-sync-toggle {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--r-sm);
+      padding: 6px 12px;
+      font-size: 11.5px; color: var(--text-muted);
+      cursor: pointer; user-select: none;
+      transition: all 0.15s;
+    }
+    .cal-sync-toggle:hover { border-color: var(--border-hi); color: var(--text); }
+    .cal-sync-toggle.active {
+      background: var(--blue-dim);
+      border-color: rgba(79,127,250,0.3);
+      color: var(--blue);
+    }
+    .toggle-knob {
+      width: 28px; height: 16px;
+      background: var(--surface-3);
+      border-radius: 999px; position: relative;
+      transition: background 0.2s; flex-shrink: 0;
+    }
+    .toggle-knob::after {
+      content: '';
+      position: absolute; top: 2px; left: 2px;
+      width: 12px; height: 12px;
+      background: var(--text-dim);
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .cal-sync-toggle.active .toggle-knob { background: var(--blue); }
+    .cal-sync-toggle.active .toggle-knob::after { transform: translateX(12px); background: white; }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+    }
+    .cal-dow {
+      background: var(--surface-2);
+      padding: 8px 4px;
+      font-size: 10px; font-weight: 600;
+      color: var(--text-dim);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-family: 'DM Mono', monospace;
+    }
+    .cal-day {
+      background: var(--surface-1);
+      min-height: 110px;
+      padding: 8px;
+      cursor: pointer;
+      transition: background 0.12s;
+      position: relative;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .cal-day:hover { background: var(--surface-2); }
+    .cal-day.other-month { background: var(--surface-0); opacity: 0.5; cursor: default; }
+    .cal-day.other-month:hover { background: var(--surface-0); }
+    .cal-day.is-today { background: var(--surface-2); }
+    .cal-day.is-today .cal-day-num {
+      background: var(--amber);
+      color: #0D0E12;
+      border-radius: 50%;
+      width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+    }
+    .cal-day.has-note { background: var(--surface-2); }
+
+    .cal-day-num {
+      font-size: 11px; font-weight: 600;
+      color: var(--text-dim);
+      font-family: 'DM Mono', monospace;
+      line-height: 22px;
+      flex-shrink: 0;
+    }
+
+    .cal-post-chip {
+      display: flex; align-items: center; gap: 4px;
+      background: var(--blue-dim);
+      border: 1px solid rgba(79,127,250,0.2);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 10px; color: var(--blue);
+      white-space: nowrap; overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: 'DM Mono', monospace;
+      max-width: 100%;
+    }
+    .cal-post-chip .chip-icon { flex-shrink: 0; font-size: 9px; }
+
+    .cal-note-chip {
+      display: flex; align-items: center; gap: 4px;
+      background: var(--amber-dim);
+      border: 1px solid rgba(245,166,35,0.2);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 10px; color: var(--amber);
+      white-space: nowrap; overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+    .cal-note-chip .chip-icon { flex-shrink: 0; }
+
+    .cal-add-hint {
+      margin-top: auto;
+      font-size: 9.5px; color: var(--text-dim);
+      opacity: 0; transition: opacity 0.15s;
+      font-family: 'DM Mono', monospace;
+    }
+    .cal-day:hover .cal-add-hint { opacity: 1; }
+    .cal-day.other-month .cal-add-hint { display: none; }
+
+    /* Day detail drawer */
+    .cal-drawer {
+      position: fixed; right: 0; top: 0; bottom: 0;
+      width: 360px;
+      background: var(--surface-1);
+      border-left: 1px solid var(--border-mid);
+      z-index: 500;
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.28s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: -12px 0 40px rgba(0,0,0,0.4);
+    }
+    .cal-drawer.open { transform: translateX(0); }
+
+    .cal-drawer-header {
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 10px;
+      flex-shrink: 0;
+    }
+    .cal-drawer-date {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px; font-weight: 700;
+      color: var(--text); letter-spacing: -0.2px;
+    }
+    .cal-drawer-close {
+      width: 28px; height: 28px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--r-sm);
+      color: var(--text-muted); font-size: 14px;
+      cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .cal-drawer-close:hover { color: var(--text); border-color: var(--border-hi); }
+
+    .cal-drawer-body {
+      flex: 1; overflow-y: auto; padding: 16px 20px;
+    }
+
+    .cal-drawer-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .cal-drawer-section {
+      font-size: 9.5px; font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      font-family: 'DM Mono', monospace;
+      margin-bottom: 8px; margin-top: 16px;
+    }
+    .cal-drawer-section:first-child { margin-top: 0; }
+
+    .cal-scheduled-post {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      font-size: 12.5px; color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .cal-scheduled-post .post-channel {
+      font-size: 10px; font-weight: 600;
+      color: var(--blue);
+      font-family: 'DM Mono', monospace;
+      margin-bottom: 4px;
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .cal-scheduled-post .post-time {
+      font-size: 10px; color: var(--text-dim);
+      font-family: 'DM Mono', monospace;
+      margin-top: 4px;
+    }
+
+    .cal-note-textarea {
+      width: 100%; min-height: 100px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--r-sm);
+      padding: 10px 12px;
+      font-size: 13px; color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      line-height: 1.55; resize: vertical;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .cal-note-textarea::placeholder { color: var(--text-dim); }
+    .cal-note-textarea:focus {
+      border-color: var(--amber);
+      box-shadow: 0 0 0 3px var(--amber-dim);
+    }
+
+    .cal-note-actions {
+      display: flex; gap: 7px; margin-top: 8px;
+    }
+
+    .cal-sync-status {
+      font-size: 11px; color: var(--text-dim);
+      font-family: 'DM Mono', monospace;
+      margin-top: 6px; min-height: 16px;
+    }
+    .cal-sync-status.ok { color: var(--green); }
+    .cal-sync-status.err { color: var(--red); }
+
+    .cal-overlay {
+      position: fixed; inset: 0; z-index: 499;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(2px);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .cal-overlay.open { opacity: 1; pointer-events: all; }
+
+    .cal-overflow-chip {
+      font-size: 9.5px; color: var(--text-dim);
+      font-family: 'DM Mono', monospace;
+      padding: 1px 4px;
+    }
   </style>
 </head>
 <body>
@@ -635,7 +904,7 @@
   <div class="gate-card">
     <div class="gate-wordmark">
       <div class="wordmark">Post<em>IQ</em></div>
-      <div class="tagline">Recycler · Thread Splitter · Buffer Toolkit</div>
+      <div class="tagline">Recycler · Thread Splitter · Content Calendar</div>
     </div>
     <label class="gate-label" for="gateKeyInput">Buffer Access Token</label>
     <div class="gate-input-row">
@@ -671,6 +940,11 @@
       <span class="nav-icon">🧵</span> Thread Splitter
     </button>
     <div class="nav-subtext" id="navThreadSubtext">Split long-form content into native threads. Twitter/X &amp; Threads only.</div>
+
+    <button class="nav-item" data-view="calendarView">
+      <span class="nav-icon">📅</span> Content Calendar
+    </button>
+    <div class="nav-subtext">Plan your month visually. Add daily notes, see scheduled posts, and turn ideas into Buffer posts.</div>
 
     <div class="sidebar-section">My Buffer</div>
     <a class="nav-item-external" href="https://publish.buffer.com" target="_blank" rel="noopener">
@@ -829,7 +1103,53 @@
       </div>
     </section>
 
+    <!-- Content Calendar View -->
+    <section id="calendarView" class="view">
+      <div class="page-header">
+        <h1>📅 Content Calendar</h1>
+        <p>See your scheduled posts at a glance. Add daily notes and turn them into Buffer posts in one click.</p>
+      </div>
+
+      <div class="cal-header">
+        <div class="cal-nav">
+          <button class="cal-nav-btn" id="calPrev">‹</button>
+          <div class="cal-month-label" id="calMonthLabel">—</div>
+          <button class="cal-nav-btn" id="calNext">›</button>
+          <button class="cal-nav-btn" id="calToday" style="width:auto;padding:0 10px;font-size:11px;font-family:'DM Mono',monospace;">Today</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-size:11px;color:var(--text-dim);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:10px;">
+            <span style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:2px;background:var(--blue-dim);border:1px solid rgba(79,127,250,0.3);display:inline-block;"></span>Scheduled</span>
+            <span style="display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:2px;background:var(--amber-dim);border:1px solid rgba(245,166,35,0.25);display:inline-block;"></span>Note</span>
+          </div>
+          <div class="cal-sync-toggle" id="calSyncToggle" title="When on, notes are also saved to Buffer Ideas">
+            <div class="toggle-knob"></div>
+            <span>Sync notes to Buffer Ideas</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cal-grid" id="calGrid">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
   </main>
+</div>
+
+<!-- Calendar drawer + overlay -->
+<div class="cal-overlay" id="calOverlay"></div>
+<div class="cal-drawer" id="calDrawer">
+  <div class="cal-drawer-header">
+    <div class="cal-drawer-date" id="calDrawerDate">—</div>
+    <button class="cal-drawer-close" id="calDrawerClose">✕</button>
+  </div>
+  <div class="cal-drawer-body" id="calDrawerBody">
+    <!-- Populated by JS -->
+  </div>
+  <div class="cal-drawer-footer" id="calDrawerFooter">
+    <!-- Populated by JS -->
+  </div>
 </div>
 
 <div id="toast"></div>
@@ -966,6 +1286,10 @@ document.addEventListener('DOMContentLoaded', function() {
       const postsRes = await callBuffer(`query { posts(first: 100, input: { organizationId: "${state.orgId}", filter: { status: [sent] } }) { edges { node { id text createdAt channelId } } } }`);
       const edges = postsRes?.data?.posts?.edges || [];
       state.posts = edges.map(e => e.node);
+
+      const schedRes = await callBuffer(`query { posts(first: 100, input: { organizationId: "${state.orgId}", filter: { status: [scheduled] } }) { edges { node { id text dueAt channelId } } } }`);
+      const schedEdges = schedRes?.data?.posts?.edges || [];
+      state.scheduledPosts = schedEdges.map(e => e.node);
       state.synced = true;
 
       renderRecycler();
@@ -1494,7 +1818,369 @@ document.addEventListener('DOMContentLoaded', function() {
 
   setThreadMode('queue');
   renderThreadPreview();
-});
+
+  // ─── Content Calendar ───────────────────────────────────────────────────────
+  const CAL_NOTES_KEY = 'postiq_cal_notes';
+  const CAL_SYNC_KEY  = 'postiq_cal_sync';
+
+  let calYear  = new Date().getFullYear();
+  let calMonth = new Date().getMonth();
+  let calSyncEnabled = localStorage.getItem(CAL_SYNC_KEY) === 'true';
+  let calSelectedDate = null;
+
+  function getCalNotes() {
+    try { return JSON.parse(localStorage.getItem(CAL_NOTES_KEY) || '{}'); }
+    catch { return {}; }
+  }
+  function saveCalNote(dateKey, text) {
+    const notes = getCalNotes();
+    if (text.trim()) notes[dateKey] = text;
+    else delete notes[dateKey];
+    localStorage.setItem(CAL_NOTES_KEY, JSON.stringify(notes));
+  }
+
+  function getScheduledPostsByDate() {
+    const byDate = {};
+    (state.scheduledPosts || []).forEach(p => {
+      const d = p.dueAt || p.scheduledAt;
+      if (!d) return;
+      const key = new Date(typeof d==='number'?d*1000:d).toISOString().slice(0,10);
+      if (!byDate[key]) byDate[key] = [];
+      byDate[key].push(p);
+    });
+    return byDate;
+  }
+
+  const DOW_LABELS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MONTH_NAMES  = ['January','February','March','April','May','June',
+                        'July','August','September','October','November','December'];
+
+  function renderCalendar() {
+    const grid  = document.getElementById('calGrid');
+    const label = document.getElementById('calMonthLabel');
+    if (!grid || !label) return;
+    label.textContent = `${MONTH_NAMES[calMonth]} ${calYear}`;
+
+    const firstDay    = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+    const daysInPrev  = new Date(calYear, calMonth, 0).getDate();
+    const today       = new Date().toISOString().slice(0,10);
+    const notes       = getCalNotes();
+    const byDate      = getScheduledPostsByDate();
+
+    const headers = DOW_LABELS.map(d => `<div class="cal-dow">${d}</div>`).join('');
+    let cells = '';
+    let dayCount = 0;
+
+    for (let i = firstDay-1; i >= 0; i--) {
+      cells += `<div class="cal-day other-month"><div class="cal-day-num">${daysInPrev-i}</div></div>`;
+      dayCount++;
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateKey = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isToday = dateKey === today;
+      const note    = notes[dateKey] || '';
+      const posts   = byDate[dateKey] || [];
+      const hasNote = !!note.trim();
+
+      let cls = 'cal-day';
+      if (isToday) cls += ' is-today';
+      if (hasNote) cls += ' has-note';
+
+      let postChips = '';
+      posts.slice(0,2).forEach(p => {
+        const ch = state.channels.find(c => c.id===p.channelId);
+        const icon = ch ? serviceLabel(ch.service) : '📡';
+        const snippet = (p.text||'').slice(0,20)+(p.text?.length>20?'…':'');
+        postChips += `<div class="cal-post-chip"><span class="chip-icon">${icon}</span>${snippet}</div>`;
+      });
+      if (posts.length > 2) postChips += `<div class="cal-overflow-chip">+${posts.length-2} more</div>`;
+
+      const noteChip = hasNote
+        ? `<div class="cal-note-chip"><span class="chip-icon">✏️</span>${note.slice(0,22)}${note.length>22?'…':''}</div>`
+        : '';
+
+      cells += `
+        <div class="${cls}" data-date="${dateKey}">
+          <div class="cal-day-num">${d}</div>
+          ${postChips}${noteChip}
+          <div class="cal-add-hint">${hasNote?'Edit note':'+ Add note'}</div>
+        </div>`;
+      dayCount++;
+    }
+
+    const remainder = dayCount % 7;
+    if (remainder !== 0) {
+      for (let d = 1; d <= 7-remainder; d++) {
+        cells += `<div class="cal-day other-month"><div class="cal-day-num">${d}</div></div>`;
+      }
+    }
+
+    grid.innerHTML = headers + cells;
+    grid.querySelectorAll('.cal-day:not(.other-month)').forEach(el => {
+      el.addEventListener('click', () => openCalDrawer(el.dataset.date));
+    });
+  }
+
+  function openCalDrawer(dateKey) {
+    calSelectedDate = dateKey;
+    const [y, m, d] = dateKey.split('-').map(Number);
+    const dayName = DOW_LABELS[new Date(y,m-1,d).getDay()];
+    document.getElementById('calDrawerDate').textContent =
+      `${dayName}, ${MONTH_NAMES[m-1]} ${d}, ${y}`;
+
+    const notes   = getCalNotes();
+    const byDate  = getScheduledPostsByDate();
+    const posts   = byDate[dateKey] || [];
+    const noteText = notes[dateKey] || '';
+
+    const body   = document.getElementById('calDrawerBody');
+    const footer = document.getElementById('calDrawerFooter');
+
+    let postsHTML = '';
+    if (posts.length) {
+      postsHTML = `<div class="cal-drawer-section">Scheduled Posts (${posts.length})</div>`;
+      posts.forEach(p => {
+        const ch = state.channels.find(c => c.id===p.channelId);
+        const chName = ch ? `${serviceLabel(ch.service)} ${ch.displayName||ch.name}` : 'Unknown';
+        const dt = p.dueAt || p.scheduledAt;
+        const timeStr = dt
+          ? new Date(typeof dt==='number'?dt*1000:dt)
+              .toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})
+          : '';
+        postsHTML += `
+          <div class="cal-scheduled-post">
+            <div class="post-channel">${chName}</div>
+            <div>${(p.text||'').slice(0,120)}${(p.text||'').length>120?'…':''}</div>
+            ${timeStr?`<div class="post-time">⏰ ${timeStr}</div>`:''}
+          </div>`;
+      });
+    }
+
+    body.innerHTML = `
+      ${postsHTML}
+      <div class="cal-drawer-section" style="margin-top:${posts.length?'16px':'0'};">Daily Note</div>
+      <textarea class="cal-note-textarea" id="calNoteInput"
+        placeholder="Jot down a content idea, theme, or reminder for this day…">${noteText.replace(/</g,'&lt;')}</textarea>
+      <div class="cal-note-actions">
+        <button class="btn btn-primary" id="calSaveNote" style="flex:1;">Save note</button>
+        ${noteText.trim()?'<button class="btn btn-ghost" id="calDeleteNote">Delete</button>':''}
+      </div>
+      <div class="cal-sync-status" id="calSyncStatus"></div>
+    `;
+
+    footer.innerHTML = noteText.trim() ? `
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;font-family:'DM Mono',monospace;">Turn this note into a scheduled post:</div>
+      <button class="btn btn-success btn-full" id="calPostFromNote">✍️ Open in composer →</button>
+    ` : `
+      <div style="font-size:11px;color:var(--text-dim);font-family:'DM Mono',monospace;text-align:center;padding:4px 0;">Save a note to open it in the composer</div>
+    `;
+
+    // Save note handler
+    document.getElementById('calSaveNote')?.addEventListener('click', async () => {
+      const text = document.getElementById('calNoteInput')?.value || '';
+      saveCalNote(dateKey, text);
+      renderCalendar();
+
+      const syncStatus = document.getElementById('calSyncStatus');
+      if (calSyncEnabled && text.trim() && state.orgId) {
+        syncStatus.textContent = 'Syncing to Buffer Ideas…';
+        syncStatus.className = 'cal-sync-status';
+        try {
+          const mutation = `
+            mutation CreateIdea($input: IdeaCreationInput!) {
+              createIdea(input: $input) {
+                __typename
+                ... on IdeaCreateSuccess { idea { id } }
+                ... on MutationError { message }
+              }
+            }`;
+          const res = await callBuffer(mutation, {
+            input: {
+              organizationId: state.orgId,
+              content: { text: `[${dateKey}] ${text}` },
+              source: 'PostIQ'
+            }
+          });
+          if (res?.errors?.length) throw new Error(res.errors[0].message);
+          syncStatus.textContent = '✓ Saved to Buffer Ideas';
+          syncStatus.className = 'cal-sync-status ok';
+        } catch (err) {
+          syncStatus.textContent = 'Buffer sync failed: ' + err.message;
+          syncStatus.className = 'cal-sync-status err';
+        }
+      } else {
+        syncStatus.textContent = '✓ Note saved locally';
+        syncStatus.className = 'cal-sync-status ok';
+        setTimeout(() => { if (syncStatus) syncStatus.textContent = ''; }, 2000);
+      }
+
+      toast('Note saved ✓', 'success');
+      // Refresh drawer to show/hide delete + composer button
+      openCalDrawer(dateKey);
+    });
+
+    // Delete note handler
+    document.getElementById('calDeleteNote')?.addEventListener('click', () => {
+      saveCalNote(dateKey, '');
+      renderCalendar();
+      openCalDrawer(dateKey);
+      toast('Note deleted', '');
+    });
+
+    // Open in composer handler
+    document.getElementById('calPostFromNote')?.addEventListener('click', () => {
+      const noteVal = document.getElementById('calNoteInput')?.value
+        || getCalNotes()[dateKey] || '';
+      closeCalDrawer();
+
+      // Switch to recycler view
+      document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.querySelector('[data-view="recyclerView"]')?.classList.add('active');
+      document.getElementById('recyclerView')?.classList.add('active');
+
+      const detail = document.getElementById('recyclerDetail');
+      if (!detail) return;
+      detail.classList.remove('recycler-detail-empty');
+
+      const schedDT = `${dateKey}T12:00`;
+
+      detail.innerHTML = `
+        <div class="detail-header">
+          <div class="detail-channel-label">📅 From calendar — ${MONTH_NAMES[m-1]} ${d}</div>
+          <span class="detail-hint">Edit freely — nothing posts until you confirm</span>
+        </div>
+        <textarea id="calComposeText" class="detail-textarea">${noteVal.replace(/</g,'&lt;')}</textarea>
+        <div class="detail-char-row">
+          <span class="edit-char-count" id="calComposeCount">${noteVal.length} chars</span>
+        </div>
+        <div class="detail-channel-row">
+          <span class="detail-section-label">Post to:</span>
+          <div class="channel-chips" id="calComposePills"></div>
+        </div>
+        <div class="detail-actions">
+          <button class="btn btn-success btn-full" id="calComposeQueue">➕ Add to queue</button>
+          <button class="btn btn-ghost btn-full" id="calComposeScheduleBtn">🗓 Schedule for ${MONTH_NAMES[m-1]} ${d}</button>
+        </div>
+        <div id="calComposeSchedRow" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+          <label style="font-size:10px;color:var(--text-muted);font-weight:600;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em;font-family:'DM Mono',monospace;">Date &amp; time:</label>
+          <input type="datetime-local" id="calComposeDT" value="${schedDT}" />
+          <button class="btn btn-primary btn-full mt-8" id="calComposeConfirm">Confirm &amp; schedule ↗</button>
+        </div>
+        <div id="calComposeStatus" class="detail-status"></div>
+      `;
+
+      // Populate channel pills
+      const pills = document.getElementById('calComposePills');
+      let selectedCh = state.channels[0]?.id || null;
+      state.channels.forEach(c => {
+        const chip = document.createElement('span');
+        chip.className = 'channel-chip'+(c.id===selectedCh?' selected':'');
+        chip.textContent = `${serviceLabel(c.service)} ${c.displayName||c.name}`;
+        chip.dataset.channelId = c.id;
+        chip.addEventListener('click', () => {
+          pills.querySelectorAll('.channel-chip').forEach(x=>x.classList.remove('selected'));
+          chip.classList.add('selected');
+          selectedCh = c.id;
+        });
+        pills.appendChild(chip);
+      });
+
+      const ta = document.getElementById('calComposeText');
+      const cc = document.getElementById('calComposeCount');
+      ta?.addEventListener('input', () => {
+        cc.textContent = `${ta.value.length} chars`;
+        cc.className = 'edit-char-count'+(ta.value.length>700?' warn':'');
+      });
+
+      async function submitCalPost(scheduledAt) {
+        const text = (ta?.value||'').trim();
+        if (!text) { toast('Post text is empty','error'); return; }
+        const statusEl = document.getElementById('calComposeStatus');
+        statusEl.className = 'detail-status loading';
+        statusEl.textContent = scheduledAt?'Scheduling…':'Adding to queue…';
+        document.getElementById('calComposeQueue').disabled = true;
+        document.getElementById('calComposeScheduleBtn').disabled = true;
+        try {
+          const res = await callBuffer(
+            `mutation CreatePost($input: CreatePostInput!) { createPost(input: $input) { __typename } }`,
+            { input: { channelId:selectedCh, text, schedulingType:'automatic',
+              mode:scheduledAt?'customScheduled':'addToQueue',
+              ...(scheduledAt?{dueAt:scheduledAt}:{}) }}
+          );
+          if (res?.errors?.length) throw new Error(res.errors[0].message);
+          statusEl.className = 'detail-status success';
+          statusEl.textContent = scheduledAt?'✓ Scheduled in Buffer!':'✓ Added to Buffer queue!';
+          toast(scheduledAt?'Post scheduled ✓':'Post queued ✓','success');
+        } catch(err) {
+          statusEl.className = 'detail-status error';
+          statusEl.textContent = 'Error: '+err.message;
+          toast('Error: '+err.message,'error');
+          document.getElementById('calComposeQueue').disabled = false;
+          document.getElementById('calComposeScheduleBtn').disabled = false;
+        }
+      }
+
+      document.getElementById('calComposeQueue')?.addEventListener('click',()=>submitCalPost(null));
+      document.getElementById('calComposeScheduleBtn')?.addEventListener('click',()=>{
+        const row = document.getElementById('calComposeSchedRow');
+        row.style.display = row.style.display==='none'?'block':'none';
+      });
+      document.getElementById('calComposeConfirm')?.addEventListener('click',()=>{
+        const val = document.getElementById('calComposeDT')?.value;
+        if (!val) { toast('Pick a date/time first','error'); return; }
+        submitCalPost(new Date(val).toISOString());
+      });
+    });
+
+    document.getElementById('calDrawer').classList.add('open');
+    document.getElementById('calOverlay').classList.add('open');
+  }
+
+  function closeCalDrawer() {
+    document.getElementById('calDrawer').classList.remove('open');
+    document.getElementById('calOverlay').classList.remove('open');
+    calSelectedDate = null;
+  }
+
+  function updateSyncToggle() {
+    const el = document.getElementById('calSyncToggle');
+    if (!el) return;
+    el.classList.toggle('active', calSyncEnabled);
+  }
+
+  document.getElementById('calSyncToggle')?.addEventListener('click', () => {
+    calSyncEnabled = !calSyncEnabled;
+    localStorage.setItem(CAL_SYNC_KEY, calSyncEnabled);
+    updateSyncToggle();
+    toast(calSyncEnabled?'Notes will sync to Buffer Ideas ✓':'Buffer Ideas sync off','');
+  });
+  document.getElementById('calPrev')?.addEventListener('click',()=>{
+    calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar();
+  });
+  document.getElementById('calNext')?.addEventListener('click',()=>{
+    calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar();
+  });
+  document.getElementById('calToday')?.addEventListener('click',()=>{
+    const now=new Date(); calYear=now.getFullYear(); calMonth=now.getMonth(); renderCalendar();
+  });
+  document.getElementById('calDrawerClose')?.addEventListener('click', closeCalDrawer);
+  document.getElementById('calOverlay')?.addEventListener('click', closeCalDrawer);
+
+  // Re-render when switching to calendar tab
+  document.querySelectorAll('[data-view]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.view==='calendarView') { renderCalendar(); updateSyncToggle(); }
+    });
+  });
+
+  // Also re-render calendar after sync to pick up new scheduled posts
+  const _origLoadData = loadData;
+  updateSyncToggle();
+
+}); // end DOMContentLoaded
 </script>
 </body>
 </html>
