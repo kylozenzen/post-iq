@@ -44,7 +44,7 @@ exports.handler = async function(event) {
   }
 
   try {
-    const res = await fetch("https://api.bufferapp.com/graphql", {
+    const res = await fetch("https://api.buffer.com", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
