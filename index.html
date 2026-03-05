@@ -734,7 +734,7 @@
       <button class="btn btn-primary" id="gateSubmitBtn" style="min-width:80px;">Connect</button>
     </div>
     <p class="gate-hint">
-      Find it at <a href="https://publish.buffer.com/settings/api" target="_blank" rel="noopener">publish.buffer.com/app-password</a>.<br>
+      Find it at <a href="https://publish.buffer.com/app-password" target="_blank" rel="noopener">publish.buffer.com/app-password</a>.<br>
       Your token <strong>never leaves your browser</strong> — it's only used to talk directly to Buffer's API.
     </p>
     <p id="gateError" class="gate-error"></p>
@@ -999,6 +999,7 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: key, query: 'query { account { email } }' })
       });
+      if (!res.ok) throw new Error(`Server error: ${res.status} ${res.statusText}`);
       const data = await res.json();
       if (data?.errors?.length) throw new Error(data.errors[0].message);
       if (!data?.data?.account) throw new Error('Could not verify token — check it and try again.');
@@ -1006,7 +1007,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hideGate();
       toast(`Connected as ${data.data.account.email} ✓`, 'success');
     } catch (err) {
-      document.getElementById('gateError').textContent = err.message || 'Connection failed — is your token correct?';
+      document.getElementById('gateError').textContent = err.message || 'Connection failed — check your token and try again.';
     }
 
     btn.disabled = false;
