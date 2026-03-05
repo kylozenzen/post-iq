@@ -1489,21 +1489,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function evergreenScore(post) {
     const text = post.text || '';
-    const ageMs = Date.now() - new Date(post.createdAt).getTime();
+    const words = text.trim().split(/\s+/).filter(Boolean).length;
+    const ts = post.createdAt;
+    const ageMs = Date.now() - (ts > 1e10 ? ts : ts * 1000);
     const ageDays = ageMs / (1000*60*60*24);
-    let score = 40;
-    if (ageDays>90)  score+=20; if (ageDays>180) score+=15; if (ageDays>365) score+=10;
-    const eng = totalEngagement(post);
-    const imp = post.statistics?.impressions||0;
-    if (eng>0) score+=Math.min(25,eng*2);
-    if (imp>0) { const rate=eng/imp; score+=Math.min(15,Math.round(rate*300)); }
-    if (/\d+\s*(tip|way|step|thing|reason|fact|hack|secret)/i.test(text)) score+=8;
-    if (/\?/.test(text)) score+=5;
-    if (text.length<180) score+=4;
-    if (!/(\d{4}|Q[1-4]\s*\d{4}|this year|this month|last week|yesterday)/i.test(text)) score+=6;
-    return Math.min(100, Math.round(score));
-  }
 
+    let score = 30;
+
+    // Age sweet spot: 60–365 days is ideal recycling window
+    if      (ageDays >= 60  && ageDays < 180) score += 25;
+    else if (ageDays >= 180 && ageDays < 365) score += 15;
+    else if (ageDays >= 365 && ageDays < 730) score +=  5;
+    else if (ageDays >= 730)                  score -= 10; // too stale
+    else if (ageDays <  30)                   score -= 20; // too fresh
+
+    // Evergreen content signals
+    if (/(tip|tips|how to|lesson|lessons|why you|always|never|the key|the truth|the secret|most people|mistake|mistakes|rule|framework|guide|habit|habits)/i.test(text)) score += 12;
+    if (/\?/.test(text)) score += 6;
+    if (/\d+\s+(tip|way|step|thing|reason|fact|hack|sign|mistake|lesson|truth)/i.test(text)) score += 8;
+    if (/(unpopular opinion|hot take|change my mind|disagree)/i.test(text)) score += 5;
+
+    // Time-sensitive hard penalties
+    if (/(today|yesterday|this morning|tonight|right now|just announced|breaking|just dropped|just launched|live now|happening now)/i.test(text)) score -= 35;
+    if (/(this week|last week|this month|last month|this year|last year|Q[1-4]\s*\d{0,4})/i.test(text)) score -= 20;
+    if (/(recently|just|new release|new update|new feature|just went|just hit|just crossed)/i.test(text)) score -= 15;
+    if (/(sale|discount|offer|% off|coupon|promo|register now|sign up now|limited time|early bird|last chance|deadline|event|webinar|conference|summit)/i.test(text)) score -= 25;
+
+    // Length signals
+    if (words < 8)  score -= 15;
+    if (words < 15) score -=  5;
+    if (words >= 30 && words < 120) score += 8;
+
+    // Engagement lift when available
+    const eng = totalEngagement(post);
+    if (eng > 0) score += Math.min(15, Math.round(Math.log(eng + 1) * 4));
+
+    return Math.max(0, Math.min(100, Math.round(score)));
+  }
   let selectedPostId = null;
 
   function renderRecycler() {
@@ -1527,6 +1549,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const scored = posts
       .map(p => ({ ...p, _score: evergreenScore(p), _eng: totalEngagement(p) }))
+      .filter(p => p._score >= 25) // filter out time-sensitive & too-fresh posts
       .sort((a, b) => {
         if (sortFilter==='engagement') return b._eng - a._eng;
         if (sortFilter==='age') return new Date(a.createdAt) - new Date(b.createdAt);
@@ -1534,7 +1557,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }).slice(0, 30);
 
     if (!scored.length) {
-      list.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><h3>No posts found</h3><p>Try a different filter.</p></div>';
+      list.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><h3>No evergreen posts found</h3><p>Time-sensitive or very recent posts are filtered out. Try a different channel or sync more posts.</p></div>';
       return;
     }
 
