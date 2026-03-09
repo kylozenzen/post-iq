@@ -2,6 +2,9 @@
   publish = "."
   functions = "netlify/functions"
 
+[build.processing]
+  skip_processing = true
+
 [[headers]]
   for = "/*"
   [headers.values]
