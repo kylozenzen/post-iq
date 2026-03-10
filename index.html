@@ -617,10 +617,6 @@
 
     <div class="sidebar-section">Tools</div>
     <button class="nav-item active" data-view="viewThread">
-      <span class="nav-icon">♻️</span> Post Recycler
-    </button>
-    <div class="nav-subtext">Browse and repost your best content.</div>
-    <button class="nav-item" data-view="viewThread">
       <span class="nav-icon">🧵</span> Thread Splitter
     </button>
     <div class="nav-subtext">Split long-form into native threads.</div>
@@ -628,6 +624,14 @@
       <span class="nav-icon">📅</span> Content Calendar
     </button>
     <div class="nav-subtext">Scheduled posts + planning notes.</div>
+    <button class="nav-item" data-view="viewComposer">
+      <span class="nav-icon">✍️</span> Post Composer
+    </button>
+    <div class="nav-subtext">Rich text. Queue or schedule.</div>
+    <button class="nav-item" data-view="viewRecycler">
+      <span class="nav-icon">📚</span> Evergreen Library
+    </button>
+    <div class="nav-subtext">Resurface your best text posts.</div>
 
     <div class="sidebar-section">Account</div>
     <a class="nav-item-ext" href="https://publish.buffer.com" target="_blank" rel="noopener">
@@ -1199,7 +1203,7 @@ async function loadData() {
     document.getElementById('threadActive').style.display=hasThread?'grid':'none';
     setSyncStatus(`${state.posts.length} posts loaded`,'ok');
     toast(`Loaded ${state.posts.length} posts ✓`,'success');
-    compRenderChannels();
+    renderComposerChips();
   } catch(e) { setSyncStatus('Connection failed','err'); toast('Error: '+e.message,'error'); }
   btn.disabled=false; btn.textContent='↻ Load from Buffer';
 }
