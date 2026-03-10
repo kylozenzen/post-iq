@@ -298,6 +298,8 @@
     .btn-success{background:var(--green);color:#0D0E12;font-weight:700;}
     .btn-success:hover{box-shadow:0 0 18px rgba(45,212,164,.32);}
     .btn-ghost{background:var(--s2);color:var(--muted);border:1px solid var(--border-mid);}
+    .btn-draft{background:transparent;color:var(--dim);border:1px solid var(--border-mid);font-weight:500;}
+    .btn-draft:hover{color:var(--amber);border-color:var(--amber);box-shadow:0 0 12px rgba(251,191,36,.12);}
     .btn-ghost:hover{color:var(--text);border-color:var(--border-hi);}
     .btn-danger{background:var(--red);color:white;font-weight:700;}
     .btn-full{width:100%;}
@@ -952,6 +954,7 @@
                 <div class="detail-actions mt-12">
                   <button class="btn btn-success btn-full" id="btnQueueNow">➕ Add to queue</button>
                   <button class="btn btn-ghost btn-full" id="btnScheduleThread">🗓 Schedule</button>
+                  <button class="btn btn-draft btn-full" id="btnDraftThread">📝 Save as draft</button>
                 </div>
                 <div id="threadDTPicker" style="display:none;margin-top:10px;">
                   <label style="font-size:10px;color:var(--muted);font-weight:600;display:block;margin-bottom:7px;text-transform:uppercase;letter-spacing:.08em;font-family:'DM Mono',monospace;">Pick a date &amp; time:</label>
@@ -1082,6 +1085,7 @@
               <div style="display:flex;flex-direction:column;gap:7px;">
                 <button class="btn btn-success btn-full" id="btnComposerQueue">➕ Add to queue</button>
                 <button class="btn btn-ghost btn-full" id="btnComposerSchedule">🗓 Schedule for later</button>
+                <button class="btn btn-draft btn-full" id="btnComposerDraft">📝 Save as draft</button>
               </div>
               <div id="composerDTPicker" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
                 <label style="font-size:10px;color:var(--muted);font-weight:600;display:block;margin-bottom:7px;text-transform:uppercase;letter-spacing:.08em;font-family:'DM Mono',monospace;">Date &amp; time:</label>
@@ -1502,6 +1506,7 @@ window.openDetail = function(postId) {
     <div class="detail-actions">
       <button class="btn btn-success btn-full" id="dq-${postId}">➕ Add to queue</button>
       <button class="btn btn-ghost btn-full" id="ds-${postId}">🗓 Schedule for later</button>
+      <button class="btn btn-draft btn-full" id="dd-${postId}">📝 Save as draft</button>
     </div>
     <div id="sp-${postId}" class="sched-picker">
       <label>Pick a date &amp; time:</label>
@@ -1551,7 +1556,80 @@ window.openDetail = function(postId) {
   document.getElementById(`dq-${postId}`)?.addEventListener('click',()=>{picker.classList.remove('open');doRecycle(null);});
   document.getElementById(`ds-${postId}`)?.addEventListener('click',()=>picker.classList.toggle('open'));
   document.getElementById(`sc-${postId}`)?.addEventListener('click',()=>{ const v=document.getElementById(`st-${postId}`).value; if(!v){toast('Pick a date/time first','error');return;} doRecycle(new Date(v).toISOString()); });
+  document.getElementById(`dd-${postId}`)?.addEventListener('click',()=>doRecycleDraft(postId,text,selChan,se,document.getElementById(`dq-${postId}`),document.getElementById(`ds-${postId}`),document.getElementById(`dd-${postId}`)));
 };
+
+// ── DRAFT HELPERS ───────────────────────────────────────────────────────────
+async function saveDraftToBuffer(channelId, text, extraInput={}) {
+  return callBuffer(
+    `mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename}}`,
+    { input: { channelId, text, schedulingType:'automatic', mode:'addToQueue', saveToDraft:true, ...extraInput } }
+  );
+}
+
+async function doRecycleDraft(postId, text, channelId, se, qb, sb, db) {
+  if(!channelId){toast('Pick a channel first','error');return;}
+  if(qb)qb.disabled=true; if(sb)sb.disabled=true; if(db)db.disabled=true;
+  se.className='detail-status loading'; se.textContent='Saving draft…';
+  try {
+    const res = await saveDraftToBuffer(channelId, text);
+    if(res?.errors?.length) throw new Error(res.errors[0].message);
+    se.className='detail-status success'; se.textContent='📝 Draft saved to Buffer!';
+    toast('Draft saved to Buffer ✓','success');
+    logEvent('draft');
+  } catch(e) {
+    se.className='detail-status error'; se.textContent='Error: '+e.message;
+    toast('Error: '+e.message,'error');
+  }
+  if(qb)qb.disabled=false; if(sb)sb.disabled=false; if(db)db.disabled=false;
+}
+
+async function doThreadDraft() {
+  const parts=Array.from(document.querySelectorAll('#threadPreview textarea')).map(n=>n.value.trim()).filter(Boolean);
+  const se=document.getElementById('queueStatus');
+  if(!parts.length){toast('No parts to send','error');return;}
+  if(!state.selectedChanId){toast('Pick a channel first','error');return;}
+  const qb=document.getElementById('btnQueueNow'), sb=document.getElementById('btnScheduleThread'), db=document.getElementById('btnDraftThread');
+  qb.disabled=true; sb.disabled=true; db.disabled=true;
+  se.className='detail-status loading'; se.textContent='Saving draft…';
+  const svc=state.selectedChanService||'twitter';
+  const [first,...rest]=parts; const isT=['threads','instagram_threads','thread'].includes(svc.toLowerCase());
+  try {
+    const res = await saveDraftToBuffer(state.selectedChanId, first, rest.length?{metadata:{[isT?'threads':'twitter']:isT?{type:'thread',thread:rest.map(t=>({text:t}))}:{thread:rest.map(t=>({text:t}))}}}:{});
+    if(res?.errors?.length) throw new Error(res.errors[0].message);
+    se.className='detail-status success'; se.textContent=`📝 Draft saved — ${parts.length} part${parts.length>1?'s':''}`;
+    toast('Draft saved to Buffer ✓','success'); logEvent('draft');
+  } catch(e) {
+    se.className='detail-status error'; se.textContent='Error: '+e.message;
+    toast('Error: '+e.message,'error');
+  }
+  qb.disabled=false; sb.disabled=false; db.disabled=false;
+}
+
+async function doComposerDraft() {
+  const text=(document.getElementById('composerText')?.value||'').trim();
+  const se=document.getElementById('composerStatus');
+  if(!text){toast('Write something first','error');return;}
+  if(!composerSelectedChanId){toast('Pick a channel','error');return;}
+  const linkUrl=(document.getElementById('composerLink')?.value||'').trim();
+  const selC=state.channels.find(c=>c.id===composerSelectedChanId);
+  const qb=document.getElementById('btnComposerQueue'), sb=document.getElementById('btnComposerSchedule'), db=document.getElementById('btnComposerDraft');
+  qb.disabled=true; sb.disabled=true; db.disabled=true;
+  se.className='detail-status loading'; se.textContent='Saving draft…';
+  try {
+    const res = await saveDraftToBuffer(composerSelectedChanId, text, selC?.service==='linkedin'&&linkUrl?{metadata:{linkedin:{linkAttachment:{url:linkUrl}}}}:{});
+    if(res?.errors?.length) throw new Error(res.errors[0].message);
+    se.className='detail-status success'; se.textContent='📝 Draft saved to Buffer!';
+    toast('Draft saved to Buffer ✓','success'); logEvent('draft');
+    document.getElementById('composerText').value='';
+    document.getElementById('composerLink').value='';
+    updateComposerCC();
+  } catch(e) {
+    se.className='detail-status error'; se.textContent='Error: '+e.message;
+    toast('Error: '+e.message,'error');
+  }
+  qb.disabled=false; sb.disabled=false; db.disabled=false;
+}
 
 // ── THREAD ─────────────────────────────────────────────────────────────────
 const TMAX=280,TGTMAX=240,TGTMIN=80;
@@ -1677,6 +1755,7 @@ async function sendThread(scheduledAt){
 }
 document.getElementById('btnQueueNow').addEventListener('click',()=>sendThread(null));
 document.getElementById('btnQueueSched').addEventListener('click',()=>{const v=document.getElementById('threadSchedTime').value;if(!v){toast('Pick a date/time','error');return;}sendThread(new Date(v).toISOString());});
+document.getElementById('btnDraftThread').addEventListener('click',doThreadDraft);
 renderThreadPreview();
 
 // ── RICH TEXT (Unicode) ────────────────────────────────────────────────────
@@ -1794,6 +1873,7 @@ document.getElementById('btnComposerConfirmSched')?.addEventListener('click',()=
   if(!v){toast('Pick a date/time','error');return;}
   doComposerPost(new Date(v).toISOString());
 });
+document.getElementById('btnComposerDraft')?.addEventListener('click', doComposerDraft);
 
 // ── CALENDAR TODAY STRIP ───────────────────────────────────────────────────
 function initCalendarView(){
