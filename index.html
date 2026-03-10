@@ -778,16 +778,16 @@
       </div>
 
       <!-- Today strip -->
-      <div id="calTodayStrip" class="card mb-12" style="padding:14px 18px;">
+      <div id="calTodayStrip" class="card mb-12" style="padding:14px 18px;display:none;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <span style="font-size:11px;font-weight:700;color:var(--amber);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.08em;" id="calTodayLabel">Today</span>
-          <span style="font-size:10px;color:var(--dim);font-family:'DM Mono',monospace;" id="calTodayDate"></span>
+          <span style="font-size:11px;font-weight:700;color:var(--amber);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.08em;" id="calTodayLabel">📌 Today</span>
+          <button style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;" id="calTodayClose">✕</button>
         </div>
         <div id="calTodayPosts" style="margin-bottom:8px;"></div>
         <div id="calTodayNotes" style="margin-bottom:10px;"></div>
         <div style="display:flex;gap:6px;">
-          <input class="cal-note-input" id="calTodayInput" type="text" placeholder="Quick note for today… (Enter)" style="flex:1;" />
-          <button class="cal-note-submit" id="calTodaySubmit" disabled>+</button>
+          <input class="cal-note-input" id="calTodayNoteInput" type="text" placeholder="Quick note for today… (Enter to save)" style="flex:1;" />
+          <button class="cal-note-submit" id="calTodayNoteSubmit" disabled>+</button>
         </div>
       </div>
 
@@ -825,32 +825,27 @@
           <div class="card mb-12">
             <div class="card-header">
               <h2>Compose</h2>
-              <div class="row gap-4">
-                <button class="btn btn-ghost btn-xs" id="compClear">Clear</button>
-              </div>
             </div>
-            <div class="rich-toolbar" id="richToolbar">
-              <button class="rich-btn" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
-              <button class="rich-btn" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+            <div class="rich-toolbar" id="rtoolbar">
+              <button class="rich-btn" data-fmt="bold" title="Bold"><b>B</b></button>
+              <button class="rich-btn" data-fmt="italic" title="Italic"><i>I</i></button>
               <div class="rich-divider"></div>
-              <button class="rich-btn" data-insert="bullet" title="Bullet list">☰</button>
-              <button class="rich-btn" data-insert="numbered" title="Numbered list">#</button>
+              <button class="rich-btn" data-fmt="bullet" title="Bullet list">☰</button>
               <div class="rich-divider"></div>
-              <button class="rich-btn" data-insert="hook" title="Add hook line">🪝</button>
-              <button class="rich-btn" data-insert="cta" title="Add CTA line">📣</button>
+              <button class="rich-btn" data-fmt="clear" title="Clear formatting" style="font-size:10px;width:auto;padding:0 8px;">Clear fmt</button>
               <div class="rich-divider"></div>
-              <button class="rich-btn" id="compUnicode" title="Convert to Unicode rich text" style="width:auto;padding:0 8px;font-size:11px;font-weight:700;color:var(--amber);">Aᵤ</button>
+              <button class="rich-btn" id="btnUnicodeConvert" title="Convert **bold** *italic* markdown to Unicode" style="width:auto;padding:0 8px;font-size:11px;font-weight:700;color:var(--amber);">Aᵤ</button>
             </div>
-            <textarea id="compEditor" class="rich-editor" placeholder="Write your post…" style="min-height:200px;padding:14px;font-size:14px;line-height:1.65;border:none;border-radius:0;background:var(--s2);color:var(--text);resize:vertical;"></textarea>
+            <textarea id="composerText" class="rich-editor" placeholder="Write your post… Use **bold** or *italic* then hit Aᵤ to convert." style="min-height:200px;padding:14px;font-size:14px;line-height:1.65;border:none;border-radius:0;background:var(--s2);color:var(--text);resize:vertical;width:100%;"></textarea>
             <div class="char-bar">
-              <span id="compCharCount">0 chars</span>
-              <span id="compCharNote" style="font-size:10px;color:var(--dim);">LinkedIn max: 3000 · Twitter: 280</span>
+              <span id="composerCC">0 chars</span>
+              <span style="font-size:10px;color:var(--dim);">LinkedIn max: 3000 · Twitter: 280</span>
             </div>
           </div>
-          <div class="card">
-            <div class="card-header"><h2>Preview (Unicode rendered)</h2></div>
+          <div class="card mb-12">
+            <div class="card-header"><h2>LinkedIn link attachment</h2></div>
             <div class="card-body">
-              <div class="composer-preview-text" id="compPreview">Your post will appear here…</div>
+              <input class="input" id="composerLink" type="url" placeholder="https://… (optional, LinkedIn only)" style="width:100%;" />
             </div>
           </div>
         </div>
@@ -858,33 +853,32 @@
           <div class="card">
             <div class="card-header"><h2>Post to</h2></div>
             <div class="card-body">
-              <div class="composer-channels" id="compChannels">
-                <div style="font-size:12px;color:var(--dim);">Load from Buffer first to see channels.</div>
-              </div>
+              <div id="composerChips" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+              <div id="composerNoChans" style="display:none;font-size:12px;color:var(--dim);">Load from Buffer first to see channels.</div>
             </div>
           </div>
           <div class="card">
             <div class="card-header"><h2>Send</h2></div>
             <div class="card-body">
               <div style="display:flex;flex-direction:column;gap:7px;">
-                <button class="btn btn-success btn-full" id="compQueueBtn">➕ Add to queue</button>
-                <button class="btn btn-ghost btn-full" id="compSchedToggle">🗓 Schedule for later</button>
+                <button class="btn btn-success btn-full" id="btnComposerQueue">➕ Add to queue</button>
+                <button class="btn btn-ghost btn-full" id="btnComposerSchedule">🗓 Schedule for later</button>
               </div>
-              <div id="compSchedPicker" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
-                <label style="font-size:10px;color:var(--muted);font-weight:600;display:block;margin-bottom:7px;text-transform:uppercase;letter-spacing:.08em;font-family:'DM Mono',monospace;">Pick a date &amp; time:</label>
-                <input type="datetime-local" id="compSchedTime" />
-                <button class="btn btn-primary btn-full mt-8" id="compSchedBtn">Confirm &amp; schedule ↗</button>
+              <div id="composerDTPicker" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+                <label style="font-size:10px;color:var(--muted);font-weight:600;display:block;margin-bottom:7px;text-transform:uppercase;letter-spacing:.08em;font-family:'DM Mono',monospace;">Date &amp; time:</label>
+                <input type="datetime-local" id="composerSchedTime" style="width:100%;" />
+                <button class="btn btn-primary btn-full mt-8" id="btnComposerConfirmSched">Confirm &amp; schedule ↗</button>
               </div>
-              <div id="compStatus" class="detail-status mt-8"></div>
+              <div id="composerStatus" class="detail-status mt-8"></div>
             </div>
           </div>
           <div class="card">
             <div class="card-header"><h2>Rich text guide</h2></div>
-            <div class="card-body" style="font-size:12px;color:var(--dim);line-height:1.8;">
-              <div><span style="color:var(--text);">**bold**</span> → <b>bold</b></div>
-              <div><span style="color:var(--text);">*italic*</span> → <i>italic</i></div>
-              <div><span style="color:var(--text);">- item</span> → bullet</div>
-              <div style="margin-top:8px;font-size:11px;">Hit <span style="color:var(--amber);">Aᵤ</span> to convert markdown to Unicode before posting. Renders on LinkedIn, Threads &amp; more.</div>
+            <div class="card-body" style="font-size:12px;color:var(--dim);line-height:1.9;">
+              <div>Select text → <span style="color:var(--amber);">B</span> or <span style="color:var(--amber);">I</span> toolbar buttons</div>
+              <div>Or type <span style="color:var(--text);">**bold**</span> / <span style="color:var(--text);">*italic*</span></div>
+              <div>Then hit <span style="color:var(--amber);">Aᵤ</span> to convert to Unicode</div>
+              <div style="margin-top:6px;font-size:11px;color:var(--dim);">Unicode renders on LinkedIn, Threads &amp; more — even in plain text fields.</div>
             </div>
           </div>
         </div>
@@ -1882,171 +1876,6 @@ async function logEvent(tool){
   }catch(e){}
 }
 
-
-// ── COMPOSER ──────────────────────────────────────────────────────────────
-// Unicode conversion maps
-const BOLD_MAP = {a:'𝗮',b:'𝗯',c:'𝗰',d:'𝗱',e:'𝗲',f:'𝗳',g:'𝗴',h:'𝗵',i:'𝗶',j:'𝗷',k:'𝗸',l:'𝗹',m:'𝗺',n:'𝗻',o:'𝗼',p:'𝗽',q:'𝗾',r:'𝗿',s:'𝘀',t:'𝘁',u:'𝘂',v:'𝘃',w:'𝘄',x:'𝘅',y:'𝘆',z:'𝘇',A:'𝗔',B:'𝗕',C:'𝗖',D:'𝗗',E:'𝗘',F:'𝗙',G:'𝗚',H:'𝗛',I:'𝗜',J:'𝗝',K:'𝗞',L:'𝗟',M:'𝗠',N:'𝗡',O:'𝗢',P:'𝗣',Q:'𝗤',R:'𝗥',S:'𝗦',T:'𝗧',U:'𝗨',V:'𝗩',W:'𝗪',X:'𝗫',Y:'𝗬',Z:'𝗭',0:'𝟬',1:'𝟭',2:'𝟮',3:'𝟯',4:'𝟰',5:'𝟱',6:'𝟲',7:'𝟳',8:'𝟴',9:'𝟵'};
-const ITALIC_MAP = {a:'𝘢',b:'𝘣',c:'𝘤',d:'𝘥',e:'𝘦',f:'𝘧',g:'𝘨',h:'𝘩',i:'𝘪',j:'𝘫',k:'𝘬',l:'𝘭',m:'𝘮',n:'𝘯',o:'𝘰',p:'𝘱',q:'𝘲',r:'𝘳',s:'𝘴',t:'𝘵',u:'𝘶',v:'𝘷',w:'𝘸',x:'𝘹',y:'𝘺',z:'𝘻',A:'𝘈',B:'𝘉',C:'𝘊',D:'𝘋',E:'𝘌',F:'𝘍',G:'𝘎',H:'𝘏',I:'𝘐',J:'𝘑',K:'𝘒',L:'𝘓',M:'𝘔',N:'𝘕',O:'𝘖',P:'𝘗',Q:'𝘘',R:'𝘙',S:'𝘚',T:'𝘛',U:'𝘜',V:'𝘝',W:'𝘞',X:'𝘟',Y:'𝘠',Z:'𝘡'};
-
-function toUnicodeBold(str){ return str.split('').map(c=>BOLD_MAP[c]||c).join(''); }
-function toUnicodeItalic(str){ return str.split('').map(c=>ITALIC_MAP[c]||c).join(''); }
-
-function convertMarkdown(text) {
-  // **bold** and *italic*
-  text = text.replace(/\*\*([^*]+)\*\*/g, (_, t) => toUnicodeBold(t));
-  text = text.replace(/\*([^*]+)\*/g, (_, t) => toUnicodeItalic(t));
-  // - bullet → • bullet
-  text = text.replace(/^- (.+)/gm, '• $1');
-  // 1. numbered → keep as is (already readable)
-  return text;
-}
-
-function compUpdatePreview() {
-  const ta = document.getElementById('compEditor');
-  const preview = document.getElementById('compPreview');
-  const cc = document.getElementById('compCharCount');
-  if (!ta || !preview) return;
-  const raw = ta.value;
-  const converted = convertMarkdown(raw);
-  preview.textContent = converted || 'Your post will appear here…';
-  const len = raw.length;
-  cc.textContent = `${len} chars`;
-  cc.className = len > 3000 ? 'over' : len > 280 ? 'warn' : '';
-}
-
-function compRenderChannels() {
-  const cont = document.getElementById('compChannels');
-  if (!cont) return;
-  if (!state.channels.length) {
-    cont.innerHTML = '<div style="font-size:12px;color:var(--dim);">Load from Buffer first to see channels.</div>';
-    return;
-  }
-  cont.innerHTML = '';
-  state.channels.forEach((c, idx) => {
-    const item = document.createElement('div');
-    item.className = 'composer-chan-item' + (idx === 0 ? ' sel' : '');
-    item.dataset.id = c.id;
-    item.innerHTML = `<span class="composer-chan-icon">${svcIcon(c.service)}</span><span class="composer-chan-name">${c.displayName||c.name}</span>`;
-    item.addEventListener('click', () => {
-      cont.querySelectorAll('.composer-chan-item').forEach(x => x.classList.remove('sel'));
-      item.classList.add('sel');
-    });
-    cont.appendChild(item);
-  });
-}
-
-document.getElementById('compEditor')?.addEventListener('input', compUpdatePreview);
-
-document.getElementById('compClear')?.addEventListener('click', () => {
-  document.getElementById('compEditor').value = '';
-  compUpdatePreview();
-});
-
-document.getElementById('compUnicode')?.addEventListener('click', () => {
-  const ta = document.getElementById('compEditor');
-  if (!ta) return;
-  ta.value = convertMarkdown(ta.value);
-  compUpdatePreview();
-  toast('Converted to Unicode rich text ✓', 'success');
-});
-
-document.getElementById('compSchedToggle')?.addEventListener('click', () => {
-  const p = document.getElementById('compSchedPicker');
-  p.style.display = p.style.display === 'none' ? 'block' : 'none';
-});
-
-async function compSend(scheduledAt) {
-  const ta = document.getElementById('compEditor');
-  const text = (ta?.value || '').trim();
-  if (!text) { toast('Write something first', 'error'); return; }
-  const selChan = document.querySelector('.composer-chan-item.sel');
-  if (!selChan) { toast('Pick a channel first', 'error'); return; }
-  const chanId = selChan.dataset.id;
-  const se = document.getElementById('compStatus');
-  const qb = document.getElementById('compQueueBtn');
-  const sb = document.getElementById('compSchedBtn');
-  se.className = 'detail-status loading'; se.textContent = scheduledAt ? 'Scheduling…' : 'Adding to queue…';
-  if (qb) qb.disabled = true; if (sb) sb.disabled = true;
-  try {
-    const finalText = convertMarkdown(text);
-    const res = await callBuffer(`mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename}}`, {
-      input: { channelId: chanId, text: finalText, schedulingType: 'automatic', mode: scheduledAt ? 'customScheduled' : 'addToQueue', ...(scheduledAt ? { dueAt: scheduledAt } : {}) }
-    });
-    if (res?.errors?.length) throw new Error(res.errors[0].message);
-    se.className = 'detail-status success';
-    se.textContent = scheduledAt ? '✓ Scheduled in Buffer!' : '✓ Added to Buffer queue!';
-    toast(scheduledAt ? 'Post scheduled ✓' : 'Post queued ✓', 'success');
-    logEvent('composer');
-  } catch(e) {
-    se.className = 'detail-status error'; se.textContent = 'Error: ' + e.message;
-    toast('Error: ' + e.message, 'error');
-  }
-  if (qb) qb.disabled = false; if (sb) sb.disabled = false;
-}
-
-document.getElementById('compQueueBtn')?.addEventListener('click', () => compSend(null));
-document.getElementById('compSchedBtn')?.addEventListener('click', () => {
-  const v = document.getElementById('compSchedTime')?.value;
-  if (!v) { toast('Pick a date/time first', 'error'); return; }
-  compSend(new Date(v).toISOString());
-});
-
-// Render channels when navigating to composer
-document.querySelectorAll('[data-view="viewComposer"]').forEach(btn => {
-  btn.addEventListener('click', () => { compRenderChannels(); compUpdatePreview(); });
-});
-
-// ── CALENDAR TODAY STRIP ──────────────────────────────────────────────────
-function calRenderToday() {
-  const today = new Date();
-  const todayFmt = calFmtDate(today);
-  const label = today.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric'});
-  const todayDateEl = document.getElementById('calTodayDate');
-  if (todayDateEl) todayDateEl.textContent = label;
-
-  const posts = calState.posts.filter(p => { try { return calSameDay(new Date(p.dueAt), today); } catch { return false; } });
-  const notes = calState.notes.filter(n => n.noteDate === todayFmt);
-
-  const postsEl = document.getElementById('calTodayPosts');
-  if (postsEl) {
-    postsEl.innerHTML = posts.length
-      ? posts.map(p => `<div class="cal-post-item" style="margin-bottom:4px;">${(p.text||'').slice(0,100)}${p.text?.length>100?'…':''}</div>`).join('')
-      : '';
-  }
-  const notesEl = document.getElementById('calTodayNotes');
-  if (notesEl) {
-    notesEl.innerHTML = notes.length
-      ? notes.map(n => {
-          const cfg = NOTE_COLORS_CAL.find(c => c.id === n.color) || NOTE_COLORS_CAL[0];
-          return `<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-bottom:3px;"><div class="note-dot ${cfg.dot}"></div>${(n.content||'').replace(/</g,'&lt;')}</div>`;
-        }).join('')
-      : '<div style="font-size:12px;color:var(--dim);font-style:italic;">No posts or notes scheduled today.</div>';
-  }
-
-  // Wire today's quick-add
-  const ni = document.getElementById('calTodayInput');
-  const ns = document.getElementById('calTodaySubmit');
-  if (ni) {
-    ni.oninput = () => { if (ns) ns.disabled = !ni.value.trim(); };
-    ni.onkeydown = async (e) => {
-      if (e.key !== 'Enter') return;
-      const text = ni.value.trim(); if (!text || !currentUser) return;
-      ns.disabled = true; ni.disabled = true;
-      try {
-        const ref = await db.collection('calendarNotes').add({
-          userId: currentUser.uid, noteDate: todayFmt,
-          content: text, color: 'gold',
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        calState.notes.push({ id: ref.id, userId: currentUser.uid, noteDate: todayFmt, content: text, color: 'gold' });
-        ni.value = ''; calRenderToday(); calRenderGrid();
-        toast('Note added ✓', 'success');
-      } catch(err) { toast('Error: ' + err.message, 'error'); }
-      ns.disabled = false; ni.disabled = false;
-    };
-  }
-  if (ns) ns.onclick = () => { if (ni) ni.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter'})); };
-}
 
 // ── ADMIN ──────────────────────────────────────────────────────────────────
 document.querySelectorAll('.admin-tab').forEach(tab=>{
