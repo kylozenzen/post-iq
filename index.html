@@ -879,6 +879,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
+console.log('PostIQ: script started');
 // ── FIREBASE ───────────────────────────────────────────────────────────────
 firebase.initializeApp({
   apiKey:"AIzaSyCDRuAyrXnGNJkNRb-IusoKZBlZQ0OxLBY",
@@ -935,6 +936,11 @@ const _authTimeout = setTimeout(() => {
   console.warn('PostIQ: auth timeout — forcing landing screen');
   showScreen('screenLanding');
 }, 6000);
+
+// Explicitly set persistence to avoid onAuthStateChanged hang
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(e => {
+  console.warn('PostIQ: setPersistence failed', e);
+});
 
 auth.onAuthStateChanged(async (user) => {
   clearTimeout(_authTimeout);
@@ -1674,3 +1680,10 @@ async function loadAdminData(){
     events.forEach(e=>{toolCounts[e.tool]=(toolCounts[e.tool]||0)+1;});
     document.getElementById('adminEventsBody').innerHTML=Object.entries(toolCounts).sort((a,b)=>b[1]-a[1]).map(([tool,count])=>`
       <tr><td style="font-family:
+'DM Mono',monospace;color:var(--amber);">${tool}</td><td>${count}</td></tr>
+    `).join('');
+  }catch(e){ console.error('PostIQ: admin load error',e); }
+}
+</script>
+</body>
+</html>
