@@ -930,15 +930,23 @@ document.getElementById('authClose').addEventListener('click', closeAuth);
 let currentUser = null;
 let bufferToken = '';
 
+// Safety net: if auth takes >6s, force landing screen
+const _authTimeout = setTimeout(() => {
+  console.warn('PostIQ: auth timeout — forcing landing screen');
+  showScreen('screenLanding');
+}, 6000);
+
 auth.onAuthStateChanged(async (user) => {
+  clearTimeout(_authTimeout);
+  console.log('PostIQ: onAuthStateChanged fired, user=', user ? user.email : 'null');
   if (!user) { currentUser = null; bufferToken = ''; showScreen('screenLanding'); return; }
   currentUser = user;
   updateUserPill(user);
-  // Show/hide admin nav
   document.getElementById('navAdmin').style.display = ADMIN_UIDS.includes(user.uid) ? 'flex' : 'none';
-  // Load buffer token
   try {
+    console.log('PostIQ: fetching Firestore user doc…');
     const doc = await db.collection('users').doc(user.uid).get();
+    console.log('PostIQ: Firestore doc fetched, exists=', doc.exists);
     if (doc.exists && doc.data().bufferToken) {
       bufferToken = doc.data().bufferToken;
       updateApiPill(bufferToken);
@@ -949,8 +957,11 @@ auth.onAuthStateChanged(async (user) => {
       showScreen('screenApp');
       openGate();
     }
-  } catch(e) { showScreen('screenApp'); openGate(); }
-  // Record user in Firestore (merge so we don't overwrite)
+  } catch(e) {
+    console.error('PostIQ: Firestore error', e);
+    showScreen('screenApp');
+    openGate();
+  }
   db.collection('users').doc(user.uid).set({
     email: user.email,
     displayName: user.displayName || '',
