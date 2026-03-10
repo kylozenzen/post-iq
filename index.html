@@ -470,6 +470,30 @@
     .gap-4{gap:4px!important;}
     .mt-8{margin-top:8px;}.mt-12{margin-top:12px;}.mt-16{margin-top:16px;}
     .mb-8{margin-bottom:8px;}.mb-12{margin-bottom:12px;}.mb-16{margin-bottom:16px;}
+
+    /* ── COMPOSER ─────────────────────────────────────────────── */
+    .composer-layout{display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start;}
+    @media(max-width:920px){.composer-layout{grid-template-columns:1fr;}}
+    .rich-toolbar{display:flex;align-items:center;gap:4px;padding:8px 12px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+    .rich-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:none;background:none;color:var(--muted);border-radius:5px;cursor:pointer;font-size:13px;font-weight:700;transition:background .12s,color .12s;flex-shrink:0;}
+    .rich-btn:hover{background:var(--s3);color:var(--text);}
+    .rich-btn.active{background:var(--amber-dim);color:var(--amber);}
+    .rich-divider{width:1px;height:18px;background:var(--border-mid);margin:0 4px;flex-shrink:0;}
+    .rich-editor{min-height:180px;padding:14px;font-size:14px;line-height:1.65;color:var(--text);background:var(--s2);border:none;outline:none;resize:none;width:100%;font-family:'DM Sans',sans-serif;border-radius:0;}
+    .rich-editor:empty::before{content:attr(data-placeholder);color:var(--dim);pointer-events:none;}
+    .composer-preview{background:var(--s1);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;}
+    .composer-preview-label{font-size:9px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.12em;font-family:'DM Mono',monospace;margin-bottom:10px;display:block;}
+    .composer-preview-text{font-size:13.5px;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word;min-height:60px;}
+    .char-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-top:1px solid var(--border);font-size:11px;color:var(--dim);font-family:'DM Mono',monospace;}
+    .char-bar span.warn{color:var(--yellow);}
+    .char-bar span.over{color:var(--red);font-weight:700;}
+    .composer-channels{display:flex;flex-direction:column;gap:6px;}
+    .composer-chan-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r-sm);border:1px solid var(--border-mid);background:var(--s2);cursor:pointer;transition:all .12s;}
+    .composer-chan-item:hover{border-color:var(--border-hi);}
+    .composer-chan-item.sel{border-color:var(--amber);background:var(--amber-dim);}
+    .composer-chan-icon{font-size:14px;flex-shrink:0;}
+    .composer-chan-name{font-size:12px;font-weight:500;color:var(--muted);flex:1;}
+    .composer-chan-item.sel .composer-chan-name{color:var(--amber);}
   </style>
 </head>
 <body>
@@ -494,81 +518,57 @@
   </nav>
 
   <div class="land-hero">
-    <div class="land-eyebrow">Early Beta · Free While We Build · Feedback Welcome</div>
+    <div class="land-eyebrow">Free Beta · Built on Buffer's API</div>
     <h1 class="land-h1">
-      Stop letting your best<br>
-      posts <em>die once.</em>
-      <span class="line2">Buffer Power Tools for serious social teams.</span>
+      Buffer tools<br>Buffer <em>doesn't</em> build.
     </h1>
     <p class="land-sub">
-      PostIQ connects to your Buffer account and surfaces your <strong>top evergreen posts</strong>, splits long content into <strong>native threads</strong>, gives you a <strong>content calendar</strong> with planning notes, and helps you post smarter — not more.
+      Thread splitter. Content calendar with planning notes. Post composer with rich text. Your evergreen post library. All wired to your Buffer account.
     </p>
     <div class="land-cta-row">
       <button class="btn-land-primary" id="btnLandGetStarted">Get Started Free →</button>
-      <button class="btn-land-ghost" id="btnLandLearnMore">See how it works ↓</button>
+      <button class="btn-land-ghost" id="btnLandLearnMore">See what's inside ↓</button>
     </div>
   </div>
 
   <div class="land-features">
     <div class="land-feature">
-      <div class="land-feature-icon">♻️</div>
-      <div class="land-feature-title">Post Recycler</div>
-      <div class="land-feature-body">
-        Pulls your last 100 sent posts directly from Buffer via the API. Browse them by channel or date, pick any post worth reposting, edit the copy, then send it back to your Buffer queue or schedule it for a specific time — without leaving PostIQ.
-        <div style="margin-top:10px;font-size:11px;color:var(--dim);font-family:'DM Mono',monospace;border-top:1px solid var(--border);padding-top:8px;">Uses: <span style="color:var(--amber);">posts · channels · createPost</span> via Buffer GraphQL API</div>
-      </div>
-    </div>
-    <div class="land-feature">
       <div class="land-feature-icon">🧵</div>
       <div class="land-feature-title">Thread Splitter</div>
-      <div class="land-feature-body">
-        Paste any long-form content — a blog intro, a LinkedIn post, a brain dump — and PostIQ breaks it into a properly structured thread with a hook, body parts, and a CTA. Sends it to Buffer as a native thread (Twitter/X or Threads) using Buffer's thread metadata support.
-        <div style="margin-top:10px;font-size:11px;color:var(--dim);font-family:'DM Mono',monospace;border-top:1px solid var(--border);padding-top:8px;">Uses: <span style="color:var(--amber);">channels · createPost (thread metadata)</span> via Buffer GraphQL API</div>
-      </div>
-    </div>
-    <div class="land-feature">
-      <div class="land-feature-icon">🔒</div>
-      <div class="land-feature-title">Your account, your data</div>
-      <div class="land-feature-body">
-        Sign in with Google or email. Your Buffer access token is saved securely to your PostIQ account so you never re-enter it. PostIQ only reads and writes to Buffer on your behalf — your posts never touch our servers directly.
-        <div style="margin-top:10px;font-size:11px;color:var(--dim);font-family:'DM Mono',monospace;border-top:1px solid var(--border);padding-top:8px;">Auth via <span style="color:var(--amber);">Firebase · Buffer app password token</span></div>
-      </div>
+      <div class="land-feature-body">Paste anything — notes, a draft, a brain dump — and get a properly structured thread with a hook, body, and CTA. Sends natively to Buffer as a Twitter/X or Threads thread.</div>
     </div>
     <div class="land-feature">
       <div class="land-feature-icon">📅</div>
       <div class="land-feature-title">Content Calendar</div>
-      <div class="land-feature-body">
-        See all your upcoming scheduled Buffer posts laid out on a monthly grid. Click any date to add color-coded planning notes — Idea, Draft, Urgent, Research, or Campaign — and queue any note directly to Buffer with one click.
-        <div style="margin-top:10px;font-size:11px;color:var(--dim);font-family:'DM Mono',monospace;border-top:1px solid var(--border);padding-top:8px;">Uses: <span style="color:var(--amber);">posts (scheduled) · createPost · Firestore notes</span></div>
-      </div>
+      <div class="land-feature-body">Your scheduled Buffer posts on a monthly grid with color-coded planning notes layered on top. See what's coming, plan what's next, queue directly from the calendar.</div>
     </div>
-  </div>
-
-  <!-- Beta notice banner -->
-  <div style="position:relative;z-index:10;background:var(--amber-dim);border-top:1px solid rgba(245,166,35,0.2);border-bottom:1px solid rgba(245,166,35,0.2);padding:14px 48px;display:flex;align-items:flex-start;gap:14px;">
-    <span style="font-size:16px;flex-shrink:0;margin-top:1px;">⚠️</span>
-    <div>
-      <div style="font-size:12px;font-weight:700;color:var(--amber);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Beta Software — Expect Rough Edges</div>
-      <div style="font-size:12.5px;color:var(--muted);line-height:1.65;">
-        PostIQ is built on top of <strong style="color:var(--text);">Buffer's public GraphQL API beta</strong>, which Buffer is still actively developing. Some features may behave unexpectedly, API endpoints can change without notice, and capabilities are limited to what Buffer currently exposes publicly. We ship fixes fast — use the feedback button inside the app to report anything broken.
-      </div>
+    <div class="land-feature">
+      <div class="land-feature-icon">✍️</div>
+      <div class="land-feature-title">Post Composer</div>
+      <div class="land-feature-body">A lightweight composer with rich text formatting — bold, italic, bullets — that renders on LinkedIn and other platforms. Something Buffer hasn't shipped yet.</div>
+    </div>
+    <div class="land-feature">
+      <div class="land-feature-icon">📚</div>
+      <div class="land-feature-title">Evergreen Library</div>
+      <div class="land-feature-body">Your best text posts don't die after one send. Browse your sent post history, edit the copy, and put your top performers back in rotation.</div>
     </div>
   </div>
 
   <div class="land-proof">
-    <div class="land-proof-item">⚡ <strong>No build step</strong> · Works in browser</div>
-    <div class="land-proof-item">🔌 <strong>Buffer GraphQL API beta</strong> · Real data, live</div>
-    <div class="land-proof-item">🛠 <strong>Built by Nobody Studios</strong> · San Antonio TX</div>
+    <div class="land-proof-item">🔌 <strong>Buffer GraphQL API</strong> · Real data, live</div>
+    <div class="land-proof-item">🛠 <strong>Nobody Studios</strong> · San Antonio TX</div>
     <div class="land-proof-item">🆓 <strong>Free during beta</strong></div>
+    <div class="land-proof-item">⚠️ <strong>Independent</strong> · Not affiliated with Buffer</div>
   </div>
 
   <footer class="land-footer">
     <span>© 2025 Nobody Studios</span>
     <span style="text-align:center;max-width:600px;line-height:1.7;">
-      PostIQ is an independent tool built by Nobody Studios. It is <strong style="color:var(--muted);">not affiliated with, endorsed by, or partnered with Buffer</strong> in any way. PostIQ uses Buffer's publicly available GraphQL API beta, which any developer can access. Buffer is a trademark of Buffer Inc.
+      PostIQ is an independent tool built by Nobody Studios. It is <strong style="color:var(--muted);">not affiliated with, endorsed by, or partnered with Buffer</strong> in any way. PostIQ uses Buffer's publicly available GraphQL API beta. Buffer is a trademark of Buffer Inc.
     </span>
   </footer>
 </div>
+
 
 <!-- ── AUTH MODAL ─────────────────────────────────────────────────────────── -->
 <div id="authOverlay">
@@ -616,7 +616,7 @@
     </div>
 
     <div class="sidebar-section">Tools</div>
-    <button class="nav-item active" data-view="viewRecycler">
+    <button class="nav-item active" data-view="viewThread">
       <span class="nav-icon">♻️</span> Post Recycler
     </button>
     <div class="nav-subtext">Browse and repost your best content.</div>
@@ -662,11 +662,11 @@
 
   <main class="main">
 
-    <!-- RECYCLER -->
-    <section id="viewRecycler" class="view active">
+    <!-- EVERGREEN LIBRARY -->
+    <section id="viewRecycler" class="view">
       <div class="page-hdr">
-        <h1>♻️ Post Recycler</h1>
-        <p>All your sent posts. Sort, pick, edit, and send back to Buffer.</p>
+        <h1>📚 Evergreen Library</h1>
+        <p>Your best text posts don't expire. Resurface them, edit them, send them back to Buffer.</p>
       </div>
       <div class="card mb-12">
         <div class="card-body">
@@ -695,7 +695,7 @@
     </section>
 
     <!-- THREAD SPLITTER -->
-    <section id="viewThread" class="view">
+    <section id="viewThread" class="view active">
       <div class="page-hdr">
         <h1>🧵 Thread Splitter <span class="badge-new">SMART</span></h1>
         <p>Paste any long-form content and get a perfectly structured thread.</p>
@@ -777,6 +777,20 @@
         <div id="calSyncNote" style="font-size:11px;color:var(--dim);font-family:'DM Mono',monospace;"></div>
       </div>
 
+      <!-- Today strip -->
+      <div id="calTodayStrip" class="card mb-12" style="padding:14px 18px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <span style="font-size:11px;font-weight:700;color:var(--amber);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.08em;" id="calTodayLabel">Today</span>
+          <span style="font-size:10px;color:var(--dim);font-family:'DM Mono',monospace;" id="calTodayDate"></span>
+        </div>
+        <div id="calTodayPosts" style="margin-bottom:8px;"></div>
+        <div id="calTodayNotes" style="margin-bottom:10px;"></div>
+        <div style="display:flex;gap:6px;">
+          <input class="cal-note-input" id="calTodayInput" type="text" placeholder="Quick note for today… (Enter)" style="flex:1;" />
+          <button class="cal-note-submit" id="calTodaySubmit" disabled>+</button>
+        </div>
+      </div>
+
       <div class="cal-layout">
         <!-- Grid -->
         <div class="card" style="overflow:hidden;">
@@ -794,6 +808,84 @@
           <div class="cal-empty-panel">
             <div style="font-size:28px;opacity:.35;margin-bottom:12px;">👈</div>
             <p style="font-size:13px;color:var(--dim);">Click a date to view posts &amp; add notes</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- COMPOSER -->
+    <section id="viewComposer" class="view">
+      <div class="page-hdr">
+        <h1>✍️ Post Composer</h1>
+        <p>Rich text formatting that renders on LinkedIn, Threads, and more. Queue or schedule directly to Buffer.</p>
+      </div>
+      <div class="composer-layout">
+        <div>
+          <div class="card mb-12">
+            <div class="card-header">
+              <h2>Compose</h2>
+              <div class="row gap-4">
+                <button class="btn btn-ghost btn-xs" id="compClear">Clear</button>
+              </div>
+            </div>
+            <div class="rich-toolbar" id="richToolbar">
+              <button class="rich-btn" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+              <button class="rich-btn" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+              <div class="rich-divider"></div>
+              <button class="rich-btn" data-insert="bullet" title="Bullet list">☰</button>
+              <button class="rich-btn" data-insert="numbered" title="Numbered list">#</button>
+              <div class="rich-divider"></div>
+              <button class="rich-btn" data-insert="hook" title="Add hook line">🪝</button>
+              <button class="rich-btn" data-insert="cta" title="Add CTA line">📣</button>
+              <div class="rich-divider"></div>
+              <button class="rich-btn" id="compUnicode" title="Convert to Unicode rich text" style="width:auto;padding:0 8px;font-size:11px;font-weight:700;color:var(--amber);">Aᵤ</button>
+            </div>
+            <textarea id="compEditor" class="rich-editor" placeholder="Write your post…" style="min-height:200px;padding:14px;font-size:14px;line-height:1.65;border:none;border-radius:0;background:var(--s2);color:var(--text);resize:vertical;"></textarea>
+            <div class="char-bar">
+              <span id="compCharCount">0 chars</span>
+              <span id="compCharNote" style="font-size:10px;color:var(--dim);">LinkedIn max: 3000 · Twitter: 280</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h2>Preview (Unicode rendered)</h2></div>
+            <div class="card-body">
+              <div class="composer-preview-text" id="compPreview">Your post will appear here…</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="card">
+            <div class="card-header"><h2>Post to</h2></div>
+            <div class="card-body">
+              <div class="composer-channels" id="compChannels">
+                <div style="font-size:12px;color:var(--dim);">Load from Buffer first to see channels.</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h2>Send</h2></div>
+            <div class="card-body">
+              <div style="display:flex;flex-direction:column;gap:7px;">
+                <button class="btn btn-success btn-full" id="compQueueBtn">➕ Add to queue</button>
+                <button class="btn btn-ghost btn-full" id="compSchedToggle">🗓 Schedule for later</button>
+              </div>
+              <div id="compSchedPicker" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+                <label style="font-size:10px;color:var(--muted);font-weight:600;display:block;margin-bottom:7px;text-transform:uppercase;letter-spacing:.08em;font-family:'DM Mono',monospace;">Pick a date &amp; time:</label>
+                <input type="datetime-local" id="compSchedTime" />
+                <button class="btn btn-primary btn-full mt-8" id="compSchedBtn">Confirm &amp; schedule ↗</button>
+              </div>
+              <div id="compStatus" class="detail-status mt-8"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h2>Rich text guide</h2></div>
+            <div class="card-body" style="font-size:12px;color:var(--dim);line-height:1.8;">
+              <div><span style="color:var(--text);">**bold**</span> → <b>bold</b></div>
+              <div><span style="color:var(--text);">*italic*</span> → <i>italic</i></div>
+              <div><span style="color:var(--text);">- item</span> → bullet</div>
+              <div style="margin-top:8px;font-size:11px;">Hit <span style="color:var(--amber);">Aᵤ</span> to convert markdown to Unicode before posting. Renders on LinkedIn, Threads &amp; more.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -879,6 +971,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
+console.log('PostIQ: script started');
 // ── FIREBASE ───────────────────────────────────────────────────────────────
 firebase.initializeApp({
   apiKey:"AIzaSyCDRuAyrXnGNJkNRb-IusoKZBlZQ0OxLBY",
@@ -921,9 +1014,6 @@ function closeGate() { document.getElementById('apiGate').classList.remove('open
 // ── LANDING BUTTONS ────────────────────────────────────────────────────────
 document.getElementById('btnLandSignIn').addEventListener('click', openAuth);
 document.getElementById('btnLandGetStarted').addEventListener('click', openAuth);
-document.getElementById('btnLandLearnMore').addEventListener('click', ()=>{
-  document.querySelector('.land-features')?.scrollIntoView({behavior:'smooth'});
-});
 document.getElementById('authClose').addEventListener('click', closeAuth);
 
 // ── AUTH STATE ─────────────────────────────────────────────────────────────
@@ -935,6 +1025,11 @@ const _authTimeout = setTimeout(() => {
   console.warn('PostIQ: auth timeout — forcing landing screen');
   showScreen('screenLanding');
 }, 6000);
+
+// Explicitly set persistence to avoid onAuthStateChanged hang
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(e => {
+  console.warn('PostIQ: setPersistence failed', e);
+});
 
 auth.onAuthStateChanged(async (user) => {
   clearTimeout(_authTimeout);
@@ -1110,6 +1205,7 @@ async function loadData() {
     document.getElementById('threadActive').style.display=hasThread?'grid':'none';
     setSyncStatus(`${state.posts.length} posts loaded`,'ok');
     toast(`Loaded ${state.posts.length} posts ✓`,'success');
+    compRenderChannels();
   } catch(e) { setSyncStatus('Connection failed','err'); toast('Error: '+e.message,'error'); }
   btn.disabled=false; btn.textContent='↻ Load from Buffer';
 }
@@ -1370,6 +1466,178 @@ document.getElementById('btnQueueNow').addEventListener('click',()=>sendThread(n
 document.getElementById('btnQueueSched').addEventListener('click',()=>{const v=document.getElementById('threadSchedTime').value;if(!v){toast('Pick a date/time','error');return;}sendThread(new Date(v).toISOString());});
 renderThreadPreview();
 
+// ── RICH TEXT (Unicode) ────────────────────────────────────────────────────
+const BOLD_MAP={' ':' ','a':'𝗮','b':'𝗯','c':'𝗰','d':'𝗱','e':'𝗲','f':'𝗳','g':'𝗴','h':'𝗵','i':'𝗶','j':'𝗷','k':'𝗸','l':'𝗹','m':'𝗺','n':'𝗻','o':'𝗼','p':'𝗽','q':'𝗾','r':'𝗿','s':'𝘀','t':'𝘁','u':'𝘂','v':'𝘃','w':'𝘄','x':'𝘅','y':'𝘆','z':'𝘇','A':'𝗔','B':'𝗕','C':'𝗖','D':'𝗗','E':'𝗘','F':'𝗙','G':'𝗚','H':'𝗛','I':'𝗜','J':'𝗝','K':'𝗞','L':'𝗟','M':'𝗠','N':'𝗡','O':'𝗢','P':'𝗣','Q':'𝗤','R':'𝗥','S':'𝗦','T':'𝗧','U':'𝗨','V':'𝗩','W':'𝗪','X':'𝗫','Y':'𝗬','Z':'𝗭','0':'𝟬','1':'𝟭','2':'𝟮','3':'𝟯','4':'𝟴','5':'𝟱','6':'𝟲','7':'𝟳','8':'𝟴','9':'𝟵'};
+const ITALIC_MAP={' ':' ','a':'𝘢','b':'𝘣','c':'𝘤','d':'𝘥','e':'𝘦','f':'𝘧','g':'𝘨','h':'𝘩','i':'𝘪','j':'𝘫','k':'𝘬','l':'𝘭','m':'𝘮','n':'𝘯','o':'𝘰','p':'𝘱','q':'𝘲','r':'𝘳','s':'𝘴','t':'𝘵','u':'𝘶','v':'𝘷','w':'𝘸','x':'𝘹','y':'𝘺','z':'𝘻','A':'𝘈','B':'𝘉','C':'𝘊','D':'𝘋','E':'𝘌','F':'𝘍','G':'𝘎','H':'𝘏','I':'𝘐','J':'𝘑','K':'𝘒','L':'𝘓','M':'𝘔','N':'𝘕','O':'𝘖','P':'𝘗','Q':'𝘘','R':'𝘙','S':'𝘚','T':'𝘛','U':'𝘜','V':'𝘝','W':'𝘞','X':'𝘟','Y':'𝘠','Z':'𝘡'};
+function toUnicodeBold(s){return s.split('').map(c=>BOLD_MAP[c]||c).join('');}
+function toUnicodeItalic(s){return s.split('').map(c=>ITALIC_MAP[c]||c).join('');}
+
+function applyRichFormat(fmt){
+  const ta=document.getElementById('composerText'); if(!ta)return;
+  const start=ta.selectionStart, end=ta.selectionEnd;
+  const sel=ta.value.slice(start,end);
+  if(!sel&&fmt!=='bullet'&&fmt!=='clear'){toast('Select text first','error');return;}
+  let replacement='';
+  if(fmt==='bold') replacement=toUnicodeBold(sel);
+  else if(fmt==='italic') replacement=toUnicodeItalic(sel);
+  else if(fmt==='bullet'){
+    // Add bullet to start of each selected line or current line
+    const lines=ta.value.split('\n');
+    const newLines=lines.map(l=>l.trim()?'• '+l.replace(/^•\s*/,''):l);
+    ta.value=newLines.join('\n');
+    updateComposerCC(); return;
+  }
+  else if(fmt==='clear'){
+    // Strip unicode bold/italic — replace with ASCII
+    ta.value=ta.value.normalize('NFKD').replace(/[^\x00-\x7F]/g,c=>c.normalize('NFKD')[0]||c);
+    updateComposerCC(); return;
+  }
+  ta.value=ta.value.slice(0,start)+replacement+ta.value.slice(end);
+  ta.selectionStart=start; ta.selectionEnd=start+replacement.length;
+  ta.focus(); updateComposerCC();
+}
+function updateComposerCC(){
+  const ta=document.getElementById('composerText');
+  const cc=document.getElementById('composerCC');
+  if(ta&&cc) cc.textContent=`${ta.value.length} chars`;
+}
+
+document.getElementById('composerText')?.addEventListener('input',updateComposerCC);
+document.querySelectorAll('#rtoolbar [data-fmt]').forEach(btn=>{
+  btn.addEventListener('click',()=>applyRichFormat(btn.dataset.fmt));
+});
+
+// ── COMPOSER ───────────────────────────────────────────────────────────────
+let composerSelectedChanId=null;
+function renderComposerChips(){
+  const cont=document.getElementById('composerChips');
+  const noMsg=document.getElementById('composerNoChans');
+  if(!cont)return; cont.innerHTML='';
+  if(!state.channels.length){if(noMsg)noMsg.style.display='block';return;}
+  if(noMsg)noMsg.style.display='none';
+  state.channels.forEach(c=>{
+    const chip=document.createElement('span');
+    chip.className='chip'+(c.id===composerSelectedChanId?' sel':'');
+    chip.textContent=`${svcIcon(c.service)} ${c.displayName||c.name}`;
+    chip.dataset.id=c.id; chip.dataset.svc=c.service;
+    chip.addEventListener('click',()=>{
+      cont.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));
+      chip.classList.add('sel'); composerSelectedChanId=c.id;
+    });
+    cont.appendChild(chip);
+  });
+  if(!cont.querySelector('.chip.sel')&&cont.querySelector('.chip')){
+    const first=cont.querySelector('.chip');
+    first.classList.add('sel'); composerSelectedChanId=first.dataset.id;
+  }
+}
+
+async function doComposerPost(scheduledAt){
+  const text=(document.getElementById('composerText')?.value||'').trim();
+  const se=document.getElementById('composerStatus');
+  if(!text){toast('Write something first','error');return;}
+  if(!composerSelectedChanId){toast('Pick a channel','error');return;}
+  const linkUrl=(document.getElementById('composerLink')?.value||'').trim();
+  const selC=state.channels.find(c=>c.id===composerSelectedChanId);
+  document.getElementById('btnComposerQueue').disabled=true;
+  document.getElementById('btnComposerSchedule').disabled=true;
+  se.className='detail-status loading'; se.textContent=scheduledAt?'Scheduling…':'Adding to queue…';
+  try{
+    const res=await callBuffer(`mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename}}`,{
+      input:{
+        channelId:composerSelectedChanId,text,
+        schedulingType:'automatic',
+        mode:scheduledAt?'customScheduled':'addToQueue',
+        ...(scheduledAt?{dueAt:scheduledAt}:{}),
+        ...(selC?.service==='linkedin'&&linkUrl?{metadata:{linkedin:{linkAttachment:{url:linkUrl}}}}:{})
+      }
+    });
+    if(res?.errors?.length)throw new Error(res.errors[0].message);
+    se.className='detail-status success';
+    se.textContent=scheduledAt?'✓ Scheduled in Buffer!':'✓ Added to Buffer queue!';
+    toast(scheduledAt?'Post scheduled ✓':'Post queued ✓','success');
+    logEvent('composer');
+    document.getElementById('composerText').value='';
+    document.getElementById('composerLink').value='';
+    updateComposerCC();
+  }catch(e){
+    se.className='detail-status error'; se.textContent='Error: '+e.message;
+    toast('Error: '+e.message,'error');
+  }
+  document.getElementById('btnComposerQueue').disabled=false;
+  document.getElementById('btnComposerSchedule').disabled=false;
+}
+
+document.getElementById('btnComposerQueue')?.addEventListener('click',()=>{
+  document.getElementById('composerDTPicker').style.display='none';
+  doComposerPost(null);
+});
+document.getElementById('btnComposerSchedule')?.addEventListener('click',()=>{
+  const p=document.getElementById('composerDTPicker');
+  p.style.display=p.style.display==='none'?'block':'none';
+});
+document.getElementById('btnComposerConfirmSched')?.addEventListener('click',()=>{
+  const v=document.getElementById('composerSchedTime').value;
+  if(!v){toast('Pick a date/time','error');return;}
+  doComposerPost(new Date(v).toISOString());
+});
+
+// ── CALENDAR TODAY STRIP ───────────────────────────────────────────────────
+function initCalendarView(){
+  calRenderGrid();
+  calRenderPanel();
+  calLoadNotes().then(()=>{
+    if(state.orgId) calLoadPosts().then(()=>{ calRenderGrid(); calRenderTodayStrip(); });
+    else calRenderTodayStrip();
+  });
+}
+
+function calRenderTodayStrip(){
+  const strip=document.getElementById('calTodayStrip'); if(!strip)return;
+  const today=new Date();
+  const posts=calPostsForDay(today);
+  const notes=calNotesForDay(today);
+  strip.style.display='block';
+  document.getElementById('calTodayLabel').textContent=`📌 Today — ${today.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'})}`;
+  const postsEl=document.getElementById('calTodayPosts');
+  const notesEl=document.getElementById('calTodayNotes');
+  postsEl.innerHTML=posts.length?posts.map(p=>`<div class="cal-post-item" style="margin-bottom:4px;">${(p.text||'').slice(0,100)}${p.text?.length>100?'…':''}</div>`).join(''):'<span style="color:var(--dim);font-style:italic;">Nothing scheduled today.</span>';
+  notesEl.innerHTML=notes.length?notes.map(n=>{
+    const cfg=NOTE_COLORS_CAL.find(c=>c.id===n.color)||NOTE_COLORS_CAL[0];
+    return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><div class="note-dot ${cfg.dot}"></div><span style="font-size:12px;color:var(--muted);">${(n.content||'').replace(/</g,'&lt;')}</span></div>`;
+  }).join(''):'<span style="color:var(--dim);font-style:italic;">No notes for today.</span>';
+  // wire today note input
+  const ni=document.getElementById('calTodayNoteInput');
+  const ns=document.getElementById('calTodayNoteSubmit');
+  if(ni){
+    ni.oninput=()=>{ if(ns) ns.disabled=!ni.value.trim(); };
+    ni.onkeydown=e=>{ if(e.key==='Enter') calAddTodayNote(); };
+  }
+  if(ns) ns.onclick=calAddTodayNote;
+  document.getElementById('calTodayClose')?.addEventListener('click',()=>{ strip.style.display='none'; });
+}
+
+async function calAddTodayNote(){
+  if(!currentUser)return;
+  const ni=document.getElementById('calTodayNoteInput');
+  const text=(ni?.value||'').trim(); if(!text)return;
+  const ns=document.getElementById('calTodayNoteSubmit');
+  if(ns)ns.disabled=true; if(ni)ni.disabled=true;
+  try{
+    const today=new Date();
+    const ref=await db.collection('calendarNotes').add({
+      userId:currentUser.uid, noteDate:calFmtDate(today),
+      content:text, color:'gold',
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    calState.notes.push({id:ref.id,userId:currentUser.uid,noteDate:calFmtDate(today),content:text,color:'gold'});
+    if(ni)ni.value='';
+    calRenderGrid(); calRenderTodayStrip();
+    toast('Note added ✓','success');
+  }catch(e){ toast('Error: '+e.message,'error'); }
+  if(ns)ns.disabled=false; if(ni)ni.disabled=false;
+}
+
 // ── FEEDBACK ───────────────────────────────────────────────────────────────
 let selectedRating = 0;
 document.querySelectorAll('.star-btn').forEach(btn=>{
@@ -1598,13 +1866,7 @@ async function calAddNote() {
 
 // Init calendar when navigating to it
 document.querySelectorAll('[data-view="viewCalendar"]').forEach(btn=>{
-  btn.addEventListener('click',async()=>{
-    calRenderGrid();
-    calRenderPanel();
-    await calLoadNotes();
-    if(state.orgId) await calLoadPosts();
-    calRenderGrid();
-  });
+  btn.addEventListener('click',()=>initCalendarView());
 });
 document.getElementById('calPrev')?.addEventListener('click',async()=>{ calState.month=new Date(calState.month.getFullYear(),calState.month.getMonth()-1,1); calState.selectedDate=null; await calLoadNotes(); calRenderGrid(); calRenderPanel(); });
 document.getElementById('calNext')?.addEventListener('click',async()=>{ calState.month=new Date(calState.month.getFullYear(),calState.month.getMonth()+1,1); calState.selectedDate=null; await calLoadNotes(); calRenderGrid(); calRenderPanel(); });
@@ -1618,6 +1880,172 @@ async function logEvent(tool){
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
   }catch(e){}
+}
+
+
+// ── COMPOSER ──────────────────────────────────────────────────────────────
+// Unicode conversion maps
+const BOLD_MAP = {a:'𝗮',b:'𝗯',c:'𝗰',d:'𝗱',e:'𝗲',f:'𝗳',g:'𝗴',h:'𝗵',i:'𝗶',j:'𝗷',k:'𝗸',l:'𝗹',m:'𝗺',n:'𝗻',o:'𝗼',p:'𝗽',q:'𝗾',r:'𝗿',s:'𝘀',t:'𝘁',u:'𝘂',v:'𝘃',w:'𝘄',x:'𝘅',y:'𝘆',z:'𝘇',A:'𝗔',B:'𝗕',C:'𝗖',D:'𝗗',E:'𝗘',F:'𝗙',G:'𝗚',H:'𝗛',I:'𝗜',J:'𝗝',K:'𝗞',L:'𝗟',M:'𝗠',N:'𝗡',O:'𝗢',P:'𝗣',Q:'𝗤',R:'𝗥',S:'𝗦',T:'𝗧',U:'𝗨',V:'𝗩',W:'𝗪',X:'𝗫',Y:'𝗬',Z:'𝗭',0:'𝟬',1:'𝟭',2:'𝟮',3:'𝟯',4:'𝟰',5:'𝟱',6:'𝟲',7:'𝟳',8:'𝟴',9:'𝟵'};
+const ITALIC_MAP = {a:'𝘢',b:'𝘣',c:'𝘤',d:'𝘥',e:'𝘦',f:'𝘧',g:'𝘨',h:'𝘩',i:'𝘪',j:'𝘫',k:'𝘬',l:'𝘭',m:'𝘮',n:'𝘯',o:'𝘰',p:'𝘱',q:'𝘲',r:'𝘳',s:'𝘴',t:'𝘵',u:'𝘶',v:'𝘷',w:'𝘸',x:'𝘹',y:'𝘺',z:'𝘻',A:'𝘈',B:'𝘉',C:'𝘊',D:'𝘋',E:'𝘌',F:'𝘍',G:'𝘎',H:'𝘏',I:'𝘐',J:'𝘑',K:'𝘒',L:'𝘓',M:'𝘔',N:'𝘕',O:'𝘖',P:'𝘗',Q:'𝘘',R:'𝘙',S:'𝘚',T:'𝘛',U:'𝘜',V:'𝘝',W:'𝘞',X:'𝘟',Y:'𝘠',Z:'𝘡'};
+
+function toUnicodeBold(str){ return str.split('').map(c=>BOLD_MAP[c]||c).join(''); }
+function toUnicodeItalic(str){ return str.split('').map(c=>ITALIC_MAP[c]||c).join(''); }
+
+function convertMarkdown(text) {
+  // **bold** and *italic*
+  text = text.replace(/\*\*([^*]+)\*\*/g, (_, t) => toUnicodeBold(t));
+  text = text.replace(/\*([^*]+)\*/g, (_, t) => toUnicodeItalic(t));
+  // - bullet → • bullet
+  text = text.replace(/^- (.+)/gm, '• $1');
+  // 1. numbered → keep as is (already readable)
+  return text;
+}
+
+function compUpdatePreview() {
+  const ta = document.getElementById('compEditor');
+  const preview = document.getElementById('compPreview');
+  const cc = document.getElementById('compCharCount');
+  if (!ta || !preview) return;
+  const raw = ta.value;
+  const converted = convertMarkdown(raw);
+  preview.textContent = converted || 'Your post will appear here…';
+  const len = raw.length;
+  cc.textContent = `${len} chars`;
+  cc.className = len > 3000 ? 'over' : len > 280 ? 'warn' : '';
+}
+
+function compRenderChannels() {
+  const cont = document.getElementById('compChannels');
+  if (!cont) return;
+  if (!state.channels.length) {
+    cont.innerHTML = '<div style="font-size:12px;color:var(--dim);">Load from Buffer first to see channels.</div>';
+    return;
+  }
+  cont.innerHTML = '';
+  state.channels.forEach((c, idx) => {
+    const item = document.createElement('div');
+    item.className = 'composer-chan-item' + (idx === 0 ? ' sel' : '');
+    item.dataset.id = c.id;
+    item.innerHTML = `<span class="composer-chan-icon">${svcIcon(c.service)}</span><span class="composer-chan-name">${c.displayName||c.name}</span>`;
+    item.addEventListener('click', () => {
+      cont.querySelectorAll('.composer-chan-item').forEach(x => x.classList.remove('sel'));
+      item.classList.add('sel');
+    });
+    cont.appendChild(item);
+  });
+}
+
+document.getElementById('compEditor')?.addEventListener('input', compUpdatePreview);
+
+document.getElementById('compClear')?.addEventListener('click', () => {
+  document.getElementById('compEditor').value = '';
+  compUpdatePreview();
+});
+
+document.getElementById('compUnicode')?.addEventListener('click', () => {
+  const ta = document.getElementById('compEditor');
+  if (!ta) return;
+  ta.value = convertMarkdown(ta.value);
+  compUpdatePreview();
+  toast('Converted to Unicode rich text ✓', 'success');
+});
+
+document.getElementById('compSchedToggle')?.addEventListener('click', () => {
+  const p = document.getElementById('compSchedPicker');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+});
+
+async function compSend(scheduledAt) {
+  const ta = document.getElementById('compEditor');
+  const text = (ta?.value || '').trim();
+  if (!text) { toast('Write something first', 'error'); return; }
+  const selChan = document.querySelector('.composer-chan-item.sel');
+  if (!selChan) { toast('Pick a channel first', 'error'); return; }
+  const chanId = selChan.dataset.id;
+  const se = document.getElementById('compStatus');
+  const qb = document.getElementById('compQueueBtn');
+  const sb = document.getElementById('compSchedBtn');
+  se.className = 'detail-status loading'; se.textContent = scheduledAt ? 'Scheduling…' : 'Adding to queue…';
+  if (qb) qb.disabled = true; if (sb) sb.disabled = true;
+  try {
+    const finalText = convertMarkdown(text);
+    const res = await callBuffer(`mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename}}`, {
+      input: { channelId: chanId, text: finalText, schedulingType: 'automatic', mode: scheduledAt ? 'customScheduled' : 'addToQueue', ...(scheduledAt ? { dueAt: scheduledAt } : {}) }
+    });
+    if (res?.errors?.length) throw new Error(res.errors[0].message);
+    se.className = 'detail-status success';
+    se.textContent = scheduledAt ? '✓ Scheduled in Buffer!' : '✓ Added to Buffer queue!';
+    toast(scheduledAt ? 'Post scheduled ✓' : 'Post queued ✓', 'success');
+    logEvent('composer');
+  } catch(e) {
+    se.className = 'detail-status error'; se.textContent = 'Error: ' + e.message;
+    toast('Error: ' + e.message, 'error');
+  }
+  if (qb) qb.disabled = false; if (sb) sb.disabled = false;
+}
+
+document.getElementById('compQueueBtn')?.addEventListener('click', () => compSend(null));
+document.getElementById('compSchedBtn')?.addEventListener('click', () => {
+  const v = document.getElementById('compSchedTime')?.value;
+  if (!v) { toast('Pick a date/time first', 'error'); return; }
+  compSend(new Date(v).toISOString());
+});
+
+// Render channels when navigating to composer
+document.querySelectorAll('[data-view="viewComposer"]').forEach(btn => {
+  btn.addEventListener('click', () => { compRenderChannels(); compUpdatePreview(); });
+});
+
+// ── CALENDAR TODAY STRIP ──────────────────────────────────────────────────
+function calRenderToday() {
+  const today = new Date();
+  const todayFmt = calFmtDate(today);
+  const label = today.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric'});
+  const todayDateEl = document.getElementById('calTodayDate');
+  if (todayDateEl) todayDateEl.textContent = label;
+
+  const posts = calState.posts.filter(p => { try { return calSameDay(new Date(p.dueAt), today); } catch { return false; } });
+  const notes = calState.notes.filter(n => n.noteDate === todayFmt);
+
+  const postsEl = document.getElementById('calTodayPosts');
+  if (postsEl) {
+    postsEl.innerHTML = posts.length
+      ? posts.map(p => `<div class="cal-post-item" style="margin-bottom:4px;">${(p.text||'').slice(0,100)}${p.text?.length>100?'…':''}</div>`).join('')
+      : '';
+  }
+  const notesEl = document.getElementById('calTodayNotes');
+  if (notesEl) {
+    notesEl.innerHTML = notes.length
+      ? notes.map(n => {
+          const cfg = NOTE_COLORS_CAL.find(c => c.id === n.color) || NOTE_COLORS_CAL[0];
+          return `<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-bottom:3px;"><div class="note-dot ${cfg.dot}"></div>${(n.content||'').replace(/</g,'&lt;')}</div>`;
+        }).join('')
+      : '<div style="font-size:12px;color:var(--dim);font-style:italic;">No posts or notes scheduled today.</div>';
+  }
+
+  // Wire today's quick-add
+  const ni = document.getElementById('calTodayInput');
+  const ns = document.getElementById('calTodaySubmit');
+  if (ni) {
+    ni.oninput = () => { if (ns) ns.disabled = !ni.value.trim(); };
+    ni.onkeydown = async (e) => {
+      if (e.key !== 'Enter') return;
+      const text = ni.value.trim(); if (!text || !currentUser) return;
+      ns.disabled = true; ni.disabled = true;
+      try {
+        const ref = await db.collection('calendarNotes').add({
+          userId: currentUser.uid, noteDate: todayFmt,
+          content: text, color: 'gold',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        calState.notes.push({ id: ref.id, userId: currentUser.uid, noteDate: todayFmt, content: text, color: 'gold' });
+        ni.value = ''; calRenderToday(); calRenderGrid();
+        toast('Note added ✓', 'success');
+      } catch(err) { toast('Error: ' + err.message, 'error'); }
+      ns.disabled = false; ni.disabled = false;
+    };
+  }
+  if (ns) ns.onclick = () => { if (ni) ni.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter'})); };
 }
 
 // ── ADMIN ──────────────────────────────────────────────────────────────────
@@ -1674,3 +2102,10 @@ async function loadAdminData(){
     events.forEach(e=>{toolCounts[e.tool]=(toolCounts[e.tool]||0)+1;});
     document.getElementById('adminEventsBody').innerHTML=Object.entries(toolCounts).sort((a,b)=>b[1]-a[1]).map(([tool,count])=>`
       <tr><td style="font-family:
+'DM Mono',monospace;color:var(--amber);">${tool}</td><td>${count}</td></tr>
+    `).join('');
+  }catch(e){ console.error('PostIQ: admin load error',e); }
+}
+</script>
+</body>
+</html>
