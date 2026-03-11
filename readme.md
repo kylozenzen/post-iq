@@ -34,6 +34,9 @@ PostIQ does not require a PostIQ account.
 - No server-side token storage
 
 You can paste your Buffer token directly in the app and choose how to store it in the browser:
+
+Get your token in Buffer settings: https://publish.buffer.com/settings/api
+
 - **This session only** (`sessionStorage`)
 - **Save on this device** (`localStorage`)
 

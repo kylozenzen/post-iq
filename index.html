@@ -26,6 +26,10 @@
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:16px}.modal.open{display:flex}
     .modal-card{max-width:640px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
     .inline{display:flex;gap:8px;align-items:center}.mt8{margin-top:8px}.mt12{margin-top:12px}.mb8{margin-bottom:8px}
+    .token-compact{display:none}
+    .token-card.compact .token-manage{display:none}
+    .token-card.compact .token-compact{display:block}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
     @media(max-width:900px){.app{grid-template-columns:1fr}.side{border-right:none;border-bottom:1px solid var(--line)}.cols,.grid{grid-template-columns:1fr}.hero h1{font-size:34px}}
   </style>
 </head>
@@ -55,22 +59,39 @@
   <section id="app" class="app hidden">
     <aside class="side">
       <h3 style="margin:0">PostIQ</h3>
-      <div class="card">
+      <div class="card token-card" id="tokenCard">
         <strong>Buffer token setup</strong>
-        <p class="small mt8">No PostIQ account is required. Paste your Buffer token and choose how this browser stores it.</p>
-        <input id="tokenInput" class="input" placeholder="Paste Buffer token" />
-        <div class="mt8">
-          <label class="small"><input type="radio" name="tokenMode" value="session" checked /> This session only</label><br/>
-          <label class="small"><input type="radio" name="tokenMode" value="local" /> Save on this device</label>
+        <p class="small mt8">Paste your Buffer API token to connect PostIQ. You can keep it for this session only or save it locally on this device. Your token is never stored in a PostIQ account.</p>
+        <p class="small"><a href="https://publish.buffer.com/settings/api" target="_blank" rel="noopener">Find your Buffer API token ↗</a></p>
+
+        <div class="token-manage" id="tokenManage">
+          <input id="tokenInput" class="input mono" type="password" placeholder="Paste Buffer API token" />
+          <div class="inline mt8">
+            <button class="btn" id="toggleTokenVisibility">Show</button>
+          </div>
+          <div class="mt8">
+            <label class="small"><input type="radio" name="tokenMode" value="session" checked /> This session only</label><br/>
+            <label class="small"><input type="radio" name="tokenMode" value="local" /> Save on this device</label>
+          </div>
+          <div class="inline mt8">
+            <button class="btn primary" id="saveTokenBtn">Save token</button>
+            <button class="btn ghost" id="clearTokenBtn">Remove token</button>
+          </div>
         </div>
-        <div class="inline mt8">
-          <button class="btn primary" id="saveTokenBtn">Save token</button>
-          <button class="btn ghost" id="clearTokenBtn">Clear</button>
+
+        <div class="token-compact" id="tokenCompact">
+          <div class="small">Status: <strong id="tokenCompactStatus">Not connected</strong></div>
+          <div class="small mt8">Token: <span id="tokenMaskedPreview" class="mono">—</span></div>
+          <div class="inline mt8">
+            <button class="btn" id="manageTokenBtn">Manage token</button>
+            <button class="btn ghost" id="revealCompactBtn">Reveal</button>
+          </div>
         </div>
         <div id="tokenMsg" class="status mt8">Token not set.</div>
       </div>
       <button class="btn" id="syncBtn">Load from Buffer</button>
       <div id="syncStatus" class="status">Not synced yet.</div>
+      <a class="btn" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;">Go to Buffer ↗</a>
       <nav class="nav">
         <button class="btn active" data-view="threadView">🧵 Thread Splitter</button>
         <button class="btn" data-view="calendarView">📅 Content Calendar</button>
@@ -194,24 +215,40 @@
 const STORE_KEY='postiq_buffer_token';
 const NOTE_KEY='postiq_calendar_notes_v1';
 let bufferToken='';
+let tokenInputVisible=false;
 const state={channels:[],scheduled:[],month:new Date(),selectedDate:null};
 
 function qs(id){return document.getElementById(id)}
 function toast(msg){console.log(msg)}
 function showApp(){qs('landing').classList.add('hidden');qs('app').classList.remove('hidden')}
+function maskToken(token){ if(!token) return '—'; if(token.length<=8) return '••••'; return `${token.slice(0,4)}••••${token.slice(-4)}`; }
+function updateTokenUI(compact = !!bufferToken){
+  const card=qs('tokenCard');
+  const input=qs('tokenInput');
+  const toggle=qs('toggleTokenVisibility');
+  qs('tokenMaskedPreview').textContent=maskToken(bufferToken);
+  qs('tokenCompactStatus').textContent=bufferToken?'Connected':'Not connected';
+  tokenInputVisible=false;
+  input.type='password';
+  toggle.textContent='Show';
+  if(compact && bufferToken){ card.classList.add('compact'); }
+  else { card.classList.remove('compact'); }
+}
 
 function saveToken(){
   const token=qs('tokenInput').value.trim();
   const mode=[...document.querySelectorAll('input[name="tokenMode"]')].find(r=>r.checked).value;
   localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
-  if(!token){bufferToken='';qs('tokenMsg').textContent='Token cleared.';return;}
+  if(!token){bufferToken='';qs('tokenMsg').textContent='Token removed.';updateTokenUI(false);return;}
   if(mode==='local') localStorage.setItem(STORE_KEY,token); else sessionStorage.setItem(STORE_KEY,token);
   bufferToken=token;
   qs('tokenMsg').textContent=mode==='local'?'Token saved on this device (localStorage).':'Token saved for this session only (sessionStorage).';
+  updateTokenUI(true);
 }
 function loadStoredToken(){
   bufferToken=sessionStorage.getItem(STORE_KEY)||localStorage.getItem(STORE_KEY)||'';
-  if(bufferToken){qs('tokenInput').value=bufferToken;qs('tokenMsg').textContent='Token loaded from browser storage.'}
+  if(bufferToken){qs('tokenInput').value=bufferToken;qs('tokenMsg').textContent='Token loaded from browser storage and hidden by default.'}
+  updateTokenUI(!!bufferToken);
 }
 
 async function callBuffer(query,variables={}){
@@ -229,17 +266,39 @@ function getNotes(){try{return JSON.parse(localStorage.getItem(NOTE_KEY)||'{}')}
 function setNotes(v){localStorage.setItem(NOTE_KEY,JSON.stringify(v))}
 
 async function syncBuffer(){
-  qs('syncStatus').textContent='Loading from Buffer...';
+  qs('syncStatus').textContent='Syncing scheduled posts…';
   try{
     const org=await callBuffer('query { account { organizations { id } } }');
     const orgId=org.data.account.organizations[0]?.id;
     const ch=await callBuffer(`query { channels(input:{organizationId:"${orgId}"}) { id displayName name service } }`);
     state.channels=ch.data.channels||[];
-    const p=await callBuffer(`query { posts(first:300,input:{organizationId:"${orgId}",filter:{status:[scheduled]}}){edges{node{id text dueAt channelId}}}}`);
-    state.scheduled=(p.data.posts.edges||[]).map(e=>e.node);
-    qs('syncStatus').textContent=`Loaded ${state.channels.length} channels and ${state.scheduled.length} scheduled posts.`;
+    const cap = 500;
+    let after = null;
+    let all = [];
+    let hasNextPage = true;
+    while (hasNextPage && all.length < cap) {
+      const query = `query Posts($organizationId:String!,$after:String){posts(first:100,after:$after,input:{organizationId:$organizationId,filter:{status:[scheduled]}}){edges{node{id text dueAt channelId}} pageInfo{hasNextPage endCursor}}}`;
+      const page = await callBuffer(query, { organizationId: orgId, after });
+      const block = page?.data?.posts;
+      const edges = block?.edges || [];
+      all = all.concat(edges.map(e => e.node));
+      hasNextPage = !!block?.pageInfo?.hasNextPage;
+      after = block?.pageInfo?.endCursor || null;
+      if (!block?.pageInfo) hasNextPage = false;
+    }
+    state.scheduled=all;
+    qs('syncStatus').textContent=all.length>=cap
+      ? `Loaded ${state.channels.length} channels and ${all.length} scheduled posts (capped at ${cap}).`
+      : `Loaded ${state.channels.length} channels and ${state.scheduled.length} scheduled posts.`;
     renderChannelSelects(); renderCalendar();
-  }catch(e){qs('syncStatus').textContent='Sync failed: '+e.message}
+  }catch(e){
+    console.error('Buffer sync error', e);
+    if(String(e.message||'').match(/maximum of 100|Pagination limit exceeded/i)){
+      qs('syncStatus').textContent='Sync failed. Buffer limits requests to 100 items at a time. We adjusted this flow—please try again.';
+    } else {
+      qs('syncStatus').textContent='Sync failed. Please confirm your token and try again.';
+    }
+  }
 }
 
 function renderChannelSelects(){
@@ -344,6 +403,19 @@ function init(){
   qs('closeGuide').onclick=()=>qs('guideModal').classList.remove('open');
   qs('saveTokenBtn').onclick=saveToken;
   qs('clearTokenBtn').onclick=()=>{qs('tokenInput').value='';saveToken()};
+  qs('toggleTokenVisibility').onclick=()=>{
+    tokenInputVisible=!tokenInputVisible;
+    qs('tokenInput').type=tokenInputVisible?'text':'password';
+    qs('toggleTokenVisibility').textContent=tokenInputVisible?'Hide':'Show';
+  };
+  qs('manageTokenBtn').onclick=()=>updateTokenUI(false);
+  qs('revealCompactBtn').onclick=()=>{
+    if (!bufferToken) return;
+    updateTokenUI(false);
+    tokenInputVisible=true;
+    qs('tokenInput').type='text';
+    qs('toggleTokenVisibility').textContent='Hide';
+  };
   qs('syncBtn').onclick=syncBuffer;
   document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-view]').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));qs(b.dataset.view).classList.add('active')});
 
