@@ -55,11 +55,13 @@ The token is only sent when making requests to the Netlify proxy, which forwards
 ## 📅 Content Calendar
 - Load scheduled posts from Buffer
 - View posts in monthly calendar layout
-- Add planning notes per day
+- Add planning notes per day from a day-note modal
+- Apply color-coded note tags
+- Send note content directly into Post Composer
 - Notes are stored locally in browser storage
 
 ## ✍️ Post Composer
-- Draft text-first posts
+- Draft text-first posts with a lightweight formatting toolbar (bold, italic, bullet/numbered lists, clear formatting)
 - Save as Buffer draft
 - Add to Buffer queue
 - Schedule for a specific date/time

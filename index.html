@@ -5,32 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PostIQ — Lightweight Buffer Companion</title>
   <style>
-    :root{--bg:#0f1117;--panel:#171a23;--panel2:#1f2430;--text:#edf1ff;--muted:#98a2bd;--line:#2c3344;--amber:#f7b545;--green:#34d399;--red:#f87171;--blue:#7aa2ff;--r:12px}
+    :root{--bg:#0f1117;--panel:#171a23;--panel2:#1f2430;--text:#edf1ff;--muted:#98a2bd;--line:#2c3344;--amber:#f7b545;--green:#34d399;--red:#f87171;--blue:#7aa2ff;--violet:#a78bfa;--r:12px}
     *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:var(--text)}
-    .hidden{display:none!important}.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer}
-    .btn:hover{border-color:#44506a}.btn.primary{background:var(--amber);color:#1a1406;border:none;font-weight:700}.btn.success{background:var(--green);color:#0a1f18;border:none}
+    .hidden{display:none!important}.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+    .btn:hover{border-color:#44506a}.btn.primary{background:var(--amber);color:#1a1406;border:none;font-weight:700}.btn.success{background:var(--green);color:#0a1f18;border:none}.btn.warn{background:var(--blue);color:#081528;border:none}
     .btn.ghost{background:transparent}.input,textarea,select{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px}
-    textarea{min-height:140px;resize:vertical}.tag{font-size:12px;color:var(--muted)}
+    textarea{min-height:120px;resize:vertical}.tag{font-size:12px;color:var(--muted)}
     .landing{max-width:980px;margin:0 auto;padding:26px}.hero{padding:56px 0 26px}.hero h1{font-size:44px;line-height:1.05;margin:0 0 12px}
     .hero p{font-size:18px;color:var(--muted);max-width:760px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
     .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px}
-    .app{display:grid;grid-template-columns:280px minmax(0,1fr);min-height:100vh}.side{border-right:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:10px}
+    .app{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:100vh}.side{border-right:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:10px}
     .main{padding:18px;overflow:auto}.nav{display:flex;flex-direction:column;gap:6px}.nav button.active{border-color:var(--amber)}
     .status{font-size:12px;color:var(--muted)} .view{display:none}.view.active{display:block}
     .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}.small{font-size:12px;color:var(--muted)}
     .tweet{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;background:#151924}
     .calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}.day{min-height:110px;background:#151924;border:1px solid var(--line);border-radius:10px;padding:8px;cursor:pointer}
     .day .d{font-size:12px;color:var(--muted)}.post-pill,.note-pill{font-size:11px;border-radius:8px;padding:3px 6px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .post-pill{background:rgba(122,162,255,.15);border:1px solid rgba(122,162,255,.35)}.note-pill{background:rgba(247,181,69,.15);border:1px solid rgba(247,181,69,.35)}
+    .post-pill{background:rgba(122,162,255,.15);border:1px solid rgba(122,162,255,.35)}.note-pill{border:1px solid rgba(255,255,255,.35)}
     .banner{padding:12px;border:1px solid rgba(122,162,255,.45);background:rgba(122,162,255,.1);border-radius:10px;margin-bottom:14px}
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:16px}.modal.open{display:flex}
-    .modal-card{max-width:640px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
-    .inline{display:flex;gap:8px;align-items:center}.mt8{margin-top:8px}.mt12{margin-top:12px}.mb8{margin-bottom:8px}
-    .token-compact{display:none}
-    .token-card.compact .token-manage{display:none}
-    .token-card.compact .token-compact{display:block}
-    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
-    @media(max-width:900px){.app{grid-template-columns:1fr}.side{border-right:none;border-bottom:1px solid var(--line)}.cols,.grid{grid-template-columns:1fr}.hero h1{font-size:34px}}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:16px;z-index:40}.modal.open{display:flex}
+    .modal-card{max-width:640px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;max-height:90vh;overflow:auto}
+    .inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.mt8{margin-top:8px}.mt12{margin-top:12px}.mb8{margin-bottom:8px}
+    .token-compact{display:none}.token-card.compact .token-manage{display:none}.token-card.compact .token-compact{display:block}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}.grow{flex:1}
+    .side-bottom{margin-top:auto;display:flex;flex-direction:column;gap:8px}
+    .rich-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+    .rich-editor{min-height:170px;padding:10px;border:1px solid var(--line);background:var(--panel2);border-radius:10px;outline:none;line-height:1.5}
+    .rich-editor:empty:before{content:attr(data-placeholder);color:#7f889f}
+    .thread-actions{position:sticky;top:0;background:var(--panel);padding-bottom:8px;z-index:2}
+    .thread-part-tools{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+    .chip{display:inline-flex;padding:2px 7px;border-radius:999px;font-size:10px;border:1px solid var(--line);color:var(--muted)}
+    .note-tag-gold{background:rgba(247,181,69,.2);border-color:rgba(247,181,69,.5)}
+    .note-tag-blue{background:rgba(122,162,255,.2);border-color:rgba(122,162,255,.5)}
+    .note-tag-green{background:rgba(52,211,153,.2);border-color:rgba(52,211,153,.5)}
+    .note-tag-violet{background:rgba(167,139,250,.2);border-color:rgba(167,139,250,.5)}
+    @media(max-width:980px){.app{grid-template-columns:1fr}.side{border-right:none;border-bottom:1px solid var(--line)}.cols,.grid{grid-template-columns:1fr}.hero h1{font-size:34px}}
   </style>
 </head>
 <body>
@@ -49,9 +58,9 @@
       </div>
     </div>
     <div class="grid">
-      <div class="card"><h3>🧵 Thread Splitter</h3><p class="small">Paste long-form content and split it into thread-sized parts you can copy or draft to Buffer.</p></div>
-      <div class="card"><h3>📅 Content Calendar</h3><p class="small">View scheduled Buffer posts in a monthly grid and keep local planning notes by day.</p></div>
-      <div class="card"><h3>✍️ Post Composer</h3><p class="small">Draft text-first posts fast. For posts that need media, save as a draft and finish in Buffer.</p></div>
+      <div class="card"><h3>🧵 Thread Splitter</h3><p class="small">Paste long-form content and split it into thread-sized parts you can copy, draft, queue, or schedule in Buffer.</p></div>
+      <div class="card"><h3>📅 Content Calendar</h3><p class="small">View scheduled Buffer posts in a monthly grid and keep color-tagged planning notes by day.</p></div>
+      <div class="card"><h3>✍️ Post Composer</h3><p class="small">Draft text-first posts with formatting tools. For posts that need media, save as a draft and finish in Buffer.</p></div>
       <div class="card"><h3>🔗 Read-only month sharing</h3><p class="small">Generate a shareable planning snapshot link for the current month, with optional notes.</p></div>
     </div>
   </section>
@@ -63,12 +72,9 @@
         <strong>Buffer token setup</strong>
         <p class="small mt8">Paste your Buffer API token to connect PostIQ. You can keep it for this session only or save it locally on this device. Your token is never stored in a PostIQ account.</p>
         <p class="small"><a href="https://publish.buffer.com/settings/api" target="_blank" rel="noopener">Find your Buffer API token ↗</a></p>
-
         <div class="token-manage" id="tokenManage">
           <input id="tokenInput" class="input mono" type="password" placeholder="Paste Buffer API token" />
-          <div class="inline mt8">
-            <button class="btn" id="toggleTokenVisibility">Show</button>
-          </div>
+          <div class="inline mt8"><button class="btn" id="toggleTokenVisibility">Show</button></div>
           <div class="mt8">
             <label class="small"><input type="radio" name="tokenMode" value="session" checked /> This session only</label><br/>
             <label class="small"><input type="radio" name="tokenMode" value="local" /> Save on this device</label>
@@ -78,7 +84,6 @@
             <button class="btn ghost" id="clearTokenBtn">Remove token</button>
           </div>
         </div>
-
         <div class="token-compact" id="tokenCompact">
           <div class="small">Status: <strong id="tokenCompactStatus">Not connected</strong></div>
           <div class="small mt8">Token: <span id="tokenMaskedPreview" class="mono">—</span></div>
@@ -89,37 +94,52 @@
         </div>
         <div id="tokenMsg" class="status mt8">Token not set.</div>
       </div>
+
       <button class="btn" id="syncBtn">Load from Buffer</button>
       <div id="syncStatus" class="status">Not synced yet.</div>
-      <a class="btn" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;">Go to Buffer ↗</a>
+
       <nav class="nav">
         <button class="btn active" data-view="threadView">🧵 Thread Splitter</button>
         <button class="btn" data-view="calendarView">📅 Content Calendar</button>
         <button class="btn" data-view="composerView">✍️ Post Composer</button>
       </nav>
-      <button class="btn ghost" id="openGuide">Open guide</button>
+
+      <div class="side-bottom">
+        <button class="btn ghost" id="openGuide">Open guide</button>
+        <button class="btn ghost" id="openFounder">Built by Ben</button>
+        <a class="btn" href="https://publish.buffer.com/" target="_blank" rel="noopener">Go to Buffer ↗</a>
+      </div>
     </aside>
 
     <main class="main">
       <section id="threadView" class="view active">
         <h2>Thread Splitter</h2>
-        <p class="small">Paste long-form text, split into thread-sized chunks, then copy or save as a draft in Buffer.</p>
+        <p class="small">Build a thread from long-form copy, then save as draft, queue, or schedule in Buffer.</p>
         <div class="cols">
           <div class="card">
-            <textarea id="threadInput" placeholder="Paste a long post, blog section, or notes..."></textarea>
+            <h3 style="margin-top:0">Source text</h3>
+            <textarea id="threadInput" placeholder="Paste long-form content, notes, or a rough draft..."></textarea>
             <div class="inline mt8">
               <button class="btn primary" id="splitBtn">Split thread</button>
-              <button class="btn" id="copyAllBtn">Copy all</button>
               <button class="btn" id="sampleBtn">Sample</button>
             </div>
           </div>
           <div class="card">
-            <div id="threadOut" class="small">No thread yet.</div>
-            <div class="inline mt12">
-              <select id="threadChannel"></select>
-              <button class="btn" id="draftThreadBtn">Save draft to Buffer</button>
+            <div class="thread-actions">
+              <h3 style="margin:0 0 6px">Thread builder</h3>
+              <div class="inline mt8">
+                <select id="threadChannel" class="grow"></select>
+                <button class="btn" id="copyAllBtn">Copy all</button>
+              </div>
+              <div class="inline mt8">
+                <button class="btn" id="draftThreadBtn">Save draft</button>
+                <button class="btn success" id="queueThreadBtn">Add to queue</button>
+                <button class="btn primary" id="scheduleThreadBtn">Schedule</button>
+                <input id="threadWhen" type="datetime-local" class="input" style="max-width:220px" />
+              </div>
+              <div id="threadStatus" class="small mt8"></div>
             </div>
-            <div class="small mt8">If your post needs images or video, save it as a draft in PostIQ, then open Buffer to attach media and schedule or publish it there.</div>
+            <div id="threadOut" class="mt8 small">No thread yet.</div>
           </div>
         </div>
       </section>
@@ -128,7 +148,7 @@
         <div class="topbar">
           <div>
             <h2 style="margin:0">Content Calendar</h2>
-            <p class="small">Monthly scheduled posts from Buffer + local planning notes saved in this browser.</p>
+            <p class="small">Monthly scheduled posts from Buffer + lightweight planning notes.</p>
           </div>
           <button class="btn" id="shareMonthBtn">Share read-only month</button>
         </div>
@@ -139,25 +159,23 @@
           <button class="btn ghost" id="todayMonth">Today</button>
         </div>
         <div class="calendar-grid mt12" id="calGrid"></div>
-        <div class="card mt12">
-          <strong id="dayTitle">Select a day</strong>
-          <div id="dayPosts" class="mt8 small"></div>
-          <div id="dayNotes" class="mt8 small"></div>
-          <div class="inline mt8">
-            <input id="dayNoteInput" class="input" placeholder="Add planning note" />
-            <button class="btn primary" id="saveNoteBtn">Save note</button>
-          </div>
-        </div>
       </section>
 
       <section id="composerView" class="view">
         <h2>Post Composer</h2>
-        <p class="small">Draft text-first posts and send to Buffer as draft, queue item, or scheduled post.</p>
+        <p class="small">Draft text-first posts with formatting controls, then save draft, queue, or schedule in Buffer.</p>
         <div class="card">
-          <textarea id="composerText" placeholder="Write your post here..."></textarea>
+          <div class="rich-toolbar">
+            <button class="btn" data-cmd="bold">Bold</button>
+            <button class="btn" data-cmd="italic">Italic</button>
+            <button class="btn" data-cmd="ul">• List</button>
+            <button class="btn" data-cmd="ol">1. List</button>
+            <button class="btn" data-cmd="clear">Clear formatting</button>
+          </div>
+          <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here..."></div>
           <div class="inline mt8">
-            <select id="composerChannel"></select>
-            <input id="composerWhen" type="datetime-local" class="input" />
+            <select id="composerChannel" class="grow"></select>
+            <input id="composerWhen" type="datetime-local" class="input" style="max-width:220px" />
           </div>
           <div class="inline mt8">
             <button class="btn" id="composerDraft">Save draft</button>
@@ -171,38 +189,61 @@
     </main>
   </section>
 
-  <div id="guideModal" class="modal">
-    <div class="modal-card">
-      <div class="topbar"><h3 style="margin:0">How PostIQ works</h3><button class="btn" id="closeGuide">Close</button></div>
-      <ul class="small mt8">
-        <li><strong>No login:</strong> PostIQ does not require a PostIQ account.</li>
-        <li><strong>Token handling:</strong> your Buffer token is stored in sessionStorage or localStorage, based on your choice.</li>
-        <li><strong>Thread Splitter:</strong> split long copy into thread-ready chunks.</li>
-        <li><strong>Content Calendar:</strong> see scheduled Buffer posts + local planning notes.</li>
-        <li><strong>Read-only month sharing:</strong> generate a snapshot link for sharing planning context.</li>
-        <li><strong>Media workflow:</strong> If your post needs images or video, save it as a draft in PostIQ, then open Buffer to attach media and schedule or publish it there.</li>
-      </ul>
-    </div>
-  </div>
+  <div id="guideModal" class="modal"><div class="modal-card">
+    <div class="topbar"><h3 style="margin:0">How PostIQ works</h3><button class="btn" id="closeGuide">Close</button></div>
+    <ul class="small mt8">
+      <li><strong>No login:</strong> PostIQ does not require a PostIQ account.</li>
+      <li><strong>Token handling:</strong> your Buffer token is stored in sessionStorage or localStorage, based on your choice.</li>
+      <li><strong>Thread Splitter:</strong> split long copy into editable thread parts and send as draft/queue/scheduled.</li>
+      <li><strong>Content Calendar:</strong> view scheduled posts, then add color-tagged planning notes per day.</li>
+      <li><strong>Media workflow:</strong> If your post needs images or video, save it as a draft in PostIQ, then open Buffer to attach media and schedule or publish it there.</li>
+    </ul>
+  </div></div>
 
-  <div id="shareModal" class="modal">
-    <div class="modal-card">
-      <div class="topbar"><h3 style="margin:0">Share read-only month snapshot</h3><button class="btn" id="closeShare">Close</button></div>
-      <p class="small mt8">Create a no-login read-only month view for the current calendar month.</p>
-      <div class="card mt8">
-        <div class="small">Month: <strong id="shareMonthName"></strong></div>
-        <div class="small mt8">Scheduled posts in snapshot: <strong id="sharePostCount">0</strong></div>
-        <div class="small mt8">Planning notes included: <strong id="shareNoteCount">0</strong></div>
-        <label class="small mt8" style="display:block"><input type="checkbox" id="includeNotes" checked /> Include planning notes</label>
-      </div>
-      <div class="inline mt12">
-        <button class="btn primary" id="generateShare">Generate link</button>
-        <button class="btn" id="copyShare">Copy link</button>
-        <button class="btn" id="openSharePreview">Open preview</button>
-      </div>
-      <input id="shareLink" class="input mt8" readonly placeholder="Share link will appear here" />
+  <div id="shareModal" class="modal"><div class="modal-card">
+    <div class="topbar"><h3 style="margin:0">Share read-only month snapshot</h3><button class="btn" id="closeShare">Close</button></div>
+    <p class="small mt8">Create a no-login read-only month view for the current calendar month.</p>
+    <div class="card mt8">
+      <div class="small">Month: <strong id="shareMonthName"></strong></div>
+      <div class="small mt8">Scheduled posts in snapshot: <strong id="sharePostCount">0</strong></div>
+      <div class="small mt8">Planning notes included: <strong id="shareNoteCount">0</strong></div>
+      <label class="small mt8" style="display:block"><input type="checkbox" id="includeNotes" checked /> Include planning notes</label>
     </div>
-  </div>
+    <div class="inline mt12">
+      <button class="btn primary" id="generateShare">Generate link</button>
+      <button class="btn" id="copyShare">Copy link</button>
+      <button class="btn" id="openSharePreview">Open preview</button>
+    </div>
+    <input id="shareLink" class="input mt8" readonly placeholder="Share link will appear here" />
+  </div></div>
+
+  <div id="noteModal" class="modal"><div class="modal-card">
+    <div class="topbar"><h3 style="margin:0">Day note</h3><button class="btn" id="closeNote">Close</button></div>
+    <div class="small mt8">Date: <strong id="noteDateLabel"></strong></div>
+    <textarea id="noteText" class="mt8" placeholder="Add your planning note..."></textarea>
+    <div class="mt8">
+      <label class="small">Tag</label>
+      <select id="noteTag" class="input mt8">
+        <option value="gold|Idea">Gold · Idea</option>
+        <option value="blue|Draft">Blue · Draft</option>
+        <option value="green|Campaign">Green · Campaign</option>
+        <option value="violet|Priority">Violet · Priority</option>
+      </select>
+    </div>
+    <div class="inline mt12">
+      <button class="btn primary" id="saveNoteBtn">Save note</button>
+      <button class="btn" id="sendNoteToComposer">Use in Composer</button>
+      <button class="btn ghost" id="deleteNoteBtn">Delete note</button>
+    </div>
+    <div id="noteStatus" class="small mt8"></div>
+  </div></div>
+
+  <div id="founderModal" class="modal"><div class="modal-card">
+    <div class="topbar"><h3 style="margin:0">Built by Ben Campbell</h3><button class="btn" id="closeFounder">Close</button></div>
+    <p class="small mt8">This was built by Ben Campbell, who is currently open to work and looking for his next social media/content marketing role. If you enjoy this app, message Ben on Discord with any feedback or issues you run into.</p>
+    <p class="small">Email: <a href="mailto:hirebencampbell@gmail.com">hirebencampbell@gmail.com</a></p>
+    <p class="small">Creative work: <a href="https://bencampbell.netlify.app/" target="_blank" rel="noopener">https://bencampbell.netlify.app/</a></p>
+  </div></div>
 
   <section id="sharedView" class="landing hidden">
     <div class="banner" id="sharedBanner"></div>
@@ -213,38 +254,48 @@
 
 <script>
 const STORE_KEY='postiq_buffer_token';
-const NOTE_KEY='postiq_calendar_notes_v1';
+const NOTE_KEY='postiq_calendar_notes_v2';
 let bufferToken='';
 let tokenInputVisible=false;
-const state={channels:[],scheduled:[],month:new Date(),selectedDate:null};
+let threadParts=[];
+const state={channels:[],scheduled:[],month:new Date(),selectedDate:null,syncState:'idle'};
+
+const noteTags={gold:'Idea',blue:'Draft',green:'Campaign',violet:'Priority'};
 
 function qs(id){return document.getElementById(id)}
-function toast(msg){console.log(msg)}
 function showApp(){qs('landing').classList.add('hidden');qs('app').classList.remove('hidden')}
+function fmtDate(d){return d.toISOString().slice(0,10)}
+function monthLabel(d){return d.toLocaleDateString(undefined,{month:'long',year:'numeric'})}
+function monthStart(d){return new Date(d.getFullYear(),d.getMonth(),1)}
 function maskToken(token){ if(!token) return '—'; if(token.length<=8) return '••••'; return `${token.slice(0,4)}••••${token.slice(-4)}`; }
-function updateTokenUI(compact = !!bufferToken){
+function openModal(id){qs(id).classList.add('open')} function closeModal(id){qs(id).classList.remove('open')}
+
+function setSyncStatus(stateName,msg){
+  state.syncState=stateName;
+  qs('syncStatus').textContent=msg;
+}
+
+function updateTokenUI(compact=!!bufferToken){
   const card=qs('tokenCard');
-  const input=qs('tokenInput');
-  const toggle=qs('toggleTokenVisibility');
   qs('tokenMaskedPreview').textContent=maskToken(bufferToken);
   qs('tokenCompactStatus').textContent=bufferToken?'Connected':'Not connected';
   tokenInputVisible=false;
-  input.type='password';
-  toggle.textContent='Show';
-  if(compact && bufferToken){ card.classList.add('compact'); }
-  else { card.classList.remove('compact'); }
+  qs('tokenInput').type='password';
+  qs('toggleTokenVisibility').textContent='Show';
+  if(compact&&bufferToken) card.classList.add('compact'); else card.classList.remove('compact');
 }
 
 function saveToken(){
   const token=qs('tokenInput').value.trim();
   const mode=[...document.querySelectorAll('input[name="tokenMode"]')].find(r=>r.checked).value;
-  localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
-  if(!token){bufferToken='';qs('tokenMsg').textContent='Token removed.';updateTokenUI(false);return;}
+  localStorage.removeItem(STORE_KEY); sessionStorage.removeItem(STORE_KEY);
+  if(!token){ bufferToken=''; qs('tokenMsg').textContent='Token removed.'; updateTokenUI(false); return; }
   if(mode==='local') localStorage.setItem(STORE_KEY,token); else sessionStorage.setItem(STORE_KEY,token);
   bufferToken=token;
   qs('tokenMsg').textContent=mode==='local'?'Token saved on this device (localStorage).':'Token saved for this session only (sessionStorage).';
   updateTokenUI(true);
 }
+
 function loadStoredToken(){
   bufferToken=sessionStorage.getItem(STORE_KEY)||localStorage.getItem(STORE_KEY)||'';
   if(bufferToken){qs('tokenInput').value=bufferToken;qs('tokenMsg').textContent='Token loaded from browser storage and hidden by default.'}
@@ -252,52 +303,51 @@ function loadStoredToken(){
 }
 
 async function callBuffer(query,variables={}){
-  if(!bufferToken) throw new Error('Add a Buffer token first.');
+  if(!bufferToken) throw new Error('MISSING_TOKEN');
   const res=await fetch('/.netlify/functions/buffer-proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:bufferToken,query,variables})});
   const data=await res.json();
   if(data.errors?.length) throw new Error(data.errors[0].message);
   return data;
 }
 
-function monthStart(d){return new Date(d.getFullYear(),d.getMonth(),1)}
-function fmtDate(d){return d.toISOString().slice(0,10)}
-function monthLabel(d){return d.toLocaleDateString(undefined,{month:'long',year:'numeric'})}
 function getNotes(){try{return JSON.parse(localStorage.getItem(NOTE_KEY)||'{}')}catch{return {}}}
 function setNotes(v){localStorage.setItem(NOTE_KEY,JSON.stringify(v))}
 
 async function syncBuffer(){
-  qs('syncStatus').textContent='Syncing scheduled posts…';
+  if(!bufferToken){setSyncStatus('failed','Sync failed: Add your Buffer token first.');return;}
+  setSyncStatus('syncing','Syncing scheduled posts from Buffer…');
   try{
-    const org=await callBuffer('query { account { organizations { id } } }');
-    const orgId=org.data.account.organizations[0]?.id;
-    const ch=await callBuffer(`query { channels(input:{organizationId:"${orgId}"}) { id displayName name service } }`);
-    state.channels=ch.data.channels||[];
-    const cap = 500;
-    let after = null;
-    let all = [];
-    let hasNextPage = true;
-    while (hasNextPage && all.length < cap) {
-      const query = `query Posts($organizationId:String!,$after:String){posts(first:100,after:$after,input:{organizationId:$organizationId,filter:{status:[scheduled]}}){edges{node{id text dueAt channelId}} pageInfo{hasNextPage endCursor}}}`;
-      const page = await callBuffer(query, { organizationId: orgId, after });
-      const block = page?.data?.posts;
-      const edges = block?.edges || [];
-      all = all.concat(edges.map(e => e.node));
-      hasNextPage = !!block?.pageInfo?.hasNextPage;
-      after = block?.pageInfo?.endCursor || null;
-      if (!block?.pageInfo) hasNextPage = false;
+    const acc=await callBuffer('query { account { organizations { id name } } }');
+    const orgId=acc?.data?.account?.organizations?.[0]?.id;
+    if(!orgId){setSyncStatus('failed','Sync failed: no organization found in your Buffer account.');return;}
+
+    const channelsQuery='query Channels($organizationId: OrganizationId!){ channels(input:{organizationId:$organizationId}) { id displayName name service } }';
+    const ch=await callBuffer(channelsQuery,{organizationId:orgId});
+    state.channels=ch?.data?.channels||[];
+
+    const cap=500; let after=null; let all=[]; let hasNext=true;
+    const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId } } pageInfo{ hasNextPage endCursor } } }';
+    while(hasNext && all.length<cap){
+      const page=await callBuffer(postsQuery,{organizationId:orgId,after});
+      const block=page?.data?.posts; const edges=block?.edges||[];
+      all=all.concat(edges.map(e=>e.node));
+      hasNext=!!block?.pageInfo?.hasNextPage;
+      after=block?.pageInfo?.endCursor||null;
+      if(!block?.pageInfo) break;
     }
+
     state.scheduled=all;
-    qs('syncStatus').textContent=all.length>=cap
-      ? `Loaded ${state.channels.length} channels and ${all.length} scheduled posts (capped at ${cap}).`
-      : `Loaded ${state.channels.length} channels and ${state.scheduled.length} scheduled posts.`;
     renderChannelSelects(); renderCalendar();
+    if(all.length>=cap) setSyncStatus('partial',`Synced ${all.length} scheduled posts (capped at ${cap}).`);
+    else setSyncStatus('success',`Synced successfully. Loaded ${all.length} scheduled posts.`);
   }catch(e){
-    console.error('Buffer sync error', e);
-    if(String(e.message||'').match(/maximum of 100|Pagination limit exceeded/i)){
-      qs('syncStatus').textContent='Sync failed. Buffer limits requests to 100 items at a time. We adjusted this flow—please try again.';
-    } else {
-      qs('syncStatus').textContent='Sync failed. Please confirm your token and try again.';
-    }
+    console.error('Buffer sync error',e);
+    const m=String(e.message||'');
+    if(m.includes('MISSING_TOKEN')) setSyncStatus('failed','Sync failed: add a Buffer token first.');
+    else if(/unauthorized|invalid|forbidden|unauth/i.test(m)) setSyncStatus('failed','Sync failed because the Buffer token appears invalid or expired.');
+    else if(/OrganizationId/i.test(m)) setSyncStatus('failed','Sync failed due to a Buffer API type mismatch. Please retry after refresh.');
+    else if(/maximum of 100|Pagination limit exceeded/i.test(m)) setSyncStatus('partial','We loaded the first 100 scheduled posts. Pulling more requires pagination support.');
+    else setSyncStatus('failed','Sync failed due to a Buffer API limitation. Please try again in a moment.');
   }
 }
 
@@ -316,22 +366,44 @@ function splitThreadText(text,max=280){
   }
   if(left) parts.push(left); return parts;
 }
-let threadParts=[];
+
 function renderThread(){
   const out=qs('threadOut');
-  if(!threadParts.length){out.textContent='No thread yet.';return}
+  if(!threadParts.length){ out.textContent='No thread yet.'; return; }
   out.innerHTML='';
-  threadParts.forEach((p,i)=>{const d=document.createElement('div');d.className='tweet';d.innerHTML=`<div class="small">Part ${i+1}</div><textarea data-i="${i}" style="min-height:70px">${p}</textarea>`;out.appendChild(d)});
+  threadParts.forEach((p,i)=>{
+    const d=document.createElement('div'); d.className='tweet';
+    d.innerHTML=`<div class="thread-part-tools"><strong>Part ${i+1}</strong><button class="btn" data-copy="${i}">Copy</button></div><textarea data-i="${i}" style="min-height:75px">${p}</textarea>`;
+    out.appendChild(d);
+  });
   out.querySelectorAll('textarea').forEach(t=>t.addEventListener('input',e=>threadParts[+e.target.dataset.i]=e.target.value));
+  out.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>navigator.clipboard.writeText(threadParts[+b.dataset.copy]||''));
 }
 
-function postsByDay(date){
-  const y=date.getFullYear(),m=date.getMonth();
-  return state.scheduled.filter(p=>{const d=new Date(p.dueAt);return d.getFullYear()===y&&d.getMonth()===m});
+function getThreadMetadata(channelId){
+  const channel=state.channels.find(c=>c.id===channelId);
+  const svc=(channel?.service||'').toLowerCase();
+  const isThreads=svc.includes('thread');
+  return threadParts.length>1?{metadata:{[isThreads?'threads':'twitter']:isThreads?{type:'thread',thread:threadParts.slice(1).map(t=>({text:t}))}:{thread:threadParts.slice(1).map(t=>({text:t}))}}}:{};
 }
-function notesForMonth(date){
-  const all=getNotes(); const y=date.getFullYear(),m=date.getMonth();
-  return Object.entries(all).filter(([k])=>{const d=new Date(k+'T00:00:00');return d.getFullYear()===y&&d.getMonth()===m}).map(([k,v])=>({date:k,text:v}));
+
+async function sendThread(action){
+  if(!threadParts.length){qs('threadStatus').textContent='Split content first.';return;}
+  const channelId=qs('threadChannel').value;
+  if(!channelId){qs('threadStatus').textContent='Load channels from Buffer first.';return;}
+  const first=threadParts[0];
+  const when=qs('threadWhen').value;
+  const input={channelId,text:first,schedulingType:'automatic',...getThreadMetadata(channelId)};
+  if(action==='draft'){ input.mode='addToQueue'; input.saveToDraft=true; }
+  if(action==='queue'){ input.mode='addToQueue'; }
+  if(action==='schedule'){ if(!when){qs('threadStatus').textContent='Choose date/time to schedule.';return;} input.mode='customScheduled'; input.dueAt=when; }
+  try{
+    await createPost(input);
+    qs('threadStatus').textContent = action==='draft'?'Draft saved to Buffer.':action==='queue'?'Thread added to Buffer queue.':'Thread scheduled in Buffer.';
+  }catch(e){
+    console.error('thread send error',e);
+    qs('threadStatus').textContent='Thread send failed. Please review channel/token and try again.';
+  }
 }
 
 function renderCalendar(){
@@ -343,49 +415,89 @@ function renderCalendar(){
     const d=new Date(start); d.setDate(start.getDate()+i);
     const key=fmtDate(d); const inMonth=d.getMonth()===state.month.getMonth();
     const dayPosts=state.scheduled.filter(p=>fmtDate(new Date(p.dueAt))===key);
+    const note=notes[key];
     const day=document.createElement('div'); day.className='day'; day.style.opacity=inMonth?'1':'.45';
-    day.innerHTML=`<div class="d">${d.getDate()}</div>${dayPosts.slice(0,2).map(p=>`<div class='post-pill'>${(p.text||'').slice(0,36)}</div>`).join('')}${notes[key]?`<div class='note-pill'>📝 ${notes[key].slice(0,28)}</div>`:''}`;
-    day.onclick=()=>{state.selectedDate=d; renderDayPanel()}; grid.appendChild(day);
+    const noteChip=note?`<div class="note-pill note-tag-${note.tag||'gold'}">📝 ${note.label||noteTags[note.tag]||'Note'}</div>`:'';
+    day.innerHTML=`<div class="d">${d.getDate()}</div>${dayPosts.slice(0,2).map(p=>`<div class='post-pill'>${(p.text||'').slice(0,36)}</div>`).join('')}${noteChip}`;
+    day.onclick=()=>openDayNote(d);
+    grid.appendChild(day);
   }
 }
-function renderDayPanel(){
-  if(!state.selectedDate) return;
-  const key=fmtDate(state.selectedDate); qs('dayTitle').textContent=key;
-  const posts=state.scheduled.filter(p=>fmtDate(new Date(p.dueAt))===key);
-  qs('dayPosts').innerHTML=posts.length?posts.map(p=>`• ${(p.text||'').slice(0,140)}`).join('<br/>'):'No scheduled posts for this day.';
-  const notes=getNotes();
-  qs('dayNotes').innerHTML=notes[key]?`Planning note: ${notes[key]}`:'No planning notes yet.';
+
+function openDayNote(date){
+  state.selectedDate=date;
+  const key=fmtDate(date);
+  const note=getNotes()[key]||{text:'',tag:'gold',label:'Idea'};
+  qs('noteDateLabel').textContent=key;
+  qs('noteText').value=note.text||'';
+  qs('noteTag').value=`${note.tag||'gold'}|${note.label||noteTags[note.tag||'gold']||'Idea'}`;
+  qs('noteStatus').textContent='';
+  openModal('noteModal');
 }
-function saveNote(){
+
+function saveNoteFromModal(){
   if(!state.selectedDate) return;
-  const txt=qs('dayNoteInput').value.trim(); if(!txt) return;
-  const notes=getNotes(); notes[fmtDate(state.selectedDate)]=txt; setNotes(notes); qs('dayNoteInput').value=''; renderDayPanel(); renderCalendar();
+  const key=fmtDate(state.selectedDate);
+  const text=qs('noteText').value.trim();
+  const [tag,label]=qs('noteTag').value.split('|');
+  const notes=getNotes();
+  if(!text){ delete notes[key]; setNotes(notes); qs('noteStatus').textContent='Empty note removed.'; renderCalendar(); return; }
+  notes[key]={text,tag,label}; setNotes(notes); qs('noteStatus').textContent='Note saved.'; renderCalendar();
+}
+
+function deleteNote(){
+  if(!state.selectedDate) return;
+  const notes=getNotes(); delete notes[fmtDate(state.selectedDate)]; setNotes(notes); qs('noteText').value=''; qs('noteStatus').textContent='Note deleted.'; renderCalendar();
+}
+
+function sendNoteToComposer(){
+  if(!state.selectedDate) return;
+  const key=fmtDate(state.selectedDate);
+  const text=qs('noteText').value.trim();
+  if(!text){ qs('noteStatus').textContent='Add note text first.'; return; }
+  const [tag,label]=qs('noteTag').value.split('|');
+  const editor=qs('composerEditor');
+  const payload=`[${label}] ${key}\n${text}`;
+  editor.innerText = editor.innerText ? `${editor.innerText}\n\n${payload}` : payload;
+  closeModal('noteModal');
+  document.querySelectorAll('[data-view]').forEach(v=>v.classList.remove('active'));
+  document.querySelector('[data-view="composerView"]').classList.add('active');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  qs('composerView').classList.add('active');
+  qs('composerStatus').textContent='Planning note added to composer.';
+}
+
+function postsByMonth(date){
+  const y=date.getFullYear(),m=date.getMonth();
+  return state.scheduled.filter(p=>{const d=new Date(p.dueAt);return d.getFullYear()===y&&d.getMonth()===m});
+}
+function notesForMonth(date){
+  const all=getNotes(); const y=date.getFullYear(),m=date.getMonth();
+  return Object.entries(all).filter(([k])=>{const d=new Date(k+'T00:00:00');return d.getFullYear()===y&&d.getMonth()===m}).map(([date,val])=>({date,...val}));
 }
 
 function shareSnapshot(){
   const include=qs('includeNotes').checked;
   const month=monthLabel(state.month);
-  const monthPosts=postsByDay(state.month);
+  const monthPosts=postsByMonth(state.month);
   const monthNotes=notesForMonth(state.month);
   qs('shareMonthName').textContent=month;
   qs('sharePostCount').textContent=monthPosts.length;
   qs('shareNoteCount').textContent=include?monthNotes.length:0;
   const payload={month,includeNotes:include,posts:monthPosts.map(p=>({dueAt:p.dueAt,text:p.text})),notes:include?monthNotes:[]};
-  const link=location.origin+location.pathname+'#share='+btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-  qs('shareLink').value=link;
+  qs('shareLink').value=location.origin+location.pathname+'#share='+btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
 }
+
 function renderSharedFromHash(){
   if(!location.hash.startsWith('#share=')) return false;
   try{
-    const raw=location.hash.slice(7);
-    const snap=JSON.parse(decodeURIComponent(escape(atob(raw))));
-    qs('landing').classList.add('hidden');qs('app').classList.add('hidden');qs('sharedView').classList.remove('hidden');
+    const snap=JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(7)))));
+    qs('landing').classList.add('hidden'); qs('app').classList.add('hidden'); qs('sharedView').classList.remove('hidden');
     qs('sharedMonthTitle').textContent=snap.month;
     qs('sharedBanner').textContent=`Read-only month view · Notes ${snap.includeNotes?'included':'excluded'} · ${snap.posts.length} scheduled posts`;
     const grid=qs('sharedGrid'); grid.innerHTML='';
-    const map={}; snap.posts.forEach(p=>{const k=p.dueAt.slice(0,10);(map[k]||(map[k]=[])).push(p.text)}); (snap.notes||[]).forEach(n=>{(map[n.date]||(map[n.date]=[])).push('📝 '+n.text)});
-    const unique=Object.keys(map).sort();
-    unique.forEach(k=>{const d=document.createElement('div');d.className='day';d.innerHTML=`<div class='d'>${k}</div>${map[k].slice(0,3).map(t=>`<div class='post-pill'>${t.slice(0,42)}</div>`).join('')}`;grid.appendChild(d)});
+    const map={}; snap.posts.forEach(p=>{const k=p.dueAt.slice(0,10);(map[k]||(map[k]=[])).push(p.text)}); (snap.notes||[]).forEach(n=>{(map[n.date]||(map[n.date]=[])).push(`📝 [${n.label||''}] ${n.text}`)});
+    Object.keys(map).sort().forEach(k=>{const d=document.createElement('div');d.className='day';d.innerHTML=`<div class='d'>${k}</div>${map[k].slice(0,3).map(t=>`<div class='post-pill'>${t.slice(0,42)}</div>`).join('')}`;grid.appendChild(d)});
     return true;
   }catch(e){console.error(e);return false}
 }
@@ -394,70 +506,102 @@ async function createPost(input){
   return callBuffer('mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename}}',{input});
 }
 
+function composerFormat(cmd){
+  const sel=window.getSelection();
+  if(!sel.rangeCount) return;
+  if(cmd==='bold'||cmd==='italic') document.execCommand(cmd,false,null);
+  else if(cmd==='ul') document.execCommand('insertUnorderedList',false,null);
+  else if(cmd==='ol') document.execCommand('insertOrderedList',false,null);
+  else if(cmd==='clear') document.execCommand('removeFormat',false,null);
+}
+
+function editorHtmlToText(html){
+  const root=document.createElement('div'); root.innerHTML=html;
+  const walk=(node)=>{
+    if(node.nodeType===Node.TEXT_NODE) return node.textContent;
+    const tag=(node.tagName||'').toLowerCase();
+    if(tag==='br') return '\n';
+    if(tag==='strong'||tag==='b') return `**${[...node.childNodes].map(walk).join('')}**`;
+    if(tag==='em'||tag==='i') return `*${[...node.childNodes].map(walk).join('')}*`;
+    if(tag==='li') return [...node.childNodes].map(walk).join('');
+    if(tag==='ul') return [...node.children].map(li=>`• ${walk(li)}`).join('\n')+'\n';
+    if(tag==='ol') return [...node.children].map((li,i)=>`${i+1}. ${walk(li)}`).join('\n')+'\n';
+    const inner=[...node.childNodes].map(walk).join('');
+    if(['p','div'].includes(tag)) return inner+'\n';
+    return inner;
+  };
+  return [...root.childNodes].map(walk).join('').replace(/\n{3,}/g,'\n\n').trim();
+}
+
+async function composerSend(action){
+  const text=editorHtmlToText(qs('composerEditor').innerHTML);
+  if(!text){qs('composerStatus').textContent='Write content first.';return;}
+  const channelId=qs('composerChannel').value;
+  if(!channelId){qs('composerStatus').textContent='Load channels from Buffer first.';return;}
+  const when=qs('composerWhen').value;
+  const input={channelId,text,schedulingType:'automatic'};
+  if(action==='draft'){ input.mode='addToQueue'; input.saveToDraft=true; }
+  if(action==='queue'){ input.mode='addToQueue'; }
+  if(action==='schedule'){ if(!when){qs('composerStatus').textContent='Pick a schedule date/time first.';return;} input.mode='customScheduled'; input.dueAt=when; }
+  try{
+    await createPost(input);
+    qs('composerStatus').textContent = action==='draft'?'Draft saved to Buffer.':action==='queue'?'Added to Buffer queue.':'Scheduled in Buffer.';
+  }catch(e){
+    console.error('composer send error',e);
+    qs('composerStatus').textContent='Post action failed. Check token/channel and try again.';
+  }
+}
+
 function init(){
   if(renderSharedFromHash()) return;
   loadStoredToken();
+
   qs('enterApp').onclick=showApp; qs('heroStart').onclick=showApp;
-  qs('heroGuide').onclick=()=>qs('guideModal').classList.add('open');
-  qs('openGuide').onclick=()=>qs('guideModal').classList.add('open');
-  qs('closeGuide').onclick=()=>qs('guideModal').classList.remove('open');
+  qs('heroGuide').onclick=()=>openModal('guideModal');
+  qs('openGuide').onclick=()=>openModal('guideModal');
+  qs('closeGuide').onclick=()=>closeModal('guideModal');
+  qs('openFounder').onclick=()=>openModal('founderModal');
+  qs('closeFounder').onclick=()=>closeModal('founderModal');
+
   qs('saveTokenBtn').onclick=saveToken;
   qs('clearTokenBtn').onclick=()=>{qs('tokenInput').value='';saveToken()};
-  qs('toggleTokenVisibility').onclick=()=>{
-    tokenInputVisible=!tokenInputVisible;
-    qs('tokenInput').type=tokenInputVisible?'text':'password';
-    qs('toggleTokenVisibility').textContent=tokenInputVisible?'Hide':'Show';
-  };
+  qs('toggleTokenVisibility').onclick=()=>{tokenInputVisible=!tokenInputVisible;qs('tokenInput').type=tokenInputVisible?'text':'password';qs('toggleTokenVisibility').textContent=tokenInputVisible?'Hide':'Show';};
   qs('manageTokenBtn').onclick=()=>updateTokenUI(false);
-  qs('revealCompactBtn').onclick=()=>{
-    if (!bufferToken) return;
-    updateTokenUI(false);
-    tokenInputVisible=true;
-    qs('tokenInput').type='text';
-    qs('toggleTokenVisibility').textContent='Hide';
-  };
+  qs('revealCompactBtn').onclick=()=>{if(!bufferToken)return;updateTokenUI(false);tokenInputVisible=true;qs('tokenInput').type='text';qs('toggleTokenVisibility').textContent='Hide';};
+
   qs('syncBtn').onclick=syncBuffer;
+
   document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-view]').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));qs(b.dataset.view).classList.add('active')});
 
-  qs('splitBtn').onclick=()=>{threadParts=splitThreadText(qs('threadInput').value);renderThread()};
-  qs('sampleBtn').onclick=()=>{qs('threadInput').value='PostIQ helps Buffer users move faster with text-first planning. Draft your big idea once, split into clear thread parts, tune each section, and save the final thread as a draft in Buffer. Keep momentum high and context clean.'};
+  qs('splitBtn').onclick=()=>{threadParts=splitThreadText(qs('threadInput').value);renderThread();};
+  qs('sampleBtn').onclick=()=>{qs('threadInput').value='PostIQ helps Buffer users move faster. Start with one big idea, split it into clear thread parts, refine each part, and send a cleaner post flow to Buffer.'};
   qs('copyAllBtn').onclick=()=>navigator.clipboard.writeText(threadParts.join('\n\n'));
-  qs('draftThreadBtn').onclick=async()=>{
-    try{if(!threadParts.length) return; const ch=qs('threadChannel').value; const [first,...rest]=threadParts;
-      const channel=state.channels.find(c=>c.id===ch); const svc=(channel?.service||'').toLowerCase(); const isT=svc.includes('thread');
-      await createPost({channelId:ch,text:first,schedulingType:'automatic',mode:'draft',...(rest.length?{metadata:{[isT?'threads':'twitter']:isT?{type:'thread',thread:rest.map(t=>({text:t}))}:{thread:rest.map(t=>({text:t}))}}}:{})});
-      toast('Thread draft saved');
-    }catch(e){alert(e.message)}
-  };
+  qs('draftThreadBtn').onclick=()=>sendThread('draft');
+  qs('queueThreadBtn').onclick=()=>sendThread('queue');
+  qs('scheduleThreadBtn').onclick=()=>sendThread('schedule');
 
   qs('prevMonth').onclick=()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()-1,1);renderCalendar()};
   qs('nextMonth').onclick=()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()+1,1);renderCalendar()};
   qs('todayMonth').onclick=()=>{state.month=new Date();renderCalendar()};
-  qs('saveNoteBtn').onclick=saveNote;
 
-  qs('shareMonthBtn').onclick=()=>{shareSnapshot();qs('shareModal').classList.add('open')};
-  qs('closeShare').onclick=()=>qs('shareModal').classList.remove('open');
+  qs('closeNote').onclick=()=>closeModal('noteModal');
+  qs('saveNoteBtn').onclick=saveNoteFromModal;
+  qs('deleteNoteBtn').onclick=deleteNote;
+  qs('sendNoteToComposer').onclick=sendNoteToComposer;
+
+  qs('shareMonthBtn').onclick=()=>{shareSnapshot();openModal('shareModal')};
+  qs('closeShare').onclick=()=>closeModal('shareModal');
   qs('includeNotes').onchange=shareSnapshot;
   qs('generateShare').onclick=shareSnapshot;
   qs('copyShare').onclick=()=>navigator.clipboard.writeText(qs('shareLink').value||'');
   qs('openSharePreview').onclick=()=>{if(qs('shareLink').value) window.open(qs('shareLink').value,'_blank')};
 
-  qs('composerDraft').onclick=async()=>composerSend('draft');
-  qs('composerQueue').onclick=async()=>composerSend('addToQueue');
-  qs('composerSchedule').onclick=async()=>composerSend('customScheduled');
+  document.querySelectorAll('[data-cmd]').forEach(btn=>btn.onclick=()=>composerFormat(btn.dataset.cmd));
+  qs('composerDraft').onclick=()=>composerSend('draft');
+  qs('composerQueue').onclick=()=>composerSend('queue');
+  qs('composerSchedule').onclick=()=>composerSend('schedule');
 
   renderCalendar();
-}
-
-async function composerSend(mode){
-  const text=qs('composerText').value.trim(); if(!text) return;
-  const channelId=qs('composerChannel').value; if(!channelId) return alert('Load from Buffer first.');
-  const dueAt=qs('composerWhen').value;
-  try{
-    const input={channelId,text,schedulingType:'automatic',mode:mode==='customScheduled'?'customScheduled':mode};
-    if(mode==='customScheduled'){ if(!dueAt) return alert('Choose date/time'); input.dueAt=dueAt; }
-    await createPost(input); qs('composerStatus').textContent='Saved to Buffer successfully.';
-  }catch(e){qs('composerStatus').textContent='Error: '+e.message}
 }
 
 init();
