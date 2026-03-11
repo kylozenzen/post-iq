@@ -19,14 +19,26 @@
     .status{font-size:12px;color:var(--muted)} .view{display:none}.view.active{display:block}
     .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}.small{font-size:12px;color:var(--muted)}
     .tweet{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;background:#151924}
-    .calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}.day{min-height:110px;background:#151924;border:1px solid var(--line);border-radius:10px;padding:8px;cursor:pointer}
-    .day .d{font-size:12px;color:var(--muted)}.post-pill,.note-pill{font-size:11px;border-radius:8px;padding:3px 6px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .post-pill{background:rgba(122,162,255,.15);border:1px solid rgba(122,162,255,.35)}.note-pill{border:1px solid rgba(255,255,255,.35)}
+    .calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}.day{min-height:118px;background:#151924;border:1px solid var(--line);border-radius:10px;padding:8px;cursor:pointer;display:flex;flex-direction:column;gap:4px;position:relative}
+    .day .d{font-size:12px;color:var(--muted);font-weight:600}.post-pill,.note-pill{font-size:11px;border-radius:8px;padding:4px 6px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3}
+    .post-pill{background:rgba(122,162,255,.15);border:1px solid rgba(122,162,255,.35)}.note-pill{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.04)}
+    .note-label{font-size:10px;opacity:.9;display:block;margin-bottom:2px;font-weight:700}
+    .calendar-header{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}
+    .calendar-header-main{display:flex;flex-direction:column;gap:8px;flex:1;min-width:260px}
+    .calendar-nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .calendar-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+    .day-post-list{display:flex;flex-direction:column;gap:6px}
+    .token-card.compact{padding:10px}.token-card.compact .token-expanded{display:none}
+    .token-card.compact #tokenMsg{margin-top:6px}
+    .day-preview-card{border:1px solid var(--line);border-radius:10px;padding:8px;background:#151924}
+    .day-preview-card .small{display:block}
     .banner{padding:12px;border:1px solid rgba(122,162,255,.45);background:rgba(122,162,255,.1);border-radius:10px;margin-bottom:14px}
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:16px;z-index:40}.modal.open{display:flex}
     .modal-card{max-width:640px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;max-height:90vh;overflow:auto}
     .inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.mt8{margin-top:8px}.mt12{margin-top:12px}.mb8{margin-bottom:8px}
     .token-compact{display:none}.token-card.compact .token-manage{display:none}.token-card.compact .token-compact{display:block}
+    .shared-day{cursor:default}
+    .shared-day .d{font-weight:700}
     .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}.grow{flex:1}
     .side-bottom{margin-top:auto;display:flex;flex-direction:column;gap:8px}
     .rich-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
@@ -74,8 +86,10 @@
       <h3 style="margin:0">PostIQ</h3>
       <div class="card token-card" id="tokenCard">
         <strong>Buffer token setup</strong>
-        <p class="small mt8">Paste your Buffer API token to connect PostIQ. You can keep it for this session only or save it locally on this device. Your token is never stored in a PostIQ account.</p>
-        <p class="small"><a href="https://publish.buffer.com/settings/api" target="_blank" rel="noopener">Find your Buffer API token ↗</a></p>
+        <div class="token-expanded">
+          <p class="small mt8">Paste your Buffer API token to connect PostIQ. You can keep it for this session only or save it locally on this device. Your token is never stored in a PostIQ account.</p>
+          <p class="small"><a href="https://publish.buffer.com/settings/api" target="_blank" rel="noopener">Find your Buffer API token ↗</a></p>
+        </div>
         <div class="token-manage" id="tokenManage">
           <input id="tokenInput" class="input mono" type="password" placeholder="Paste Buffer API token" />
           <div class="inline mt8"><button class="btn" id="toggleTokenVisibility">Show</button></div>
@@ -150,18 +164,21 @@
       </section>
 
       <section id="calendarView" class="view">
-        <div class="topbar">
-          <div style="width:100%">
-            <div class="section-hdr" style="margin-bottom:0"><h2 style="margin:0">Content Calendar</h2><a class="btn" href="https://publish.buffer.com/" target="_blank" rel="noopener">Go to Buffer ↗</a></div>
+        <div class="calendar-header">
+          <div class="calendar-header-main">
+            <div class="section-hdr" style="margin-bottom:0"><h2 style="margin:0">Content Calendar</h2></div>
             <p class="small">Monthly scheduled posts from Buffer + lightweight planning notes.</p>
+            <div class="calendar-nav">
+              <button class="btn" id="prevMonth">‹</button>
+              <strong id="monthLabel"></strong>
+              <button class="btn" id="nextMonth">›</button>
+              <button class="btn ghost" id="todayMonth">Today</button>
+            </div>
           </div>
-          <button class="btn" id="shareMonthBtn">Share read-only month</button>
-        </div>
-        <div class="inline mt12">
-          <button class="btn" id="prevMonth">‹</button>
-          <strong id="monthLabel"></strong>
-          <button class="btn" id="nextMonth">›</button>
-          <button class="btn ghost" id="todayMonth">Today</button>
+          <div class="calendar-actions">
+            <a class="btn" href="https://publish.buffer.com/" target="_blank" rel="noopener">Go to Buffer ↗</a>
+            <button class="btn" id="shareMonthBtn">Share read-only month</button>
+          </div>
         </div>
         <div id="calendarEmpty" class="empty-hint mt8">Load from Buffer to see scheduled posts for this month.</div>
         <div class="calendar-grid mt12" id="calGrid"></div>
@@ -227,6 +244,10 @@
   <div id="noteModal" class="modal"><div class="modal-card">
     <div class="topbar"><h3 style="margin:0">Day note</h3><button class="btn" id="closeNote">Close</button></div>
     <div class="small mt8">Date: <strong id="noteDateLabel"></strong></div>
+    <div id="dayModalPreview" class="day-preview-card mt8">
+      <div id="dayModalNotePreview" class="small"></div>
+      <div id="dayModalPostPreview" class="small mt8"></div>
+    </div>
     <textarea id="noteText" class="mt8" placeholder="Add your planning note..."></textarea>
     <div class="mt8">
       <label class="small">Tag</label>
@@ -285,6 +306,8 @@ function showToast(msg){
   const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
   wrap.appendChild(t); setTimeout(()=>{t.remove();},2200);
 }
+function safeText(v=''){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function compactText(v,max=84){const t=(v||'').replace(/\s+/g,' ').trim(); return t.length>max?`${t.slice(0,max-1)}…`:t}
 
 function setSyncStatus(stateName,msg){
   state.syncState=stateName;
@@ -442,8 +465,13 @@ function renderCalendar(){
     const dayPosts=state.scheduled.filter(p=>fmtDate(new Date(p.dueAt))===key);
     const note=notes[key];
     const day=document.createElement('div'); day.className='day'; day.style.opacity=inMonth?'1':'.45';
-    const noteChip=note?`<div class="note-pill note-tag-${note.tag||'gold'}">📝 ${note.label||noteTags[note.tag]||'Note'}</div>`:'';
-    day.innerHTML=`<div class="d">${d.getDate()}</div>${dayPosts.slice(0,2).map(p=>`<div class='post-pill'>${(p.text||'').slice(0,36)}</div>`).join('')}${noteChip}`;
+    const postPreview=dayPosts.slice(0,2).map(p=>`<div class='post-pill'>${safeText(compactText(p.text,80))}</div>`).join('');
+    const noteChip=note?`<div class="note-pill note-tag-${note.tag||'gold'}"><span class="note-label">📝 ${safeText(note.label||noteTags[note.tag]||'Note')}</span>${safeText(compactText(note.text,96))}</div>`:'';
+    day.innerHTML=`<div class="d">${d.getDate()}</div>${postPreview}${noteChip}`;
+    if(dayPosts.length||note){
+      const hover=[...dayPosts.slice(0,2).map(p=>`Post: ${compactText(p.text,60)}`), note?`Note (${note.label||'Note'}): ${compactText(note.text,60)}`:''].filter(Boolean).join('\n');
+      day.title=hover;
+    }
     day.onclick=()=>openDayNote(d);
     grid.appendChild(day);
   }
@@ -456,6 +484,13 @@ function openDayNote(date){
   qs('noteDateLabel').textContent=key;
   qs('noteText').value=note.text||'';
   qs('noteTag').value=`${note.tag||'gold'}|${note.label||noteTags[note.tag||'gold']||'Idea'}`;
+  qs('dayModalNotePreview').innerHTML=note.text
+    ? `<span class="chip note-tag-${note.tag||'gold'}">${safeText(note.label||noteTags[note.tag||'gold']||'Idea')}</span><div class="mt8">${safeText(note.text)}</div>`
+    : '<span class="small">No note saved for this day yet.</span>';
+  const dayPosts=state.scheduled.filter(p=>fmtDate(new Date(p.dueAt))===key);
+  qs('dayModalPostPreview').innerHTML=dayPosts.length
+    ? `<strong style="font-size:12px">Scheduled posts</strong><div class="day-post-list mt8">${dayPosts.map(p=>`<div class="post-pill">${safeText(p.text||'(no text)')}</div>`).join('')}</div>`
+    : '<span class="small">No scheduled posts on this day.</span>';
   qs('noteStatus').textContent='';
   openModal('noteModal');
 }
@@ -527,8 +562,18 @@ function renderSharedFromHash(){
     qs('sharedMonthTitle').textContent=snap.month;
     qs('sharedBanner').textContent=`Read-only month view · Notes ${snap.includeNotes?'included':'excluded'} · ${snap.posts.length} scheduled posts`;
     const grid=qs('sharedGrid'); grid.innerHTML='';
-    const map={}; snap.posts.forEach(p=>{const k=p.dueAt.slice(0,10);(map[k]||(map[k]=[])).push(p.text)}); (snap.notes||[]).forEach(n=>{(map[n.date]||(map[n.date]=[])).push(`📝 [${n.label||''}] ${n.text}`)});
-    Object.keys(map).sort().forEach(k=>{const d=document.createElement('div');d.className='day';d.innerHTML=`<div class='d'>${k}</div>${map[k].slice(0,3).map(t=>`<div class='post-pill'>${t.slice(0,42)}</div>`).join('')}`;grid.appendChild(d)});
+    const map={};
+    snap.posts.forEach(p=>{const k=p.dueAt.slice(0,10);(map[k]||(map[k]={posts:[],notes:[]})).posts.push(p.text)});
+    (snap.notes||[]).forEach(n=>{(map[n.date]||(map[n.date]={posts:[],notes:[]})).notes.push(n)});
+    Object.keys(map).sort().forEach(k=>{
+      const d=document.createElement('div');
+      d.className='day shared-day';
+      const day=map[k];
+      const postHtml=day.posts.slice(0,3).map(t=>`<div class='post-pill'>${safeText(compactText(t,120))}</div>`).join('');
+      const noteHtml=day.notes.slice(0,2).map(n=>`<div class='note-pill note-tag-${n.tag||'gold'}'><span class='note-label'>📝 ${safeText(n.label||'Note')}</span>${safeText(compactText(n.text,120))}</div>`).join('');
+      d.innerHTML=`<div class='d'>${k}</div>${postHtml}${noteHtml}`;
+      grid.appendChild(d)
+    });
     return true;
   }catch(e){console.error(e);return false}
 }
