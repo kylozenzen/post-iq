@@ -267,6 +267,7 @@ const STORE_KEY='postiq_buffer_token';
 const NOTE_KEY='postiq_calendar_notes_v2';
 let bufferToken='';
 let tokenInputVisible=false;
+let tokenCardCompact=false;
 let threadParts=[];
 const state={channels:[],scheduled:[],month:new Date(),selectedDate:null,syncState:'idle'};
 
@@ -290,32 +291,35 @@ function setSyncStatus(stateName,msg){
   qs('syncStatus').textContent=msg;
 }
 
-function updateTokenUI(compact=!!bufferToken){
+function updateTokenUI(compact=tokenCardCompact){
   const card=qs('tokenCard');
+  tokenCardCompact=Boolean(compact&&bufferToken);
   qs('tokenMaskedPreview').textContent=maskToken(bufferToken);
   qs('tokenCompactStatus').textContent=bufferToken?'Connected':'Not connected';
   tokenInputVisible=false;
   qs('tokenInput').type='password';
   qs('toggleTokenVisibility').textContent='Show';
-  if(compact&&bufferToken) card.classList.add('compact'); else card.classList.remove('compact');
+  if(tokenCardCompact) card.classList.add('compact'); else card.classList.remove('compact');
 }
 
 function saveToken(){
   const token=qs('tokenInput').value.trim();
   const mode=[...document.querySelectorAll('input[name="tokenMode"]')].find(r=>r.checked).value;
   localStorage.removeItem(STORE_KEY); sessionStorage.removeItem(STORE_KEY);
-  if(!token){ bufferToken=''; qs('tokenMsg').textContent='Token removed.'; updateTokenUI(false); showToast('Token removed'); return; }
+  if(!token){ bufferToken=''; tokenCardCompact=false; qs('tokenMsg').textContent='Token removed.'; updateTokenUI(); showToast('Token removed'); return; }
   if(mode==='local') localStorage.setItem(STORE_KEY,token); else sessionStorage.setItem(STORE_KEY,token);
   bufferToken=token;
+  tokenCardCompact=true;
   qs('tokenMsg').textContent=mode==='local'?'Token saved on this device (localStorage).':'Token saved for this session only (sessionStorage).';
   showToast('Token saved');
-  updateTokenUI(true);
+  updateTokenUI();
 }
 
 function loadStoredToken(){
   bufferToken=sessionStorage.getItem(STORE_KEY)||localStorage.getItem(STORE_KEY)||'';
   if(bufferToken){qs('tokenInput').value=bufferToken;qs('tokenMsg').textContent='Token loaded from browser storage and hidden by default.'}
-  updateTokenUI(!!bufferToken);
+  tokenCardCompact=!!bufferToken;
+  updateTokenUI();
 }
 
 async function callBuffer(query,variables={}){
@@ -594,8 +598,8 @@ function init(){
   qs('saveTokenBtn').onclick=saveToken;
   qs('clearTokenBtn').onclick=()=>{qs('tokenInput').value='';saveToken()};
   qs('toggleTokenVisibility').onclick=()=>{tokenInputVisible=!tokenInputVisible;qs('tokenInput').type=tokenInputVisible?'text':'password';qs('toggleTokenVisibility').textContent=tokenInputVisible?'Hide':'Show';};
-  qs('manageTokenBtn').onclick=()=>updateTokenUI(false);
-  qs('revealCompactBtn').onclick=()=>{if(!bufferToken)return;updateTokenUI(false);tokenInputVisible=true;qs('tokenInput').type='text';qs('toggleTokenVisibility').textContent='Hide';};
+  qs('manageTokenBtn').onclick=()=>{tokenCardCompact=false;updateTokenUI();};
+  qs('revealCompactBtn').onclick=()=>{if(!bufferToken)return;tokenCardCompact=false;updateTokenUI();tokenInputVisible=true;qs('tokenInput').type='text';qs('toggleTokenVisibility').textContent='Hide';};
 
   qs('syncBtn').onclick=syncBuffer;
 
