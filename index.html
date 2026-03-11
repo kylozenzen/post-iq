@@ -8,14 +8,14 @@
     :root{--bg:#0f1117;--panel:#171a23;--panel2:#1f2430;--text:#edf1ff;--muted:#98a2bd;--line:#2c3344;--amber:#f7b545;--green:#34d399;--red:#f87171;--blue:#7aa2ff;--violet:#a78bfa;--r:12px}
     *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:var(--text)}
     .hidden{display:none!important}.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
-    .btn:hover{border-color:#44506a}.btn.primary{background:var(--amber);color:#1a1406;border:none;font-weight:700}.btn.success{background:var(--green);color:#0a1f18;border:none}.btn.warn{background:var(--blue);color:#081528;border:none}
+    .btn:hover{border-color:#44506a}.btn:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[contenteditable="true"]:focus-visible{outline:2px solid var(--blue);outline-offset:2px}.btn.primary{background:var(--amber);color:#1a1406;border:none;font-weight:700}.btn.success{background:var(--green);color:#0a1f18;border:none}.btn.warn{background:var(--blue);color:#081528;border:none}
     .btn.ghost{background:transparent}.input,textarea,select{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px}
     textarea{min-height:120px;resize:vertical}.tag{font-size:12px;color:var(--muted)}
     .landing{max-width:980px;margin:0 auto;padding:26px}.hero{padding:56px 0 26px}.hero h1{font-size:44px;line-height:1.05;margin:0 0 12px}
     .hero p{font-size:18px;color:var(--muted);max-width:760px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
     .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px}
     .app{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:100vh}.side{border-right:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:10px;min-height:100vh;position:sticky;top:0}
-    .main{padding:18px;overflow:auto}.nav{display:flex;flex-direction:column;gap:6px}.nav button.active{border-color:var(--amber)}
+    .main{padding:18px;overflow:auto}.nav{display:flex;flex-direction:column;gap:6px}.nav button.active{border-color:var(--amber);background:rgba(247,181,69,.12);color:var(--text)}.nav .btn:hover{background:rgba(255,255,255,.04)}
     .status{font-size:12px;color:var(--muted)} .view{display:none}.view.active{display:block}
     .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}.small{font-size:12px;color:var(--muted)}
     .tweet{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;background:#151924}
@@ -40,7 +40,10 @@
     .note-tag-blue{background:rgba(122,162,255,.2);border-color:rgba(122,162,255,.5)}
     .note-tag-green{background:rgba(52,211,153,.2);border-color:rgba(52,211,153,.5)}
     .note-tag-violet{background:rgba(167,139,250,.2);border-color:rgba(167,139,250,.5)}
-    @media(max-width:980px){.app{grid-template-columns:1fr}.side{border-right:none;border-bottom:1px solid var(--line)}.cols,.grid{grid-template-columns:1fr}.hero h1{font-size:34px}}
+    .empty-hint{border:1px dashed var(--line);border-radius:10px;padding:12px;color:var(--muted);font-size:12px;background:rgba(255,255,255,.01)}
+    .toast-wrap{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:60}
+    .toast{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--text);box-shadow:0 8px 20px rgba(0,0,0,.35)}
+    @media(max-width:980px){.app{grid-template-columns:1fr}.side{border-right:none;border-bottom:1px solid var(--line);position:static;min-height:auto}.cols,.grid{grid-template-columns:1fr}.hero h1{font-size:34px}.section-hdr{align-items:flex-start}}
   </style>
 </head>
 <body>
@@ -124,6 +127,7 @@
               <button class="btn primary" id="splitBtn">Split thread</button>
               <button class="btn" id="sampleBtn">Sample</button>
             </div>
+            <div id="threadEmpty" class="empty-hint mt8">Paste source text, then click <strong>Split thread</strong> to build editable parts.</div>
           </div>
           <div class="card">
             <div class="thread-actions">
@@ -159,6 +163,7 @@
           <button class="btn" id="nextMonth">›</button>
           <button class="btn ghost" id="todayMonth">Today</button>
         </div>
+        <div id="calendarEmpty" class="empty-hint mt8">Load from Buffer to see scheduled posts for this month.</div>
         <div class="calendar-grid mt12" id="calGrid"></div>
       </section>
 
@@ -174,6 +179,7 @@
             <button class="btn" data-cmd="clear">Clear formatting</button>
           </div>
           <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here..."></div>
+          <div id="composerEmpty" class="empty-hint mt8">Start drafting here, then save as draft, queue, or schedule.</div>
           <div class="inline mt8">
             <select id="composerChannel" class="grow"></select>
             <input id="composerWhen" type="datetime-local" class="input" style="max-width:220px" />
@@ -247,6 +253,8 @@
     <p class="small">Connect with him on LinkedIn: <a href="https://www.linkedin.com/in/bencampbell8/" target="_blank" rel="noopener">https://www.linkedin.com/in/bencampbell8/</a></p>
   </div></div>
 
+  <div id="toastWrap" class="toast-wrap" aria-live="polite" aria-atomic="true"></div>
+
   <section id="sharedView" class="landing hidden">
     <div class="banner" id="sharedBanner"></div>
     <h2 id="sharedMonthTitle"></h2>
@@ -271,6 +279,11 @@ function monthLabel(d){return d.toLocaleDateString(undefined,{month:'long',year:
 function monthStart(d){return new Date(d.getFullYear(),d.getMonth(),1)}
 function maskToken(token){ if(!token) return '—'; if(token.length<=8) return '••••'; return `${token.slice(0,4)}••••${token.slice(-4)}`; }
 function openModal(id){qs(id).classList.add('open')} function closeModal(id){qs(id).classList.remove('open')}
+function showToast(msg){
+  const wrap=qs('toastWrap'); if(!wrap) return;
+  const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
+  wrap.appendChild(t); setTimeout(()=>{t.remove();},2200);
+}
 
 function setSyncStatus(stateName,msg){
   state.syncState=stateName;
@@ -291,10 +304,11 @@ function saveToken(){
   const token=qs('tokenInput').value.trim();
   const mode=[...document.querySelectorAll('input[name="tokenMode"]')].find(r=>r.checked).value;
   localStorage.removeItem(STORE_KEY); sessionStorage.removeItem(STORE_KEY);
-  if(!token){ bufferToken=''; qs('tokenMsg').textContent='Token removed.'; updateTokenUI(false); return; }
+  if(!token){ bufferToken=''; qs('tokenMsg').textContent='Token removed.'; updateTokenUI(false); showToast('Token removed'); return; }
   if(mode==='local') localStorage.setItem(STORE_KEY,token); else sessionStorage.setItem(STORE_KEY,token);
   bufferToken=token;
   qs('tokenMsg').textContent=mode==='local'?'Token saved on this device (localStorage).':'Token saved for this session only (sessionStorage).';
+  showToast('Token saved');
   updateTokenUI(true);
 }
 
@@ -342,6 +356,7 @@ async function syncBuffer(){
     renderChannelSelects(); renderCalendar();
     if(all.length>=cap) setSyncStatus('partial',`Synced ${all.length} scheduled posts (capped at ${cap}).`);
     else setSyncStatus('success',`Synced successfully. Loaded ${all.length} scheduled posts.`);
+    showToast(`Loaded ${all.length} scheduled posts`);
   }catch(e){
     console.error('Buffer sync error',e);
     const m=String(e.message||'');
@@ -371,7 +386,8 @@ function splitThreadText(text,max=280){
 
 function renderThread(){
   const out=qs('threadOut');
-  if(!threadParts.length){ out.textContent='No thread yet.'; return; }
+  if(!threadParts.length){ out.textContent='No thread yet.'; qs('threadEmpty').style.display='block'; return; }
+  qs('threadEmpty').style.display='none';
   out.innerHTML='';
   threadParts.forEach((p,i)=>{
     const d=document.createElement('div'); d.className='tweet';
@@ -379,7 +395,7 @@ function renderThread(){
     out.appendChild(d);
   });
   out.querySelectorAll('textarea').forEach(t=>t.addEventListener('input',e=>threadParts[+e.target.dataset.i]=e.target.value));
-  out.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>navigator.clipboard.writeText(threadParts[+b.dataset.copy]||''));
+  out.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{navigator.clipboard.writeText(threadParts[+b.dataset.copy]||''); showToast('Part copied');});
 }
 
 function getThreadMetadata(channelId){
@@ -402,6 +418,7 @@ async function sendThread(action){
   try{
     await createPost(input);
     qs('threadStatus').textContent = action==='draft'?'Draft saved to Buffer.':action==='queue'?'Thread added to Buffer queue.':'Thread scheduled in Buffer.';
+    showToast(qs('threadStatus').textContent);
   }catch(e){
     console.error('thread send error',e);
     qs('threadStatus').textContent='Thread send failed. Please review channel/token and try again.';
@@ -413,6 +430,8 @@ function renderCalendar(){
   const grid=qs('calGrid'); grid.innerHTML='';
   const first=monthStart(state.month); const start=new Date(first); start.setDate(1-first.getDay());
   const notes=getNotes();
+  const monthPosts=postsByMonth(state.month);
+  qs('calendarEmpty').style.display = monthPosts.length ? 'none' : 'block';
   for(let i=0;i<42;i++){
     const d=new Date(start); d.setDate(start.getDate()+i);
     const key=fmtDate(d); const inMonth=d.getMonth()===state.month.getMonth();
@@ -445,12 +464,16 @@ function saveNoteFromModal(){
   const notes=getNotes();
   if(!text){ delete notes[key]; setNotes(notes); qs('noteStatus').textContent='Empty note removed.'; renderCalendar(); return; }
   notes[key]={text,tag,label}; setNotes(notes); qs('noteStatus').textContent='Note saved.'; renderCalendar();
+  showToast('Note saved');
 }
+
 
 function deleteNote(){
   if(!state.selectedDate) return;
   const notes=getNotes(); delete notes[fmtDate(state.selectedDate)]; setNotes(notes); qs('noteText').value=''; qs('noteStatus').textContent='Note deleted.'; renderCalendar();
+  showToast('Note deleted');
 }
+
 
 function sendNoteToComposer(){
   if(!state.selectedDate) return;
@@ -467,6 +490,8 @@ function sendNoteToComposer(){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   qs('composerView').classList.add('active');
   qs('composerStatus').textContent='Planning note added to composer.';
+  qs('composerEmpty').style.display='none';
+  showToast('Note sent to composer');
 }
 
 function postsByMonth(date){
@@ -548,6 +573,7 @@ async function composerSend(action){
   try{
     await createPost(input);
     qs('composerStatus').textContent = action==='draft'?'Draft saved to Buffer.':action==='queue'?'Added to Buffer queue.':'Scheduled in Buffer.';
+    showToast(qs('composerStatus').textContent);
   }catch(e){
     console.error('composer send error',e);
     qs('composerStatus').textContent='Post action failed. Check token/channel and try again.';
@@ -575,9 +601,9 @@ function init(){
 
   document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-view]').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));qs(b.dataset.view).classList.add('active')});
 
-  qs('splitBtn').onclick=()=>{threadParts=splitThreadText(qs('threadInput').value);renderThread();};
+  qs('splitBtn').onclick=()=>{threadParts=splitThreadText(qs('threadInput').value);renderThread(); if(threadParts.length) showToast(`Generated ${threadParts.length} thread parts`);};
   qs('sampleBtn').onclick=()=>{qs('threadInput').value='PostIQ helps Buffer users move faster. Start with one big idea, split it into clear thread parts, refine each part, and send a cleaner post flow to Buffer.'};
-  qs('copyAllBtn').onclick=()=>navigator.clipboard.writeText(threadParts.join('\n\n'));
+  qs('copyAllBtn').onclick=()=>{navigator.clipboard.writeText(threadParts.join('\n\n')); showToast('Thread copied');};
   qs('draftThreadBtn').onclick=()=>sendThread('draft');
   qs('queueThreadBtn').onclick=()=>sendThread('queue');
   qs('scheduleThreadBtn').onclick=()=>sendThread('schedule');
@@ -599,12 +625,16 @@ function init(){
   qs('openSharePreview').onclick=()=>{if(qs('shareLink').value) window.open(qs('shareLink').value,'_blank')};
 
   document.querySelectorAll('[data-cmd]').forEach(btn=>btn.onclick=()=>composerFormat(btn.dataset.cmd));
+  qs('composerEditor').addEventListener('input',()=>{qs('composerEmpty').style.display=editorHtmlToText(qs('composerEditor').innerHTML)?'none':'block';});
   qs('composerDraft').onclick=()=>composerSend('draft');
   qs('composerQueue').onclick=()=>composerSend('queue');
   qs('composerSchedule').onclick=()=>composerSend('schedule');
 
   renderCalendar();
+  renderThread();
+  qs('composerEmpty').style.display='block';
 }
+
 
 init();
 </script>
