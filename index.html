@@ -123,7 +123,7 @@
         <button class="btn" data-view="calendarView">📅 Content Calendar</button>
         <button class="btn" data-view="composerView">✍️ Post Composer</button>
         <button class="btn" data-view="snippetsView">📚 Snippets</button>
-        <button class="btn" data-view="assetVaultView">🖼️ Asset Vault</button>
+        <button class="btn" data-view="assetVaultView">♻️ Recycler</button>
       </nav>
 
       <div class="side-bottom">
@@ -238,19 +238,21 @@
       </section>
 
       <section id="assetVaultView" class="view">
-        <div class="section-hdr"><h2 style="margin:0">Asset Vault</h2></div>
-        <p class="small">Browse media-backed Buffer posts, find visuals faster, and send post copy back into your writing flow.</p>
+        <div class="section-hdr"><h2 style="margin:0">Recycler</h2></div>
+        <p class="small">Turn old sent posts into new drafts, snippets, threads, and reusable ideas. Text-only posts are first-class here.</p>
         <div id="assetVaultStats" class="small">Synced posts: 0 · Posts with assets: 0 · Visible items: 0</div>
-        <div class="asset-controls mt8">
-          <input id="assetSearch" class="input" placeholder="Search post text or alt text..." />
-          <select id="assetChannelFilter" class="input"></select>
-          <select id="assetMediaFilter" class="input"></select>
-          <select id="assetOrientationFilter" class="input"></select>
-          <select id="assetAltFilter" class="input"></select>
+        <div class="inline mt8" id="recyclerTabs">
+          <button class="btn active" data-tab="all">All Posts</button>
+          <button class="btn" data-tab="withMedia">With Media</button>
+          <button class="btn" data-tab="textOnly">Text Only Posts</button>
         </div>
-        <div id="assetVaultEmpty" class="empty-hint asset-empty">Load from Buffer to build your visual memory. Media-backed posts will appear here.</div>
+        <div class="asset-controls mt8" style="grid-template-columns:2fr 1fr">
+          <input id="assetSearch" class="input" placeholder="Search post text..." />
+          <select id="assetChannelFilter" class="input"></select>
+        </div>
+        <div id="assetVaultEmpty" class="empty-hint asset-empty">No posts synced yet. Load from Buffer to open your Recycler workspace.</div>
         <details id="assetDebugPanel" class="card mt8" style="display:none">
-          <summary class="small" style="cursor:pointer">Developer debug: media-backed post normalization</summary>
+          <summary class="small" style="cursor:pointer">Developer debug: synced post normalization</summary>
           <pre id="assetDebugContent" class="small mono mt8" style="white-space:pre-wrap"></pre>
         </details>
         <div id="assetVaultGrid" class="asset-grid mt12"></div>
@@ -261,12 +263,12 @@
 
   <div id="onboardingModal" class="modal"><div class="modal-card">
     <div class="topbar"><h3 style="margin:0">Welcome to PostIQ</h3><button class="btn" id="closeOnboarding">Skip</button></div>
-    <p class="onboarding-copy">Plan, draft, and repurpose faster with a lightweight Buffer companion for threads, reusable snippets, and visual content memory.</p>
+    <p class="onboarding-copy">Plan, draft, and repurpose faster with a lightweight Buffer companion for threads, reusable snippets, and Recycler-powered content memory.</p>
     <div class="onboarding-grid">
       <div class="card"><h3 style="margin:0">🧵 Thread Splitter</h3><p class="small mt8">Split long-form ideas into clean thread parts you can draft, queue, or schedule.</p></div>
       <div class="card"><h3 style="margin:0">📅 Content Calendar</h3><p class="small mt8">Review scheduled posts month-by-month, keep planning notes, and share read-only snapshots.</p></div>
       <div class="card"><h3 style="margin:0">✍️ Post Composer</h3><p class="small mt8">Draft posts, insert reusable blocks, and save selected text as snippets in one flow.</p></div>
-      <div class="card"><h3 style="margin:0">🖼️ Asset Vault</h3><p class="small mt8">Turn synced Buffer media posts into a searchable visual library with alt-text awareness.</p></div>
+      <div class="card"><h3 style="margin:0">♻️ Recycler</h3><p class="small mt8">Recycle sent posts into drafts, snippets, and thread-ready remixes in a few clicks.</p></div>
     </div>
     <div class="inline mt12">
       <button class="btn primary" id="onboardingEnter">Enter app</button>
@@ -282,8 +284,9 @@
       <li><strong>Thread Splitter:</strong> split long copy into editable thread parts and send as draft/queue/scheduled.</li>
       <li><strong>Content Calendar:</strong> view scheduled posts, then add color-tagged planning notes per day.</li>
       <li><strong>Snippets:</strong> save reusable hooks, CTAs, hashtag sets, first comments, and thread openers in local storage.</li>
-      <li><strong>Asset Vault:</strong> sync media-backed posts from Buffer and filter by channel, media type, orientation, and alt-text coverage.</li>
-      <li><strong>Connected workflow:</strong> insert snippets into Composer or Thread Splitter, and send Asset Vault post text back into Composer.</li>
+      <li><strong>Recycler:</strong> browse synced sent posts by All Posts, With Media, or Text Only Posts.</li>
+      <li><strong>Recycler actions:</strong> reuse a post in Composer, split into Thread, save as Snippet, copy text, create a draft in Buffer, or keep an idea placeholder.</li>
+      <li><strong>Text Only Posts:</strong> posts without assets still show as reusable hooks, CTAs, and remix material.</li>
       <li><strong>Media publishing:</strong> keep using Buffer to attach final media and publish.</li>
     </ul>
   </div></div>
@@ -381,6 +384,20 @@
     <div id="pickerEmpty" class="empty-hint mt8">No snippets match these filters.</div>
   </div></div>
 
+
+
+  <div id="recyclerDraftModal" class="modal"><div class="modal-card">
+    <div class="topbar"><h3 style="margin:0">Save to Buffer Draft</h3><button class="btn" id="closeRecyclerDraft">Close</button></div>
+    <p class="small mt8">Choose a channel and save this recycled post as a new draft in Buffer.</p>
+    <select id="recyclerDraftChannel" class="input mt8"></select>
+    <textarea id="recyclerDraftText" class="mt8" placeholder="Draft text"></textarea>
+    <div class="inline mt12">
+      <button class="btn primary" id="confirmRecyclerDraft">Save draft</button>
+      <button class="btn" id="cancelRecyclerDraft">Cancel</button>
+    </div>
+    <div id="recyclerDraftStatus" class="small mt8"></div>
+  </div></div>
+
   <div id="toastWrap" class="toast-wrap" aria-live="polite" aria-atomic="true"></div>
 
   <section id="sharedView" class="landing hidden">
@@ -401,7 +418,7 @@ let bufferToken='';
 let tokenInputVisible=false;
 let tokenCardCompact=false;
 let threadParts=[];
-const state={channels:[],scheduled:[],assetPosts:[],month:new Date(),selectedDate:null,syncState:'idle',snippets:[],snippetType:'All',snippetPlatform:'All Platforms',snippetSearch:'',editingSnippetId:null,pickerMode:'composer',assetSearch:'',assetChannel:'All Channels',assetMedia:'all',assetOrientation:'all',assetAlt:'all',assetDebugRows:[]};
+const state={channels:[],scheduled:[],assetPosts:[],month:new Date(),selectedDate:null,syncState:'idle',snippets:[],snippetType:'All',snippetPlatform:'All Platforms',snippetSearch:'',editingSnippetId:null,pickerMode:'composer',assetSearch:'',assetChannel:'All Channels',recyclerTab:'all',assetDebugRows:[],recyclerDraftPost:null};
 
 const noteTags={gold:'Idea',blue:'Draft',green:'Campaign',violet:'Priority'};
 
@@ -625,31 +642,15 @@ function getMediaType(asset){
   if(mime.startsWith('image')) return 'image';
   return 'other';
 }
-function getOrientation(asset){
-  const w=Number(asset?.width)||0;
-  const h=Number(asset?.height)||0;
-  if(!w||!h) return 'unknown';
-  if(w===h) return 'square';
-  return h>w?'portrait':'landscape';
-}
-function buildAssetItems(){
-  const out=[];
-  state.assetPosts.filter(hasRenderableAsset).forEach(post=>{(post.assets||[]).forEach((asset,idx)=>{ const normalized=normalizeMediaAsset(asset||{}); out.push({id:`${post.id}-${idx}`,...normalized,post});});});
-  return out;
-}
-function filteredAssets(){
+function getRecyclerFilteredPosts(){
   const q=slug(state.assetSearch).trim();
-  return buildAssetItems().filter(item=>{
-    const channelOk=state.assetChannel==='All Channels'||item.post.channelId===state.assetChannel;
-    const type=getMediaType(item);
-    const mediaOk=state.assetMedia==='all'||type===state.assetMedia;
-    const orientation=getOrientation(item);
-    const orientOk=state.assetOrientation==='all'||orientation===state.assetOrientation;
-    const alt=(item.altText||'').trim();
-    const altOk=state.assetAlt==='all'||(state.assetAlt==='present'&&!!alt)||(state.assetAlt==='missing'&&!alt);
-    const text=`${item.post.text||''} ${alt}`.toLowerCase();
-    const searchOk=!q||text.includes(q);
-    return channelOk&&mediaOk&&orientOk&&altOk&&searchOk;
+  return state.assetPosts.filter(post=>{
+    const channelOk=state.assetChannel==='All Channels'||post.channelId===state.assetChannel;
+    const text=(post.text||'').toLowerCase();
+    const qOk=!q||text.includes(q);
+    const withMedia=hasRenderableAsset(post);
+    const tabOk=state.recyclerTab==='all' || (state.recyclerTab==='withMedia'&&withMedia) || (state.recyclerTab==='textOnly'&&!withMedia);
+    return channelOk&&qOk&&tabOk;
   });
 }
 function seedAssetFilters(){
@@ -664,84 +665,136 @@ function seedAssetFilters(){
   channelSel.value=state.assetChannel;
 }
 function isAssetDebugEnabled(){
-  try{
-    return localStorage.getItem('postiq_debug_assets')==='1' || new URLSearchParams(window.location.search).get('debugAssets')==='1';
-  }catch{return false}
+  try{return localStorage.getItem('postiq_debug_assets')==='1' || new URLSearchParams(window.location.search).get('debugAssets')==='1';}
+  catch{return false}
 }
 function renderAssetDebug(){
   const panel=qs('assetDebugPanel');
   const content=qs('assetDebugContent');
   if(!panel||!content) return;
   if(!isAssetDebugEnabled()){panel.style.display='none';return;}
-  const rows=state.assetDebugRows||[];
   panel.style.display='block';
-  content.textContent=rows.length?JSON.stringify(rows,null,2):'No media-backed posts found in the latest sync.';
+  content.textContent=JSON.stringify(state.assetDebugRows||[],null,2);
 }
 function captureAssetDebugRows(posts=[]){
-  const rows=posts.filter(hasRenderableAsset).map(p=>({
+  state.assetDebugRows=posts.slice(0,80).map(p=>({
     postId:p.id,
     channelId:p.channelId,
     assetCount:(p.assets||[]).length,
-    assets:(p.assets||[]).map(a=>{const n=normalizeMediaAsset(a||{}); return {thumbnail:n.thumbnail,source:n.source,mimeType:n.mimeType,altText:n.altText,width:n.width,height:n.height};})
+    assets:(p.assets||[]).map(a=>normalizeMediaAsset(a||{}))
   }));
-  state.assetDebugRows=rows;
-  if(rows.length) console.debug('[PostIQ Asset Debug] media-backed posts',rows);
 }
-function sendAssetTextToComposer(text){
+function sendRecyclerTextToComposer(text){
   if(!text){showToast('No post text available');return;}
   const editor=qs('composerEditor');
   editor.innerText=editor.innerText?`${editor.innerText}
 
 ${text}`:text;
   qs('composerEmpty').style.display='none';
-  qs('composerStatus').textContent='Asset post text added to composer.';
+  qs('composerStatus').textContent='Recycler post text added to composer.';
   activateView('composerView');
   showToast('Sent to composer');
 }
-function saveAssetTextAsIdea(text){
-  if(!text){showToast('No post text to save');return;}
-  showToast('Idea save hook ready. Connect this action to your existing idea flow when available.');
+function sendRecyclerTextToThread(text){
+  if(!text){showToast('No post text available');return;}
+  qs('threadInput').value=text;
+  threadParts=splitThreadText(text);
+  renderThread();
+  activateView('threadView');
+  showToast('Sent to Thread Splitter');
 }
-function openAssetPostText(post,asset){
-  const info=[`Channel: ${getChannelLabel(post.channelId)}`,`Scheduled: ${post.dueAt||'Unknown'}`,`Media: ${getMediaType(asset)}`].join(' • ');
+function saveRecyclerPostAsSnippet(post){
+  if(!post?.text){showToast('No post text available');return;}
+  state.editingSnippetId=null;
+  qs('snippetModalTitle').textContent='New Snippet';
+  qs('snippetTitle').value='Recycled post snippet';
+  qs('snippetType').value='Hook';
+  qs('snippetPlatform').value='Universal';
+  qs('snippetTags').value='recycler';
+  qs('snippetBody').value=post.text;
+  openModal('snippetModal');
+}
+function saveRecyclerIdea(text){
+  if(!text){showToast('No post text to save');return;}
+  showToast('Idea hook saved as placeholder. Connect to your idea system when ready.');
+}
+function openRecyclerDraftModal(post){
+  state.recyclerDraftPost=post;
+  qs('recyclerDraftText').value=post?.text||'';
+  qs('recyclerDraftStatus').textContent='';
+  const select=qs('recyclerDraftChannel');
+  if(select.options.length===0) renderChannelSelects();
+  openModal('recyclerDraftModal');
+}
+async function saveRecyclerBufferDraft(){
+  const post=state.recyclerDraftPost;
+  const text=(qs('recyclerDraftText').value||'').trim();
+  const channelId=qs('recyclerDraftChannel').value;
+  if(!post||!text){qs('recyclerDraftStatus').textContent='Post text is required.';return;}
+  if(!channelId){qs('recyclerDraftStatus').textContent='Load channels from Buffer first.';return;}
+  try{
+    await createPost({channelId,text,schedulingType:'automatic',mode:'addToQueue',saveToDraft:true});
+    qs('recyclerDraftStatus').textContent='Draft saved to Buffer.';
+    showToast('Draft saved to Buffer');
+    closeModal('recyclerDraftModal');
+  }catch(e){
+    console.error('recycler draft save error',e);
+    qs('recyclerDraftStatus').textContent='Draft save failed. Check token/channel and retry.';
+  }
+}
+function copyRecyclerText(text){
+  if(!text){showToast('No post text available');return;}
+  navigator.clipboard.writeText(text);
+  showToast('Post text copied');
+}
+function openRecyclerPostText(post,item){
+  const info=[`Channel: ${getChannelLabel(post.channelId)}`,`Published: ${post.createdAt||post.dueAt||'Unknown'}`,`Type: ${item?'With Media':'Text Only'}`].join(' • ');
   alert(`${info}
 
 Post text:
 
 ${post.text||'(no text)'}`);
 }
+function renderRecyclerTabs(){
+  const wrap=qs('recyclerTabs'); if(!wrap) return;
+  wrap.querySelectorAll('[data-tab]').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===state.recyclerTab));
+}
 function renderAssetVault(){
   const grid=qs('assetVaultGrid');
   if(!grid) return;
   seedAssetFilters();
-  const items=filteredAssets();
+  renderRecyclerTabs();
+  const visiblePosts=getRecyclerFilteredPosts();
   grid.innerHTML='';
-  const hasSynced=state.assetPosts.length>0;
   const postsWithAssets=state.assetPosts.filter(hasRenderableAsset).length;
-  const hasAssets=postsWithAssets>0;
-  const empty=qs('assetVaultEmpty');
+  const visibleItems=visiblePosts.length;
   const stats=qs('assetVaultStats');
-  if(stats) stats.textContent=`Synced posts: ${state.assetPosts.length} · Posts with assets: ${postsWithAssets} · Visible items: ${items.length}`;
-  if(!hasSynced){empty.textContent='Load from Buffer to build your visual memory. Media-backed posts will appear here.';empty.style.display='block';renderAssetDebug();return;}
-  if(!hasAssets){empty.textContent='No posts had renderable assets (thumbnail/source/mimeType). Some synced metadata may be partial.';empty.style.display='block';renderAssetDebug();return;}
-  if(!items.length){empty.textContent='No items are visible. Your current filters may hide asset posts, or synced asset metadata is partial.';empty.style.display='block';renderAssetDebug();return;}
+  if(stats) stats.textContent=`Synced posts: ${state.assetPosts.length} · Posts with assets: ${postsWithAssets} · Visible items: ${visibleItems}`;
+  const empty=qs('assetVaultEmpty');
+  if(!state.assetPosts.length){empty.textContent='No posts synced yet. Load from Buffer to open your Recycler workspace.';empty.style.display='block';renderAssetDebug();return;}
+  if(state.recyclerTab==='withMedia' && !postsWithAssets){empty.textContent='No posts with media found yet. Sync sent posts with assets in Buffer and try again.';empty.style.display='block';renderAssetDebug();return;}
+  if(state.recyclerTab==='textOnly' && !state.assetPosts.some(p=>!hasRenderableAsset(p))){empty.textContent='No text-only posts yet. Once synced, text-only posts will appear here for remixing.';empty.style.display='block';renderAssetDebug();return;}
+  if(!visibleItems){empty.textContent='No recycler items match your current filters. Clear search or switch tabs.';empty.style.display='block';renderAssetDebug();return;}
   empty.style.display='none';
-  renderAssetDebug();
-  items.forEach(item=>{
+  const renderCard=(post)=>{
+    const asset=hasRenderableAsset(post)?normalizeMediaAsset((post.assets||[])[0]||{}):normalizeMediaAsset({});
+    const previewUrl=asset.thumbnail||asset.source||'';
+    const dateLabel=post.createdAt||post.dueAt||'Unknown date';
+    const typeLabel=hasRenderableAsset(post)?'With Media':'Text Only';
     const card=document.createElement('div');
     card.className='card asset-card';
-    const type=getMediaType(item);
-    const orientation=getOrientation(item);
-    const dims=item.width&&item.height?`${item.width}×${item.height}`:'Unknown size';
-    const alt=(item.altText||'').trim();
-    const sourceLink=item.source||'https://publish.buffer.com/';
-    const previewUrl=item.thumbnail||item.source||'';
-    card.innerHTML=`<div class="asset-preview">${previewUrl?`<img src="${safeText(previewUrl)}" alt="${safeText(alt||'Asset preview')}" />`:'Preview unavailable'}</div><strong>${safeText(getChannelLabel(item.post.channelId))}</strong><div class="picker-meta">${snippetBadge(type.toUpperCase())}${snippetBadge(orientation)}${snippetBadge(dims)}${snippetBadge(alt?'Alt text':'Alt missing')}</div><div class="small">${safeText(compactText(item.post.text||'(no post text)',120))}</div><div class="small">${alt?`Alt: ${safeText(compactText(alt,90))}`:'No alt text on this asset.'}</div><div class="asset-actions"><button class="btn" data-act="view">View post text</button><button class="btn" data-act="composer">Send to Composer</button><button class="btn" data-act="idea">Save as Idea</button><a class="btn" href="${safeText(sourceLink)}" target="_blank" rel="noopener">Open source ↗</a></div>`;
-    card.querySelector('[data-act="view"]').onclick=()=>openAssetPostText(item.post,item);
-    card.querySelector('[data-act="composer"]').onclick=()=>sendAssetTextToComposer(item.post.text||'');
-    card.querySelector('[data-act="idea"]').onclick=()=>saveAssetTextAsIdea(item.post.text||'');
+    card.innerHTML=`<div class="asset-preview">${previewUrl?`<img src="${safeText(previewUrl)}" alt="${safeText(asset.altText||'Post media preview')}" />`:'Preview unavailable'}</div><strong>${safeText(getChannelLabel(post.channelId))}</strong><div class="picker-meta">${snippetBadge(typeLabel)}${snippetBadge(dateLabel.slice(0,10)||'Unknown date')}${hasRenderableAsset(post)?snippetBadge((asset.mimeType||'ASSET')):snippetBadge('Text remix')}</div><div class="small">${safeText(compactText(post.text||'(no post text)',160))}</div><div class="asset-actions"><button class="btn" data-act="composer">Reuse in Composer</button><button class="btn" data-act="draft">Save to Buffer Draft</button><button class="btn" data-act="thread">Split into Thread</button><button class="btn" data-act="snippet">Save as Snippet</button><button class="btn" data-act="idea">Create Idea</button><button class="btn" data-act="copy">Copy Text</button></div>`;
+    card.querySelector('[data-act="composer"]').onclick=()=>sendRecyclerTextToComposer(post.text||'');
+    card.querySelector('[data-act="draft"]').onclick=()=>openRecyclerDraftModal(post);
+    card.querySelector('[data-act="thread"]').onclick=()=>sendRecyclerTextToThread(post.text||'');
+    card.querySelector('[data-act="snippet"]').onclick=()=>saveRecyclerPostAsSnippet(post);
+    card.querySelector('[data-act="idea"]').onclick=()=>saveRecyclerIdea(post.text||'');
+    card.querySelector('[data-act="copy"]').onclick=()=>copyRecyclerText(post.text||'');
+    card.ondblclick=()=>openRecyclerPostText(post,hasRenderableAsset(post)?asset:null);
     grid.appendChild(card);
-  });
+  };
+  visiblePosts.forEach(post=>renderCard(post));
+  renderAssetDebug();
 }
 
 function setSyncStatus(stateName,msg){
@@ -866,7 +919,7 @@ async function syncBuffer(){
 }
 
 function renderChannelSelects(){
-  for(const id of ['threadChannel','composerChannel']){
+  for(const id of ['threadChannel','composerChannel','recyclerDraftChannel']){
     const sel=qs(id); sel.innerHTML='';
     state.channels.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.displayName||c.name} (${c.service})`;sel.appendChild(o)});
   }
@@ -1180,15 +1233,13 @@ function init(){
   qs('pickerType').onchange=renderSnippetPicker;
   qs('pickerPlatform').onchange=renderSnippetPicker;
 
-  qs('assetMediaFilter').innerHTML='<option value="all">All media</option><option value="image">Images</option><option value="video">Videos</option><option value="other">Other</option>';
-  qs('assetOrientationFilter').innerHTML='<option value="all">Any orientation</option><option value="square">Square</option><option value="portrait">Portrait</option><option value="landscape">Landscape</option><option value="unknown">Unknown</option>';
-  qs('assetAltFilter').innerHTML='<option value="all">Alt text: all</option><option value="present">Alt text present</option><option value="missing">Alt text missing</option>';
   seedAssetFilters();
   qs('assetSearch').addEventListener('input',e=>{state.assetSearch=e.target.value;renderAssetVault();});
   qs('assetChannelFilter').onchange=e=>{state.assetChannel=e.target.value;renderAssetVault();};
-  qs('assetMediaFilter').onchange=e=>{state.assetMedia=e.target.value;renderAssetVault();};
-  qs('assetOrientationFilter').onchange=e=>{state.assetOrientation=e.target.value;renderAssetVault();};
-  qs('assetAltFilter').onchange=e=>{state.assetAlt=e.target.value;renderAssetVault();};
+  qs('recyclerTabs').querySelectorAll('[data-tab]').forEach(btn=>btn.onclick=()=>{state.recyclerTab=btn.dataset.tab;renderAssetVault();});
+  qs('closeRecyclerDraft').onclick=()=>closeModal('recyclerDraftModal');
+  qs('cancelRecyclerDraft').onclick=()=>closeModal('recyclerDraftModal');
+  qs('confirmRecyclerDraft').onclick=saveRecyclerBufferDraft;
 
   renderSnippetSelectors();
   loadSnippets();

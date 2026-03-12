@@ -7,7 +7,7 @@ It helps text-first teams move faster with five focused workflows:
 - Post Composer
 - Content Calendar
 - Snippets
-- Asset Vault
+- Recycler
 
 PostIQ is **not** a Buffer replacement. It helps you plan better, draft faster, and move reusable copy + media context into Buffer-ready posts.
 
@@ -61,11 +61,11 @@ The token is only sent when making requests to the Netlify proxy, which forwards
 - Platform tags: Universal, LinkedIn, X, Threads, Instagram
 - Search/filter snippets and reuse in Composer + Thread Splitter
 
-## 🖼️ Asset Vault
-- View media-backed posts synced from Buffer
+## ♻️ Recycler
+- Browse synced sent posts and recycle them into new drafts
 - Includes available metadata: thumbnail, mime type, source, alt text, width, height
-- Filter by channel, media type, orientation, and alt-text presence
-- View associated post text, send text to Composer, or open source context
+- Switch between All Posts, With Media, and Text Only Posts
+- Reuse post text in Composer, split into thread drafts, save snippets, and save Buffer drafts
 
 ---
 
