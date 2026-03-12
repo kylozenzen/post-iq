@@ -70,7 +70,16 @@
     .picker-item{padding:10px;border:1px solid var(--line);border-radius:10px;background:#151924;cursor:pointer}
     .picker-item:hover{border-color:#4f5e7d;background:#171d2b}
     .picker-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+    .asset-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+    .asset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+    .asset-card{display:flex;flex-direction:column;gap:8px}
+    .asset-preview{height:140px;border-radius:10px;background:#111522;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--muted);font-size:12px;text-align:center;padding:8px}
+    .asset-preview img{width:100%;height:100%;object-fit:cover;display:block}
+    .asset-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .asset-actions .btn{font-size:12px;padding:8px}
+    .asset-empty{margin-top:12px}
     @media(max-width:980px){.app{grid-template-columns:1fr}.side{border-right:none;border-bottom:1px solid var(--line);position:static;min-height:auto;height:auto;overflow:visible}.cols,.grid,.onboarding-grid{grid-template-columns:1fr}.section-hdr{align-items:flex-start}}
+    @media(max-width:980px){.asset-controls{grid-template-columns:1fr 1fr}}
   </style>
 </head>
 <body>
@@ -114,6 +123,7 @@
         <button class="btn" data-view="calendarView">📅 Content Calendar</button>
         <button class="btn" data-view="composerView">✍️ Post Composer</button>
         <button class="btn" data-view="snippetsView">📚 Snippets</button>
+        <button class="btn" data-view="assetVaultView">🖼️ Asset Vault</button>
       </nav>
 
       <div class="side-bottom">
@@ -127,7 +137,7 @@
     <main class="main">
       <section id="threadView" class="view active">
         <div class="section-hdr"><h2 style="margin:0">Thread Splitter</h2><a class="btn" href="https://publish.buffer.com/" target="_blank" rel="noopener">Go to Buffer ↗</a></div>
-        <p class="small">Build a thread from long-form copy, then save as draft, queue, or schedule in Buffer.</p>
+        <p class="small">Build a thread from long-form copy, then enhance it with snippet openers/CTAs and send as draft, queue, or schedule in Buffer.</p>
         <div class="cols">
           <div class="card">
             <h3 style="margin-top:0">Source text</h3>
@@ -164,7 +174,7 @@
         <div class="calendar-header">
           <div class="calendar-header-main">
             <div class="section-hdr" style="margin-bottom:0"><h2 style="margin:0">Content Calendar</h2></div>
-            <p class="small">Monthly scheduled posts from Buffer + lightweight planning notes.</p>
+            <p class="small">Monthly scheduled posts from Buffer, plus lightweight planning notes and shareable read-only snapshots.</p>
             <div class="calendar-nav">
               <button class="btn" id="prevMonth">‹</button>
               <strong id="monthLabel"></strong>
@@ -183,7 +193,7 @@
 
       <section id="composerView" class="view">
         <div class="section-hdr"><h2 style="margin:0">Post Composer</h2><a class="btn" href="https://publish.buffer.com/" target="_blank" rel="noopener">Go to Buffer ↗</a></div>
-        <p class="small">Draft text-first posts with formatting controls, then save draft, queue, or schedule in Buffer.</p>
+        <p class="small">Draft text-first posts with formatting controls and snippet insertion, then save draft, queue, or schedule in Buffer.</p>
         <div class="card">
           <div class="rich-toolbar">
             <button class="btn" data-cmd="bold">Bold</button>
@@ -227,17 +237,31 @@
         </div>
       </section>
 
+      <section id="assetVaultView" class="view">
+        <div class="section-hdr"><h2 style="margin:0">Asset Vault</h2></div>
+        <p class="small">Browse media-backed Buffer posts, find visuals faster, and send post copy back into your writing flow.</p>
+        <div class="asset-controls mt8">
+          <input id="assetSearch" class="input" placeholder="Search post text or alt text..." />
+          <select id="assetChannelFilter" class="input"></select>
+          <select id="assetMediaFilter" class="input"></select>
+          <select id="assetOrientationFilter" class="input"></select>
+          <select id="assetAltFilter" class="input"></select>
+        </div>
+        <div id="assetVaultEmpty" class="empty-hint asset-empty">Load from Buffer to build your visual memory. Media-backed posts will appear here.</div>
+        <div id="assetVaultGrid" class="asset-grid mt12"></div>
+      </section>
+
     </main>
   </section>
 
   <div id="onboardingModal" class="modal"><div class="modal-card">
     <div class="topbar"><h3 style="margin:0">Welcome to PostIQ</h3><button class="btn" id="closeOnboarding">Skip</button></div>
-    <p class="onboarding-copy">Plan, draft, and schedule faster with a lightweight Buffer companion that keeps your workflow moving.</p>
+    <p class="onboarding-copy">Plan, draft, and repurpose faster with a lightweight Buffer companion for threads, reusable snippets, and visual content memory.</p>
     <div class="onboarding-grid">
       <div class="card"><h3 style="margin:0">🧵 Thread Splitter</h3><p class="small mt8">Split long-form ideas into clean thread parts you can draft, queue, or schedule.</p></div>
-      <div class="card"><h3 style="margin:0">📅 Content Calendar</h3><p class="small mt8">Review scheduled Buffer posts month-by-month and keep lightweight planning notes.</p></div>
-      <div class="card"><h3 style="margin:0">✍️ Post Composer</h3><p class="small mt8">Draft text-first posts with quick formatting, then send them to Buffer.</p></div>
-      <div class="card"><h3 style="margin:0">🔗 Shareable snapshots</h3><p class="small mt8">Create read-only month links for async planning reviews.</p></div>
+      <div class="card"><h3 style="margin:0">📅 Content Calendar</h3><p class="small mt8">Review scheduled posts month-by-month, keep planning notes, and share read-only snapshots.</p></div>
+      <div class="card"><h3 style="margin:0">✍️ Post Composer</h3><p class="small mt8">Draft posts, insert reusable blocks, and save selected text as snippets in one flow.</p></div>
+      <div class="card"><h3 style="margin:0">🖼️ Asset Vault</h3><p class="small mt8">Turn synced Buffer media posts into a searchable visual library with alt-text awareness.</p></div>
     </div>
     <div class="inline mt12">
       <button class="btn primary" id="onboardingEnter">Enter app</button>
@@ -252,7 +276,10 @@
       <li><strong>Token handling:</strong> your Buffer token is stored in sessionStorage or localStorage, based on your choice.</li>
       <li><strong>Thread Splitter:</strong> split long copy into editable thread parts and send as draft/queue/scheduled.</li>
       <li><strong>Content Calendar:</strong> view scheduled posts, then add color-tagged planning notes per day.</li>
-      <li><strong>Media workflow:</strong> If your post needs images or video, save it as a draft in PostIQ, then open Buffer to attach media and schedule or publish it there.</li>
+      <li><strong>Snippets:</strong> save reusable hooks, CTAs, hashtag sets, first comments, and thread openers in local storage.</li>
+      <li><strong>Asset Vault:</strong> sync media-backed posts from Buffer and filter by channel, media type, orientation, and alt-text coverage.</li>
+      <li><strong>Connected workflow:</strong> insert snippets into Composer or Thread Splitter, and send Asset Vault post text back into Composer.</li>
+      <li><strong>Media publishing:</strong> keep using Buffer to attach final media and publish.</li>
     </ul>
   </div></div>
 
@@ -363,13 +390,13 @@ const STORE_KEY='postiq_buffer_token';
 const NOTE_KEY='postiq_calendar_notes_v2';
 const ONBOARDING_KEY='postiq_onboarding_seen_v1';
 const SNIPPET_KEY='postiq_snippets_v1';
-const snippetTypes=['All','Hooks','CTAs','Hashtag Sets','First Comments','Thread Openers'];
+const snippetTypes=['All','Hook','CTA','Hashtag Set','First Comment','Thread Opener'];
 const snippetPlatforms=['All Platforms','LinkedIn','X','Threads','Instagram','Universal'];
 let bufferToken='';
 let tokenInputVisible=false;
 let tokenCardCompact=false;
 let threadParts=[];
-const state={channels:[],scheduled:[],month:new Date(),selectedDate:null,syncState:'idle',snippets:[],snippetType:'All',snippetPlatform:'All Platforms',snippetSearch:'',editingSnippetId:null,pickerMode:'composer'};
+const state={channels:[],scheduled:[],month:new Date(),selectedDate:null,syncState:'idle',snippets:[],snippetType:'All',snippetPlatform:'All Platforms',snippetSearch:'',editingSnippetId:null,pickerMode:'composer',assetSearch:'',assetChannel:'All Channels',assetMedia:'all',assetOrientation:'all',assetAlt:'all'};
 
 const noteTags={gold:'Idea',blue:'Draft',green:'Campaign',violet:'Priority'};
 
@@ -402,7 +429,7 @@ function loadSnippets(){
     state.snippets=parsed.map((s,i)=>({
       id:String(s.id||`${Date.now()}-${i}`),
       title:String(s.title||'Untitled snippet'),
-      type:snippetTypes.includes(s.type)?s.type:'Hooks',
+      type:snippetTypes.includes(s.type)?s.type:'Hook',
       platform:snippetPlatforms.includes(s.platform)?s.platform:'Universal',
       tags:normalizeTags(s.tags),
       body:String(s.body||''),
@@ -493,7 +520,7 @@ function openSnippetModal(id=null){
   const s=id?state.snippets.find(x=>x.id===id):null;
   qs('snippetModalTitle').textContent=s?'Edit Snippet':'New Snippet';
   qs('snippetTitle').value=s?.title||'';
-  qs('snippetType').value=s?.type||'Hooks';
+  qs('snippetType').value=s?.type||'Hook';
   qs('snippetPlatform').value=s?.platform||'Universal';
   qs('snippetTags').value=(s?.tags||[]).join(', ');
   qs('snippetBody').value=s?.body||'';
@@ -531,7 +558,7 @@ function renderSnippetSelectors(){
     snippetTypes.forEach((t,i)=>{if(id==='snippetType'&&i===0)return; const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o)});
   });
   qs('snippetPlatformFilter').value=state.snippetPlatform;
-  qs('snippetType').value='Hooks';
+  qs('snippetType').value='Hook';
 }
 function openSnippetPicker(mode){
   state.pickerMode=mode;
@@ -553,6 +580,119 @@ function renderSnippetPicker(){
       closeModal('snippetPickerModal');
     };
     wrap.appendChild(el);
+  });
+}
+
+
+function normalizeScheduledPost(node={}){
+  const mediaRaw=Array.isArray(node.media)?node.media:[];
+  const media=mediaRaw.map(m=>({
+    thumbnail:String(m?.thumbnail||''),
+    mimeType:String(m?.mimeType||''),
+    source:String(m?.source||''),
+    altText:String(m?.altText||''),
+    width:Number(m?.width)||0,
+    height:Number(m?.height)||0
+  }));
+  return {id:String(node.id||''),text:String(node.text||''),dueAt:String(node.dueAt||''),channelId:String(node.channelId||''),sourceUpdateId:String(node.sourceUpdateId||''),sourceService:String(node.sourceService||''),media};
+}
+function getChannelLabel(channelId){
+  const c=state.channels.find(x=>x.id===channelId);
+  return c?.displayName||c?.name||'Unknown channel';
+}
+function getMediaType(asset){
+  const mime=(asset?.mimeType||'').toLowerCase();
+  if(mime.startsWith('video')) return 'video';
+  if(mime.startsWith('image')) return 'image';
+  return 'other';
+}
+function getOrientation(asset){
+  const w=Number(asset?.width)||0;
+  const h=Number(asset?.height)||0;
+  if(!w||!h) return 'unknown';
+  if(w===h) return 'square';
+  return h>w?'portrait':'landscape';
+}
+function buildAssetItems(){
+  const out=[];
+  state.scheduled.forEach(post=>{(post.media||[]).forEach((asset,idx)=>out.push({id:`${post.id}-${idx}`,...asset,post}));});
+  return out;
+}
+function filteredAssets(){
+  const q=slug(state.assetSearch).trim();
+  return buildAssetItems().filter(item=>{
+    const channelOk=state.assetChannel==='All Channels'||item.post.channelId===state.assetChannel;
+    const type=getMediaType(item);
+    const mediaOk=state.assetMedia==='all'||type===state.assetMedia;
+    const orientation=getOrientation(item);
+    const orientOk=state.assetOrientation==='all'||orientation===state.assetOrientation;
+    const alt=(item.altText||'').trim();
+    const altOk=state.assetAlt==='all'||(state.assetAlt==='present'&&!!alt)||(state.assetAlt==='missing'&&!alt);
+    const text=`${item.post.text||''} ${alt}`.toLowerCase();
+    const searchOk=!q||text.includes(q);
+    return channelOk&&mediaOk&&orientOk&&altOk&&searchOk;
+  });
+}
+function seedAssetFilters(){
+  const channelSel=qs('assetChannelFilter');
+  if(!channelSel) return;
+  channelSel.innerHTML='';
+  const allOpt=document.createElement('option');
+  allOpt.value='All Channels';
+  allOpt.textContent='All channels';
+  channelSel.appendChild(allOpt);
+  state.channels.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.displayName||c.name} (${c.service})`;channelSel.appendChild(o)});
+  channelSel.value=state.assetChannel;
+}
+function sendAssetTextToComposer(text){
+  if(!text){showToast('No post text available');return;}
+  const editor=qs('composerEditor');
+  editor.innerText=editor.innerText?`${editor.innerText}
+
+${text}`:text;
+  qs('composerEmpty').style.display='none';
+  qs('composerStatus').textContent='Asset post text added to composer.';
+  activateView('composerView');
+  showToast('Sent to composer');
+}
+function saveAssetTextAsIdea(text){
+  if(!text){showToast('No post text to save');return;}
+  showToast('Idea save hook ready. Connect this action to your existing idea flow when available.');
+}
+function openAssetPostText(post,asset){
+  const info=[`Channel: ${getChannelLabel(post.channelId)}`,`Scheduled: ${post.dueAt||'Unknown'}`,`Media: ${getMediaType(asset)}`].join(' • ');
+  alert(`${info}
+
+Post text:
+
+${post.text||'(no text)'}`);
+}
+function renderAssetVault(){
+  const grid=qs('assetVaultGrid');
+  if(!grid) return;
+  seedAssetFilters();
+  const items=filteredAssets();
+  grid.innerHTML='';
+  const hasSynced=state.scheduled.length>0;
+  const hasAssets=buildAssetItems().length>0;
+  const empty=qs('assetVaultEmpty');
+  if(!hasSynced){empty.textContent='Load from Buffer to build your visual memory. Media-backed posts will appear here.';empty.style.display='block';return;}
+  if(!hasAssets){empty.textContent='No media-backed posts found in this sync. Try syncing again after scheduling media posts in Buffer.';empty.style.display='block';return;}
+  if(!items.length){empty.textContent='No assets match these filters. Clear filters or sync more posts.';empty.style.display='block';return;}
+  empty.style.display='none';
+  items.forEach(item=>{
+    const card=document.createElement('div');
+    card.className='card asset-card';
+    const type=getMediaType(item);
+    const orientation=getOrientation(item);
+    const dims=item.width&&item.height?`${item.width}×${item.height}`:'Unknown size';
+    const alt=(item.altText||'').trim();
+    const sourceLink=item.source||'https://publish.buffer.com/';
+    card.innerHTML=`<div class="asset-preview">${item.thumbnail?`<img src="${safeText(item.thumbnail)}" alt="${safeText(alt||'Asset preview')}" />`:'No thumbnail available'}</div><strong>${safeText(getChannelLabel(item.post.channelId))}</strong><div class="picker-meta">${snippetBadge(type.toUpperCase())}${snippetBadge(orientation)}${snippetBadge(dims)}${snippetBadge(alt?'Alt text':'Alt missing')}</div><div class="small">${safeText(compactText(item.post.text||'(no post text)',120))}</div><div class="small">${alt?`Alt: ${safeText(compactText(alt,90))}`:'No alt text on this asset.'}</div><div class="asset-actions"><button class="btn" data-act="view">View post text</button><button class="btn" data-act="composer">Send to Composer</button><button class="btn" data-act="idea">Save as Idea</button><a class="btn" href="${safeText(sourceLink)}" target="_blank" rel="noopener">Open source ↗</a></div>`;
+    card.querySelector('[data-act="view"]').onclick=()=>openAssetPostText(item.post,item);
+    card.querySelector('[data-act="composer"]').onclick=()=>sendAssetTextToComposer(item.post.text||'');
+    card.querySelector('[data-act="idea"]').onclick=()=>saveAssetTextAsIdea(item.post.text||'');
+    grid.appendChild(card);
   });
 }
 
@@ -616,18 +756,29 @@ async function syncBuffer(){
     state.channels=ch?.data?.channels||[];
 
     const cap=500; let after=null; let all=[]; let hasNext=true;
-    const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId } } pageInfo{ hasNextPage endCursor } } }';
+    const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId sourceUpdateId sourceService media{ thumbnail mimeType source altText width height } } } pageInfo{ hasNextPage endCursor } } }';
+    const fallbackPostsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId } } pageInfo{ hasNextPage endCursor } } }';
+    let useFallback=false;
     while(hasNext && all.length<cap){
-      const page=await callBuffer(postsQuery,{organizationId:orgId,after});
+      let page;
+      try{
+        page=await callBuffer(useFallback?fallbackPostsQuery:postsQuery,{organizationId:orgId,after});
+      }catch(err){
+        const msg=String(err?.message||'');
+        if(!useFallback&&/Cannot query field|Unknown argument|Unknown type|Validation error/i.test(msg)){
+          useFallback=true;
+          page=await callBuffer(fallbackPostsQuery,{organizationId:orgId,after});
+        }else throw err;
+      }
       const block=page?.data?.posts; const edges=block?.edges||[];
-      all=all.concat(edges.map(e=>e.node));
+      all=all.concat(edges.map(e=>normalizeScheduledPost(e.node)));
       hasNext=!!block?.pageInfo?.hasNextPage;
       after=block?.pageInfo?.endCursor||null;
       if(!block?.pageInfo) break;
     }
 
     state.scheduled=all;
-    renderChannelSelects(); renderCalendar();
+    renderChannelSelects(); renderCalendar(); renderAssetVault();
     if(all.length>=cap) setSyncStatus('partial',`Synced ${all.length} scheduled posts (capped at ${cap}).`);
     else setSyncStatus('success',`Synced successfully. Loaded ${all.length} scheduled posts.`);
     showToast(`Loaded ${all.length} scheduled posts`);
@@ -647,6 +798,7 @@ function renderChannelSelects(){
     const sel=qs(id); sel.innerHTML='';
     state.channels.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.displayName||c.name} (${c.service})`;sel.appendChild(o)});
   }
+  seedAssetFilters();
 }
 
 function splitThreadText(text,max=280){
@@ -938,7 +1090,7 @@ function init(){
     state.editingSnippetId=null;
     qs('snippetModalTitle').textContent='New Snippet';
     qs('snippetTitle').value='';
-    qs('snippetType').value='Hooks';
+    qs('snippetType').value='Hook';
     qs('snippetPlatform').value='Universal';
     qs('snippetTags').value='';
     qs('snippetBody').value=text;
@@ -956,10 +1108,21 @@ function init(){
   qs('pickerType').onchange=renderSnippetPicker;
   qs('pickerPlatform').onchange=renderSnippetPicker;
 
+  qs('assetMediaFilter').innerHTML='<option value="all">All media</option><option value="image">Images</option><option value="video">Videos</option><option value="other">Other</option>';
+  qs('assetOrientationFilter').innerHTML='<option value="all">Any orientation</option><option value="square">Square</option><option value="portrait">Portrait</option><option value="landscape">Landscape</option><option value="unknown">Unknown</option>';
+  qs('assetAltFilter').innerHTML='<option value="all">Alt text: all</option><option value="present">Alt text present</option><option value="missing">Alt text missing</option>';
+  seedAssetFilters();
+  qs('assetSearch').addEventListener('input',e=>{state.assetSearch=e.target.value;renderAssetVault();});
+  qs('assetChannelFilter').onchange=e=>{state.assetChannel=e.target.value;renderAssetVault();};
+  qs('assetMediaFilter').onchange=e=>{state.assetMedia=e.target.value;renderAssetVault();};
+  qs('assetOrientationFilter').onchange=e=>{state.assetOrientation=e.target.value;renderAssetVault();};
+  qs('assetAltFilter').onchange=e=>{state.assetAlt=e.target.value;renderAssetVault();};
+
   renderSnippetSelectors();
   loadSnippets();
   renderSnippets();
   renderCalendar();
+  renderAssetVault();
   renderThread();
   qs('composerEmpty').style.display='block';
   if(!hasSeenOnboarding()) openOnboarding();

@@ -1,26 +1,15 @@
 # PostIQ — Lightweight Buffer Companion
 
-PostIQ is a no-login, lightweight companion for Buffer users.
+PostIQ is a no-login companion for Buffer users.
 
-It helps text-first teams move faster with four focused workflows:
+It helps text-first teams move faster with five focused workflows:
 - Thread Splitter
-- Content Calendar
 - Post Composer
-- Shareable read-only month snapshots
+- Content Calendar
+- Snippets
+- Asset Vault
 
-PostIQ is **not** trying to replace Buffer. It is designed to help you plan better, draft faster, and send cleaner posts to Buffer.
-
----
-
-## What changed in the public app
-
-The public app no longer includes Post Recycler / Evergreen Library in the product surface.
-
-The focus is now:
-1. Splitting long text into thread-ready parts
-2. Viewing scheduled Buffer posts in a monthly calendar
-3. Drafting text-first posts and sending them to Buffer
-4. Sharing read-only month planning snapshots
+PostIQ is **not** a Buffer replacement. It helps you plan better, draft faster, and move reusable copy + media context into Buffer-ready posts.
 
 ---
 
@@ -33,12 +22,12 @@ PostIQ does not require a PostIQ account.
 - No Firestore user storage
 - No server-side token storage
 
-You can paste your Buffer token directly in the app and choose how to store it in the browser:
-
-Get your token in Buffer settings: https://publish.buffer.com/settings/api
+Paste your Buffer token into the app and choose where it is stored:
 
 - **This session only** (`sessionStorage`)
 - **Save on this device** (`localStorage`)
+
+Get your token in Buffer settings: https://publish.buffer.com/settings/api
 
 The token is only sent when making requests to the Netlify proxy, which forwards requests to Buffer's API.
 
@@ -50,32 +39,33 @@ The token is only sent when making requests to the Netlify proxy, which forwards
 - Paste long-form content
 - Split into thread-sized chunks
 - Edit each chunk
-- Copy all chunks or save as a Buffer draft
+- Add opener/ending snippets
+- Copy or send to Buffer draft/queue/schedule
+
+## ✍️ Post Composer
+- Draft text-first posts with lightweight formatting
+- Insert snippets into drafts
+- Save selected composer text as a snippet
+- Save as draft, queue, or schedule in Buffer
 
 ## 📅 Content Calendar
 - Load scheduled posts from Buffer
-- View posts in monthly calendar layout
-- Add planning notes per day from a day-note modal
-- Apply color-coded note tags
-- Send note content directly into Post Composer
-- Notes are stored locally in browser storage
+- View posts month-by-month
+- Add color-tagged planning notes per day
+- Send note text to Composer
+- Generate read-only month snapshots
 
-## ✍️ Post Composer
-- Draft text-first posts with a lightweight formatting toolbar (bold, italic, bullet/numbered lists, clear formatting)
-- Save as Buffer draft
-- Add to Buffer queue
-- Schedule for a specific date/time
+## 📚 Snippets
+- Store reusable content blocks in localStorage
+- Types: Hook, CTA, Hashtag Set, First Comment, Thread Opener
+- Platform tags: Universal, LinkedIn, X, Threads, Instagram
+- Search/filter snippets and reuse in Composer + Thread Splitter
 
-**Media workflow:**
-If your post needs images or video, save it as a draft in PostIQ, then open Buffer to attach media and schedule or publish it there.
-
-## 🔗 Shareable read-only month view
-- Generate a no-login snapshot link for the current month
-- Choose whether to include planning notes
-- Shared view clearly shows read-only status and whether notes are included
-
-### Snapshot limitation
-Month sharing is snapshot-based, not live collaboration. Recipients view the captured month state from the generated link.
+## 🖼️ Asset Vault
+- View media-backed posts synced from Buffer
+- Includes available metadata: thumbnail, mime type, source, alt text, width, height
+- Filter by channel, media type, orientation, and alt-text presence
+- View associated post text, send text to Composer, or open source context
 
 ---
 
@@ -106,8 +96,8 @@ netlify dev
 
 - PostIQ does not store Buffer tokens remotely
 - Token storage is local to your browser (`sessionStorage` or `localStorage`)
-- Notes are stored locally in browser storage
-- The Netlify proxy forwards Buffer requests and responses
+- Snippets and calendar notes are stored locally in browser storage
+- The Netlify proxy forwards Buffer requests/responses
 
 ---
 
