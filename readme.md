@@ -63,9 +63,10 @@ The token is only sent when making requests to the Netlify proxy, which forwards
 
 ## ♻️ Recycler
 - Browse synced sent posts and recycle them into new drafts
+- Try experimental media reuse for posts that expose reusable image source URLs
 - Includes available metadata: thumbnail, mime type, source, alt text, width, height
 - Switch between All Posts, With Media, and Text Only Posts
-- Reuse post text in Composer, split into thread drafts, save snippets, and save Buffer drafts
+- Reuse post text in Composer, split into thread drafts, save snippets, and save text drafts in Buffer
 
 ---
 

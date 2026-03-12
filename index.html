@@ -268,7 +268,7 @@
       <div class="card"><h3 style="margin:0">🧵 Thread Splitter</h3><p class="small mt8">Split long-form ideas into clean thread parts you can draft, queue, or schedule.</p></div>
       <div class="card"><h3 style="margin:0">📅 Content Calendar</h3><p class="small mt8">Review scheduled posts month-by-month, keep planning notes, and share read-only snapshots.</p></div>
       <div class="card"><h3 style="margin:0">✍️ Post Composer</h3><p class="small mt8">Draft posts, insert reusable blocks, and save selected text as snippets in one flow.</p></div>
-      <div class="card"><h3 style="margin:0">♻️ Recycler</h3><p class="small mt8">Recycle sent posts into drafts, snippets, and thread-ready remixes in a few clicks.</p></div>
+      <div class="card"><h3 style="margin:0">♻️ Recycler</h3><p class="small mt8">Recycle sent posts into drafts, snippets, and thread-ready remixes in a few clicks. Some posts can also try experimental media reuse.</p></div>
     </div>
     <div class="inline mt12">
       <button class="btn primary" id="onboardingEnter">Enter app</button>
@@ -285,8 +285,8 @@
       <li><strong>Content Calendar:</strong> view scheduled posts, then add color-tagged planning notes per day.</li>
       <li><strong>Snippets:</strong> save reusable hooks, CTAs, hashtag sets, first comments, and thread openers in local storage.</li>
       <li><strong>Recycler:</strong> browse synced sent posts by All Posts, With Media, or Text Only Posts.</li>
-      <li><strong>Recycler actions:</strong> reuse a post in Composer, split into Thread, save as Snippet, copy text, create a draft in Buffer, or keep an idea placeholder.</li>
-      <li><strong>Text Only Posts:</strong> posts without assets still show as reusable hooks, CTAs, and remix material.</li>
+      <li><strong>Recycler actions:</strong> reuse in Composer, split into Thread, save as Snippet, copy text, Save Text to Draft, and Try Save With Media (experimental).</li>
+      <li><strong>Text Only Posts:</strong> posts without assets still show as reusable hooks, CTAs, and remix material. Text draft saving is always the safer default.</li>
       <li><strong>Media publishing:</strong> keep using Buffer to attach final media and publish.</li>
     </ul>
   </div></div>
@@ -387,12 +387,12 @@
 
 
   <div id="recyclerDraftModal" class="modal"><div class="modal-card">
-    <div class="topbar"><h3 style="margin:0">Save to Buffer Draft</h3><button class="btn" id="closeRecyclerDraft">Close</button></div>
-    <p class="small mt8">Choose a channel and save this recycled post as a new draft in Buffer.</p>
+    <div class="topbar"><h3 style="margin:0" id="recyclerDraftTitle">Save Text to Draft</h3><button class="btn" id="closeRecyclerDraft">Close</button></div>
+    <p class="small mt8" id="recyclerDraftHelp">Choose a channel and save this recycled post as a new draft in Buffer.</p>
     <select id="recyclerDraftChannel" class="input mt8"></select>
     <textarea id="recyclerDraftText" class="mt8" placeholder="Draft text"></textarea>
     <div class="inline mt12">
-      <button class="btn primary" id="confirmRecyclerDraft">Save draft</button>
+      <button class="btn primary" id="confirmRecyclerDraft">Save text draft</button>
       <button class="btn" id="cancelRecyclerDraft">Cancel</button>
     </div>
     <div id="recyclerDraftStatus" class="small mt8"></div>
@@ -418,7 +418,7 @@ let bufferToken='';
 let tokenInputVisible=false;
 let tokenCardCompact=false;
 let threadParts=[];
-const state={channels:[],scheduled:[],assetPosts:[],month:new Date(),selectedDate:null,syncState:'idle',snippets:[],snippetType:'All',snippetPlatform:'All Platforms',snippetSearch:'',editingSnippetId:null,pickerMode:'composer',assetSearch:'',assetChannel:'All Channels',recyclerTab:'all',assetDebugRows:[],recyclerDraftPost:null};
+const state={channels:[],scheduled:[],assetPosts:[],month:new Date(),selectedDate:null,syncState:'idle',snippets:[],snippetType:'All',snippetPlatform:'All Platforms',snippetSearch:'',editingSnippetId:null,pickerMode:'composer',assetSearch:'',assetChannel:'All Channels',recyclerTab:'all',assetDebugRows:[],recyclerDraftPost:null,recyclerDraftMode:'text',recyclerDraftMediaUrls:[]};
 
 const noteTags={gold:'Idea',blue:'Draft',green:'Campaign',violet:'Priority'};
 
@@ -642,6 +642,20 @@ function getMediaType(asset){
   if(mime.startsWith('image')) return 'image';
   return 'other';
 }
+function getReusableImageUrls(post){
+  const assets=Array.isArray(post?.assets)?post.assets:[];
+  const urls=[];
+  assets.forEach(raw=>{
+    const a=normalizeMediaAsset(raw||{});
+    const source=(a.source||'').trim();
+    if(!source) return;
+    if(!/^https?:\/\//i.test(source)) return;
+    const mime=(a.mimeType||'').toLowerCase();
+    const imageLike=mime.startsWith('image') || (!mime && (a.thumbnail||a.source));
+    if(imageLike) urls.push(source);
+  });
+  return [...new Set(urls)];
+}
 function getRecyclerFilteredPosts(){
   const q=slug(state.assetSearch).trim();
   return state.assetPosts.filter(post=>{
@@ -718,10 +732,17 @@ function saveRecyclerIdea(text){
   if(!text){showToast('No post text to save');return;}
   showToast('Idea hook saved as placeholder. Connect to your idea system when ready.');
 }
-function openRecyclerDraftModal(post){
+function openRecyclerDraftModal(post,mode='text'){
   state.recyclerDraftPost=post;
+  state.recyclerDraftMode=mode;
+  state.recyclerDraftMediaUrls=getReusableImageUrls(post);
   qs('recyclerDraftText').value=post?.text||'';
   qs('recyclerDraftStatus').textContent='';
+  qs('recyclerDraftTitle').textContent=mode==='media'?'Try Save With Media':'Save Text to Draft';
+  qs('recyclerDraftHelp').textContent=mode==='media'
+    ? `Experimental: we will try to save this draft with ${state.recyclerDraftMediaUrls.length} reusable image URL${state.recyclerDraftMediaUrls.length===1?'':'s'}. If media reuse fails, PostIQ will fall back to a text-only draft.`
+    : 'Reliable default: save this recycled post as a text-only draft in Buffer.';
+  qs('confirmRecyclerDraft').textContent=mode==='media'?'Try save with media':'Save text draft';
   const select=qs('recyclerDraftChannel');
   if(select.options.length===0) renderChannelSelects();
   openModal('recyclerDraftModal');
@@ -732,14 +753,36 @@ async function saveRecyclerBufferDraft(){
   const channelId=qs('recyclerDraftChannel').value;
   if(!post||!text){qs('recyclerDraftStatus').textContent='Post text is required.';return;}
   if(!channelId){qs('recyclerDraftStatus').textContent='Load channels from Buffer first.';return;}
+  const textOnlyInput={channelId,text,schedulingType:'automatic',mode:'addToQueue',saveToDraft:true};
+  if(state.recyclerDraftMode!=='media' || !state.recyclerDraftMediaUrls.length){
+    try{
+      await createPost(textOnlyInput);
+      qs('recyclerDraftStatus').textContent='Text draft saved to Buffer.';
+      showToast('Text draft saved to Buffer');
+      closeModal('recyclerDraftModal');
+    }catch(e){
+      console.error('recycler text draft save error',e);
+      qs('recyclerDraftStatus').textContent='Text draft save failed. Check token/channel and retry.';
+    }
+    return;
+  }
   try{
-    await createPost({channelId,text,schedulingType:'automatic',mode:'addToQueue',saveToDraft:true});
-    qs('recyclerDraftStatus').textContent='Draft saved to Buffer.';
-    showToast('Draft saved to Buffer');
+    await createPost({...textOnlyInput,assets:{images:state.recyclerDraftMediaUrls.map(url=>({url}))}});
+    qs('recyclerDraftStatus').textContent='Draft saved with media URLs.';
+    showToast('Draft saved with media');
     closeModal('recyclerDraftModal');
   }catch(e){
-    console.error('recycler draft save error',e);
-    qs('recyclerDraftStatus').textContent='Draft save failed. Check token/channel and retry.';
+    console.error('recycler media draft save error',e);
+    qs('recyclerDraftStatus').textContent='Media reuse failed. Saving text-only draft instead…';
+    try{
+      await createPost(textOnlyInput);
+      qs('recyclerDraftStatus').textContent='Media could not be reused, but text draft was saved.';
+      showToast('Media reuse failed; text draft saved');
+      closeModal('recyclerDraftModal');
+    }catch(e2){
+      console.error('recycler media fallback text draft save error',e2);
+      qs('recyclerDraftStatus').textContent='Both media and text-only draft save failed. Please retry.';
+    }
   }
 }
 function copyRecyclerText(text){
@@ -783,9 +826,10 @@ function renderAssetVault(){
     const typeLabel=hasRenderableAsset(post)?'With Media':'Text Only';
     const card=document.createElement('div');
     card.className='card asset-card';
-    card.innerHTML=`<div class="asset-preview">${previewUrl?`<img src="${safeText(previewUrl)}" alt="${safeText(asset.altText||'Post media preview')}" />`:'Preview unavailable'}</div><strong>${safeText(getChannelLabel(post.channelId))}</strong><div class="picker-meta">${snippetBadge(typeLabel)}${snippetBadge(dateLabel.slice(0,10)||'Unknown date')}${hasRenderableAsset(post)?snippetBadge((asset.mimeType||'ASSET')):snippetBadge('Text remix')}</div><div class="small">${safeText(compactText(post.text||'(no post text)',160))}</div><div class="asset-actions"><button class="btn" data-act="composer">Reuse in Composer</button><button class="btn" data-act="draft">Save to Buffer Draft</button><button class="btn" data-act="thread">Split into Thread</button><button class="btn" data-act="snippet">Save as Snippet</button><button class="btn" data-act="idea">Create Idea</button><button class="btn" data-act="copy">Copy Text</button></div>`;
+    card.innerHTML=`<div class="asset-preview">${previewUrl?`<img src="${safeText(previewUrl)}" alt="${safeText(asset.altText||'Post media preview')}" />`:'Preview unavailable'}</div><strong>${safeText(getChannelLabel(post.channelId))}</strong><div class="picker-meta">${snippetBadge(typeLabel)}${snippetBadge(dateLabel.slice(0,10)||'Unknown date')}${hasRenderableAsset(post)?snippetBadge((asset.mimeType||'ASSET')):snippetBadge('Text remix')}${getReusableImageUrls(post).length?snippetBadge('Reusable Media'):''}</div><div class="small">${safeText(compactText(post.text||'(no post text)',160))}</div><div class="asset-actions"><button class="btn" data-act="composer">Reuse in Composer</button><button class="btn" data-act="draft">Save Text to Draft</button>${getReusableImageUrls(post).length?`<button class="btn" data-act="mediaDraft">Try Save With Media</button>`:''}<button class="btn" data-act="thread">Split into Thread</button><button class="btn" data-act="snippet">Save as Snippet</button><button class="btn" data-act="idea">Create Idea</button><button class="btn" data-act="copy">Copy Text</button></div>`;
     card.querySelector('[data-act="composer"]').onclick=()=>sendRecyclerTextToComposer(post.text||'');
-    card.querySelector('[data-act="draft"]').onclick=()=>openRecyclerDraftModal(post);
+    card.querySelector('[data-act="draft"]').onclick=()=>openRecyclerDraftModal(post,'text');
+    const mediaBtn=card.querySelector('[data-act="mediaDraft"]'); if(mediaBtn) mediaBtn.onclick=()=>openRecyclerDraftModal(post,'media');
     card.querySelector('[data-act="thread"]').onclick=()=>sendRecyclerTextToThread(post.text||'');
     card.querySelector('[data-act="snippet"]').onclick=()=>saveRecyclerPostAsSnippet(post);
     card.querySelector('[data-act="idea"]').onclick=()=>saveRecyclerIdea(post.text||'');
