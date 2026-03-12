@@ -601,12 +601,19 @@ function normalizeMediaAsset(raw={}){
   };
 }
 function hasRenderableAsset(post){
-  return Array.isArray(post?.assets) && post.assets.some(a=>a&&(a.thumbnail||a.source||a.mimeType));
+  return Array.isArray(post?.assets) && post.assets.length>0;
 }
 function normalizeScheduledPost(node={}){
-  const assetsRaw=Array.isArray(node.assets)?node.assets:Array.isArray(node.media)?node.media:[];
-  const assets=assetsRaw.map(normalizeMediaAsset);
-  return {id:String(node.id||''),text:String(node.text||''),createdAt:String(node.createdAt||node.dueAt||''),dueAt:String(node.dueAt||''),channelId:String(node.channelId||''),sourceUpdateId:String(node.sourceUpdateId||''),sourceService:String(node.sourceService||''),assets};
+  return {
+    id:String(node.id||''),
+    text:String(node.text||''),
+    createdAt:String(node.createdAt||node.dueAt||''),
+    dueAt:String(node.dueAt||''),
+    channelId:String(node.channelId||''),
+    sourceUpdateId:String(node.sourceUpdateId||''),
+    sourceService:String(node.sourceService||''),
+    assets:Array.isArray(node.assets)?node.assets:[]
+  };
 }
 function getChannelLabel(channelId){
   const c=state.channels.find(x=>x.id===channelId);
@@ -627,7 +634,7 @@ function getOrientation(asset){
 }
 function buildAssetItems(){
   const out=[];
-  state.assetPosts.filter(hasRenderableAsset).forEach(post=>{(post.assets||[]).forEach((asset,idx)=>{ if(asset&&(asset.thumbnail||asset.source||asset.mimeType)) out.push({id:`${post.id}-${idx}`,...asset,post});});});
+  state.assetPosts.filter(hasRenderableAsset).forEach(post=>{(post.assets||[]).forEach((asset,idx)=>{ const normalized=normalizeMediaAsset(asset||{}); out.push({id:`${post.id}-${idx}`,...normalized,post});});});
   return out;
 }
 function filteredAssets(){
@@ -675,7 +682,7 @@ function captureAssetDebugRows(posts=[]){
     postId:p.id,
     channelId:p.channelId,
     assetCount:(p.assets||[]).length,
-    assets:(p.assets||[]).map(a=>({thumbnail:a?.thumbnail||'',source:a?.source||'',mimeType:a?.mimeType||'',altText:a?.altText||'',width:a?.width||0,height:a?.height||0}))
+    assets:(p.assets||[]).map(a=>{const n=normalizeMediaAsset(a||{}); return {thumbnail:n.thumbnail,source:n.source,mimeType:n.mimeType,altText:n.altText,width:n.width,height:n.height};})
   }));
   state.assetDebugRows=rows;
   if(rows.length) console.debug('[PostIQ Asset Debug] media-backed posts',rows);
@@ -798,14 +805,13 @@ async function syncBuffer(){
 
     const cap=500;
     const assetsFragment='assets { thumbnail mimeType source ... on ImageAsset { image { altText width height } } }';
-    const scheduledPostsQuery=`query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId sourceUpdateId sourceService ${assetsFragment} } } pageInfo{ hasNextPage endCursor } } }`;
-    const sentPostsQuery=`query SentPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[sent]}}){ edges{ node{ id text dueAt channelId sourceUpdateId sourceService ${assetsFragment} } } pageInfo{ hasNextPage endCursor } } }`;
-    const fallbackScheduledQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text createdAt dueAt channelId } } pageInfo{ hasNextPage endCursor } } }';
-    const fallbackSentQuery='query SentPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[sent]}}){ edges{ node{ id text createdAt dueAt channelId } } pageInfo{ hasNextPage endCursor } } }';
+    const scheduledPostsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text createdAt dueAt channelId } } pageInfo{ hasNextPage endCursor } } }';
+    const sentPostsQuery=`query SentPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[sent]}}){ edges{ node{ id text createdAt channelId ${assetsFragment} } } pageInfo{ hasNextPage endCursor } } }`;
+    const fallbackSentQuery='query SentPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[sent]}}){ edges{ node{ id text createdAt channelId assets { thumbnail mimeType source } } } pageInfo{ hasNextPage endCursor } } }';
 
     async function loadPostsWithFallback(primaryQuery,fallbackQuery){
-      let after=null; let hasNext=true; let out=[]; let useFallback=false;
-      while(hasNext && out.length<cap){
+      let after=null; let hasNext=true; let normalized=[]; let raw=[]; let useFallback=false;
+      while(hasNext && normalized.length<cap){
         let page;
         try{ page=await callBuffer(useFallback?fallbackQuery:primaryQuery,{organizationId:orgId,after}); }
         catch(err){
@@ -817,22 +823,33 @@ async function syncBuffer(){
         }
         const block=page?.data?.posts;
         const edges=block?.edges||[];
-        out=out.concat(edges.map(e=>normalizeScheduledPost(e.node)));
+        const nodes=edges.map(e=>e.node||{});
+        raw=raw.concat(nodes);
+        normalized=normalized.concat(nodes.map(normalizeScheduledPost));
         hasNext=!!block?.pageInfo?.hasNextPage;
         after=block?.pageInfo?.endCursor||null;
         if(!block?.pageInfo) break;
       }
-      return out;
+      return {raw,normalized};
     }
 
-    const scheduledPosts=await loadPostsWithFallback(scheduledPostsQuery,fallbackScheduledQuery);
-    const sentPosts=await loadPostsWithFallback(sentPostsQuery,fallbackSentQuery);
+    const scheduledResult=await loadPostsWithFallback(scheduledPostsQuery,scheduledPostsQuery);
+    const sentResult=await loadPostsWithFallback(sentPostsQuery,fallbackSentQuery);
+    const scheduledPosts=scheduledResult.normalized;
+    const sentPosts=sentResult.normalized;
     const map=new Map();
     [...scheduledPosts,...sentPosts].forEach(post=>{if(post?.id) map.set(post.id,post)});
     const mergedPosts=[...map.values()];
     state.scheduled=scheduledPosts;
     state.assetPosts=mergedPosts;
     captureAssetDebugRows(mergedPosts);
+    const postsWithAssetsArray=mergedPosts.filter(p=>Array.isArray(p.assets)).length;
+    const postsWithNonEmptyAssets=mergedPosts.filter(hasRenderableAsset).length;
+    const sampleRaw=(sentResult.raw||[]).find(n=>Array.isArray(n.assets))||(sentResult.raw||[])[0]||null;
+    const sampleNormalized=sentPosts.find(p=>Array.isArray(p.assets))||sentPosts[0]||null;
+    console.debug('[PostIQ Asset Sync] totals',{totalSyncedPosts:mergedPosts.length,postsWithAssetsArray,postsWithNonEmptyAssets});
+    console.debug('[PostIQ Asset Sync] sample raw sent post',sampleRaw);
+    console.debug('[PostIQ Asset Sync] sample normalized sent post',sampleNormalized);
     renderChannelSelects(); renderCalendar(); renderAssetVault();
     if(scheduledPosts.length>=cap || sentPosts.length>=cap) setSyncStatus('partial',`Synced ${scheduledPosts.length} scheduled + ${sentPosts.length} sent posts (capped at ${cap} each).`);
     else setSyncStatus('success',`Synced ${scheduledPosts.length} scheduled + ${sentPosts.length} sent posts.`);
