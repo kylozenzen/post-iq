@@ -56,6 +56,20 @@
     .empty-hint{border:1px dashed var(--line);border-radius:10px;padding:12px;color:var(--muted);font-size:12px;background:rgba(255,255,255,.01)}
     .toast-wrap{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:60}
     .toast{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--text);box-shadow:0 8px 20px rgba(0,0,0,.35)}
+    .snippets-layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:14px}
+    .snippet-filters{display:flex;flex-direction:column;gap:8px}
+    .snippet-filters .btn{text-align:left;justify-content:flex-start}
+    .snippet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+    .snippet-card{display:flex;flex-direction:column;gap:10px}
+    .snippet-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+    .snippet-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .snippet-actions .btn{font-size:12px;padding:8px}
+    .snippet-body{white-space:pre-wrap;color:var(--muted);font-size:13px;line-height:1.45}
+    .modal-card.lg{max-width:760px}
+    .picker-list{display:flex;flex-direction:column;gap:8px;max-height:56vh;overflow:auto}
+    .picker-item{padding:10px;border:1px solid var(--line);border-radius:10px;background:#151924;cursor:pointer}
+    .picker-item:hover{border-color:#4f5e7d;background:#171d2b}
+    .picker-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
     @media(max-width:980px){.app{grid-template-columns:1fr}.side{border-right:none;border-bottom:1px solid var(--line);position:static;min-height:auto;height:auto;overflow:visible}.cols,.grid,.onboarding-grid{grid-template-columns:1fr}.section-hdr{align-items:flex-start}}
   </style>
 </head>
@@ -99,6 +113,7 @@
         <button class="btn active" data-view="threadView">🧵 Thread Splitter</button>
         <button class="btn" data-view="calendarView">📅 Content Calendar</button>
         <button class="btn" data-view="composerView">✍️ Post Composer</button>
+        <button class="btn" data-view="snippetsView">📚 Snippets</button>
       </nav>
 
       <div class="side-bottom">
@@ -120,6 +135,8 @@
             <div class="inline mt8">
               <button class="btn primary" id="splitBtn">Split thread</button>
               <button class="btn" id="sampleBtn">Sample</button>
+              <button class="btn" id="threadAddOpener">Add opener from Snippets</button>
+              <button class="btn" id="threadAddCta">Add ending CTA from Snippets</button>
             </div>
             <div id="threadEmpty" class="empty-hint mt8">Paste source text, then click <strong>Split thread</strong> to build editable parts.</div>
           </div>
@@ -174,6 +191,8 @@
             <button class="btn" data-cmd="ul">• List</button>
             <button class="btn" data-cmd="ol">1. List</button>
             <button class="btn" data-cmd="clear">Clear formatting</button>
+            <button class="btn" id="insertSnippetBtn">Insert snippet</button>
+            <button class="btn" id="saveSelectionSnippetBtn">Save selected text as snippet</button>
           </div>
           <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here..."></div>
           <div id="composerEmpty" class="empty-hint mt8">Start drafting here, then save as draft, queue, or schedule.</div>
@@ -190,6 +209,24 @@
           <div id="composerStatus" class="small mt8"></div>
         </div>
       </section>
+
+      <section id="snippetsView" class="view">
+        <div class="section-hdr"><h2 style="margin:0">Snippets</h2></div>
+        <p class="small">Save reusable hooks, CTAs, hashtag sets, and openers. Use them in Composer and Thread Splitter.</p>
+        <div class="inline mt8">
+          <input id="snippetSearch" class="input grow" placeholder="Search title, body, or tags..." />
+          <select id="snippetPlatformFilter" class="input" style="max-width:220px"></select>
+          <button class="btn primary" id="newSnippetBtn">New Snippet</button>
+        </div>
+        <div class="snippets-layout mt12">
+          <div class="card snippet-filters" id="snippetTypeFilters"></div>
+          <div>
+            <div id="snippetsEmpty" class="empty-hint">No snippets yet. Create your first snippet to speed up writing.</div>
+            <div id="snippetGrid" class="snippet-grid"></div>
+          </div>
+        </div>
+      </section>
+
     </main>
   </section>
 
@@ -269,6 +306,49 @@
     <p class="small">Connect with him on LinkedIn: <a href="https://www.linkedin.com/in/bencampbell8/" target="_blank" rel="noopener">https://www.linkedin.com/in/bencampbell8/</a></p>
   </div></div>
 
+
+
+  <div id="snippetModal" class="modal"><div class="modal-card lg">
+    <div class="topbar"><h3 style="margin:0" id="snippetModalTitle">New Snippet</h3><button class="btn" id="closeSnippetModal">Close</button></div>
+    <div class="mt8">
+      <label class="small">Title</label>
+      <input id="snippetTitle" class="input mt8" placeholder="Ex: Curiosity hook for product posts" />
+    </div>
+    <div class="cols mt8" style="grid-template-columns:1fr 1fr">
+      <div>
+        <label class="small">Type</label>
+        <select id="snippetType" class="input mt8"></select>
+      </div>
+      <div>
+        <label class="small">Platform</label>
+        <select id="snippetPlatform" class="input mt8"></select>
+      </div>
+    </div>
+    <div class="mt8">
+      <label class="small">Tags (comma-separated)</label>
+      <input id="snippetTags" class="input mt8" placeholder="launch, b2b, storytelling" />
+    </div>
+    <div class="mt8">
+      <label class="small">Body</label>
+      <textarea id="snippetBody" class="mt8" placeholder="Write snippet content..."></textarea>
+    </div>
+    <div class="inline mt12">
+      <button class="btn primary" id="saveSnippetBtn">Save</button>
+      <button class="btn" id="cancelSnippetBtn">Cancel</button>
+    </div>
+  </div></div>
+
+  <div id="snippetPickerModal" class="modal"><div class="modal-card lg">
+    <div class="topbar"><h3 style="margin:0" id="snippetPickerTitle">Choose a snippet</h3><button class="btn" id="closeSnippetPicker">Close</button></div>
+    <div class="inline mt8">
+      <input id="pickerSearch" class="input grow" placeholder="Search snippets..." />
+      <select id="pickerType" class="input" style="max-width:200px"></select>
+      <select id="pickerPlatform" class="input" style="max-width:200px"></select>
+    </div>
+    <div id="pickerList" class="picker-list mt12"></div>
+    <div id="pickerEmpty" class="empty-hint mt8">No snippets match these filters.</div>
+  </div></div>
+
   <div id="toastWrap" class="toast-wrap" aria-live="polite" aria-atomic="true"></div>
 
   <section id="sharedView" class="landing hidden">
@@ -282,11 +362,14 @@
 const STORE_KEY='postiq_buffer_token';
 const NOTE_KEY='postiq_calendar_notes_v2';
 const ONBOARDING_KEY='postiq_onboarding_seen_v1';
+const SNIPPET_KEY='postiq_snippets_v1';
+const snippetTypes=['All','Hooks','CTAs','Hashtag Sets','First Comments','Thread Openers'];
+const snippetPlatforms=['All Platforms','LinkedIn','X','Threads','Instagram','Universal'];
 let bufferToken='';
 let tokenInputVisible=false;
 let tokenCardCompact=false;
 let threadParts=[];
-const state={channels:[],scheduled:[],month:new Date(),selectedDate:null,syncState:'idle'};
+const state={channels:[],scheduled:[],month:new Date(),selectedDate:null,syncState:'idle',snippets:[],snippetType:'All',snippetPlatform:'All Platforms',snippetSearch:'',editingSnippetId:null,pickerMode:'composer'};
 
 const noteTags={gold:'Idea',blue:'Draft',green:'Campaign',violet:'Priority'};
 
@@ -307,6 +390,171 @@ function showToast(msg){
 }
 function safeText(v=''){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function compactText(v,max=84){const t=(v||'').replace(/\s+/g,' ').trim(); return t.length>max?`${t.slice(0,max-1)}…`:t}
+
+function slug(v){return String(v||'').toLowerCase()}
+function normalizeTags(v){if(Array.isArray(v)) return v.map(x=>String(x).trim()).filter(Boolean); return String(v||'').split(',').map(x=>x.trim()).filter(Boolean)}
+function loadSnippets(){
+  try{
+    const raw=localStorage.getItem(SNIPPET_KEY);
+    if(!raw){state.snippets=[];return}
+    const parsed=JSON.parse(raw);
+    if(!Array.isArray(parsed)){state.snippets=[];return}
+    state.snippets=parsed.map((s,i)=>({
+      id:String(s.id||`${Date.now()}-${i}`),
+      title:String(s.title||'Untitled snippet'),
+      type:snippetTypes.includes(s.type)?s.type:'Hooks',
+      platform:snippetPlatforms.includes(s.platform)?s.platform:'Universal',
+      tags:normalizeTags(s.tags),
+      body:String(s.body||''),
+      createdAt:String(s.createdAt||new Date().toISOString()),
+      updatedAt:String(s.updatedAt||new Date().toISOString())
+    }));
+  }catch{state.snippets=[]}
+}
+function persistSnippets(){try{localStorage.setItem(SNIPPET_KEY,JSON.stringify(state.snippets))}catch{}}
+function filteredSnippets(search=state.snippetSearch,type=state.snippetType,platform=state.snippetPlatform){
+  const q=slug(search).trim();
+  return state.snippets.filter(s=>{
+    const typeOk=type==='All'||s.type===type;
+    const platformOk=platform==='All Platforms'||s.platform===platform;
+    const text=`${s.title} ${s.body} ${(s.tags||[]).join(' ')}`.toLowerCase();
+    const qOk=!q||text.includes(q);
+    return typeOk&&platformOk&&qOk;
+  });
+}
+function snippetBadge(text){return `<span class="chip">${safeText(text)}</span>`}
+function useSnippetInComposer(snippet){
+  const editor=qs('composerEditor');
+  editor.focus();
+  const body=snippet.body||'';
+  try{
+    const sel=window.getSelection();
+    if(sel&&sel.rangeCount&&editor.contains(sel.anchorNode)){
+      sel.deleteFromDocument();
+      sel.getRangeAt(0).insertNode(document.createTextNode(body));
+    }else{
+      editor.innerText=editor.innerText?`${editor.innerText}
+
+${body}`:body;
+    }
+  }catch{editor.innerText=editor.innerText?`${editor.innerText}
+
+${body}`:body}
+  qs('composerEmpty').style.display=editorHtmlToText(editor.innerHTML)?'none':'block';
+  qs('composerStatus').textContent='Snippet inserted into composer.';
+  showToast('Snippet inserted');
+}
+function useSnippetInThread(snippet,position='prepend'){
+  const input=qs('threadInput');
+  const current=input.value.trim();
+  const body=snippet.body||'';
+  input.value=position==='prepend'?(current?`${body}
+
+${current}`:body):(current?`${current}
+
+${body}`:body);
+  showToast(position==='prepend'?'Opener added from snippets':'Ending CTA added from snippets');
+}
+function renderSnippetFilters(){
+  const rail=qs('snippetTypeFilters');
+  rail.innerHTML='';
+  snippetTypes.forEach(type=>{
+    const b=document.createElement('button');
+    b.className=`btn ${state.snippetType===type?'active':''}`;
+    b.textContent=type;
+    b.onclick=()=>{state.snippetType=type;renderSnippets();};
+    rail.appendChild(b);
+  });
+}
+function renderSnippets(){
+  renderSnippetFilters();
+  const list=filteredSnippets();
+  const grid=qs('snippetGrid');
+  qs('snippetsEmpty').style.display=list.length?'none':'block';
+  grid.innerHTML='';
+  list.forEach(s=>{
+    const card=document.createElement('div');
+    card.className='card snippet-card';
+    card.innerHTML=`<div class="snippet-head"><strong>${safeText(s.title)}</strong><div class="picker-meta">${snippetBadge(s.type)}${snippetBadge(s.platform)}</div></div><div class="snippet-body">${safeText(compactText(s.body,180))}</div><div class="small">${(s.tags||[]).length?`Tags: ${safeText(s.tags.join(', '))}`:'No tags'}</div><div class="snippet-actions"><button class="btn" data-act="copy">Copy</button><button class="btn" data-act="composer">Use in Composer</button><button class="btn" data-act="thread">Use in Thread Splitter</button><button class="btn" data-act="edit">Edit</button><button class="btn" data-act="delete" style="grid-column:1 / -1">Delete</button></div>`;
+    card.querySelector('[data-act="copy"]').onclick=()=>{navigator.clipboard.writeText(s.body||'');showToast('Snippet copied')};
+    card.querySelector('[data-act="composer"]').onclick=()=>{activateView('composerView');useSnippetInComposer(s)};
+    card.querySelector('[data-act="thread"]').onclick=()=>{activateView('threadView');useSnippetInThread(s,'append')};
+    card.querySelector('[data-act="edit"]').onclick=()=>openSnippetModal(s.id);
+    card.querySelector('[data-act="delete"]').onclick=()=>deleteSnippet(s.id);
+    grid.appendChild(card);
+  });
+}
+function activateView(viewId){
+  document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===viewId));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
+}
+function openSnippetModal(id=null){
+  state.editingSnippetId=id;
+  const s=id?state.snippets.find(x=>x.id===id):null;
+  qs('snippetModalTitle').textContent=s?'Edit Snippet':'New Snippet';
+  qs('snippetTitle').value=s?.title||'';
+  qs('snippetType').value=s?.type||'Hooks';
+  qs('snippetPlatform').value=s?.platform||'Universal';
+  qs('snippetTags').value=(s?.tags||[]).join(', ');
+  qs('snippetBody').value=s?.body||'';
+  openModal('snippetModal');
+}
+function saveSnippet(){
+  const title=qs('snippetTitle').value.trim();
+  const body=qs('snippetBody').value.trim();
+  if(!title||!body){showToast('Title and body are required');return}
+  const now=new Date().toISOString();
+  const payload={
+    id:state.editingSnippetId||`${Date.now()}-${Math.random().toString(16).slice(2,7)}`,
+    title,type:qs('snippetType').value,platform:qs('snippetPlatform').value,tags:normalizeTags(qs('snippetTags').value),body,
+    createdAt:now,updatedAt:now
+  };
+  if(state.editingSnippetId){
+    const prev=state.snippets.find(s=>s.id===state.editingSnippetId);
+    payload.createdAt=prev?.createdAt||now;
+    state.snippets=state.snippets.map(s=>s.id===state.editingSnippetId?payload:s);
+  }else state.snippets=[payload,...state.snippets];
+  persistSnippets(); closeModal('snippetModal'); renderSnippets(); showToast('Snippet saved');
+}
+function deleteSnippet(id){
+  if(!confirm('Delete this snippet?')) return;
+  state.snippets=state.snippets.filter(s=>s.id!==id);
+  persistSnippets(); renderSnippets(); showToast('Snippet deleted');
+}
+function renderSnippetSelectors(){
+  ['snippetPlatformFilter','snippetPlatform','pickerPlatform'].forEach(id=>{
+    const sel=qs(id); if(!sel) return; sel.innerHTML='';
+    snippetPlatforms.forEach((p,i)=>{if(id==='snippetPlatform'&&i===0)return; const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o)});
+  });
+  ['snippetType','pickerType'].forEach(id=>{
+    const sel=qs(id); if(!sel) return; sel.innerHTML='';
+    snippetTypes.forEach((t,i)=>{if(id==='snippetType'&&i===0)return; const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o)});
+  });
+  qs('snippetPlatformFilter').value=state.snippetPlatform;
+  qs('snippetType').value='Hooks';
+}
+function openSnippetPicker(mode){
+  state.pickerMode=mode;
+  qs('snippetPickerTitle').textContent=mode==='composer'?'Insert snippet into Composer':mode==='threadOpener'?'Add opener from Snippets':'Add ending CTA from Snippets';
+  qs('pickerSearch').value=''; qs('pickerType').value='All'; qs('pickerPlatform').value='All Platforms';
+  renderSnippetPicker(); openModal('snippetPickerModal');
+}
+function renderSnippetPicker(){
+  const list=filteredSnippets(qs('pickerSearch').value,qs('pickerType').value,qs('pickerPlatform').value);
+  const wrap=qs('pickerList'); wrap.innerHTML='';
+  qs('pickerEmpty').style.display=list.length?'none':'block';
+  list.forEach(s=>{
+    const el=document.createElement('button'); el.className='picker-item';
+    el.innerHTML=`<strong>${safeText(s.title)}</strong><div class='snippet-body mt8'>${safeText(compactText(s.body,180))}</div><div class='picker-meta'>${snippetBadge(s.type)}${snippetBadge(s.platform)}</div>`;
+    el.onclick=()=>{
+      if(state.pickerMode==='composer'){activateView('composerView');useSnippetInComposer(s);}
+      if(state.pickerMode==='threadOpener'){activateView('threadView');useSnippetInThread(s,'prepend');}
+      if(state.pickerMode==='threadCta'){activateView('threadView');useSnippetInThread(s,'append');}
+      closeModal('snippetPickerModal');
+    };
+    wrap.appendChild(el);
+  });
+}
 
 function setSyncStatus(stateName,msg){
   state.syncState=stateName;
@@ -649,7 +897,7 @@ function init(){
 
   qs('syncBtn').onclick=syncBuffer;
 
-  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-view]').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));qs(b.dataset.view).classList.add('active')});
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>activateView(b.dataset.view));
 
   qs('splitBtn').onclick=()=>{threadParts=splitThreadText(qs('threadInput').value);renderThread(); if(threadParts.length) showToast(`Generated ${threadParts.length} thread parts`);};
   qs('sampleBtn').onclick=()=>{qs('threadInput').value='PostIQ helps Buffer users move faster. Start with one big idea, split it into clear thread parts, refine each part, and send a cleaner post flow to Buffer.'};
@@ -680,6 +928,37 @@ function init(){
   qs('composerQueue').onclick=()=>composerSend('queue');
   qs('composerSchedule').onclick=()=>composerSend('schedule');
 
+  qs('insertSnippetBtn').onclick=()=>openSnippetPicker('composer');
+  qs('threadAddOpener').onclick=()=>openSnippetPicker('threadOpener');
+  qs('threadAddCta').onclick=()=>openSnippetPicker('threadCta');
+  qs('saveSelectionSnippetBtn').onclick=()=>{
+    const sel=window.getSelection();
+    const text=(sel&&sel.toString?sel.toString():'').trim();
+    if(!text){qs('composerStatus').textContent='Select text in Composer first.';return;}
+    state.editingSnippetId=null;
+    qs('snippetModalTitle').textContent='New Snippet';
+    qs('snippetTitle').value='';
+    qs('snippetType').value='Hooks';
+    qs('snippetPlatform').value='Universal';
+    qs('snippetTags').value='';
+    qs('snippetBody').value=text;
+    openModal('snippetModal');
+  };
+
+  qs('newSnippetBtn').onclick=()=>openSnippetModal();
+  qs('closeSnippetModal').onclick=()=>closeModal('snippetModal');
+  qs('cancelSnippetBtn').onclick=()=>closeModal('snippetModal');
+  qs('saveSnippetBtn').onclick=saveSnippet;
+  qs('closeSnippetPicker').onclick=()=>closeModal('snippetPickerModal');
+  qs('snippetSearch').addEventListener('input',e=>{state.snippetSearch=e.target.value;renderSnippets();});
+  qs('snippetPlatformFilter').onchange=e=>{state.snippetPlatform=e.target.value;renderSnippets();};
+  qs('pickerSearch').addEventListener('input',renderSnippetPicker);
+  qs('pickerType').onchange=renderSnippetPicker;
+  qs('pickerPlatform').onchange=renderSnippetPicker;
+
+  renderSnippetSelectors();
+  loadSnippets();
+  renderSnippets();
   renderCalendar();
   renderThread();
   qs('composerEmpty').style.display='block';
