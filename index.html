@@ -240,6 +240,7 @@
       <section id="assetVaultView" class="view">
         <div class="section-hdr"><h2 style="margin:0">Asset Vault</h2></div>
         <p class="small">Browse media-backed Buffer posts, find visuals faster, and send post copy back into your writing flow.</p>
+        <div id="assetVaultStats" class="small">Synced posts: 0 · Posts with assets: 0 · Visible items: 0</div>
         <div class="asset-controls mt8">
           <input id="assetSearch" class="input" placeholder="Search post text or alt text..." />
           <select id="assetChannelFilter" class="input"></select>
@@ -590,7 +591,7 @@ function renderSnippetPicker(){
 
 function normalizeMediaAsset(raw={}){
   const image=raw?.image||{};
-  const asset={
+  return {
     thumbnail:String(raw?.thumbnail||''),
     mimeType:String(raw?.mimeType||''),
     source:String(raw?.source||''),
@@ -598,13 +599,14 @@ function normalizeMediaAsset(raw={}){
     width:Number(raw?.width||image?.width)||0,
     height:Number(raw?.height||image?.height)||0
   };
-  const hasMediaIndicator=Boolean(asset.thumbnail||asset.source||asset.mimeType);
-  return hasMediaIndicator?asset:null;
+}
+function hasRenderableAsset(post){
+  return Array.isArray(post?.assets) && post.assets.some(a=>a&&(a.thumbnail||a.source||a.mimeType));
 }
 function normalizeScheduledPost(node={}){
-  const mediaRaw=Array.isArray(node.media)?node.media:[];
-  const media=mediaRaw.map(normalizeMediaAsset).filter(Boolean);
-  return {id:String(node.id||''),text:String(node.text||''),dueAt:String(node.dueAt||''),channelId:String(node.channelId||''),sourceUpdateId:String(node.sourceUpdateId||''),sourceService:String(node.sourceService||''),media};
+  const assetsRaw=Array.isArray(node.assets)?node.assets:Array.isArray(node.media)?node.media:[];
+  const assets=assetsRaw.map(normalizeMediaAsset);
+  return {id:String(node.id||''),text:String(node.text||''),createdAt:String(node.createdAt||node.dueAt||''),dueAt:String(node.dueAt||''),channelId:String(node.channelId||''),sourceUpdateId:String(node.sourceUpdateId||''),sourceService:String(node.sourceService||''),assets};
 }
 function getChannelLabel(channelId){
   const c=state.channels.find(x=>x.id===channelId);
@@ -625,7 +627,7 @@ function getOrientation(asset){
 }
 function buildAssetItems(){
   const out=[];
-  state.assetPosts.forEach(post=>{(post.media||[]).forEach((asset,idx)=>out.push({id:`${post.id}-${idx}`,...asset,post}));});
+  state.assetPosts.filter(hasRenderableAsset).forEach(post=>{(post.assets||[]).forEach((asset,idx)=>{ if(asset&&(asset.thumbnail||asset.source||asset.mimeType)) out.push({id:`${post.id}-${idx}`,...asset,post});});});
   return out;
 }
 function filteredAssets(){
@@ -669,11 +671,11 @@ function renderAssetDebug(){
   content.textContent=rows.length?JSON.stringify(rows,null,2):'No media-backed posts found in the latest sync.';
 }
 function captureAssetDebugRows(posts=[]){
-  const rows=posts.filter(p=>(p.media||[]).length).map(p=>({
+  const rows=posts.filter(hasRenderableAsset).map(p=>({
     postId:p.id,
     channelId:p.channelId,
-    assetCount:(p.media||[]).length,
-    assets:(p.media||[]).map(a=>({thumbnail:a.thumbnail||'',source:a.source||'',mimeType:a.mimeType||'',altText:a.altText||'',width:a.width||0,height:a.height||0}))
+    assetCount:(p.assets||[]).length,
+    assets:(p.assets||[]).map(a=>({thumbnail:a?.thumbnail||'',source:a?.source||'',mimeType:a?.mimeType||'',altText:a?.altText||'',width:a?.width||0,height:a?.height||0}))
   }));
   state.assetDebugRows=rows;
   if(rows.length) console.debug('[PostIQ Asset Debug] media-backed posts',rows);
@@ -708,11 +710,14 @@ function renderAssetVault(){
   const items=filteredAssets();
   grid.innerHTML='';
   const hasSynced=state.assetPosts.length>0;
-  const hasAssets=buildAssetItems().length>0;
+  const postsWithAssets=state.assetPosts.filter(hasRenderableAsset).length;
+  const hasAssets=postsWithAssets>0;
   const empty=qs('assetVaultEmpty');
-  if(!hasSynced){empty.textContent='Load from Buffer to build your visual memory. Media-backed posts will appear here.';empty.style.display='block';return;}
-  if(!hasAssets){empty.textContent='No media-backed posts found in this sync. Try syncing again after scheduling media posts in Buffer.';empty.style.display='block';return;}
-  if(!items.length){empty.textContent='No assets match these filters. Clear filters or sync more posts.';empty.style.display='block';return;}
+  const stats=qs('assetVaultStats');
+  if(stats) stats.textContent=`Synced posts: ${state.assetPosts.length} · Posts with assets: ${postsWithAssets} · Visible items: ${items.length}`;
+  if(!hasSynced){empty.textContent='Load from Buffer to build your visual memory. Media-backed posts will appear here.';empty.style.display='block';renderAssetDebug();return;}
+  if(!hasAssets){empty.textContent='No posts had renderable assets (thumbnail/source/mimeType). Some synced metadata may be partial.';empty.style.display='block';renderAssetDebug();return;}
+  if(!items.length){empty.textContent='No items are visible. Your current filters may hide asset posts, or synced asset metadata is partial.';empty.style.display='block';renderAssetDebug();return;}
   empty.style.display='none';
   renderAssetDebug();
   items.forEach(item=>{
@@ -781,7 +786,7 @@ function setNotes(v){localStorage.setItem(NOTE_KEY,JSON.stringify(v))}
 
 async function syncBuffer(){
   if(!bufferToken){setSyncStatus('failed','Sync failed: Add your Buffer token first.');return;}
-  setSyncStatus('syncing','Syncing scheduled posts from Buffer…');
+  setSyncStatus('syncing','Syncing scheduled and sent posts from Buffer…');
   try{
     const acc=await callBuffer('query { account { organizations { id name } } }');
     const orgId=acc?.data?.account?.organizations?.[0]?.id;
@@ -792,11 +797,11 @@ async function syncBuffer(){
     state.channels=ch?.data?.channels||[];
 
     const cap=500;
-    const mediaFragment='media{ thumbnail mimeType source ... on ImageAsset { image { altText width height } } }';
-    const scheduledPostsQuery=`query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId sourceUpdateId sourceService ${mediaFragment} } } pageInfo{ hasNextPage endCursor } } }`;
-    const sentPostsQuery=`query SentPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[sent]}}){ edges{ node{ id text dueAt channelId sourceUpdateId sourceService ${mediaFragment} } } pageInfo{ hasNextPage endCursor } } }`;
-    const fallbackScheduledQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId } } pageInfo{ hasNextPage endCursor } } }';
-    const fallbackSentQuery='query SentPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[sent]}}){ edges{ node{ id text dueAt channelId } } pageInfo{ hasNextPage endCursor } } }';
+    const assetsFragment='assets { thumbnail mimeType source ... on ImageAsset { image { altText width height } } }';
+    const scheduledPostsQuery=`query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId sourceUpdateId sourceService ${assetsFragment} } } pageInfo{ hasNextPage endCursor } } }`;
+    const sentPostsQuery=`query SentPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[sent]}}){ edges{ node{ id text dueAt channelId sourceUpdateId sourceService ${assetsFragment} } } pageInfo{ hasNextPage endCursor } } }`;
+    const fallbackScheduledQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text createdAt dueAt channelId } } pageInfo{ hasNextPage endCursor } } }';
+    const fallbackSentQuery='query SentPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[sent]}}){ edges{ node{ id text createdAt dueAt channelId } } pageInfo{ hasNextPage endCursor } } }';
 
     async function loadPostsWithFallback(primaryQuery,fallbackQuery){
       let after=null; let hasNext=true; let out=[]; let useFallback=false;
