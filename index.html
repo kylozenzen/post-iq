@@ -1995,9 +1995,10 @@ async function attachRecurrence(postId){
   const freq = document.querySelector('.recur-freq-btn.active')?.dataset?.freq || 'weekly';
   const dayOfWeek = parseInt(qs('recurDaySelect').value);
   // Best-guess input shape — Buffer will tell us if fields are wrong via error
-  const recurInput = { id: postId, frequency: freq };
-  if(freq==='weekly') recurInput.dayOfWeek = dayOfWeek;
-  if(freq==='monthly') recurInput.dayOfMonth = new Date().getDate();
+  const cadence = { type: freq.toUpperCase() };
+  if(freq==='weekly') cadence.dayOfWeek = dayOfWeek;
+  if(freq==='monthly') cadence.dayOfMonth = new Date().getDate();
+  const recurInput = { id: postId, cadence };
   try{
     const res = await callBuffer(
       'mutation CreatePostRecurrence($input:CreatePostRecurrenceInput!){createPostRecurrence(input:$input){__typename}}',
