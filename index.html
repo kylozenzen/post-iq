@@ -123,7 +123,6 @@
         <button class="btn" data-view="calendarView">📅 Content Calendar</button>
         <button class="btn" data-view="composerView">✍️ Post Composer</button>
         <button class="btn" data-view="snippetsView">📚 Snippets</button>
-        <button class="btn" data-view="assetVaultView">♻️ Recycler</button>
       </nav>
 
       <div class="side-bottom">
@@ -237,9 +236,9 @@
         </div>
       </section>
 
-      <section id="assetVaultView" class="view">
-        <div class="section-hdr"><h2 style="margin:0">Recycler</h2></div>
-        <p class="small">Turn old sent posts into new drafts, snippets, threads, and reusable ideas. Text-only posts are first-class here.</p>
+      <section id="assetVaultView" class="view hidden" aria-hidden="true">
+        <div class="section-hdr"><h2 style="margin:0">Content Utilities (Experimental)</h2></div>
+        <p class="small">This hidden experimental workspace is not part of the current core PostIQ experience.</p>
         <div id="assetVaultStats" class="small">Synced posts: 0 · Posts with assets: 0 · Visible items: 0</div>
         <div class="inline mt8" id="recyclerTabs">
           <button class="btn active" data-tab="all">All Posts</button>
@@ -250,7 +249,7 @@
           <input id="assetSearch" class="input" placeholder="Search post text..." />
           <select id="assetChannelFilter" class="input"></select>
         </div>
-        <div id="assetVaultEmpty" class="empty-hint asset-empty">No posts synced yet. Load from Buffer to open your Recycler workspace.</div>
+        <div id="assetVaultEmpty" class="empty-hint asset-empty">This experimental workspace is currently hidden from the main app experience.</div>
         <details id="assetDebugPanel" class="card mt8" style="display:none">
           <summary class="small" style="cursor:pointer">Developer debug: synced post normalization</summary>
           <pre id="assetDebugContent" class="small mono mt8" style="white-space:pre-wrap"></pre>
@@ -263,12 +262,12 @@
 
   <div id="onboardingModal" class="modal"><div class="modal-card">
     <div class="topbar"><h3 style="margin:0">Welcome to PostIQ</h3><button class="btn" id="closeOnboarding">Skip</button></div>
-    <p class="onboarding-copy">Plan, draft, and repurpose faster with a lightweight Buffer companion for threads, reusable snippets, and Recycler-powered content memory.</p>
+    <p class="onboarding-copy">Compose, split, plan, and reuse faster with a lightweight Buffer companion built for text-first workflows.</p>
     <div class="onboarding-grid">
       <div class="card"><h3 style="margin:0">🧵 Thread Splitter</h3><p class="small mt8">Split long-form ideas into clean thread parts you can draft, queue, or schedule.</p></div>
       <div class="card"><h3 style="margin:0">📅 Content Calendar</h3><p class="small mt8">Review scheduled posts month-by-month, keep planning notes, and share read-only snapshots.</p></div>
       <div class="card"><h3 style="margin:0">✍️ Post Composer</h3><p class="small mt8">Draft posts, insert reusable blocks, and save selected text as snippets in one flow.</p></div>
-      <div class="card"><h3 style="margin:0">♻️ Recycler</h3><p class="small mt8">Recycle sent posts into drafts, snippets, and thread-ready remixes in a few clicks. Some posts can also try experimental media reuse.</p></div>
+      <div class="card"><h3 style="margin:0">📚 Snippets</h3><p class="small mt8">Save reusable hooks, CTAs, hashtag sets, first comments, and thread openers for faster drafting.</p></div>
     </div>
     <div class="inline mt12">
       <button class="btn primary" id="onboardingEnter">Enter app</button>
@@ -283,11 +282,8 @@
       <li><strong>Token handling:</strong> your Buffer token is stored in sessionStorage or localStorage, based on your choice.</li>
       <li><strong>Thread Splitter:</strong> split long copy into editable thread parts and send as draft/queue/scheduled.</li>
       <li><strong>Content Calendar:</strong> view scheduled posts, then add color-tagged planning notes per day.</li>
-      <li><strong>Snippets:</strong> save reusable hooks, CTAs, hashtag sets, first comments, and thread openers in local storage.</li>
-      <li><strong>Recycler:</strong> browse synced sent posts by All Posts, With Media, or Text Only Posts.</li>
-      <li><strong>Recycler actions:</strong> reuse in Composer, split into Thread, save as Snippet, copy text, Save Text to Draft, and Try Save With Media (experimental).</li>
-      <li><strong>Text Only Posts:</strong> posts without assets still show as reusable hooks, CTAs, and remix material. Text draft saving is always the safer default.</li>
-      <li><strong>Media publishing:</strong> keep using Buffer to attach final media and publish.</li>
+      <li><strong>Snippets:</strong> save reusable hooks, CTAs, hashtag sets, first comments, and thread openers in local storage so they are ready in Composer and Thread Splitter.</li>
+            <li><strong>Media publishing:</strong> keep using Buffer to attach final media and publish.</li>
     </ul>
   </div></div>
 
@@ -388,7 +384,7 @@
 
   <div id="recyclerDraftModal" class="modal"><div class="modal-card">
     <div class="topbar"><h3 style="margin:0" id="recyclerDraftTitle">Save Text to Draft</h3><button class="btn" id="closeRecyclerDraft">Close</button></div>
-    <p class="small mt8" id="recyclerDraftHelp">Choose a channel and save this recycled post as a new draft in Buffer.</p>
+    <p class="small mt8" id="recyclerDraftHelp">Choose a channel and save text as a new draft in Buffer.</p>
     <select id="recyclerDraftChannel" class="input mt8"></select>
     <textarea id="recyclerDraftText" class="mt8" placeholder="Draft text"></textarea>
     <div class="inline mt12">
@@ -741,7 +737,7 @@ function openRecyclerDraftModal(post,mode='text'){
   qs('recyclerDraftTitle').textContent=mode==='media'?'Try Save With Media':'Save Text to Draft';
   qs('recyclerDraftHelp').textContent=mode==='media'
     ? `Experimental: we will try to save this draft with ${state.recyclerDraftMediaUrls.length} reusable image URL${state.recyclerDraftMediaUrls.length===1?'':'s'}. If media reuse fails, PostIQ will fall back to a text-only draft.`
-    : 'Reliable default: save this recycled post as a text-only draft in Buffer.';
+    : 'Reliable default: save this as a text-only draft in Buffer.';
   qs('confirmRecyclerDraft').textContent=mode==='media'?'Try save with media':'Save text draft';
   const select=qs('recyclerDraftChannel');
   if(select.options.length===0) renderChannelSelects();
@@ -814,7 +810,7 @@ function renderAssetVault(){
   const stats=qs('assetVaultStats');
   if(stats) stats.textContent=`Synced posts: ${state.assetPosts.length} · Posts with assets: ${postsWithAssets} · Visible items: ${visibleItems}`;
   const empty=qs('assetVaultEmpty');
-  if(!state.assetPosts.length){empty.textContent='No posts synced yet. Load from Buffer to open your Recycler workspace.';empty.style.display='block';renderAssetDebug();return;}
+  if(!state.assetPosts.length){empty.textContent='This experimental workspace is currently hidden from the main app experience.';empty.style.display='block';renderAssetDebug();return;}
   if(state.recyclerTab==='withMedia' && !postsWithAssets){empty.textContent='No posts with media found yet. Sync sent posts with assets in Buffer and try again.';empty.style.display='block';renderAssetDebug();return;}
   if(state.recyclerTab==='textOnly' && !state.assetPosts.some(p=>!hasRenderableAsset(p))){empty.textContent='No text-only posts yet. Once synced, text-only posts will appear here for remixing.';empty.style.display='block';renderAssetDebug();return;}
   if(!visibleItems){empty.textContent='No recycler items match your current filters. Clear search or switch tabs.';empty.style.display='block';renderAssetDebug();return;}

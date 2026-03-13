@@ -2,14 +2,13 @@
 
 PostIQ is a no-login companion for Buffer users.
 
-It helps text-first teams move faster with five focused workflows:
+It helps text-first teams move faster with four focused workflows:
 - Thread Splitter
 - Post Composer
 - Content Calendar
 - Snippets
-- Recycler
 
-PostIQ is **not** a Buffer replacement. It helps you plan better, draft faster, and move reusable copy + media context into Buffer-ready posts.
+PostIQ is **not** a Buffer replacement. It helps you plan better, draft faster, and move reusable copy into Buffer-ready posts.
 
 ---
 
@@ -60,13 +59,6 @@ The token is only sent when making requests to the Netlify proxy, which forwards
 - Types: Hook, CTA, Hashtag Set, First Comment, Thread Opener
 - Platform tags: Universal, LinkedIn, X, Threads, Instagram
 - Search/filter snippets and reuse in Composer + Thread Splitter
-
-## ♻️ Recycler
-- Browse synced sent posts and recycle them into new drafts
-- Try experimental media reuse for posts that expose reusable image source URLs
-- Includes available metadata: thumbnail, mime type, source, alt text, width, height
-- Switch between All Posts, With Media, and Text Only Posts
-- Reuse post text in Composer, split into thread drafts, save snippets, and save text drafts in Buffer
 
 ---
 
