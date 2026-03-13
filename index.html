@@ -2000,13 +2000,11 @@ async function attachRecurrence(postId){
   if(freq==='monthly') recurInput.dayOfMonth = new Date().getDate();
   try{
     const res = await callBuffer(
-      'mutation CreatePostRecurrence($input:CreatePostRecurrenceInput!){createPostRecurrence(input:$input){__typename ... on CoreWebAppError{message}}}',
+      'mutation CreatePostRecurrence($input:CreatePostRecurrenceInput!){createPostRecurrence(input:$input){__typename}}',
       {input: recurInput}
     );
     const result = res?.data?.createPostRecurrence;
-    if(result?.__typename==='CoreWebAppError') throw new Error(result.message);
-    // Log full response to console so we can learn the return shape
-    console.log('[PostIQ] createPostRecurrence response:', JSON.stringify(res?.data, null, 2));
+    console.log('[PostIQ] createPostRecurrence:', JSON.stringify(result, null, 2));
     return res;
   }catch(e){
     // Surface the raw error so we can learn the correct shape
