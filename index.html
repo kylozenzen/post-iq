@@ -1986,7 +1986,9 @@ function renderSharedFromHash(){
 }
 
 async function createPost(input){
-  return callBuffer('mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename post{id}}}',{input});
+  const res = await callBuffer('mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename ... on PostActionSuccess{post{id}}}}',{input});
+  console.log('[PostIQ] createPost raw:', JSON.stringify(res?.data?.createPost, null, 2));
+  return res;
 }
 
 async function attachRecurrence(postId){
@@ -2054,9 +2056,9 @@ async function composerSend(action){
   try{
     const res = await createPost(input);
     const cp = res?.data?.createPost;
-    console.log('[PostIQ] createPost raw:', JSON.stringify(cp, null, 2));
-    const postId = cp?.post?.id || cp?.id || cp?.postId || null;
-    const apiErr = cp?.error?.message || cp?.errors?.[0]?.message || null;
+    console.log('[PostIQ] createPost __typename:', cp?.__typename, 'post.id:', cp?.post?.id);
+    const postId = cp?.post?.id || null;
+    const apiErr = cp?.error?.message || null;
     if(apiErr) throw new Error(apiErr);
     if(isRecurring && postId){
       await attachRecurrence(postId);
