@@ -586,22 +586,46 @@
       padding: 14px;
       border: 1px solid var(--border2);
       background: var(--surface2);
-      border-radius: 0 0 8px 8px;
+      border-radius: 8px;
       outline: none;
       line-height: 1.65;
       font-size: 14px;
+    }
+    .rich-editor-tall {
+      min-height: calc(100vh - 340px);
+      border-radius: 8px;
     }
     .rich-editor:empty::before {
       content: attr(data-placeholder);
       color: var(--subtle);
     }
     .rich-editor:focus { border-color: var(--blue); }
-    .composer-footer {
+
+    /* ── COMPOSER STICKY LAYOUT ── */
+    .composer-view-full { display: flex; flex-direction: column; gap: 0; padding: 0; }
+    .composer-sticky-bar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border2);
+      padding: 10px 16px 8px;
       display: flex;
+      flex-direction: column;
       gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-top: 12px;
+    }
+    .composer-bar-row1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .composer-bar-row2 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: space-between; }
+    .composer-bar-row3 { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+    .composer-bar-actions { display: flex; gap: 6px; }
+    .composer-channel-sel { flex: 1; min-width: 180px; max-width: 360px; }
+    .composer-no-channels { font-size: 12px; color: var(--subtle); }
+    .composer-editor-wrap { padding: 12px 16px 24px; flex: 1; }
+    .composer-attach-hint {
+      font-size: 11px;
+      color: var(--amber);
+      font-family: 'DM Mono', monospace;
+      font-weight: 600;
     }
     /* ── DATE/TIME PICKER ROW ── */
     .composer-when-row {
@@ -610,96 +634,70 @@
       gap: 6px;
       flex-wrap: wrap;
     }
-    .when-lbl { font-size: 12px; color: var(--subtle); font-family: 'DM Mono', monospace; white-space: nowrap; }
+    .when-lbl { font-size: 14px; color: var(--subtle); white-space: nowrap; }
     .when-date { max-width: 150px; }
     .when-time { max-width: 80px; }
-    /* ── RECURRING PANEL ── */
-      display: none;
-      margin-top: 8px;
-      padding: 10px 12px;
-      border: 1px solid var(--amber)55;
-      border-radius: 8px;
-      background: var(--surface2);
-    }
+    .composer-footer { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+
     .composer-actions { display: flex; gap: 6px; align-items: center; margin-top: 10px; }
     .char-hint { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--subtle); margin-left: auto; }
 
-    /* ── IDEAS PANEL ── */
-    .idea-card {
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-      padding: 10px 12px;
+    /* ── IMAGE ROW ── */
+    .composer-bar-row4 { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; position: relative; }
+    .img-row-lbl { font-size: 12px; color: var(--subtle); font-family: 'DM Mono', monospace; white-space: nowrap; }
+    .img-url-wrap { position: relative; flex: 1; min-width: 200px; max-width: 400px; }
+    .img-url-input { width: 100%; }
+    .img-url-tooltip {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      z-index: 20;
+      background: var(--surface3);
       border: 1px solid var(--border2);
       border-radius: 8px;
-      background: var(--surface2);
+      padding: 10px 12px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.6;
+      width: 280px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    }
+    .img-url-wrap:focus-within .img-url-tooltip { display: block; }
+    .img-preview { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border2); }
+    .img-library-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+    .img-library-item {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid transparent;
       cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
+      aspect-ratio: 1;
+      background: var(--surface2);
+      transition: border-color 0.15s;
     }
-    .idea-card:hover { border-color: var(--blue); background: var(--surface3); }
-    .idea-card-thumb {
-      width: 42px;
-      height: 42px;
-      border-radius: 6px;
-      object-fit: cover;
-      flex-shrink: 0;
-      background: var(--surface3);
-    }
-    .idea-card-thumb-placeholder {
-      width: 42px;
-      height: 42px;
-      border-radius: 6px;
-      background: var(--surface3);
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-    }
-    .idea-card-body { flex: 1; min-width: 0; }
-    .idea-card-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text);
+    .img-library-item:hover { border-color: var(--amber); }
+    .img-library-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .img-library-item-url {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,.7);
+      font-size: 9px;
+      color: var(--subtle);
+      padding: 3px 5px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-bottom: 2px;
-    }
-    .idea-card-text {
-      font-size: 12px;
-      color: var(--subtle);
-      line-height: 1.4;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .idea-card-meta {
-      display: flex;
-      gap: 6px;
-      margin-top: 5px;
-      flex-wrap: wrap;
-    }
-    .idea-pill {
-      font-size: 10px;
-      font-family: 'DM Mono', monospace;
-      padding: 2px 6px;
-      border-radius: 4px;
-      background: var(--surface3);
-      color: var(--muted);
-      text-transform: uppercase;
-    }
-    .idea-card-import {
-      font-size: 11px;
-      color: var(--blue);
-      font-family: 'DM Mono', monospace;
-      flex-shrink: 0;
-      align-self: center;
       opacity: 0;
       transition: opacity 0.15s;
     }
-    .idea-card:hover .idea-card-import { opacity: 1; }
+    .img-library-item:hover .img-library-item-url { opacity: 1; }
 
     /* ── MODALS ── */
     .modal {
@@ -999,32 +997,35 @@
         <div class="dow-label">Sat</div>
       </div>
 
-      <div id="calendarEmpty" class="empty mt8" style="display:none;">
-        No scheduled posts this month — you're all clear. 🎉<br>
-        <span style="color:var(--subtle);font-size:12px;">Use the Composer to schedule posts, or hit ↻ Load from Buffer to re-sync.</span>
-      </div>
-      <div id="calendarNotSynced" class="empty mt8" style="display:none;">
-        No posts loaded yet.<br>
-        <span style="color:var(--subtle);font-size:12px;">Add your Buffer token in the sidebar and click ↻ Load from Buffer to sync.</span>
-        <button class="btn sm ghost mt8" onclick="syncBuffer()" style="display:block;width:100%;">↻ Load from Buffer</button>
-      </div>
       <div class="cal-grid" id="calGrid"></div>
     </section>
 
     <!-- Post Composer -->
-    <section id="composerView" class="view">
-      <div class="page-hdr">
-        <div class="page-hdr-left">
-          <h1 class="page-title">Post Composer</h1>
-          <p class="page-desc">Draft text-first posts, then push to Buffer. For images/video, save as draft then attach in Buffer.</p>
+    <section id="composerView" class="view composer-view-full">
+      <div class="composer-sticky-bar">
+        <div class="composer-bar-row1">
+          <select id="composerChannel" class="input composer-channel-sel"></select>
+          <div id="composerNoChannels" class="composer-no-channels" style="display:none;">↻ Load from Buffer to see channels</div>
+          <div id="composerChannelHint" class="status-txt" style="display:none;font-size:11px;"></div>
+          <span class="char-hint" id="composerCharCount" style="margin-left:auto;">0 chars</span>
+          <a class="btn ghost sm" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
         </div>
-        <div class="page-actions">
-          <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
+        <div class="composer-bar-row2">
+          <div class="composer-when-row">
+            <span class="when-lbl">📅</span>
+            <input id="composerWhenDate" type="date" class="input when-date" />
+            <select id="composerWhenHour" class="input when-time"></select>
+            <select id="composerWhenMin" class="input when-time"></select>
+            <select id="composerWhenAmpm" class="input when-time"></select>
+            <input id="composerWhen" type="hidden" />
+          </div>
+          <div class="composer-bar-actions">
+            <button class="btn" id="composerDraft">Save draft</button>
+            <button class="btn success" id="composerQueue">Add to queue</button>
+            <button class="btn primary" id="composerSchedule">Schedule</button>
+          </div>
         </div>
-      </div>
-
-      <div class="card">
-        <div class="rich-toolbar">
+        <div class="composer-bar-row3">
           <button class="btn sm" data-cmd="bold"><strong>B</strong></button>
           <button class="btn sm" data-cmd="italic"><em>I</em></button>
           <button class="btn sm" data-cmd="ul">• List</button>
@@ -1034,38 +1035,22 @@
           <button class="btn sm" id="insertSnippetBtn">Insert snippet</button>
           <button class="btn sm ghost" id="saveSelectionSnippetBtn">Save selection</button>
         </div>
-        <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here…"></div>
-        <div id="composerEmpty" class="empty mt8">Start drafting above, then save draft, queue, or schedule.</div>
-
-        <div class="composer-footer mt12">
-          <select id="composerChannel" class="input grow"></select>
-        </div>
-        <div id="composerNoChannels" class="empty mt8" style="display:none;">
-          No channels loaded yet.<br>
-          <span style="color:var(--subtle);font-size:12px;">Add your Buffer token and click <strong style="color:var(--text);">↻ Load from Buffer</strong> to see your channels.</span>
-        </div>
-        <div id="composerChannelHint" class="status-txt mt8" style="display:none;"></div>
-
-        <div class="composer-when-row mt10">
-          <span class="when-lbl">📅 Schedule for</span>
-          <input id="composerWhenDate" type="date" class="input when-date" />
-          <select id="composerWhenHour" class="input when-time"></select>
-          <select id="composerWhenMin" class="input when-time"></select>
-          <select id="composerWhenAmpm" class="input when-time"></select>
-          <input id="composerWhen" type="hidden" />
-        </div>
-
-        <div class="composer-actions-wrap mt10">
-          <div class="composer-actions-row">
-            <button class="btn" id="composerDraft">Save draft</button>
-            <button class="btn success" id="composerQueue">Add to queue</button>
-            <button class="btn primary" id="composerSchedule">Schedule</button>
-            <span class="char-hint" id="composerCharCount" style="margin-left:auto;">0 chars</span>
+        <div class="composer-bar-row4">
+          <span class="img-row-lbl">🖼 Image URL</span>
+          <div class="img-url-wrap">
+            <input id="composerImageUrl" class="input img-url-input" placeholder="https://…  (direct image URL)" />
+            <div class="img-url-tooltip">Needs a public direct image URL — ending in .jpg, .png, .gif, .webp etc.<br>Right-click any image online → "Copy image address" to get the URL.</div>
           </div>
-
-          <div class="status-txt mt6" style="color:var(--subtle);font-size:11px;" id="composerWhenHint">For images/video, save draft → attach in Buffer.</div>
-          <div id="composerStatus" class="status-txt mt6"></div>
+          <button class="btn sm ghost" id="composerImageClear" style="display:none;">✕</button>
+          <button class="btn sm" id="openImageLibraryBtn">📚 Past images</button>
+          <div id="composerImagePreview" class="img-preview" style="display:none;"></div>
         </div>
+        <div class="composer-attach-hint">⚠ Video must be attached in Buffer after saving draft. Images with a direct URL can be added above.</div>
+        <div id="composerStatus" class="status-txt" style="font-size:12px;min-height:18px;"></div>
+      </div>
+      <div class="composer-editor-wrap">
+        <div id="composerEditor" class="rich-editor rich-editor-tall" contenteditable="true" data-placeholder="Write your post here…"></div>
+        <div id="composerEmpty" class="empty mt8">Start drafting above, then save draft, queue, or schedule.</div>
       </div>
     </section>
 
@@ -1099,6 +1084,17 @@
 </section>
 
 <!-- ── MODALS ── -->
+
+<!-- Image Library -->
+<div id="imageLibraryModal" class="modal"><div class="modal-card lg">
+  <div class="modal-hdr">
+    <span class="modal-title">📚 Past Images</span>
+    <button class="btn sm ghost" id="closeImageLibrary">Close</button>
+  </div>
+  <p style="font-size:12px;color:var(--subtle);margin-bottom:12px;">Images pulled from your synced Buffer posts. Click any to insert into the composer.</p>
+  <div id="imageLibraryEmpty" class="empty" style="display:none;">No images found in your synced posts. Sync Buffer posts first, or paste a URL directly.</div>
+  <div id="imageLibraryGrid" class="img-library-grid"></div>
+</div></div>
 
 <!-- Onboarding (includes guide) -->
 <div id="onboardingModal" class="modal"><div class="modal-card">
@@ -1515,7 +1511,7 @@ async function syncBuffer(){
     const ch=await callBuffer(channelsQuery,{organizationId:orgId});
     state.channels=ch?.data?.channels||[];
     const cap=500;let after=null;let all=[];let hasNext=true;
-    const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId } } pageInfo{ hasNextPage endCursor } } }';
+    const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId assets{ id url mimeType } } } pageInfo{ hasNextPage endCursor } } }';
     while(hasNext&&all.length<cap){
       const page=await callBuffer(postsQuery,{organizationId:orgId,after});
       const block=page?.data?.posts;const edges=block?.edges||[];
@@ -1637,9 +1633,6 @@ function renderCalendar(){
   const monthPosts = postsByMonth(state.month);
 
   // Not synced = has token but never loaded, OR no token at all
-  qs('calendarNotSynced').style.display = (!hasSynced && state.syncState!=='loading') ? 'block' : 'none';
-  // Empty = synced successfully but no posts this month
-  qs('calendarEmpty').style.display = (hasSynced && !monthPosts.length) ? 'block' : 'none';
 
   for(let i=0;i<42;i++){
     const d=new Date(start);d.setDate(start.getDate()+i);
@@ -1758,8 +1751,7 @@ function renderSharedFromHash(){
 }
 
 async function createPost(input){
-  const res = await callBuffer('mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename ... on PostActionSuccess{post{id}}}}',{input});
-  console.log('[PostIQ] createPost raw:', JSON.stringify(res?.data?.createPost, null, 2));
+  const res = await callBuffer(`mutation CreatePost($input:CreatePostInput!){createPost(input:$input){... on PostActionSuccess{post{id text assets{id url mimeType}}} ... on MutationError{message}}}`,{input});
   return res;
 }
 
@@ -1798,16 +1790,57 @@ async function composerSend(action){
   if(action==='draft'){input.mode='addToQueue';input.saveToDraft=true;}
   if(action==='queue'){input.mode='addToQueue';}
   if(action==='schedule'){if(!when){qs('composerStatus').textContent='Pick a date/time first.';return;}input.mode='customScheduled';input.dueAt=when;}
+  // Attach image URL if provided
+  const imgUrl = qs('composerImageUrl').value.trim();
+  if(imgUrl) input.assets = { images: [{ url: imgUrl }] };
   try{
+    qs('composerStatus').textContent='Sending…';
     const res = await createPost(input);
     const cp = res?.data?.createPost;
-    console.log('[PostIQ] createPost __typename:', cp?.__typename, 'post.id:', cp?.post?.id);
-    const postId = cp?.post?.id || null;
-    const apiErr = cp?.error?.message || null;
+    const apiErr = cp?.message || null; // MutationError shape
     if(apiErr) throw new Error(apiErr);
     const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
     qs('composerStatus').textContent=msg;showToast(msg);
   }catch(e){qs('composerStatus').textContent=`Failed: ${e.message}`;}
+}
+
+function openImageLibrary(){
+  const grid = qs('imageLibraryGrid');
+  const empty = qs('imageLibraryEmpty');
+  grid.innerHTML='';
+
+  // Collect all unique image URLs from synced posts
+  const seen = new Set();
+  const images = [];
+  (state.scheduled||[]).forEach(post=>{
+    (post.assets||[]).forEach(asset=>{
+      if(asset.url && !seen.has(asset.url)){
+        seen.add(asset.url);
+        images.push(asset);
+      }
+    });
+  });
+
+  if(!images.length){
+    empty.style.display='block';
+    grid.style.display='none';
+  } else {
+    empty.style.display='none';
+    grid.style.display='grid';
+    images.forEach(asset=>{
+      const item = document.createElement('div');
+      item.className='img-library-item';
+      item.innerHTML=`<img src="${asset.url}" loading="lazy" alt="" /><div class="img-library-item-url">${asset.url}</div>`;
+      item.onclick=()=>{
+        qs('composerImageUrl').value=asset.url;
+        qs('composerImageUrl').dispatchEvent(new Event('input'));
+        closeModal('imageLibraryModal');
+        showToast('Image URL inserted.');
+      };
+      grid.appendChild(item);
+    });
+  }
+  openModal('imageLibraryModal');
 }
 
 function init(){
@@ -1937,6 +1970,32 @@ function init(){
   qs('pickerSearch').addEventListener('input',renderSnippetPicker);
   qs('pickerType').onchange=renderSnippetPicker;
   qs('pickerPlatform').onchange=renderSnippetPicker;
+
+  // Image library
+  qs('openImageLibraryBtn').onclick=openImageLibrary;
+  qs('closeImageLibrary').onclick=()=>closeModal('imageLibraryModal');
+
+  // Image URL preview + clear
+  qs('composerImageUrl').addEventListener('input', ()=>{
+    const url = qs('composerImageUrl').value.trim();
+    const preview = qs('composerImagePreview');
+    const clearBtn = qs('composerImageClear');
+    if(url){
+      preview.innerHTML=`<img src="${url}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border2);" onerror="this.parentElement.style.display='none'" />`;
+      preview.style.display='block';
+      clearBtn.style.display='inline-flex';
+    } else {
+      preview.style.display='none';
+      preview.innerHTML='';
+      clearBtn.style.display='none';
+    }
+  });
+  qs('composerImageClear').onclick=()=>{
+    qs('composerImageUrl').value='';
+    qs('composerImagePreview').style.display='none';
+    qs('composerImagePreview').innerHTML='';
+    qs('composerImageClear').style.display='none';
+  };
 }
 document.addEventListener('DOMContentLoaded', init);
 </script>
