@@ -612,20 +612,42 @@
     .char-hint { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--subtle); margin-left: auto; }
 
     /* ── RECURRING TOGGLE ── */
-    .recur-toggle-row {
+    .composer-actions-wrap { display: flex; flex-direction: column; gap: 0; }
+    .composer-actions-row {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-top: 10px;
-      padding: 10px 12px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .recur-inline-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
       border: 1px solid var(--border2);
       border-radius: 8px;
       background: var(--surface2);
       cursor: pointer;
       user-select: none;
-      transition: border-color 0.15s;
+      transition: border-color 0.15s, background 0.15s;
     }
-    .recur-toggle-row.active { border-color: var(--amber); }
+    .recur-inline-toggle:hover { border-color: var(--amber); }
+    .recur-inline-toggle.active {
+      border-color: var(--amber);
+      background: var(--amber)11;
+    }
+    .recur-inline-label { font-size: 12px; color: var(--muted); }
+    .recur-inline-toggle.active .recur-inline-label { color: var(--amber); }
+    .recur-options {
+      display: none;
+      margin-top: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--amber)44;
+      border-radius: 8px;
+      background: var(--surface2);
+    }
+    .recur-options.visible { display: block; }
+    .recur-options-lbl { font-size: 11px; color: var(--subtle); font-family: 'DM Mono', monospace; }
     .recur-switch {
       width: 32px; height: 18px;
       background: var(--surface3);
@@ -643,28 +665,18 @@
       top: 3px; left: 3px;
       transition: transform 0.2s, background 0.2s;
     }
-    .recur-toggle-row.active .recur-switch { background: var(--amber)22; }
-    .recur-toggle-row.active .recur-switch::after { transform: translateX(14px); background: var(--amber); }
-    .recur-label { font-size: 13px; color: var(--text); flex: 1; }
+    .recur-inline-toggle.active .recur-switch { background: var(--amber)22; }
+    .recur-inline-toggle.active .recur-switch::after { transform: translateX(14px); background: var(--amber); }
     .recur-badge {
       font-size: 10px;
       font-family: 'DM Mono', monospace;
-      padding: 2px 7px;
+      padding: 2px 6px;
       border-radius: 4px;
       background: var(--amber)22;
       color: var(--amber);
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-    .recur-options {
-      display: none;
-      margin-top: 10px;
-      padding: 12px;
-      border: 1px solid var(--amber)44;
-      border-radius: 8px;
-      background: var(--surface2);
-    }
-    .recur-options.visible { display: block; }
     .recur-options-grid {
       display: flex;
       gap: 8px;
@@ -1180,37 +1192,38 @@
           <span style="color:var(--subtle);font-size:12px;">Add your Buffer token and click <strong style="color:var(--text);">↻ Load from Buffer</strong> to see your channels.</span>
         </div>
         <div id="composerChannelHint" class="status-txt mt8" style="display:none;"></div>
-        <div class="composer-actions mt10">
-          <button class="btn" id="composerDraft">Save draft</button>
-          <button class="btn success" id="composerQueue">Add to queue</button>
-          <button class="btn primary" id="composerSchedule">Schedule</button>
-          <span class="char-hint" id="composerCharCount">0 chars</span>
-        </div>
-        <div class="status-txt mt8" style="color:var(--subtle);font-size:11px;">Schedule requires a date/time above. For images/video, save as draft then attach in Buffer.</div>
-        <div id="composerStatus" class="status-txt mt8"></div>
-
-        <!-- Recurring -->
-        <div class="recur-toggle-row" id="recurToggleRow">
-          <div class="recur-switch"></div>
-          <span class="recur-label">Make this post recurring</span>
-          <span class="recur-badge">Beta</span>
-        </div>
-        <div class="recur-options" id="recurOptions">
-          <div class="recur-options-grid">
-            <button class="recur-freq-btn active" data-freq="weekly">Weekly</button>
-            <button class="recur-freq-btn" data-freq="daily">Daily</button>
-            <button class="recur-freq-btn" data-freq="monthly">Monthly</button>
-            <select class="input recur-day-select" id="recurDaySelect">
-              <option value="1">Every Monday</option>
-              <option value="2">Every Tuesday</option>
-              <option value="3">Every Wednesday</option>
-              <option value="4">Every Thursday</option>
-              <option value="5">Every Friday</option>
-              <option value="6">Every Saturday</option>
-              <option value="0">Every Sunday</option>
-            </select>
+        <div class="composer-actions-wrap mt10">
+          <div class="composer-actions-row">
+            <button class="btn" id="composerDraft">Save draft</button>
+            <button class="btn success" id="composerQueue">Add to queue</button>
+            <button class="btn primary" id="composerSchedule">Schedule</button>
+            <div class="recur-inline-toggle" id="recurToggleRow" title="Make recurring (Beta)">
+              <div class="recur-switch"></div>
+              <span class="recur-inline-label">Recurring</span>
+              <span class="recur-badge">Beta</span>
+            </div>
+            <span class="char-hint" id="composerCharCount" style="margin-left:auto;">0 chars</span>
           </div>
-          <div class="recur-hint" id="recurHint">↺ Will repeat weekly — uses the scheduled date/time above as the first occurrence.</div>
+          <div class="recur-options" id="recurOptions">
+            <div class="recur-options-grid">
+              <span class="recur-options-lbl">↺ Repeat:</span>
+              <button class="recur-freq-btn active" data-freq="weekly">Weekly</button>
+              <button class="recur-freq-btn" data-freq="daily">Daily</button>
+              <button class="recur-freq-btn" data-freq="monthly">Monthly</button>
+              <select class="input recur-day-select" id="recurDaySelect">
+                <option value="1">Every Monday</option>
+                <option value="2">Every Tuesday</option>
+                <option value="3">Every Wednesday</option>
+                <option value="4">Every Thursday</option>
+                <option value="5">Every Friday</option>
+                <option value="6">Every Saturday</option>
+                <option value="0">Every Sunday</option>
+              </select>
+            </div>
+            <div class="recur-hint" id="recurHint">Uses the scheduled date/time above as the first occurrence.</div>
+          </div>
+          <div class="status-txt mt6" style="color:var(--subtle);font-size:11px;">Schedule requires a date/time above · Images/video: save draft → attach in Buffer.</div>
+          <div id="composerStatus" class="status-txt mt6"></div>
         </div>
       </div>
       <!-- Ideas Drawer -->
