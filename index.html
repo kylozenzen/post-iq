@@ -2216,4 +2216,9 @@ function init(){
   qs('snippetPlatformFilter').onchange=e=>{state.snippetPlatform=e.target.value;renderSnippets();};
   qs('pickerSearch').addEventListener('input',renderSnippetPicker);
   qs('pickerType').onchange=renderSnippetPicker;
-  qs('pickerPlatform
+  qs('pickerPlatform').onchange=renderSnippetPicker;
+}
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
