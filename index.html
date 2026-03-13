@@ -726,6 +726,15 @@
       margin-top: 6px;
       font-family: 'DM Mono', monospace;
     }
+    .recur-note {
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--surface3);
+      border-radius: 6px;
+      padding: 6px 10px;
+      line-height: 1.5;
+    }
+    .recur-note strong { color: var(--text); }
 
     /* ── IDEAS PANEL ── */
     .ideas-drawer {
@@ -1166,12 +1175,13 @@
       </div>
 
       <div id="calendarEmpty" class="empty mt8" style="display:none;">
-        No scheduled posts found for this month.<br>
-        <span style="color:var(--subtle);font-size:12px;">Posts come from Buffer. Click <strong style="color:var(--text);">↻ Load from Buffer</strong> in the sidebar to sync your scheduled posts.</span>
+        No scheduled posts this month — you're all clear. 🎉<br>
+        <span style="color:var(--subtle);font-size:12px;">Use the Composer to schedule posts, or hit ↻ Load from Buffer to re-sync.</span>
       </div>
-      <div id="calendarNotSynced" class="empty mt8">
-        Your calendar is empty — connect Buffer to get started.<br>
+      <div id="calendarNotSynced" class="empty mt8" style="display:none;">
+        Connect Buffer to see your content calendar.<br>
         <span style="color:var(--subtle);font-size:12px;">Add your Buffer API token in the sidebar, then click <strong style="color:var(--text);">↻ Load from Buffer</strong>.</span>
+        <button class="btn sm ghost mt8" onclick="syncBuffer()" style="display:block;width:100%;">↻ Load from Buffer</button>
       </div>
       <div class="cal-grid" id="calGrid"></div>
     </section>
@@ -1236,7 +1246,8 @@
 
           <!-- Recurring panel — shown only when toggle is active -->
           <div class="recur-panel" id="recurOptions">
-            <div class="recur-panel-row">
+            <div class="recur-note">📌 <strong>First post</strong> sets the exact date &amp; time it goes live. <strong>Frequency</strong> controls how often it repeats after that.</div>
+            <div class="recur-panel-row mt8">
               <span class="recur-panel-lbl">First post</span>
               <input id="recurWhenDate" type="date" class="input when-date" />
               <select id="recurWhenHour" class="input when-time"></select>
@@ -1849,11 +1860,14 @@ function renderCalendar(){
   const first=monthStart(state.month);const start=new Date(first);start.setDate(1-first.getDay());
   const notes=getNotes();
   const today=fmtDate(new Date());
-  const hasSynced=state.syncState==='success'||state.syncState==='partial';
-  const monthPosts=postsByMonth(state.month);
+  const hasSynced = state.syncState==='success' || state.syncState==='partial';
+  const hasToken = !!bufferToken;
+  const monthPosts = postsByMonth(state.month);
 
-  qs('calendarNotSynced').style.display=hasSynced?'none':'block';
-  qs('calendarEmpty').style.display=(hasSynced&&!monthPosts.length)?'block':'none';
+  // Not synced = has token but never loaded, OR no token at all
+  qs('calendarNotSynced').style.display = (!hasSynced) ? 'block' : 'none';
+  // Empty = synced successfully but no posts this month
+  qs('calendarEmpty').style.display = (hasSynced && !monthPosts.length) ? 'block' : 'none';
 
   for(let i=0;i<42;i++){
     const d=new Date(start);d.setDate(start.getDate()+i);
@@ -1972,7 +1986,7 @@ function renderSharedFromHash(){
 }
 
 async function createPost(input){
-  return callBuffer('mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename}}',{input});
+  return callBuffer('mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename post{id}}}',{input});
 }
 
 async function attachRecurrence(postId){
@@ -2039,9 +2053,10 @@ async function composerSend(action){
   if(isRecurring && action!=='schedule'){qs('composerStatus').textContent='Recurring posts require a scheduled date/time.';return;}
   try{
     const res = await createPost(input);
-    console.log('[PostIQ] createPost raw response:', JSON.stringify(res?.data, null, 2));
-    const postId = res?.data?.createPost?.id || null;
-    const apiErr = res?.data?.createPost?.errors?.[0]?.message;
+    const cp = res?.data?.createPost;
+    console.log('[PostIQ] createPost raw:', JSON.stringify(cp, null, 2));
+    const postId = cp?.post?.id || cp?.id || cp?.postId || null;
+    const apiErr = cp?.error?.message || cp?.errors?.[0]?.message || null;
     if(apiErr) throw new Error(apiErr);
     if(isRecurring && postId){
       await attachRecurrence(postId);
