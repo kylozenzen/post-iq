@@ -611,6 +611,233 @@
     }
     .char-hint { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--subtle); margin-left: auto; }
 
+    /* ── RECURRING TOGGLE ── */
+    .recur-toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      background: var(--surface2);
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 0.15s;
+    }
+    .recur-toggle-row.active { border-color: var(--amber); }
+    .recur-switch {
+      width: 32px; height: 18px;
+      background: var(--surface3);
+      border-radius: 9px;
+      position: relative;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .recur-switch::after {
+      content: '';
+      position: absolute;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--muted);
+      top: 3px; left: 3px;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .recur-toggle-row.active .recur-switch { background: var(--amber)22; }
+    .recur-toggle-row.active .recur-switch::after { transform: translateX(14px); background: var(--amber); }
+    .recur-label { font-size: 13px; color: var(--text); flex: 1; }
+    .recur-badge {
+      font-size: 10px;
+      font-family: 'DM Mono', monospace;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: var(--amber)22;
+      color: var(--amber);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .recur-options {
+      display: none;
+      margin-top: 10px;
+      padding: 12px;
+      border: 1px solid var(--amber)44;
+      border-radius: 8px;
+      background: var(--surface2);
+    }
+    .recur-options.visible { display: block; }
+    .recur-options-grid {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .recur-freq-btn {
+      padding: 5px 12px;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      background: var(--surface3);
+      color: var(--muted);
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .recur-freq-btn.active {
+      border-color: var(--amber);
+      color: var(--amber);
+      background: var(--amber)11;
+    }
+    .recur-day-select { max-width: 140px; }
+    .recur-hint {
+      font-size: 11px;
+      color: var(--subtle);
+      margin-top: 6px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* ── IDEAS PANEL ── */
+    .ideas-drawer {
+      margin-top: 12px;
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .ideas-drawer-hdr {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--surface2);
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.15s;
+    }
+    .ideas-drawer.open .ideas-drawer-hdr {
+      border-bottom-color: var(--border2);
+    }
+    .ideas-drawer-hdr:hover { background: var(--surface3); }
+    .ideas-drawer-label {
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      color: var(--subtle);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      flex: 1;
+    }
+    .ideas-drawer-chevron {
+      font-size: 11px;
+      color: var(--subtle);
+      transition: transform 0.2s;
+    }
+    .ideas-drawer.open .ideas-drawer-chevron { transform: rotate(180deg); }
+    .ideas-drawer-body {
+      display: none;
+      padding: 12px;
+      background: var(--surface);
+    }
+    .ideas-drawer.open .ideas-drawer-body { display: block; }
+    .ideas-search {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    .ideas-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 340px;
+      overflow-y: auto;
+    }
+    .idea-card {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 10px 12px;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      background: var(--surface2);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .idea-card:hover { border-color: var(--blue); background: var(--surface3); }
+    .idea-card-thumb {
+      width: 42px;
+      height: 42px;
+      border-radius: 6px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: var(--surface3);
+    }
+    .idea-card-thumb-placeholder {
+      width: 42px;
+      height: 42px;
+      border-radius: 6px;
+      background: var(--surface3);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .idea-card-body { flex: 1; min-width: 0; }
+    .idea-card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+    .idea-card-text {
+      font-size: 12px;
+      color: var(--subtle);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .idea-card-meta {
+      display: flex;
+      gap: 6px;
+      margin-top: 5px;
+      flex-wrap: wrap;
+    }
+    .idea-pill {
+      font-size: 10px;
+      font-family: 'DM Mono', monospace;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--surface3);
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .idea-card-import {
+      font-size: 11px;
+      color: var(--blue);
+      font-family: 'DM Mono', monospace;
+      flex-shrink: 0;
+      align-self: center;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .idea-card:hover .idea-card-import { opacity: 1; }
+    .ideas-empty {
+      text-align: center;
+      padding: 24px;
+      color: var(--subtle);
+      font-size: 13px;
+    }
+    .ideas-loading {
+      text-align: center;
+      padding: 20px;
+      color: var(--subtle);
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+    }
+
     /* ── MODALS ── */
     .modal {
       position: fixed;
@@ -961,6 +1188,46 @@
         </div>
         <div class="status-txt mt8" style="color:var(--subtle);font-size:11px;">Schedule requires a date/time above. For images/video, save as draft then attach in Buffer.</div>
         <div id="composerStatus" class="status-txt mt8"></div>
+
+        <!-- Recurring -->
+        <div class="recur-toggle-row" id="recurToggleRow">
+          <div class="recur-switch"></div>
+          <span class="recur-label">Make this post recurring</span>
+          <span class="recur-badge">Beta</span>
+        </div>
+        <div class="recur-options" id="recurOptions">
+          <div class="recur-options-grid">
+            <button class="recur-freq-btn active" data-freq="weekly">Weekly</button>
+            <button class="recur-freq-btn" data-freq="daily">Daily</button>
+            <button class="recur-freq-btn" data-freq="monthly">Monthly</button>
+            <select class="input recur-day-select" id="recurDaySelect">
+              <option value="1">Every Monday</option>
+              <option value="2">Every Tuesday</option>
+              <option value="3">Every Wednesday</option>
+              <option value="4">Every Thursday</option>
+              <option value="5">Every Friday</option>
+              <option value="6">Every Saturday</option>
+              <option value="0">Every Sunday</option>
+            </select>
+          </div>
+          <div class="recur-hint" id="recurHint">↺ Will repeat weekly — uses the scheduled date/time above as the first occurrence.</div>
+        </div>
+      </div>
+      <!-- Ideas Drawer -->
+      <div class="ideas-drawer" id="ideasDrawer">
+        <div class="ideas-drawer-hdr" id="ideasDrawerToggle">
+          <span style="font-size:16px;">💡</span>
+          <span class="ideas-drawer-label">Import from Buffer Ideas</span>
+          <span class="ideas-drawer-count" id="ideasCount" style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);"></span>
+          <button class="btn sm ghost" id="ideasRefreshBtn" style="font-size:11px;padding:3px 8px;" onclick="event.stopPropagation();loadIdeas(true)">↻ Refresh</button>
+          <span class="ideas-drawer-chevron">▼</span>
+        </div>
+        <div class="ideas-drawer-body">
+          <input class="input ideas-search" id="ideasSearch" placeholder="Search ideas…" />
+          <div class="ideas-grid" id="ideasGrid">
+            <div class="ideas-empty">Click to load your Buffer Ideas</div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1030,7 +1297,7 @@
   </div>
   <p style="font-size:13px;color:var(--muted);line-height:1.7;">Open to work — social media and content marketing roles. If you enjoy this app, message Ben on Discord with feedback.</p>
   <p style="font-size:13px;margin-top:10px;color:var(--muted);">
-    Email: <a href="mailto:hirebencampbell@gmail.com" style="color:var(--blue);">hirebencampbell@gmail.com</a><br>
+    Email: <a href="/cdn-cgi/l/email-protection#741c1d061116111a1715190416111818341319151d185a171b19" style="color:var(--blue);"><span class="__cf_email__" data-cfemail="1971706b7c7b7c777a7874697b7c7575597e74787075377a7674">[email&#160;protected]</span></a><br>
     Portfolio: <a href="https://bencampbell.netlify.app/" target="_blank" style="color:var(--blue);">bencampbell.netlify.app</a><br>
     LinkedIn: <a href="https://www.linkedin.com/in/bencampbell8/" target="_blank" style="color:var(--blue);">linkedin.com/in/bencampbell8</a>
   </p>
@@ -1154,7 +1421,7 @@
   <div id="sharedGrid" class="cal-grid mt8"></div>
 </section>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const STORE_KEY='postiq_buffer_token';
 const NOTE_KEY='postiq_calendar_notes_v2';
 const ONBOARDING_KEY='postiq_onboarding_seen_v1';
@@ -1649,7 +1916,31 @@ function renderSharedFromHash(){
 }
 
 async function createPost(input){
-  return callBuffer('mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename}}',{input});
+  return callBuffer('mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename ... on Post{id} ... on CoreWebAppError{message}}}',{input});
+}
+
+async function attachRecurrence(postId){
+  const freq = document.querySelector('.recur-freq-btn.active')?.dataset?.freq || 'weekly';
+  const dayOfWeek = parseInt(qs('recurDaySelect').value);
+  // Best-guess input shape — Buffer will tell us if fields are wrong via error
+  const recurInput = { postId, frequency: freq };
+  if(freq==='weekly') recurInput.dayOfWeek = dayOfWeek;
+  if(freq==='monthly') recurInput.dayOfMonth = new Date().getDate();
+  try{
+    const res = await callBuffer(
+      'mutation CreatePostRecurrence($input:CreatePostRecurrenceInput!){createPostRecurrence(input:$input){__typename ... on PostRecurrence{id frequency} ... on CoreWebAppError{message}}}',
+      {input: recurInput}
+    );
+    const result = res?.data?.createPostRecurrence;
+    if(result?.__typename==='CoreWebAppError') throw new Error(result.message);
+    return res;
+  }catch(e){
+    // Surface the raw error so we can learn the correct shape
+    const status = qs('composerStatus');
+    status.textContent = `Post scheduled. Recurrence error (beta): ${e.message}`;
+    status.style.color = 'var(--amber)';
+    throw e;
+  }
 }
 
 function composerFormat(cmd){
@@ -1686,11 +1977,24 @@ async function composerSend(action){
   if(action==='draft'){input.mode='addToQueue';input.saveToDraft=true;}
   if(action==='queue'){input.mode='addToQueue';}
   if(action==='schedule'){if(!when){qs('composerStatus').textContent='Pick a date/time first.';return;}input.mode='customScheduled';input.dueAt=when;}
+  const isRecurring = qs('recurToggleRow').classList.contains('active');
+  if(isRecurring && action!=='schedule'){qs('composerStatus').textContent='Recurring posts require a scheduled date/time.';return;}
   try{
-    await createPost(input);
-    const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
+    const res = await createPost(input);
+    // Try to extract postId for recurrence
+    const postId = res?.data?.createPost?.id || res?.data?.createPost?.post?.id || null;
+    if(isRecurring && postId){
+      await attachRecurrence(postId);
+    } else if(isRecurring && !postId){
+      // Post created but couldn't get ID — surface what we got
+      qs('composerStatus').textContent='Post created. Recurrence skipped — could not get post ID from response.';
+      showToast('Scheduled. Recurrence not attached (no postId returned).');
+      return;
+    }
+    const recurSuffix = isRecurring ? ' + recurring set.' : '.';
+    const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':`Scheduled${recurSuffix}`;
     qs('composerStatus').textContent=msg;showToast(msg);
-  }catch(e){qs('composerStatus').textContent='Failed. Check token/channel.';}
+  }catch(e){qs('composerStatus').textContent=`Failed: ${e.message}`;}
 }
 
 function init(){
@@ -1753,6 +2057,24 @@ function init(){
   qs('composerDraft').onclick=()=>composerSend('draft');
   qs('composerQueue').onclick=()=>composerSend('queue');
   qs('composerSchedule').onclick=()=>composerSend('schedule');
+
+  // Recurring toggle
+  const recurRow = qs('recurToggleRow');
+  const recurOpts = qs('recurOptions');
+  recurRow.onclick = () => {
+    recurRow.classList.toggle('active');
+    recurOpts.classList.toggle('visible', recurRow.classList.contains('active'));
+  };
+  document.querySelectorAll('.recur-freq-btn').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.recur-freq-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const freq = btn.dataset.freq;
+      qs('recurDaySelect').style.display = freq==='weekly' ? '' : 'none';
+      const hints = { daily:'↺ Will repeat every day at the scheduled time.', weekly:'↺ Will repeat weekly — uses the scheduled date/time above as the first occurrence.', monthly:'↺ Will repeat monthly on the same date.' };
+      qs('recurHint').textContent = hints[freq] || '';
+    };
+  });
   qs('insertSnippetBtn').onclick=()=>openSnippetPicker('composer');
   qs('saveSelectionSnippetBtn').onclick=()=>{
     const sel=window.getSelection();const text=(sel&&sel.toString?sel.toString():'').trim();
@@ -1765,6 +2087,125 @@ function init(){
 
   qs('composerChannel').addEventListener('change', updateComposerChannelHint);
 
+  // ── IDEAS DRAWER ──
+  let ideasCache = [];
+  let ideasLoaded = false;
+
+  qs('ideasDrawerToggle').onclick = () => {
+    const drawer = qs('ideasDrawer');
+    const isOpen = drawer.classList.toggle('open');
+    if (isOpen && !ideasLoaded) loadIdeas();
+  };
+
+  qs('ideasSearch').addEventListener('input', () => renderIdeas(ideasCache));
+
+  async function loadIdeas(force = false) {
+    if (ideasLoaded && !force) return;
+    const grid = qs('ideasGrid');
+    grid.innerHTML = '<div class="ideas-loading">Loading ideas…</div>';
+    try {
+      // Get orgId fresh
+      const acc = await callBuffer('query { account { organizations { id } } }');
+      const orgId = acc?.data?.account?.organizations?.[0]?.id;
+      if (!orgId) { grid.innerHTML = '<div class="ideas-empty">Could not find organization. Load channels first.</div>'; return; }
+
+      const q = `query GetIdeasBoard($organizationId: ID!) {
+        ideasV2(input: {organizationId: $organizationId}, first: 1000) {
+          edges {
+            node {
+              id
+              content {
+                title
+                text
+                date
+                services
+                media { id url alt thumbnailUrl type }
+                tags { id name color }
+              }
+              createdAt
+            }
+          }
+        }
+      }`;
+      const res = await callBuffer(q, { organizationId: orgId });
+      ideasCache = res?.data?.ideasV2?.edges?.map(e => e.node) || [];
+      ideasLoaded = true;
+      qs('ideasCount').textContent = ideasCache.length ? `${ideasCache.length} ideas` : '';
+      renderIdeas(ideasCache);
+    } catch(e) {
+      grid.innerHTML = `<div class="ideas-empty">Failed to load ideas.<br><span style="font-size:11px;">${e.message}</span></div>`;
+    }
+  }
+
+  function renderIdeas(ideas) {
+    const grid = qs('ideasGrid');
+    const q = qs('ideasSearch').value.toLowerCase().trim();
+    const filtered = q
+      ? ideas.filter(i => (i.content?.title||'').toLowerCase().includes(q) || (i.content?.text||'').toLowerCase().includes(q))
+      : ideas;
+
+    if (!filtered.length) {
+      grid.innerHTML = '<div class="ideas-empty">No ideas found.</div>';
+      return;
+    }
+
+    grid.innerHTML = '';
+    filtered.forEach(idea => {
+      const c = idea.content || {};
+      const thumb = c.media?.[0]?.thumbnailUrl || c.media?.[0]?.url || null;
+      const services = (c.services || []).map(s => `<span class="idea-pill">${s}</span>`).join('');
+      const tags = (c.tags || []).map(t => `<span class="idea-pill" style="background:${t.color}22;color:${t.color};">${t.name}</span>`).join('');
+      const date = c.date ? `<span class="idea-pill">${new Date(c.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>` : '';
+
+      const card = document.createElement('div');
+      card.className = 'idea-card';
+      card.innerHTML = `
+        ${thumb
+          ? `<img class="idea-card-thumb" src="${thumb}" alt="${c.alt||''}" />`
+          : `<div class="idea-card-thumb-placeholder">💡</div>`}
+        <div class="idea-card-body">
+          <div class="idea-card-title">${c.title || c.text?.slice(0,60) || 'Untitled idea'}</div>
+          ${c.text ? `<div class="idea-card-text">${c.text}</div>` : ''}
+          <div class="idea-card-meta">${services}${tags}${date}</div>
+        </div>
+        <span class="idea-card-import">Import →</span>
+      `;
+      card.onclick = () => importIdeaToComposer(idea);
+      grid.appendChild(card);
+    });
+  }
+
+  function importIdeaToComposer(idea) {
+    const c = idea.content || {};
+    const text = [c.title, c.text].filter(Boolean).join('\n\n');
+
+    // Fill editor
+    const editor = qs('composerEditor');
+    editor.innerHTML = text.split('\n').map(l => `<div>${l || '<br>'}</div>`).join('');
+    qs('composerEmpty').style.display = 'none';
+    qs('composerCharCount').textContent = `${text.length} chars`;
+
+    // Match channel by service if possible
+    if (c.services?.length) {
+      const sel = qs('composerChannel');
+      const target = c.services[0].toLowerCase();
+      const match = Array.from(sel.options).find(o => o.textContent.toLowerCase().includes(target));
+      if (match) { sel.value = match.value; updateComposerChannelHint(); }
+    }
+
+    // Pre-fill date if idea has one
+    if (c.date) {
+      const d = new Date(c.date);
+      const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+      qs('composerWhen').value = local;
+    }
+
+    // Close drawer, go to composer
+    qs('ideasDrawer').classList.remove('open');
+    activateView('composerView');
+    showToast(`Idea imported → ${c.title ? '"' + c.title.slice(0,30) + '"' : 'composer ready'}`);
+  }
+
   // snippets
   qs('newSnippetBtn').onclick=()=>openSnippetModal();
   qs('closeSnippetModal').onclick=()=>closeModal('snippetModal');
@@ -1775,15 +2216,4 @@ function init(){
   qs('snippetPlatformFilter').onchange=e=>{state.snippetPlatform=e.target.value;renderSnippets();};
   qs('pickerSearch').addEventListener('input',renderSnippetPicker);
   qs('pickerType').onchange=renderSnippetPicker;
-  qs('pickerPlatform').onchange=renderSnippetPicker;
-
-  renderSnippetSelectors();
-  loadSnippets();renderSnippets();renderCalendar();renderThread();
-  qs('composerEmpty').style.display='block';
-  if(!hasSeenOnboarding())openOnboarding();
-}
-
-init();
-</script>
-</body>
-</html>
+  qs('pickerPlatform
