@@ -614,7 +614,6 @@
     .when-date { max-width: 150px; }
     .when-time { max-width: 80px; }
     /* ── RECURRING PANEL ── */
-    .recur-panel {
       display: none;
       margin-top: 8px;
       padding: 10px 12px;
@@ -622,119 +621,8 @@
       border-radius: 8px;
       background: var(--surface2);
     }
-    .recur-panel.visible { display: block; }
-    .recur-panel-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .recur-panel-lbl { font-size: 11px; color: var(--subtle); font-family: 'DM Mono', monospace; min-width: 52px; }
-    .recur-day-lbl { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
-    .recur-options-lbl { font-size: 11px; color: var(--subtle); font-family: 'DM Mono', monospace; }
     .composer-actions { display: flex; gap: 6px; align-items: center; margin-top: 10px; }
     .char-hint { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--subtle); margin-left: auto; }
-
-    /* ── RECURRING TOGGLE ── */
-    .composer-actions-wrap { display: flex; flex-direction: column; gap: 0; }
-    .composer-actions-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .recur-inline-toggle {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 10px;
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      background: var(--surface2);
-      cursor: pointer;
-      user-select: none;
-      transition: border-color 0.15s, background 0.15s;
-    }
-    .recur-inline-toggle:hover { border-color: var(--amber); }
-    .recur-inline-toggle.active {
-      border-color: var(--amber);
-      background: var(--amber)11;
-    }
-    .recur-inline-label { font-size: 12px; color: var(--muted); }
-    .recur-inline-toggle.active .recur-inline-label { color: var(--amber); }
-    .recur-options {
-      display: none;
-      margin-top: 8px;
-      padding: 10px 12px;
-      border: 1px solid var(--amber)44;
-      border-radius: 8px;
-      background: var(--surface2);
-    }
-    .recur-options.visible { display: block; }
-    .recur-options-lbl { font-size: 11px; color: var(--subtle); font-family: 'DM Mono', monospace; }
-    .recur-switch {
-      width: 32px; height: 18px;
-      background: var(--surface3);
-      border-radius: 9px;
-      position: relative;
-      flex-shrink: 0;
-      transition: background 0.2s;
-    }
-    .recur-switch::after {
-      content: '';
-      position: absolute;
-      width: 12px; height: 12px;
-      border-radius: 50%;
-      background: var(--muted);
-      top: 3px; left: 3px;
-      transition: transform 0.2s, background 0.2s;
-    }
-    .recur-inline-toggle.active .recur-switch { background: var(--amber)22; }
-    .recur-inline-toggle.active .recur-switch::after { transform: translateX(14px); background: var(--amber); }
-    .recur-badge {
-      font-size: 10px;
-      font-family: 'DM Mono', monospace;
-      padding: 2px 6px;
-      border-radius: 4px;
-      background: var(--amber)22;
-      color: var(--amber);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .recur-options-grid {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    .recur-freq-btn {
-      padding: 5px 12px;
-      border: 1px solid var(--border2);
-      border-radius: 6px;
-      background: var(--surface3);
-      color: var(--muted);
-      font-size: 12px;
-      font-family: 'DM Mono', monospace;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .recur-freq-btn.active {
-      border-color: var(--amber);
-      color: var(--amber);
-      background: var(--amber)11;
-    }
-    .recur-day-select { max-width: 140px; }
-    .recur-hint {
-      font-size: 11px;
-      color: var(--subtle);
-      margin-top: 6px;
-      font-family: 'DM Mono', monospace;
-    }
-    .recur-note {
-      font-size: 11px;
-      color: var(--muted);
-      background: var(--surface3);
-      border-radius: 6px;
-      padding: 6px 10px;
-      line-height: 1.5;
-    }
-    .recur-note strong { color: var(--text); }
 
     /* ── IDEAS PANEL ── */
     .ideas-drawer {
@@ -1221,8 +1109,7 @@
         </div>
         <div id="composerChannelHint" class="status-txt mt8" style="display:none;"></div>
 
-        <!-- Normal schedule row (hidden when recurring active) -->
-        <div class="composer-when-row mt10" id="normalWhenRow">
+        <div class="composer-when-row mt10">
           <span class="when-lbl">📅 Schedule for</span>
           <input id="composerWhenDate" type="date" class="input when-date" />
           <select id="composerWhenHour" class="input when-time"></select>
@@ -1236,54 +1123,7 @@
             <button class="btn" id="composerDraft">Save draft</button>
             <button class="btn success" id="composerQueue">Add to queue</button>
             <button class="btn primary" id="composerSchedule">Schedule</button>
-            <div class="recur-inline-toggle" id="recurToggleRow" title="Make recurring (Beta)">
-              <div class="recur-switch"></div>
-              <span class="recur-inline-label">↺ Recurring</span>
-              <span class="recur-badge">Beta</span>
-            </div>
             <span class="char-hint" id="composerCharCount" style="margin-left:auto;">0 chars</span>
-          </div>
-
-          <!-- Recurring panel — shown only when toggle is active -->
-          <div class="recur-panel" id="recurOptions">
-            <div class="recur-note">📌 <strong>First post</strong> sets the exact date &amp; time it goes live. <strong>Frequency</strong> controls how often it repeats after that.</div>
-            <div class="recur-panel-row mt8">
-              <span class="recur-panel-lbl">First post</span>
-              <input id="recurWhenDate" type="date" class="input when-date" />
-              <select id="recurWhenHour" class="input when-time"></select>
-              <select id="recurWhenMin" class="input when-time"></select>
-              <select id="recurWhenAmpm" class="input when-time"></select>
-            </div>
-            <div class="recur-panel-row mt8">
-              <span class="recur-panel-lbl">Frequency</span>
-              <button class="recur-freq-btn active" data-freq="weekly">Weekly</button>
-              <button class="recur-freq-btn" data-freq="daily">Daily</button>
-              <button class="recur-freq-btn" data-freq="monthly">Monthly</button>
-            </div>
-            <div class="recur-panel-row mt6" id="recurDayRow">
-              <span class="recur-panel-lbl">Day</span>
-              <select class="input" id="recurDaySelect" style="max-width:160px;">
-                <option value="1">Monday</option>
-                <option value="2">Tuesday</option>
-                <option value="3">Wednesday</option>
-                <option value="4">Thursday</option>
-                <option value="5">Friday</option>
-                <option value="6">Saturday</option>
-                <option value="0">Sunday</option>
-              </select>
-            </div>
-            <div class="recur-panel-row mt6">
-              <span class="recur-panel-lbl">Max posts</span>
-              <select class="input" id="recurMaxPosts" style="max-width:120px;">
-                <option value="4">4 times</option>
-                <option value="12">12 times</option>
-                <option value="26">26 times</option>
-                <option value="52" selected>52 times</option>
-                <option value="104">104 times</option>
-              </select>
-            </div>
-            <div class="recur-hint" id="recurHint">↺ Will post every week on the selected day at the time above.</div>
-            <button class="btn primary mt8" id="composerRecurSchedule" style="width:100%;">↺ Schedule Recurring Post</button>
           </div>
 
           <div class="status-txt mt6" style="color:var(--subtle);font-size:11px;" id="composerWhenHint">For images/video, save draft → attach in Buffer.</div>
@@ -2001,31 +1841,6 @@ async function createPost(input){
   return res;
 }
 
-async function attachRecurrence(postId){
-  const freq = document.querySelector('.recur-freq-btn.active')?.dataset?.freq || 'weekly';
-  const dayOfWeek = parseInt(qs('recurDaySelect').value);
-  // Best-guess input shape — Buffer will tell us if fields are wrong via error
-  const freqMap = { weekly: 'week', daily: 'day', monthly: 'month' };
-  const cadence = { frequency: freqMap[freq] || freq, frequencyStep: 1 };
-  if(freq==='weekly') cadence.dayOfWeek = dayOfWeek;
-  if(freq==='monthly') cadence.dayOfMonth = new Date().getDate();
-  const recurInput = { id: postId, cadence, maxRecurrentPosts: parseInt(qs('recurMaxPosts').value) || 52 };
-  try{
-    const res = await callBuffer(
-      'mutation CreatePostRecurrence($input:CreatePostRecurrenceInput!){createPostRecurrence(input:$input){__typename}}',
-      {input: recurInput}
-    );
-    const result = res?.data?.createPostRecurrence;
-    console.log('[PostIQ] createPostRecurrence:', JSON.stringify(result, null, 2));
-    return res;
-  }catch(e){
-    // Surface the raw error so we can learn the correct shape
-    const status = qs('composerStatus');
-    status.textContent = `Post scheduled. Recurrence error (beta): ${e.message}`;
-    status.style.color = 'var(--amber)';
-    throw e;
-  }
-}
 
 function composerFormat(cmd){
   const sel=window.getSelection();if(!sel.rangeCount)return;
@@ -2061,8 +1876,6 @@ async function composerSend(action){
   if(action==='draft'){input.mode='addToQueue';input.saveToDraft=true;}
   if(action==='queue'){input.mode='addToQueue';}
   if(action==='schedule'){if(!when){qs('composerStatus').textContent='Pick a date/time first.';return;}input.mode='customScheduled';input.dueAt=when;}
-  const isRecurring = qs('recurToggleRow').classList.contains('active');
-  if(isRecurring && action!=='schedule'){qs('composerStatus').textContent='Recurring posts require a scheduled date/time.';return;}
   try{
     const res = await createPost(input);
     const cp = res?.data?.createPost;
@@ -2070,16 +1883,7 @@ async function composerSend(action){
     const postId = cp?.post?.id || null;
     const apiErr = cp?.error?.message || null;
     if(apiErr) throw new Error(apiErr);
-    if(isRecurring && postId){
-      await attachRecurrence(postId);
-    } else if(isRecurring && !postId){
-      // Post created but couldn't get ID — surface what we got
-      qs('composerStatus').textContent='Post created. Recurrence skipped — could not get post ID from response.';
-      showToast('Scheduled. Recurrence not attached (no postId returned).');
-      return;
-    }
-    const recurSuffix = isRecurring ? ' + recurring set.' : '.';
-    const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':`Scheduled${recurSuffix}`;
+    const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
     qs('composerStatus').textContent=msg;showToast(msg);
   }catch(e){qs('composerStatus').textContent=`Failed: ${e.message}`;}
 }
@@ -2173,9 +1977,7 @@ function init(){
     qs(dateId).min=d.toISOString().slice(0,10);
   }
   buildTimePickers('composerWhenHour','composerWhenMin','composerWhenAmpm');
-  buildTimePickers('recurWhenHour','recurWhenMin','recurWhenAmpm');
   setDatePickerToday('composerWhenDate');
-  setDatePickerToday('recurWhenDate');
 
   // Keep hidden composerWhen in sync with normal pickers
   function syncComposerWhen() {
@@ -2184,36 +1986,6 @@ function init(){
   ['composerWhenDate','composerWhenHour','composerWhenMin','composerWhenAmpm'].forEach(id=>qs(id).addEventListener('change',syncComposerWhen));
   syncComposerWhen();
 
-  // ── RECURRING TOGGLE ──
-  const recurRow = qs('recurToggleRow');
-  const recurOpts = qs('recurOptions');
-  recurRow.onclick = () => {
-    const active = recurRow.classList.toggle('active');
-    recurOpts.classList.toggle('visible', active);
-    // Hide normal schedule row and button when recurring is on
-    qs('normalWhenRow').style.display = active ? 'none' : '';
-    qs('composerSchedule').style.display = active ? 'none' : '';
-    qs('composerQueue').style.display = active ? 'none' : '';
-    qs('composerWhenHint').textContent = active
-      ? 'Set first post date/time and repeat frequency below.'
-      : 'For images/video, save draft → attach in Buffer.';
-  };
-  document.querySelectorAll('.recur-freq-btn').forEach(btn => {
-    btn.onclick = () => {
-      document.querySelectorAll('.recur-freq-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const freq = btn.dataset.freq;
-      qs('recurDayRow') && (qs('recurDayRow').style.display = freq==='weekly' ? '' : 'none');
-      const hints = { daily:'↺ Will post every day at the time above.', weekly:'↺ Will post every week on the selected day at the time above.', monthly:'↺ Will post every month on the same date as the first occurrence.' };
-      qs('recurHint').textContent = hints[freq] || '';
-    };
-  });
-  qs('composerRecurSchedule').onclick = () => {
-    const iso = pickerToISO('recurWhenDate','recurWhenHour','recurWhenMin','recurWhenAmpm');
-    if(!iso){qs('composerStatus').textContent='Pick a start date and time first.';return;}
-    qs('composerWhen').value = iso;
-    composerSend('schedule');
-  };
   qs('insertSnippetBtn').onclick=()=>openSnippetPicker('composer');
   qs('saveSelectionSnippetBtn').onclick=()=>{
     const sel=window.getSelection();const text=(sel&&sel.toString?sel.toString():'').trim();
