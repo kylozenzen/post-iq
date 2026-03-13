@@ -625,58 +625,6 @@
     .char-hint { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--subtle); margin-left: auto; }
 
     /* ── IDEAS PANEL ── */
-    .ideas-drawer {
-      margin-top: 12px;
-      border: 1px solid var(--border2);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .ideas-drawer-hdr {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      background: var(--surface2);
-      cursor: pointer;
-      user-select: none;
-      border-bottom: 1px solid transparent;
-      transition: border-color 0.15s;
-    }
-    .ideas-drawer.open .ideas-drawer-hdr {
-      border-bottom-color: var(--border2);
-    }
-    .ideas-drawer-hdr:hover { background: var(--surface3); }
-    .ideas-drawer-label {
-      font-size: 12px;
-      font-family: 'DM Mono', monospace;
-      color: var(--subtle);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      flex: 1;
-    }
-    .ideas-drawer-chevron {
-      font-size: 11px;
-      color: var(--subtle);
-      transition: transform 0.2s;
-    }
-    .ideas-drawer.open .ideas-drawer-chevron { transform: rotate(180deg); }
-    .ideas-drawer-body {
-      display: none;
-      padding: 12px;
-      background: var(--surface);
-    }
-    .ideas-drawer.open .ideas-drawer-body { display: block; }
-    .ideas-search {
-      width: 100%;
-      margin-bottom: 10px;
-    }
-    .ideas-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 340px;
-      overflow-y: auto;
-    }
     .idea-card {
       display: flex;
       gap: 10px;
@@ -752,19 +700,6 @@
       transition: opacity 0.15s;
     }
     .idea-card:hover .idea-card-import { opacity: 1; }
-    .ideas-empty {
-      text-align: center;
-      padding: 24px;
-      color: var(--subtle);
-      font-size: 13px;
-    }
-    .ideas-loading {
-      text-align: center;
-      padding: 20px;
-      color: var(--subtle);
-      font-size: 12px;
-      font-family: 'DM Mono', monospace;
-    }
 
     /* ── MODALS ── */
     .modal {
@@ -825,6 +760,8 @@
       animation: slideUp .15s ease;
     }
     @keyframes slideUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes pulse-amber { 0%,100% { box-shadow: 0 0 0 0 var(--amber)44; } 50% { box-shadow: 0 0 0 6px var(--amber)00; } }
+    .sync-pulse { animation: pulse-amber 1.8s ease-in-out infinite; border-color: var(--amber) !important; color: var(--amber) !important; }
 
     /* ── FORM LABELS ── */
     .field { display: flex; flex-direction: column; gap: 6px; }
@@ -1067,8 +1004,8 @@
         <span style="color:var(--subtle);font-size:12px;">Use the Composer to schedule posts, or hit ↻ Load from Buffer to re-sync.</span>
       </div>
       <div id="calendarNotSynced" class="empty mt8" style="display:none;">
-        Connect Buffer to see your content calendar.<br>
-        <span style="color:var(--subtle);font-size:12px;">Add your Buffer API token in the sidebar, then click <strong style="color:var(--text);">↻ Load from Buffer</strong>.</span>
+        No posts loaded yet.<br>
+        <span style="color:var(--subtle);font-size:12px;">Add your Buffer token in the sidebar and click ↻ Load from Buffer to sync.</span>
         <button class="btn sm ghost mt8" onclick="syncBuffer()" style="display:block;width:100%;">↻ Load from Buffer</button>
       </div>
       <div class="cal-grid" id="calGrid"></div>
@@ -1128,22 +1065,6 @@
 
           <div class="status-txt mt6" style="color:var(--subtle);font-size:11px;" id="composerWhenHint">For images/video, save draft → attach in Buffer.</div>
           <div id="composerStatus" class="status-txt mt6"></div>
-        </div>
-      </div>
-      <!-- Ideas Drawer -->
-      <div class="ideas-drawer" id="ideasDrawer">
-        <div class="ideas-drawer-hdr" id="ideasDrawerToggle">
-          <span style="font-size:16px;">💡</span>
-          <span class="ideas-drawer-label">Import from Buffer Ideas</span>
-          <span class="ideas-drawer-count" id="ideasCount" style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);"></span>
-          <button class="btn sm ghost" id="ideasRefreshBtn" style="font-size:11px;padding:3px 8px;" onclick="event.stopPropagation();loadIdeas(true)">↻ Refresh</button>
-          <span class="ideas-drawer-chevron">▼</span>
-        </div>
-        <div class="ideas-drawer-body">
-          <input class="input ideas-search" id="ideasSearch" placeholder="Search ideas…" />
-          <div class="ideas-grid" id="ideasGrid">
-            <div class="ideas-empty">Click to load your Buffer Ideas</div>
-          </div>
         </div>
       </div>
     </section>
@@ -1604,6 +1525,7 @@ async function syncBuffer(){
     }
     state.scheduled=all;renderChannelSelects();renderCalendar();
     setSyncStatus('success',`${all.length} scheduled posts loaded.`);
+    qs('syncBtn').classList.remove('sync-pulse');
     showToast(`Loaded ${all.length} posts`);
   }catch(e){
     const m=String(e.message||'');
@@ -1715,7 +1637,7 @@ function renderCalendar(){
   const monthPosts = postsByMonth(state.month);
 
   // Not synced = has token but never loaded, OR no token at all
-  qs('calendarNotSynced').style.display = (!hasSynced) ? 'block' : 'none';
+  qs('calendarNotSynced').style.display = (!hasSynced && state.syncState!=='loading') ? 'block' : 'none';
   // Empty = synced successfully but no posts this month
   qs('calendarEmpty').style.display = (hasSynced && !monthPosts.length) ? 'block' : 'none';
 
@@ -1908,6 +1830,9 @@ function init(){
 
   // sync
   qs('syncBtn').onclick=syncBuffer;
+  // Pulse Load from Buffer if token exists but not yet synced
+  if(bufferToken && state.syncState==='idle') qs('syncBtn').classList.add('sync-pulse');
+  if(!bufferToken) qs('syncBtn').classList.add('sync-pulse');
 
   // nav
   document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>activateView(b.dataset.view));
@@ -1998,126 +1923,10 @@ function init(){
 
   qs('composerChannel').addEventListener('change', updateComposerChannelHint);
 
-  // ── IDEAS DRAWER ──
-  let ideasCache = [];
-  let ideasLoaded = false;
-
-  qs('ideasDrawerToggle').onclick = () => {
-    const drawer = qs('ideasDrawer');
-    const isOpen = drawer.classList.toggle('open');
-    if (isOpen && !ideasLoaded) loadIdeas();
-  };
-
-  qs('ideasSearch').addEventListener('input', () => renderIdeas(ideasCache));
-
-  async function loadIdeas(force = false) {
-    if (ideasLoaded && !force) return;
-    const grid = qs('ideasGrid');
-    grid.innerHTML = '<div class="ideas-loading">Loading ideas…</div>';
-    try {
-      // Get orgId fresh
-      const acc = await callBuffer('query { account { organizations { id } } }');
-      const orgId = acc?.data?.account?.organizations?.[0]?.id;
-      if (!orgId) { grid.innerHTML = '<div class="ideas-empty">Could not find organization. Load channels first.</div>'; return; }
-
-      const q = `query GetIdeasBoard($organizationId: ID!) {
-        ideasV2(input: {organizationId: $organizationId}, first: 1000) {
-          edges {
-            node {
-              id
-              content {
-                title
-                text
-                date
-                services
-                media { id url alt thumbnailUrl type }
-                tags { id name color }
-              }
-              createdAt
-            }
-          }
-        }
-      }`;
-      const res = await callBuffer(q, { organizationId: orgId });
-      ideasCache = res?.data?.ideasV2?.edges?.map(e => e.node) || [];
-      ideasLoaded = true;
-      qs('ideasCount').textContent = ideasCache.length ? `${ideasCache.length} ideas` : '';
-      renderIdeas(ideasCache);
-    } catch(e) {
-      grid.innerHTML = `<div class="ideas-empty">Failed to load ideas.<br><span style="font-size:11px;">${e.message}</span></div>`;
-    }
-  }
-
-  function renderIdeas(ideas) {
-    const grid = qs('ideasGrid');
-    const q = qs('ideasSearch').value.toLowerCase().trim();
-    const filtered = q
-      ? ideas.filter(i => (i.content?.title||'').toLowerCase().includes(q) || (i.content?.text||'').toLowerCase().includes(q))
-      : ideas;
-
-    if (!filtered.length) {
-      grid.innerHTML = '<div class="ideas-empty">No ideas found.</div>';
-      return;
-    }
-
-    grid.innerHTML = '';
-    filtered.forEach(idea => {
-      const c = idea.content || {};
-      const thumb = c.media?.[0]?.thumbnailUrl || c.media?.[0]?.url || null;
-      const services = (c.services || []).map(s => `<span class="idea-pill">${s}</span>`).join('');
-      const tags = (c.tags || []).map(t => `<span class="idea-pill" style="background:${t.color}22;color:${t.color};">${t.name}</span>`).join('');
-      const date = c.date ? `<span class="idea-pill">${new Date(c.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>` : '';
-
-      const card = document.createElement('div');
-      card.className = 'idea-card';
-      card.innerHTML = `
-        ${thumb
-          ? `<img class="idea-card-thumb" src="${thumb}" alt="${c.alt||''}" />`
-          : `<div class="idea-card-thumb-placeholder">💡</div>`}
-        <div class="idea-card-body">
-          <div class="idea-card-title">${c.title || c.text?.slice(0,60) || 'Untitled idea'}</div>
-          ${c.text ? `<div class="idea-card-text">${c.text}</div>` : ''}
-          <div class="idea-card-meta">${services}${tags}${date}</div>
-        </div>
-        <span class="idea-card-import">Import →</span>
-      `;
-      card.onclick = () => importIdeaToComposer(idea);
-      grid.appendChild(card);
-    });
-  }
-
-  function importIdeaToComposer(idea) {
-    const c = idea.content || {};
-    const text = [c.title, c.text].filter(Boolean).join('\n\n');
-
-    // Fill editor
-    const editor = qs('composerEditor');
-    editor.innerHTML = text.split('\n').map(l => `<div>${l || '<br>'}</div>`).join('');
-    qs('composerEmpty').style.display = 'none';
-    qs('composerCharCount').textContent = `${text.length} chars`;
-
-    // Match channel by service if possible
-    if (c.services?.length) {
-      const sel = qs('composerChannel');
-      const target = c.services[0].toLowerCase();
-      const match = Array.from(sel.options).find(o => o.textContent.toLowerCase().includes(target));
-      if (match) { sel.value = match.value; updateComposerChannelHint(); }
-    }
-
-    // Pre-fill date if idea has one
-    if (c.date) {
-      const d = new Date(c.date);
-      const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0,16);
-      qs('composerWhen').value = local;
-    }
-
-    // Close drawer, go to composer
-    qs('ideasDrawer').classList.remove('open');
-    activateView('composerView');
-    showToast(`Idea imported → ${c.title ? '"' + c.title.slice(0,30) + '"' : 'composer ready'}`);
-  }
 
   // snippets
+  loadSnippets();
+  renderSnippets();
   qs('newSnippetBtn').onclick=()=>openSnippetModal();
   qs('closeSnippetModal').onclick=()=>closeModal('snippetModal');
   qs('cancelSnippetBtn').onclick=()=>closeModal('snippetModal');
