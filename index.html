@@ -1460,7 +1460,7 @@ async function syncBuffer(){
     const ch=await callBuffer(channelsQuery,{organizationId:orgId});
     state.channels=ch?.data?.channels||[];
     const cap=500;let after=null;let all=[];let hasNext=true;
-    const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId } } pageInfo{ hasNextPage endCursor } } }';
+    const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId assets{ thumbnail mimeType source } } } pageInfo{ hasNextPage endCursor } } }';
     while(hasNext&&all.length<cap){
       const page=await callBuffer(postsQuery,{organizationId:orgId,after});
       const block=page?.data?.posts;const edges=block?.edges||[];
@@ -1659,17 +1659,20 @@ function openImageLibrary(){
   const seen=new Set();const images=[];
   (state.scheduled||[]).forEach(post=>{
     (post.assets||[]).forEach(asset=>{
-      if(asset.url&&!seen.has(asset.url)){seen.add(asset.url);images.push(asset);}
+      const src=asset.source||asset.thumbnail;
+      if(src&&!seen.has(src)){seen.add(src);images.push(asset);}
     });
   });
   if(!images.length){empty.style.display='block';grid.style.display='none';}
   else{
     empty.style.display='none';grid.style.display='grid';
     images.forEach(asset=>{
+      const src=asset.source||asset.thumbnail;
+      const thumb=asset.thumbnail||asset.source;
       const item=document.createElement('div');item.className='img-library-item';
-      item.innerHTML=`<img src="${asset.url}" loading="lazy" alt="" /><div class="img-library-item-url">${asset.url}</div>`;
+      item.innerHTML=`<img src="${thumb}" loading="lazy" alt="" /><div class="img-library-item-url">${src}</div>`;
       item.onclick=()=>{
-        qs('composerImageUrl').value=asset.url;
+        qs('composerImageUrl').value=src;
         qs('composerImageUrl').dispatchEvent(new Event('input'));
         closeModal('imageLibraryModal');showToast('Image URL inserted.');
       };
