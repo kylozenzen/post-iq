@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -34,788 +35,791 @@
       --sidebar: 240px;
     }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+```
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      font-family: 'Inter', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      font-size: 14px;
-      line-height: 1.5;
-    }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
 
-    /* ── LAYOUT ── */
-    .app { display: grid; grid-template-columns: var(--sidebar) 1fr; min-height: 100vh; }
+/* ── LAYOUT ── */
+.app { display: grid; grid-template-columns: var(--sidebar) 1fr; min-height: 100vh; }
 
-    /* ── SIDEBAR ── */
-    .side {
-      background: var(--surface);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      position: sticky;
-      top: 0;
-      overflow-y: auto;
-      padding: 0;
-    }
+/* ── SIDEBAR ── */
+.side {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  padding: 0;
+}
 
-    .side-logo {
-      padding: 18px 16px 14px;
-      border-bottom: 1px solid var(--border);
-    }
-    .logo-mark {
-      font-family: 'Syne', sans-serif;
-      font-weight: 800;
-      font-size: 18px;
-      letter-spacing: -.3px;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .logo-mark span {
-      display: inline-block;
-      background: var(--amber);
-      color: #1a0f00;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 4px;
-      letter-spacing: .5px;
-      font-family: 'DM Mono', monospace;
-    }
+.side-logo {
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.logo-mark {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -.3px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logo-mark span {
+  display: inline-block;
+  background: var(--amber);
+  color: #1a0f00;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: .5px;
+  font-family: 'DM Mono', monospace;
+}
 
-    .side-token {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-    }
-    .token-status-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-    .status-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--subtle);
-      flex-shrink: 0;
-    }
-    .status-dot.connected { background: var(--green); box-shadow: 0 0 6px rgba(45,212,160,.5); }
-    .token-label {
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .6px;
-      font-family: 'DM Mono', monospace;
-    }
-    .token-value {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      color: var(--subtle);
-    }
-    .token-actions { display: flex; gap: 6px; margin-top: 8px; }
+.side-token {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.token-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--subtle);
+  flex-shrink: 0;
+}
+.status-dot.connected { background: var(--green); box-shadow: 0 0 6px rgba(45,212,160,.5); }
+.token-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  font-family: 'DM Mono', monospace;
+}
+.token-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--subtle);
+}
+.token-actions { display: flex; gap: 6px; margin-top: 8px; }
 
-    .token-panel { display: none; margin-top: 10px; }
-    .token-panel.open { display: block; }
+.token-panel { display: none; margin-top: 10px; }
+.token-panel.open { display: block; }
 
-    .side-sync {
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--border);
-    }
+.side-sync {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
 
-    .side-nav {
-      padding: 12px 10px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-    .nav-label {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--subtle);
-      text-transform: uppercase;
-      letter-spacing: .8px;
-      font-family: 'DM Mono', monospace;
-      padding: 0 6px;
-      margin-bottom: 4px;
-      margin-top: 8px;
-    }
-    .nav-btn {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 10px;
-      border-radius: 8px;
-      border: none;
-      background: transparent;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      width: 100%;
-      text-align: left;
-      transition: all .15s;
-      font-family: 'Inter', sans-serif;
-    }
-    .nav-btn:hover { background: var(--surface2); color: var(--text); }
-    .nav-btn.active {
-      background: var(--amber-dim);
-      color: var(--amber);
-      border: 1px solid var(--amber-glow);
-    }
-    .nav-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+.side-nav {
+  padding: 12px 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.nav-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--subtle);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  font-family: 'DM Mono', monospace;
+  padding: 0 6px;
+  margin-bottom: 4px;
+  margin-top: 8px;
+}
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all .15s;
+  font-family: 'Inter', sans-serif;
+}
+.nav-btn:hover { background: var(--surface2); color: var(--text); }
+.nav-btn.active {
+  background: var(--amber-dim);
+  color: var(--amber);
+  border: 1px solid var(--amber-glow);
+}
+.nav-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
 
-    .side-bottom {
-      padding: 12px 10px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-    .side-bottom .nav-btn { font-size: 12px; color: var(--subtle); }
-    .side-bottom .nav-btn:hover { color: var(--muted); }
+.side-bottom {
+  padding: 12px 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.side-bottom .nav-btn { font-size: 12px; color: var(--subtle); }
+.side-bottom .nav-btn:hover { color: var(--muted); }
 
-    /* ── MAIN ── */
-    .main { overflow: auto; }
+/* ── MAIN ── */
+.main { overflow: auto; }
 
-    .view { display: none; padding: 24px 28px; }
-    .view.active { display: block; }
+.view { display: none; padding: 24px 28px; }
+.view.active { display: block; }
 
-    /* ── PAGE HEADER ── */
-    .page-hdr {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 24px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid var(--border);
-    }
-    .page-hdr-left { display: flex; flex-direction: column; gap: 4px; }
-    .page-title {
-      font-family: 'Syne', sans-serif;
-      font-weight: 700;
-      font-size: 22px;
-      letter-spacing: -.3px;
-    }
-    .page-desc { font-size: 13px; color: var(--muted); }
-    .page-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+/* ── PAGE HEADER ── */
+.page-hdr {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.page-hdr-left { display: flex; flex-direction: column; gap: 4px; }
+.page-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -.3px;
+}
+.page-desc { font-size: 13px; color: var(--muted); }
+.page-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
 
-    /* ── BUTTONS ── */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 8px 14px;
-      border-radius: 8px;
-      border: 1px solid var(--border2);
-      background: var(--surface2);
-      color: var(--text);
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      font-family: 'Inter', sans-serif;
-      text-decoration: none;
-      white-space: nowrap;
-      transition: all .12s;
-    }
-    .btn:hover { border-color: var(--subtle); background: var(--surface3); }
-    .btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
-    .btn.primary { background: var(--amber); color: #1a0f00; border-color: transparent; font-weight: 700; }
-    .btn.primary:hover { background: #f7c44a; }
-    .btn.success { background: var(--green); color: #001a10; border-color: transparent; font-weight: 600; }
-    .btn.success:hover { background: #3de0b0; }
-    .btn.ghost { background: transparent; border-color: transparent; color: var(--muted); }
-    .btn.ghost:hover { background: var(--surface2); color: var(--text); border-color: transparent; }
-    .btn.sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
-    .btn.icon { padding: 7px 9px; }
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all .12s;
+}
+.btn:hover { border-color: var(--subtle); background: var(--surface3); }
+.btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.btn.primary { background: var(--amber); color: #1a0f00; border-color: transparent; font-weight: 700; }
+.btn.primary:hover { background: #f7c44a; }
+.btn.success { background: var(--green); color: #001a10; border-color: transparent; font-weight: 600; }
+.btn.success:hover { background: #3de0b0; }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+.btn.ghost:hover { background: var(--surface2); color: var(--text); border-color: transparent; }
+.btn.sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+.btn.icon { padding: 7px 9px; }
 
-    /* ── INPUTS ── */
-    .input, textarea, select {
-      width: 100%;
-      background: var(--surface2);
-      color: var(--text);
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      padding: 9px 12px;
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
-      transition: border-color .12s;
-    }
-    .input:focus, textarea:focus, select:focus { outline: none; border-color: var(--blue); }
-    textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
-    select { cursor: pointer; }
-    .mono { font-family: 'DM Mono', monospace; }
+/* ── INPUTS ── */
+.input, textarea, select {
+  width: 100%;
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  transition: border-color .12s;
+}
+.input:focus, textarea:focus, select:focus { outline: none; border-color: var(--blue); }
+textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
+select { cursor: pointer; }
+.mono { font-family: 'DM Mono', monospace; }
 
-    /* ── CARDS ── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 16px;
-    }
-    .card-title {
-      font-family: 'Syne', sans-serif;
-      font-weight: 700;
-      font-size: 14px;
-      margin-bottom: 12px;
-    }
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+}
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
 
-    /* ── COLS ── */
-    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .grow { flex: 1; }
+/* ── COLS ── */
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grow { flex: 1; }
 
-    /* ── BADGE / CHIP ── */
-    .chip {
-      display: inline-flex;
-      padding: 2px 8px;
-      border-radius: 99px;
-      font-size: 10px;
-      font-weight: 600;
-      font-family: 'DM Mono', monospace;
-      letter-spacing: .3px;
-      border: 1px solid var(--border2);
-      color: var(--muted);
-      text-transform: uppercase;
-    }
-    .chip.amber { background: var(--amber-dim); border-color: var(--amber-glow); color: var(--amber); }
-    .chip.blue { background: var(--blue-dim); border-color: rgba(107,143,247,.3); color: var(--blue); }
-    .chip.green { background: var(--green-dim); border-color: rgba(45,212,160,.3); color: var(--green); }
+/* ── BADGE / CHIP ── */
+.chip {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: .3px;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.chip.amber { background: var(--amber-dim); border-color: var(--amber-glow); color: var(--amber); }
+.chip.blue { background: var(--blue-dim); border-color: rgba(107,143,247,.3); color: var(--blue); }
+.chip.green { background: var(--green-dim); border-color: rgba(45,212,160,.3); color: var(--green); }
 
-    /* ── EMPTY STATE ── */
-    .empty {
-      border: 1px dashed var(--border2);
-      border-radius: var(--r);
-      padding: 20px 16px;
-      color: var(--muted);
-      font-size: 13px;
-      text-align: center;
-    }
+/* ── EMPTY STATE ── */
+.empty {
+  border: 1px dashed var(--border2);
+  border-radius: var(--r);
+  padding: 20px 16px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
 
-    /* ── STATUS TEXT ── */
-    .status-txt { font-size: 12px; color: var(--muted); }
+/* ── STATUS TEXT ── */
+.status-txt { font-size: 12px; color: var(--muted); }
 
-    /* ── INLINE ROW ── */
-    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .mt8 { margin-top: 8px; }
-    .mt10 { margin-top: 10px; }
-    .mt12 { margin-top: 12px; }
-    .mt16 { margin-top: 16px; }
-    .mb8 { margin-bottom: 8px; }
-    .hidden { display: none !important; }
+/* ── INLINE ROW ── */
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.mt8 { margin-top: 8px; }
+.mt10 { margin-top: 10px; }
+.mt12 { margin-top: 12px; }
+.mt16 { margin-top: 16px; }
+.mb8 { margin-bottom: 8px; }
+.hidden { display: none !important; }
 
-    /* ── THREAD SPLITTER ── */
-    .thread-part {
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 12px;
-      background: var(--surface);
-      margin-bottom: 8px;
-    }
-    .thread-part-hdr {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    .part-num {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--amber);
-      background: var(--amber-dim);
-      border: 1px solid var(--amber-glow);
-      padding: 2px 8px;
-      border-radius: 4px;
-    }
-    .thread-actions-bar {
-      position: sticky;
-      top: 0;
-      background: var(--bg);
-      padding: 12px 0;
-      z-index: 2;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 16px;
-    }
+/* ── THREAD SPLITTER ── */
+.thread-part {
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 12px;
+  background: var(--surface);
+  margin-bottom: 8px;
+}
+.thread-part-hdr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.part-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--amber);
+  background: var(--amber-dim);
+  border: 1px solid var(--amber-glow);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.thread-actions-bar {
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  padding: 12px 0;
+  z-index: 2;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
 
-    /* ── CALENDAR ── */
-    .cal-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-    .cal-month {
-      font-family: 'Syne', sans-serif;
-      font-weight: 700;
-      font-size: 18px;
-      flex: 1;
-    }
-    .cal-dow {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
-      margin-bottom: 4px;
-    }
-    .dow-label {
-      text-align: center;
-      font-size: 10px;
-      font-weight: 600;
-      font-family: 'DM Mono', monospace;
-      text-transform: uppercase;
-      color: var(--subtle);
-      letter-spacing: .6px;
-      padding: 4px 0;
-    }
-    .cal-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
-    }
-    .cal-day {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px;
-      min-height: 100px;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      transition: border-color .12s, background .12s;
-      position: relative;
-      overflow: hidden;
-    }
-    .cal-day:hover { border-color: var(--border2); background: var(--surface2); }
-    .cal-day.today { border-color: var(--amber-glow); }
-    .cal-day.today .day-num { color: var(--amber); }
-    .cal-day.other-month { opacity: .35; }
-    .cal-day.has-posts { border-color: var(--border2); }
-    .day-num {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--subtle);
-      flex-shrink: 0;
-    }
-    .day-posts-count {
-      position: absolute;
-      top: 7px;
-      right: 7px;
-      font-size: 10px;
-      font-family: 'DM Mono', monospace;
-      font-weight: 500;
-      background: var(--blue-dim);
-      color: var(--blue);
-      border: 1px solid rgba(107,143,247,.25);
-      padding: 1px 5px;
-      border-radius: 4px;
-    }
-    .day-post-pill {
-      font-size: 11px;
-      line-height: 1.35;
-      padding: 3px 6px;
-      border-radius: 5px;
-      background: var(--blue-dim);
-      border: 1px solid rgba(107,143,247,.2);
-      color: #a8bef9;
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
-    .day-note-pill {
-      font-size: 11px;
-      line-height: 1.35;
-      padding: 3px 6px;
-      border-radius: 5px;
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
-    .day-note-pill.gold { background: var(--gold-tag); border: 1px solid rgba(245,183,49,.25); color: #e8c97a; }
-    .day-note-pill.blue { background: var(--blue-tag); border: 1px solid rgba(107,143,247,.25); color: #a8bef9; }
-    .day-note-pill.green { background: var(--green-tag); border: 1px solid rgba(45,212,160,.25); color: #6fdec4; }
-    .day-note-pill.violet { background: var(--violet-tag); border: 1px solid rgba(157,126,252,.25); color: #c4affe; }
-    .note-pill-label {
-      display: block;
-      font-size: 9px;
-      font-weight: 700;
-      font-family: 'DM Mono', monospace;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-      opacity: .8;
-      margin-bottom: 1px;
-    }
-    .more-indicator {
-      font-size: 10px;
-      color: var(--subtle);
-      font-family: 'DM Mono', monospace;
-      margin-top: auto;
-    }
+/* ── CALENDAR ── */
+.cal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.cal-month {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  flex: 1;
+}
+.cal-dow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.dow-label {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: 'DM Mono', monospace;
+  text-transform: uppercase;
+  color: var(--subtle);
+  letter-spacing: .6px;
+  padding: 4px 0;
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.cal-day {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  min-height: 100px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color .12s, background .12s;
+  position: relative;
+  overflow: hidden;
+}
+.cal-day:hover { border-color: var(--border2); background: var(--surface2); }
+.cal-day.today { border-color: var(--amber-glow); }
+.cal-day.today .day-num { color: var(--amber); }
+.cal-day.other-month { opacity: .35; }
+.cal-day.has-posts { border-color: var(--border2); }
+.day-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--subtle);
+  flex-shrink: 0;
+}
+.day-posts-count {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  font-weight: 500;
+  background: var(--blue-dim);
+  color: var(--blue);
+  border: 1px solid rgba(107,143,247,.25);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.day-post-pill {
+  font-size: 11px;
+  line-height: 1.35;
+  padding: 3px 6px;
+  border-radius: 5px;
+  background: var(--blue-dim);
+  border: 1px solid rgba(107,143,247,.2);
+  color: #a8bef9;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.day-note-pill {
+  font-size: 11px;
+  line-height: 1.35;
+  padding: 3px 6px;
+  border-radius: 5px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.day-note-pill.gold { background: var(--gold-tag); border: 1px solid rgba(245,183,49,.25); color: #e8c97a; }
+.day-note-pill.blue { background: var(--blue-tag); border: 1px solid rgba(107,143,247,.25); color: #a8bef9; }
+.day-note-pill.green { background: var(--green-tag); border: 1px solid rgba(45,212,160,.25); color: #6fdec4; }
+.day-note-pill.violet { background: var(--violet-tag); border: 1px solid rgba(157,126,252,.25); color: #c4affe; }
+.note-pill-label {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: 'DM Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  opacity: .8;
+  margin-bottom: 1px;
+}
+.more-indicator {
+  font-size: 10px;
+  color: var(--subtle);
+  font-family: 'DM Mono', monospace;
+  margin-top: auto;
+}
 
-    /* ── SNIPPETS ── */
-    .snippets-layout {
-      display: grid;
-      grid-template-columns: 180px 1fr;
-      gap: 16px;
-      align-items: start;
-    }
-    .snippet-filters {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      position: sticky;
-      top: 0;
-    }
-    .filter-label {
-      font-size: 10px;
-      font-weight: 600;
-      font-family: 'DM Mono', monospace;
-      text-transform: uppercase;
-      letter-spacing: .6px;
-      color: var(--subtle);
-      padding: 4px 8px;
-      margin-top: 6px;
-    }
-    .filter-btn {
-      display: block;
-      width: 100%;
-      text-align: left;
-      padding: 7px 10px;
-      border-radius: 6px;
-      border: none;
-      background: transparent;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      font-family: 'Inter', sans-serif;
-      transition: all .12s;
-    }
-    .filter-btn:hover { background: var(--surface2); color: var(--text); }
-    .filter-btn.active { background: var(--amber-dim); color: var(--amber); }
+/* ── SNIPPETS ── */
+.snippets-layout {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.snippet-filters {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: sticky;
+  top: 0;
+}
+.filter-label {
+  font-size: 10px;
+  font-weight: 600;
+  font-family: 'DM Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--subtle);
+  padding: 4px 8px;
+  margin-top: 6px;
+}
+.filter-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: all .12s;
+}
+.filter-btn:hover { background: var(--surface2); color: var(--text); }
+.filter-btn.active { background: var(--amber-dim); color: var(--amber); }
 
-    .snippet-toolbar {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 14px;
-      align-items: center;
-    }
-    .snippet-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 10px;
-    }
-    .snippet-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      transition: border-color .12s;
-    }
-    .snippet-card:hover { border-color: var(--border2); }
-    .snippet-card-hdr {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 8px;
-    }
-    .snippet-title {
-      font-weight: 600;
-      font-size: 13px;
-      line-height: 1.35;
-    }
-    .snippet-badges { display: flex; gap: 4px; flex-wrap: wrap; flex-shrink: 0; }
-    .snippet-body {
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.55;
-      white-space: pre-wrap;
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-    }
-    .snippet-tags { font-size: 11px; color: var(--subtle); font-family: 'DM Mono', monospace; }
-    .snippet-actions {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      padding-top: 4px;
-      border-top: 1px solid var(--border);
-    }
-    .snippet-use-btn {
-      flex: 1;
-      font-size: 12px;
-      padding: 7px 10px;
-    }
-    .snippet-menu {
-      display: flex;
-      gap: 4px;
-    }
+.snippet-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  align-items: center;
+}
+.snippet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+}
+.snippet-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color .12s;
+}
+.snippet-card:hover { border-color: var(--border2); }
+.snippet-card-hdr {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+.snippet-title {
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.snippet-badges { display: flex; gap: 4px; flex-wrap: wrap; flex-shrink: 0; }
+.snippet-body {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+.snippet-tags { font-size: 11px; color: var(--subtle); font-family: 'DM Mono', monospace; }
+.snippet-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+.snippet-use-btn {
+  flex: 1;
+  font-size: 12px;
+  padding: 7px 10px;
+}
+.snippet-menu {
+  display: flex;
+  gap: 4px;
+}
 
-    /* ── COMPOSER ── */
-    .rich-toolbar {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-      padding: 8px;
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      border-radius: 8px 8px 0 0;
-      border-bottom: none;
-    }
-    .rich-editor {
-      min-height: 200px;
-      padding: 14px;
-      border: 1px solid var(--border2);
-      background: var(--surface2);
-      border-radius: 0 0 8px 8px;
-      outline: none;
-      line-height: 1.65;
-      font-size: 14px;
-    }
-    .rich-editor:empty::before {
-      content: attr(data-placeholder);
-      color: var(--subtle);
-    }
-    .rich-editor:focus { border-color: var(--blue); }
-    .composer-footer {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-    /* ── DATE/TIME PICKER ROW ── */
-    .composer-when-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .when-lbl { font-size: 12px; color: var(--subtle); font-family: 'DM Mono', monospace; white-space: nowrap; }
-    .when-date { max-width: 150px; }
-    .when-time { max-width: 80px; }
-    .composer-actions { display: flex; gap: 6px; align-items: center; margin-top: 10px; }
-    .char-hint { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--subtle); margin-left: auto; }
+/* ── COMPOSER ── */
+.rich-toolbar {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px 8px 0 0;
+  border-bottom: none;
+}
+.rich-editor {
+  min-height: 200px;
+  padding: 14px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  border-radius: 0 0 8px 8px;
+  outline: none;
+  line-height: 1.65;
+  font-size: 14px;
+}
+.rich-editor:empty::before {
+  content: attr(data-placeholder);
+  color: var(--subtle);
+}
+.rich-editor:focus { border-color: var(--blue); }
+.composer-footer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+/* ── DATE/TIME PICKER ROW ── */
+.composer-when-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.when-lbl { font-size: 12px; color: var(--subtle); font-family: 'DM Mono', monospace; white-space: nowrap; }
+.when-date { max-width: 150px; }
+.when-time { max-width: 80px; }
+.composer-actions { display: flex; gap: 6px; align-items: center; margin-top: 10px; }
+.char-hint { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--subtle); margin-left: auto; }
 
-    /* ── IMAGE URL ROW ── */
-    .composer-image-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-      padding: 10px 12px;
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      position: relative;
-    }
-    .img-row-lbl { font-size: 11px; color: var(--subtle); font-family: 'DM Mono', monospace; white-space: nowrap; flex-shrink: 0; }
-    .img-url-wrap { position: relative; flex: 1; min-width: 180px; max-width: 380px; }
-    .img-url-input { width: 100%; }
-    .img-url-tooltip {
-      display: none;
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 0;
-      z-index: 20;
-      background: var(--surface3);
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      padding: 10px 12px;
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.6;
-      width: 280px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.4);
-    }
-    .img-url-wrap:focus-within .img-url-tooltip { display: block; }
-    .img-preview-thumb { width: 36px; height: 36px; border-radius: 5px; object-fit: cover; border: 1px solid var(--border2); flex-shrink: 0; }
+/* ── IMAGE URL ROW ── */
+.composer-image-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  position: relative;
+}
+.img-row-lbl { font-size: 11px; color: var(--subtle); font-family: 'DM Mono', monospace; white-space: nowrap; flex-shrink: 0; }
+.img-url-wrap { position: relative; flex: 1; min-width: 180px; max-width: 380px; }
+.img-url-input { width: 100%; }
+.img-url-tooltip {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+  width: 280px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4);
+}
+.img-url-wrap:focus-within .img-url-tooltip { display: block; }
+.img-preview-thumb { width: 36px; height: 36px; border-radius: 5px; object-fit: cover; border: 1px solid var(--border2); flex-shrink: 0; }
 
-    /* ── IMAGE LIBRARY GRID ── */
-    .img-library-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-      gap: 8px;
-      max-height: 55vh;
-      overflow-y: auto;
-    }
-    .img-library-item {
-      position: relative;
-      border-radius: 8px;
-      overflow: hidden;
-      border: 2px solid transparent;
-      cursor: pointer;
-      aspect-ratio: 1;
-      background: var(--surface2);
-      transition: border-color 0.15s;
-    }
-    .img-library-item:hover { border-color: var(--amber); }
-    .img-library-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .img-library-item-url {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      background: rgba(0,0,0,.75);
-      font-size: 9px;
-      color: var(--muted);
-      padding: 3px 5px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      opacity: 0;
-      transition: opacity 0.15s;
-    }
-    .img-library-item:hover .img-library-item-url { opacity: 1; }
+/* ── IMAGE LIBRARY GRID ── */
+.img-library-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+.img-library-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  aspect-ratio: 1;
+  background: var(--surface2);
+  transition: border-color 0.15s;
+}
+.img-library-item:hover { border-color: var(--amber); }
+.img-library-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.img-library-item-url {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(0,0,0,.75);
+  font-size: 9px;
+  color: var(--muted);
+  padding: 3px 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.img-library-item:hover .img-library-item-url { opacity: 1; }
 
-    /* ── MODALS ── */
-    .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.65);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      z-index: 50;
-      backdrop-filter: blur(2px);
-    }
-    .modal.open { display: flex; }
-    .modal-card {
-      max-width: 560px;
-      width: 100%;
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-radius: 14px;
-      padding: 20px;
-      max-height: 88vh;
-      overflow-y: auto;
-      box-shadow: 0 24px 60px rgba(0,0,0,.5);
-    }
-    .modal-card.lg { max-width: 720px; }
-    .modal-hdr {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-    .modal-title {
-      font-family: 'Syne', sans-serif;
-      font-weight: 700;
-      font-size: 16px;
-    }
+/* ── MODALS ── */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.65);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 50;
+  backdrop-filter: blur(2px);
+}
+.modal.open { display: flex; }
+.modal-card {
+  max-width: 560px;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  padding: 20px;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 60px rgba(0,0,0,.5);
+}
+.modal-card.lg { max-width: 720px; }
+.modal-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.modal-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+}
 
-    /* ── TOASTS ── */
-    .toast-wrap {
-      position: fixed;
-      right: 16px;
-      bottom: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      z-index: 80;
-    }
-    .toast {
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      padding: 9px 14px;
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text);
-      box-shadow: 0 8px 24px rgba(0,0,0,.4);
-      animation: slideUp .15s ease;
-    }
-    @keyframes slideUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes pulse-amber { 0%,100% { box-shadow: 0 0 0 0 var(--amber)44; } 50% { box-shadow: 0 0 0 6px var(--amber)00; } }
-    .sync-pulse { animation: pulse-amber 1.8s ease-in-out infinite; border-color: var(--amber) !important; color: var(--amber) !important; }
+/* ── TOASTS ── */
+.toast-wrap {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 80;
+}
+.toast {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  animation: slideUp .15s ease;
+}
+@keyframes slideUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+@keyframes pulse-amber { 0%,100% { box-shadow: 0 0 0 0 var(--amber)44; } 50% { box-shadow: 0 0 0 6px var(--amber)00; } }
+.sync-pulse { animation: pulse-amber 1.8s ease-in-out infinite; border-color: var(--amber) !important; color: var(--amber) !important; }
 
-    /* ── FORM LABELS ── */
-    .field { display: flex; flex-direction: column; gap: 6px; }
-    .label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; font-family: 'DM Mono', monospace; }
+/* ── FORM LABELS ── */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; font-family: 'DM Mono', monospace; }
 
-    /* ── NOTE TAG COLORS ── */
-    .note-gold { color: #e8c97a; } .note-blue { color: #a8bef9; }
-    .note-green { color: #6fdec4; } .note-violet { color: #c4affe; }
+/* ── NOTE TAG COLORS ── */
+.note-gold { color: #e8c97a; } .note-blue { color: #a8bef9; }
+.note-green { color: #6fdec4; } .note-violet { color: #c4affe; }
 
-    /* ── SHARED VIEW ── */
-    .shared-view { max-width: 980px; margin: 0 auto; padding: 28px; }
-    .shared-banner {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 12px 16px;
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 20px;
-    }
+/* ── SHARED VIEW ── */
+.shared-view { max-width: 980px; margin: 0 auto; padding: 28px; }
+.shared-banner {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
 
-    /* ── PICKER ── */
-    .picker-item {
-      display: block;
-      width: 100%;
-      text-align: left;
-      padding: 12px 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--surface2);
-      color: var(--text);
-      cursor: pointer;
-      font-family: 'Inter', sans-serif;
-      transition: all .12s;
-      margin-bottom: 6px;
-    }
-    .picker-item:hover { border-color: var(--border2); background: var(--surface3); }
-    .picker-list { max-height: 50vh; overflow-y: auto; }
+/* ── PICKER ── */
+.picker-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: all .12s;
+  margin-bottom: 6px;
+}
+.picker-item:hover { border-color: var(--border2); background: var(--surface3); }
+.picker-list { max-height: 50vh; overflow-y: auto; }
 
-    /* ── ONBOARDING ── */
-    .onboarding-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 16px;
-    }
-    .ob-card {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px;
-    }
-    .ob-icon { font-size: 20px; margin-bottom: 8px; display: block; }
-    .ob-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
-    .ob-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+/* ── ONBOARDING ── */
+.onboarding-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+.ob-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+.ob-icon { font-size: 20px; margin-bottom: 8px; display: block; }
+.ob-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+.ob-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
 
-    /* ── SECTION DIVIDER ── */
-    .divider { height: 1px; background: var(--border); margin: 16px 0; }
+/* ── SECTION DIVIDER ── */
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
 
-    /* ── RESPONSIVE ── */
-    @media (max-width: 900px) {
-      .app { grid-template-columns: 1fr; }
-      .side { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
-      .cols, .onboarding-grid { grid-template-columns: 1fr; }
-      .snippets-layout { grid-template-columns: 1fr; }
-      .snippet-filters { position: static; }
-    }
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+  .side { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+  .cols, .onboarding-grid { grid-template-columns: 1fr; }
+  .snippets-layout { grid-template-columns: 1fr; }
+  .snippet-filters { position: static; }
+}
 
-    .section-hdr { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-    .section-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; }
+.section-hdr { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.section-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; }
+```
+
   </style>
 </head>
 <body>
@@ -823,6 +827,7 @@
 <section id="app" class="app">
 
   <!-- ── SIDEBAR ── -->
+
   <aside class="side">
     <div class="side-logo">
       <div class="logo-mark">PostIQ <span>BETA</span></div>
@@ -878,175 +883,178 @@
   </aside>
 
   <!-- ── MAIN ── -->
+
   <main class="main">
 
-    <!-- Thread Splitter -->
-    <section id="threadView" class="view active">
-      <div class="page-hdr">
-        <div class="page-hdr-left">
-          <h1 class="page-title">Thread Splitter</h1>
-          <p class="page-desc">Turn long-form copy into a clean thread, then push to Buffer.</p>
-        </div>
-        <div class="page-actions">
-          <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
-        </div>
+```
+<!-- Thread Splitter -->
+<section id="threadView" class="view active">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <h1 class="page-title">Thread Splitter</h1>
+      <p class="page-desc">Turn long-form copy into a clean thread, then push to Buffer.</p>
+    </div>
+    <div class="page-actions">
+      <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
+    </div>
+  </div>
+  <div class="cols">
+    <div class="card">
+      <div class="card-title">Source text</div>
+      <textarea id="threadInput" placeholder="Paste long-form content, notes, or a rough draft…"></textarea>
+      <div class="row mt12">
+        <button class="btn primary" id="splitBtn">Split thread</button>
+        <button class="btn" id="sampleBtn">Sample</button>
       </div>
-      <div class="cols">
-        <div class="card">
-          <div class="card-title">Source text</div>
-          <textarea id="threadInput" placeholder="Paste long-form content, notes, or a rough draft…"></textarea>
-          <div class="row mt12">
-            <button class="btn primary" id="splitBtn">Split thread</button>
-            <button class="btn" id="sampleBtn">Sample</button>
-          </div>
-          <div class="row mt8">
-            <button class="btn sm ghost" id="threadAddOpener">+ Opener from Snippets</button>
-            <button class="btn sm ghost" id="threadAddCta">+ Ending CTA</button>
-          </div>
-          <div id="threadEmpty" class="empty mt12">Paste text above, then click <strong>Split thread</strong>.</div>
-        </div>
-        <div>
-          <div class="thread-actions-bar">
-            <div class="section-hdr" style="margin-bottom:10px;">
-              <span class="section-title">Thread builder</span>
-              <button class="btn sm" id="copyAllBtn">Copy all</button>
-            </div>
-            <div id="threadChannelWrap">
-              <div class="label mb8">Channel <span style="color:var(--subtle);font-weight:400;text-transform:none;letter-spacing:0;">(X &amp; Threads only)</span></div>
-              <select id="threadChannel" class="input grow"></select>
-              <div id="threadNoChannels" class="empty mt8" style="display:none;">No X or Threads channels found. <button class="btn sm ghost" onclick="syncBuffer()" style="margin-top:6px;display:block;width:100%;">↻ Load from Buffer</button></div>
-            </div>
-            <div class="row mt8">
-              <button class="btn" id="draftThreadBtn">Save draft</button>
-              <button class="btn success" id="queueThreadBtn">Add to queue</button>
-              <button class="btn primary" id="scheduleThreadBtn">Schedule ↓</button>
-            </div>
-            <input id="threadWhen" type="datetime-local" class="input mt8" style="width:100%" />
-            <div class="status-txt mt8" style="color:var(--subtle);font-size:11px;">Schedule requires a date/time above.</div>
-            <div id="threadStatus" class="status-txt mt8"></div>
-          </div>
-          <div id="threadOut" style="margin-top:8px;"></div>
-        </div>
+      <div class="row mt8">
+        <button class="btn sm ghost" id="threadAddOpener">+ Opener from Snippets</button>
+        <button class="btn sm ghost" id="threadAddCta">+ Ending CTA</button>
       </div>
-    </section>
+      <div id="threadEmpty" class="empty mt12">Paste text above, then click <strong>Split thread</strong>.</div>
+    </div>
+    <div>
+      <div class="thread-actions-bar">
+        <div class="section-hdr" style="margin-bottom:10px;">
+          <span class="section-title">Thread builder</span>
+          <button class="btn sm" id="copyAllBtn">Copy all</button>
+        </div>
+        <div id="threadChannelWrap">
+          <div class="label mb8">Channel <span style="color:var(--subtle);font-weight:400;text-transform:none;letter-spacing:0;">(X &amp; Threads only)</span></div>
+          <select id="threadChannel" class="input grow"></select>
+          <div id="threadNoChannels" class="empty mt8" style="display:none;">No X or Threads channels found. <button class="btn sm ghost" onclick="syncBuffer()" style="margin-top:6px;display:block;width:100%;">↻ Load from Buffer</button></div>
+        </div>
+        <div class="row mt8">
+          <button class="btn" id="draftThreadBtn">Save draft</button>
+          <button class="btn success" id="queueThreadBtn">Add to queue</button>
+          <button class="btn primary" id="scheduleThreadBtn">Schedule ↓</button>
+        </div>
+        <input id="threadWhen" type="datetime-local" class="input mt8" style="width:100%" />
+        <div class="status-txt mt8" style="color:var(--subtle);font-size:11px;">Schedule requires a date/time above.</div>
+        <div id="threadStatus" class="status-txt mt8"></div>
+      </div>
+      <div id="threadOut" style="margin-top:8px;"></div>
+    </div>
+  </div>
+</section>
 
-    <!-- Content Calendar -->
-    <section id="calendarView" class="view">
-      <div class="page-hdr">
-        <div class="page-hdr-left">
-          <h1 class="page-title">Content Calendar</h1>
-          <p class="page-desc">Scheduled Buffer posts + lightweight planning notes.</p>
-        </div>
-        <div class="page-actions">
-          <button class="btn" id="shareMonthBtn">Share snapshot</button>
-          <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
-        </div>
-      </div>
-      <div class="cal-header">
-        <button class="btn icon" id="prevMonth">‹</button>
-        <div class="cal-month" id="monthLabel"></div>
-        <button class="btn icon" id="nextMonth">›</button>
-        <button class="btn sm ghost" id="todayMonth">Today</button>
-      </div>
-      <div class="cal-dow">
-        <div class="dow-label">Sun</div><div class="dow-label">Mon</div><div class="dow-label">Tue</div>
-        <div class="dow-label">Wed</div><div class="dow-label">Thu</div><div class="dow-label">Fri</div><div class="dow-label">Sat</div>
-      </div>
-      <div class="cal-grid" id="calGrid"></div>
-    </section>
+<!-- Content Calendar -->
+<section id="calendarView" class="view">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <h1 class="page-title">Content Calendar</h1>
+      <p class="page-desc">Scheduled Buffer posts + lightweight planning notes.</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn" id="shareMonthBtn">Share snapshot</button>
+      <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
+    </div>
+  </div>
+  <div class="cal-header">
+    <button class="btn icon" id="prevMonth">‹</button>
+    <div class="cal-month" id="monthLabel"></div>
+    <button class="btn icon" id="nextMonth">›</button>
+    <button class="btn sm ghost" id="todayMonth">Today</button>
+  </div>
+  <div class="cal-dow">
+    <div class="dow-label">Sun</div><div class="dow-label">Mon</div><div class="dow-label">Tue</div>
+    <div class="dow-label">Wed</div><div class="dow-label">Thu</div><div class="dow-label">Fri</div><div class="dow-label">Sat</div>
+  </div>
+  <div class="cal-grid" id="calGrid"></div>
+</section>
 
-    <!-- Post Composer -->
-    <section id="composerView" class="view">
-      <div class="page-hdr">
-        <div class="page-hdr-left">
-          <h1 class="page-title">Post Composer</h1>
-          <p class="page-desc">Draft text-first posts, then push to Buffer.</p>
-        </div>
-        <div class="page-actions">
-          <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
-        </div>
+<!-- Post Composer -->
+<section id="composerView" class="view">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <h1 class="page-title">Post Composer</h1>
+      <p class="page-desc">Draft text-first posts, then push to Buffer.</p>
+    </div>
+    <div class="page-actions">
+      <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
+    </div>
+  </div>
+  <div class="card">
+    <div class="rich-toolbar">
+      <button class="btn sm" data-cmd="bold"><strong>B</strong></button>
+      <button class="btn sm" data-cmd="italic"><em>I</em></button>
+      <button class="btn sm" data-cmd="ul">• List</button>
+      <button class="btn sm" data-cmd="ol">1. List</button>
+      <button class="btn sm ghost" data-cmd="clear">Clear</button>
+      <div style="width:1px;background:var(--border);margin:0 4px;"></div>
+      <button class="btn sm" id="insertSnippetBtn">Insert snippet</button>
+      <button class="btn sm ghost" id="saveSelectionSnippetBtn">Save selection</button>
+    </div>
+    <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here…"></div>
+    <div id="composerEmpty" class="empty mt8">Start drafting above, then save draft, queue, or schedule.</div>
+
+    <div class="composer-footer mt12">
+      <select id="composerChannel" class="input grow"></select>
+    </div>
+    <div id="composerNoChannels" class="empty mt8" style="display:none;">
+      No channels loaded yet.<br>
+      <span style="color:var(--subtle);font-size:12px;">Add your Buffer token and click <strong style="color:var(--text);">↻ Load from Buffer</strong> to see your channels.</span>
+    </div>
+    <div id="composerChannelHint" class="status-txt mt8" style="display:none;"></div>
+
+    <div class="composer-when-row mt10">
+      <span class="when-lbl">📅 Schedule for</span>
+      <input id="composerWhenDate" type="date" class="input when-date" />
+      <select id="composerWhenHour" class="input when-time"></select>
+      <select id="composerWhenMin" class="input when-time"></select>
+      <select id="composerWhenAmpm" class="input when-time"></select>
+      <input id="composerWhen" type="hidden" />
+    </div>
+
+    <!-- Image URL row -->
+    <div class="composer-image-row">
+      <span class="img-row-lbl">🖼 Image URL</span>
+      <div class="img-url-wrap">
+        <input id="composerImageUrl" class="input img-url-input" placeholder="https://… (direct image URL)" />
+        <div class="img-url-tooltip">Needs a public direct image URL — e.g. ending in .jpg, .png, .webp<br>Right-click any image → "Copy image address" to get the URL.</div>
       </div>
-      <div class="card">
-        <div class="rich-toolbar">
-          <button class="btn sm" data-cmd="bold"><strong>B</strong></button>
-          <button class="btn sm" data-cmd="italic"><em>I</em></button>
-          <button class="btn sm" data-cmd="ul">• List</button>
-          <button class="btn sm" data-cmd="ol">1. List</button>
-          <button class="btn sm ghost" data-cmd="clear">Clear</button>
-          <div style="width:1px;background:var(--border);margin:0 4px;"></div>
-          <button class="btn sm" id="insertSnippetBtn">Insert snippet</button>
-          <button class="btn sm ghost" id="saveSelectionSnippetBtn">Save selection</button>
-        </div>
-        <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here…"></div>
-        <div id="composerEmpty" class="empty mt8">Start drafting above, then save draft, queue, or schedule.</div>
+      <button class="btn sm ghost" id="composerImageClear" style="display:none;">✕</button>
+      <button class="btn sm ghost" id="openImageLibraryBtn">📚 Past images</button>
+      <div id="composerImagePreview" style="display:none;"></div>
+    </div>
 
-        <div class="composer-footer mt12">
-          <select id="composerChannel" class="input grow"></select>
-        </div>
-        <div id="composerNoChannels" class="empty mt8" style="display:none;">
-          No channels loaded yet.<br>
-          <span style="color:var(--subtle);font-size:12px;">Add your Buffer token and click <strong style="color:var(--text);">↻ Load from Buffer</strong> to see your channels.</span>
-        </div>
-        <div id="composerChannelHint" class="status-txt mt8" style="display:none;"></div>
-
-        <div class="composer-when-row mt10">
-          <span class="when-lbl">📅 Schedule for</span>
-          <input id="composerWhenDate" type="date" class="input when-date" />
-          <select id="composerWhenHour" class="input when-time"></select>
-          <select id="composerWhenMin" class="input when-time"></select>
-          <select id="composerWhenAmpm" class="input when-time"></select>
-          <input id="composerWhen" type="hidden" />
-        </div>
-
-        <!-- Image URL row -->
-        <div class="composer-image-row">
-          <span class="img-row-lbl">🖼 Image URL</span>
-          <div class="img-url-wrap">
-            <input id="composerImageUrl" class="input img-url-input" placeholder="https://… (direct image URL)" />
-            <div class="img-url-tooltip">Needs a public direct image URL — e.g. ending in .jpg, .png, .webp<br>Right-click any image → "Copy image address" to get the URL.</div>
-          </div>
-          <button class="btn sm ghost" id="composerImageClear" style="display:none;">✕</button>
-          <button class="btn sm ghost" id="openImageLibraryBtn">📚 Past images</button>
-          <div id="composerImagePreview" style="display:none;"></div>
-        </div>
-
-        <div class="composer-actions-wrap mt10">
-          <div class="composer-actions-row" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-            <button class="btn" id="composerDraft">Save draft</button>
-            <button class="btn success" id="composerQueue">Add to queue</button>
-            <button class="btn primary" id="composerSchedule">Schedule</button>
-            <span class="char-hint" id="composerCharCount" style="margin-left:auto;">0 chars</span>
-          </div>
-          <div class="status-txt mt8" style="color:var(--amber);font-size:11px;font-family:'DM Mono',monospace;font-weight:600;">⚠ Video must be attached in Buffer. Images supported via URL above.</div>
-          <div id="composerStatus" class="status-txt mt8"></div>
-        </div>
+    <div class="composer-actions-wrap mt10">
+      <div class="composer-actions-row" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        <button class="btn" id="composerDraft">Save draft</button>
+        <button class="btn success" id="composerQueue">Add to queue</button>
+        <button class="btn primary" id="composerSchedule">Schedule</button>
+        <span class="char-hint" id="composerCharCount" style="margin-left:auto;">0 chars</span>
       </div>
-    </section>
+      <div class="status-txt mt8" style="color:var(--amber);font-size:11px;font-family:'DM Mono',monospace;font-weight:600;">⚠ Video must be attached in Buffer. Images supported via URL above.</div>
+      <div id="composerStatus" class="status-txt mt8"></div>
+    </div>
+  </div>
+</section>
 
-    <!-- Snippets -->
-    <section id="snippetsView" class="view">
-      <div class="page-hdr">
-        <div class="page-hdr-left">
-          <h1 class="page-title">Snippets</h1>
-          <p class="page-desc">Hooks, CTAs, hashtag sets, openers — reusable across Composer and Thread Splitter.</p>
-        </div>
-        <div class="page-actions">
-          <button class="btn primary" id="newSnippetBtn">+ New Snippet</button>
-          <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
-        </div>
+<!-- Snippets -->
+<section id="snippetsView" class="view">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <h1 class="page-title">Snippets</h1>
+      <p class="page-desc">Hooks, CTAs, hashtag sets, openers — reusable across Composer and Thread Splitter.</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn primary" id="newSnippetBtn">+ New Snippet</button>
+      <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
+    </div>
+  </div>
+  <div class="snippets-layout">
+    <div class="snippet-filters" id="snippetTypeFilters"></div>
+    <div>
+      <div class="snippet-toolbar">
+        <input id="snippetSearch" class="input grow" placeholder="Search title, body, or tags…" />
+        <select id="snippetPlatformFilter" class="input" style="max-width:180px;"></select>
       </div>
-      <div class="snippets-layout">
-        <div class="snippet-filters" id="snippetTypeFilters"></div>
-        <div>
-          <div class="snippet-toolbar">
-            <input id="snippetSearch" class="input grow" placeholder="Search title, body, or tags…" />
-            <select id="snippetPlatformFilter" class="input" style="max-width:180px;"></select>
-          </div>
-          <div id="snippetsEmpty" class="empty">No snippets yet. Create your first one to speed up writing.</div>
-          <div id="snippetGrid" class="snippet-grid"></div>
-        </div>
-      </div>
-    </section>
+      <div id="snippetsEmpty" class="empty">No snippets yet. Create your first one to speed up writing.</div>
+      <div id="snippetGrid" class="snippet-grid"></div>
+    </div>
+  </div>
+</section>
+```
 
   </main>
 </section>
@@ -1054,6 +1062,7 @@
 <!-- ── MODALS ── -->
 
 <!-- Image Library -->
+
 <div id="imageLibraryModal" class="modal"><div class="modal-card lg">
   <div class="modal-hdr">
     <span class="modal-title">📚 Past Images</span>
@@ -1065,6 +1074,7 @@
 </div></div>
 
 <!-- Onboarding -->
+
 <div id="onboardingModal" class="modal"><div class="modal-card">
   <div class="modal-hdr">
     <span class="modal-title">Welcome to PostIQ</span>
@@ -1092,6 +1102,7 @@
 </div></div>
 
 <!-- Founder -->
+
 <div id="founderModal" class="modal"><div class="modal-card">
   <div class="modal-hdr">
     <span class="modal-title">Built by Ben Campbell</span>
@@ -1106,6 +1117,7 @@
 </div></div>
 
 <!-- Share -->
+
 <div id="shareModal" class="modal"><div class="modal-card">
   <div class="modal-hdr">
     <span class="modal-title">Share read-only month</span>
@@ -1126,6 +1138,7 @@
 </div></div>
 
 <!-- Day Note Modal -->
+
 <div id="noteModal" class="modal"><div class="modal-card">
   <div class="modal-hdr">
     <span class="modal-title" id="noteDateLabel">—</span>
@@ -1155,6 +1168,7 @@
 </div></div>
 
 <!-- Snippet Modal -->
+
 <div id="snippetModal" class="modal"><div class="modal-card lg">
   <div class="modal-hdr">
     <span class="modal-title" id="snippetModalTitle">New Snippet</span>
@@ -1189,6 +1203,7 @@
 </div></div>
 
 <!-- Snippet Picker -->
+
 <div id="snippetPickerModal" class="modal"><div class="modal-card lg">
   <div class="modal-hdr">
     <span class="modal-title" id="snippetPickerTitle">Choose a snippet</span>
@@ -1204,9 +1219,11 @@
 </div></div>
 
 <!-- Toast container -->
+
 <div id="toastWrap" class="toast-wrap" aria-live="polite" aria-atomic="true"></div>
 
 <!-- Shared view -->
+
 <section id="sharedView" class="shared-view hidden">
   <div class="logo-mark" style="margin-bottom:20px;font-family:'Syne',sans-serif;font-weight:800;font-size:20px;">PostIQ</div>
   <div class="shared-banner" id="sharedBanner"></div>
@@ -1220,632 +1237,620 @@
 </section>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-const STORE_KEY='postiq_buffer_token';
-const NOTE_KEY='postiq_calendar_notes_v2';
-const ONBOARDING_KEY='postiq_onboarding_seen_v1';
-const SNIPPET_KEY='postiq_snippets_v1';
-const snippetTypes=['All','Hooks','CTAs','Hashtag Sets','First Comments','Thread Openers'];
-const snippetPlatforms=['All Platforms','LinkedIn','X','Threads','Instagram','Universal'];
-let bufferToken='';
+
+const STORE_KEY=‘postiq_buffer_token’;
+const NOTE_KEY=‘postiq_calendar_notes_v2’;
+const ONBOARDING_KEY=‘postiq_onboarding_seen_v1’;
+const SNIPPET_KEY=‘postiq_snippets_v1’;
+const snippetTypes=[‘All’,‘Hooks’,‘CTAs’,‘Hashtag Sets’,‘First Comments’,‘Thread Openers’];
+const snippetPlatforms=[‘All Platforms’,‘LinkedIn’,‘X’,‘Threads’,‘Instagram’,‘Universal’];
+let bufferToken=’’;
 let tokenInputVisible=false;
 let tokenPanelOpen=false;
 let threadParts=[];
-const state={channels:[],scheduled:[],month:new Date(),selectedDate:null,syncState:'idle',snippets:[],snippetType:'All',snippetPlatform:'All Platforms',snippetSearch:'',editingSnippetId:null,pickerMode:'composer'};
-const noteTags={gold:'Idea',blue:'Draft',green:'Campaign',violet:'Priority'};
+const state={channels:[],scheduled:[],month:new Date(),selectedDate:null,syncState:‘idle’,snippets:[],snippetType:‘All’,snippetPlatform:‘All Platforms’,snippetSearch:’’,editingSnippetId:null,pickerMode:‘composer’};
+const noteTags={gold:‘Idea’,blue:‘Draft’,green:‘Campaign’,violet:‘Priority’};
 
 function qs(id){return document.getElementById(id)}
-function hasSeenOnboarding(){try{return localStorage.getItem(ONBOARDING_KEY)==='1'}catch{return false}}
-function markOnboardingSeen(){try{localStorage.setItem(ONBOARDING_KEY,'1')}catch{}}
-function openOnboarding(){openModal('onboardingModal')}
-function dismissOnboarding(){markOnboardingSeen();closeModal('onboardingModal')}
+function hasSeenOnboarding(){try{return localStorage.getItem(ONBOARDING_KEY)===‘1’}catch{return false}}
+function markOnboardingSeen(){try{localStorage.setItem(ONBOARDING_KEY,‘1’)}catch{}}
+function openOnboarding(){openModal(‘onboardingModal’)}
+function dismissOnboarding(){markOnboardingSeen();closeModal(‘onboardingModal’)}
 function fmtDate(d){return d.toISOString().slice(0,10)}
-function monthLabel(d){return d.toLocaleDateString(undefined,{month:'long',year:'numeric'})}
+function monthLabel(d){return d.toLocaleDateString(undefined,{month:‘long’,year:‘numeric’})}
 function monthStart(d){return new Date(d.getFullYear(),d.getMonth(),1)}
-function maskToken(t){if(!t)return '—';if(t.length<=8)return '••••';return `${t.slice(0,4)}••••${t.slice(-4)}`;}
-function openModal(id){qs(id).classList.add('open')}
-function closeModal(id){qs(id).classList.remove('open')}
+function maskToken(t){if(!t)return ‘—’;if(t.length<=8)return ‘••••’;return `${t.slice(0,4)}••••${t.slice(-4)}`;}
+function openModal(id){qs(id).classList.add(‘open’)}
+function closeModal(id){qs(id).classList.remove(‘open’)}
 function showToast(msg){
-  const wrap=qs('toastWrap');if(!wrap)return;
-  const t=document.createElement('div');t.className='toast';t.textContent=msg;
-  wrap.appendChild(t);setTimeout(()=>t.remove(),msg.length>40?3800:2800);
+const wrap=qs(‘toastWrap’);if(!wrap)return;
+const t=document.createElement(‘div’);t.className=‘toast’;t.textContent=msg;
+wrap.appendChild(t);setTimeout(()=>t.remove(),msg.length>40?3800:2800);
 }
-function safeText(v=''){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function compactText(v,max=84){const t=(v||'').replace(/\s+/g,' ').trim();return t.length>max?`${t.slice(0,max-1)}…`:t}
-function slug(v){return String(v||'').toLowerCase()}
-function normalizeTags(v){if(Array.isArray(v))return v.map(x=>String(x).trim()).filter(Boolean);return String(v||'').split(',').map(x=>x.trim()).filter(Boolean)}
+function safeText(v=’’){return String(v).replace(/[&<>”’]/g,m=>({’&’:’&’,’<’:’<’,’>’:’>’,’”’:’"’,”’”:’'’}[m]))}
+function compactText(v,max=84){const t=(v||’’).replace(/\s+/g,’ ‘).trim();return t.length>max?`${t.slice(0,max-1)}…`:t}
+function slug(v){return String(v||’’).toLowerCase()}
+function normalizeTags(v){if(Array.isArray(v))return v.map(x=>String(x).trim()).filter(Boolean);return String(v||’’).split(’,’).map(x=>x.trim()).filter(Boolean)}
 
 // ── SNIPPETS ──
 function loadSnippets(){
-  try{
-    const raw=localStorage.getItem(SNIPPET_KEY);
-    if(!raw){state.snippets=[];return}
-    const parsed=JSON.parse(raw);
-    if(!Array.isArray(parsed)){state.snippets=[];return}
-    state.snippets=parsed.map((s,i)=>({
-      id:String(s.id||`${Date.now()}-${i}`),
-      title:String(s.title||'Untitled snippet'),
-      type:snippetTypes.includes(s.type)?s.type:'Hooks',
-      platform:snippetPlatforms.includes(s.platform)?s.platform:'Universal',
-      tags:normalizeTags(s.tags),body:String(s.body||''),
-      createdAt:String(s.createdAt||new Date().toISOString()),
-      updatedAt:String(s.updatedAt||new Date().toISOString())
-    }));
-  }catch{state.snippets=[]}
+try{
+const raw=localStorage.getItem(SNIPPET_KEY);
+if(!raw){state.snippets=[];return}
+const parsed=JSON.parse(raw);
+if(!Array.isArray(parsed)){state.snippets=[];return}
+state.snippets=parsed.map((s,i)=>({
+id:String(s.id||`${Date.now()}-${i}`),
+title:String(s.title||‘Untitled snippet’),
+type:snippetTypes.includes(s.type)?s.type:‘Hooks’,
+platform:snippetPlatforms.includes(s.platform)?s.platform:‘Universal’,
+tags:normalizeTags(s.tags),body:String(s.body||’’),
+createdAt:String(s.createdAt||new Date().toISOString()),
+updatedAt:String(s.updatedAt||new Date().toISOString())
+}));
+}catch{state.snippets=[]}
 }
 function persistSnippets(){try{localStorage.setItem(SNIPPET_KEY,JSON.stringify(state.snippets))}catch{}}
 function filteredSnippets(search=state.snippetSearch,type=state.snippetType,platform=state.snippetPlatform){
-  const q=slug(search).trim();
-  return state.snippets.filter(s=>{
-    const typeOk=type==='All'||s.type===type;
-    const platformOk=platform==='All Platforms'||s.platform===platform;
-    const text=`${s.title} ${s.body} ${(s.tags||[]).join(' ')}`.toLowerCase();
-    return typeOk&&platformOk&&(!q||text.includes(q));
-  });
+const q=slug(search).trim();
+return state.snippets.filter(s=>{
+const typeOk=type===‘All’||s.type===type;
+const platformOk=platform===‘All Platforms’||s.platform===platform;
+const text=`${s.title} ${s.body} ${(s.tags||[]).join(' ')}`.toLowerCase();
+return typeOk&&platformOk&&(!q||text.includes(q));
+});
 }
-function snippetBadge(text,cls=''){return `<span class="chip ${cls}">${safeText(text)}</span>`;}
+function snippetBadge(text,cls=’’){return `<span class="chip ${cls}">${safeText(text)}</span>`;}
 function useSnippetInComposer(snippet){
-  const editor=qs('composerEditor');editor.focus();
-  const body=snippet.body||'';
-  try{
-    const sel=window.getSelection();
-    if(sel&&sel.rangeCount&&editor.contains(sel.anchorNode)){sel.deleteFromDocument();sel.getRangeAt(0).insertNode(document.createTextNode(body));}
-    else{editor.innerText=editor.innerText?`${editor.innerText}\n\n${body}`:body;}
-  }catch{editor.innerText=editor.innerText?`${editor.innerText}\n\n${body}`:body}
-  qs('composerEmpty').style.display=editorHtmlToText(editor.innerHTML)?'none':'block';
-  showToast('Snippet inserted');
+const editor=qs(‘composerEditor’);editor.focus();
+const body=snippet.body||’’;
+try{
+const sel=window.getSelection();
+if(sel&&sel.rangeCount&&editor.contains(sel.anchorNode)){sel.deleteFromDocument();sel.getRangeAt(0).insertNode(document.createTextNode(body));}
+else{editor.innerText=editor.innerText?`${editor.innerText}\n\n${body}`:body;}
+}catch{editor.innerText=editor.innerText?`${editor.innerText}\n\n${body}`:body}
+qs(‘composerEmpty’).style.display=editorHtmlToText(editor.innerHTML)?‘none’:‘block’;
+showToast(‘Snippet inserted’);
 }
-function useSnippetInThread(snippet,position='prepend'){
-  const input=qs('threadInput');const current=input.value.trim();const body=snippet.body||'';
-  input.value=position==='prepend'?(current?`${body}\n\n${current}`:body):(current?`${current}\n\n${body}`:body);
-  showToast(position==='prepend'?'Opener added':'CTA added');
+function useSnippetInThread(snippet,position=‘prepend’){
+const input=qs(‘threadInput’);const current=input.value.trim();const body=snippet.body||’’;
+input.value=position===‘prepend’?(current?`${body}\n\n${current}`:body):(current?`${current}\n\n${body}`:body);
+showToast(position===‘prepend’?‘Opener added’:‘CTA added’);
 }
 function renderSnippetFilters(){
-  const rail=qs('snippetTypeFilters');rail.innerHTML='';
-  const label=document.createElement('div');label.className='filter-label';label.textContent='Type';rail.appendChild(label);
-  snippetTypes.forEach(type=>{
-    const b=document.createElement('button');
-    b.className=`filter-btn ${state.snippetType===type?'active':''}`;
-    b.textContent=type;b.onclick=()=>{state.snippetType=type;renderSnippets();};
-    rail.appendChild(b);
-  });
+const rail=qs(‘snippetTypeFilters’);rail.innerHTML=’’;
+const label=document.createElement(‘div’);label.className=‘filter-label’;label.textContent=‘Type’;rail.appendChild(label);
+snippetTypes.forEach(type=>{
+const b=document.createElement(‘button’);
+b.className=`filter-btn ${state.snippetType===type?'active':''}`;
+b.textContent=type;b.onclick=()=>{state.snippetType=type;renderSnippets();};
+rail.appendChild(b);
+});
 }
 function renderSnippets(){
-  renderSnippetFilters();
-  const list=filteredSnippets();
-  const grid=qs('snippetGrid');
-  qs('snippetsEmpty').style.display=list.length?'none':'block';
-  grid.innerHTML='';
-  list.forEach(s=>{
-    const card=document.createElement('div');card.className='snippet-card';
-    card.innerHTML=`
-      <div class="snippet-card-hdr">
-        <div class="snippet-title">${safeText(s.title)}</div>
-        <div class="snippet-badges">${snippetBadge(s.type)}${snippetBadge(s.platform)}</div>
-      </div>
-      <div class="snippet-body">${safeText(compactText(s.body,200))}</div>
-      ${s.tags?.length?`<div class="snippet-tags">${safeText(s.tags.join(' · '))}</div>`:''}
-      <div class="snippet-actions">
-        <button class="btn snippet-use-btn" data-act="copy">Copy</button>
-        <button class="btn snippet-use-btn primary" data-act="composer">→ Composer</button>
-        <div class="snippet-menu">
-          <button class="btn sm ghost" data-act="edit" title="Edit">✏️</button>
-          <button class="btn sm ghost" data-act="delete" title="Delete">🗑</button>
-        </div>
-      </div>`;
-    card.querySelector('[data-act="copy"]').onclick=()=>{navigator.clipboard.writeText(s.body||'');showToast('Copied')};
-    card.querySelector('[data-act="composer"]').onclick=()=>{activateView('composerView');useSnippetInComposer(s)};
-    card.querySelector('[data-act="edit"]').onclick=()=>openSnippetModal(s.id);
-    card.querySelector('[data-act="delete"]').onclick=()=>deleteSnippet(s.id);
-    grid.appendChild(card);
-  });
+renderSnippetFilters();
+const list=filteredSnippets();
+const grid=qs(‘snippetGrid’);
+qs(‘snippetsEmpty’).style.display=list.length?‘none’:‘block’;
+grid.innerHTML=’’;
+list.forEach(s=>{
+const card=document.createElement(‘div’);card.className=‘snippet-card’;
+card.innerHTML=` <div class="snippet-card-hdr"> <div class="snippet-title">${safeText(s.title)}</div> <div class="snippet-badges">${snippetBadge(s.type)}${snippetBadge(s.platform)}</div> </div> <div class="snippet-body">${safeText(compactText(s.body,200))}</div> ${s.tags?.length?`<div class="snippet-tags">${safeText(s.tags.join(’ · ‘))}</div>`:''} <div class="snippet-actions"> <button class="btn snippet-use-btn" data-act="copy">Copy</button> <button class="btn snippet-use-btn primary" data-act="composer">→ Composer</button> <div class="snippet-menu"> <button class="btn sm ghost" data-act="edit" title="Edit">✏️</button> <button class="btn sm ghost" data-act="delete" title="Delete">🗑</button> </div> </div>`;
+card.querySelector(’[data-act=“copy”]’).onclick=()=>{navigator.clipboard.writeText(s.body||’’);showToast(‘Copied’)};
+card.querySelector(’[data-act=“composer”]’).onclick=()=>{activateView(‘composerView’);useSnippetInComposer(s)};
+card.querySelector(’[data-act=“edit”]’).onclick=()=>openSnippetModal(s.id);
+card.querySelector(’[data-act=“delete”]’).onclick=()=>deleteSnippet(s.id);
+grid.appendChild(card);
+});
 }
 function activateView(viewId){
-  document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===viewId));
-  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
+document.querySelectorAll(’[data-view]’).forEach(x=>x.classList.toggle(‘active’,x.dataset.view===viewId));
+document.querySelectorAll(’.view’).forEach(v=>v.classList.toggle(‘active’,v.id===viewId));
 }
 function openSnippetModal(id=null){
-  state.editingSnippetId=id;
-  const s=id?state.snippets.find(x=>x.id===id):null;
-  qs('snippetModalTitle').textContent=s?'Edit Snippet':'New Snippet';
-  qs('snippetTitle').value=s?.title||'';
-  qs('snippetType').value=s?.type||'Hooks';
-  qs('snippetPlatform').value=s?.platform||'Universal';
-  qs('snippetTags').value=(s?.tags||[]).join(', ');
-  qs('snippetBody').value=s?.body||'';
-  openModal('snippetModal');
+state.editingSnippetId=id;
+const s=id?state.snippets.find(x=>x.id===id):null;
+qs(‘snippetModalTitle’).textContent=s?‘Edit Snippet’:‘New Snippet’;
+qs(‘snippetTitle’).value=s?.title||’’;
+qs(‘snippetType’).value=s?.type||‘Hooks’;
+qs(‘snippetPlatform’).value=s?.platform||‘Universal’;
+qs(‘snippetTags’).value=(s?.tags||[]).join(’, ‘);
+qs(‘snippetBody’).value=s?.body||’’;
+openModal(‘snippetModal’);
 }
 function saveSnippet(){
-  const title=qs('snippetTitle').value.trim();const body=qs('snippetBody').value.trim();
-  if(!title||!body){showToast('Title and body required');return}
-  const now=new Date().toISOString();
-  const payload={id:state.editingSnippetId||`${Date.now()}-${Math.random().toString(16).slice(2,7)}`,title,type:qs('snippetType').value,platform:qs('snippetPlatform').value,tags:normalizeTags(qs('snippetTags').value),body,createdAt:now,updatedAt:now};
-  if(state.editingSnippetId){const prev=state.snippets.find(s=>s.id===state.editingSnippetId);payload.createdAt=prev?.createdAt||now;state.snippets=state.snippets.map(s=>s.id===state.editingSnippetId?payload:s);}
-  else state.snippets=[payload,...state.snippets];
-  persistSnippets();closeModal('snippetModal');renderSnippets();showToast('Snippet saved');
+const title=qs(‘snippetTitle’).value.trim();const body=qs(‘snippetBody’).value.trim();
+if(!title||!body){showToast(‘Title and body required’);return}
+const now=new Date().toISOString();
+const payload={id:state.editingSnippetId||`${Date.now()}-${Math.random().toString(16).slice(2,7)}`,title,type:qs(‘snippetType’).value,platform:qs(‘snippetPlatform’).value,tags:normalizeTags(qs(‘snippetTags’).value),body,createdAt:now,updatedAt:now};
+if(state.editingSnippetId){const prev=state.snippets.find(s=>s.id===state.editingSnippetId);payload.createdAt=prev?.createdAt||now;state.snippets=state.snippets.map(s=>s.id===state.editingSnippetId?payload:s);}
+else state.snippets=[payload,…state.snippets];
+persistSnippets();closeModal(‘snippetModal’);renderSnippets();showToast(‘Snippet saved’);
 }
 function deleteSnippet(id){
-  if(!confirm('Delete this snippet?'))return;
-  state.snippets=state.snippets.filter(s=>s.id!==id);
-  persistSnippets();renderSnippets();showToast('Snippet deleted');
+if(!confirm(‘Delete this snippet?’))return;
+state.snippets=state.snippets.filter(s=>s.id!==id);
+persistSnippets();renderSnippets();showToast(‘Snippet deleted’);
 }
 function renderSnippetSelectors(){
-  ['snippetPlatformFilter','snippetPlatform','pickerPlatform'].forEach(id=>{
-    const sel=qs(id);if(!sel)return;sel.innerHTML='';
-    snippetPlatforms.forEach((p,i)=>{if(id==='snippetPlatform'&&i===0)return;const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o)});
-  });
-  ['snippetType','pickerType'].forEach(id=>{
-    const sel=qs(id);if(!sel)return;sel.innerHTML='';
-    snippetTypes.forEach((t,i)=>{if(id==='snippetType'&&i===0)return;const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o)});
-  });
-  qs('snippetPlatformFilter').value=state.snippetPlatform;
+[‘snippetPlatformFilter’,‘snippetPlatform’,‘pickerPlatform’].forEach(id=>{
+const sel=qs(id);if(!sel)return;sel.innerHTML=’’;
+snippetPlatforms.forEach((p,i)=>{if(id===‘snippetPlatform’&&i===0)return;const o=document.createElement(‘option’);o.value=p;o.textContent=p;sel.appendChild(o)});
+});
+[‘snippetType’,‘pickerType’].forEach(id=>{
+const sel=qs(id);if(!sel)return;sel.innerHTML=’’;
+snippetTypes.forEach((t,i)=>{if(id===‘snippetType’&&i===0)return;const o=document.createElement(‘option’);o.value=t;o.textContent=t;sel.appendChild(o)});
+});
+qs(‘snippetPlatformFilter’).value=state.snippetPlatform;
 }
 function openSnippetPicker(mode){
-  if(!state.snippets.length){showToast('No snippets yet — create one in the Snippets tab first');return;}
-  state.pickerMode=mode;
-  qs('snippetPickerTitle').textContent=mode==='composer'?'Insert snippet into Composer':mode==='threadOpener'?'Add opener from Snippets':'Add ending CTA from Snippets';
-  qs('pickerSearch').value='';qs('pickerType').value='All';qs('pickerPlatform').value='All Platforms';
-  renderSnippetPicker();openModal('snippetPickerModal');
+if(!state.snippets.length){showToast(‘No snippets yet — create one in the Snippets tab first’);return;}
+state.pickerMode=mode;
+qs(‘snippetPickerTitle’).textContent=mode===‘composer’?‘Insert snippet into Composer’:mode===‘threadOpener’?‘Add opener from Snippets’:‘Add ending CTA from Snippets’;
+qs(‘pickerSearch’).value=’’;qs(‘pickerType’).value=‘All’;qs(‘pickerPlatform’).value=‘All Platforms’;
+renderSnippetPicker();openModal(‘snippetPickerModal’);
 }
 function renderSnippetPicker(){
-  const list=filteredSnippets(qs('pickerSearch').value,qs('pickerType').value,qs('pickerPlatform').value);
-  const wrap=qs('pickerList');wrap.innerHTML='';
-  qs('pickerEmpty').style.display=list.length?'none':'block';
-  list.forEach(s=>{
-    const el=document.createElement('button');el.className='picker-item';
-    el.innerHTML=`<strong style="font-size:13px;">${safeText(s.title)}</strong><div class="snippet-body mt8">${safeText(compactText(s.body,180))}</div><div class="row mt8">${snippetBadge(s.type)}${snippetBadge(s.platform)}</div>`;
-    el.onclick=()=>{
-      if(state.pickerMode==='composer'){activateView('composerView');useSnippetInComposer(s);}
-      if(state.pickerMode==='threadOpener'){activateView('threadView');useSnippetInThread(s,'prepend');}
-      if(state.pickerMode==='threadCta'){activateView('threadView');useSnippetInThread(s,'append');}
-      closeModal('snippetPickerModal');
-    };
-    wrap.appendChild(el);
-  });
+const list=filteredSnippets(qs(‘pickerSearch’).value,qs(‘pickerType’).value,qs(‘pickerPlatform’).value);
+const wrap=qs(‘pickerList’);wrap.innerHTML=’’;
+qs(‘pickerEmpty’).style.display=list.length?‘none’:‘block’;
+list.forEach(s=>{
+const el=document.createElement(‘button’);el.className=‘picker-item’;
+el.innerHTML=`<strong style="font-size:13px;">${safeText(s.title)}</strong><div class="snippet-body mt8">${safeText(compactText(s.body,180))}</div><div class="row mt8">${snippetBadge(s.type)}${snippetBadge(s.platform)}</div>`;
+el.onclick=()=>{
+if(state.pickerMode===‘composer’){activateView(‘composerView’);useSnippetInComposer(s);}
+if(state.pickerMode===‘threadOpener’){activateView(‘threadView’);useSnippetInThread(s,‘prepend’);}
+if(state.pickerMode===‘threadCta’){activateView(‘threadView’);useSnippetInThread(s,‘append’);}
+closeModal(‘snippetPickerModal’);
+};
+wrap.appendChild(el);
+});
 }
 
 // ── TOKEN ──
-function setSyncStatus(stateName,msg){state.syncState=stateName;qs('syncStatus').textContent=msg;}
+function setSyncStatus(stateName,msg){state.syncState=stateName;qs(‘syncStatus’).textContent=msg;}
 function updateTokenUI(){
-  const connected=!!bufferToken;
-  qs('statusDot').classList.toggle('connected',connected);
-  qs('tokenStatusLabel').textContent=connected?'Connected':'Not connected';
-  qs('tokenMaskedPreview').textContent=maskToken(bufferToken);
-  tokenInputVisible=false;qs('tokenInput').type='password';qs('toggleTokenVisibility').textContent='Show';
+const connected=!!bufferToken;
+qs(‘statusDot’).classList.toggle(‘connected’,connected);
+qs(‘tokenStatusLabel’).textContent=connected?‘Connected’:‘Not connected’;
+qs(‘tokenMaskedPreview’).textContent=maskToken(bufferToken);
+tokenInputVisible=false;qs(‘tokenInput’).type=‘password’;qs(‘toggleTokenVisibility’).textContent=‘Show’;
 }
 function toggleTokenPanel(){
-  tokenPanelOpen=!tokenPanelOpen;
-  qs('tokenPanel').classList.toggle('open',tokenPanelOpen);
-  qs('manageTokenBtn').textContent=tokenPanelOpen?'Done':'Manage';
+tokenPanelOpen=!tokenPanelOpen;
+qs(‘tokenPanel’).classList.toggle(‘open’,tokenPanelOpen);
+qs(‘manageTokenBtn’).textContent=tokenPanelOpen?‘Done’:‘Manage’;
 }
 function saveToken(){
-  const token=qs('tokenInput').value.trim();
-  const mode=[...document.querySelectorAll('input[name="tokenMode"]')].find(r=>r.checked).value;
-  localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
-  if(!token){bufferToken='';qs('tokenMsg').textContent='Token removed.';updateTokenUI();showToast('Token removed');return;}
-  if(mode==='local')localStorage.setItem(STORE_KEY,token);else sessionStorage.setItem(STORE_KEY,token);
-  bufferToken=token;
-  qs('tokenMsg').textContent=mode==='local'?'Saved to localStorage.':'Saved for this session.';
-  showToast('Token saved');updateTokenUI();
+const token=qs(‘tokenInput’).value.trim();
+const mode=[…document.querySelectorAll(‘input[name=“tokenMode”]’)].find(r=>r.checked).value;
+localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
+if(!token){bufferToken=’’;qs(‘tokenMsg’).textContent=‘Token removed.’;updateTokenUI();showToast(‘Token removed’);return;}
+if(mode===‘local’)localStorage.setItem(STORE_KEY,token);else sessionStorage.setItem(STORE_KEY,token);
+bufferToken=token;
+qs(‘tokenMsg’).textContent=mode===‘local’?‘Saved to localStorage.’:‘Saved for this session.’;
+showToast(‘Token saved’);updateTokenUI();
 }
 function loadStoredToken(){
-  bufferToken=sessionStorage.getItem(STORE_KEY)||localStorage.getItem(STORE_KEY)||'';
-  if(bufferToken)qs('tokenInput').value=bufferToken;
-  updateTokenUI();
+bufferToken=sessionStorage.getItem(STORE_KEY)||localStorage.getItem(STORE_KEY)||’’;
+if(bufferToken)qs(‘tokenInput’).value=bufferToken;
+updateTokenUI();
 }
 
 // ── BUFFER API ──
 async function callBuffer(query,variables={}){
-  if(!bufferToken)throw new Error('MISSING_TOKEN');
-  const res=await fetch('/.netlify/functions/buffer-proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:bufferToken,query,variables})});
-  const data=await res.json();
-  // Only throw if no data returned — partial errors alongside data are normal in GraphQL
-  if(data.errors?.length && !data.data)throw new Error(data.errors[0].message);
-  if(data.errors?.length)console.warn('[PostIQ] GraphQL partial errors:',data.errors);
-  return data;
+if(!bufferToken)throw new Error(‘MISSING_TOKEN’);
+const res=await fetch(’/.netlify/functions/buffer-proxy’,{method:‘POST’,headers:{‘Content-Type’:‘application/json’},body:JSON.stringify({token:bufferToken,query,variables})});
+const data=await res.json();
+// Only throw if no data returned — partial errors alongside data are normal in GraphQL
+if(data.errors?.length && !data.data)throw new Error(data.errors[0].message);
+if(data.errors?.length)console.warn(’[PostIQ] GraphQL partial errors:’,data.errors);
+return data;
 }
 
-function getNotes(){try{return JSON.parse(localStorage.getItem(NOTE_KEY)||'{}')}catch{return {}}}
+function getNotes(){try{return JSON.parse(localStorage.getItem(NOTE_KEY)||’{}’)}catch{return {}}}
 function setNotes(v){localStorage.setItem(NOTE_KEY,JSON.stringify(v))}
 
 async function syncBuffer(){
-  if(!bufferToken){setSyncStatus('failed','Add your Buffer token first.');return;}
-  setSyncStatus('syncing','Syncing…');
-  try{
-    const acc=await callBuffer('query { account { organizations { id name } } }');
-    const orgId=acc?.data?.account?.organizations?.[0]?.id;
-    if(!orgId){setSyncStatus('failed','No organization found.');return;}
-    const channelsQuery='query Channels($organizationId: OrganizationId!){ channels(input:{organizationId:$organizationId}) { id displayName name service } }';
-    const ch=await callBuffer(channelsQuery,{organizationId:orgId});
-    state.channels=ch?.data?.channels||[];
-    const cap=500;let after=null;let all=[];let hasNext=true;
-    const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId assets{ id url mimeType } } } pageInfo{ hasNextPage endCursor } } }';
-    while(hasNext&&all.length<cap){
-      const page=await callBuffer(postsQuery,{organizationId:orgId,after});
-      const block=page?.data?.posts;const edges=block?.edges||[];
-      all=all.concat(edges.map(e=>e.node));
-      hasNext=!!block?.pageInfo?.hasNextPage;after=block?.pageInfo?.endCursor||null;
-      if(!block?.pageInfo)break;
-    }
-    state.scheduled=all;renderChannelSelects();renderCalendar();
-    setSyncStatus('success',`${all.length} scheduled posts loaded.`);
-    qs('syncBtn').classList.remove('sync-pulse');
-    showToast(`Loaded ${all.length} posts`);
-  }catch(e){
-    console.error('[PostIQ] syncBuffer error:', e);
-    const m=String(e.message||'');
-    if(m.includes('MISSING_TOKEN'))setSyncStatus('failed','Add a Buffer token first.');
-    else if(/unauthorized|invalid|forbidden/i.test(m))setSyncStatus('failed','Token appears invalid or expired.');
-    else setSyncStatus('failed',`Sync failed: ${m||'unknown error'}`);
-  }
+if(!bufferToken){setSyncStatus(‘failed’,‘Add your Buffer token first.’);return;}
+setSyncStatus(‘syncing’,‘Syncing…’);
+try{
+const acc=await callBuffer(‘query { account { organizations { id name } } }’);
+const orgId=acc?.data?.account?.organizations?.[0]?.id;
+if(!orgId){setSyncStatus(‘failed’,‘No organization found.’);return;}
+const channelsQuery=‘query Channels($organizationId: OrganizationId!){ channels(input:{organizationId:$organizationId}) { id displayName name service } }’;
+const ch=await callBuffer(channelsQuery,{organizationId:orgId});
+state.channels=ch?.data?.channels||[];
+const cap=500;let after=null;let all=[];let hasNext=true;
+const postsQuery=‘query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId assets{ id url mimeType } } } pageInfo{ hasNextPage endCursor } } }’;
+while(hasNext&&all.length<cap){
+const page=await callBuffer(postsQuery,{organizationId:orgId,after});
+const block=page?.data?.posts;const edges=block?.edges||[];
+all=all.concat(edges.map(e=>e.node));
+hasNext=!!block?.pageInfo?.hasNextPage;after=block?.pageInfo?.endCursor||null;
+if(!block?.pageInfo)break;
+}
+state.scheduled=all;renderChannelSelects();renderCalendar();
+setSyncStatus(‘success’,`${all.length} scheduled posts loaded.`);
+qs(‘syncBtn’).classList.remove(‘sync-pulse’);
+showToast(`Loaded ${all.length} posts`);
+}catch(e){
+console.error(’[PostIQ] syncBuffer error:’, e);
+const m=String(e.message||’’);
+if(m.includes(‘MISSING_TOKEN’))setSyncStatus(‘failed’,‘Add a Buffer token first.’);
+else if(/unauthorized|invalid|forbidden/i.test(m))setSyncStatus(‘failed’,‘Token appears invalid or expired.’);
+else setSyncStatus(‘failed’,`Sync failed: ${m||'unknown error'}`);
+}
 }
 
 function renderChannelSelects(){
-  const threadSel=qs('threadChannel');
-  const threadChannels=state.channels.filter(c=>{const s=(c.service||'').toLowerCase();return s.includes('twitter')||s.includes('x')||s.includes('thread');});
-  threadSel.innerHTML='';
-  if(threadChannels.length){
-    threadChannels.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.displayName||c.name} (${c.service})`;threadSel.appendChild(o)});
-    qs('threadNoChannels').style.display='none';threadSel.style.display='';
-  }else{qs('threadNoChannels').style.display='block';threadSel.style.display='none';}
-  const composerSel=qs('composerChannel');
-  composerSel.innerHTML='';
-  if(state.channels.length){
-    state.channels.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.displayName||c.name} (${c.service})`;composerSel.appendChild(o)});
-    qs('composerNoChannels').style.display='none';composerSel.style.display='';updateComposerChannelHint();
-  }else{qs('composerNoChannels').style.display='block';composerSel.style.display='none';qs('composerChannelHint').style.display='none';}
+const threadSel=qs(‘threadChannel’);
+const threadChannels=state.channels.filter(c=>{const s=(c.service||’’).toLowerCase();return s.includes(‘twitter’)||s.includes(‘x’)||s.includes(‘thread’);});
+threadSel.innerHTML=’’;
+if(threadChannels.length){
+threadChannels.forEach(c=>{const o=document.createElement(‘option’);o.value=c.id;o.textContent=`${c.displayName||c.name} (${c.service})`;threadSel.appendChild(o)});
+qs(‘threadNoChannels’).style.display=‘none’;threadSel.style.display=’’;
+}else{qs(‘threadNoChannels’).style.display=‘block’;threadSel.style.display=‘none’;}
+const composerSel=qs(‘composerChannel’);
+composerSel.innerHTML=’’;
+if(state.channels.length){
+state.channels.forEach(c=>{const o=document.createElement(‘option’);o.value=c.id;o.textContent=`${c.displayName||c.name} (${c.service})`;composerSel.appendChild(o)});
+qs(‘composerNoChannels’).style.display=‘none’;composerSel.style.display=’’;updateComposerChannelHint();
+}else{qs(‘composerNoChannels’).style.display=‘block’;composerSel.style.display=‘none’;qs(‘composerChannelHint’).style.display=‘none’;}
 }
 function updateComposerChannelHint(){
-  const sel=qs('composerChannel');const hint=qs('composerChannelHint');
-  if(!sel||!sel.value){hint.style.display='none';return;}
-  const ch=state.channels.find(c=>c.id===sel.value);
-  if(ch){hint.textContent=`Posting to: ${ch.displayName||ch.name} (${ch.service})`;hint.style.display='block';}
-  else{hint.style.display='none';}
+const sel=qs(‘composerChannel’);const hint=qs(‘composerChannelHint’);
+if(!sel||!sel.value){hint.style.display=‘none’;return;}
+const ch=state.channels.find(c=>c.id===sel.value);
+if(ch){hint.textContent=`Posting to: ${ch.displayName||ch.name} (${ch.service})`;hint.style.display=‘block’;}
+else{hint.style.display=‘none’;}
 }
 
 // ── THREAD ──
 function splitThreadText(text,max=280){
-  const parts=[];let left=text.trim();
-  while(left.length>max){
-    let cut=left.lastIndexOf('\n',max);if(cut<80)cut=left.lastIndexOf(' ',max);if(cut<80)cut=max;
-    parts.push(left.slice(0,cut).trim());left=left.slice(cut).trim();
-  }
-  if(left)parts.push(left);return parts;
+const parts=[];let left=text.trim();
+while(left.length>max){
+let cut=left.lastIndexOf(’\n’,max);if(cut<80)cut=left.lastIndexOf(’ ‘,max);if(cut<80)cut=max;
+parts.push(left.slice(0,cut).trim());left=left.slice(cut).trim();
+}
+if(left)parts.push(left);return parts;
 }
 function renderThread(){
-  const out=qs('threadOut');
-  if(!threadParts.length){out.innerHTML='';qs('threadEmpty').style.display='block';return;}
-  qs('threadEmpty').style.display='none';out.innerHTML='';
-  threadParts.forEach((p,i)=>{
-    const chars=p.length;const over=chars>280;
-    const d=document.createElement('div');d.className='thread-part';
-    d.innerHTML=`<div class="thread-part-hdr"><span class="part-num">Part ${i+1}</span><div style="display:flex;gap:6px;align-items:center;"><span style="font-size:11px;font-family:'DM Mono',monospace;color:${over?'var(--red)':'var(--subtle)'};">${chars}/280</span><button class="btn sm ghost" data-copy="${i}">Copy</button></div></div><textarea data-i="${i}" style="min-height:80px;">${p}</textarea>`;
-    out.appendChild(d);
-  });
-  out.querySelectorAll('textarea').forEach(t=>t.addEventListener('input',e=>{
-    threadParts[+e.target.dataset.i]=e.target.value;
-    const hdr=e.target.closest('.thread-part').querySelector('.thread-part-hdr span:last-of-type');
-    if(hdr){const c=e.target.value.length;hdr.style.color=c>280?'var(--red)':'var(--subtle)';hdr.textContent=`${c}/280`;}
-  }));
-  out.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{navigator.clipboard.writeText(threadParts[+b.dataset.copy]||'');showToast('Part copied');});
+const out=qs(‘threadOut’);
+if(!threadParts.length){out.innerHTML=’’;qs(‘threadEmpty’).style.display=‘block’;return;}
+qs(‘threadEmpty’).style.display=‘none’;out.innerHTML=’’;
+threadParts.forEach((p,i)=>{
+const chars=p.length;const over=chars>280;
+const d=document.createElement(‘div’);d.className=‘thread-part’;
+d.innerHTML=`<div class="thread-part-hdr"><span class="part-num">Part ${i+1}</span><div style="display:flex;gap:6px;align-items:center;"><span style="font-size:11px;font-family:'DM Mono',monospace;color:${over?'var(--red)':'var(--subtle)'};">${chars}/280</span><button class="btn sm ghost" data-copy="${i}">Copy</button></div></div><textarea data-i="${i}" style="min-height:80px;">${p}</textarea>`;
+out.appendChild(d);
+});
+out.querySelectorAll(‘textarea’).forEach(t=>t.addEventListener(‘input’,e=>{
+threadParts[+e.target.dataset.i]=e.target.value;
+const hdr=e.target.closest(’.thread-part’).querySelector(’.thread-part-hdr span:last-of-type’);
+if(hdr){const c=e.target.value.length;hdr.style.color=c>280?‘var(–red)’:‘var(–subtle)’;hdr.textContent=`${c}/280`;}
+}));
+out.querySelectorAll(’[data-copy]’).forEach(b=>b.onclick=()=>{navigator.clipboard.writeText(threadParts[+b.dataset.copy]||’’);showToast(‘Part copied’);});
 }
 function getThreadMetadata(channelId){
-  const channel=state.channels.find(c=>c.id===channelId);
-  const svc=(channel?.service||'').toLowerCase();
-  const isThreads=svc.includes('thread');
-  return threadParts.length>1?{metadata:{[isThreads?'threads':'twitter']:isThreads?{type:'thread',thread:threadParts.slice(1).map(t=>({text:t}))}:{thread:threadParts.slice(1).map(t=>({text:t}))}}}:{};
+const channel=state.channels.find(c=>c.id===channelId);
+const svc=(channel?.service||’’).toLowerCase();
+const isThreads=svc.includes(‘thread’);
+return threadParts.length>1?{metadata:{[isThreads?‘threads’:‘twitter’]:isThreads?{type:‘thread’,thread:threadParts.slice(1).map(t=>({text:t}))}:{thread:threadParts.slice(1).map(t=>({text:t}))}}}:{};
 }
 async function sendThread(action){
-  if(!threadParts.length){qs('threadStatus').textContent='Split content first.';return;}
-  const channelId=qs('threadChannel').value;if(!channelId){qs('threadStatus').textContent='Load channels first.';return;}
-  const first=threadParts[0];const when=qs('threadWhen').value;
-  const input={channelId,text:first,schedulingType:'automatic',...getThreadMetadata(channelId)};
-  if(action==='draft'){input.mode='addToQueue';input.saveToDraft=true;}
-  if(action==='queue'){input.mode='addToQueue';}
-  if(action==='schedule'){if(!when){qs('threadStatus').textContent='Choose date/time first.';return;}input.mode='customScheduled';input.dueAt=when;}
-  try{
-    await createPost(input);
-    const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
-    qs('threadStatus').textContent=msg;showToast(msg);
-  }catch(e){qs('threadStatus').textContent='Failed. Check token/channel.';}
+if(!threadParts.length){qs(‘threadStatus’).textContent=‘Split content first.’;return;}
+const channelId=qs(‘threadChannel’).value;if(!channelId){qs(‘threadStatus’).textContent=‘Load channels first.’;return;}
+const first=threadParts[0];const when=qs(‘threadWhen’).value;
+const input={channelId,text:first,schedulingType:‘automatic’,…getThreadMetadata(channelId)};
+if(action===‘draft’){input.mode=‘addToQueue’;input.saveToDraft=true;}
+if(action===‘queue’){input.mode=‘addToQueue’;}
+if(action===‘schedule’){if(!when){qs(‘threadStatus’).textContent=‘Choose date/time first.’;return;}input.mode=‘customScheduled’;input.dueAt=when;}
+try{
+await createPost(input);
+const msg=action===‘draft’?‘Draft saved.’:action===‘queue’?‘Added to queue.’:‘Scheduled.’;
+qs(‘threadStatus’).textContent=msg;showToast(msg);
+}catch(e){qs(‘threadStatus’).textContent=‘Failed. Check token/channel.’;}
 }
 
 // ── CALENDAR ──
 function renderCalendar(){
-  qs('monthLabel').textContent=monthLabel(state.month);
-  const grid=qs('calGrid');grid.innerHTML='';
-  const first=monthStart(state.month);const start=new Date(first);start.setDate(1-first.getDay());
-  const notes=getNotes();const today=fmtDate(new Date());
-  for(let i=0;i<42;i++){
-    const d=new Date(start);d.setDate(start.getDate()+i);
-    const key=fmtDate(d);const inMonth=d.getMonth()===state.month.getMonth();
-    const dayPosts=state.scheduled.filter(p=>fmtDate(new Date(p.dueAt))===key);
-    const note=notes[key];const isToday=key===today;
-    const day=document.createElement('div');
-    let cls='cal-day';if(!inMonth)cls+=' other-month';if(isToday)cls+=' today';if(dayPosts.length)cls+=' has-posts';
-    day.className=cls;
-    let html=`<div class="day-num">${d.getDate()}</div>`;
-    if(dayPosts.length>0)html+=`<div class="day-posts-count">${dayPosts.length}</div>`;
-    if(dayPosts.length>0)html+=`<div class="day-post-pill">${safeText(compactText(dayPosts[0].text,70))}</div>`;
-    if(dayPosts.length>1)html+=`<div class="day-post-pill">${safeText(compactText(dayPosts[1].text,70))}</div>`;
-    if(dayPosts.length>2)html+=`<div class="more-indicator">+${dayPosts.length-2} more</div>`;
-    if(note)html+=`<div class="day-note-pill ${note.tag||'gold'}"><span class="note-pill-label">${safeText(note.label||noteTags[note.tag]||'Note')}</span>${safeText(compactText(note.text,60))}</div>`;
-    day.innerHTML=html;day.onclick=()=>openDayNote(d);grid.appendChild(day);
-  }
+qs(‘monthLabel’).textContent=monthLabel(state.month);
+const grid=qs(‘calGrid’);grid.innerHTML=’’;
+const first=monthStart(state.month);const start=new Date(first);start.setDate(1-first.getDay());
+const notes=getNotes();const today=fmtDate(new Date());
+for(let i=0;i<42;i++){
+const d=new Date(start);d.setDate(start.getDate()+i);
+const key=fmtDate(d);const inMonth=d.getMonth()===state.month.getMonth();
+const dayPosts=state.scheduled.filter(p=>fmtDate(new Date(p.dueAt))===key);
+const note=notes[key];const isToday=key===today;
+const day=document.createElement(‘div’);
+let cls=‘cal-day’;if(!inMonth)cls+=’ other-month’;if(isToday)cls+=’ today’;if(dayPosts.length)cls+=’ has-posts’;
+day.className=cls;
+let html=`<div class="day-num">${d.getDate()}</div>`;
+if(dayPosts.length>0)html+=`<div class="day-posts-count">${dayPosts.length}</div>`;
+if(dayPosts.length>0)html+=`<div class="day-post-pill">${safeText(compactText(dayPosts[0].text,70))}</div>`;
+if(dayPosts.length>1)html+=`<div class="day-post-pill">${safeText(compactText(dayPosts[1].text,70))}</div>`;
+if(dayPosts.length>2)html+=`<div class="more-indicator">+${dayPosts.length-2} more</div>`;
+if(note)html+=`<div class="day-note-pill ${note.tag||'gold'}"><span class="note-pill-label">${safeText(note.label||noteTags[note.tag]||'Note')}</span>${safeText(compactText(note.text,60))}</div>`;
+day.innerHTML=html;day.onclick=()=>openDayNote(d);grid.appendChild(day);
+}
 }
 function openDayNote(date){
-  state.selectedDate=date;const key=fmtDate(date);
-  const note=getNotes()[key]||{text:'',tag:'gold',label:'Idea'};
-  qs('noteDateLabel').textContent=date.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
-  qs('noteText').value=note.text||'';
-  qs('noteTag').value=`${note.tag||'gold'}|${note.label||noteTags[note.tag||'gold']||'Idea'}`;
-  const dayPosts=state.scheduled.filter(p=>fmtDate(new Date(p.dueAt))===key);
-  qs('dayModalPostPreview').innerHTML=dayPosts.length
-    ?`<div class="label mb8">Scheduled posts</div>${dayPosts.map(p=>`<div class="day-post-pill mb8" style="border-radius:6px;">${safeText(p.text||'(no text)')}</div>`).join('')}`
-    :`<div class="status-txt mb8" style="font-size:12px;">No scheduled posts on this day.${state.syncState==='idle'?' <span style="color:var(--subtle);">Load from Buffer to sync posts.</span>':''}</div>`;
-  qs('dayModalNotePreview').innerHTML=note.text
-    ?`<div class="day-note-pill ${note.tag||'gold'} mb8"><span class="note-pill-label">${safeText(note.label||noteTags[note.tag||'gold']||'Note')}</span>${safeText(note.text)}</div>`:'';
-  qs('noteStatus').textContent='';openModal('noteModal');
+state.selectedDate=date;const key=fmtDate(date);
+const note=getNotes()[key]||{text:’’,tag:‘gold’,label:‘Idea’};
+qs(‘noteDateLabel’).textContent=date.toLocaleDateString(undefined,{weekday:‘long’,month:‘long’,day:‘numeric’});
+qs(‘noteText’).value=note.text||’’;
+qs(‘noteTag’).value=`${note.tag||'gold'}|${note.label||noteTags[note.tag||'gold']||'Idea'}`;
+const dayPosts=state.scheduled.filter(p=>fmtDate(new Date(p.dueAt))===key);
+qs(‘dayModalPostPreview’).innerHTML=dayPosts.length
+?`<div class="label mb8">Scheduled posts</div>${dayPosts.map(p=>`<div class="day-post-pill mb8" style="border-radius:6px;">${safeText(p.text||’(no text)’)}</div>`).join('')}`
+:`<div class="status-txt mb8" style="font-size:12px;">No scheduled posts on this day.${state.syncState==='idle'?' <span style="color:var(--subtle);">Load from Buffer to sync posts.</span>':''}</div>`;
+qs(‘dayModalNotePreview’).innerHTML=note.text
+?`<div class="day-note-pill ${note.tag||'gold'} mb8"><span class="note-pill-label">${safeText(note.label||noteTags[note.tag||'gold']||'Note')}</span>${safeText(note.text)}</div>`:’’;
+qs(‘noteStatus’).textContent=’’;openModal(‘noteModal’);
 }
 function saveNoteFromModal(){
-  if(!state.selectedDate)return;const key=fmtDate(state.selectedDate);
-  const text=qs('noteText').value.trim();const [tag,label]=qs('noteTag').value.split('|');
-  const notes=getNotes();
-  if(!text){delete notes[key];setNotes(notes);qs('noteStatus').textContent='Note removed.';renderCalendar();return;}
-  notes[key]={text,tag,label};setNotes(notes);qs('noteStatus').textContent='Saved.';renderCalendar();showToast('Note saved');
+if(!state.selectedDate)return;const key=fmtDate(state.selectedDate);
+const text=qs(‘noteText’).value.trim();const [tag,label]=qs(‘noteTag’).value.split(’|’);
+const notes=getNotes();
+if(!text){delete notes[key];setNotes(notes);qs(‘noteStatus’).textContent=‘Note removed.’;renderCalendar();return;}
+notes[key]={text,tag,label};setNotes(notes);qs(‘noteStatus’).textContent=‘Saved.’;renderCalendar();showToast(‘Note saved’);
 }
 function deleteNote(){
-  if(!state.selectedDate)return;const notes=getNotes();delete notes[fmtDate(state.selectedDate)];setNotes(notes);
-  qs('noteText').value='';qs('noteStatus').textContent='Deleted.';renderCalendar();showToast('Note deleted');
+if(!state.selectedDate)return;const notes=getNotes();delete notes[fmtDate(state.selectedDate)];setNotes(notes);
+qs(‘noteText’).value=’’;qs(‘noteStatus’).textContent=‘Deleted.’;renderCalendar();showToast(‘Note deleted’);
 }
 function sendNoteToComposer(){
-  if(!state.selectedDate)return;const text=qs('noteText').value.trim();
-  if(!text){qs('noteStatus').textContent='Add note text first.';return;}
-  const [tag,label]=qs('noteTag').value.split('|');
-  const editor=qs('composerEditor');
-  const payload=`[${label}] ${fmtDate(state.selectedDate)}\n${text}`;
-  editor.innerText=editor.innerText?`${editor.innerText}\n\n${payload}`:payload;
-  closeModal('noteModal');activateView('composerView');qs('composerEmpty').style.display='none';showToast('Note sent to Composer');
+if(!state.selectedDate)return;const text=qs(‘noteText’).value.trim();
+if(!text){qs(‘noteStatus’).textContent=‘Add note text first.’;return;}
+const [tag,label]=qs(‘noteTag’).value.split(’|’);
+const editor=qs(‘composerEditor’);
+const payload=`[${label}] ${fmtDate(state.selectedDate)}\n${text}`;
+editor.innerText=editor.innerText?`${editor.innerText}\n\n${payload}`:payload;
+closeModal(‘noteModal’);activateView(‘composerView’);qs(‘composerEmpty’).style.display=‘none’;showToast(‘Note sent to Composer’);
 }
 function postsByMonth(date){
-  const y=date.getFullYear(),m=date.getMonth();
-  return state.scheduled.filter(p=>{const d=new Date(p.dueAt);return d.getFullYear()===y&&d.getMonth()===m});
+const y=date.getFullYear(),m=date.getMonth();
+return state.scheduled.filter(p=>{const d=new Date(p.dueAt);return d.getFullYear()===y&&d.getMonth()===m});
 }
 function notesForMonth(date){
-  const all=getNotes();const y=date.getFullYear(),m=date.getMonth();
-  return Object.entries(all).filter(([k])=>{const d=new Date(k+'T00:00:00');return d.getFullYear()===y&&d.getMonth()===m}).map(([date,val])=>({date,...val}));
+const all=getNotes();const y=date.getFullYear(),m=date.getMonth();
+return Object.entries(all).filter(([k])=>{const d=new Date(k+‘T00:00:00’);return d.getFullYear()===y&&d.getMonth()===m}).map(([date,val])=>({date,…val}));
 }
 function shareSnapshot(){
-  const include=qs('includeNotes').checked;
-  const month=monthLabel(state.month);
-  const monthPosts=postsByMonth(state.month);const monthNotes=notesForMonth(state.month);
-  qs('shareMonthName').textContent=month;qs('sharePostCount').textContent=monthPosts.length;qs('shareNoteCount').textContent=include?monthNotes.length:0;
-  const payload={month,includeNotes:include,posts:monthPosts.map(p=>({dueAt:p.dueAt,text:p.text})),notes:include?monthNotes:[]};
-  qs('shareLink').value=location.origin+location.pathname+'#share='+btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+const include=qs(‘includeNotes’).checked;
+const month=monthLabel(state.month);
+const monthPosts=postsByMonth(state.month);const monthNotes=notesForMonth(state.month);
+qs(‘shareMonthName’).textContent=month;qs(‘sharePostCount’).textContent=monthPosts.length;qs(‘shareNoteCount’).textContent=include?monthNotes.length:0;
+const payload={month,includeNotes:include,posts:monthPosts.map(p=>({dueAt:p.dueAt,text:p.text})),notes:include?monthNotes:[]};
+qs(‘shareLink’).value=location.origin+location.pathname+’#share=’+btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
 }
 function renderSharedFromHash(){
-  if(!location.hash.startsWith('#share='))return false;
-  try{
-    const snap=JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(7)))));
-    closeModal('onboardingModal');qs('app').classList.add('hidden');qs('sharedView').classList.remove('hidden');
-    qs('sharedMonthTitle').textContent=snap.month;
-    qs('sharedBanner').textContent=`Read-only snapshot · ${snap.posts.length} scheduled posts · Notes ${snap.includeNotes?'included':'excluded'}`;
-    const grid=qs('sharedGrid');grid.innerHTML='';const map={};
-    snap.posts.forEach(p=>{const k=p.dueAt.slice(0,10);(map[k]||(map[k]={posts:[],notes:[]})).posts.push(p.text)});
-    (snap.notes||[]).forEach(n=>{(map[n.date]||(map[n.date]={posts:[],notes:[]})).notes.push(n)});
-    Object.keys(map).sort().forEach(k=>{
-      const d=document.createElement('div');d.className='cal-day';d.style.cursor='default';
-      const day=map[k];let html=`<div class="day-num">${k.slice(8)}</div>`;
-      if(day.posts.length)html+=`<div class="day-posts-count">${day.posts.length}</div>`;
-      day.posts.slice(0,2).forEach(t=>{html+=`<div class="day-post-pill">${safeText(compactText(t,70))}</div>`});
-      day.notes.slice(0,2).forEach(n=>{html+=`<div class="day-note-pill ${n.tag||'gold'}"><span class="note-pill-label">${safeText(n.label||'Note')}</span>${safeText(compactText(n.text,60))}</div>`});
-      d.innerHTML=html;grid.appendChild(d);
-    });
-    return true;
-  }catch(e){console.error(e);return false}
+if(!location.hash.startsWith(’#share=’))return false;
+try{
+const snap=JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(7)))));
+closeModal(‘onboardingModal’);qs(‘app’).classList.add(‘hidden’);qs(‘sharedView’).classList.remove(‘hidden’);
+qs(‘sharedMonthTitle’).textContent=snap.month;
+qs(‘sharedBanner’).textContent=`Read-only snapshot · ${snap.posts.length} scheduled posts · Notes ${snap.includeNotes?'included':'excluded'}`;
+const grid=qs(‘sharedGrid’);grid.innerHTML=’’;const map={};
+snap.posts.forEach(p=>{const k=p.dueAt.slice(0,10);(map[k]||(map[k]={posts:[],notes:[]})).posts.push(p.text)});
+(snap.notes||[]).forEach(n=>{(map[n.date]||(map[n.date]={posts:[],notes:[]})).notes.push(n)});
+Object.keys(map).sort().forEach(k=>{
+const d=document.createElement(‘div’);d.className=‘cal-day’;d.style.cursor=‘default’;
+const day=map[k];let html=`<div class="day-num">${k.slice(8)}</div>`;
+if(day.posts.length)html+=`<div class="day-posts-count">${day.posts.length}</div>`;
+day.posts.slice(0,2).forEach(t=>{html+=`<div class="day-post-pill">${safeText(compactText(t,70))}</div>`});
+day.notes.slice(0,2).forEach(n=>{html+=`<div class="day-note-pill ${n.tag||'gold'}"><span class="note-pill-label">${safeText(n.label||'Note')}</span>${safeText(compactText(n.text,60))}</div>`});
+d.innerHTML=html;grid.appendChild(d);
+});
+return true;
+}catch(e){console.error(e);return false}
 }
 
 // ── POSTS ──
 async function createPost(input){
-  const res=await callBuffer(`mutation CreatePost($input:CreatePostInput!){createPost(input:$input){... on PostActionSuccess{post{id}} ... on MutationError{message}}}`,{input});
-  return res;
+const res=await callBuffer(`mutation CreatePost($input:CreatePostInput!){createPost(input:$input){... on PostActionSuccess{post{id}} ... on MutationError{message}}}`,{input});
+return res;
 }
 
 // ── IMAGE LIBRARY ──
 function openImageLibrary(){
-  const grid=qs('imageLibraryGrid');const empty=qs('imageLibraryEmpty');
-  grid.innerHTML='';
-  const seen=new Set();const images=[];
-  (state.scheduled||[]).forEach(post=>{
-    (post.assets||[]).forEach(asset=>{
-      if(asset.url&&!seen.has(asset.url)){seen.add(asset.url);images.push(asset);}
-    });
-  });
-  if(!images.length){empty.style.display='block';grid.style.display='none';}
-  else{
-    empty.style.display='none';grid.style.display='grid';
-    images.forEach(asset=>{
-      const item=document.createElement('div');item.className='img-library-item';
-      item.innerHTML=`<img src="${asset.url}" loading="lazy" alt="" /><div class="img-library-item-url">${asset.url}</div>`;
-      item.onclick=()=>{
-        qs('composerImageUrl').value=asset.url;
-        qs('composerImageUrl').dispatchEvent(new Event('input'));
-        closeModal('imageLibraryModal');showToast('Image URL inserted.');
-      };
-      grid.appendChild(item);
-    });
-  }
-  openModal('imageLibraryModal');
+const grid=qs(‘imageLibraryGrid’);const empty=qs(‘imageLibraryEmpty’);
+grid.innerHTML=’’;
+const seen=new Set();const images=[];
+(state.scheduled||[]).forEach(post=>{
+(post.assets||[]).forEach(asset=>{
+if(asset.url&&!seen.has(asset.url)){seen.add(asset.url);images.push(asset);}
+});
+});
+if(!images.length){empty.style.display=‘block’;grid.style.display=‘none’;}
+else{
+empty.style.display=‘none’;grid.style.display=‘grid’;
+images.forEach(asset=>{
+const item=document.createElement(‘div’);item.className=‘img-library-item’;
+item.innerHTML=`<img src="${asset.url}" loading="lazy" alt="" /><div class="img-library-item-url">${asset.url}</div>`;
+item.onclick=()=>{
+qs(‘composerImageUrl’).value=asset.url;
+qs(‘composerImageUrl’).dispatchEvent(new Event(‘input’));
+closeModal(‘imageLibraryModal’);showToast(‘Image URL inserted.’);
+};
+grid.appendChild(item);
+});
+}
+openModal(‘imageLibraryModal’);
 }
 
 function composerFormat(cmd){
-  const sel=window.getSelection();if(!sel.rangeCount)return;
-  if(cmd==='bold'||cmd==='italic')document.execCommand(cmd,false,null);
-  else if(cmd==='ul')document.execCommand('insertUnorderedList',false,null);
-  else if(cmd==='ol')document.execCommand('insertOrderedList',false,null);
-  else if(cmd==='clear')document.execCommand('removeFormat',false,null);
+const sel=window.getSelection();if(!sel.rangeCount)return;
+if(cmd===‘bold’||cmd===‘italic’)document.execCommand(cmd,false,null);
+else if(cmd===‘ul’)document.execCommand(‘insertUnorderedList’,false,null);
+else if(cmd===‘ol’)document.execCommand(‘insertOrderedList’,false,null);
+else if(cmd===‘clear’)document.execCommand(‘removeFormat’,false,null);
 }
 function editorHtmlToText(html){
-  const root=document.createElement('div');root.innerHTML=html;
-  const walk=(node)=>{
-    if(node.nodeType===Node.TEXT_NODE)return node.textContent;
-    const tag=(node.tagName||'').toLowerCase();
-    if(tag==='br')return '\n';
-    if(tag==='strong'||tag==='b')return `**${[...node.childNodes].map(walk).join('')}**`;
-    if(tag==='em'||tag==='i')return `*${[...node.childNodes].map(walk).join('')}*`;
-    if(tag==='li')return [...node.childNodes].map(walk).join('');
-    if(tag==='ul')return [...node.children].map(li=>`• ${walk(li)}`).join('\n')+'\n';
-    if(tag==='ol')return [...node.children].map((li,i)=>`${i+1}. ${walk(li)}`).join('\n')+'\n';
-    const inner=[...node.childNodes].map(walk).join('');
-    if(['p','div'].includes(tag))return inner+'\n';
-    return inner;
-  };
-  return [...root.childNodes].map(walk).join('').replace(/\n{3,}/g,'\n\n').trim();
+const root=document.createElement(‘div’);root.innerHTML=html;
+const walk=(node)=>{
+if(node.nodeType===Node.TEXT_NODE)return node.textContent;
+const tag=(node.tagName||’’).toLowerCase();
+if(tag===‘br’)return ‘\n’;
+if(tag===‘strong’||tag===‘b’)return `**${[...node.childNodes].map(walk).join('')}**`;
+if(tag===‘em’||tag===‘i’)return `*${[...node.childNodes].map(walk).join('')}*`;
+if(tag===‘li’)return […node.childNodes].map(walk).join(’’);
+if(tag===‘ul’)return […node.children].map(li=>`• ${walk(li)}`).join(’\n’)+’\n’;
+if(tag===‘ol’)return […node.children].map((li,i)=>`${i+1}. ${walk(li)}`).join(’\n’)+’\n’;
+const inner=[…node.childNodes].map(walk).join(’’);
+if([‘p’,‘div’].includes(tag))return inner+’\n’;
+return inner;
+};
+return […root.childNodes].map(walk).join(’’).replace(/\n{3,}/g,’\n\n’).trim();
 }
 async function composerSend(action){
-  const text=editorHtmlToText(qs('composerEditor').innerHTML);
-  if(!text){qs('composerStatus').textContent='Write content first.';return;}
-  const channelId=qs('composerChannel').value;
-  if(!channelId){qs('composerStatus').textContent='Load channels first.';return;}
-  const when=qs('composerWhen').value;
-  const input={channelId,text,schedulingType:'automatic'};
-  if(action==='draft'){input.mode='addToQueue';input.saveToDraft=true;}
-  if(action==='queue'){input.mode='addToQueue';}
-  if(action==='schedule'){if(!when){qs('composerStatus').textContent='Pick a date/time first.';return;}input.mode='customScheduled';input.dueAt=when;}
-  // Attach image if URL provided
-  const imgUrl=qs('composerImageUrl').value.trim();
-  if(imgUrl)input.assets={images:[{url:imgUrl}]};
-  try{
-    qs('composerStatus').textContent='Sending…';
-    const res=await createPost(input);
-    const cp=res?.data?.createPost;
-    const apiErr=cp?.message||null; // MutationError shape
-    if(apiErr)throw new Error(apiErr);
-    const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
-    qs('composerStatus').textContent=msg;showToast(msg);
-  }catch(e){qs('composerStatus').textContent=`Failed: ${e.message}`;}
+const text=editorHtmlToText(qs(‘composerEditor’).innerHTML);
+if(!text){qs(‘composerStatus’).textContent=‘Write content first.’;return;}
+const channelId=qs(‘composerChannel’).value;
+if(!channelId){qs(‘composerStatus’).textContent=‘Load channels first.’;return;}
+const when=qs(‘composerWhen’).value;
+const input={channelId,text,schedulingType:‘automatic’};
+if(action===‘draft’){input.mode=‘addToQueue’;input.saveToDraft=true;}
+if(action===‘queue’){input.mode=‘addToQueue’;}
+if(action===‘schedule’){if(!when){qs(‘composerStatus’).textContent=‘Pick a date/time first.’;return;}input.mode=‘customScheduled’;input.dueAt=when;}
+// Attach image if URL provided
+const imgUrl=qs(‘composerImageUrl’).value.trim();
+if(imgUrl)input.assets={images:[{url:imgUrl}]};
+try{
+qs(‘composerStatus’).textContent=‘Sending…’;
+const res=await createPost(input);
+const cp=res?.data?.createPost;
+const apiErr=cp?.message||null; // MutationError shape
+if(apiErr)throw new Error(apiErr);
+const msg=action===‘draft’?‘Draft saved.’:action===‘queue’?‘Added to queue.’:‘Scheduled.’;
+qs(‘composerStatus’).textContent=msg;showToast(msg);
+}catch(e){qs(‘composerStatus’).textContent=`Failed: ${e.message}`;}
 }
 
 function init(){
-  if(renderSharedFromHash())return;
-  loadStoredToken();
+if(renderSharedFromHash())return;
+loadStoredToken();
 
-  qs('onboardingEnter').onclick=dismissOnboarding;
-  qs('closeOnboarding').onclick=dismissOnboarding;
-  qs('openOnboarding').onclick=openOnboarding;
-  qs('openFounder').onclick=()=>openModal('founderModal');
-  qs('closeFounder').onclick=()=>closeModal('founderModal');
+qs(‘onboardingEnter’).onclick=dismissOnboarding;
+qs(‘closeOnboarding’).onclick=dismissOnboarding;
+qs(‘openOnboarding’).onclick=openOnboarding;
+qs(‘openFounder’).onclick=()=>openModal(‘founderModal’);
+qs(‘closeFounder’).onclick=()=>closeModal(‘founderModal’);
 
-  qs('manageTokenBtn').onclick=toggleTokenPanel;
-  qs('revealCompactBtn').onclick=()=>{tokenPanelOpen=true;qs('tokenPanel').classList.add('open');qs('manageTokenBtn').textContent='Done';tokenInputVisible=true;qs('tokenInput').type='text';qs('toggleTokenVisibility').textContent='Hide';};
-  qs('saveTokenBtn').onclick=saveToken;
-  qs('clearTokenBtn').onclick=()=>{qs('tokenInput').value='';saveToken()};
-  qs('toggleTokenVisibility').onclick=()=>{tokenInputVisible=!tokenInputVisible;qs('tokenInput').type=tokenInputVisible?'text':'password';qs('toggleTokenVisibility').textContent=tokenInputVisible?'Hide':'Show';};
+qs(‘manageTokenBtn’).onclick=toggleTokenPanel;
+qs(‘revealCompactBtn’).onclick=()=>{tokenPanelOpen=true;qs(‘tokenPanel’).classList.add(‘open’);qs(‘manageTokenBtn’).textContent=‘Done’;tokenInputVisible=true;qs(‘tokenInput’).type=‘text’;qs(‘toggleTokenVisibility’).textContent=‘Hide’;};
+qs(‘saveTokenBtn’).onclick=saveToken;
+qs(‘clearTokenBtn’).onclick=()=>{qs(‘tokenInput’).value=’’;saveToken()};
+qs(‘toggleTokenVisibility’).onclick=()=>{tokenInputVisible=!tokenInputVisible;qs(‘tokenInput’).type=tokenInputVisible?‘text’:‘password’;qs(‘toggleTokenVisibility’).textContent=tokenInputVisible?‘Hide’:‘Show’;};
 
-  qs('syncBtn').onclick=syncBuffer;
-  if(bufferToken&&state.syncState==='idle')qs('syncBtn').classList.add('sync-pulse');
-  if(!bufferToken)qs('syncBtn').classList.add('sync-pulse');
+qs(‘syncBtn’).onclick=syncBuffer;
+if(bufferToken&&state.syncState===‘idle’)qs(‘syncBtn’).classList.add(‘sync-pulse’);
+if(!bufferToken)qs(‘syncBtn’).classList.add(‘sync-pulse’);
 
-  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>activateView(b.dataset.view));
+document.querySelectorAll(’[data-view]’).forEach(b=>b.onclick=()=>activateView(b.dataset.view));
 
-  qs('splitBtn').onclick=()=>{threadParts=splitThreadText(qs('threadInput').value);renderThread();if(threadParts.length)showToast(`${threadParts.length} thread parts`);};
-  qs('sampleBtn').onclick=()=>{qs('threadInput').value='PostIQ helps Buffer users move faster. Start with one big idea, split it into clear thread parts, refine each part, and send a cleaner post flow to Buffer.'};
-  qs('copyAllBtn').onclick=()=>{navigator.clipboard.writeText(threadParts.join('\n\n'));showToast('Thread copied');};
-  qs('draftThreadBtn').onclick=()=>sendThread('draft');
-  qs('queueThreadBtn').onclick=()=>sendThread('queue');
-  qs('scheduleThreadBtn').onclick=()=>sendThread('schedule');
-  qs('threadAddOpener').onclick=()=>openSnippetPicker('threadOpener');
-  qs('threadAddCta').onclick=()=>openSnippetPicker('threadCta');
+qs(‘splitBtn’).onclick=()=>{threadParts=splitThreadText(qs(‘threadInput’).value);renderThread();if(threadParts.length)showToast(`${threadParts.length} thread parts`);};
+qs(‘sampleBtn’).onclick=()=>{qs(‘threadInput’).value=‘PostIQ helps Buffer users move faster. Start with one big idea, split it into clear thread parts, refine each part, and send a cleaner post flow to Buffer.’};
+qs(‘copyAllBtn’).onclick=()=>{navigator.clipboard.writeText(threadParts.join(’\n\n’));showToast(‘Thread copied’);};
+qs(‘draftThreadBtn’).onclick=()=>sendThread(‘draft’);
+qs(‘queueThreadBtn’).onclick=()=>sendThread(‘queue’);
+qs(‘scheduleThreadBtn’).onclick=()=>sendThread(‘schedule’);
+qs(‘threadAddOpener’).onclick=()=>openSnippetPicker(‘threadOpener’);
+qs(‘threadAddCta’).onclick=()=>openSnippetPicker(‘threadCta’);
 
-  qs('prevMonth').onclick=()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()-1,1);renderCalendar()};
-  qs('nextMonth').onclick=()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()+1,1);renderCalendar()};
-  qs('todayMonth').onclick=()=>{state.month=new Date();renderCalendar()};
-  qs('closeNote').onclick=()=>closeModal('noteModal');
-  qs('saveNoteBtn').onclick=saveNoteFromModal;
-  qs('deleteNoteBtn').onclick=deleteNote;
-  qs('sendNoteToComposer').onclick=sendNoteToComposer;
-  qs('shareMonthBtn').onclick=()=>{shareSnapshot();openModal('shareModal')};
-  qs('closeShare').onclick=()=>closeModal('shareModal');
-  qs('includeNotes').onchange=shareSnapshot;
-  qs('generateShare').onclick=shareSnapshot;
-  qs('copyShare').onclick=()=>navigator.clipboard.writeText(qs('shareLink').value||'');
-  qs('openSharePreview').onclick=()=>{if(qs('shareLink').value)window.open(qs('shareLink').value,'_blank')};
+qs(‘prevMonth’).onclick=()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()-1,1);renderCalendar()};
+qs(‘nextMonth’).onclick=()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()+1,1);renderCalendar()};
+qs(‘todayMonth’).onclick=()=>{state.month=new Date();renderCalendar()};
+qs(‘closeNote’).onclick=()=>closeModal(‘noteModal’);
+qs(‘saveNoteBtn’).onclick=saveNoteFromModal;
+qs(‘deleteNoteBtn’).onclick=deleteNote;
+qs(‘sendNoteToComposer’).onclick=sendNoteToComposer;
+qs(‘shareMonthBtn’).onclick=()=>{shareSnapshot();openModal(‘shareModal’)};
+qs(‘closeShare’).onclick=()=>closeModal(‘shareModal’);
+qs(‘includeNotes’).onchange=shareSnapshot;
+qs(‘generateShare’).onclick=shareSnapshot;
+qs(‘copyShare’).onclick=()=>navigator.clipboard.writeText(qs(‘shareLink’).value||’’);
+qs(‘openSharePreview’).onclick=()=>{if(qs(‘shareLink’).value)window.open(qs(‘shareLink’).value,’_blank’)};
 
-  document.querySelectorAll('[data-cmd]').forEach(btn=>btn.onclick=()=>composerFormat(btn.dataset.cmd));
-  qs('composerEditor').addEventListener('input',()=>{
-    const text=editorHtmlToText(qs('composerEditor').innerHTML);
-    qs('composerEmpty').style.display=text?'none':'block';
-    qs('composerCharCount').textContent=`${text.length} chars`;
-    qs('composerCharCount').style.color=text.length>500?'var(--amber)':text.length>280?'var(--muted)':'var(--subtle)';
-  });
-  qs('composerDraft').onclick=()=>composerSend('draft');
-  qs('composerQueue').onclick=()=>composerSend('queue');
-  qs('composerSchedule').onclick=()=>composerSend('schedule');
+document.querySelectorAll(’[data-cmd]’).forEach(btn=>btn.onclick=()=>composerFormat(btn.dataset.cmd));
+qs(‘composerEditor’).addEventListener(‘input’,()=>{
+const text=editorHtmlToText(qs(‘composerEditor’).innerHTML);
+qs(‘composerEmpty’).style.display=text?‘none’:‘block’;
+qs(‘composerCharCount’).textContent=`${text.length} chars`;
+qs(‘composerCharCount’).style.color=text.length>500?‘var(–amber)’:text.length>280?‘var(–muted)’:‘var(–subtle)’;
+});
+qs(‘composerDraft’).onclick=()=>composerSend(‘draft’);
+qs(‘composerQueue’).onclick=()=>composerSend(‘queue’);
+qs(‘composerSchedule’).onclick=()=>composerSend(‘schedule’);
 
-  function buildTimePickers(hourId,minId,ampmId){
-    const hSel=qs(hourId),mSel=qs(minId),amSel=qs(ampmId);
-    for(let h=1;h<=12;h++){const o=document.createElement('option');o.value=h;o.textContent=String(h).padStart(2,'0');hSel.appendChild(o);}
-    for(let m=0;m<60;m+=5){const o=document.createElement('option');o.value=m;o.textContent=String(m).padStart(2,'0');mSel.appendChild(o);}
-    ['AM','PM'].forEach(ap=>{const o=document.createElement('option');o.value=ap;o.textContent=ap;amSel.appendChild(o);});
-    const now=new Date();hSel.value=(now.getHours()%12)||12;mSel.value=0;amSel.value=now.getHours()>=12?'PM':'AM';
-  }
-  function pickerToISO(dateId,hourId,minId,ampmId){
-    const d=qs(dateId).value;if(!d)return null;
-    let h=parseInt(qs(hourId).value);const m=parseInt(qs(minId).value);const ap=qs(ampmId).value;
-    if(ap==='PM'&&h!==12)h+=12;if(ap==='AM'&&h===12)h=0;
-    return `${d}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00.000Z`;
-  }
-  function setDatePickerToday(dateId){const d=new Date();qs(dateId).value=d.toISOString().slice(0,10);qs(dateId).min=d.toISOString().slice(0,10);}
-  buildTimePickers('composerWhenHour','composerWhenMin','composerWhenAmpm');
-  setDatePickerToday('composerWhenDate');
-  function syncComposerWhen(){qs('composerWhen').value=pickerToISO('composerWhenDate','composerWhenHour','composerWhenMin','composerWhenAmpm')||'';}
-  ['composerWhenDate','composerWhenHour','composerWhenMin','composerWhenAmpm'].forEach(id=>qs(id).addEventListener('change',syncComposerWhen));
-  syncComposerWhen();
-
-  qs('insertSnippetBtn').onclick=()=>openSnippetPicker('composer');
-  qs('saveSelectionSnippetBtn').onclick=()=>{
-    const sel=window.getSelection();const text=(sel&&sel.toString?sel.toString():'').trim();
-    if(!text){qs('composerStatus').textContent='Select text in Composer first.';return;}
-    state.editingSnippetId=null;
-    qs('snippetModalTitle').textContent='New Snippet';
-    qs('snippetTitle').value='';qs('snippetType').value='Hooks';qs('snippetPlatform').value='Universal';
-    qs('snippetTags').value='';qs('snippetBody').value=text;openModal('snippetModal');
-  };
-  qs('composerChannel').addEventListener('change',updateComposerChannelHint);
-
-  // Image URL field
-  qs('composerImageUrl').addEventListener('input',()=>{
-    const url=qs('composerImageUrl').value.trim();
-    const preview=qs('composerImagePreview');const clearBtn=qs('composerImageClear');
-    if(url){
-      preview.innerHTML=`<img class="img-preview-thumb" src="${url}" onerror="this.parentElement.style.display='none'" />`;
-      preview.style.display='inline-block';clearBtn.style.display='inline-flex';
-    }else{preview.style.display='none';preview.innerHTML='';clearBtn.style.display='none';}
-  });
-  qs('composerImageClear').onclick=()=>{
-    qs('composerImageUrl').value='';qs('composerImagePreview').style.display='none';
-    qs('composerImagePreview').innerHTML='';qs('composerImageClear').style.display='none';
-  };
-  qs('openImageLibraryBtn').onclick=openImageLibrary;
-  qs('closeImageLibrary').onclick=()=>closeModal('imageLibraryModal');
-
-  // snippets
-  loadSnippets();renderSnippets();
-  renderSnippetSelectors();
-  qs('newSnippetBtn').onclick=()=>openSnippetModal();
-  qs('closeSnippetModal').onclick=()=>closeModal('snippetModal');
-  qs('cancelSnippetBtn').onclick=()=>closeModal('snippetModal');
-  qs('saveSnippetBtn').onclick=saveSnippet;
-  qs('closeSnippetPicker').onclick=()=>closeModal('snippetPickerModal');
-  qs('snippetSearch').addEventListener('input',e=>{state.snippetSearch=e.target.value;renderSnippets();});
-  qs('snippetPlatformFilter').onchange=e=>{state.snippetPlatform=e.target.value;renderSnippets();};
-  qs('pickerSearch').addEventListener('input',renderSnippetPicker);
-  qs('pickerType').onchange=renderSnippetPicker;
-  qs('pickerPlatform').onchange=renderSnippetPicker;
-
-  renderCalendar();
-  if(!hasSeenOnboarding())openModal('onboardingModal');
+function buildTimePickers(hourId,minId,ampmId){
+const hSel=qs(hourId),mSel=qs(minId),amSel=qs(ampmId);
+for(let h=1;h<=12;h++){const o=document.createElement(‘option’);o.value=h;o.textContent=String(h).padStart(2,‘0’);hSel.appendChild(o);}
+for(let m=0;m<60;m+=5){const o=document.createElement(‘option’);o.value=m;o.textContent=String(m).padStart(2,‘0’);mSel.appendChild(o);}
+[‘AM’,‘PM’].forEach(ap=>{const o=document.createElement(‘option’);o.value=ap;o.textContent=ap;amSel.appendChild(o);});
+const now=new Date();hSel.value=(now.getHours()%12)||12;mSel.value=0;amSel.value=now.getHours()>=12?‘PM’:‘AM’;
 }
-document.addEventListener('DOMContentLoaded',init);
+function pickerToISO(dateId,hourId,minId,ampmId){
+const d=qs(dateId).value;if(!d)return null;
+let h=parseInt(qs(hourId).value);const m=parseInt(qs(minId).value);const ap=qs(ampmId).value;
+if(ap===‘PM’&&h!==12)h+=12;if(ap===‘AM’&&h===12)h=0;
+return `${d}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00.000Z`;
+}
+function setDatePickerToday(dateId){const d=new Date();qs(dateId).value=d.toISOString().slice(0,10);qs(dateId).min=d.toISOString().slice(0,10);}
+buildTimePickers(‘composerWhenHour’,‘composerWhenMin’,‘composerWhenAmpm’);
+setDatePickerToday(‘composerWhenDate’);
+function syncComposerWhen(){qs(‘composerWhen’).value=pickerToISO(‘composerWhenDate’,‘composerWhenHour’,‘composerWhenMin’,‘composerWhenAmpm’)||’’;}
+[‘composerWhenDate’,‘composerWhenHour’,‘composerWhenMin’,‘composerWhenAmpm’].forEach(id=>qs(id).addEventListener(‘change’,syncComposerWhen));
+syncComposerWhen();
+
+qs(‘insertSnippetBtn’).onclick=()=>openSnippetPicker(‘composer’);
+qs(‘saveSelectionSnippetBtn’).onclick=()=>{
+const sel=window.getSelection();const text=(sel&&sel.toString?sel.toString():’’).trim();
+if(!text){qs(‘composerStatus’).textContent=‘Select text in Composer first.’;return;}
+state.editingSnippetId=null;
+qs(‘snippetModalTitle’).textContent=‘New Snippet’;
+qs(‘snippetTitle’).value=’’;qs(‘snippetType’).value=‘Hooks’;qs(‘snippetPlatform’).value=‘Universal’;
+qs(‘snippetTags’).value=’’;qs(‘snippetBody’).value=text;openModal(‘snippetModal’);
+};
+qs(‘composerChannel’).addEventListener(‘change’,updateComposerChannelHint);
+
+// Image URL field
+qs(‘composerImageUrl’).addEventListener(‘input’,()=>{
+const url=qs(‘composerImageUrl’).value.trim();
+const preview=qs(‘composerImagePreview’);const clearBtn=qs(‘composerImageClear’);
+if(url){
+preview.innerHTML=`<img class="img-preview-thumb" src="${url}" onerror="this.parentElement.style.display='none'" />`;
+preview.style.display=‘inline-block’;clearBtn.style.display=‘inline-flex’;
+}else{preview.style.display=‘none’;preview.innerHTML=’’;clearBtn.style.display=‘none’;}
+});
+qs(‘composerImageClear’).onclick=()=>{
+qs(‘composerImageUrl’).value=’’;qs(‘composerImagePreview’).style.display=‘none’;
+qs(‘composerImagePreview’).innerHTML=’’;qs(‘composerImageClear’).style.display=‘none’;
+};
+qs(‘openImageLibraryBtn’).onclick=openImageLibrary;
+qs(‘closeImageLibrary’).onclick=()=>closeModal(‘imageLibraryModal’);
+
+// snippets
+loadSnippets();renderSnippets();
+renderSnippetSelectors();
+qs(‘newSnippetBtn’).onclick=()=>openSnippetModal();
+qs(‘closeSnippetModal’).onclick=()=>closeModal(‘snippetModal’);
+qs(‘cancelSnippetBtn’).onclick=()=>closeModal(‘snippetModal’);
+qs(‘saveSnippetBtn’).onclick=saveSnippet;
+qs(‘closeSnippetPicker’).onclick=()=>closeModal(‘snippetPickerModal’);
+qs(‘snippetSearch’).addEventListener(‘input’,e=>{state.snippetSearch=e.target.value;renderSnippets();});
+qs(‘snippetPlatformFilter’).onchange=e=>{state.snippetPlatform=e.target.value;renderSnippets();};
+qs(‘pickerSearch’).addEventListener(‘input’,renderSnippetPicker);
+qs(‘pickerType’).onchange=renderSnippetPicker;
+qs(‘pickerPlatform’).onchange=renderSnippetPicker;
+
+renderCalendar();
+if(!hasSeenOnboarding())openModal(‘onboardingModal’);
+}
+document.addEventListener(‘DOMContentLoaded’,init);
 </script>
+
 </body>
 </html>
