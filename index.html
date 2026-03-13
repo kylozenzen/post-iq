@@ -617,18 +617,22 @@
     .recur-panel {
       display: none;
       margin-top: 8px;
-      padding: 12px;
+      padding: 14px;
       border: 1px solid var(--amber)55;
       border-radius: 8px;
       background: var(--surface2);
     }
     .recur-panel.visible { display: block; }
+    .recur-row-label { font-size: 11px; color: var(--subtle); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .recur-divider { height: 1px; background: var(--border2); margin: 12px 0; }
+    .recur-day-lbl { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
     .recur-panel-section {
       display: flex;
       align-items: center;
       gap: 6px;
       flex-wrap: wrap;
     }
+    .recur-options-lbl { font-size: 11px; color: var(--subtle); font-family: 'DM Mono', monospace; }
     .composer-actions { display: flex; gap: 6px; align-items: center; margin-top: 10px; }
     .char-hint { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--subtle); margin-left: auto; }
 
@@ -1238,30 +1242,34 @@
 
           <!-- Recurring panel — shown only when toggle is active -->
           <div class="recur-panel" id="recurOptions">
+            <div class="recur-row-label">📅 First occurrence</div>
             <div class="recur-panel-section">
-              <span class="recur-options-lbl">First post</span>
               <input id="recurWhenDate" type="date" class="input when-date" />
               <select id="recurWhenHour" class="input when-time"></select>
               <select id="recurWhenMin" class="input when-time"></select>
               <select id="recurWhenAmpm" class="input when-time"></select>
             </div>
-            <div class="recur-panel-section mt8">
-              <span class="recur-options-lbl">Repeat</span>
-              <button class="recur-freq-btn active" data-freq="weekly">Weekly</button>
-              <button class="recur-freq-btn" data-freq="daily">Daily</button>
-              <button class="recur-freq-btn" data-freq="monthly">Monthly</button>
+            <div class="recur-divider"></div>
+            <div class="recur-row-label">↺ Repeat every</div>
+            <div class="recur-panel-section">
+              <button class="recur-freq-btn active" data-freq="weekly">Week</button>
+              <button class="recur-freq-btn" data-freq="daily">Day</button>
+              <button class="recur-freq-btn" data-freq="monthly">Month</button>
+            </div>
+            <div class="recur-panel-section mt6" id="recurDayRow">
+              <span class="recur-day-lbl">on</span>
               <select class="input recur-day-select" id="recurDaySelect">
-                <option value="1">Every Monday</option>
-                <option value="2">Every Tuesday</option>
-                <option value="3">Every Wednesday</option>
-                <option value="4">Every Thursday</option>
-                <option value="5">Every Friday</option>
-                <option value="6">Every Saturday</option>
-                <option value="0">Every Sunday</option>
+                <option value="1">Monday</option>
+                <option value="2">Tuesday</option>
+                <option value="3">Wednesday</option>
+                <option value="4">Thursday</option>
+                <option value="5">Friday</option>
+                <option value="6">Saturday</option>
+                <option value="0">Sunday</option>
               </select>
             </div>
-            <div class="recur-hint" id="recurHint">↺ Will repeat weekly at the same time.</div>
-            <button class="btn primary mt8" id="composerRecurSchedule" style="width:100%;">Schedule Recurring Post</button>
+            <div class="recur-hint" id="recurHint">↺ Will post every week on the selected day at the time above.</div>
+            <button class="btn primary mt10" id="composerRecurSchedule" style="width:100%;">Schedule Recurring Post</button>
           </div>
 
           <div class="status-txt mt6" style="color:var(--subtle);font-size:11px;" id="composerWhenHint">For images/video, save draft → attach in Buffer.</div>
@@ -1971,7 +1979,7 @@ function renderSharedFromHash(){
 }
 
 async function createPost(input){
-  return callBuffer('mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename ... on PostActionSuccess{post{id}} ... on CoreWebAppError{message}}}',{input});
+  return callBuffer('mutation CreatePost($input:CreatePostInput!){createPost(input:$input){id errors{message}}}',{input});
 }
 
 async function attachRecurrence(postId){
@@ -2039,7 +2047,9 @@ async function composerSend(action){
   try{
     const res = await createPost(input);
     // Try to extract postId for recurrence
-    const postId = res?.data?.createPost?.post?.id || null;
+    const postId = res?.data?.createPost?.id || null;
+    const apiErr = res?.data?.createPost?.errors?.[0]?.message;
+    if(apiErr) throw new Error(apiErr);
     if(isRecurring && postId){
       await attachRecurrence(postId);
     } else if(isRecurring && !postId){
@@ -2173,8 +2183,8 @@ function init(){
       document.querySelectorAll('.recur-freq-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const freq = btn.dataset.freq;
-      qs('recurDaySelect').style.display = freq==='weekly' ? '' : 'none';
-      const hints = { daily:'↺ Repeats every day at this time.', weekly:'↺ Repeats every week on the selected day.', monthly:'↺ Repeats monthly on the same date.' };
+      qs('recurDayRow').style.display = freq==='weekly' ? '' : 'none';
+      const hints = { daily:'↺ Will post every day at the time above.', weekly:'↺ Will post every week on the selected day at the time above.', monthly:'↺ Will post every month on the same date as the first occurrence.' };
       qs('recurHint').textContent = hints[freq] || '';
     };
   });
