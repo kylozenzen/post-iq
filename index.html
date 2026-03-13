@@ -1788,8 +1788,8 @@ function init(){
   qs('toggleTokenVisibility').onclick=()=>{tokenInputVisible=!tokenInputVisible;qs('tokenInput').type=tokenInputVisible?'text':'password';qs('toggleTokenVisibility').textContent=tokenInputVisible?'Hide':'Show';};
 
   qs('syncBtn').onclick=syncBuffer;
-  if(bufferToken&&state.syncState==='idle')qs('syncBtn').classList.add('sync-pulse');
-  if(!bufferToken)qs('syncBtn').classList.add('sync-pulse');
+  if(bufferToken){syncBuffer();}
+  else{qs('syncBtn').classList.add('sync-pulse');}
 
   document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>activateView(b.dataset.view));
 
