@@ -1,4 +1,4 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -1996,7 +1996,7 @@ async function attachRecurrence(postId){
   const dayOfWeek = parseInt(qs('recurDaySelect').value);
   // Best-guess input shape — Buffer will tell us if fields are wrong via error
   const freqMap = { weekly: 'week', daily: 'day', monthly: 'month' };
-  const cadence = { frequency: freqMap[freq] || freq, type: freq.toUpperCase() };
+  const cadence = { frequency: freqMap[freq] || freq, frequencyStep: 1, type: freq.toUpperCase() };
   if(freq==='weekly') cadence.dayOfWeek = dayOfWeek;
   if(freq==='monthly') cadence.dayOfMonth = new Date().getDate();
   const recurInput = { id: postId, cadence };
