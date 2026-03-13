@@ -1244,12 +1244,14 @@
               <select id="recurWhenAmpm" class="input when-time"></select>
             </div>
             <div class="recur-panel-row mt8">
-              <span class="recur-panel-lbl">Repeat</span>
+              <span class="recur-panel-lbl">Frequency</span>
               <button class="recur-freq-btn active" data-freq="weekly">Weekly</button>
               <button class="recur-freq-btn" data-freq="daily">Daily</button>
               <button class="recur-freq-btn" data-freq="monthly">Monthly</button>
-              <span class="recur-day-lbl" id="recurOnLbl">on</span>
-              <select class="input recur-day-select" id="recurDaySelect">
+            </div>
+            <div class="recur-panel-row mt6" id="recurDayRow">
+              <span class="recur-panel-lbl">Day</span>
+              <select class="input" id="recurDaySelect" style="max-width:160px;">
                 <option value="1">Monday</option>
                 <option value="2">Tuesday</option>
                 <option value="3">Wednesday</option>
@@ -1258,9 +1260,9 @@
                 <option value="6">Saturday</option>
                 <option value="0">Sunday</option>
               </select>
-              <button class="btn primary" id="composerRecurSchedule" style="margin-left:auto;">Schedule ↺</button>
             </div>
             <div class="recur-hint" id="recurHint">↺ Will post every week on the selected day at the time above.</div>
+            <button class="btn primary mt8" id="composerRecurSchedule" style="width:100%;">↺ Schedule Recurring Post</button>
           </div>
 
           <div class="status-txt mt6" style="color:var(--subtle);font-size:11px;" id="composerWhenHint">For images/video, save draft → attach in Buffer.</div>
@@ -2136,7 +2138,7 @@ function init(){
     const ap = qs(ampmId).value;
     if(ap==='PM' && h!==12) h+=12;
     if(ap==='AM' && h===12) h=0;
-    return `${d}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00`;
+    return `${d}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00.000Z`;
   }
   function setDatePickerToday(dateId) {
     const d=new Date();
@@ -2175,8 +2177,6 @@ function init(){
       btn.classList.add('active');
       const freq = btn.dataset.freq;
       qs('recurDayRow') && (qs('recurDayRow').style.display = freq==='weekly' ? '' : 'none');
-      qs('recurOnLbl').style.display = freq==='weekly' ? '' : 'none';
-      qs('recurDaySelect').style.display = freq==='weekly' ? '' : 'none';
       const hints = { daily:'↺ Will post every day at the time above.', weekly:'↺ Will post every week on the selected day at the time above.', monthly:'↺ Will post every month on the same date as the first occurrence.' };
       qs('recurHint').textContent = hints[freq] || '';
     };
