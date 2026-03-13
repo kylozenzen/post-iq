@@ -1653,16 +1653,41 @@ async function createPost(input){
 }
 
 // ── IMAGE LIBRARY ──
-function openImageLibrary(){
+async function openImageLibrary(){
   const grid=qs('imageLibraryGrid');const empty=qs('imageLibraryEmpty');
-  grid.innerHTML='';
+  grid.innerHTML='<div style="color:var(--subtle);font-size:12px;padding:12px;">Loading past images…</div>';
+  empty.style.display='none';
+  openModal('imageLibraryModal');
+
+  // Pull from already-synced scheduled posts first, then fetch recent sent posts for images
   const seen=new Set();const images=[];
-  (state.scheduled||[]).forEach(post=>{
-    (post.assets||[]).forEach(asset=>{
-      const src=asset.source||asset.thumbnail;
-      if(src&&!seen.has(src)){seen.add(src);images.push(asset);}
+
+  function addAssets(posts){
+    (posts||[]).forEach(post=>{
+      (post.assets||[]).forEach(asset=>{
+        const src=asset.source||asset.thumbnail;
+        if(src&&!seen.has(src)){seen.add(src);images.push(asset);}
+      });
     });
-  });
+  }
+
+  addAssets(state.scheduled);
+
+  // Also fetch recent sent posts which is where most images live
+  if(bufferToken){
+    try{
+      const acc=await callBuffer('query { account { organizations { id name } } }');
+      const orgId=acc?.data?.account?.organizations?.[0]?.id;
+      if(orgId){
+        const sentQuery='query SentPosts($organizationId: OrganizationId!){ posts(first:50, input:{organizationId:$organizationId, filter:{status:[sent]}}){ edges{ node{ id assets{ thumbnail mimeType source } } } } }';
+        const res=await callBuffer(sentQuery,{organizationId:orgId});
+        const sentPosts=(res?.data?.posts?.edges||[]).map(e=>e.node);
+        addAssets(sentPosts);
+      }
+    }catch(e){console.warn('[PostIQ] sent posts fetch failed:',e);}
+  }
+
+  grid.innerHTML='';
   if(!images.length){empty.style.display='block';grid.style.display='none';}
   else{
     empty.style.display='none';grid.style.display='grid';
@@ -1679,7 +1704,6 @@ function openImageLibrary(){
       grid.appendChild(item);
     });
   }
-  openModal('imageLibraryModal');
 }
 
 function composerFormat(cmd){
