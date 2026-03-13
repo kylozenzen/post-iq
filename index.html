@@ -1929,7 +1929,7 @@ function renderSharedFromHash(){
 }
 
 async function createPost(input){
-  return callBuffer('mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename ... on Post{id} ... on CoreWebAppError{message}}}',{input});
+  return callBuffer('mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename ... on PostActionPayload{post{id}} ... on CoreWebAppError{message}}}',{input});
 }
 
 async function attachRecurrence(postId){
@@ -1941,11 +1941,13 @@ async function attachRecurrence(postId){
   if(freq==='monthly') recurInput.dayOfMonth = new Date().getDate();
   try{
     const res = await callBuffer(
-      'mutation CreatePostRecurrence($input:CreatePostRecurrenceInput!){createPostRecurrence(input:$input){__typename ... on PostRecurrence{id frequency} ... on CoreWebAppError{message}}}',
+      'mutation CreatePostRecurrence($input:CreatePostRecurrenceInput!){createPostRecurrence(input:$input){__typename ... on CoreWebAppError{message}}}',
       {input: recurInput}
     );
     const result = res?.data?.createPostRecurrence;
     if(result?.__typename==='CoreWebAppError') throw new Error(result.message);
+    // Log full response to console so we can learn the return shape
+    console.log('[PostIQ] createPostRecurrence response:', JSON.stringify(res?.data, null, 2));
     return res;
   }catch(e){
     // Surface the raw error so we can learn the correct shape
@@ -1995,7 +1997,7 @@ async function composerSend(action){
   try{
     const res = await createPost(input);
     // Try to extract postId for recurrence
-    const postId = res?.data?.createPost?.id || res?.data?.createPost?.post?.id || null;
+    const postId = res?.data?.createPost?.post?.id || null;
     if(isRecurring && postId){
       await attachRecurrence(postId);
     } else if(isRecurring && !postId){
