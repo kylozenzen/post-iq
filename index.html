@@ -45,7 +45,7 @@
     }
 
     /* ── LAYOUT ── */
-    .app { display: grid; grid-template-columns: var(--sidebar) 1fr; min-height: 100vh; }
+    .app { display: grid; grid-template-columns: var(--sidebar) 1fr; min-height: 100vh; height: 100vh; }
 
     /* ── SIDEBAR ── */
     .side {
@@ -181,10 +181,11 @@
     .side-bottom .nav-btn:hover { color: var(--muted); }
 
     /* ── MAIN ── */
-    .main { overflow: auto; }
+    .main { overflow: auto; height: 100%; }
 
     .view { display: none; padding: 24px 28px; }
     .view.active { display: block; }
+    .view.active.composer-view-full { display: flex; padding: 0; height: 100%; }
 
     /* ── PAGE HEADER ── */
     .page-hdr {
@@ -602,7 +603,7 @@
     .rich-editor:focus { border-color: var(--blue); }
 
     /* ── COMPOSER STICKY LAYOUT ── */
-    .composer-view-full { display: flex; flex-direction: column; gap: 0; padding: 0; }
+    .composer-view-full { display: flex; flex-direction: column; gap: 0; padding: 0; height: 100%; overflow-y: auto; }
     .composer-sticky-bar {
       position: sticky;
       top: 0;
@@ -1493,7 +1494,9 @@ async function callBuffer(query,variables={}){
   if(!bufferToken)throw new Error('MISSING_TOKEN');
   const res=await fetch('/.netlify/functions/buffer-proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:bufferToken,query,variables})});
   const data=await res.json();
-  if(data.errors?.length)throw new Error(data.errors[0].message);
+  // Only throw on errors if there's no data — partial errors with data are normal in GraphQL
+  if(data.errors?.length && !data.data)throw new Error(data.errors[0].message);
+  if(data.errors?.length) console.warn('[PostIQ] GraphQL partial errors:', data.errors);
   return data;
 }
 
