@@ -1471,10 +1471,11 @@ async function syncBuffer(){
     qs('syncBtn').classList.remove('sync-pulse');
     showToast(`Loaded ${all.length} posts`);
   }catch(e){
+    console.error('[PostIQ] syncBuffer error:', e);
     const m=String(e.message||'');
     if(m.includes('MISSING_TOKEN'))setSyncStatus('failed','Add a Buffer token first.');
     else if(/unauthorized|invalid|forbidden/i.test(m))setSyncStatus('failed','Token appears invalid or expired.');
-    else setSyncStatus('failed','Sync failed. Try again.');
+    else setSyncStatus('failed',`Sync failed: ${m||'unknown error'}`);
   }
 }
 
