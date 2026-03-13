@@ -45,7 +45,7 @@
     }
 
     /* ── LAYOUT ── */
-    .app { display: grid; grid-template-columns: var(--sidebar) 1fr; min-height: 100vh; height: 100vh; }
+    .app { display: grid; grid-template-columns: var(--sidebar) 1fr; min-height: 100vh; }
 
     /* ── SIDEBAR ── */
     .side {
@@ -181,11 +181,10 @@
     .side-bottom .nav-btn:hover { color: var(--muted); }
 
     /* ── MAIN ── */
-    .main { overflow: auto; height: 100%; }
+    .main { overflow: auto; }
 
     .view { display: none; padding: 24px 28px; }
     .view.active { display: block; }
-    .view.active.composer-view-full { display: flex; padding: 0; height: 100%; }
 
     /* ── PAGE HEADER ── */
     .page-hdr {
@@ -603,7 +602,7 @@
     .rich-editor:focus { border-color: var(--blue); }
 
     /* ── COMPOSER STICKY LAYOUT ── */
-    .composer-view-full { display: flex; flex-direction: column; gap: 0; padding: 0; height: 100%; overflow-y: auto; }
+    .composer-view-full { display: flex; flex-direction: column; gap: 0; padding: 0; }
     .composer-sticky-bar {
       position: sticky;
       top: 0;
