@@ -3,360 +3,1156 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PostIQ — Lightweight Buffer Companion</title>
+  <title>PostIQ — Buffer Power Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    :root{--bg:#0f1117;--panel:#171a23;--panel2:#1f2430;--text:#edf1ff;--muted:#98a2bd;--line:#2c3344;--amber:#f7b545;--green:#34d399;--red:#f87171;--blue:#7aa2ff;--violet:#a78bfa;--r:12px}
-    *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:var(--text)}
-    .hidden{display:none!important}.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
-    .btn:hover{border-color:#44506a}.btn:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[contenteditable="true"]:focus-visible{outline:2px solid var(--blue);outline-offset:2px}.btn.primary{background:var(--amber);color:#1a1406;border:none;font-weight:700}.btn.success{background:var(--green);color:#0a1f18;border:none}.btn.warn{background:var(--blue);color:#081528;border:none}
-    .btn.ghost{background:transparent}.input,textarea,select{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px}
-    textarea{min-height:120px;resize:vertical}.tag{font-size:12px;color:var(--muted)}
-    .landing{max-width:980px;margin:0 auto;padding:26px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-    .onboarding-copy{font-size:15px;color:var(--muted);margin:8px 0 0}.onboarding-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
-    .onboarding-grid .card{padding:12px}
-    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px}
-    .app{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:100vh;align-items:start}.side{border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:12px;min-height:100vh;height:100vh;position:sticky;top:0;align-self:start;overflow:auto}
-    .main{padding:18px;overflow:auto}.nav{display:flex;flex-direction:column;gap:6px}.nav .btn{justify-content:flex-start;transition:background-color .15s,border-color .15s,box-shadow .15s}.nav button.active{border-color:var(--amber);background:rgba(247,181,69,.18);color:var(--text);box-shadow:inset 0 0 0 1px rgba(247,181,69,.35)}.nav .btn:hover{border-color:#536383;background:rgba(122,162,255,.14)}.nav .btn:focus-visible{border-color:var(--blue);background:rgba(122,162,255,.2);box-shadow:0 0 0 2px rgba(122,162,255,.35)}
-    .status{font-size:12px;color:var(--muted)} .view{display:none}.view.active{display:block}
-    .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}.small{font-size:12px;color:var(--muted)}
-    .tweet{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;background:#151924}
-    .calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}.day{min-height:118px;background:#151924;border:1px solid var(--line);border-radius:10px;padding:8px;cursor:pointer;display:flex;flex-direction:column;gap:4px;position:relative}
-    .day .d{font-size:12px;color:var(--muted);font-weight:600}.post-pill,.note-pill{font-size:11px;border-radius:8px;padding:4px 6px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3}
-    .post-pill{background:rgba(122,162,255,.15);border:1px solid rgba(122,162,255,.35)}.note-pill{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.04)}
-    .note-label{font-size:10px;opacity:.9;display:block;margin-bottom:2px;font-weight:700}
-    .calendar-header{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}
-    .calendar-header-main{display:flex;flex-direction:column;gap:8px;flex:1;min-width:260px}
-    .calendar-nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .calendar-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
-    .day-post-list{display:flex;flex-direction:column;gap:6px}
-    .token-card.compact{padding:10px}.token-card.compact .token-expanded{display:none}
-    .token-card.compact #tokenMsg{margin-top:6px}
-    .day-preview-card{border:1px solid var(--line);border-radius:10px;padding:8px;background:#151924}
-    .day-preview-card .small{display:block}
-    .banner{padding:12px;border:1px solid rgba(122,162,255,.45);background:rgba(122,162,255,.1);border-radius:10px;margin-bottom:14px}
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:16px;z-index:40}.modal.open{display:flex}
-    .modal-card{max-width:640px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;max-height:90vh;overflow:auto}
-    .inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.mt8{margin-top:8px}.mt12{margin-top:12px}.mb8{margin-bottom:8px}
-    .token-compact{display:none}.token-card.compact .token-manage{display:none}.token-card.compact .token-compact{display:block}
-    .shared-day{cursor:default}
-    .shared-day .d{font-weight:700}
-    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}.grow{flex:1}
-    .side-bottom{margin-top:auto;display:flex;flex-direction:column;gap:8px}
-    .rich-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-    .rich-editor{min-height:170px;padding:10px;border:1px solid var(--line);background:var(--panel2);border-radius:10px;outline:none;line-height:1.5}
-    .rich-editor:empty:before{content:attr(data-placeholder);color:#7f889f}
-    .thread-actions{position:sticky;top:0;background:var(--panel);padding-bottom:8px;z-index:2}
-    .section-hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
-    .thread-part-tools{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
-    .chip{display:inline-flex;padding:2px 7px;border-radius:999px;font-size:10px;border:1px solid var(--line);color:var(--muted)}
-    .note-tag-gold{background:rgba(247,181,69,.2);border-color:rgba(247,181,69,.5)}
-    .note-tag-blue{background:rgba(122,162,255,.2);border-color:rgba(122,162,255,.5)}
-    .note-tag-green{background:rgba(52,211,153,.2);border-color:rgba(52,211,153,.5)}
-    .note-tag-violet{background:rgba(167,139,250,.2);border-color:rgba(167,139,250,.5)}
-    .empty-hint{border:1px dashed var(--line);border-radius:10px;padding:12px;color:var(--muted);font-size:12px;background:rgba(255,255,255,.01)}
-    .toast-wrap{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:60}
-    .toast{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--text);box-shadow:0 8px 20px rgba(0,0,0,.35)}
-    .snippets-layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:14px}
-    .snippet-filters{display:flex;flex-direction:column;gap:8px}
-    .snippet-filters .btn{text-align:left;justify-content:flex-start}
-    .snippet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
-    .snippet-card{display:flex;flex-direction:column;gap:10px}
-    .snippet-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
-    .snippet-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .snippet-actions .btn{font-size:12px;padding:8px}
-    .snippet-body{white-space:pre-wrap;color:var(--muted);font-size:13px;line-height:1.45}
-    .modal-card.lg{max-width:760px}
-    .picker-list{display:flex;flex-direction:column;gap:8px;max-height:56vh;overflow:auto}
-    .picker-item{padding:10px;border:1px solid var(--line);border-radius:10px;background:#151924;cursor:pointer}
-    .picker-item:hover{border-color:#4f5e7d;background:#171d2b}
-    .picker-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-    @media(max-width:980px){.app{grid-template-columns:1fr}.side{border-right:none;border-bottom:1px solid var(--line);position:static;min-height:auto;height:auto;overflow:visible}.cols,.grid,.onboarding-grid{grid-template-columns:1fr}.section-hdr{align-items:flex-start}}
+    :root {
+      --bg: #0c0d10;
+      --surface: #13151b;
+      --surface2: #1a1d26;
+      --surface3: #202330;
+      --border: #252836;
+      --border2: #2e3347;
+      --text: #e8eaf2;
+      --muted: #6b7294;
+      --subtle: #3d4260;
+      --amber: #f5b731;
+      --amber-dim: rgba(245,183,49,.12);
+      --amber-glow: rgba(245,183,49,.25);
+      --green: #2dd4a0;
+      --green-dim: rgba(45,212,160,.12);
+      --blue: #6b8ff7;
+      --blue-dim: rgba(107,143,247,.12);
+      --violet: #9d7efc;
+      --red: #f77070;
+      --gold-tag: rgba(245,183,49,.2);
+      --blue-tag: rgba(107,143,247,.2);
+      --green-tag: rgba(45,212,160,.2);
+      --violet-tag: rgba(157,126,252,.2);
+      --r: 10px;
+      --sidebar: 240px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── LAYOUT ── */
+    .app { display: grid; grid-template-columns: var(--sidebar) 1fr; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .side {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      overflow-y: auto;
+      padding: 0;
+    }
+
+    .side-logo {
+      padding: 18px 16px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo-mark {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: -.3px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo-mark span {
+      display: inline-block;
+      background: var(--amber);
+      color: #1a0f00;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: .5px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .side-token {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .token-status-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--subtle);
+      flex-shrink: 0;
+    }
+    .status-dot.connected { background: var(--green); box-shadow: 0 0 6px rgba(45,212,160,.5); }
+    .token-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      font-family: 'DM Mono', monospace;
+    }
+    .token-value {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--subtle);
+    }
+    .token-actions { display: flex; gap: 6px; margin-top: 8px; }
+
+    /* Collapsible token panel */
+    .token-panel { display: none; margin-top: 10px; }
+    .token-panel.open { display: block; }
+
+    .side-sync {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .side-nav {
+      padding: 12px 10px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--subtle);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      font-family: 'DM Mono', monospace;
+      padding: 0 6px;
+      margin-bottom: 4px;
+      margin-top: 8px;
+    }
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+      transition: all .15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .nav-btn:hover { background: var(--surface2); color: var(--text); }
+    .nav-btn.active {
+      background: var(--amber-dim);
+      color: var(--amber);
+      border: 1px solid var(--amber-glow);
+    }
+    .nav-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+
+    .side-bottom {
+      padding: 12px 10px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .side-bottom .nav-btn { font-size: 12px; color: var(--subtle); }
+    .side-bottom .nav-btn:hover { color: var(--muted); }
+
+    /* ── MAIN ── */
+    .main { overflow: auto; }
+
+    .view { display: none; padding: 24px 28px; }
+    .view.active { display: block; }
+
+    /* ── PAGE HEADER ── */
+    .page-hdr {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-hdr-left { display: flex; flex-direction: column; gap: 4px; }
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: -.3px;
+    }
+    .page-desc { font-size: 13px; color: var(--muted); }
+    .page-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border2);
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all .12s;
+    }
+    .btn:hover { border-color: var(--subtle); background: var(--surface3); }
+    .btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+    .btn.primary { background: var(--amber); color: #1a0f00; border-color: transparent; font-weight: 700; }
+    .btn.primary:hover { background: #f7c44a; }
+    .btn.success { background: var(--green); color: #001a10; border-color: transparent; font-weight: 600; }
+    .btn.success:hover { background: #3de0b0; }
+    .btn.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+    .btn.ghost:hover { background: var(--surface2); color: var(--text); border-color: transparent; }
+    .btn.sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+    .btn.icon { padding: 7px 9px; }
+
+    /* ── INPUTS ── */
+    .input, textarea, select {
+      width: 100%;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      transition: border-color .12s;
+    }
+    .input:focus, textarea:focus, select:focus { outline: none; border-color: var(--blue); }
+    textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
+    select { cursor: pointer; }
+    .mono { font-family: 'DM Mono', monospace; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 16px;
+    }
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    /* ── COLS ── */
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grow { flex: 1; }
+
+    /* ── BADGE / CHIP ── */
+    .chip {
+      display: inline-flex;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 600;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: .3px;
+      border: 1px solid var(--border2);
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .chip.amber { background: var(--amber-dim); border-color: var(--amber-glow); color: var(--amber); }
+    .chip.blue { background: var(--blue-dim); border-color: rgba(107,143,247,.3); color: var(--blue); }
+    .chip.green { background: var(--green-dim); border-color: rgba(45,212,160,.3); color: var(--green); }
+
+    /* ── EMPTY STATE ── */
+    .empty {
+      border: 1px dashed var(--border2);
+      border-radius: var(--r);
+      padding: 20px 16px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    /* ── STATUS TEXT ── */
+    .status-txt { font-size: 12px; color: var(--muted); }
+
+    /* ── INLINE ROW ── */
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .mt8 { margin-top: 8px; }
+    .mt10 { margin-top: 10px; }
+    .mt12 { margin-top: 12px; }
+    .mt16 { margin-top: 16px; }
+    .mb8 { margin-bottom: 8px; }
+    .hidden { display: none !important; }
+
+    /* ── THREAD SPLITTER ── */
+    .thread-part {
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 12px;
+      background: var(--surface);
+      margin-bottom: 8px;
+    }
+    .thread-part-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .part-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--amber);
+      background: var(--amber-dim);
+      border: 1px solid var(--amber-glow);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .thread-actions-bar {
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      padding: 12px 0;
+      z-index: 2;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    /* ── CALENDAR ── */
+    .cal-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .cal-month {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      flex: 1;
+    }
+    .cal-dow {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .dow-label {
+      text-align: center;
+      font-size: 10px;
+      font-weight: 600;
+      font-family: 'DM Mono', monospace;
+      text-transform: uppercase;
+      color: var(--subtle);
+      letter-spacing: .6px;
+      padding: 4px 0;
+    }
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .cal-day {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      min-height: 100px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: border-color .12s, background .12s;
+      position: relative;
+      overflow: hidden;
+    }
+    .cal-day:hover { border-color: var(--border2); background: var(--surface2); }
+    .cal-day.today { border-color: var(--amber-glow); }
+    .cal-day.today .day-num { color: var(--amber); }
+    .cal-day.other-month { opacity: .35; }
+    .cal-day.has-posts { border-color: var(--border2); }
+    .day-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--subtle);
+      flex-shrink: 0;
+    }
+    .day-posts-count {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      font-size: 10px;
+      font-family: 'DM Mono', monospace;
+      font-weight: 500;
+      background: var(--blue-dim);
+      color: var(--blue);
+      border: 1px solid rgba(107,143,247,.25);
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    .day-post-pill {
+      font-size: 11px;
+      line-height: 1.35;
+      padding: 3px 6px;
+      border-radius: 5px;
+      background: var(--blue-dim);
+      border: 1px solid rgba(107,143,247,.2);
+      color: #a8bef9;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .day-note-pill {
+      font-size: 11px;
+      line-height: 1.35;
+      padding: 3px 6px;
+      border-radius: 5px;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .day-note-pill.gold { background: var(--gold-tag); border: 1px solid rgba(245,183,49,.25); color: #e8c97a; }
+    .day-note-pill.blue { background: var(--blue-tag); border: 1px solid rgba(107,143,247,.25); color: #a8bef9; }
+    .day-note-pill.green { background: var(--green-tag); border: 1px solid rgba(45,212,160,.25); color: #6fdec4; }
+    .day-note-pill.violet { background: var(--violet-tag); border: 1px solid rgba(157,126,252,.25); color: #c4affe; }
+    .note-pill-label {
+      display: block;
+      font-size: 9px;
+      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      opacity: .8;
+      margin-bottom: 1px;
+    }
+    .more-indicator {
+      font-size: 10px;
+      color: var(--subtle);
+      font-family: 'DM Mono', monospace;
+      margin-top: auto;
+    }
+
+    /* ── SNIPPETS ── */
+    .snippets-layout {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    .snippet-filters {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      position: sticky;
+      top: 0;
+    }
+    .filter-label {
+      font-size: 10px;
+      font-weight: 600;
+      font-family: 'DM Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--subtle);
+      padding: 4px 8px;
+      margin-top: 6px;
+    }
+    .filter-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 7px 10px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all .12s;
+    }
+    .filter-btn:hover { background: var(--surface2); color: var(--text); }
+    .filter-btn.active { background: var(--amber-dim); color: var(--amber); }
+
+    .snippet-toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      align-items: center;
+    }
+    .snippet-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 10px;
+    }
+    .snippet-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color .12s;
+    }
+    .snippet-card:hover { border-color: var(--border2); }
+    .snippet-card-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .snippet-title {
+      font-weight: 600;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .snippet-badges { display: flex; gap: 4px; flex-wrap: wrap; flex-shrink: 0; }
+    .snippet-body {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.55;
+      white-space: pre-wrap;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+    }
+    .snippet-tags { font-size: 11px; color: var(--subtle); font-family: 'DM Mono', monospace; }
+    .snippet-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      padding-top: 4px;
+      border-top: 1px solid var(--border);
+    }
+    .snippet-use-btn {
+      flex: 1;
+      font-size: 12px;
+      padding: 7px 10px;
+    }
+    .snippet-menu {
+      display: flex;
+      gap: 4px;
+    }
+
+    /* ── COMPOSER ── */
+    .rich-toolbar {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      padding: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 8px 8px 0 0;
+      border-bottom: none;
+    }
+    .rich-editor {
+      min-height: 200px;
+      padding: 14px;
+      border: 1px solid var(--border2);
+      background: var(--surface2);
+      border-radius: 0 0 8px 8px;
+      outline: none;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+    .rich-editor:empty::before {
+      content: attr(data-placeholder);
+      color: var(--subtle);
+    }
+    .rich-editor:focus { border-color: var(--blue); }
+    .composer-footer {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .composer-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .char-hint { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--subtle); margin-left: auto; }
+
+    /* ── MODALS ── */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 50;
+      backdrop-filter: blur(2px);
+    }
+    .modal.open { display: flex; }
+    .modal-card {
+      max-width: 560px;
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      padding: 20px;
+      max-height: 88vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 60px rgba(0,0,0,.5);
+    }
+    .modal-card.lg { max-width: 720px; }
+    .modal-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .modal-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    /* ── TOASTS ── */
+    .toast-wrap {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 80;
+    }
+    .toast {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+      animation: slideUp .15s ease;
+    }
+    @keyframes slideUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ── FORM LABELS ── */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; font-family: 'DM Mono', monospace; }
+
+    /* ── NOTE TAG COLORS FOR MODAL ── */
+    .note-gold { color: #e8c97a; } .note-blue { color: #a8bef9; }
+    .note-green { color: #6fdec4; } .note-violet { color: #c4affe; }
+
+    /* ── SHARED VIEW ── */
+    .shared-view { max-width: 980px; margin: 0 auto; padding: 28px; }
+    .shared-banner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    /* ── PICKER ── */
+    .picker-item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--text);
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all .12s;
+      margin-bottom: 6px;
+    }
+    .picker-item:hover { border-color: var(--border2); background: var(--surface3); }
+    .picker-list { max-height: 50vh; overflow-y: auto; }
+
+    /* ── ONBOARDING GRID ── */
+    .onboarding-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .ob-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .ob-icon { font-size: 20px; margin-bottom: 8px; display: block; }
+    .ob-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+    .ob-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+    /* ── SECTION DIVIDER ── */
+    .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      .side { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+      .cols, .onboarding-grid { grid-template-columns: 1fr; }
+      .snippets-layout { grid-template-columns: 1fr; }
+      .snippet-filters { position: static; }
+    }
+
+    /* ── SECTION HEADER for thread/calendar day modal ── */
+    .section-hdr { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .section-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; }
   </style>
 </head>
 <body>
-  <section id="app" class="app">
-    <aside class="side">
-      <h3 style="margin:0">PostIQ</h3>
-      <div class="card token-card" id="tokenCard">
-        <strong>Buffer token setup</strong>
-        <div class="token-expanded">
-          <p class="small mt8">Paste your Buffer API token to connect PostIQ. You can keep it for this session only or save it locally on this device. Your token is never stored in a PostIQ account.</p>
-          <p class="small"><a href="https://publish.buffer.com/settings/api" target="_blank" rel="noopener">Find your Buffer API token ↗</a></p>
+
+<section id="app" class="app">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="side">
+
+    <div class="side-logo">
+      <div class="logo-mark">PostIQ <span>BETA</span></div>
+    </div>
+
+    <div class="side-token">
+      <div class="token-status-row">
+        <div class="status-dot" id="statusDot"></div>
+        <span class="token-label" id="tokenStatusLabel">Not connected</span>
+      </div>
+      <div class="token-value mono" id="tokenMaskedPreview">—</div>
+      <div class="token-actions">
+        <button class="btn sm" id="manageTokenBtn">Manage</button>
+        <button class="btn sm ghost" id="revealCompactBtn">Reveal</button>
+      </div>
+      <div class="token-panel" id="tokenPanel">
+        <div class="divider"></div>
+        <div class="field mb8">
+          <label class="label">Buffer API token</label>
+          <input id="tokenInput" class="input mono" type="password" placeholder="Paste token…" />
         </div>
-        <div class="token-manage" id="tokenManage">
-          <input id="tokenInput" class="input mono" type="password" placeholder="Paste Buffer API token" />
-          <div class="inline mt8"><button class="btn" id="toggleTokenVisibility">Show</button></div>
-          <div class="mt8">
-            <label class="small"><input type="radio" name="tokenMode" value="session" checked /> This session only</label><br/>
-            <label class="small"><input type="radio" name="tokenMode" value="local" /> Save on this device</label>
-          </div>
-          <div class="inline mt8">
-            <button class="btn primary" id="saveTokenBtn">Save token</button>
-            <button class="btn ghost" id="clearTokenBtn">Remove token</button>
-          </div>
+        <div class="row mb8">
+          <button class="btn sm ghost" id="toggleTokenVisibility">Show</button>
         </div>
-        <div class="token-compact" id="tokenCompact">
-          <div class="small">Status: <strong id="tokenCompactStatus">Not connected</strong></div>
-          <div class="small mt8">Token: <span id="tokenMaskedPreview" class="mono">—</span></div>
-          <div class="inline mt8">
-            <button class="btn" id="manageTokenBtn">Manage connection</button>
-            <button class="btn ghost" id="revealCompactBtn">Reveal</button>
-          </div>
+        <div class="row mb8" style="gap:14px;">
+          <label style="font-size:12px;color:var(--muted);cursor:pointer;"><input type="radio" name="tokenMode" value="session" checked /> Session</label>
+          <label style="font-size:12px;color:var(--muted);cursor:pointer;"><input type="radio" name="tokenMode" value="local" /> Save locally</label>
         </div>
-        <div id="tokenMsg" class="status mt8">Token not set.</div>
+        <div class="row">
+          <button class="btn sm primary" id="saveTokenBtn">Save</button>
+          <button class="btn sm ghost" id="clearTokenBtn">Remove</button>
+        </div>
+        <div id="tokenMsg" class="status-txt mt8">—</div>
+      </div>
+    </div>
+
+    <div class="side-sync">
+      <div class="row">
+        <button class="btn grow" id="syncBtn" style="justify-content:center;">↻ Load from Buffer</button>
+      </div>
+      <div id="syncStatus" class="status-txt mt8">Not synced.</div>
+    </div>
+
+    <nav class="side-nav">
+      <div class="nav-label">Tools</div>
+      <button class="nav-btn active" data-view="threadView">
+        <span class="nav-icon">🧵</span> Thread Splitter
+      </button>
+      <button class="nav-btn" data-view="calendarView">
+        <span class="nav-icon">📅</span> Content Calendar
+      </button>
+      <button class="nav-btn" data-view="composerView">
+        <span class="nav-icon">✍️</span> Post Composer
+      </button>
+      <button class="nav-btn" data-view="snippetsView">
+        <span class="nav-icon">📚</span> Snippets
+      </button>
+    </nav>
+
+    <div class="side-bottom">
+      <button class="nav-btn" id="openOnboarding">
+        <span class="nav-icon">👋</span> Welcome
+      </button>
+      <button class="nav-btn" id="openFounder">
+        <span class="nav-icon">🏗</span> Built by Ben
+      </button>
+      <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener">
+        <span class="nav-icon">↗</span> Open Buffer
+      </a>
+    </div>
+
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+
+    <!-- Thread Splitter -->
+    <section id="threadView" class="view active">
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Thread Splitter</h1>
+          <p class="page-desc">Turn long-form copy into a clean thread, then push to Buffer.</p>
+        </div>
+        <div class="page-actions">
+          <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
+        </div>
       </div>
 
-      <button class="btn" id="syncBtn">Load from Buffer</button>
-      <div id="syncStatus" class="status">Not synced yet.</div>
-
-      <nav class="nav">
-        <button class="btn active" data-view="threadView">🧵 Thread Splitter</button>
-        <button class="btn" data-view="calendarView">📅 Content Calendar</button>
-        <button class="btn" data-view="composerView">✍️ Post Composer</button>
-        <button class="btn" data-view="snippetsView">📚 Snippets</button>
-      </nav>
-
-      <div class="side-bottom">
-        <button class="btn ghost" id="openOnboarding">Welcome / Intro</button>
-        <button class="btn ghost" id="openGuide">Open guide</button>
-        <button class="btn ghost" id="openFounder">Built by Ben</button>
-        <a class="btn" href="https://publish.buffer.com/" target="_blank" rel="noopener">Go to Buffer ↗</a>
-      </div>
-    </aside>
-
-    <main class="main">
-      <section id="threadView" class="view active">
-        <div class="section-hdr"><h2 style="margin:0">Thread Splitter</h2><a class="btn" href="https://publish.buffer.com/" target="_blank" rel="noopener">Go to Buffer ↗</a></div>
-        <p class="small">Build a thread from long-form copy, then save as draft, queue, or schedule in Buffer.</p>
-        <div class="cols">
-          <div class="card">
-            <h3 style="margin-top:0">Source text</h3>
-            <textarea id="threadInput" placeholder="Paste long-form content, notes, or a rough draft..."></textarea>
-            <div class="inline mt8">
-              <button class="btn primary" id="splitBtn">Split thread</button>
-              <button class="btn" id="sampleBtn">Sample</button>
-              <button class="btn" id="threadAddOpener">Add opener from Snippets</button>
-              <button class="btn" id="threadAddCta">Add ending CTA from Snippets</button>
-            </div>
-            <div id="threadEmpty" class="empty-hint mt8">Paste source text, then click <strong>Split thread</strong> to build editable parts.</div>
-          </div>
-          <div class="card">
-            <div class="thread-actions">
-              <h3 style="margin:0 0 6px">Thread builder</h3>
-              <div class="inline mt8">
-                <select id="threadChannel" class="grow"></select>
-                <button class="btn" id="copyAllBtn">Copy all</button>
-              </div>
-              <div class="inline mt8">
-                <button class="btn" id="draftThreadBtn">Save draft</button>
-                <button class="btn success" id="queueThreadBtn">Add to queue</button>
-                <button class="btn primary" id="scheduleThreadBtn">Schedule</button>
-                <input id="threadWhen" type="datetime-local" class="input" style="max-width:220px" />
-              </div>
-              <div id="threadStatus" class="small mt8"></div>
-            </div>
-            <div id="threadOut" class="mt8 small">No thread yet.</div>
-          </div>
-        </div>
-      </section>
-
-      <section id="calendarView" class="view">
-        <div class="calendar-header">
-          <div class="calendar-header-main">
-            <div class="section-hdr" style="margin-bottom:0"><h2 style="margin:0">Content Calendar</h2></div>
-            <p class="small">Monthly scheduled posts from Buffer + lightweight planning notes.</p>
-            <div class="calendar-nav">
-              <button class="btn" id="prevMonth">‹</button>
-              <strong id="monthLabel"></strong>
-              <button class="btn" id="nextMonth">›</button>
-              <button class="btn ghost" id="todayMonth">Today</button>
-            </div>
-          </div>
-          <div class="calendar-actions">
-            <a class="btn" href="https://publish.buffer.com/" target="_blank" rel="noopener">Go to Buffer ↗</a>
-            <button class="btn" id="shareMonthBtn">Share read-only month</button>
-          </div>
-        </div>
-        <div id="calendarEmpty" class="empty-hint mt8">Load from Buffer to see scheduled posts for this month.</div>
-        <div class="calendar-grid mt12" id="calGrid"></div>
-      </section>
-
-      <section id="composerView" class="view">
-        <div class="section-hdr"><h2 style="margin:0">Post Composer</h2><a class="btn" href="https://publish.buffer.com/" target="_blank" rel="noopener">Go to Buffer ↗</a></div>
-        <p class="small">Draft text-first posts with formatting controls, then save draft, queue, or schedule in Buffer.</p>
+      <div class="cols">
         <div class="card">
-          <div class="rich-toolbar">
-            <button class="btn" data-cmd="bold">Bold</button>
-            <button class="btn" data-cmd="italic">Italic</button>
-            <button class="btn" data-cmd="ul">• List</button>
-            <button class="btn" data-cmd="ol">1. List</button>
-            <button class="btn" data-cmd="clear">Clear formatting</button>
-            <button class="btn" id="insertSnippetBtn">Insert snippet</button>
-            <button class="btn" id="saveSelectionSnippetBtn">Save selected text as snippet</button>
+          <div class="card-title">Source text</div>
+          <textarea id="threadInput" placeholder="Paste long-form content, notes, or a rough draft…"></textarea>
+          <div class="row mt12">
+            <button class="btn primary" id="splitBtn">Split thread</button>
+            <button class="btn" id="sampleBtn">Sample</button>
           </div>
-          <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here..."></div>
-          <div id="composerEmpty" class="empty-hint mt8">Start drafting here, then save as draft, queue, or schedule.</div>
-          <div class="inline mt8">
-            <select id="composerChannel" class="grow"></select>
-            <input id="composerWhen" type="datetime-local" class="input" style="max-width:220px" />
+          <div class="row mt8">
+            <button class="btn sm ghost" id="threadAddOpener">+ Opener from Snippets</button>
+            <button class="btn sm ghost" id="threadAddCta">+ Ending CTA</button>
           </div>
-          <div class="inline mt8">
-            <button class="btn" id="composerDraft">Save draft</button>
-            <button class="btn success" id="composerQueue">Add to queue</button>
-            <button class="btn primary" id="composerSchedule">Schedule</button>
-          </div>
-          <p class="small mt8">If your post needs images or video, save it as a draft in PostIQ, then open Buffer to attach media and schedule or publish it there.</p>
-          <div id="composerStatus" class="small mt8"></div>
+          <div id="threadEmpty" class="empty mt12">Paste text above, then click <strong>Split thread</strong>.</div>
         </div>
-      </section>
 
-      <section id="snippetsView" class="view">
-        <div class="section-hdr"><h2 style="margin:0">Snippets</h2></div>
-        <p class="small">Save reusable hooks, CTAs, hashtag sets, and openers. Use them in Composer and Thread Splitter.</p>
-        <div class="inline mt8">
-          <input id="snippetSearch" class="input grow" placeholder="Search title, body, or tags..." />
-          <select id="snippetPlatformFilter" class="input" style="max-width:220px"></select>
-          <button class="btn primary" id="newSnippetBtn">New Snippet</button>
-        </div>
-        <div class="snippets-layout mt12">
-          <div class="card snippet-filters" id="snippetTypeFilters"></div>
-          <div>
-            <div id="snippetsEmpty" class="empty-hint">No snippets yet. Create your first snippet to speed up writing.</div>
-            <div id="snippetGrid" class="snippet-grid"></div>
+        <div>
+          <div class="thread-actions-bar">
+            <div class="section-hdr" style="margin-bottom:10px;">
+              <span class="section-title">Thread builder</span>
+              <button class="btn sm" id="copyAllBtn">Copy all</button>
+            </div>
+            <div id="threadChannelWrap">
+              <div class="label mb8">Channel <span style="color:var(--subtle);font-weight:400;text-transform:none;letter-spacing:0;">(X &amp; Threads only)</span></div>
+              <select id="threadChannel" class="input grow"></select>
+              <div id="threadNoChannels" class="empty mt8" style="display:none;">No X or Threads channels found. <button class="btn sm ghost" onclick="syncBuffer()" style="margin-top:6px;display:block;width:100%;">↻ Load from Buffer</button></div>
+            </div>
+            <div class="row mt8">
+              <button class="btn" id="draftThreadBtn">Save draft</button>
+              <button class="btn success" id="queueThreadBtn">Add to queue</button>
+              <button class="btn primary" id="scheduleThreadBtn">Schedule ↓</button>
+            </div>
+            <input id="threadWhen" type="datetime-local" class="input mt8" style="width:100%" />
+            <div class="status-txt mt8" style="color:var(--subtle);font-size:11px;">Schedule requires a date/time above.</div>
+            <div id="threadStatus" class="status-txt mt8"></div>
           </div>
+          <div id="threadOut" style="margin-top:8px;"></div>
         </div>
-      </section>
-
-    </main>
-  </section>
-
-  <div id="onboardingModal" class="modal"><div class="modal-card">
-    <div class="topbar"><h3 style="margin:0">Welcome to PostIQ</h3><button class="btn" id="closeOnboarding">Skip</button></div>
-    <p class="onboarding-copy">Plan, draft, and schedule faster with a lightweight Buffer companion that keeps your workflow moving.</p>
-    <div class="onboarding-grid">
-      <div class="card"><h3 style="margin:0">🧵 Thread Splitter</h3><p class="small mt8">Split long-form ideas into clean thread parts you can draft, queue, or schedule.</p></div>
-      <div class="card"><h3 style="margin:0">📅 Content Calendar</h3><p class="small mt8">Review scheduled Buffer posts month-by-month and keep lightweight planning notes.</p></div>
-      <div class="card"><h3 style="margin:0">✍️ Post Composer</h3><p class="small mt8">Draft text-first posts with quick formatting, then send them to Buffer.</p></div>
-      <div class="card"><h3 style="margin:0">🔗 Shareable snapshots</h3><p class="small mt8">Create read-only month links for async planning reviews.</p></div>
-    </div>
-    <div class="inline mt12">
-      <button class="btn primary" id="onboardingEnter">Enter app</button>
-      <button class="btn ghost" id="onboardingGuide">Open guide</button>
-    </div>
-  </div></div>
-
-  <div id="guideModal" class="modal"><div class="modal-card">
-    <div class="topbar"><h3 style="margin:0">How PostIQ works</h3><button class="btn" id="closeGuide">Close</button></div>
-    <ul class="small mt8">
-      <li><strong>No login:</strong> PostIQ does not require a PostIQ account.</li>
-      <li><strong>Token handling:</strong> your Buffer token is stored in sessionStorage or localStorage, based on your choice.</li>
-      <li><strong>Thread Splitter:</strong> split long copy into editable thread parts and send as draft/queue/scheduled.</li>
-      <li><strong>Content Calendar:</strong> view scheduled posts, then add color-tagged planning notes per day.</li>
-      <li><strong>Media workflow:</strong> If your post needs images or video, save it as a draft in PostIQ, then open Buffer to attach media and schedule or publish it there.</li>
-    </ul>
-  </div></div>
-
-  <div id="shareModal" class="modal"><div class="modal-card">
-    <div class="topbar"><h3 style="margin:0">Share read-only month snapshot</h3><button class="btn" id="closeShare">Close</button></div>
-    <p class="small mt8">Create a no-login read-only month view for the current calendar month.</p>
-    <div class="card mt8">
-      <div class="small">Month: <strong id="shareMonthName"></strong></div>
-      <div class="small mt8">Scheduled posts in snapshot: <strong id="sharePostCount">0</strong></div>
-      <div class="small mt8">Planning notes included: <strong id="shareNoteCount">0</strong></div>
-      <label class="small mt8" style="display:block"><input type="checkbox" id="includeNotes" checked /> Include planning notes</label>
-    </div>
-    <div class="inline mt12">
-      <button class="btn primary" id="generateShare">Generate link</button>
-      <button class="btn" id="copyShare">Copy link</button>
-      <button class="btn" id="openSharePreview">Open preview</button>
-    </div>
-    <input id="shareLink" class="input mt8" readonly placeholder="Share link will appear here" />
-  </div></div>
-
-  <div id="noteModal" class="modal"><div class="modal-card">
-    <div class="topbar"><h3 style="margin:0">Day note</h3><button class="btn" id="closeNote">Close</button></div>
-    <div class="small mt8">Date: <strong id="noteDateLabel"></strong></div>
-    <div id="dayModalPreview" class="day-preview-card mt8">
-      <div id="dayModalNotePreview" class="small"></div>
-      <div id="dayModalPostPreview" class="small mt8"></div>
-    </div>
-    <textarea id="noteText" class="mt8" placeholder="Add your planning note..."></textarea>
-    <div class="mt8">
-      <label class="small">Tag</label>
-      <select id="noteTag" class="input mt8">
-        <option value="gold|Idea">Gold · Idea</option>
-        <option value="blue|Draft">Blue · Draft</option>
-        <option value="green|Campaign">Green · Campaign</option>
-        <option value="violet|Priority">Violet · Priority</option>
-      </select>
-    </div>
-    <div class="inline mt12">
-      <button class="btn primary" id="saveNoteBtn">Save note</button>
-      <button class="btn" id="sendNoteToComposer">Use in Composer</button>
-      <button class="btn ghost" id="deleteNoteBtn">Delete note</button>
-    </div>
-    <div id="noteStatus" class="small mt8"></div>
-  </div></div>
-
-  <div id="founderModal" class="modal"><div class="modal-card">
-    <div class="topbar"><h3 style="margin:0">Built by Ben Campbell</h3><button class="btn" id="closeFounder">Close</button></div>
-    <p class="small mt8">This was built by Ben Campbell, who is currently open to work and looking for his next social media/content marketing role. If you enjoy this app, message Ben on Discord with any feedback or issues you run into.</p>
-    <p class="small">Email: <a href="mailto:hirebencampbell@gmail.com">hirebencampbell@gmail.com</a></p>
-    <p class="small">Creative work: <a href="https://bencampbell.netlify.app/" target="_blank" rel="noopener">https://bencampbell.netlify.app/</a></p>
-    <p class="small">Connect with him on LinkedIn: <a href="https://www.linkedin.com/in/bencampbell8/" target="_blank" rel="noopener">https://www.linkedin.com/in/bencampbell8/</a></p>
-  </div></div>
-
-
-
-  <div id="snippetModal" class="modal"><div class="modal-card lg">
-    <div class="topbar"><h3 style="margin:0" id="snippetModalTitle">New Snippet</h3><button class="btn" id="closeSnippetModal">Close</button></div>
-    <div class="mt8">
-      <label class="small">Title</label>
-      <input id="snippetTitle" class="input mt8" placeholder="Ex: Curiosity hook for product posts" />
-    </div>
-    <div class="cols mt8" style="grid-template-columns:1fr 1fr">
-      <div>
-        <label class="small">Type</label>
-        <select id="snippetType" class="input mt8"></select>
       </div>
-      <div>
-        <label class="small">Platform</label>
-        <select id="snippetPlatform" class="input mt8"></select>
+    </section>
+
+    <!-- Content Calendar -->
+    <section id="calendarView" class="view">
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Content Calendar</h1>
+          <p class="page-desc">Scheduled Buffer posts + lightweight planning notes.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn" id="shareMonthBtn">Share snapshot</button>
+          <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
+        </div>
       </div>
-    </div>
-    <div class="mt8">
-      <label class="small">Tags (comma-separated)</label>
-      <input id="snippetTags" class="input mt8" placeholder="launch, b2b, storytelling" />
-    </div>
-    <div class="mt8">
-      <label class="small">Body</label>
-      <textarea id="snippetBody" class="mt8" placeholder="Write snippet content..."></textarea>
-    </div>
-    <div class="inline mt12">
-      <button class="btn primary" id="saveSnippetBtn">Save</button>
-      <button class="btn" id="cancelSnippetBtn">Cancel</button>
-    </div>
-  </div></div>
 
-  <div id="snippetPickerModal" class="modal"><div class="modal-card lg">
-    <div class="topbar"><h3 style="margin:0" id="snippetPickerTitle">Choose a snippet</h3><button class="btn" id="closeSnippetPicker">Close</button></div>
-    <div class="inline mt8">
-      <input id="pickerSearch" class="input grow" placeholder="Search snippets..." />
-      <select id="pickerType" class="input" style="max-width:200px"></select>
-      <select id="pickerPlatform" class="input" style="max-width:200px"></select>
+      <div class="cal-header">
+        <button class="btn icon" id="prevMonth">‹</button>
+        <div class="cal-month" id="monthLabel"></div>
+        <button class="btn icon" id="nextMonth">›</button>
+        <button class="btn sm ghost" id="todayMonth">Today</button>
+      </div>
+
+      <div class="cal-dow">
+        <div class="dow-label">Sun</div>
+        <div class="dow-label">Mon</div>
+        <div class="dow-label">Tue</div>
+        <div class="dow-label">Wed</div>
+        <div class="dow-label">Thu</div>
+        <div class="dow-label">Fri</div>
+        <div class="dow-label">Sat</div>
+      </div>
+
+      <div id="calendarEmpty" class="empty mt8" style="display:none;">
+        No scheduled posts found for this month.<br>
+        <span style="color:var(--subtle);font-size:12px;">Posts come from Buffer. Click <strong style="color:var(--text);">↻ Load from Buffer</strong> in the sidebar to sync your scheduled posts.</span>
+      </div>
+      <div id="calendarNotSynced" class="empty mt8">
+        Your calendar is empty — connect Buffer to get started.<br>
+        <span style="color:var(--subtle);font-size:12px;">Add your Buffer API token in the sidebar, then click <strong style="color:var(--text);">↻ Load from Buffer</strong>.</span>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </section>
+
+    <!-- Post Composer -->
+    <section id="composerView" class="view">
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Post Composer</h1>
+          <p class="page-desc">Draft text-first posts, then push to Buffer. For images/video, save as draft then attach in Buffer.</p>
+        </div>
+        <div class="page-actions">
+          <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="rich-toolbar">
+          <button class="btn sm" data-cmd="bold"><strong>B</strong></button>
+          <button class="btn sm" data-cmd="italic"><em>I</em></button>
+          <button class="btn sm" data-cmd="ul">• List</button>
+          <button class="btn sm" data-cmd="ol">1. List</button>
+          <button class="btn sm ghost" data-cmd="clear">Clear</button>
+          <div style="width:1px;background:var(--border);margin:0 4px;"></div>
+          <button class="btn sm" id="insertSnippetBtn">Insert snippet</button>
+          <button class="btn sm ghost" id="saveSelectionSnippetBtn">Save selection</button>
+        </div>
+        <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here…"></div>
+        <div id="composerEmpty" class="empty mt8">Start drafting above, then save draft, queue, or schedule.</div>
+
+        <div class="composer-footer mt12">
+          <select id="composerChannel" class="input grow"></select>
+          <input id="composerWhen" type="datetime-local" class="input" style="max-width:200px" />
+        </div>
+        <div id="composerNoChannels" class="empty mt8" style="display:none;">
+          No channels loaded yet.<br>
+          <span style="color:var(--subtle);font-size:12px;">Add your Buffer token and click <strong style="color:var(--text);">↻ Load from Buffer</strong> to see your channels.</span>
+        </div>
+        <div id="composerChannelHint" class="status-txt mt8" style="display:none;"></div>
+        <div class="composer-actions mt10">
+          <button class="btn" id="composerDraft">Save draft</button>
+          <button class="btn success" id="composerQueue">Add to queue</button>
+          <button class="btn primary" id="composerSchedule">Schedule</button>
+          <span class="char-hint" id="composerCharCount">0 chars</span>
+        </div>
+        <div class="status-txt mt8" style="color:var(--subtle);font-size:11px;">Schedule requires a date/time above. For images/video, save as draft then attach in Buffer.</div>
+        <div id="composerStatus" class="status-txt mt8"></div>
+      </div>
+    </section>
+
+    <!-- Snippets -->
+    <section id="snippetsView" class="view">
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Snippets</h1>
+          <p class="page-desc">Hooks, CTAs, hashtag sets, openers — reusable across Composer and Thread Splitter.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn primary" id="newSnippetBtn">+ New Snippet</button>
+          <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
+        </div>
+      </div>
+
+      <div class="snippets-layout">
+        <div class="snippet-filters" id="snippetTypeFilters"></div>
+        <div>
+          <div class="snippet-toolbar">
+            <input id="snippetSearch" class="input grow" placeholder="Search title, body, or tags…" />
+            <select id="snippetPlatformFilter" class="input" style="max-width:180px;"></select>
+          </div>
+          <div id="snippetsEmpty" class="empty">No snippets yet. Create your first one to speed up writing.</div>
+          <div id="snippetGrid" class="snippet-grid"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</section>
+
+<!-- ── MODALS ── -->
+
+<!-- Onboarding (includes guide) -->
+<div id="onboardingModal" class="modal"><div class="modal-card">
+  <div class="modal-hdr">
+    <span class="modal-title">Welcome to PostIQ</span>
+    <button class="btn sm ghost" id="closeOnboarding">Close</button>
+  </div>
+  <p style="font-size:13px;color:var(--muted);">Plan, draft, and schedule faster — a lightweight Buffer companion that keeps your workflow moving.</p>
+  <div class="onboarding-grid">
+    <div class="ob-card"><span class="ob-icon">🧵</span><div class="ob-title">Thread Splitter</div><p class="ob-desc">Split long-form ideas into clean thread parts to queue or schedule on X &amp; Threads.</p></div>
+    <div class="ob-card"><span class="ob-icon">📅</span><div class="ob-title">Content Calendar</div><p class="ob-desc">See scheduled Buffer posts month-by-month with color-tagged planning notes.</p></div>
+    <div class="ob-card"><span class="ob-icon">✍️</span><div class="ob-title">Post Composer</div><p class="ob-desc">Draft text-first posts with formatting, then send to Buffer as draft, queue, or scheduled.</p></div>
+    <div class="ob-card"><span class="ob-icon">📚</span><div class="ob-title">Snippets</div><p class="ob-desc">Save reusable hooks, CTAs, hashtag sets and openers. Insert them anywhere in one click.</p></div>
+  </div>
+  <div class="divider" style="margin:16px 0 12px;"></div>
+  <div style="font-size:12px;color:var(--muted);line-height:1.85;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;">
+      <div><strong style="color:var(--text);">No login required</strong> — PostIQ needs no account.</div>
+      <div><strong style="color:var(--text);">Token stays local</strong> — your Buffer token never leaves your device.</div>
+      <div><strong style="color:var(--text);">Images &amp; video</strong> — save as draft, then attach media in Buffer.</div>
+      <div><strong style="color:var(--text);">Share calendars</strong> — generate read-only month links for async reviews.</div>
     </div>
-    <div id="pickerList" class="picker-list mt12"></div>
-    <div id="pickerEmpty" class="empty-hint mt8">No snippets match these filters.</div>
-  </div></div>
+  </div>
+  <div class="row mt16">
+    <button class="btn primary" id="onboardingEnter">Get started</button>
+  </div>
+</div></div>
 
-  <div id="toastWrap" class="toast-wrap" aria-live="polite" aria-atomic="true"></div>
+<!-- Founder -->
+<div id="founderModal" class="modal"><div class="modal-card">
+  <div class="modal-hdr">
+    <span class="modal-title">Built by Ben Campbell</span>
+    <button class="btn sm ghost" id="closeFounder">Close</button>
+  </div>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;">Open to work — social media and content marketing roles. If you enjoy this app, message Ben on Discord with feedback.</p>
+  <p style="font-size:13px;margin-top:10px;color:var(--muted);">
+    Email: <a href="mailto:hirebencampbell@gmail.com" style="color:var(--blue);">hirebencampbell@gmail.com</a><br>
+    Portfolio: <a href="https://bencampbell.netlify.app/" target="_blank" style="color:var(--blue);">bencampbell.netlify.app</a><br>
+    LinkedIn: <a href="https://www.linkedin.com/in/bencampbell8/" target="_blank" style="color:var(--blue);">linkedin.com/in/bencampbell8</a>
+  </p>
+</div></div>
 
-  <section id="sharedView" class="landing hidden">
-    <div class="banner" id="sharedBanner"></div>
-    <h2 id="sharedMonthTitle"></h2>
-    <p class="small">This is a shareable planning snapshot (read-only month view), not live collaboration.</p>
-    <div id="sharedGrid" class="calendar-grid mt12"></div>
-  </section>
+<!-- Share -->
+<div id="shareModal" class="modal"><div class="modal-card">
+  <div class="modal-hdr">
+    <span class="modal-title">Share read-only month</span>
+    <button class="btn sm ghost" id="closeShare">Close</button>
+  </div>
+  <div class="card" style="font-size:13px;color:var(--muted);">
+    <div>Month: <strong style="color:var(--text)" id="shareMonthName"></strong></div>
+    <div class="mt8">Posts in snapshot: <strong style="color:var(--text)" id="sharePostCount">0</strong></div>
+    <div class="mt8">Notes included: <strong style="color:var(--text)" id="shareNoteCount">0</strong></div>
+    <label class="mt8" style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="includeNotes" checked /> <span>Include planning notes</span></label>
+  </div>
+  <div class="row mt12">
+    <button class="btn primary" id="generateShare">Generate link</button>
+    <button class="btn" id="copyShare">Copy link</button>
+    <button class="btn ghost" id="openSharePreview">Preview</button>
+  </div>
+  <input id="shareLink" class="input mt8 mono" readonly placeholder="Share link will appear here…" style="font-size:12px;" />
+</div></div>
+
+<!-- Day Note Modal -->
+<div id="noteModal" class="modal"><div class="modal-card">
+  <div class="modal-hdr">
+    <span class="modal-title" id="noteDateLabel">—</span>
+    <button class="btn sm ghost" id="closeNote">Close</button>
+  </div>
+
+  <div id="dayModalPostPreview" class="mb8"></div>
+
+  <div class="field mb8">
+    <label class="label">Planning note</label>
+    <textarea id="noteText" placeholder="Add your planning note…" style="min-height:90px;"></textarea>
+  </div>
+  <div class="field mb8">
+    <label class="label">Tag</label>
+    <select id="noteTag" class="input">
+      <option value="gold|Idea">💛 Idea</option>
+      <option value="blue|Draft">💙 Draft</option>
+      <option value="green|Campaign">💚 Campaign</option>
+      <option value="violet|Priority">💜 Priority</option>
+    </select>
+  </div>
+
+  <div id="dayModalNotePreview" class="mb8"></div>
+
+  <div class="row">
+    <button class="btn primary" id="saveNoteBtn">Save note</button>
+    <button class="btn" id="sendNoteToComposer">Use in Composer</button>
+    <button class="btn ghost" id="deleteNoteBtn">Delete</button>
+  </div>
+  <div id="noteStatus" class="status-txt mt8"></div>
+</div></div>
+
+<!-- Snippet Modal -->
+<div id="snippetModal" class="modal"><div class="modal-card lg">
+  <div class="modal-hdr">
+    <span class="modal-title" id="snippetModalTitle">New Snippet</span>
+    <button class="btn sm ghost" id="closeSnippetModal">Close</button>
+  </div>
+  <div class="field mb8">
+    <label class="label">Title</label>
+    <input id="snippetTitle" class="input" placeholder="Ex: Curiosity hook for product posts" />
+  </div>
+  <div class="cols mb8" style="grid-template-columns:1fr 1fr;">
+    <div class="field">
+      <label class="label">Type</label>
+      <select id="snippetType" class="input"></select>
+    </div>
+    <div class="field">
+      <label class="label">Platform</label>
+      <select id="snippetPlatform" class="input"></select>
+    </div>
+  </div>
+  <div class="field mb8">
+    <label class="label">Tags (comma-separated)</label>
+    <input id="snippetTags" class="input" placeholder="launch, b2b, storytelling" />
+  </div>
+  <div class="field mb8">
+    <label class="label">Body</label>
+    <textarea id="snippetBody" placeholder="Write snippet content…" style="min-height:140px;"></textarea>
+  </div>
+  <div class="row">
+    <button class="btn primary" id="saveSnippetBtn">Save snippet</button>
+    <button class="btn ghost" id="cancelSnippetBtn">Cancel</button>
+  </div>
+</div></div>
+
+<!-- Snippet Picker -->
+<div id="snippetPickerModal" class="modal"><div class="modal-card lg">
+  <div class="modal-hdr">
+    <span class="modal-title" id="snippetPickerTitle">Choose a snippet</span>
+    <button class="btn sm ghost" id="closeSnippetPicker">Close</button>
+  </div>
+  <div class="row mb8">
+    <input id="pickerSearch" class="input grow" placeholder="Search snippets…" />
+    <select id="pickerType" class="input" style="max-width:160px;"></select>
+    <select id="pickerPlatform" class="input" style="max-width:160px;"></select>
+  </div>
+  <div id="pickerList" class="picker-list"></div>
+  <div id="pickerEmpty" class="empty mt8">No snippets match these filters.</div>
+</div></div>
+
+<!-- Toast container -->
+<div id="toastWrap" class="toast-wrap" aria-live="polite" aria-atomic="true"></div>
+
+<!-- Shared view -->
+<section id="sharedView" class="shared-view hidden">
+  <div class="logo-mark" style="margin-bottom:20px;font-family:'Syne',sans-serif;font-weight:800;font-size:20px;">PostIQ</div>
+  <div class="shared-banner" id="sharedBanner"></div>
+  <h2 id="sharedMonthTitle" style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;margin-bottom:16px;"></h2>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">Read-only planning snapshot — not a live view.</p>
+  <div class="cal-dow">
+    <div class="dow-label">Sun</div><div class="dow-label">Mon</div><div class="dow-label">Tue</div>
+    <div class="dow-label">Wed</div><div class="dow-label">Thu</div><div class="dow-label">Fri</div><div class="dow-label">Sat</div>
+  </div>
+  <div id="sharedGrid" class="cal-grid mt8"></div>
+</section>
 
 <script>
 const STORE_KEY='postiq_buffer_token';
@@ -367,10 +1163,9 @@ const snippetTypes=['All','Hooks','CTAs','Hashtag Sets','First Comments','Thread
 const snippetPlatforms=['All Platforms','LinkedIn','X','Threads','Instagram','Universal'];
 let bufferToken='';
 let tokenInputVisible=false;
-let tokenCardCompact=false;
+let tokenPanelOpen=false;
 let threadParts=[];
 const state={channels:[],scheduled:[],month:new Date(),selectedDate:null,syncState:'idle',snippets:[],snippetType:'All',snippetPlatform:'All Platforms',snippetSearch:'',editingSnippetId:null,pickerMode:'composer'};
-
 const noteTags={gold:'Idea',blue:'Draft',green:'Campaign',violet:'Priority'};
 
 function qs(id){return document.getElementById(id)}
@@ -381,18 +1176,20 @@ function dismissOnboarding(){markOnboardingSeen();closeModal('onboardingModal')}
 function fmtDate(d){return d.toISOString().slice(0,10)}
 function monthLabel(d){return d.toLocaleDateString(undefined,{month:'long',year:'numeric'})}
 function monthStart(d){return new Date(d.getFullYear(),d.getMonth(),1)}
-function maskToken(token){ if(!token) return '—'; if(token.length<=8) return '••••'; return `${token.slice(0,4)}••••${token.slice(-4)}`; }
-function openModal(id){qs(id).classList.add('open')} function closeModal(id){qs(id).classList.remove('open')}
+function maskToken(t){if(!t)return '—';if(t.length<=8)return '••••';return `${t.slice(0,4)}••••${t.slice(-4)}`;}
+function openModal(id){qs(id).classList.add('open')}
+function closeModal(id){qs(id).classList.remove('open')}
 function showToast(msg){
-  const wrap=qs('toastWrap'); if(!wrap) return;
-  const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
-  wrap.appendChild(t); setTimeout(()=>{t.remove();},2200);
+  const wrap=qs('toastWrap');if(!wrap)return;
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;
+  wrap.appendChild(t);setTimeout(()=>t.remove(),msg.length>40?3800:2800);
 }
 function safeText(v=''){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function compactText(v,max=84){const t=(v||'').replace(/\s+/g,' ').trim(); return t.length>max?`${t.slice(0,max-1)}…`:t}
-
+function compactText(v,max=84){const t=(v||'').replace(/\s+/g,' ').trim();return t.length>max?`${t.slice(0,max-1)}…`:t}
 function slug(v){return String(v||'').toLowerCase()}
-function normalizeTags(v){if(Array.isArray(v)) return v.map(x=>String(x).trim()).filter(Boolean); return String(v||'').split(',').map(x=>x.trim()).filter(Boolean)}
+function normalizeTags(v){if(Array.isArray(v))return v.map(x=>String(x).trim()).filter(Boolean);return String(v||'').split(',').map(x=>x.trim()).filter(Boolean)}
+
+// ── SNIPPETS ──
 function loadSnippets(){
   try{
     const raw=localStorage.getItem(SNIPPET_KEY);
@@ -404,8 +1201,7 @@ function loadSnippets(){
       title:String(s.title||'Untitled snippet'),
       type:snippetTypes.includes(s.type)?s.type:'Hooks',
       platform:snippetPlatforms.includes(s.platform)?s.platform:'Universal',
-      tags:normalizeTags(s.tags),
-      body:String(s.body||''),
+      tags:normalizeTags(s.tags),body:String(s.body||''),
       createdAt:String(s.createdAt||new Date().toISOString()),
       updatedAt:String(s.updatedAt||new Date().toISOString())
     }));
@@ -418,54 +1214,44 @@ function filteredSnippets(search=state.snippetSearch,type=state.snippetType,plat
     const typeOk=type==='All'||s.type===type;
     const platformOk=platform==='All Platforms'||s.platform===platform;
     const text=`${s.title} ${s.body} ${(s.tags||[]).join(' ')}`.toLowerCase();
-    const qOk=!q||text.includes(q);
-    return typeOk&&platformOk&&qOk;
+    return typeOk&&platformOk&&(!q||text.includes(q));
   });
 }
-function snippetBadge(text){return `<span class="chip">${safeText(text)}</span>`}
+
+function snippetBadge(text,cls=''){
+  return `<span class="chip ${cls}">${safeText(text)}</span>`;
+}
+
 function useSnippetInComposer(snippet){
-  const editor=qs('composerEditor');
-  editor.focus();
+  const editor=qs('composerEditor');editor.focus();
   const body=snippet.body||'';
   try{
     const sel=window.getSelection();
     if(sel&&sel.rangeCount&&editor.contains(sel.anchorNode)){
-      sel.deleteFromDocument();
-      sel.getRangeAt(0).insertNode(document.createTextNode(body));
-    }else{
-      editor.innerText=editor.innerText?`${editor.innerText}
-
-${body}`:body;
-    }
-  }catch{editor.innerText=editor.innerText?`${editor.innerText}
-
-${body}`:body}
+      sel.deleteFromDocument();sel.getRangeAt(0).insertNode(document.createTextNode(body));
+    }else{editor.innerText=editor.innerText?`${editor.innerText}\n\n${body}`:body;}
+  }catch{editor.innerText=editor.innerText?`${editor.innerText}\n\n${body}`:body}
   qs('composerEmpty').style.display=editorHtmlToText(editor.innerHTML)?'none':'block';
-  qs('composerStatus').textContent='Snippet inserted into composer.';
   showToast('Snippet inserted');
 }
 function useSnippetInThread(snippet,position='prepend'){
-  const input=qs('threadInput');
-  const current=input.value.trim();
-  const body=snippet.body||'';
-  input.value=position==='prepend'?(current?`${body}
-
-${current}`:body):(current?`${current}
-
-${body}`:body);
-  showToast(position==='prepend'?'Opener added from snippets':'Ending CTA added from snippets');
+  const input=qs('threadInput');const current=input.value.trim();const body=snippet.body||'';
+  input.value=position==='prepend'?(current?`${body}\n\n${current}`:body):(current?`${current}\n\n${body}`:body);
+  showToast(position==='prepend'?'Opener added':'CTA added');
 }
+
 function renderSnippetFilters(){
-  const rail=qs('snippetTypeFilters');
-  rail.innerHTML='';
+  const rail=qs('snippetTypeFilters');rail.innerHTML='';
+  const label=document.createElement('div');label.className='filter-label';label.textContent='Type';rail.appendChild(label);
   snippetTypes.forEach(type=>{
     const b=document.createElement('button');
-    b.className=`btn ${state.snippetType===type?'active':''}`;
+    b.className=`filter-btn ${state.snippetType===type?'active':''}`;
     b.textContent=type;
     b.onclick=()=>{state.snippetType=type;renderSnippets();};
     rail.appendChild(b);
   });
 }
+
 function renderSnippets(){
   renderSnippetFilters();
   const list=filteredSnippets();
@@ -473,21 +1259,35 @@ function renderSnippets(){
   qs('snippetsEmpty').style.display=list.length?'none':'block';
   grid.innerHTML='';
   list.forEach(s=>{
-    const card=document.createElement('div');
-    card.className='card snippet-card';
-    card.innerHTML=`<div class="snippet-head"><strong>${safeText(s.title)}</strong><div class="picker-meta">${snippetBadge(s.type)}${snippetBadge(s.platform)}</div></div><div class="snippet-body">${safeText(compactText(s.body,180))}</div><div class="small">${(s.tags||[]).length?`Tags: ${safeText(s.tags.join(', '))}`:'No tags'}</div><div class="snippet-actions"><button class="btn" data-act="copy">Copy</button><button class="btn" data-act="composer">Use in Composer</button><button class="btn" data-act="thread">Use in Thread Splitter</button><button class="btn" data-act="edit">Edit</button><button class="btn" data-act="delete" style="grid-column:1 / -1">Delete</button></div>`;
-    card.querySelector('[data-act="copy"]').onclick=()=>{navigator.clipboard.writeText(s.body||'');showToast('Snippet copied')};
+    const card=document.createElement('div');card.className='snippet-card';
+    card.innerHTML=`
+      <div class="snippet-card-hdr">
+        <div class="snippet-title">${safeText(s.title)}</div>
+        <div class="snippet-badges">${snippetBadge(s.type)}${snippetBadge(s.platform)}</div>
+      </div>
+      <div class="snippet-body">${safeText(compactText(s.body,200))}</div>
+      ${s.tags?.length?`<div class="snippet-tags">${safeText(s.tags.join(' · '))}</div>`:''}
+      <div class="snippet-actions">
+        <button class="btn snippet-use-btn" data-act="copy">Copy</button>
+        <button class="btn snippet-use-btn primary" data-act="composer">→ Composer</button>
+        <div class="snippet-menu">
+          <button class="btn sm ghost" data-act="edit" title="Edit">✏️</button>
+          <button class="btn sm ghost" data-act="delete" title="Delete">🗑</button>
+        </div>
+      </div>`;
+    card.querySelector('[data-act="copy"]').onclick=()=>{navigator.clipboard.writeText(s.body||'');showToast('Copied')};
     card.querySelector('[data-act="composer"]').onclick=()=>{activateView('composerView');useSnippetInComposer(s)};
-    card.querySelector('[data-act="thread"]').onclick=()=>{activateView('threadView');useSnippetInThread(s,'append')};
     card.querySelector('[data-act="edit"]').onclick=()=>openSnippetModal(s.id);
     card.querySelector('[data-act="delete"]').onclick=()=>deleteSnippet(s.id);
     grid.appendChild(card);
   });
 }
+
 function activateView(viewId){
   document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===viewId));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
 }
+
 function openSnippetModal(id=null){
   state.editingSnippetId=id;
   const s=id?state.snippets.find(x=>x.id===id):null;
@@ -500,52 +1300,47 @@ function openSnippetModal(id=null){
   openModal('snippetModal');
 }
 function saveSnippet(){
-  const title=qs('snippetTitle').value.trim();
-  const body=qs('snippetBody').value.trim();
-  if(!title||!body){showToast('Title and body are required');return}
+  const title=qs('snippetTitle').value.trim();const body=qs('snippetBody').value.trim();
+  if(!title||!body){showToast('Title and body required');return}
   const now=new Date().toISOString();
-  const payload={
-    id:state.editingSnippetId||`${Date.now()}-${Math.random().toString(16).slice(2,7)}`,
-    title,type:qs('snippetType').value,platform:qs('snippetPlatform').value,tags:normalizeTags(qs('snippetTags').value),body,
-    createdAt:now,updatedAt:now
-  };
-  if(state.editingSnippetId){
-    const prev=state.snippets.find(s=>s.id===state.editingSnippetId);
-    payload.createdAt=prev?.createdAt||now;
-    state.snippets=state.snippets.map(s=>s.id===state.editingSnippetId?payload:s);
-  }else state.snippets=[payload,...state.snippets];
-  persistSnippets(); closeModal('snippetModal'); renderSnippets(); showToast('Snippet saved');
+  const payload={id:state.editingSnippetId||`${Date.now()}-${Math.random().toString(16).slice(2,7)}`,title,type:qs('snippetType').value,platform:qs('snippetPlatform').value,tags:normalizeTags(qs('snippetTags').value),body,createdAt:now,updatedAt:now};
+  if(state.editingSnippetId){const prev=state.snippets.find(s=>s.id===state.editingSnippetId);payload.createdAt=prev?.createdAt||now;state.snippets=state.snippets.map(s=>s.id===state.editingSnippetId?payload:s);}
+  else state.snippets=[payload,...state.snippets];
+  persistSnippets();closeModal('snippetModal');renderSnippets();showToast('Snippet saved');
 }
 function deleteSnippet(id){
-  if(!confirm('Delete this snippet?')) return;
+  if(!confirm('Delete this snippet?'))return;
   state.snippets=state.snippets.filter(s=>s.id!==id);
-  persistSnippets(); renderSnippets(); showToast('Snippet deleted');
+  persistSnippets();renderSnippets();showToast('Snippet deleted');
 }
 function renderSnippetSelectors(){
   ['snippetPlatformFilter','snippetPlatform','pickerPlatform'].forEach(id=>{
-    const sel=qs(id); if(!sel) return; sel.innerHTML='';
-    snippetPlatforms.forEach((p,i)=>{if(id==='snippetPlatform'&&i===0)return; const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o)});
+    const sel=qs(id);if(!sel)return;sel.innerHTML='';
+    snippetPlatforms.forEach((p,i)=>{if(id==='snippetPlatform'&&i===0)return;const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o)});
   });
   ['snippetType','pickerType'].forEach(id=>{
-    const sel=qs(id); if(!sel) return; sel.innerHTML='';
-    snippetTypes.forEach((t,i)=>{if(id==='snippetType'&&i===0)return; const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o)});
+    const sel=qs(id);if(!sel)return;sel.innerHTML='';
+    snippetTypes.forEach((t,i)=>{if(id==='snippetType'&&i===0)return;const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o)});
   });
   qs('snippetPlatformFilter').value=state.snippetPlatform;
-  qs('snippetType').value='Hooks';
 }
 function openSnippetPicker(mode){
+  if(!state.snippets.length){
+    showToast('No snippets yet — create one in the Snippets tab first');
+    return;
+  }
   state.pickerMode=mode;
   qs('snippetPickerTitle').textContent=mode==='composer'?'Insert snippet into Composer':mode==='threadOpener'?'Add opener from Snippets':'Add ending CTA from Snippets';
-  qs('pickerSearch').value=''; qs('pickerType').value='All'; qs('pickerPlatform').value='All Platforms';
-  renderSnippetPicker(); openModal('snippetPickerModal');
+  qs('pickerSearch').value='';qs('pickerType').value='All';qs('pickerPlatform').value='All Platforms';
+  renderSnippetPicker();openModal('snippetPickerModal');
 }
 function renderSnippetPicker(){
   const list=filteredSnippets(qs('pickerSearch').value,qs('pickerType').value,qs('pickerPlatform').value);
-  const wrap=qs('pickerList'); wrap.innerHTML='';
+  const wrap=qs('pickerList');wrap.innerHTML='';
   qs('pickerEmpty').style.display=list.length?'none':'block';
   list.forEach(s=>{
-    const el=document.createElement('button'); el.className='picker-item';
-    el.innerHTML=`<strong>${safeText(s.title)}</strong><div class='snippet-body mt8'>${safeText(compactText(s.body,180))}</div><div class='picker-meta'>${snippetBadge(s.type)}${snippetBadge(s.platform)}</div>`;
+    const el=document.createElement('button');el.className='picker-item';
+    el.innerHTML=`<strong style="font-size:13px;">${safeText(s.title)}</strong><div class="snippet-body mt8">${safeText(compactText(s.body,180))}</div><div class="row mt8">${snippetBadge(s.type)}${snippetBadge(s.platform)}</div>`;
     el.onclick=()=>{
       if(state.pickerMode==='composer'){activateView('composerView');useSnippetInComposer(s);}
       if(state.pickerMode==='threadOpener'){activateView('threadView');useSnippetInThread(s,'prepend');}
@@ -556,47 +1351,48 @@ function renderSnippetPicker(){
   });
 }
 
-function setSyncStatus(stateName,msg){
-  state.syncState=stateName;
-  qs('syncStatus').textContent=msg;
-}
+// ── TOKEN ──
+function setSyncStatus(stateName,msg){state.syncState=stateName;qs('syncStatus').textContent=msg;}
 
-function updateTokenUI(compact=tokenCardCompact){
-  const card=qs('tokenCard');
-  tokenCardCompact=Boolean(compact&&bufferToken);
+function updateTokenUI(){
+  const connected=!!bufferToken;
+  qs('statusDot').classList.toggle('connected',connected);
+  qs('tokenStatusLabel').textContent=connected?'Connected':'Not connected';
   qs('tokenMaskedPreview').textContent=maskToken(bufferToken);
-  qs('tokenCompactStatus').textContent=bufferToken?'Connected':'Not connected';
   tokenInputVisible=false;
   qs('tokenInput').type='password';
   qs('toggleTokenVisibility').textContent='Show';
-  if(tokenCardCompact) card.classList.add('compact'); else card.classList.remove('compact');
+}
+
+function toggleTokenPanel(){
+  tokenPanelOpen=!tokenPanelOpen;
+  qs('tokenPanel').classList.toggle('open',tokenPanelOpen);
+  qs('manageTokenBtn').textContent=tokenPanelOpen?'Done':'Manage';
 }
 
 function saveToken(){
   const token=qs('tokenInput').value.trim();
   const mode=[...document.querySelectorAll('input[name="tokenMode"]')].find(r=>r.checked).value;
-  localStorage.removeItem(STORE_KEY); sessionStorage.removeItem(STORE_KEY);
-  if(!token){ bufferToken=''; tokenCardCompact=false; qs('tokenMsg').textContent='Token removed.'; updateTokenUI(); showToast('Token removed'); return; }
-  if(mode==='local') localStorage.setItem(STORE_KEY,token); else sessionStorage.setItem(STORE_KEY,token);
+  localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
+  if(!token){bufferToken='';qs('tokenMsg').textContent='Token removed.';updateTokenUI();showToast('Token removed');return;}
+  if(mode==='local')localStorage.setItem(STORE_KEY,token);else sessionStorage.setItem(STORE_KEY,token);
   bufferToken=token;
-  tokenCardCompact=true;
-  qs('tokenMsg').textContent=mode==='local'?'Token saved on this device (localStorage).':'Token saved for this session only (sessionStorage).';
-  showToast('Token saved');
-  updateTokenUI();
+  qs('tokenMsg').textContent=mode==='local'?'Saved to localStorage.':'Saved for this session.';
+  showToast('Token saved');updateTokenUI();
 }
 
 function loadStoredToken(){
   bufferToken=sessionStorage.getItem(STORE_KEY)||localStorage.getItem(STORE_KEY)||'';
-  if(bufferToken){qs('tokenInput').value=bufferToken;qs('tokenMsg').textContent='Token loaded from browser storage and hidden by default.'}
-  tokenCardCompact=!!bufferToken;
+  if(bufferToken)qs('tokenInput').value=bufferToken;
   updateTokenUI();
 }
 
+// ── BUFFER API ──
 async function callBuffer(query,variables={}){
-  if(!bufferToken) throw new Error('MISSING_TOKEN');
+  if(!bufferToken)throw new Error('MISSING_TOKEN');
   const res=await fetch('/.netlify/functions/buffer-proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:bufferToken,query,variables})});
   const data=await res.json();
-  if(data.errors?.length) throw new Error(data.errors[0].message);
+  if(data.errors?.length)throw new Error(data.errors[0].message);
   return data;
 }
 
@@ -604,121 +1400,159 @@ function getNotes(){try{return JSON.parse(localStorage.getItem(NOTE_KEY)||'{}')}
 function setNotes(v){localStorage.setItem(NOTE_KEY,JSON.stringify(v))}
 
 async function syncBuffer(){
-  if(!bufferToken){setSyncStatus('failed','Sync failed: Add your Buffer token first.');return;}
-  setSyncStatus('syncing','Syncing scheduled posts from Buffer…');
+  if(!bufferToken){setSyncStatus('failed','Add your Buffer token first.');return;}
+  setSyncStatus('syncing','Syncing…');
   try{
     const acc=await callBuffer('query { account { organizations { id name } } }');
     const orgId=acc?.data?.account?.organizations?.[0]?.id;
-    if(!orgId){setSyncStatus('failed','Sync failed: no organization found in your Buffer account.');return;}
-
+    if(!orgId){setSyncStatus('failed','No organization found.');return;}
     const channelsQuery='query Channels($organizationId: OrganizationId!){ channels(input:{organizationId:$organizationId}) { id displayName name service } }';
     const ch=await callBuffer(channelsQuery,{organizationId:orgId});
     state.channels=ch?.data?.channels||[];
-
-    const cap=500; let after=null; let all=[]; let hasNext=true;
+    const cap=500;let after=null;let all=[];let hasNext=true;
     const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId } } pageInfo{ hasNextPage endCursor } } }';
-    while(hasNext && all.length<cap){
+    while(hasNext&&all.length<cap){
       const page=await callBuffer(postsQuery,{organizationId:orgId,after});
-      const block=page?.data?.posts; const edges=block?.edges||[];
+      const block=page?.data?.posts;const edges=block?.edges||[];
       all=all.concat(edges.map(e=>e.node));
-      hasNext=!!block?.pageInfo?.hasNextPage;
-      after=block?.pageInfo?.endCursor||null;
-      if(!block?.pageInfo) break;
+      hasNext=!!block?.pageInfo?.hasNextPage;after=block?.pageInfo?.endCursor||null;
+      if(!block?.pageInfo)break;
     }
-
-    state.scheduled=all;
-    renderChannelSelects(); renderCalendar();
-    if(all.length>=cap) setSyncStatus('partial',`Synced ${all.length} scheduled posts (capped at ${cap}).`);
-    else setSyncStatus('success',`Synced successfully. Loaded ${all.length} scheduled posts.`);
-    showToast(`Loaded ${all.length} scheduled posts`);
+    state.scheduled=all;renderChannelSelects();renderCalendar();
+    setSyncStatus('success',`${all.length} scheduled posts loaded.`);
+    showToast(`Loaded ${all.length} posts`);
   }catch(e){
-    console.error('Buffer sync error',e);
     const m=String(e.message||'');
-    if(m.includes('MISSING_TOKEN')) setSyncStatus('failed','Sync failed: add a Buffer token first.');
-    else if(/unauthorized|invalid|forbidden|unauth/i.test(m)) setSyncStatus('failed','Sync failed because the Buffer token appears invalid or expired.');
-    else if(/OrganizationId/i.test(m)) setSyncStatus('failed','Sync failed due to a Buffer API type mismatch. Please retry after refresh.');
-    else if(/maximum of 100|Pagination limit exceeded/i.test(m)) setSyncStatus('partial','We loaded the first 100 scheduled posts. Pulling more requires pagination support.');
-    else setSyncStatus('failed','Sync failed due to a Buffer API limitation. Please try again in a moment.');
+    if(m.includes('MISSING_TOKEN'))setSyncStatus('failed','Add a Buffer token first.');
+    else if(/unauthorized|invalid|forbidden/i.test(m))setSyncStatus('failed','Token appears invalid or expired.');
+    else setSyncStatus('failed','Sync failed. Try again.');
   }
 }
 
 function renderChannelSelects(){
-  for(const id of ['threadChannel','composerChannel']){
-    const sel=qs(id); sel.innerHTML='';
-    state.channels.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.displayName||c.name} (${c.service})`;sel.appendChild(o)});
+  // Thread: X and Threads channels only
+  const threadSel=qs('threadChannel');
+  const threadChannels=state.channels.filter(c=>{
+    const s=(c.service||'').toLowerCase();
+    return s.includes('twitter')||s.includes('x')||s.includes('thread');
+  });
+  threadSel.innerHTML='';
+  if(threadChannels.length){
+    threadChannels.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.displayName||c.name} (${c.service})`;threadSel.appendChild(o)});
+    qs('threadNoChannels').style.display='none';
+    threadSel.style.display='';
+  }else{
+    qs('threadNoChannels').style.display='block';
+    threadSel.style.display='none';
+  }
+
+  // Composer: all channels
+  const composerSel=qs('composerChannel');
+  composerSel.innerHTML='';
+  if(state.channels.length){
+    state.channels.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.displayName||c.name} (${c.service})`;composerSel.appendChild(o)});
+    qs('composerNoChannels').style.display='none';
+    composerSel.style.display='';
+    updateComposerChannelHint();
+  }else{
+    qs('composerNoChannels').style.display='block';
+    composerSel.style.display='none';
+    qs('composerChannelHint').style.display='none';
   }
 }
 
+function updateComposerChannelHint(){
+  const sel=qs('composerChannel');
+  const hint=qs('composerChannelHint');
+  if(!sel||!sel.value){hint.style.display='none';return;}
+  const ch=state.channels.find(c=>c.id===sel.value);
+  if(ch){hint.textContent=`Posting to: ${ch.displayName||ch.name} (${ch.service})`;hint.style.display='block';}
+  else{hint.style.display='none';}
+}
+
+// ── THREAD ──
 function splitThreadText(text,max=280){
-  const parts=[]; let left=text.trim();
+  const parts=[];let left=text.trim();
   while(left.length>max){
-    let cut=left.lastIndexOf('\n',max); if(cut<80) cut=left.lastIndexOf(' ',max); if(cut<80) cut=max;
-    parts.push(left.slice(0,cut).trim()); left=left.slice(cut).trim();
+    let cut=left.lastIndexOf('\n',max);if(cut<80)cut=left.lastIndexOf(' ',max);if(cut<80)cut=max;
+    parts.push(left.slice(0,cut).trim());left=left.slice(cut).trim();
   }
-  if(left) parts.push(left); return parts;
+  if(left)parts.push(left);return parts;
 }
-
 function renderThread(){
   const out=qs('threadOut');
-  if(!threadParts.length){ out.textContent='No thread yet.'; qs('threadEmpty').style.display='block'; return; }
+  if(!threadParts.length){out.innerHTML='';qs('threadEmpty').style.display='block';return;}
   qs('threadEmpty').style.display='none';
   out.innerHTML='';
   threadParts.forEach((p,i)=>{
-    const d=document.createElement('div'); d.className='tweet';
-    d.innerHTML=`<div class="thread-part-tools"><strong>Part ${i+1}</strong><button class="btn" data-copy="${i}">Copy</button></div><textarea data-i="${i}" style="min-height:75px">${p}</textarea>`;
+    const chars=p.length;
+    const over=chars>280;
+    const d=document.createElement('div');d.className='thread-part';
+    d.innerHTML=`<div class="thread-part-hdr"><span class="part-num">Part ${i+1}</span><div style="display:flex;gap:6px;align-items:center;"><span style="font-size:11px;font-family:'DM Mono',monospace;color:${over?'var(--red)':'var(--subtle)'};">${chars}/280</span><button class="btn sm ghost" data-copy="${i}">Copy</button></div></div><textarea data-i="${i}" style="min-height:80px;">${p}</textarea>`;
     out.appendChild(d);
   });
-  out.querySelectorAll('textarea').forEach(t=>t.addEventListener('input',e=>threadParts[+e.target.dataset.i]=e.target.value));
-  out.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{navigator.clipboard.writeText(threadParts[+b.dataset.copy]||''); showToast('Part copied');});
+  out.querySelectorAll('textarea').forEach(t=>t.addEventListener('input',e=>{
+    threadParts[+e.target.dataset.i]=e.target.value;
+    const hdr=e.target.closest('.thread-part').querySelector('.thread-part-hdr span:last-of-type');
+    if(hdr){const c=e.target.value.length;hdr.style.color=c>280?'var(--red)':'var(--subtle)';hdr.textContent=`${c}/280`;}
+  }));
+  out.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{navigator.clipboard.writeText(threadParts[+b.dataset.copy]||'');showToast('Part copied');});
 }
-
 function getThreadMetadata(channelId){
   const channel=state.channels.find(c=>c.id===channelId);
   const svc=(channel?.service||'').toLowerCase();
   const isThreads=svc.includes('thread');
   return threadParts.length>1?{metadata:{[isThreads?'threads':'twitter']:isThreads?{type:'thread',thread:threadParts.slice(1).map(t=>({text:t}))}:{thread:threadParts.slice(1).map(t=>({text:t}))}}}:{};
 }
-
 async function sendThread(action){
   if(!threadParts.length){qs('threadStatus').textContent='Split content first.';return;}
-  const channelId=qs('threadChannel').value;
-  if(!channelId){qs('threadStatus').textContent='Load channels from Buffer first.';return;}
-  const first=threadParts[0];
-  const when=qs('threadWhen').value;
+  const channelId=qs('threadChannel').value;if(!channelId){qs('threadStatus').textContent='Load channels first.';return;}
+  const first=threadParts[0];const when=qs('threadWhen').value;
   const input={channelId,text:first,schedulingType:'automatic',...getThreadMetadata(channelId)};
-  if(action==='draft'){ input.mode='addToQueue'; input.saveToDraft=true; }
-  if(action==='queue'){ input.mode='addToQueue'; }
-  if(action==='schedule'){ if(!when){qs('threadStatus').textContent='Choose date/time to schedule.';return;} input.mode='customScheduled'; input.dueAt=when; }
+  if(action==='draft'){input.mode='addToQueue';input.saveToDraft=true;}
+  if(action==='queue'){input.mode='addToQueue';}
+  if(action==='schedule'){if(!when){qs('threadStatus').textContent='Choose date/time first.';return;}input.mode='customScheduled';input.dueAt=when;}
   try{
     await createPost(input);
-    qs('threadStatus').textContent = action==='draft'?'Draft saved to Buffer.':action==='queue'?'Thread added to Buffer queue.':'Thread scheduled in Buffer.';
-    showToast(qs('threadStatus').textContent);
-  }catch(e){
-    console.error('thread send error',e);
-    qs('threadStatus').textContent='Thread send failed. Please review channel/token and try again.';
-  }
+    const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
+    qs('threadStatus').textContent=msg;showToast(msg);
+  }catch(e){qs('threadStatus').textContent='Failed. Check token/channel.';}
 }
 
+// ── CALENDAR ──
 function renderCalendar(){
   qs('monthLabel').textContent=monthLabel(state.month);
-  const grid=qs('calGrid'); grid.innerHTML='';
-  const first=monthStart(state.month); const start=new Date(first); start.setDate(1-first.getDay());
+  const grid=qs('calGrid');grid.innerHTML='';
+  const first=monthStart(state.month);const start=new Date(first);start.setDate(1-first.getDay());
   const notes=getNotes();
+  const today=fmtDate(new Date());
+  const hasSynced=state.syncState==='success'||state.syncState==='partial';
   const monthPosts=postsByMonth(state.month);
-  qs('calendarEmpty').style.display = monthPosts.length ? 'none' : 'block';
+
+  qs('calendarNotSynced').style.display=hasSynced?'none':'block';
+  qs('calendarEmpty').style.display=(hasSynced&&!monthPosts.length)?'block':'none';
+
   for(let i=0;i<42;i++){
-    const d=new Date(start); d.setDate(start.getDate()+i);
-    const key=fmtDate(d); const inMonth=d.getMonth()===state.month.getMonth();
+    const d=new Date(start);d.setDate(start.getDate()+i);
+    const key=fmtDate(d);const inMonth=d.getMonth()===state.month.getMonth();
     const dayPosts=state.scheduled.filter(p=>fmtDate(new Date(p.dueAt))===key);
     const note=notes[key];
-    const day=document.createElement('div'); day.className='day'; day.style.opacity=inMonth?'1':'.45';
-    const postPreview=dayPosts.slice(0,2).map(p=>`<div class='post-pill'>${safeText(compactText(p.text,80))}</div>`).join('');
-    const noteChip=note?`<div class="note-pill note-tag-${note.tag||'gold'}"><span class="note-label">📝 ${safeText(note.label||noteTags[note.tag]||'Note')}</span>${safeText(compactText(note.text,96))}</div>`:'';
-    day.innerHTML=`<div class="d">${d.getDate()}</div>${postPreview}${noteChip}`;
-    if(dayPosts.length||note){
-      const hover=[...dayPosts.slice(0,2).map(p=>`Post: ${compactText(p.text,60)}`), note?`Note (${note.label||'Note'}): ${compactText(note.text,60)}`:''].filter(Boolean).join('\n');
-      day.title=hover;
-    }
+    const isToday=key===today;
+    const day=document.createElement('div');
+    let cls='cal-day';
+    if(!inMonth)cls+=' other-month';
+    if(isToday)cls+=' today';
+    if(dayPosts.length)cls+=' has-posts';
+    day.className=cls;
+
+    let html=`<div class="day-num">${d.getDate()}</div>`;
+    if(dayPosts.length>0)html+=`<div class="day-posts-count">${dayPosts.length}</div>`;
+    if(dayPosts.length>0){html+=`<div class="day-post-pill">${safeText(compactText(dayPosts[0].text,70))}</div>`;}
+    if(dayPosts.length>1){html+=`<div class="day-post-pill">${safeText(compactText(dayPosts[1].text,70))}</div>`;}
+    if(dayPosts.length>2){html+=`<div class="more-indicator">+${dayPosts.length-2} more</div>`;}
+    if(note){html+=`<div class="day-note-pill ${note.tag||'gold'}"><span class="note-pill-label">${safeText(note.label||noteTags[note.tag]||'Note')}</span>${safeText(compactText(note.text,60))}</div>`;}
+
+    day.innerHTML=html;
     day.onclick=()=>openDayNote(d);
     grid.appendChild(day);
   }
@@ -728,56 +1562,47 @@ function openDayNote(date){
   state.selectedDate=date;
   const key=fmtDate(date);
   const note=getNotes()[key]||{text:'',tag:'gold',label:'Idea'};
-  qs('noteDateLabel').textContent=key;
+  qs('noteDateLabel').textContent=date.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
   qs('noteText').value=note.text||'';
   qs('noteTag').value=`${note.tag||'gold'}|${note.label||noteTags[note.tag||'gold']||'Idea'}`;
-  qs('dayModalNotePreview').innerHTML=note.text
-    ? `<span class="chip note-tag-${note.tag||'gold'}">${safeText(note.label||noteTags[note.tag||'gold']||'Idea')}</span><div class="mt8">${safeText(note.text)}</div>`
-    : '<span class="small">No note saved for this day yet.</span>';
+
   const dayPosts=state.scheduled.filter(p=>fmtDate(new Date(p.dueAt))===key);
   qs('dayModalPostPreview').innerHTML=dayPosts.length
-    ? `<strong style="font-size:12px">Scheduled posts</strong><div class="day-post-list mt8">${dayPosts.map(p=>`<div class="post-pill">${safeText(p.text||'(no text)')}</div>`).join('')}</div>`
-    : '<span class="small">No scheduled posts on this day.</span>';
+    ?`<div class="label mb8">Scheduled posts</div>${dayPosts.map(p=>`<div class="day-post-pill mb8" style="border-radius:6px;">${safeText(p.text||'(no text)')}</div>`).join('')}`
+    :`<div class="status-txt mb8" style="font-size:12px;">No scheduled posts on this day.${state.syncState==='idle'?' <span style="color:var(--subtle);">Load from Buffer to sync posts.</span>':''}</div>`;
+
+  qs('dayModalNotePreview').innerHTML=note.text
+    ?`<div class="day-note-pill ${note.tag||'gold'} mb8"><span class="note-pill-label">${safeText(note.label||noteTags[note.tag||'gold']||'Note')}</span>${safeText(note.text)}</div>`
+    :'';
+
   qs('noteStatus').textContent='';
   openModal('noteModal');
 }
 
 function saveNoteFromModal(){
-  if(!state.selectedDate) return;
+  if(!state.selectedDate)return;
   const key=fmtDate(state.selectedDate);
   const text=qs('noteText').value.trim();
   const [tag,label]=qs('noteTag').value.split('|');
   const notes=getNotes();
-  if(!text){ delete notes[key]; setNotes(notes); qs('noteStatus').textContent='Empty note removed.'; renderCalendar(); return; }
-  notes[key]={text,tag,label}; setNotes(notes); qs('noteStatus').textContent='Note saved.'; renderCalendar();
-  showToast('Note saved');
+  if(!text){delete notes[key];setNotes(notes);qs('noteStatus').textContent='Note removed.';renderCalendar();return;}
+  notes[key]={text,tag,label};setNotes(notes);qs('noteStatus').textContent='Saved.';renderCalendar();showToast('Note saved');
 }
-
-
 function deleteNote(){
-  if(!state.selectedDate) return;
-  const notes=getNotes(); delete notes[fmtDate(state.selectedDate)]; setNotes(notes); qs('noteText').value=''; qs('noteStatus').textContent='Note deleted.'; renderCalendar();
-  showToast('Note deleted');
+  if(!state.selectedDate)return;
+  const notes=getNotes();delete notes[fmtDate(state.selectedDate)];setNotes(notes);
+  qs('noteText').value='';qs('noteStatus').textContent='Deleted.';renderCalendar();showToast('Note deleted');
 }
-
-
 function sendNoteToComposer(){
-  if(!state.selectedDate) return;
-  const key=fmtDate(state.selectedDate);
+  if(!state.selectedDate)return;
   const text=qs('noteText').value.trim();
-  if(!text){ qs('noteStatus').textContent='Add note text first.'; return; }
+  if(!text){qs('noteStatus').textContent='Add note text first.';return;}
   const [tag,label]=qs('noteTag').value.split('|');
   const editor=qs('composerEditor');
-  const payload=`[${label}] ${key}\n${text}`;
-  editor.innerText = editor.innerText ? `${editor.innerText}\n\n${payload}` : payload;
-  closeModal('noteModal');
-  document.querySelectorAll('[data-view]').forEach(v=>v.classList.remove('active'));
-  document.querySelector('[data-view="composerView"]').classList.add('active');
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  qs('composerView').classList.add('active');
-  qs('composerStatus').textContent='Planning note added to composer.';
-  qs('composerEmpty').style.display='none';
-  showToast('Note sent to composer');
+  const payload=`[${label}] ${fmtDate(state.selectedDate)}\n${text}`;
+  editor.innerText=editor.innerText?`${editor.innerText}\n\n${payload}`:payload;
+  closeModal('noteModal');activateView('composerView');
+  qs('composerEmpty').style.display='none';showToast('Note sent to Composer');
 }
 
 function postsByMonth(date){
@@ -785,41 +1610,39 @@ function postsByMonth(date){
   return state.scheduled.filter(p=>{const d=new Date(p.dueAt);return d.getFullYear()===y&&d.getMonth()===m});
 }
 function notesForMonth(date){
-  const all=getNotes(); const y=date.getFullYear(),m=date.getMonth();
+  const all=getNotes();const y=date.getFullYear(),m=date.getMonth();
   return Object.entries(all).filter(([k])=>{const d=new Date(k+'T00:00:00');return d.getFullYear()===y&&d.getMonth()===m}).map(([date,val])=>({date,...val}));
 }
 
 function shareSnapshot(){
   const include=qs('includeNotes').checked;
   const month=monthLabel(state.month);
-  const monthPosts=postsByMonth(state.month);
-  const monthNotes=notesForMonth(state.month);
-  qs('shareMonthName').textContent=month;
-  qs('sharePostCount').textContent=monthPosts.length;
+  const monthPosts=postsByMonth(state.month);const monthNotes=notesForMonth(state.month);
+  qs('shareMonthName').textContent=month;qs('sharePostCount').textContent=monthPosts.length;
   qs('shareNoteCount').textContent=include?monthNotes.length:0;
   const payload={month,includeNotes:include,posts:monthPosts.map(p=>({dueAt:p.dueAt,text:p.text})),notes:include?monthNotes:[]};
   qs('shareLink').value=location.origin+location.pathname+'#share='+btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
 }
 
 function renderSharedFromHash(){
-  if(!location.hash.startsWith('#share=')) return false;
+  if(!location.hash.startsWith('#share='))return false;
   try{
     const snap=JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(7)))));
-    closeModal('onboardingModal'); qs('app').classList.add('hidden'); qs('sharedView').classList.remove('hidden');
+    closeModal('onboardingModal');qs('app').classList.add('hidden');qs('sharedView').classList.remove('hidden');
     qs('sharedMonthTitle').textContent=snap.month;
-    qs('sharedBanner').textContent=`Read-only month view · Notes ${snap.includeNotes?'included':'excluded'} · ${snap.posts.length} scheduled posts`;
-    const grid=qs('sharedGrid'); grid.innerHTML='';
+    qs('sharedBanner').textContent=`Read-only snapshot · ${snap.posts.length} scheduled posts · Notes ${snap.includeNotes?'included':'excluded'}`;
+    const grid=qs('sharedGrid');grid.innerHTML='';
     const map={};
     snap.posts.forEach(p=>{const k=p.dueAt.slice(0,10);(map[k]||(map[k]={posts:[],notes:[]})).posts.push(p.text)});
     (snap.notes||[]).forEach(n=>{(map[n.date]||(map[n.date]={posts:[],notes:[]})).notes.push(n)});
     Object.keys(map).sort().forEach(k=>{
-      const d=document.createElement('div');
-      d.className='day shared-day';
+      const d=document.createElement('div');d.className='cal-day';d.style.cursor='default';
       const day=map[k];
-      const postHtml=day.posts.slice(0,3).map(t=>`<div class='post-pill'>${safeText(compactText(t,120))}</div>`).join('');
-      const noteHtml=day.notes.slice(0,2).map(n=>`<div class='note-pill note-tag-${n.tag||'gold'}'><span class='note-label'>📝 ${safeText(n.label||'Note')}</span>${safeText(compactText(n.text,120))}</div>`).join('');
-      d.innerHTML=`<div class='d'>${k}</div>${postHtml}${noteHtml}`;
-      grid.appendChild(d)
+      let html=`<div class="day-num">${k.slice(8)}</div>`;
+      if(day.posts.length)html+=`<div class="day-posts-count">${day.posts.length}</div>`;
+      day.posts.slice(0,2).forEach(t=>{html+=`<div class="day-post-pill">${safeText(compactText(t,70))}</div>`});
+      day.notes.slice(0,2).forEach(n=>{html+=`<div class="day-note-pill ${n.tag||'gold'}"><span class="note-pill-label">${safeText(n.label||'Note')}</span>${safeText(compactText(n.text,60))}</div>`});
+      d.innerHTML=html;grid.appendChild(d);
     });
     return true;
   }catch(e){console.error(e);return false}
@@ -830,121 +1653,119 @@ async function createPost(input){
 }
 
 function composerFormat(cmd){
-  const sel=window.getSelection();
-  if(!sel.rangeCount) return;
-  if(cmd==='bold'||cmd==='italic') document.execCommand(cmd,false,null);
-  else if(cmd==='ul') document.execCommand('insertUnorderedList',false,null);
-  else if(cmd==='ol') document.execCommand('insertOrderedList',false,null);
-  else if(cmd==='clear') document.execCommand('removeFormat',false,null);
+  const sel=window.getSelection();if(!sel.rangeCount)return;
+  if(cmd==='bold'||cmd==='italic')document.execCommand(cmd,false,null);
+  else if(cmd==='ul')document.execCommand('insertUnorderedList',false,null);
+  else if(cmd==='ol')document.execCommand('insertOrderedList',false,null);
+  else if(cmd==='clear')document.execCommand('removeFormat',false,null);
 }
-
 function editorHtmlToText(html){
-  const root=document.createElement('div'); root.innerHTML=html;
+  const root=document.createElement('div');root.innerHTML=html;
   const walk=(node)=>{
-    if(node.nodeType===Node.TEXT_NODE) return node.textContent;
+    if(node.nodeType===Node.TEXT_NODE)return node.textContent;
     const tag=(node.tagName||'').toLowerCase();
-    if(tag==='br') return '\n';
-    if(tag==='strong'||tag==='b') return `**${[...node.childNodes].map(walk).join('')}**`;
-    if(tag==='em'||tag==='i') return `*${[...node.childNodes].map(walk).join('')}*`;
-    if(tag==='li') return [...node.childNodes].map(walk).join('');
-    if(tag==='ul') return [...node.children].map(li=>`• ${walk(li)}`).join('\n')+'\n';
-    if(tag==='ol') return [...node.children].map((li,i)=>`${i+1}. ${walk(li)}`).join('\n')+'\n';
+    if(tag==='br')return '\n';
+    if(tag==='strong'||tag==='b')return `**${[...node.childNodes].map(walk).join('')}**`;
+    if(tag==='em'||tag==='i')return `*${[...node.childNodes].map(walk).join('')}*`;
+    if(tag==='li')return [...node.childNodes].map(walk).join('');
+    if(tag==='ul')return [...node.children].map(li=>`• ${walk(li)}`).join('\n')+'\n';
+    if(tag==='ol')return [...node.children].map((li,i)=>`${i+1}. ${walk(li)}`).join('\n')+'\n';
     const inner=[...node.childNodes].map(walk).join('');
-    if(['p','div'].includes(tag)) return inner+'\n';
+    if(['p','div'].includes(tag))return inner+'\n';
     return inner;
   };
   return [...root.childNodes].map(walk).join('').replace(/\n{3,}/g,'\n\n').trim();
 }
-
 async function composerSend(action){
   const text=editorHtmlToText(qs('composerEditor').innerHTML);
   if(!text){qs('composerStatus').textContent='Write content first.';return;}
   const channelId=qs('composerChannel').value;
-  if(!channelId){qs('composerStatus').textContent='Load channels from Buffer first.';return;}
+  if(!channelId){qs('composerStatus').textContent='Load channels first.';return;}
   const when=qs('composerWhen').value;
   const input={channelId,text,schedulingType:'automatic'};
-  if(action==='draft'){ input.mode='addToQueue'; input.saveToDraft=true; }
-  if(action==='queue'){ input.mode='addToQueue'; }
-  if(action==='schedule'){ if(!when){qs('composerStatus').textContent='Pick a schedule date/time first.';return;} input.mode='customScheduled'; input.dueAt=when; }
+  if(action==='draft'){input.mode='addToQueue';input.saveToDraft=true;}
+  if(action==='queue'){input.mode='addToQueue';}
+  if(action==='schedule'){if(!when){qs('composerStatus').textContent='Pick a date/time first.';return;}input.mode='customScheduled';input.dueAt=when;}
   try{
     await createPost(input);
-    qs('composerStatus').textContent = action==='draft'?'Draft saved to Buffer.':action==='queue'?'Added to Buffer queue.':'Scheduled in Buffer.';
-    showToast(qs('composerStatus').textContent);
-  }catch(e){
-    console.error('composer send error',e);
-    qs('composerStatus').textContent='Post action failed. Check token/channel and try again.';
-  }
+    const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
+    qs('composerStatus').textContent=msg;showToast(msg);
+  }catch(e){qs('composerStatus').textContent='Failed. Check token/channel.';}
 }
 
 function init(){
-  if(renderSharedFromHash()) return;
+  if(renderSharedFromHash())return;
   loadStoredToken();
 
+  // onboarding
   qs('onboardingEnter').onclick=dismissOnboarding;
   qs('closeOnboarding').onclick=dismissOnboarding;
-  qs('onboardingGuide').onclick=()=>openModal('guideModal');
-  qs('openOnboarding').onclick=()=>openOnboarding();
-  qs('openGuide').onclick=()=>openModal('guideModal');
-  qs('closeGuide').onclick=()=>closeModal('guideModal');
+  qs('openOnboarding').onclick=openOnboarding;
   qs('openFounder').onclick=()=>openModal('founderModal');
   qs('closeFounder').onclick=()=>closeModal('founderModal');
 
+  // token
+  qs('manageTokenBtn').onclick=toggleTokenPanel;
+  qs('revealCompactBtn').onclick=()=>{tokenPanelOpen=true;qs('tokenPanel').classList.add('open');qs('manageTokenBtn').textContent='Done';tokenInputVisible=true;qs('tokenInput').type='text';qs('toggleTokenVisibility').textContent='Hide';};
   qs('saveTokenBtn').onclick=saveToken;
   qs('clearTokenBtn').onclick=()=>{qs('tokenInput').value='';saveToken()};
   qs('toggleTokenVisibility').onclick=()=>{tokenInputVisible=!tokenInputVisible;qs('tokenInput').type=tokenInputVisible?'text':'password';qs('toggleTokenVisibility').textContent=tokenInputVisible?'Hide':'Show';};
-  qs('manageTokenBtn').onclick=()=>{tokenCardCompact=false;updateTokenUI();};
-  qs('revealCompactBtn').onclick=()=>{if(!bufferToken)return;tokenCardCompact=false;updateTokenUI();tokenInputVisible=true;qs('tokenInput').type='text';qs('toggleTokenVisibility').textContent='Hide';};
 
+  // sync
   qs('syncBtn').onclick=syncBuffer;
 
+  // nav
   document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>activateView(b.dataset.view));
 
-  qs('splitBtn').onclick=()=>{threadParts=splitThreadText(qs('threadInput').value);renderThread(); if(threadParts.length) showToast(`Generated ${threadParts.length} thread parts`);};
+  // thread
+  qs('splitBtn').onclick=()=>{threadParts=splitThreadText(qs('threadInput').value);renderThread();if(threadParts.length)showToast(`${threadParts.length} thread parts`);};
   qs('sampleBtn').onclick=()=>{qs('threadInput').value='PostIQ helps Buffer users move faster. Start with one big idea, split it into clear thread parts, refine each part, and send a cleaner post flow to Buffer.'};
-  qs('copyAllBtn').onclick=()=>{navigator.clipboard.writeText(threadParts.join('\n\n')); showToast('Thread copied');};
+  qs('copyAllBtn').onclick=()=>{navigator.clipboard.writeText(threadParts.join('\n\n'));showToast('Thread copied');};
   qs('draftThreadBtn').onclick=()=>sendThread('draft');
   qs('queueThreadBtn').onclick=()=>sendThread('queue');
   qs('scheduleThreadBtn').onclick=()=>sendThread('schedule');
+  qs('threadAddOpener').onclick=()=>openSnippetPicker('threadOpener');
+  qs('threadAddCta').onclick=()=>openSnippetPicker('threadCta');
 
+  // calendar
   qs('prevMonth').onclick=()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()-1,1);renderCalendar()};
   qs('nextMonth').onclick=()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()+1,1);renderCalendar()};
   qs('todayMonth').onclick=()=>{state.month=new Date();renderCalendar()};
-
   qs('closeNote').onclick=()=>closeModal('noteModal');
   qs('saveNoteBtn').onclick=saveNoteFromModal;
   qs('deleteNoteBtn').onclick=deleteNote;
   qs('sendNoteToComposer').onclick=sendNoteToComposer;
-
   qs('shareMonthBtn').onclick=()=>{shareSnapshot();openModal('shareModal')};
   qs('closeShare').onclick=()=>closeModal('shareModal');
   qs('includeNotes').onchange=shareSnapshot;
   qs('generateShare').onclick=shareSnapshot;
   qs('copyShare').onclick=()=>navigator.clipboard.writeText(qs('shareLink').value||'');
-  qs('openSharePreview').onclick=()=>{if(qs('shareLink').value) window.open(qs('shareLink').value,'_blank')};
+  qs('openSharePreview').onclick=()=>{if(qs('shareLink').value)window.open(qs('shareLink').value,'_blank')};
 
+  // composer
   document.querySelectorAll('[data-cmd]').forEach(btn=>btn.onclick=()=>composerFormat(btn.dataset.cmd));
-  qs('composerEditor').addEventListener('input',()=>{qs('composerEmpty').style.display=editorHtmlToText(qs('composerEditor').innerHTML)?'none':'block';});
+  qs('composerEditor').addEventListener('input',()=>{
+    const text=editorHtmlToText(qs('composerEditor').innerHTML);
+    qs('composerEmpty').style.display=text?'none':'block';
+    qs('composerCharCount').textContent=`${text.length} chars`;
+    qs('composerCharCount').style.color=text.length>500?'var(--amber)':text.length>280?'var(--muted)':'var(--subtle)';
+  });
   qs('composerDraft').onclick=()=>composerSend('draft');
   qs('composerQueue').onclick=()=>composerSend('queue');
   qs('composerSchedule').onclick=()=>composerSend('schedule');
-
   qs('insertSnippetBtn').onclick=()=>openSnippetPicker('composer');
-  qs('threadAddOpener').onclick=()=>openSnippetPicker('threadOpener');
-  qs('threadAddCta').onclick=()=>openSnippetPicker('threadCta');
   qs('saveSelectionSnippetBtn').onclick=()=>{
-    const sel=window.getSelection();
-    const text=(sel&&sel.toString?sel.toString():'').trim();
+    const sel=window.getSelection();const text=(sel&&sel.toString?sel.toString():'').trim();
     if(!text){qs('composerStatus').textContent='Select text in Composer first.';return;}
     state.editingSnippetId=null;
     qs('snippetModalTitle').textContent='New Snippet';
-    qs('snippetTitle').value='';
-    qs('snippetType').value='Hooks';
-    qs('snippetPlatform').value='Universal';
-    qs('snippetTags').value='';
-    qs('snippetBody').value=text;
-    openModal('snippetModal');
+    qs('snippetTitle').value='';qs('snippetType').value='Hooks';qs('snippetPlatform').value='Universal';
+    qs('snippetTags').value='';qs('snippetBody').value=text;openModal('snippetModal');
   };
 
+  qs('composerChannel').addEventListener('change', updateComposerChannelHint);
+
+  // snippets
   qs('newSnippetBtn').onclick=()=>openSnippetModal();
   qs('closeSnippetModal').onclick=()=>closeModal('snippetModal');
   qs('cancelSnippetBtn').onclick=()=>closeModal('snippetModal');
@@ -957,14 +1778,10 @@ function init(){
   qs('pickerPlatform').onchange=renderSnippetPicker;
 
   renderSnippetSelectors();
-  loadSnippets();
-  renderSnippets();
-  renderCalendar();
-  renderThread();
+  loadSnippets();renderSnippets();renderCalendar();renderThread();
   qs('composerEmpty').style.display='block';
-  if(!hasSeenOnboarding()) openOnboarding();
+  if(!hasSeenOnboarding())openOnboarding();
 }
-
 
 init();
 </script>
