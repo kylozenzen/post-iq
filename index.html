@@ -840,7 +840,12 @@
     /* ── SECTION DIVIDER ── */
     .divider { height: 1px; background: var(--border); margin: 16px 0; }
 
-    /* ── RESPONSIVE ── */
+    /* ── MOBILE ELEMENTS hidden on desktop by default ── */
+    .mobile-tabs { display: none; }
+    #calAgenda { display: none; }
+    .mob-drawer { display: none; }
+    .mob-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 98; display: none; }
+
     /* ══════════════════════════════════════
        MOBILE — bottom tab nav + responsive
        ══════════════════════════════════════ */
@@ -887,13 +892,10 @@
       .mob-tab .mob-icon { font-size: 18px; line-height: 1; }
       .mob-tab.active { color: var(--amber); }
       .mob-tab:hover { color: var(--text); }
-
-      /* Hamburger tab opens utility drawer */
       .mob-tab.mob-menu { color: var(--subtle); }
 
       /* ── MOBILE UTILITY DRAWER ── */
       .mob-drawer {
-        display: none;
         position: fixed;
         bottom: 60px; left: 0; right: 0;
         background: var(--surface);
@@ -902,8 +904,11 @@
         padding: 16px;
         box-shadow: 0 -8px 32px rgba(0,0,0,.4);
         border-radius: 16px 16px 0 0;
+        display: none;
       }
       .mob-drawer.open { display: block; }
+      .mob-backdrop.open { display: block; }
+
       .mob-drawer-hdr {
         display: flex;
         align-items: center;
@@ -916,18 +921,14 @@
         font-size: 15px;
       }
 
-      /* Token panel in drawer */
-      .mob-drawer .token-panel { display: none; margin-top: 10px; }
-      .mob-drawer .token-panel.open { display: block; }
+      /* ── CALENDAR mobile ── */
+      .cal-dow { display: none; }
+      .cal-grid { display: none; }
+      #calAgenda { display: block; }
 
       /* ── THREAD SPLITTER mobile ── */
       .cols { grid-template-columns: 1fr; }
       .thread-actions-bar { position: static; }
-
-      /* ── CALENDAR mobile — agenda list ── */
-      .cal-dow { display: none; }
-      .cal-grid { display: none; }
-      #calAgenda { display: block; }
 
       /* ── SNIPPETS mobile ── */
       .snippets-layout { grid-template-columns: 1fr; }
@@ -936,7 +937,7 @@
       /* ── ONBOARDING ── */
       .onboarding-grid { grid-template-columns: 1fr; }
 
-      /* ── PAGE HEADER shrink ── */
+      /* ── PAGE HEADER ── */
       .page-hdr { flex-direction: column; gap: 10px; }
       .page-title { font-size: 18px; }
 
@@ -945,15 +946,6 @@
       .composer-channel-sel { min-width: 0; }
       .composer-when-row { flex-wrap: wrap; gap: 6px; }
       .when-date { max-width: 100%; flex: 1; }
-    }
-
-    /* Hide mobile elements on desktop */
-    .mobile-tabs { display: none; }
-    #calAgenda { display: none; }
-    .mob-drawer { display: none; }
-    .mob-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 98; }
-    @media (max-width: 768px) {
-      .mob-backdrop.open { display: block; }
     }
 
     @media (max-width: 900px) {
@@ -2252,8 +2244,8 @@ function init(){
 
   if(isMobile())renderAgenda();
 
-  // ── SERVICE WORKER ──
-  if('serviceWorker' in navigator){
+  // ── SERVICE WORKER (production only) ──
+  if('serviceWorker' in navigator && location.hostname !== 'localhost' && !location.hostname.includes('claudeusercontent')){
     navigator.serviceWorker.register('/sw.js').catch(e=>console.warn('SW:',e));
   }
 }
