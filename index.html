@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PostIQ — Buffer Power Tools</title>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#f5b731" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PostIQ" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
   <meta name="description" content="PostIQ is a free Buffer companion app for serious creators. Thread Splitter, Content Calendar, Post Composer, and Snippets — no login required." />
 
   <!-- Open Graph -->
@@ -621,6 +629,14 @@
       flex-wrap: wrap;
       margin-top: 12px;
     }
+    .composer-controls { display: flex; flex-direction: column; }
+    .composer-row-a { display: flex; align-items: center; gap: 8px; }
+    .composer-channel-sel { flex: 1; min-width: 0; }
+    .composer-row-b { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .composer-row-c { display: flex; align-items: center; gap: 6px; }
+    .composer-expand-panel { border-left: 2px solid var(--border2); padding-left: 12px; }
+    .mt4 { margin-top: 4px; }
+
     /* ── DATE/TIME PICKER ROW ── */
     .composer-when-row {
       display: flex;
@@ -825,9 +841,122 @@
     .divider { height: 1px; background: var(--border); margin: 16px 0; }
 
     /* ── RESPONSIVE ── */
-    @media (max-width: 900px) {
+    /* ══════════════════════════════════════
+       MOBILE — bottom tab nav + responsive
+       ══════════════════════════════════════ */
+    @media (max-width: 768px) {
+
+      /* Hide desktop sidebar entirely */
+      .side { display: none; }
+
+      /* App fills full width */
       .app { grid-template-columns: 1fr; }
-      .side { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+
+      /* Views get bottom padding so content clears the tab bar */
+      .view { padding: 16px 16px 90px; }
+
+      /* ── BOTTOM TAB BAR ── */
+      .mobile-tabs {
+        display: flex;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        height: 60px;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        z-index: 100;
+        align-items: stretch;
+      }
+      .mob-tab {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        font-size: 10px;
+        font-family: 'DM Mono', monospace;
+        cursor: pointer;
+        padding: 6px 4px;
+        transition: color .15s;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+      }
+      .mob-tab .mob-icon { font-size: 18px; line-height: 1; }
+      .mob-tab.active { color: var(--amber); }
+      .mob-tab:hover { color: var(--text); }
+
+      /* Hamburger tab opens utility drawer */
+      .mob-tab.mob-menu { color: var(--subtle); }
+
+      /* ── MOBILE UTILITY DRAWER ── */
+      .mob-drawer {
+        display: none;
+        position: fixed;
+        bottom: 60px; left: 0; right: 0;
+        background: var(--surface);
+        border-top: 1px solid var(--border2);
+        z-index: 99;
+        padding: 16px;
+        box-shadow: 0 -8px 32px rgba(0,0,0,.4);
+        border-radius: 16px 16px 0 0;
+      }
+      .mob-drawer.open { display: block; }
+      .mob-drawer-hdr {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
+      .mob-drawer-title {
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        font-size: 15px;
+      }
+
+      /* Token panel in drawer */
+      .mob-drawer .token-panel { display: none; margin-top: 10px; }
+      .mob-drawer .token-panel.open { display: block; }
+
+      /* ── THREAD SPLITTER mobile ── */
+      .cols { grid-template-columns: 1fr; }
+      .thread-actions-bar { position: static; }
+
+      /* ── CALENDAR mobile — agenda list ── */
+      .cal-dow { display: none; }
+      .cal-grid { display: none; }
+      #calAgenda { display: block; }
+
+      /* ── SNIPPETS mobile ── */
+      .snippets-layout { grid-template-columns: 1fr; }
+      .snippet-filters { position: static; }
+
+      /* ── ONBOARDING ── */
+      .onboarding-grid { grid-template-columns: 1fr; }
+
+      /* ── PAGE HEADER shrink ── */
+      .page-hdr { flex-direction: column; gap: 10px; }
+      .page-title { font-size: 18px; }
+
+      /* ── COMPOSER mobile ── */
+      .composer-row-a { flex-wrap: wrap; }
+      .composer-channel-sel { min-width: 0; }
+      .composer-when-row { flex-wrap: wrap; gap: 6px; }
+      .when-date { max-width: 100%; flex: 1; }
+    }
+
+    /* Hide mobile elements on desktop */
+    .mobile-tabs { display: none; }
+    #calAgenda { display: none; }
+    .mob-drawer { display: none; }
+    .mob-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 98; }
+    @media (max-width: 768px) {
+      .mob-backdrop.open { display: block; }
+    }
+
+    @media (max-width: 900px) {
       .cols, .onboarding-grid { grid-template-columns: 1fr; }
       .snippets-layout { grid-template-columns: 1fr; }
       .snippet-filters { position: static; }
@@ -838,6 +967,66 @@
   </style>
 </head>
 <body>
+
+<!-- ── MOBILE BOTTOM TABS ── -->
+<nav class="mobile-tabs" id="mobileTabs">
+  <button class="mob-tab active" data-view="threadView"><span class="mob-icon">🧵</span>Thread</button>
+  <button class="mob-tab" data-view="calendarView"><span class="mob-icon">📅</span>Calendar</button>
+  <button class="mob-tab" data-view="composerView"><span class="mob-icon">✍️</span>Compose</button>
+  <button class="mob-tab" data-view="snippetsView"><span class="mob-icon">📚</span>Snippets</button>
+  <button class="mob-tab mob-menu" id="mobMenuBtn"><span class="mob-icon">☰</span>More</button>
+</nav>
+
+<!-- ── MOBILE UTILITY DRAWER ── -->
+<div class="mob-backdrop" id="mobBackdrop"></div>
+<div class="mob-drawer" id="mobDrawer">
+  <div class="mob-drawer-hdr">
+    <span class="mob-drawer-title">PostIQ <span style="background:var(--amber);color:#1a0f00;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;padding:2px 6px;border-radius:3px;vertical-align:middle;">BETA</span></span>
+    <button class="btn sm ghost" id="mobDrawerClose">✕</button>
+  </div>
+
+  <!-- Token status -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+    <div class="status-dot" id="mobStatusDot"></div>
+    <span style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;" id="mobTokenLabel">Not connected</span>
+  </div>
+
+  <!-- Sync button -->
+  <button class="btn grow" id="mobSyncBtn" style="width:100%;justify-content:center;margin-bottom:10px;">↻ Load from Buffer</button>
+  <div id="mobSyncStatus" class="status-txt mb8">Not synced.</div>
+
+  <div class="divider"></div>
+
+  <!-- Token management -->
+  <div style="margin-bottom:8px;">
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <button class="btn sm grow" id="mobManageTokenBtn">Manage token</button>
+    </div>
+    <div id="mobTokenPanel" style="display:none;">
+      <div class="field mb8">
+        <label class="label">Buffer API token</label>
+        <input id="mobTokenInput" class="input mono" type="password" placeholder="Paste token…" />
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <label style="font-size:12px;color:var(--muted);cursor:pointer;"><input type="radio" name="mobTokenMode" value="session" checked /> Session</label>
+        <label style="font-size:12px;color:var(--muted);cursor:pointer;"><input type="radio" name="mobTokenMode" value="local" /> Save locally</label>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn sm primary" id="mobSaveTokenBtn">Save</button>
+        <button class="btn sm ghost" id="mobClearTokenBtn">Remove</button>
+      </div>
+      <div id="mobTokenMsg" class="status-txt mt8"></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div style="display:flex;flex-direction:column;gap:4px;">
+    <button class="nav-btn" id="mobOpenOnboarding"><span class="nav-icon">👋</span> Welcome</button>
+    <button class="nav-btn" id="mobOpenFounder"><span class="nav-icon">🏗</span> Built by Ben</button>
+    <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener"><span class="nav-icon">↗</span> Open Buffer</a>
+  </div>
+</div>
 
 <section id="app" class="app">
 
@@ -972,6 +1161,8 @@
         <div class="dow-label">Wed</div><div class="dow-label">Thu</div><div class="dow-label">Fri</div><div class="dow-label">Sat</div>
       </div>
       <div class="cal-grid" id="calGrid"></div>
+      <!-- Mobile agenda view (hidden on desktop, shown on mobile) -->
+      <div id="calAgenda"></div>
     </section>
 
     <!-- Post Composer -->
@@ -986,6 +1177,8 @@
         </div>
       </div>
       <div class="card">
+
+        <!-- Toolbar -->
         <div class="rich-toolbar">
           <button class="btn sm" data-cmd="bold"><strong>B</strong></button>
           <button class="btn sm" data-cmd="italic"><em>I</em></button>
@@ -996,49 +1189,67 @@
           <button class="btn sm" id="insertSnippetBtn">Insert snippet</button>
           <button class="btn sm ghost" id="saveSelectionSnippetBtn">Save selection</button>
         </div>
+
+        <!-- Editor -->
         <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here…"></div>
-        <div id="composerEmpty" class="empty mt8">Start drafting above, then save draft, queue, or schedule.</div>
+        <div id="composerEmpty" class="empty mt8" style="display:none;">Start drafting above, then save draft, queue, or schedule.</div>
 
-        <div class="composer-footer mt12">
-          <select id="composerChannel" class="input grow"></select>
-        </div>
-        <div id="composerNoChannels" class="empty mt8" style="display:none;">
-          No channels loaded yet.<br>
-          <span style="color:var(--subtle);font-size:12px;">Add your Buffer token and click <strong style="color:var(--text);">↻ Load from Buffer</strong> to see your channels.</span>
-        </div>
-        <div id="composerChannelHint" class="status-txt mt8" style="display:none;"></div>
+        <!-- Controls row -->
+        <div class="composer-controls mt10">
 
-        <div class="composer-when-row mt10">
-          <span class="when-lbl">📅 Schedule for</span>
-          <input id="composerWhenDate" type="date" class="input when-date" />
-          <select id="composerWhenHour" class="input when-time"></select>
-          <select id="composerWhenMin" class="input when-time"></select>
-          <select id="composerWhenAmpm" class="input when-time"></select>
-          <input id="composerWhen" type="hidden" />
-        </div>
-
-        <!-- Image URL row -->
-        <div class="composer-image-row">
-          <span class="img-row-lbl">🖼 Image URL</span>
-          <div class="img-url-wrap">
-            <input id="composerImageUrl" class="input img-url-input" placeholder="https://… (direct image URL)" />
-            <div class="img-url-tooltip">Needs a public direct image URL — e.g. ending in .jpg, .png, .webp<br>Right-click any image → "Copy image address" to get the URL.</div>
+          <!-- Row A: channel + char count -->
+          <div class="composer-row-a">
+            <select id="composerChannel" class="input composer-channel-sel"></select>
+            <div id="composerNoChannels" class="status-txt" style="display:none;font-size:12px;">↻ Load from Buffer to see channels</div>
+            <span class="char-hint" id="composerCharCount">0 chars</span>
           </div>
-          <button class="btn sm ghost" id="composerImageClear" style="display:none;">✕</button>
-          <button class="btn sm ghost" id="openImageLibraryBtn">📚 Past images</button>
-          <div id="composerImagePreview" style="display:none;"></div>
-        </div>
+          <div id="composerChannelHint" class="status-txt mt4" style="display:none;font-size:11px;"></div>
 
-        <div class="composer-actions-wrap mt10">
-          <div class="composer-actions-row" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <!-- Row B: actions + schedule toggle -->
+          <div class="composer-row-b mt8">
             <button class="btn" id="composerDraft">Save draft</button>
             <button class="btn success" id="composerQueue">Add to queue</button>
-            <button class="btn primary" id="composerSchedule">Schedule</button>
-            <span class="char-hint" id="composerCharCount" style="margin-left:auto;">0 chars</span>
+            <button class="btn primary" id="composerScheduleToggle">📅 Schedule…</button>
           </div>
-          <div class="status-txt mt8" style="color:var(--amber);font-size:11px;font-family:'DM Mono',monospace;font-weight:600;">⚠ Video must be attached in Buffer. Images supported via URL above.</div>
+
+          <!-- Schedule expander (hidden until toggle) -->
+          <div id="composerSchedulePanel" class="composer-expand-panel" style="display:none;">
+            <div class="composer-when-row mt8">
+              <span class="when-lbl">📅</span>
+              <input id="composerWhenDate" type="date" class="input when-date" />
+              <select id="composerWhenHour" class="input when-time"></select>
+              <select id="composerWhenMin" class="input when-time"></select>
+              <select id="composerWhenAmpm" class="input when-time"></select>
+              <button class="btn primary sm" id="composerSchedule">Send</button>
+              <button class="btn ghost sm" id="composerScheduleCancel">✕</button>
+            </div>
+            <input id="composerWhen" type="hidden" />
+          </div>
+
+          <!-- Image toggle -->
+          <div class="composer-row-c mt8">
+            <button class="btn sm ghost" id="composerImageToggle">🖼 Add image</button>
+            <button class="btn sm ghost" style="display:none;" id="composerImageToggleOff">🖼 Remove image</button>
+          </div>
+
+          <!-- Image expander (hidden until toggle) -->
+          <div id="composerImagePanel" class="composer-expand-panel" style="display:none;">
+            <div class="composer-image-row mt8">
+              <span class="img-row-lbl">URL</span>
+              <div class="img-url-wrap">
+                <input id="composerImageUrl" class="input img-url-input" placeholder="https://… (direct public image URL)" />
+                <div class="img-url-tooltip">Needs a public direct image URL — e.g. ending in .jpg, .png, .webp<br>Right-click any image → "Copy image address" to get the URL.</div>
+              </div>
+              <button class="btn sm ghost" id="composerImageClear" style="display:none;">✕</button>
+              <button class="btn sm ghost" id="openImageLibraryBtn">📚 Past images</button>
+              <div id="composerImagePreview" style="display:none;"></div>
+            </div>
+            <div class="status-txt mt4" style="color:var(--subtle);font-size:11px;">⚠ Video must be attached directly in Buffer.</div>
+          </div>
+
           <div id="composerStatus" class="status-txt mt8"></div>
         </div>
+
       </div>
     </section>
 
@@ -1489,6 +1700,7 @@ async function syncBuffer(){
     setSyncStatus('success',`${all.length} scheduled posts loaded.`);
     qs('syncBtn').classList.remove('sync-pulse');
     showToast(`Loaded ${all.length} posts`);
+    window.dispatchEvent(new Event('postiq:synced'));
   }catch(e){
     console.error('[PostIQ] syncBuffer error:', e);
     const m=String(e.message||'');
@@ -1827,6 +2039,32 @@ function init(){
   qs('composerQueue').onclick=()=>composerSend('queue');
   qs('composerSchedule').onclick=()=>composerSend('schedule');
 
+  // Schedule toggle
+  qs('composerScheduleToggle').onclick=()=>{
+    qs('composerSchedulePanel').style.display='block';
+    qs('composerScheduleToggle').style.display='none';
+  };
+  qs('composerScheduleCancel').onclick=()=>{
+    qs('composerSchedulePanel').style.display='none';
+    qs('composerScheduleToggle').style.display='inline-flex';
+  };
+
+  // Image toggle
+  qs('composerImageToggle').onclick=()=>{
+    qs('composerImagePanel').style.display='block';
+    qs('composerImageToggle').style.display='none';
+    qs('composerImageToggleOff').style.display='inline-flex';
+  };
+  qs('composerImageToggleOff').onclick=()=>{
+    qs('composerImagePanel').style.display='none';
+    qs('composerImageToggle').style.display='inline-flex';
+    qs('composerImageToggleOff').style.display='none';
+    qs('composerImageUrl').value='';
+    qs('composerImagePreview').style.display='none';
+    qs('composerImagePreview').innerHTML='';
+    qs('composerImageClear').style.display='none';
+  };
+
   function buildTimePickers(hourId,minId,ampmId){
     const hSel=qs(hourId),mSel=qs(minId),amSel=qs(ampmId);
     for(let h=1;h<=12;h++){const o=document.createElement('option');o.value=h;o.textContent=String(h).padStart(2,'0');hSel.appendChild(o);}
@@ -1890,6 +2128,134 @@ function init(){
 
   renderCalendar();
   if(!hasSeenOnboarding())openModal('onboardingModal');
+
+  // ── MOBILE TABS & DRAWER ──
+  const isMobile=()=>window.innerWidth<=768;
+
+  document.querySelectorAll('.mob-tab[data-view]').forEach(btn=>{
+    btn.onclick=()=>{
+      activateView(btn.dataset.view);
+      document.querySelectorAll('.mob-tab').forEach(t=>t.classList.remove('active'));
+      btn.classList.add('active');
+    };
+  });
+
+  function openMobDrawer(){qs('mobDrawer').classList.add('open');qs('mobBackdrop').classList.add('open');syncMobDrawerUI();}
+  function closeMobDrawer(){qs('mobDrawer').classList.remove('open');qs('mobBackdrop').classList.remove('open');}
+  qs('mobMenuBtn').onclick=openMobDrawer;
+  qs('mobDrawerClose').onclick=closeMobDrawer;
+  qs('mobBackdrop').onclick=closeMobDrawer;
+
+  function syncMobDrawerUI(){
+    const connected=!!bufferToken;
+    qs('mobStatusDot').classList.toggle('connected',connected);
+    qs('mobTokenLabel').textContent=connected?'Connected':'Not connected';
+    qs('mobSyncStatus').textContent=qs('syncStatus').textContent;
+  }
+
+  qs('mobSyncBtn').onclick=()=>{syncBuffer();closeMobDrawer();};
+
+  let mobTokenPanelOpen=false;
+  qs('mobManageTokenBtn').onclick=()=>{
+    mobTokenPanelOpen=!mobTokenPanelOpen;
+    qs('mobTokenPanel').style.display=mobTokenPanelOpen?'block':'none';
+    qs('mobManageTokenBtn').textContent=mobTokenPanelOpen?'Done':'Manage token';
+    if(mobTokenPanelOpen&&bufferToken)qs('mobTokenInput').value=bufferToken;
+  };
+  qs('mobSaveTokenBtn').onclick=()=>{
+    const token=qs('mobTokenInput').value.trim();
+    const mode=[...document.querySelectorAll('input[name="mobTokenMode"]')].find(r=>r.checked).value;
+    localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
+    if(!token){bufferToken='';updateTokenUI();syncMobDrawerUI();showToast('Token removed');return;}
+    if(mode==='local')localStorage.setItem(STORE_KEY,token);else sessionStorage.setItem(STORE_KEY,token);
+    bufferToken=token;
+    qs('mobTokenMsg').textContent=mode==='local'?'Saved locally.':'Saved for session.';
+    updateTokenUI();syncMobDrawerUI();showToast('Token saved');
+    syncBuffer();
+  };
+  qs('mobClearTokenBtn').onclick=()=>{
+    qs('mobTokenInput').value='';
+    localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
+    bufferToken='';updateTokenUI();syncMobDrawerUI();showToast('Token removed');
+  };
+  qs('mobOpenOnboarding').onclick=()=>{closeMobDrawer();openModal('onboardingModal');};
+  qs('mobOpenFounder').onclick=()=>{closeMobDrawer();openModal('founderModal');};
+
+  // ── CALENDAR AGENDA VIEW ──
+  function renderAgenda(){
+    const agenda=qs('calAgenda');if(!agenda)return;
+    const notes=getNotes();const today=fmtDate(new Date());
+    const start=new Date(state.month.getFullYear(),state.month.getMonth(),1);
+    const end=new Date(start.getFullYear(),start.getMonth()+1+1,0);
+    const map={};
+    state.scheduled.forEach(p=>{
+      const k=fmtDate(new Date(p.dueAt));
+      if(!map[k])map[k]={posts:[],note:null};
+      map[k].posts.push(p);
+    });
+    Object.entries(notes).forEach(([k,n])=>{
+      if(!map[k])map[k]={posts:[],note:null};
+      map[k].note=n;
+    });
+    const days=[];const d=new Date(start);
+    while(d<=end){days.push(fmtDate(new Date(d)));d.setDate(d.getDate()+1);}
+    agenda.innerHTML='';
+
+    // Month nav
+    const nav=document.createElement('div');nav.className='cal-header';
+    nav.innerHTML=`<button class="btn icon" id="agendaPrev">‹</button><div class="cal-month">${monthLabel(state.month)}</div><button class="btn icon" id="agendaNext">›</button><button class="btn sm ghost" id="agendaToday">Today</button>`;
+    agenda.appendChild(nav);
+    nav.querySelector('#agendaPrev').onclick=()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()-1,1);renderAgenda();};
+    nav.querySelector('#agendaNext').onclick=()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()+1,1);renderAgenda();};
+    nav.querySelector('#agendaToday').onclick=()=>{state.month=new Date();renderAgenda();};
+
+    let hasAny=false;
+    days.forEach(key=>{
+      const data=map[key];const isToday=key===today;
+      if(!data&&!isToday)return;
+      hasAny=true;
+      const date=new Date(key+'T00:00:00');
+      const dayEl=document.createElement('div');
+      dayEl.style.cssText=`border:1px solid ${isToday?'var(--amber-glow)':'var(--border)'};border-radius:10px;padding:12px;margin-bottom:8px;background:var(--surface);cursor:pointer;`;
+      const dateLabel=date.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+      let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:${isToday?'var(--amber)':'var(--muted)'};">${dateLabel}</span>
+        ${data?.posts?.length?`<span style="font-size:10px;font-family:'DM Mono',monospace;background:var(--blue-dim);color:var(--blue);border:1px solid rgba(107,143,247,.25);padding:1px 6px;border-radius:4px;">${data.posts.length} post${data.posts.length>1?'s':''}</span>`:''}
+      </div>`;
+      if(data?.posts?.length){
+        data.posts.slice(0,2).forEach(p=>{
+          html+=`<div style="font-size:12px;line-height:1.5;padding:8px;background:var(--blue-dim);border:1px solid rgba(107,143,247,.2);border-radius:6px;color:#a8bef9;margin-bottom:6px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${safeText(p.text||'(no text)')}</div>`;
+        });
+        if(data.posts.length>2)html+=`<div style="font-size:11px;color:var(--subtle);font-family:'DM Mono',monospace;">+${data.posts.length-2} more</div>`;
+      }
+      if(data?.note){
+        html+=`<div class="day-note-pill ${data.note.tag||'gold'}" style="margin-top:6px;display:block;border-radius:6px;"><span class="note-pill-label">${safeText(data.note.label||'Note')}</span>${safeText(data.note.text)}</div>`;
+      }
+      if(!data?.posts?.length&&!data?.note){
+        html+=`<div style="font-size:12px;color:var(--subtle);">Today — no posts scheduled.</div>`;
+      }
+      dayEl.innerHTML=html;
+      dayEl.onclick=()=>openDayNote(date);
+      agenda.appendChild(dayEl);
+    });
+
+    if(!hasAny){
+      const empty=document.createElement('div');empty.className='empty mt8';
+      empty.textContent='No posts or notes this month. Sync Buffer to load posts.';
+      agenda.appendChild(empty);
+    }
+  }
+
+  // Re-render agenda on calendar updates when on mobile
+  const _origSyncBuffer=syncBuffer;
+  window.addEventListener('postiq:synced',()=>{if(isMobile())renderAgenda();});
+
+  if(isMobile())renderAgenda();
+
+  // ── SERVICE WORKER ──
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('/sw.js').catch(e=>console.warn('SW:',e));
+  }
 }
 document.addEventListener('DOMContentLoaded',()=>{try{init();}catch(e){console.error('[PostIQ] init() crashed:',e);}});
 </script>
