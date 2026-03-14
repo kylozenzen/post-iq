@@ -846,30 +846,38 @@
     .mob-drawer { display: none; }
     .mob-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 98; display: none; }
 
-    /* ══════════════════════════════════════
-       MOBILE — bottom tab nav + responsive
-       ══════════════════════════════════════ */
+    /* ══════════════════════════════════════════
+       MOBILE — native app feel
+       ══════════════════════════════════════════ */
     @media (max-width: 768px) {
 
-      /* Hide desktop sidebar entirely */
+      /* ── CORE LAYOUT ── */
       .side { display: none; }
+      .app { grid-template-columns: 1fr; min-height: 100dvh; }
+      .view { padding: 12px 12px 80px; }
 
-      /* App fills full width */
-      .app { grid-template-columns: 1fr; }
+      /* Hide desktop page headers — waste of space on mobile */
+      .page-hdr { display: none; }
 
-      /* Views get bottom padding so content clears the tab bar */
-      .view { padding: 16px 16px 90px; }
+      /* Cards lose border/shadow, just clean sections */
+      .card {
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        padding: 0;
+      }
 
       /* ── BOTTOM TAB BAR ── */
       .mobile-tabs {
         display: flex;
         position: fixed;
         bottom: 0; left: 0; right: 0;
-        height: 60px;
+        height: 64px;
         background: var(--surface);
         border-top: 1px solid var(--border);
         z-index: 100;
         align-items: stretch;
+        padding-bottom: env(safe-area-inset-bottom);
       }
       .mob-tab {
         flex: 1;
@@ -877,75 +885,168 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 3px;
+        gap: 2px;
         background: transparent;
         border: none;
         color: var(--muted);
-        font-size: 10px;
+        font-size: 9px;
         font-family: 'DM Mono', monospace;
         cursor: pointer;
-        padding: 6px 4px;
-        transition: color .15s;
+        padding: 8px 4px;
+        transition: color .12s;
         text-transform: uppercase;
-        letter-spacing: .4px;
+        letter-spacing: .5px;
+        -webkit-tap-highlight-color: transparent;
       }
-      .mob-tab .mob-icon { font-size: 18px; line-height: 1; }
+      .mob-tab .mob-icon { font-size: 22px; line-height: 1; }
       .mob-tab.active { color: var(--amber); }
-      .mob-tab:hover { color: var(--text); }
       .mob-tab.mob-menu { color: var(--subtle); }
 
-      /* ── MOBILE UTILITY DRAWER ── */
+      /* ── MOBILE DRAWER ── */
       .mob-drawer {
         position: fixed;
-        bottom: 60px; left: 0; right: 0;
+        bottom: 64px; left: 0; right: 0;
+        max-height: 80vh;
+        overflow-y: auto;
         background: var(--surface);
         border-top: 1px solid var(--border2);
         z-index: 99;
-        padding: 16px;
-        box-shadow: 0 -8px 32px rgba(0,0,0,.4);
-        border-radius: 16px 16px 0 0;
+        padding: 20px 16px;
+        box-shadow: 0 -12px 40px rgba(0,0,0,.5);
+        border-radius: 20px 20px 0 0;
         display: none;
       }
       .mob-drawer.open { display: block; }
       .mob-backdrop.open { display: block; }
-
       .mob-drawer-hdr {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 14px;
+        margin-bottom: 16px;
       }
-      .mob-drawer-title {
+      .mob-drawer-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; }
+
+      /* ── MOBILE VIEW HEADER (replaces page-hdr) ── */
+      .mob-view-hdr {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      .mob-view-title {
         font-family: 'Syne', sans-serif;
         font-weight: 700;
-        font-size: 15px;
+        font-size: 20px;
       }
+
+      /* ── THREAD SPLITTER mobile ── */
+      .cols { display: flex; flex-direction: column; gap: 0; }
+      .thread-actions-bar {
+        position: static;
+        background: transparent;
+        border-bottom: 1px solid var(--border);
+        padding: 0 0 12px;
+        margin-bottom: 12px;
+      }
+      /* Source textarea — full width, taller */
+      #threadView textarea {
+        min-height: 140px;
+        font-size: 15px;
+        border-radius: 10px;
+      }
+      /* Thread parts — bigger tap targets */
+      .thread-part { margin-bottom: 10px; }
+      .thread-part textarea { min-height: 90px; font-size: 14px; }
+      /* Action buttons — full width, tall */
+      #threadView .row.mt12 { flex-direction: column; gap: 8px; }
+      #threadView .row.mt12 .btn { width: 100%; padding: 14px; font-size: 15px; justify-content: center; }
+      #draftThreadBtn, #queueThreadBtn, #scheduleThreadBtn {
+        padding: 14px !important;
+        font-size: 14px !important;
+        flex: 1;
+      }
+      .thread-actions-bar .row { gap: 8px; }
+      #threadView .btn.sm.ghost { padding: 10px 12px; font-size: 13px; }
 
       /* ── CALENDAR mobile ── */
       .cal-dow { display: none; }
       .cal-grid { display: none; }
       #calAgenda { display: block; }
-
-      /* ── THREAD SPLITTER mobile ── */
-      .cols { grid-template-columns: 1fr; }
-      .thread-actions-bar { position: static; }
-
-      /* ── SNIPPETS mobile ── */
-      .snippets-layout { grid-template-columns: 1fr; }
-      .snippet-filters { position: static; }
-
-      /* ── ONBOARDING ── */
-      .onboarding-grid { grid-template-columns: 1fr; }
-
-      /* ── PAGE HEADER ── */
-      .page-hdr { flex-direction: column; gap: 10px; }
-      .page-title { font-size: 18px; }
+      #calAgenda .cal-header { margin-bottom: 12px; }
+      #calAgenda .cal-month { font-size: 20px; }
 
       /* ── COMPOSER mobile ── */
-      .composer-row-a { flex-wrap: wrap; }
-      .composer-channel-sel { min-width: 0; }
-      .composer-when-row { flex-wrap: wrap; gap: 6px; }
-      .when-date { max-width: 100%; flex: 1; }
+      .rich-toolbar {
+        padding: 6px;
+        gap: 3px;
+        border-radius: 10px 10px 0 0;
+        flex-wrap: wrap;
+      }
+      .rich-toolbar .btn.sm { padding: 8px 10px; font-size: 13px; min-height: 36px; }
+      .rich-editor { min-height: 180px; font-size: 15px; line-height: 1.7; }
+      .composer-controls { gap: 10px; }
+      .composer-row-a { flex-wrap: wrap; gap: 8px; }
+      .composer-channel-sel { flex: 1; min-width: 0; font-size: 14px; padding: 10px 12px; }
+      .composer-row-b .btn { padding: 12px 16px; font-size: 14px; flex: 1; justify-content: center; }
+      .composer-row-c .btn { padding: 10px 14px; font-size: 13px; }
+      .composer-expand-panel { margin-top: 8px; }
+      .composer-when-row { flex-wrap: wrap; gap: 8px; }
+      .when-date { flex: 1; min-width: 130px; }
+      .when-time { flex: 1; min-width: 70px; }
+
+      /* ── SNIPPETS mobile ── */
+      .snippets-layout { display: flex; flex-direction: column; gap: 0; }
+      .snippet-filters {
+        position: static;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 0 0 12px;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 12px;
+      }
+      .snippet-filters .filter-label { display: none; }
+      .filter-btn {
+        padding: 7px 12px;
+        border-radius: 20px;
+        border: 1px solid var(--border2);
+        background: var(--surface2);
+        font-size: 12px;
+        width: auto;
+      }
+      .filter-btn.active {
+        background: var(--amber-dim);
+        border-color: var(--amber-glow);
+        color: var(--amber);
+      }
+      .snippet-toolbar { margin-bottom: 10px; }
+      .snippet-grid { grid-template-columns: 1fr; gap: 8px; }
+      .snippet-card { padding: 14px; }
+      /* Bigger action buttons */
+      .snippet-use-btn { padding: 12px; font-size: 13px; }
+      .snippet-actions { padding-top: 10px; gap: 8px; }
+
+      /* ── MODALS mobile ── */
+      .modal { align-items: flex-end; padding: 0; }
+      .modal-card {
+        max-width: 100%;
+        width: 100%;
+        border-radius: 20px 20px 0 0;
+        max-height: 90vh;
+        padding: 20px 16px;
+      }
+      .modal-card.lg { max-width: 100%; }
+
+      /* ── MISC ── */
+      .onboarding-grid { grid-template-columns: 1fr; }
+      .btn { -webkit-tap-highlight-color: transparent; }
+      input, select, textarea { font-size: 16px !important; } /* prevents iOS zoom */
     }
 
     @media (max-width: 900px) {
@@ -1091,6 +1192,9 @@
           <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
         </div>
       </div>
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">🧵 Thread Splitter</span>
+      </div>
       <div class="cols">
         <div class="card">
           <div class="card-title">Source text</div>
@@ -1142,6 +1246,10 @@
           <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
         </div>
       </div>
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">📅 Calendar</span>
+        <button class="btn sm ghost" id="shareMonthBtnMob">Share</button>
+      </div>
       <div class="cal-header">
         <button class="btn icon" id="prevMonth">‹</button>
         <div class="cal-month" id="monthLabel"></div>
@@ -1167,6 +1275,9 @@
         <div class="page-actions">
           <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
         </div>
+      </div>
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">✍️ Compose</span>
       </div>
       <div class="card">
 
@@ -1256,6 +1367,10 @@
           <button class="btn primary" id="newSnippetBtn">+ New Snippet</button>
           <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
         </div>
+      </div>
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">📚 Snippets</span>
+        <button class="btn sm primary" id="newSnippetBtnMob">+ New</button>
       </div>
       <div class="snippets-layout">
         <div class="snippet-filters" id="snippetTypeFilters"></div>
@@ -2172,6 +2287,10 @@ function init(){
   };
   qs('mobOpenOnboarding').onclick=()=>{closeMobDrawer();openModal('onboardingModal');};
   qs('mobOpenFounder').onclick=()=>{closeMobDrawer();openModal('founderModal');};
+
+  // Mobile-only buttons
+  if(qs('shareMonthBtnMob'))qs('shareMonthBtnMob').onclick=()=>{shareSnapshot();openModal('shareModal');};
+  if(qs('newSnippetBtnMob'))qs('newSnippetBtnMob').onclick=()=>openSnippetModal();
 
   // ── CALENDAR AGENDA VIEW ──
   function renderAgenda(){
