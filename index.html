@@ -837,6 +837,96 @@
     .ob-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
     .ob-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
 
+    /* ── TRENDING ── */
+    .trending-layout { display: flex; flex-direction: column; gap: 14px; }
+    .trending-tabs {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
+    .trending-tab {
+      padding: 8px 18px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all .12s;
+    }
+    .trending-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+    .trending-tab:hover { color: var(--text); }
+    .trending-controls { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .trending-subs { display: flex; gap: 6px; flex-wrap: wrap; }
+    .sub-pill {
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border2);
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      cursor: pointer;
+      transition: all .12s;
+      white-space: nowrap;
+    }
+    .sub-pill.active { background: var(--amber-dim); border-color: var(--amber-glow); color: var(--amber); }
+    .sub-pill:hover { border-color: var(--subtle); color: var(--text); }
+    .trending-custom-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .trending-list { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+    .trending-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: border-color .12s;
+    }
+    .trending-item:hover { border-color: var(--border2); }
+    .trending-item-rank {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--subtle);
+      flex-shrink: 0;
+      width: 22px;
+      padding-top: 2px;
+    }
+    .trending-item-body { flex: 1; min-width: 0; }
+    .trending-item-title {
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.45;
+      color: var(--text);
+      margin-bottom: 5px;
+    }
+    .trending-item-meta {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .trending-meta-pill {
+      font-size: 10px;
+      font-family: 'DM Mono', monospace;
+      color: var(--subtle);
+    }
+    .trending-meta-pill.score { color: var(--amber); }
+    .trending-meta-pill.sub { color: var(--blue); }
+    .trending-item-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
+
+    @media (max-width: 768px) {
+      .trending-item { padding: 12px; }
+      .trending-item-title { font-size: 14px; }
+      .trending-item-actions { flex-direction: column; gap: 4px; }
+      .trending-custom-row { flex-wrap: wrap; }
+    }
+
     /* ── SECTION DIVIDER ── */
     .divider { height: 1px; background: var(--border); margin: 16px 0; }
 
@@ -1067,6 +1157,7 @@
   <button class="mob-tab" data-view="calendarView"><span class="mob-icon">📅</span>Calendar</button>
   <button class="mob-tab" data-view="composerView"><span class="mob-icon">✍️</span>Compose</button>
   <button class="mob-tab" data-view="snippetsView"><span class="mob-icon">📚</span>Snippets</button>
+  <button class="mob-tab" data-view="trendingView"><span class="mob-icon">📈</span>Trends</button>
   <button class="mob-tab mob-menu" id="mobMenuBtn"><span class="mob-icon">☰</span>More</button>
 </nav>
 
@@ -1170,6 +1261,7 @@
       <button class="nav-btn" data-view="calendarView"><span class="nav-icon">📅</span> Content Calendar</button>
       <button class="nav-btn" data-view="composerView"><span class="nav-icon">✍️</span> Post Composer</button>
       <button class="nav-btn" data-view="snippetsView"><span class="nav-icon">📚</span> Snippets</button>
+      <button class="nav-btn" data-view="trendingView"><span class="nav-icon">📈</span> Trending</button>
     </nav>
     <div class="side-bottom">
       <button class="nav-btn" id="openOnboarding"><span class="nav-icon">👋</span> Welcome</button>
@@ -1387,6 +1479,75 @@
 
   </main>
 </section>
+
+<!-- ── TRENDING VIEW (inside main via JS activation) ── -->
+<script>
+// Inject trending view into main on load
+document.addEventListener('DOMContentLoaded', () => {
+  const main = document.querySelector('.main');
+  const tv = document.createElement('section');
+  tv.id = 'trendingView';
+  tv.className = 'view';
+  tv.innerHTML = `
+    <div class="page-hdr">
+      <div class="page-hdr-left">
+        <h1 class="page-title">Trending</h1>
+        <p class="page-desc">What's hot on Reddit and Hacker News right now. Click any story to draft a post.</p>
+      </div>
+    </div>
+    <div class="mob-view-hdr">
+      <span class="mob-view-title">📈 Trending</span>
+      <button class="btn sm ghost" id="trendingRefreshMob">↻</button>
+    </div>
+
+    <div class="trending-layout">
+
+      <!-- Source tabs -->
+      <div class="trending-tabs">
+        <button class="trending-tab active" data-src="reddit">Reddit</button>
+        <button class="trending-tab" data-src="hn">Hacker News</button>
+      </div>
+
+      <!-- Reddit panel -->
+      <div id="trendingReddit" class="trending-panel">
+        <div class="trending-controls">
+          <div class="trending-subs" id="trendingSubBtns">
+            <button class="sub-pill active" data-sub="socialmedia">r/socialmedia</button>
+            <button class="sub-pill" data-sub="entrepreneur">r/entrepreneur</button>
+            <button class="sub-pill" data-sub="marketing">r/marketing</button>
+            <button class="sub-pill" data-sub="business">r/business</button>
+          </div>
+          <div class="trending-custom-row">
+            <input id="trendingCustomSub" class="input" placeholder="r/custom subreddit" style="max-width:200px;" />
+            <button class="btn sm" id="trendingAddSub">Go</button>
+            <button class="btn sm ghost" id="trendingRefresh">↻ Refresh</button>
+          </div>
+        </div>
+        <div id="trendingRedditStatus" class="status-txt mt8"></div>
+        <div id="trendingRedditList" class="trending-list"></div>
+      </div>
+
+      <!-- HN panel -->
+      <div id="trendingHN" class="trending-panel" style="display:none;">
+        <div class="trending-controls">
+          <div class="trending-subs">
+            <button class="sub-pill active" data-hn="topstories">Top</button>
+            <button class="sub-pill" data-hn="newstories">New</button>
+            <button class="sub-pill" data-hn="beststories">Best</button>
+          </div>
+          <div class="trending-custom-row">
+            <button class="btn sm ghost" id="trendingHNRefresh">↻ Refresh</button>
+          </div>
+        </div>
+        <div id="trendingHNStatus" class="status-txt mt8"></div>
+        <div id="trendingHNList" class="trending-list"></div>
+      </div>
+
+    </div>
+  `;
+  main.appendChild(tv);
+});
+</script>
 
 <!-- ── MODALS ── -->
 
@@ -2363,7 +2524,190 @@ function init(){
 
   if(isMobile())renderAgenda();
 
-  // ── SERVICE WORKER (production only) ──
+  // ── TRENDING ──
+  const trendingState = { source: 'reddit', sub: 'socialmedia', hnFeed: 'topstories' };
+
+  function initTrending() {
+    const view = document.getElementById('trendingView');
+    if (!view) return;
+
+    // Source tab switching
+    view.querySelectorAll('.trending-tab').forEach(tab => {
+      tab.onclick = () => {
+        view.querySelectorAll('.trending-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        trendingState.source = tab.dataset.src;
+        document.getElementById('trendingReddit').style.display = trendingState.source === 'reddit' ? 'block' : 'none';
+        document.getElementById('trendingHN').style.display = trendingState.source === 'hn' ? 'block' : 'none';
+        loadTrending();
+      };
+    });
+
+    // Reddit sub pills
+    view.querySelectorAll('[data-sub]').forEach(pill => {
+      pill.onclick = () => {
+        view.querySelectorAll('[data-sub]').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        trendingState.sub = pill.dataset.sub;
+        loadTrending();
+      };
+    });
+
+    // HN feed pills
+    view.querySelectorAll('[data-hn]').forEach(pill => {
+      pill.onclick = () => {
+        view.querySelectorAll('[data-hn]').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        trendingState.hnFeed = pill.dataset.hn;
+        loadTrending();
+      };
+    });
+
+    // Custom subreddit
+    document.getElementById('trendingAddSub').onclick = () => {
+      const val = document.getElementById('trendingCustomSub').value.trim().replace(/^r\//,'');
+      if (!val) return;
+      trendingState.sub = val;
+      // Add pill if not exists
+      const existing = view.querySelector(`[data-sub="${val}"]`);
+      if (!existing) {
+        const pill = document.createElement('button');
+        pill.className = 'sub-pill active';
+        pill.dataset.sub = val;
+        pill.textContent = `r/${val}`;
+        pill.onclick = () => {
+          view.querySelectorAll('[data-sub]').forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          trendingState.sub = val;
+          loadTrending();
+        };
+        view.querySelector('#trendingSubBtns').appendChild(pill);
+      }
+      view.querySelectorAll('[data-sub]').forEach(p => p.classList.toggle('active', p.dataset.sub === val));
+      document.getElementById('trendingCustomSub').value = '';
+      loadTrending();
+    };
+    document.getElementById('trendingCustomSub').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('trendingAddSub').click(); });
+
+    // Refresh buttons
+    document.getElementById('trendingRefresh').onclick = loadTrending;
+    document.getElementById('trendingHNRefresh').onclick = loadTrending;
+    const mobRefresh = document.getElementById('trendingRefreshMob');
+    if (mobRefresh) mobRefresh.onclick = loadTrending;
+
+    // Auto-load on first view activation
+    loadTrending();
+  }
+
+  async function loadTrending() {
+    if (trendingState.source === 'reddit') await loadReddit();
+    else await loadHN();
+  }
+
+  async function loadReddit() {
+    const list = document.getElementById('trendingRedditList');
+    const status = document.getElementById('trendingRedditStatus');
+    if (!list) return;
+    status.textContent = 'Loading…';
+    list.innerHTML = '';
+    try {
+      const res = await fetch(`https://www.reddit.com/r/${trendingState.sub}/hot.json?limit=25`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const posts = (data?.data?.children || []).filter(p => !p.data.stickied);
+      status.textContent = `${posts.length} posts from r/${trendingState.sub}`;
+      renderTrendingItems(list, posts.map((p, i) => ({
+        rank: i + 1,
+        title: p.data.title,
+        score: p.data.score,
+        comments: p.data.num_comments,
+        sub: `r/${p.data.subreddit}`,
+        url: `https://reddit.com${p.data.permalink}`,
+        age: timeAgo(p.data.created_utc * 1000),
+        type: 'reddit'
+      })));
+    } catch(e) {
+      status.textContent = `Failed to load — Reddit may be blocking the request. Try again.`;
+      console.warn('[PostIQ] Reddit fetch failed:', e);
+    }
+  }
+
+  async function loadHN() {
+    const list = document.getElementById('trendingHNList');
+    const status = document.getElementById('trendingHNStatus');
+    if (!list) return;
+    status.textContent = 'Loading…';
+    list.innerHTML = '';
+    try {
+      const idsRes = await fetch(`https://hacker-news.firebaseio.com/v0/${trendingState.hnFeed}.json`);
+      const ids = await idsRes.json();
+      const top = ids.slice(0, 20);
+      status.textContent = 'Fetching stories…';
+      const stories = await Promise.all(
+        top.map(id => fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(r => r.json()))
+      );
+      status.textContent = `${stories.length} stories from Hacker News`;
+      renderTrendingItems(list, stories.filter(s => s && s.title).map((s, i) => ({
+        rank: i + 1,
+        title: s.title,
+        score: s.score,
+        comments: s.descendants || 0,
+        sub: s.by ? `by ${s.by}` : 'HN',
+        url: s.url || `https://news.ycombinator.com/item?id=${s.id}`,
+        age: timeAgo(s.time * 1000),
+        type: 'hn'
+      })));
+    } catch(e) {
+      status.textContent = 'Failed to load Hacker News.';
+      console.warn('[PostIQ] HN fetch failed:', e);
+    }
+  }
+
+  function renderTrendingItems(container, items) {
+    container.innerHTML = '';
+    items.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'trending-item';
+      el.innerHTML = `
+        <div class="trending-item-rank">${item.rank}</div>
+        <div class="trending-item-body">
+          <div class="trending-item-title">${safeText(item.title)}</div>
+          <div class="trending-item-meta">
+            <span class="trending-meta-pill score">▲ ${item.score?.toLocaleString()}</span>
+            <span class="trending-meta-pill">💬 ${item.comments}</span>
+            <span class="trending-meta-pill sub">${safeText(item.sub)}</span>
+            <span class="trending-meta-pill">${item.age}</span>
+          </div>
+        </div>
+        <div class="trending-item-actions">
+          <button class="btn sm" title="Draft a post about this">→ Compose</button>
+          <a class="btn sm ghost" href="${item.url}" target="_blank" rel="noopener" title="Open source">↗</a>
+        </div>`;
+      el.querySelector('.btn.sm:not(.ghost)').onclick = () => {
+        const draft = `💡 ${item.title}\n\n[Add your take here]\n\nSource: ${item.url}`;
+        const editor = document.getElementById('composerEditor');
+        editor.innerText = draft;
+        document.getElementById('composerEmpty').style.display = 'none';
+        activateView('composerView');
+        document.querySelectorAll('.mob-tab[data-view]').forEach(t =>
+          t.classList.toggle('active', t.dataset.view === 'composerView'));
+        showToast('Story loaded into Composer');
+      };
+      container.appendChild(el);
+    });
+  }
+
+  function timeAgo(ts) {
+    const diff = (Date.now() - ts) / 1000;
+    if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+    return `${Math.floor(diff/86400)}d ago`;
+  }
+
+  // Init trending once the injected HTML exists
+  setTimeout(initTrending, 50);
   if('serviceWorker' in navigator && location.hostname !== 'localhost' && !location.hostname.includes('claudeusercontent')){
     navigator.serviceWorker.register('/sw.js').catch(e=>console.warn('SW:',e));
   }
