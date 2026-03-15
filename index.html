@@ -4,6 +4,31 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PostIQ — Buffer Power Tools</title>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#f5b731" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PostIQ" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
+  <meta name="description" content="PostIQ is a free Buffer companion app for serious creators. Thread Splitter, Content Calendar, Post Composer, and Snippets — no login required." />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="PostIQ — Buffer Power Tools" />
+  <meta property="og:description" content="Thread Splitter, Content Calendar, Composer, and Snippets. The power-user layer on top of Buffer. Free, no login required." />
+  <meta property="og:image" content="https://ccpostiq.netlify.app/postiq-og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://ccpostiq.netlify.app" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="PostIQ" />
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="PostIQ — Buffer Power Tools" />
+  <meta name="twitter:description" content="Thread Splitter, Content Calendar, Composer, and Snippets. The power-user layer on top of Buffer." />
+  <meta name="twitter:image" content="https://ccpostiq.netlify.app/postiq-og.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <style>
@@ -57,7 +82,9 @@
       position: sticky;
       top: 0;
       overflow-y: auto;
+      overflow-x: hidden;
       padding: 0;
+      min-width: 0;
     }
 
     .side-logo {
@@ -118,7 +145,6 @@
     }
     .token-actions { display: flex; gap: 6px; margin-top: 8px; }
 
-    /* Collapsible token panel */
     .token-panel { display: none; margin-top: 10px; }
     .token-panel.open { display: block; }
 
@@ -603,13 +629,96 @@
       flex-wrap: wrap;
       margin-top: 12px;
     }
-    .composer-actions {
+    .composer-controls { display: flex; flex-direction: column; }
+    .composer-row-a { display: flex; align-items: center; gap: 8px; }
+    .composer-channel-sel { flex: 1; min-width: 0; }
+    .composer-row-b { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .composer-row-c { display: flex; align-items: center; gap: 6px; }
+    .composer-expand-panel { border-left: 2px solid var(--border2); padding-left: 12px; }
+    .mt4 { margin-top: 4px; }
+
+    /* ── DATE/TIME PICKER ROW ── */
+    .composer-when-row {
       display: flex;
-      gap: 6px;
       align-items: center;
-      margin-top: 10px;
+      gap: 6px;
+      flex-wrap: wrap;
     }
+    .when-lbl { font-size: 12px; color: var(--subtle); font-family: 'DM Mono', monospace; white-space: nowrap; }
+    .when-date { max-width: 150px; }
+    .when-time { max-width: 80px; }
+    .composer-actions { display: flex; gap: 6px; align-items: center; margin-top: 10px; }
     .char-hint { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--subtle); margin-left: auto; }
+
+    /* ── IMAGE URL ROW ── */
+    .composer-image-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      position: relative;
+    }
+    .img-row-lbl { font-size: 11px; color: var(--subtle); font-family: 'DM Mono', monospace; white-space: nowrap; flex-shrink: 0; }
+    .img-url-wrap { position: relative; flex: 1; min-width: 180px; max-width: 380px; }
+    .img-url-input { width: 100%; }
+    .img-url-tooltip {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      z-index: 20;
+      background: var(--surface3);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.6;
+      width: 280px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    }
+    .img-url-wrap:focus-within .img-url-tooltip { display: block; }
+    .img-preview-thumb { width: 36px; height: 36px; border-radius: 5px; object-fit: cover; border: 1px solid var(--border2); flex-shrink: 0; }
+
+    /* ── IMAGE LIBRARY GRID ── */
+    .img-library-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 8px;
+      max-height: 55vh;
+      overflow-y: auto;
+    }
+    .img-library-item {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid transparent;
+      cursor: pointer;
+      aspect-ratio: 1;
+      background: var(--surface2);
+      transition: border-color 0.15s;
+    }
+    .img-library-item:hover { border-color: var(--amber); }
+    .img-library-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .img-library-item-url {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,.75);
+      font-size: 9px;
+      color: var(--muted);
+      padding: 3px 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .img-library-item:hover .img-library-item-url { opacity: 1; }
 
     /* ── MODALS ── */
     .modal {
@@ -670,12 +779,14 @@
       animation: slideUp .15s ease;
     }
     @keyframes slideUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes pulse-amber { 0%,100% { box-shadow: 0 0 0 0 var(--amber)44; } 50% { box-shadow: 0 0 0 6px var(--amber)00; } }
+    .sync-pulse { animation: pulse-amber 1.8s ease-in-out infinite; border-color: var(--amber) !important; color: var(--amber) !important; }
 
     /* ── FORM LABELS ── */
     .field { display: flex; flex-direction: column; gap: 6px; }
     .label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; font-family: 'DM Mono', monospace; }
 
-    /* ── NOTE TAG COLORS FOR MODAL ── */
+    /* ── NOTE TAG COLORS ── */
     .note-gold { color: #e8c97a; } .note-blue { color: #a8bef9; }
     .note-green { color: #6fdec4; } .note-violet { color: #c4affe; }
 
@@ -709,7 +820,7 @@
     .picker-item:hover { border-color: var(--border2); background: var(--surface3); }
     .picker-list { max-height: 50vh; overflow-y: auto; }
 
-    /* ── ONBOARDING GRID ── */
+    /* ── ONBOARDING ── */
     .onboarding-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -726,34 +837,388 @@
     .ob-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
     .ob-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
 
+    /* ── TRENDING ── */
+    .trending-layout { display: flex; flex-direction: column; gap: 14px; }
+    .trending-tabs {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
+    .trending-tab {
+      padding: 8px 18px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all .12s;
+    }
+    .trending-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+    .trending-tab:hover { color: var(--text); }
+    .trending-controls { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .trending-subs { display: flex; gap: 6px; flex-wrap: wrap; }
+    .sub-pill {
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border2);
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      cursor: pointer;
+      transition: all .12s;
+      white-space: nowrap;
+    }
+    .sub-pill.active { background: var(--amber-dim); border-color: var(--amber-glow); color: var(--amber); }
+    .sub-pill:hover { border-color: var(--subtle); color: var(--text); }
+    .trending-custom-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .trending-list { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+    .trending-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: border-color .12s;
+    }
+    .trending-item:hover { border-color: var(--border2); }
+    .trending-item-rank {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--subtle);
+      flex-shrink: 0;
+      width: 22px;
+      padding-top: 2px;
+    }
+    .trending-item-body { flex: 1; min-width: 0; }
+    .trending-item-title {
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.45;
+      color: var(--text);
+      margin-bottom: 5px;
+    }
+    .trending-item-meta {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .trending-meta-pill {
+      font-size: 10px;
+      font-family: 'DM Mono', monospace;
+      color: var(--subtle);
+    }
+    .trending-meta-pill.score { color: var(--amber); }
+    .trending-meta-pill.sub { color: var(--blue); }
+    .trending-item-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
+
+    @media (max-width: 768px) {
+      .trending-item { padding: 12px; }
+      .trending-item-title { font-size: 14px; }
+      .trending-item-actions { flex-direction: column; gap: 4px; }
+      .trending-custom-row { flex-wrap: wrap; }
+    }
+
     /* ── SECTION DIVIDER ── */
     .divider { height: 1px; background: var(--border); margin: 16px 0; }
 
-    /* ── RESPONSIVE ── */
+    /* ── MOBILE ELEMENTS hidden on desktop by default ── */
+    .mobile-tabs { display: none; }
+    #calAgenda { display: none; }
+    .mob-drawer { display: none; }
+    .mob-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 98; display: none; }
+
+    /* ══════════════════════════════════════════
+       MOBILE — native app feel
+       ══════════════════════════════════════════ */
+    @media (max-width: 768px) {
+
+      /* ── CORE LAYOUT ── */
+      .side { display: none; }
+      .app { grid-template-columns: 1fr; min-height: 100dvh; }
+      .view { padding: 12px 12px 80px; }
+
+      /* Hide desktop page headers — waste of space on mobile */
+      .page-hdr { display: none; }
+
+      /* Cards lose border/shadow, just clean sections */
+      .card {
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        padding: 0;
+      }
+
+      /* ── BOTTOM TAB BAR ── */
+      .mobile-tabs {
+        display: flex;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        height: 64px;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        z-index: 100;
+        align-items: stretch;
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      .mob-tab {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        font-size: 9px;
+        font-family: 'DM Mono', monospace;
+        cursor: pointer;
+        padding: 8px 4px;
+        transition: color .12s;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .mob-tab .mob-icon { font-size: 22px; line-height: 1; }
+      .mob-tab.active { color: var(--amber); }
+      .mob-tab.mob-menu { color: var(--subtle); }
+
+      /* ── MOBILE DRAWER ── */
+      .mob-drawer {
+        position: fixed;
+        bottom: 64px; left: 0; right: 0;
+        max-height: 80vh;
+        overflow-y: auto;
+        background: var(--surface);
+        border-top: 1px solid var(--border2);
+        z-index: 99;
+        padding: 20px 16px;
+        box-shadow: 0 -12px 40px rgba(0,0,0,.5);
+        border-radius: 20px 20px 0 0;
+        display: none;
+      }
+      .mob-drawer.open { display: block; }
+      .mob-backdrop.open { display: block; }
+      .mob-drawer-hdr {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+      }
+      .mob-drawer-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; }
+
+      /* ── MOBILE VIEW HEADER (replaces page-hdr) ── */
+      .mob-view-hdr {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      .mob-view-title {
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        font-size: 20px;
+      }
+
+      /* ── THREAD SPLITTER mobile ── */
+      .cols { display: flex; flex-direction: column; gap: 0; }
+      .thread-actions-bar {
+        position: static;
+        background: transparent;
+        border-bottom: 1px solid var(--border);
+        padding: 0 0 12px;
+        margin-bottom: 12px;
+      }
+      /* Source textarea — full width, taller */
+      #threadView textarea {
+        min-height: 140px;
+        font-size: 15px;
+        border-radius: 10px;
+      }
+      /* Thread parts — bigger tap targets */
+      .thread-part { margin-bottom: 10px; }
+      .thread-part textarea { min-height: 90px; font-size: 14px; }
+      /* Action buttons — full width, tall */
+      #threadView .row.mt12 { flex-direction: column; gap: 8px; }
+      #threadView .row.mt12 .btn { width: 100%; padding: 14px; font-size: 15px; justify-content: center; }
+      #draftThreadBtn, #queueThreadBtn, #scheduleThreadBtn {
+        padding: 14px !important;
+        font-size: 14px !important;
+        flex: 1;
+      }
+      .thread-actions-bar .row { gap: 8px; }
+      #threadView .btn.sm.ghost { padding: 10px 12px; font-size: 13px; }
+
+      /* ── CALENDAR mobile ── */
+      .cal-dow { display: none; }
+      .cal-grid { display: none; }
+      #calAgenda { display: block; }
+      #calAgenda .cal-header { margin-bottom: 12px; }
+      #calAgenda .cal-month { font-size: 20px; }
+
+      /* ── COMPOSER mobile ── */
+      .rich-toolbar {
+        padding: 6px;
+        gap: 3px;
+        border-radius: 10px 10px 0 0;
+        flex-wrap: wrap;
+      }
+      .rich-toolbar .btn.sm { padding: 8px 10px; font-size: 13px; min-height: 36px; }
+      .rich-editor { min-height: 180px; font-size: 15px; line-height: 1.7; }
+      .composer-controls { gap: 10px; }
+      .composer-row-a { flex-wrap: wrap; gap: 8px; }
+      .composer-channel-sel { flex: 1; min-width: 0; font-size: 14px; padding: 10px 12px; }
+      .composer-row-b .btn { padding: 12px 16px; font-size: 14px; flex: 1; justify-content: center; }
+      .composer-row-c .btn { padding: 10px 14px; font-size: 13px; }
+      .composer-expand-panel { margin-top: 8px; }
+      .composer-when-row { flex-wrap: wrap; gap: 8px; }
+      .when-date { flex: 1; min-width: 130px; }
+      .when-time { flex: 1; min-width: 70px; }
+
+      /* ── SNIPPETS mobile ── */
+      .snippets-layout { display: flex; flex-direction: column; gap: 0; }
+      .snippet-filters {
+        position: static;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 0 0 12px;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 12px;
+      }
+      .snippet-filters .filter-label { display: none; }
+      .filter-btn {
+        padding: 7px 12px;
+        border-radius: 20px;
+        border: 1px solid var(--border2);
+        background: var(--surface2);
+        font-size: 12px;
+        width: auto;
+      }
+      .filter-btn.active {
+        background: var(--amber-dim);
+        border-color: var(--amber-glow);
+        color: var(--amber);
+      }
+      .snippet-toolbar { margin-bottom: 10px; }
+      .snippet-grid { grid-template-columns: 1fr; gap: 8px; }
+      .snippet-card { padding: 14px; }
+      /* Bigger action buttons */
+      .snippet-use-btn { padding: 12px; font-size: 13px; }
+      .snippet-actions { padding-top: 10px; gap: 8px; }
+
+      /* ── MODALS mobile ── */
+      .modal { align-items: flex-end; padding: 0; }
+      .modal-card {
+        max-width: 100%;
+        width: 100%;
+        border-radius: 20px 20px 0 0;
+        max-height: 90vh;
+        padding: 20px 16px;
+      }
+      .modal-card.lg { max-width: 100%; }
+
+      /* ── MISC ── */
+      .onboarding-grid { grid-template-columns: 1fr; }
+      .btn { -webkit-tap-highlight-color: transparent; }
+      input, select, textarea { font-size: 16px !important; } /* prevents iOS zoom */
+    }
+
     @media (max-width: 900px) {
-      .app { grid-template-columns: 1fr; }
-      .side { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
       .cols, .onboarding-grid { grid-template-columns: 1fr; }
       .snippets-layout { grid-template-columns: 1fr; }
       .snippet-filters { position: static; }
     }
 
-    /* ── SECTION HEADER for thread/calendar day modal ── */
     .section-hdr { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
     .section-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; }
   </style>
 </head>
 <body>
 
+<!-- ── MOBILE BOTTOM TABS ── -->
+<nav class="mobile-tabs" id="mobileTabs">
+  <button class="mob-tab active" data-view="threadView"><span class="mob-icon">🧵</span>Thread</button>
+  <button class="mob-tab" data-view="calendarView"><span class="mob-icon">📅</span>Calendar</button>
+  <button class="mob-tab" data-view="composerView"><span class="mob-icon">✍️</span>Compose</button>
+  <button class="mob-tab" data-view="snippetsView"><span class="mob-icon">📚</span>Snippets</button>
+  <button class="mob-tab" data-view="trendingView"><span class="mob-icon">📈</span>Trends</button>
+  <button class="mob-tab mob-menu" id="mobMenuBtn"><span class="mob-icon">☰</span>More</button>
+</nav>
+
+<!-- ── MOBILE UTILITY DRAWER ── -->
+<div class="mob-backdrop" id="mobBackdrop"></div>
+<div class="mob-drawer" id="mobDrawer">
+  <div class="mob-drawer-hdr">
+    <span class="mob-drawer-title">PostIQ <span style="background:var(--amber);color:#1a0f00;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;padding:2px 6px;border-radius:3px;vertical-align:middle;">BETA</span></span>
+    <button class="btn sm ghost" id="mobDrawerClose">✕</button>
+  </div>
+
+  <!-- Token status -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+    <div class="status-dot" id="mobStatusDot"></div>
+    <span style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;" id="mobTokenLabel">Not connected</span>
+  </div>
+
+  <!-- Sync button -->
+  <button class="btn grow" id="mobSyncBtn" style="width:100%;justify-content:center;margin-bottom:10px;">↻ Load from Buffer</button>
+  <div id="mobSyncStatus" class="status-txt mb8">Not synced.</div>
+
+  <div class="divider"></div>
+
+  <!-- Token management -->
+  <div style="margin-bottom:8px;">
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <button class="btn sm grow" id="mobManageTokenBtn">Manage token</button>
+    </div>
+    <div id="mobTokenPanel" style="display:none;">
+      <div class="field mb8">
+        <label class="label">Buffer API token</label>
+        <input id="mobTokenInput" class="input mono" type="password" placeholder="Paste token…" />
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <label style="font-size:12px;color:var(--muted);cursor:pointer;"><input type="radio" name="mobTokenMode" value="session" checked /> Session</label>
+        <label style="font-size:12px;color:var(--muted);cursor:pointer;"><input type="radio" name="mobTokenMode" value="local" /> Save locally</label>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn sm primary" id="mobSaveTokenBtn">Save</button>
+        <button class="btn sm ghost" id="mobClearTokenBtn">Remove</button>
+      </div>
+      <div id="mobTokenMsg" class="status-txt mt8"></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div style="display:flex;flex-direction:column;gap:4px;">
+    <button class="nav-btn" id="mobOpenOnboarding"><span class="nav-icon">👋</span> Welcome</button>
+    <button class="nav-btn" id="mobOpenFounder"><span class="nav-icon">🏗</span> Built by Ben</button>
+    <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener"><span class="nav-icon">↗</span> Open Buffer</a>
+  </div>
+</div>
+
 <section id="app" class="app">
 
   <!-- ── SIDEBAR ── -->
   <aside class="side">
-
     <div class="side-logo">
       <div class="logo-mark">PostIQ <span>BETA</span></div>
     </div>
-
     <div class="side-token">
       <div class="token-status-row">
         <div class="status-dot" id="statusDot"></div>
@@ -784,42 +1249,25 @@
         <div id="tokenMsg" class="status-txt mt8">—</div>
       </div>
     </div>
-
     <div class="side-sync">
       <div class="row">
         <button class="btn grow" id="syncBtn" style="justify-content:center;">↻ Load from Buffer</button>
       </div>
       <div id="syncStatus" class="status-txt mt8">Not synced.</div>
     </div>
-
     <nav class="side-nav">
       <div class="nav-label">Tools</div>
-      <button class="nav-btn active" data-view="threadView">
-        <span class="nav-icon">🧵</span> Thread Splitter
-      </button>
-      <button class="nav-btn" data-view="calendarView">
-        <span class="nav-icon">📅</span> Content Calendar
-      </button>
-      <button class="nav-btn" data-view="composerView">
-        <span class="nav-icon">✍️</span> Post Composer
-      </button>
-      <button class="nav-btn" data-view="snippetsView">
-        <span class="nav-icon">📚</span> Snippets
-      </button>
+      <button class="nav-btn active" data-view="threadView"><span class="nav-icon">🧵</span> Thread Splitter</button>
+      <button class="nav-btn" data-view="calendarView"><span class="nav-icon">📅</span> Content Calendar</button>
+      <button class="nav-btn" data-view="composerView"><span class="nav-icon">✍️</span> Post Composer</button>
+      <button class="nav-btn" data-view="snippetsView"><span class="nav-icon">📚</span> Snippets</button>
+      <button class="nav-btn" data-view="trendingView"><span class="nav-icon">📈</span> Trending</button>
     </nav>
-
     <div class="side-bottom">
-      <button class="nav-btn" id="openOnboarding">
-        <span class="nav-icon">👋</span> Welcome
-      </button>
-      <button class="nav-btn" id="openFounder">
-        <span class="nav-icon">🏗</span> Built by Ben
-      </button>
-      <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener">
-        <span class="nav-icon">↗</span> Open Buffer
-      </a>
+      <button class="nav-btn" id="openOnboarding"><span class="nav-icon">👋</span> Welcome</button>
+      <button class="nav-btn" id="openFounder"><span class="nav-icon">🏗</span> Built by Ben</button>
+      <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener"><span class="nav-icon">↗</span> Open Buffer</a>
     </div>
-
   </aside>
 
   <!-- ── MAIN ── -->
@@ -836,7 +1284,9 @@
           <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
         </div>
       </div>
-
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">🧵 Thread Splitter</span>
+      </div>
       <div class="cols">
         <div class="card">
           <div class="card-title">Source text</div>
@@ -851,7 +1301,6 @@
           </div>
           <div id="threadEmpty" class="empty mt12">Paste text above, then click <strong>Split thread</strong>.</div>
         </div>
-
         <div>
           <div class="thread-actions-bar">
             <div class="section-hdr" style="margin-bottom:10px;">
@@ -889,33 +1338,23 @@
           <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
         </div>
       </div>
-
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">📅 Calendar</span>
+        <button class="btn sm ghost" id="shareMonthBtnMob">Share</button>
+      </div>
       <div class="cal-header">
         <button class="btn icon" id="prevMonth">‹</button>
         <div class="cal-month" id="monthLabel"></div>
         <button class="btn icon" id="nextMonth">›</button>
         <button class="btn sm ghost" id="todayMonth">Today</button>
       </div>
-
       <div class="cal-dow">
-        <div class="dow-label">Sun</div>
-        <div class="dow-label">Mon</div>
-        <div class="dow-label">Tue</div>
-        <div class="dow-label">Wed</div>
-        <div class="dow-label">Thu</div>
-        <div class="dow-label">Fri</div>
-        <div class="dow-label">Sat</div>
-      </div>
-
-      <div id="calendarEmpty" class="empty mt8" style="display:none;">
-        No scheduled posts found for this month.<br>
-        <span style="color:var(--subtle);font-size:12px;">Posts come from Buffer. Click <strong style="color:var(--text);">↻ Load from Buffer</strong> in the sidebar to sync your scheduled posts.</span>
-      </div>
-      <div id="calendarNotSynced" class="empty mt8">
-        Your calendar is empty — connect Buffer to get started.<br>
-        <span style="color:var(--subtle);font-size:12px;">Add your Buffer API token in the sidebar, then click <strong style="color:var(--text);">↻ Load from Buffer</strong>.</span>
+        <div class="dow-label">Sun</div><div class="dow-label">Mon</div><div class="dow-label">Tue</div>
+        <div class="dow-label">Wed</div><div class="dow-label">Thu</div><div class="dow-label">Fri</div><div class="dow-label">Sat</div>
       </div>
       <div class="cal-grid" id="calGrid"></div>
+      <!-- Mobile agenda view (hidden on desktop, shown on mobile) -->
+      <div id="calAgenda"></div>
     </section>
 
     <!-- Post Composer -->
@@ -923,14 +1362,18 @@
       <div class="page-hdr">
         <div class="page-hdr-left">
           <h1 class="page-title">Post Composer</h1>
-          <p class="page-desc">Draft text-first posts, then push to Buffer. For images/video, save as draft then attach in Buffer.</p>
+          <p class="page-desc">Draft text-first posts, then push to Buffer.</p>
         </div>
         <div class="page-actions">
           <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
         </div>
       </div>
-
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">✍️ Compose</span>
+      </div>
       <div class="card">
+
+        <!-- Toolbar -->
         <div class="rich-toolbar">
           <button class="btn sm" data-cmd="bold"><strong>B</strong></button>
           <button class="btn sm" data-cmd="italic"><em>I</em></button>
@@ -941,26 +1384,67 @@
           <button class="btn sm" id="insertSnippetBtn">Insert snippet</button>
           <button class="btn sm ghost" id="saveSelectionSnippetBtn">Save selection</button>
         </div>
-        <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here…"></div>
-        <div id="composerEmpty" class="empty mt8">Start drafting above, then save draft, queue, or schedule.</div>
 
-        <div class="composer-footer mt12">
-          <select id="composerChannel" class="input grow"></select>
-          <input id="composerWhen" type="datetime-local" class="input" style="max-width:200px" />
+        <!-- Editor -->
+        <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here…"></div>
+        <div id="composerEmpty" class="empty mt8" style="display:none;">Start drafting above, then save draft, queue, or schedule.</div>
+
+        <!-- Controls row -->
+        <div class="composer-controls mt10">
+
+          <!-- Row A: channel + char count -->
+          <div class="composer-row-a">
+            <select id="composerChannel" class="input composer-channel-sel"></select>
+            <div id="composerNoChannels" class="status-txt" style="display:none;font-size:12px;">↻ Load from Buffer to see channels</div>
+            <span class="char-hint" id="composerCharCount">0 chars</span>
+          </div>
+          <div id="composerChannelHint" class="status-txt mt4" style="display:none;font-size:11px;"></div>
+
+          <!-- Row B: actions + schedule toggle -->
+          <div class="composer-row-b mt8">
+            <button class="btn" id="composerDraft">Save draft</button>
+            <button class="btn success" id="composerQueue">Add to queue</button>
+            <button class="btn primary" id="composerScheduleToggle">📅 Schedule…</button>
+          </div>
+
+          <!-- Schedule expander (hidden until toggle) -->
+          <div id="composerSchedulePanel" class="composer-expand-panel" style="display:none;">
+            <div class="composer-when-row mt8">
+              <span class="when-lbl">📅</span>
+              <input id="composerWhenDate" type="date" class="input when-date" />
+              <select id="composerWhenHour" class="input when-time"></select>
+              <select id="composerWhenMin" class="input when-time"></select>
+              <select id="composerWhenAmpm" class="input when-time"></select>
+              <button class="btn primary sm" id="composerSchedule">Send</button>
+              <button class="btn ghost sm" id="composerScheduleCancel">✕</button>
+            </div>
+            <input id="composerWhen" type="hidden" />
+          </div>
+
+          <!-- Image toggle -->
+          <div class="composer-row-c mt8">
+            <button class="btn sm ghost" id="composerImageToggle">🖼 Add image</button>
+            <button class="btn sm ghost" style="display:none;" id="composerImageToggleOff">🖼 Remove image</button>
+          </div>
+
+          <!-- Image expander (hidden until toggle) -->
+          <div id="composerImagePanel" class="composer-expand-panel" style="display:none;">
+            <div class="composer-image-row mt8">
+              <span class="img-row-lbl">URL</span>
+              <div class="img-url-wrap">
+                <input id="composerImageUrl" class="input img-url-input" placeholder="https://… (direct public image URL)" />
+                <div class="img-url-tooltip">Needs a public direct image URL — e.g. ending in .jpg, .png, .webp<br>Right-click any image → "Copy image address" to get the URL.</div>
+              </div>
+              <button class="btn sm ghost" id="composerImageClear" style="display:none;">✕</button>
+              <button class="btn sm ghost" id="openImageLibraryBtn">📚 Past images</button>
+              <div id="composerImagePreview" style="display:none;"></div>
+            </div>
+            <div class="status-txt mt4" style="color:var(--subtle);font-size:11px;">⚠ Video must be attached directly in Buffer.</div>
+          </div>
+
+          <div id="composerStatus" class="status-txt mt8"></div>
         </div>
-        <div id="composerNoChannels" class="empty mt8" style="display:none;">
-          No channels loaded yet.<br>
-          <span style="color:var(--subtle);font-size:12px;">Add your Buffer token and click <strong style="color:var(--text);">↻ Load from Buffer</strong> to see your channels.</span>
-        </div>
-        <div id="composerChannelHint" class="status-txt mt8" style="display:none;"></div>
-        <div class="composer-actions mt10">
-          <button class="btn" id="composerDraft">Save draft</button>
-          <button class="btn success" id="composerQueue">Add to queue</button>
-          <button class="btn primary" id="composerSchedule">Schedule</button>
-          <span class="char-hint" id="composerCharCount">0 chars</span>
-        </div>
-        <div class="status-txt mt8" style="color:var(--subtle);font-size:11px;">Schedule requires a date/time above. For images/video, save as draft then attach in Buffer.</div>
-        <div id="composerStatus" class="status-txt mt8"></div>
+
       </div>
     </section>
 
@@ -976,7 +1460,10 @@
           <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
         </div>
       </div>
-
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">📚 Snippets</span>
+        <button class="btn sm primary" id="newSnippetBtnMob">+ New</button>
+      </div>
       <div class="snippets-layout">
         <div class="snippet-filters" id="snippetTypeFilters"></div>
         <div>
@@ -993,9 +1480,89 @@
   </main>
 </section>
 
+<!-- ── TRENDING VIEW (inside main via JS activation) ── -->
+<script>
+// Inject trending view into main on load
+document.addEventListener('DOMContentLoaded', () => {
+  const main = document.querySelector('.main');
+  const tv = document.createElement('section');
+  tv.id = 'trendingView';
+  tv.className = 'view';
+  tv.innerHTML = `
+    <div class="page-hdr">
+      <div class="page-hdr-left">
+        <h1 class="page-title">Trending</h1>
+        <p class="page-desc">What's hot on Reddit and Hacker News right now. Click any story to draft a post.</p>
+      </div>
+    </div>
+    <div class="mob-view-hdr">
+      <span class="mob-view-title">📈 Trending</span>
+      <button class="btn sm ghost" id="trendingRefreshMob">↻</button>
+    </div>
+
+    <div class="trending-layout">
+
+      <!-- Source tabs -->
+      <div class="trending-tabs">
+        <button class="trending-tab active" data-src="reddit">Reddit</button>
+        <button class="trending-tab" data-src="hn">Hacker News</button>
+      </div>
+
+      <!-- Reddit panel -->
+      <div id="trendingReddit" class="trending-panel">
+        <div class="trending-controls">
+          <div class="trending-subs" id="trendingSubBtns">
+            <button class="sub-pill active" data-sub="socialmedia">r/socialmedia</button>
+            <button class="sub-pill" data-sub="entrepreneur">r/entrepreneur</button>
+            <button class="sub-pill" data-sub="marketing">r/marketing</button>
+            <button class="sub-pill" data-sub="business">r/business</button>
+          </div>
+          <div class="trending-custom-row">
+            <input id="trendingCustomSub" class="input" placeholder="r/custom subreddit" style="max-width:200px;" />
+            <button class="btn sm" id="trendingAddSub">Go</button>
+            <button class="btn sm ghost" id="trendingRefresh">↻ Refresh</button>
+          </div>
+        </div>
+        <div id="trendingRedditStatus" class="status-txt mt8"></div>
+        <div id="trendingRedditList" class="trending-list"></div>
+      </div>
+
+      <!-- HN panel -->
+      <div id="trendingHN" class="trending-panel" style="display:none;">
+        <div class="trending-controls">
+          <div class="trending-subs">
+            <button class="sub-pill active" data-hn="topstories">Top</button>
+            <button class="sub-pill" data-hn="newstories">New</button>
+            <button class="sub-pill" data-hn="beststories">Best</button>
+          </div>
+          <div class="trending-custom-row">
+            <button class="btn sm ghost" id="trendingHNRefresh">↻ Refresh</button>
+          </div>
+        </div>
+        <div id="trendingHNStatus" class="status-txt mt8"></div>
+        <div id="trendingHNList" class="trending-list"></div>
+      </div>
+
+    </div>
+  `;
+  main.appendChild(tv);
+});
+</script>
+
 <!-- ── MODALS ── -->
 
-<!-- Onboarding (includes guide) -->
+<!-- Image Library -->
+<div id="imageLibraryModal" class="modal"><div class="modal-card lg">
+  <div class="modal-hdr">
+    <span class="modal-title">📚 Past Images</span>
+    <button class="btn sm ghost" id="closeImageLibrary">Close</button>
+  </div>
+  <p style="font-size:12px;color:var(--subtle);margin-bottom:12px;">Images from your synced Buffer posts. Click any to insert into the composer.</p>
+  <div id="imageLibraryEmpty" class="empty" style="display:none;">No images found in synced posts. Sync Buffer first, or paste a URL directly.</div>
+  <div id="imageLibraryGrid" class="img-library-grid"></div>
+</div></div>
+
+<!-- Onboarding -->
 <div id="onboardingModal" class="modal"><div class="modal-card">
   <div class="modal-hdr">
     <span class="modal-title">Welcome to PostIQ</span>
@@ -1013,7 +1580,7 @@
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;">
       <div><strong style="color:var(--text);">No login required</strong> — PostIQ needs no account.</div>
       <div><strong style="color:var(--text);">Token stays local</strong> — your Buffer token never leaves your device.</div>
-      <div><strong style="color:var(--text);">Images &amp; video</strong> — save as draft, then attach media in Buffer.</div>
+      <div><strong style="color:var(--text);">Images via URL</strong> — paste a direct image URL in the Composer.</div>
       <div><strong style="color:var(--text);">Share calendars</strong> — generate read-only month links for async reviews.</div>
     </div>
   </div>
@@ -1030,7 +1597,7 @@
   </div>
   <p style="font-size:13px;color:var(--muted);line-height:1.7;">Open to work — social media and content marketing roles. If you enjoy this app, message Ben on Discord with feedback.</p>
   <p style="font-size:13px;margin-top:10px;color:var(--muted);">
-    Email: <a href="mailto:hirebencampbell@gmail.com" style="color:var(--blue);">hirebencampbell@gmail.com</a><br>
+    Email: <a href="/cdn-cgi/l/email-protection#741c1d061116111a1715190416111818341319151d185a171b19" style="color:var(--blue);"><span class="__cf_email__" data-cfemail="1971706b7c7b7c777a7874697b7c7575597e74787075377a7674">[email&#160;protected]</span></a><br>
     Portfolio: <a href="https://bencampbell.netlify.app/" target="_blank" style="color:var(--blue);">bencampbell.netlify.app</a><br>
     LinkedIn: <a href="https://www.linkedin.com/in/bencampbell8/" target="_blank" style="color:var(--blue);">linkedin.com/in/bencampbell8</a>
   </p>
@@ -1062,9 +1629,7 @@
     <span class="modal-title" id="noteDateLabel">—</span>
     <button class="btn sm ghost" id="closeNote">Close</button>
   </div>
-
   <div id="dayModalPostPreview" class="mb8"></div>
-
   <div class="field mb8">
     <label class="label">Planning note</label>
     <textarea id="noteText" placeholder="Add your planning note…" style="min-height:90px;"></textarea>
@@ -1078,9 +1643,7 @@
       <option value="violet|Priority">💜 Priority</option>
     </select>
   </div>
-
   <div id="dayModalNotePreview" class="mb8"></div>
-
   <div class="row">
     <button class="btn primary" id="saveNoteBtn">Save note</button>
     <button class="btn" id="sendNoteToComposer">Use in Composer</button>
@@ -1154,7 +1717,7 @@
   <div id="sharedGrid" class="cal-grid mt8"></div>
 </section>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const STORE_KEY='postiq_buffer_token';
 const NOTE_KEY='postiq_calendar_notes_v2';
 const ONBOARDING_KEY='postiq_onboarding_seen_v1';
@@ -1217,19 +1780,14 @@ function filteredSnippets(search=state.snippetSearch,type=state.snippetType,plat
     return typeOk&&platformOk&&(!q||text.includes(q));
   });
 }
-
-function snippetBadge(text,cls=''){
-  return `<span class="chip ${cls}">${safeText(text)}</span>`;
-}
-
+function snippetBadge(text,cls=''){return `<span class="chip ${cls}">${safeText(text)}</span>`;}
 function useSnippetInComposer(snippet){
   const editor=qs('composerEditor');editor.focus();
   const body=snippet.body||'';
   try{
     const sel=window.getSelection();
-    if(sel&&sel.rangeCount&&editor.contains(sel.anchorNode)){
-      sel.deleteFromDocument();sel.getRangeAt(0).insertNode(document.createTextNode(body));
-    }else{editor.innerText=editor.innerText?`${editor.innerText}\n\n${body}`:body;}
+    if(sel&&sel.rangeCount&&editor.contains(sel.anchorNode)){sel.deleteFromDocument();sel.getRangeAt(0).insertNode(document.createTextNode(body));}
+    else{editor.innerText=editor.innerText?`${editor.innerText}\n\n${body}`:body;}
   }catch{editor.innerText=editor.innerText?`${editor.innerText}\n\n${body}`:body}
   qs('composerEmpty').style.display=editorHtmlToText(editor.innerHTML)?'none':'block';
   showToast('Snippet inserted');
@@ -1239,19 +1797,16 @@ function useSnippetInThread(snippet,position='prepend'){
   input.value=position==='prepend'?(current?`${body}\n\n${current}`:body):(current?`${current}\n\n${body}`:body);
   showToast(position==='prepend'?'Opener added':'CTA added');
 }
-
 function renderSnippetFilters(){
   const rail=qs('snippetTypeFilters');rail.innerHTML='';
   const label=document.createElement('div');label.className='filter-label';label.textContent='Type';rail.appendChild(label);
   snippetTypes.forEach(type=>{
     const b=document.createElement('button');
     b.className=`filter-btn ${state.snippetType===type?'active':''}`;
-    b.textContent=type;
-    b.onclick=()=>{state.snippetType=type;renderSnippets();};
+    b.textContent=type;b.onclick=()=>{state.snippetType=type;renderSnippets();};
     rail.appendChild(b);
   });
 }
-
 function renderSnippets(){
   renderSnippetFilters();
   const list=filteredSnippets();
@@ -1282,12 +1837,10 @@ function renderSnippets(){
     grid.appendChild(card);
   });
 }
-
 function activateView(viewId){
   document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===viewId));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
 }
-
 function openSnippetModal(id=null){
   state.editingSnippetId=id;
   const s=id?state.snippets.find(x=>x.id===id):null;
@@ -1325,10 +1878,7 @@ function renderSnippetSelectors(){
   qs('snippetPlatformFilter').value=state.snippetPlatform;
 }
 function openSnippetPicker(mode){
-  if(!state.snippets.length){
-    showToast('No snippets yet — create one in the Snippets tab first');
-    return;
-  }
+  if(!state.snippets.length){showToast('No snippets yet — create one in the Snippets tab first');return;}
   state.pickerMode=mode;
   qs('snippetPickerTitle').textContent=mode==='composer'?'Insert snippet into Composer':mode==='threadOpener'?'Add opener from Snippets':'Add ending CTA from Snippets';
   qs('pickerSearch').value='';qs('pickerType').value='All';qs('pickerPlatform').value='All Platforms';
@@ -1353,23 +1903,18 @@ function renderSnippetPicker(){
 
 // ── TOKEN ──
 function setSyncStatus(stateName,msg){state.syncState=stateName;qs('syncStatus').textContent=msg;}
-
 function updateTokenUI(){
   const connected=!!bufferToken;
   qs('statusDot').classList.toggle('connected',connected);
   qs('tokenStatusLabel').textContent=connected?'Connected':'Not connected';
   qs('tokenMaskedPreview').textContent=maskToken(bufferToken);
-  tokenInputVisible=false;
-  qs('tokenInput').type='password';
-  qs('toggleTokenVisibility').textContent='Show';
+  tokenInputVisible=false;qs('tokenInput').type='password';qs('toggleTokenVisibility').textContent='Show';
 }
-
 function toggleTokenPanel(){
   tokenPanelOpen=!tokenPanelOpen;
   qs('tokenPanel').classList.toggle('open',tokenPanelOpen);
   qs('manageTokenBtn').textContent=tokenPanelOpen?'Done':'Manage';
 }
-
 function saveToken(){
   const token=qs('tokenInput').value.trim();
   const mode=[...document.querySelectorAll('input[name="tokenMode"]')].find(r=>r.checked).value;
@@ -1380,7 +1925,6 @@ function saveToken(){
   qs('tokenMsg').textContent=mode==='local'?'Saved to localStorage.':'Saved for this session.';
   showToast('Token saved');updateTokenUI();
 }
-
 function loadStoredToken(){
   bufferToken=sessionStorage.getItem(STORE_KEY)||localStorage.getItem(STORE_KEY)||'';
   if(bufferToken)qs('tokenInput').value=bufferToken;
@@ -1392,7 +1936,9 @@ async function callBuffer(query,variables={}){
   if(!bufferToken)throw new Error('MISSING_TOKEN');
   const res=await fetch('/.netlify/functions/buffer-proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:bufferToken,query,variables})});
   const data=await res.json();
-  if(data.errors?.length)throw new Error(data.errors[0].message);
+  // Only throw if no data returned — partial errors alongside data are normal in GraphQL
+  if(data.errors?.length && !data.data)throw new Error(data.errors[0].message);
+  if(data.errors?.length)console.warn('[PostIQ] GraphQL partial errors:',data.errors);
   return data;
 }
 
@@ -1410,7 +1956,7 @@ async function syncBuffer(){
     const ch=await callBuffer(channelsQuery,{organizationId:orgId});
     state.channels=ch?.data?.channels||[];
     const cap=500;let after=null;let all=[];let hasNext=true;
-    const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId } } pageInfo{ hasNextPage endCursor } } }';
+    const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId assets{ thumbnail mimeType source } } } pageInfo{ hasNextPage endCursor } } }';
     while(hasNext&&all.length<cap){
       const page=await callBuffer(postsQuery,{organizationId:orgId,after});
       const block=page?.data?.posts;const edges=block?.edges||[];
@@ -1420,50 +1966,35 @@ async function syncBuffer(){
     }
     state.scheduled=all;renderChannelSelects();renderCalendar();
     setSyncStatus('success',`${all.length} scheduled posts loaded.`);
+    qs('syncBtn').classList.remove('sync-pulse');
     showToast(`Loaded ${all.length} posts`);
+    window.dispatchEvent(new Event('postiq:synced'));
   }catch(e){
+    console.error('[PostIQ] syncBuffer error:', e);
     const m=String(e.message||'');
     if(m.includes('MISSING_TOKEN'))setSyncStatus('failed','Add a Buffer token first.');
     else if(/unauthorized|invalid|forbidden/i.test(m))setSyncStatus('failed','Token appears invalid or expired.');
-    else setSyncStatus('failed','Sync failed. Try again.');
+    else setSyncStatus('failed',`Sync failed: ${m||'unknown error'}`);
   }
 }
 
 function renderChannelSelects(){
-  // Thread: X and Threads channels only
   const threadSel=qs('threadChannel');
-  const threadChannels=state.channels.filter(c=>{
-    const s=(c.service||'').toLowerCase();
-    return s.includes('twitter')||s.includes('x')||s.includes('thread');
-  });
+  const threadChannels=state.channels.filter(c=>{const s=(c.service||'').toLowerCase();return s.includes('twitter')||s.includes('x')||s.includes('thread');});
   threadSel.innerHTML='';
   if(threadChannels.length){
     threadChannels.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.displayName||c.name} (${c.service})`;threadSel.appendChild(o)});
-    qs('threadNoChannels').style.display='none';
-    threadSel.style.display='';
-  }else{
-    qs('threadNoChannels').style.display='block';
-    threadSel.style.display='none';
-  }
-
-  // Composer: all channels
+    qs('threadNoChannels').style.display='none';threadSel.style.display='';
+  }else{qs('threadNoChannels').style.display='block';threadSel.style.display='none';}
   const composerSel=qs('composerChannel');
   composerSel.innerHTML='';
   if(state.channels.length){
     state.channels.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.displayName||c.name} (${c.service})`;composerSel.appendChild(o)});
-    qs('composerNoChannels').style.display='none';
-    composerSel.style.display='';
-    updateComposerChannelHint();
-  }else{
-    qs('composerNoChannels').style.display='block';
-    composerSel.style.display='none';
-    qs('composerChannelHint').style.display='none';
-  }
+    qs('composerNoChannels').style.display='none';composerSel.style.display='';updateComposerChannelHint();
+  }else{qs('composerNoChannels').style.display='block';composerSel.style.display='none';qs('composerChannelHint').style.display='none';}
 }
-
 function updateComposerChannelHint(){
-  const sel=qs('composerChannel');
-  const hint=qs('composerChannelHint');
+  const sel=qs('composerChannel');const hint=qs('composerChannelHint');
   if(!sel||!sel.value){hint.style.display='none';return;}
   const ch=state.channels.find(c=>c.id===sel.value);
   if(ch){hint.textContent=`Posting to: ${ch.displayName||ch.name} (${ch.service})`;hint.style.display='block';}
@@ -1482,11 +2013,9 @@ function splitThreadText(text,max=280){
 function renderThread(){
   const out=qs('threadOut');
   if(!threadParts.length){out.innerHTML='';qs('threadEmpty').style.display='block';return;}
-  qs('threadEmpty').style.display='none';
-  out.innerHTML='';
+  qs('threadEmpty').style.display='none';out.innerHTML='';
   threadParts.forEach((p,i)=>{
-    const chars=p.length;
-    const over=chars>280;
+    const chars=p.length;const over=chars>280;
     const d=document.createElement('div');d.className='thread-part';
     d.innerHTML=`<div class="thread-part-hdr"><span class="part-num">Part ${i+1}</span><div style="display:flex;gap:6px;align-items:center;"><span style="font-size:11px;font-family:'DM Mono',monospace;color:${over?'var(--red)':'var(--subtle)'};">${chars}/280</span><button class="btn sm ghost" data-copy="${i}">Copy</button></div></div><textarea data-i="${i}" style="min-height:80px;">${p}</textarea>`;
     out.appendChild(d);
@@ -1524,87 +2053,58 @@ function renderCalendar(){
   qs('monthLabel').textContent=monthLabel(state.month);
   const grid=qs('calGrid');grid.innerHTML='';
   const first=monthStart(state.month);const start=new Date(first);start.setDate(1-first.getDay());
-  const notes=getNotes();
-  const today=fmtDate(new Date());
-  const hasSynced=state.syncState==='success'||state.syncState==='partial';
-  const monthPosts=postsByMonth(state.month);
-
-  qs('calendarNotSynced').style.display=hasSynced?'none':'block';
-  qs('calendarEmpty').style.display=(hasSynced&&!monthPosts.length)?'block':'none';
-
+  const notes=getNotes();const today=fmtDate(new Date());
   for(let i=0;i<42;i++){
     const d=new Date(start);d.setDate(start.getDate()+i);
     const key=fmtDate(d);const inMonth=d.getMonth()===state.month.getMonth();
     const dayPosts=state.scheduled.filter(p=>fmtDate(new Date(p.dueAt))===key);
-    const note=notes[key];
-    const isToday=key===today;
+    const note=notes[key];const isToday=key===today;
     const day=document.createElement('div');
-    let cls='cal-day';
-    if(!inMonth)cls+=' other-month';
-    if(isToday)cls+=' today';
-    if(dayPosts.length)cls+=' has-posts';
+    let cls='cal-day';if(!inMonth)cls+=' other-month';if(isToday)cls+=' today';if(dayPosts.length)cls+=' has-posts';
     day.className=cls;
-
     let html=`<div class="day-num">${d.getDate()}</div>`;
     if(dayPosts.length>0)html+=`<div class="day-posts-count">${dayPosts.length}</div>`;
-    if(dayPosts.length>0){html+=`<div class="day-post-pill">${safeText(compactText(dayPosts[0].text,70))}</div>`;}
-    if(dayPosts.length>1){html+=`<div class="day-post-pill">${safeText(compactText(dayPosts[1].text,70))}</div>`;}
-    if(dayPosts.length>2){html+=`<div class="more-indicator">+${dayPosts.length-2} more</div>`;}
-    if(note){html+=`<div class="day-note-pill ${note.tag||'gold'}"><span class="note-pill-label">${safeText(note.label||noteTags[note.tag]||'Note')}</span>${safeText(compactText(note.text,60))}</div>`;}
-
-    day.innerHTML=html;
-    day.onclick=()=>openDayNote(d);
-    grid.appendChild(day);
+    if(dayPosts.length>0)html+=`<div class="day-post-pill">${safeText(compactText(dayPosts[0].text,70))}</div>`;
+    if(dayPosts.length>1)html+=`<div class="day-post-pill">${safeText(compactText(dayPosts[1].text,70))}</div>`;
+    if(dayPosts.length>2)html+=`<div class="more-indicator">+${dayPosts.length-2} more</div>`;
+    if(note)html+=`<div class="day-note-pill ${note.tag||'gold'}"><span class="note-pill-label">${safeText(note.label||noteTags[note.tag]||'Note')}</span>${safeText(compactText(note.text,60))}</div>`;
+    day.innerHTML=html;day.onclick=()=>openDayNote(d);grid.appendChild(day);
   }
 }
-
 function openDayNote(date){
-  state.selectedDate=date;
-  const key=fmtDate(date);
+  state.selectedDate=date;const key=fmtDate(date);
   const note=getNotes()[key]||{text:'',tag:'gold',label:'Idea'};
   qs('noteDateLabel').textContent=date.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
   qs('noteText').value=note.text||'';
   qs('noteTag').value=`${note.tag||'gold'}|${note.label||noteTags[note.tag||'gold']||'Idea'}`;
-
   const dayPosts=state.scheduled.filter(p=>fmtDate(new Date(p.dueAt))===key);
   qs('dayModalPostPreview').innerHTML=dayPosts.length
     ?`<div class="label mb8">Scheduled posts</div>${dayPosts.map(p=>`<div class="day-post-pill mb8" style="border-radius:6px;">${safeText(p.text||'(no text)')}</div>`).join('')}`
     :`<div class="status-txt mb8" style="font-size:12px;">No scheduled posts on this day.${state.syncState==='idle'?' <span style="color:var(--subtle);">Load from Buffer to sync posts.</span>':''}</div>`;
-
   qs('dayModalNotePreview').innerHTML=note.text
-    ?`<div class="day-note-pill ${note.tag||'gold'} mb8"><span class="note-pill-label">${safeText(note.label||noteTags[note.tag||'gold']||'Note')}</span>${safeText(note.text)}</div>`
-    :'';
-
-  qs('noteStatus').textContent='';
-  openModal('noteModal');
+    ?`<div class="day-note-pill ${note.tag||'gold'} mb8"><span class="note-pill-label">${safeText(note.label||noteTags[note.tag||'gold']||'Note')}</span>${safeText(note.text)}</div>`:'';
+  qs('noteStatus').textContent='';openModal('noteModal');
 }
-
 function saveNoteFromModal(){
-  if(!state.selectedDate)return;
-  const key=fmtDate(state.selectedDate);
-  const text=qs('noteText').value.trim();
-  const [tag,label]=qs('noteTag').value.split('|');
+  if(!state.selectedDate)return;const key=fmtDate(state.selectedDate);
+  const text=qs('noteText').value.trim();const [tag,label]=qs('noteTag').value.split('|');
   const notes=getNotes();
   if(!text){delete notes[key];setNotes(notes);qs('noteStatus').textContent='Note removed.';renderCalendar();return;}
   notes[key]={text,tag,label};setNotes(notes);qs('noteStatus').textContent='Saved.';renderCalendar();showToast('Note saved');
 }
 function deleteNote(){
-  if(!state.selectedDate)return;
-  const notes=getNotes();delete notes[fmtDate(state.selectedDate)];setNotes(notes);
+  if(!state.selectedDate)return;const notes=getNotes();delete notes[fmtDate(state.selectedDate)];setNotes(notes);
   qs('noteText').value='';qs('noteStatus').textContent='Deleted.';renderCalendar();showToast('Note deleted');
 }
 function sendNoteToComposer(){
-  if(!state.selectedDate)return;
-  const text=qs('noteText').value.trim();
+  if(!state.selectedDate)return;const text=qs('noteText').value.trim();
   if(!text){qs('noteStatus').textContent='Add note text first.';return;}
   const [tag,label]=qs('noteTag').value.split('|');
   const editor=qs('composerEditor');
   const payload=`[${label}] ${fmtDate(state.selectedDate)}\n${text}`;
   editor.innerText=editor.innerText?`${editor.innerText}\n\n${payload}`:payload;
-  closeModal('noteModal');activateView('composerView');
-  qs('composerEmpty').style.display='none';showToast('Note sent to Composer');
+  closeModal('noteModal');activateView('composerView');qs('composerEmpty').style.display='none';showToast('Note sent to Composer');
 }
-
 function postsByMonth(date){
   const y=date.getFullYear(),m=date.getMonth();
   return state.scheduled.filter(p=>{const d=new Date(p.dueAt);return d.getFullYear()===y&&d.getMonth()===m});
@@ -1613,17 +2113,14 @@ function notesForMonth(date){
   const all=getNotes();const y=date.getFullYear(),m=date.getMonth();
   return Object.entries(all).filter(([k])=>{const d=new Date(k+'T00:00:00');return d.getFullYear()===y&&d.getMonth()===m}).map(([date,val])=>({date,...val}));
 }
-
 function shareSnapshot(){
   const include=qs('includeNotes').checked;
   const month=monthLabel(state.month);
   const monthPosts=postsByMonth(state.month);const monthNotes=notesForMonth(state.month);
-  qs('shareMonthName').textContent=month;qs('sharePostCount').textContent=monthPosts.length;
-  qs('shareNoteCount').textContent=include?monthNotes.length:0;
+  qs('shareMonthName').textContent=month;qs('sharePostCount').textContent=monthPosts.length;qs('shareNoteCount').textContent=include?monthNotes.length:0;
   const payload={month,includeNotes:include,posts:monthPosts.map(p=>({dueAt:p.dueAt,text:p.text})),notes:include?monthNotes:[]};
   qs('shareLink').value=location.origin+location.pathname+'#share='+btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
 }
-
 function renderSharedFromHash(){
   if(!location.hash.startsWith('#share='))return false;
   try{
@@ -1631,14 +2128,12 @@ function renderSharedFromHash(){
     closeModal('onboardingModal');qs('app').classList.add('hidden');qs('sharedView').classList.remove('hidden');
     qs('sharedMonthTitle').textContent=snap.month;
     qs('sharedBanner').textContent=`Read-only snapshot · ${snap.posts.length} scheduled posts · Notes ${snap.includeNotes?'included':'excluded'}`;
-    const grid=qs('sharedGrid');grid.innerHTML='';
-    const map={};
+    const grid=qs('sharedGrid');grid.innerHTML='';const map={};
     snap.posts.forEach(p=>{const k=p.dueAt.slice(0,10);(map[k]||(map[k]={posts:[],notes:[]})).posts.push(p.text)});
     (snap.notes||[]).forEach(n=>{(map[n.date]||(map[n.date]={posts:[],notes:[]})).notes.push(n)});
     Object.keys(map).sort().forEach(k=>{
       const d=document.createElement('div');d.className='cal-day';d.style.cursor='default';
-      const day=map[k];
-      let html=`<div class="day-num">${k.slice(8)}</div>`;
+      const day=map[k];let html=`<div class="day-num">${k.slice(8)}</div>`;
       if(day.posts.length)html+=`<div class="day-posts-count">${day.posts.length}</div>`;
       day.posts.slice(0,2).forEach(t=>{html+=`<div class="day-post-pill">${safeText(compactText(t,70))}</div>`});
       day.notes.slice(0,2).forEach(n=>{html+=`<div class="day-note-pill ${n.tag||'gold'}"><span class="note-pill-label">${safeText(n.label||'Note')}</span>${safeText(compactText(n.text,60))}</div>`});
@@ -1648,8 +2143,64 @@ function renderSharedFromHash(){
   }catch(e){console.error(e);return false}
 }
 
+// ── POSTS ──
 async function createPost(input){
-  return callBuffer('mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename}}',{input});
+  const res=await callBuffer(`mutation CreatePost($input:CreatePostInput!){createPost(input:$input){... on PostActionSuccess{post{id}} ... on MutationError{message}}}`,{input});
+  return res;
+}
+
+// ── IMAGE LIBRARY ──
+async function openImageLibrary(){
+  const grid=qs('imageLibraryGrid');const empty=qs('imageLibraryEmpty');
+  grid.innerHTML='<div style="color:var(--subtle);font-size:12px;padding:12px;">Loading past images…</div>';
+  empty.style.display='none';
+  openModal('imageLibraryModal');
+
+  // Pull from already-synced scheduled posts first, then fetch recent sent posts for images
+  const seen=new Set();const images=[];
+
+  function addAssets(posts){
+    (posts||[]).forEach(post=>{
+      (post.assets||[]).forEach(asset=>{
+        const src=asset.source||asset.thumbnail;
+        if(src&&!seen.has(src)){seen.add(src);images.push(asset);}
+      });
+    });
+  }
+
+  addAssets(state.scheduled);
+
+  // Also fetch recent sent posts which is where most images live
+  if(bufferToken){
+    try{
+      const acc=await callBuffer('query { account { organizations { id name } } }');
+      const orgId=acc?.data?.account?.organizations?.[0]?.id;
+      if(orgId){
+        const sentQuery='query SentPosts($organizationId: OrganizationId!){ posts(first:50, input:{organizationId:$organizationId, filter:{status:[sent]}}){ edges{ node{ id assets{ thumbnail mimeType source } } } } }';
+        const res=await callBuffer(sentQuery,{organizationId:orgId});
+        const sentPosts=(res?.data?.posts?.edges||[]).map(e=>e.node);
+        addAssets(sentPosts);
+      }
+    }catch(e){console.warn('[PostIQ] sent posts fetch failed:',e);}
+  }
+
+  grid.innerHTML='';
+  if(!images.length){empty.style.display='block';grid.style.display='none';}
+  else{
+    empty.style.display='none';grid.style.display='grid';
+    images.forEach(asset=>{
+      const src=asset.source||asset.thumbnail;
+      const thumb=asset.thumbnail||asset.source;
+      const item=document.createElement('div');item.className='img-library-item';
+      item.innerHTML=`<img src="${thumb}" loading="lazy" alt="" /><div class="img-library-item-url">${src}</div>`;
+      item.onclick=()=>{
+        qs('composerImageUrl').value=src;
+        qs('composerImageUrl').dispatchEvent(new Event('input'));
+        closeModal('imageLibraryModal');showToast('Image URL inserted.');
+      };
+      grid.appendChild(item);
+    });
+  }
 }
 
 function composerFormat(cmd){
@@ -1686,38 +2237,42 @@ async function composerSend(action){
   if(action==='draft'){input.mode='addToQueue';input.saveToDraft=true;}
   if(action==='queue'){input.mode='addToQueue';}
   if(action==='schedule'){if(!when){qs('composerStatus').textContent='Pick a date/time first.';return;}input.mode='customScheduled';input.dueAt=when;}
+  // Attach image if URL provided
+  const imgUrl=qs('composerImageUrl').value.trim();
+  if(imgUrl)input.assets={images:[{url:imgUrl}]};
   try{
-    await createPost(input);
+    qs('composerStatus').textContent='Sending…';
+    const res=await createPost(input);
+    const cp=res?.data?.createPost;
+    const apiErr=cp?.message||null; // MutationError shape
+    if(apiErr)throw new Error(apiErr);
     const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
     qs('composerStatus').textContent=msg;showToast(msg);
-  }catch(e){qs('composerStatus').textContent='Failed. Check token/channel.';}
+  }catch(e){qs('composerStatus').textContent=`Failed: ${e.message}`;}
 }
 
 function init(){
   if(renderSharedFromHash())return;
   loadStoredToken();
 
-  // onboarding
   qs('onboardingEnter').onclick=dismissOnboarding;
   qs('closeOnboarding').onclick=dismissOnboarding;
   qs('openOnboarding').onclick=openOnboarding;
   qs('openFounder').onclick=()=>openModal('founderModal');
   qs('closeFounder').onclick=()=>closeModal('founderModal');
 
-  // token
   qs('manageTokenBtn').onclick=toggleTokenPanel;
   qs('revealCompactBtn').onclick=()=>{tokenPanelOpen=true;qs('tokenPanel').classList.add('open');qs('manageTokenBtn').textContent='Done';tokenInputVisible=true;qs('tokenInput').type='text';qs('toggleTokenVisibility').textContent='Hide';};
   qs('saveTokenBtn').onclick=saveToken;
   qs('clearTokenBtn').onclick=()=>{qs('tokenInput').value='';saveToken()};
   qs('toggleTokenVisibility').onclick=()=>{tokenInputVisible=!tokenInputVisible;qs('tokenInput').type=tokenInputVisible?'text':'password';qs('toggleTokenVisibility').textContent=tokenInputVisible?'Hide':'Show';};
 
-  // sync
   qs('syncBtn').onclick=syncBuffer;
+  if(bufferToken){syncBuffer();}
+  else{qs('syncBtn').classList.add('sync-pulse');}
 
-  // nav
   document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>activateView(b.dataset.view));
 
-  // thread
   qs('splitBtn').onclick=()=>{threadParts=splitThreadText(qs('threadInput').value);renderThread();if(threadParts.length)showToast(`${threadParts.length} thread parts`);};
   qs('sampleBtn').onclick=()=>{qs('threadInput').value='PostIQ helps Buffer users move faster. Start with one big idea, split it into clear thread parts, refine each part, and send a cleaner post flow to Buffer.'};
   qs('copyAllBtn').onclick=()=>{navigator.clipboard.writeText(threadParts.join('\n\n'));showToast('Thread copied');};
@@ -1727,7 +2282,6 @@ function init(){
   qs('threadAddOpener').onclick=()=>openSnippetPicker('threadOpener');
   qs('threadAddCta').onclick=()=>openSnippetPicker('threadCta');
 
-  // calendar
   qs('prevMonth').onclick=()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()-1,1);renderCalendar()};
   qs('nextMonth').onclick=()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()+1,1);renderCalendar()};
   qs('todayMonth').onclick=()=>{state.month=new Date();renderCalendar()};
@@ -1742,7 +2296,6 @@ function init(){
   qs('copyShare').onclick=()=>navigator.clipboard.writeText(qs('shareLink').value||'');
   qs('openSharePreview').onclick=()=>{if(qs('shareLink').value)window.open(qs('shareLink').value,'_blank')};
 
-  // composer
   document.querySelectorAll('[data-cmd]').forEach(btn=>btn.onclick=()=>composerFormat(btn.dataset.cmd));
   qs('composerEditor').addEventListener('input',()=>{
     const text=editorHtmlToText(qs('composerEditor').innerHTML);
@@ -1753,6 +2306,53 @@ function init(){
   qs('composerDraft').onclick=()=>composerSend('draft');
   qs('composerQueue').onclick=()=>composerSend('queue');
   qs('composerSchedule').onclick=()=>composerSend('schedule');
+
+  // Schedule toggle
+  qs('composerScheduleToggle').onclick=()=>{
+    qs('composerSchedulePanel').style.display='block';
+    qs('composerScheduleToggle').style.display='none';
+  };
+  qs('composerScheduleCancel').onclick=()=>{
+    qs('composerSchedulePanel').style.display='none';
+    qs('composerScheduleToggle').style.display='inline-flex';
+  };
+
+  // Image toggle
+  qs('composerImageToggle').onclick=()=>{
+    qs('composerImagePanel').style.display='block';
+    qs('composerImageToggle').style.display='none';
+    qs('composerImageToggleOff').style.display='inline-flex';
+  };
+  qs('composerImageToggleOff').onclick=()=>{
+    qs('composerImagePanel').style.display='none';
+    qs('composerImageToggle').style.display='inline-flex';
+    qs('composerImageToggleOff').style.display='none';
+    qs('composerImageUrl').value='';
+    qs('composerImagePreview').style.display='none';
+    qs('composerImagePreview').innerHTML='';
+    qs('composerImageClear').style.display='none';
+  };
+
+  function buildTimePickers(hourId,minId,ampmId){
+    const hSel=qs(hourId),mSel=qs(minId),amSel=qs(ampmId);
+    for(let h=1;h<=12;h++){const o=document.createElement('option');o.value=h;o.textContent=String(h).padStart(2,'0');hSel.appendChild(o);}
+    for(let m=0;m<60;m+=5){const o=document.createElement('option');o.value=m;o.textContent=String(m).padStart(2,'0');mSel.appendChild(o);}
+    ['AM','PM'].forEach(ap=>{const o=document.createElement('option');o.value=ap;o.textContent=ap;amSel.appendChild(o);});
+    const now=new Date();hSel.value=(now.getHours()%12)||12;mSel.value=0;amSel.value=now.getHours()>=12?'PM':'AM';
+  }
+  function pickerToISO(dateId,hourId,minId,ampmId){
+    const d=qs(dateId).value;if(!d)return null;
+    let h=parseInt(qs(hourId).value);const m=parseInt(qs(minId).value);const ap=qs(ampmId).value;
+    if(ap==='PM'&&h!==12)h+=12;if(ap==='AM'&&h===12)h=0;
+    return `${d}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00.000Z`;
+  }
+  function setDatePickerToday(dateId){const d=new Date();qs(dateId).value=d.toISOString().slice(0,10);qs(dateId).min=d.toISOString().slice(0,10);}
+  buildTimePickers('composerWhenHour','composerWhenMin','composerWhenAmpm');
+  setDatePickerToday('composerWhenDate');
+  function syncComposerWhen(){qs('composerWhen').value=pickerToISO('composerWhenDate','composerWhenHour','composerWhenMin','composerWhenAmpm')||'';}
+  ['composerWhenDate','composerWhenHour','composerWhenMin','composerWhenAmpm'].forEach(id=>qs(id).addEventListener('change',syncComposerWhen));
+  syncComposerWhen();
+
   qs('insertSnippetBtn').onclick=()=>openSnippetPicker('composer');
   qs('saveSelectionSnippetBtn').onclick=()=>{
     const sel=window.getSelection();const text=(sel&&sel.toString?sel.toString():'').trim();
@@ -1762,10 +2362,27 @@ function init(){
     qs('snippetTitle').value='';qs('snippetType').value='Hooks';qs('snippetPlatform').value='Universal';
     qs('snippetTags').value='';qs('snippetBody').value=text;openModal('snippetModal');
   };
+  qs('composerChannel').addEventListener('change',updateComposerChannelHint);
 
-  qs('composerChannel').addEventListener('change', updateComposerChannelHint);
+  // Image URL field
+  qs('composerImageUrl').addEventListener('input',()=>{
+    const url=qs('composerImageUrl').value.trim();
+    const preview=qs('composerImagePreview');const clearBtn=qs('composerImageClear');
+    if(url){
+      preview.innerHTML=`<img class="img-preview-thumb" src="${url}" onerror="this.parentElement.style.display='none'" />`;
+      preview.style.display='inline-block';clearBtn.style.display='inline-flex';
+    }else{preview.style.display='none';preview.innerHTML='';clearBtn.style.display='none';}
+  });
+  qs('composerImageClear').onclick=()=>{
+    qs('composerImageUrl').value='';qs('composerImagePreview').style.display='none';
+    qs('composerImagePreview').innerHTML='';qs('composerImageClear').style.display='none';
+  };
+  qs('openImageLibraryBtn').onclick=openImageLibrary;
+  qs('closeImageLibrary').onclick=()=>closeModal('imageLibraryModal');
 
   // snippets
+  loadSnippets();renderSnippets();
+  renderSnippetSelectors();
   qs('newSnippetBtn').onclick=()=>openSnippetModal();
   qs('closeSnippetModal').onclick=()=>closeModal('snippetModal');
   qs('cancelSnippetBtn').onclick=()=>closeModal('snippetModal');
@@ -1777,13 +2394,325 @@ function init(){
   qs('pickerType').onchange=renderSnippetPicker;
   qs('pickerPlatform').onchange=renderSnippetPicker;
 
-  renderSnippetSelectors();
-  loadSnippets();renderSnippets();renderCalendar();renderThread();
-  qs('composerEmpty').style.display='block';
-  if(!hasSeenOnboarding())openOnboarding();
-}
+  renderCalendar();
+  if(!hasSeenOnboarding())openModal('onboardingModal');
 
-init();
+  // ── MOBILE TABS & DRAWER ──
+  const isMobile=()=>window.innerWidth<=768;
+
+  document.querySelectorAll('.mob-tab[data-view]').forEach(btn=>{
+    btn.onclick=()=>{
+      activateView(btn.dataset.view);
+      document.querySelectorAll('.mob-tab').forEach(t=>t.classList.remove('active'));
+      btn.classList.add('active');
+    };
+  });
+
+  function openMobDrawer(){qs('mobDrawer').classList.add('open');qs('mobBackdrop').classList.add('open');syncMobDrawerUI();}
+  function closeMobDrawer(){qs('mobDrawer').classList.remove('open');qs('mobBackdrop').classList.remove('open');}
+  qs('mobMenuBtn').onclick=openMobDrawer;
+  qs('mobDrawerClose').onclick=closeMobDrawer;
+  qs('mobBackdrop').onclick=closeMobDrawer;
+
+  function syncMobDrawerUI(){
+    const connected=!!bufferToken;
+    qs('mobStatusDot').classList.toggle('connected',connected);
+    qs('mobTokenLabel').textContent=connected?'Connected':'Not connected';
+    qs('mobSyncStatus').textContent=qs('syncStatus').textContent;
+  }
+
+  qs('mobSyncBtn').onclick=()=>{syncBuffer();closeMobDrawer();};
+
+  let mobTokenPanelOpen=false;
+  qs('mobManageTokenBtn').onclick=()=>{
+    mobTokenPanelOpen=!mobTokenPanelOpen;
+    qs('mobTokenPanel').style.display=mobTokenPanelOpen?'block':'none';
+    qs('mobManageTokenBtn').textContent=mobTokenPanelOpen?'Done':'Manage token';
+    if(mobTokenPanelOpen&&bufferToken)qs('mobTokenInput').value=bufferToken;
+  };
+  qs('mobSaveTokenBtn').onclick=()=>{
+    const token=qs('mobTokenInput').value.trim();
+    const mode=[...document.querySelectorAll('input[name="mobTokenMode"]')].find(r=>r.checked).value;
+    localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
+    if(!token){bufferToken='';updateTokenUI();syncMobDrawerUI();showToast('Token removed');return;}
+    if(mode==='local')localStorage.setItem(STORE_KEY,token);else sessionStorage.setItem(STORE_KEY,token);
+    bufferToken=token;
+    qs('mobTokenMsg').textContent=mode==='local'?'Saved locally.':'Saved for session.';
+    updateTokenUI();syncMobDrawerUI();showToast('Token saved');
+    syncBuffer();
+  };
+  qs('mobClearTokenBtn').onclick=()=>{
+    qs('mobTokenInput').value='';
+    localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
+    bufferToken='';updateTokenUI();syncMobDrawerUI();showToast('Token removed');
+  };
+  qs('mobOpenOnboarding').onclick=()=>{closeMobDrawer();openModal('onboardingModal');};
+  qs('mobOpenFounder').onclick=()=>{closeMobDrawer();openModal('founderModal');};
+
+  // Mobile-only buttons
+  if(qs('shareMonthBtnMob'))qs('shareMonthBtnMob').onclick=()=>{shareSnapshot();openModal('shareModal');};
+  if(qs('newSnippetBtnMob'))qs('newSnippetBtnMob').onclick=()=>openSnippetModal();
+
+  // ── CALENDAR AGENDA VIEW ──
+  function renderAgenda(){
+    const agenda=qs('calAgenda');if(!agenda)return;
+    const notes=getNotes();const today=fmtDate(new Date());
+    const start=new Date(state.month.getFullYear(),state.month.getMonth(),1);
+    const end=new Date(start.getFullYear(),start.getMonth()+1+1,0);
+    const map={};
+    state.scheduled.forEach(p=>{
+      const k=fmtDate(new Date(p.dueAt));
+      if(!map[k])map[k]={posts:[],note:null};
+      map[k].posts.push(p);
+    });
+    Object.entries(notes).forEach(([k,n])=>{
+      if(!map[k])map[k]={posts:[],note:null};
+      map[k].note=n;
+    });
+    const days=[];const d=new Date(start);
+    while(d<=end){days.push(fmtDate(new Date(d)));d.setDate(d.getDate()+1);}
+    agenda.innerHTML='';
+
+    // Month nav
+    const nav=document.createElement('div');nav.className='cal-header';
+    nav.innerHTML=`<button class="btn icon" id="agendaPrev">‹</button><div class="cal-month">${monthLabel(state.month)}</div><button class="btn icon" id="agendaNext">›</button><button class="btn sm ghost" id="agendaToday">Today</button>`;
+    agenda.appendChild(nav);
+    nav.querySelector('#agendaPrev').onclick=()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()-1,1);renderAgenda();};
+    nav.querySelector('#agendaNext').onclick=()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()+1,1);renderAgenda();};
+    nav.querySelector('#agendaToday').onclick=()=>{state.month=new Date();renderAgenda();};
+
+    let hasAny=false;
+    days.forEach(key=>{
+      const data=map[key];const isToday=key===today;
+      if(!data&&!isToday)return;
+      hasAny=true;
+      const date=new Date(key+'T00:00:00');
+      const dayEl=document.createElement('div');
+      dayEl.style.cssText=`border:1px solid ${isToday?'var(--amber-glow)':'var(--border)'};border-radius:10px;padding:12px;margin-bottom:8px;background:var(--surface);cursor:pointer;`;
+      const dateLabel=date.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+      let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:${isToday?'var(--amber)':'var(--muted)'};">${dateLabel}</span>
+        ${data?.posts?.length?`<span style="font-size:10px;font-family:'DM Mono',monospace;background:var(--blue-dim);color:var(--blue);border:1px solid rgba(107,143,247,.25);padding:1px 6px;border-radius:4px;">${data.posts.length} post${data.posts.length>1?'s':''}</span>`:''}
+      </div>`;
+      if(data?.posts?.length){
+        data.posts.slice(0,2).forEach(p=>{
+          html+=`<div style="font-size:12px;line-height:1.5;padding:8px;background:var(--blue-dim);border:1px solid rgba(107,143,247,.2);border-radius:6px;color:#a8bef9;margin-bottom:6px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${safeText(p.text||'(no text)')}</div>`;
+        });
+        if(data.posts.length>2)html+=`<div style="font-size:11px;color:var(--subtle);font-family:'DM Mono',monospace;">+${data.posts.length-2} more</div>`;
+      }
+      if(data?.note){
+        html+=`<div class="day-note-pill ${data.note.tag||'gold'}" style="margin-top:6px;display:block;border-radius:6px;"><span class="note-pill-label">${safeText(data.note.label||'Note')}</span>${safeText(data.note.text)}</div>`;
+      }
+      if(!data?.posts?.length&&!data?.note){
+        html+=`<div style="font-size:12px;color:var(--subtle);">Today — no posts scheduled.</div>`;
+      }
+      dayEl.innerHTML=html;
+      dayEl.onclick=()=>openDayNote(date);
+      agenda.appendChild(dayEl);
+    });
+
+    if(!hasAny){
+      const empty=document.createElement('div');empty.className='empty mt8';
+      empty.textContent='No posts or notes this month. Sync Buffer to load posts.';
+      agenda.appendChild(empty);
+    }
+  }
+
+  // Re-render agenda on calendar updates when on mobile
+  const _origSyncBuffer=syncBuffer;
+  window.addEventListener('postiq:synced',()=>{if(isMobile())renderAgenda();});
+
+  if(isMobile())renderAgenda();
+
+  // ── TRENDING ──
+  const trendingState = { source: 'reddit', sub: 'socialmedia', hnFeed: 'topstories' };
+
+  function initTrending() {
+    const view = document.getElementById('trendingView');
+    if (!view) return;
+
+    // Source tab switching
+    view.querySelectorAll('.trending-tab').forEach(tab => {
+      tab.onclick = () => {
+        view.querySelectorAll('.trending-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        trendingState.source = tab.dataset.src;
+        document.getElementById('trendingReddit').style.display = trendingState.source === 'reddit' ? 'block' : 'none';
+        document.getElementById('trendingHN').style.display = trendingState.source === 'hn' ? 'block' : 'none';
+        loadTrending();
+      };
+    });
+
+    // Reddit sub pills
+    view.querySelectorAll('[data-sub]').forEach(pill => {
+      pill.onclick = () => {
+        view.querySelectorAll('[data-sub]').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        trendingState.sub = pill.dataset.sub;
+        loadTrending();
+      };
+    });
+
+    // HN feed pills
+    view.querySelectorAll('[data-hn]').forEach(pill => {
+      pill.onclick = () => {
+        view.querySelectorAll('[data-hn]').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        trendingState.hnFeed = pill.dataset.hn;
+        loadTrending();
+      };
+    });
+
+    // Custom subreddit
+    document.getElementById('trendingAddSub').onclick = () => {
+      const val = document.getElementById('trendingCustomSub').value.trim().replace(/^r\//,'');
+      if (!val) return;
+      trendingState.sub = val;
+      // Add pill if not exists
+      const existing = view.querySelector(`[data-sub="${val}"]`);
+      if (!existing) {
+        const pill = document.createElement('button');
+        pill.className = 'sub-pill active';
+        pill.dataset.sub = val;
+        pill.textContent = `r/${val}`;
+        pill.onclick = () => {
+          view.querySelectorAll('[data-sub]').forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          trendingState.sub = val;
+          loadTrending();
+        };
+        view.querySelector('#trendingSubBtns').appendChild(pill);
+      }
+      view.querySelectorAll('[data-sub]').forEach(p => p.classList.toggle('active', p.dataset.sub === val));
+      document.getElementById('trendingCustomSub').value = '';
+      loadTrending();
+    };
+    document.getElementById('trendingCustomSub').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('trendingAddSub').click(); });
+
+    // Refresh buttons
+    document.getElementById('trendingRefresh').onclick = loadTrending;
+    document.getElementById('trendingHNRefresh').onclick = loadTrending;
+    const mobRefresh = document.getElementById('trendingRefreshMob');
+    if (mobRefresh) mobRefresh.onclick = loadTrending;
+
+    // Auto-load on first view activation
+    loadTrending();
+  }
+
+  async function loadTrending() {
+    if (trendingState.source === 'reddit') await loadReddit();
+    else await loadHN();
+  }
+
+  async function loadReddit() {
+    const list = document.getElementById('trendingRedditList');
+    const status = document.getElementById('trendingRedditStatus');
+    if (!list) return;
+    status.textContent = 'Loading…';
+    list.innerHTML = '';
+    try {
+      const res = await fetch(`https://www.reddit.com/r/${trendingState.sub}/hot.json?limit=25`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const posts = (data?.data?.children || []).filter(p => !p.data.stickied);
+      status.textContent = `${posts.length} posts from r/${trendingState.sub}`;
+      renderTrendingItems(list, posts.map((p, i) => ({
+        rank: i + 1,
+        title: p.data.title,
+        score: p.data.score,
+        comments: p.data.num_comments,
+        sub: `r/${p.data.subreddit}`,
+        url: `https://reddit.com${p.data.permalink}`,
+        age: timeAgo(p.data.created_utc * 1000),
+        type: 'reddit'
+      })));
+    } catch(e) {
+      status.textContent = `Failed to load — Reddit may be blocking the request. Try again.`;
+      console.warn('[PostIQ] Reddit fetch failed:', e);
+    }
+  }
+
+  async function loadHN() {
+    const list = document.getElementById('trendingHNList');
+    const status = document.getElementById('trendingHNStatus');
+    if (!list) return;
+    status.textContent = 'Loading…';
+    list.innerHTML = '';
+    try {
+      const idsRes = await fetch(`https://hacker-news.firebaseio.com/v0/${trendingState.hnFeed}.json`);
+      const ids = await idsRes.json();
+      const top = ids.slice(0, 20);
+      status.textContent = 'Fetching stories…';
+      const stories = await Promise.all(
+        top.map(id => fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(r => r.json()))
+      );
+      status.textContent = `${stories.length} stories from Hacker News`;
+      renderTrendingItems(list, stories.filter(s => s && s.title).map((s, i) => ({
+        rank: i + 1,
+        title: s.title,
+        score: s.score,
+        comments: s.descendants || 0,
+        sub: s.by ? `by ${s.by}` : 'HN',
+        url: s.url || `https://news.ycombinator.com/item?id=${s.id}`,
+        age: timeAgo(s.time * 1000),
+        type: 'hn'
+      })));
+    } catch(e) {
+      status.textContent = 'Failed to load Hacker News.';
+      console.warn('[PostIQ] HN fetch failed:', e);
+    }
+  }
+
+  function renderTrendingItems(container, items) {
+    container.innerHTML = '';
+    items.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'trending-item';
+      el.innerHTML = `
+        <div class="trending-item-rank">${item.rank}</div>
+        <div class="trending-item-body">
+          <div class="trending-item-title">${safeText(item.title)}</div>
+          <div class="trending-item-meta">
+            <span class="trending-meta-pill score">▲ ${item.score?.toLocaleString()}</span>
+            <span class="trending-meta-pill">💬 ${item.comments}</span>
+            <span class="trending-meta-pill sub">${safeText(item.sub)}</span>
+            <span class="trending-meta-pill">${item.age}</span>
+          </div>
+        </div>
+        <div class="trending-item-actions">
+          <button class="btn sm" title="Draft a post about this">→ Compose</button>
+          <a class="btn sm ghost" href="${item.url}" target="_blank" rel="noopener" title="Open source">↗</a>
+        </div>`;
+      el.querySelector('.btn.sm:not(.ghost)').onclick = () => {
+        const draft = `💡 ${item.title}\n\n[Add your take here]\n\nSource: ${item.url}`;
+        const editor = document.getElementById('composerEditor');
+        editor.innerText = draft;
+        document.getElementById('composerEmpty').style.display = 'none';
+        activateView('composerView');
+        document.querySelectorAll('.mob-tab[data-view]').forEach(t =>
+          t.classList.toggle('active', t.dataset.view === 'composerView'));
+        showToast('Story loaded into Composer');
+      };
+      container.appendChild(el);
+    });
+  }
+
+  function timeAgo(ts) {
+    const diff = (Date.now() - ts) / 1000;
+    if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+    return `${Math.floor(diff/86400)}d ago`;
+  }
+
+  // Init trending once the injected HTML exists
+  setTimeout(initTrending, 50);
+  if('serviceWorker' in navigator && location.hostname !== 'localhost' && !location.hostname.includes('claudeusercontent')){
+    navigator.serviceWorker.register('/sw.js').catch(e=>console.warn('SW:',e));
+  }
+}
+document.addEventListener('DOMContentLoaded',()=>{try{init();}catch(e){console.error('[PostIQ] init() crashed:',e);}});
 </script>
 </body>
 </html>
