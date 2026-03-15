@@ -920,11 +920,41 @@
     .trending-meta-pill.sub { color: var(--blue); }
     .trending-item-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
 
+    .trending-item-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+    .trending-body {
+      margin-top: 8px;
+      padding: 10px 12px;
+      background: var(--surface2);
+      border-radius: 6px;
+      border-left: 2px solid var(--border2);
+    }
+    .trending-body-preview {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+    .trending-expand-btn {
+      background: none;
+      border: none;
+      color: var(--blue);
+      font-size: 12px;
+      cursor: pointer;
+      padding: 4px 0 0;
+      font-family: 'DM Mono', monospace;
+    }
+    .trending-expand-btn:hover { text-decoration: underline; }
+    .trending-link-hint {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--subtle);
+    }
+
     @media (max-width: 768px) {
       .trending-item { padding: 12px; }
       .trending-item-title { font-size: 14px; }
-      .trending-item-actions { flex-direction: column; gap: 4px; }
       .trending-custom-row { flex-wrap: wrap; }
+      .trending-body-preview { font-size: 13px; }
     }
 
     /* ── SECTION DIVIDER ── */
@@ -2621,6 +2651,9 @@ function init(){
       renderTrendingItems(list, posts.map((p, i) => ({
         rank: i + 1,
         title: p.data.title,
+        body: p.data.selftext || null,
+        isLink: p.data.is_reddit_media_domain === false && !p.data.is_self,
+        linkUrl: p.data.url,
         score: p.data.score,
         comments: p.data.num_comments,
         sub: `r/${p.data.subreddit}`,
@@ -2670,23 +2703,62 @@ function init(){
     items.forEach(item => {
       const el = document.createElement('div');
       el.className = 'trending-item';
+
+      // Body content — text post body or link indicator
+      const hasBody = item.body && item.body.trim() && item.body !== '[deleted]' && item.body !== '[removed]';
+      const bodyPreview = hasBody ? item.body.trim().slice(0, 300) + (item.body.length > 300 ? '…' : '') : null;
+      const bodyFull = hasBody ? item.body.trim() : null;
+
+      let bodyHtml = '';
+      if (hasBody) {
+        bodyHtml = `
+          <div class="trending-body" id="tbody-${item.rank}-${item.type}">
+            <div class="trending-body-preview">${safeText(bodyPreview)}</div>
+            ${item.body.length > 300 ? `<button class="trending-expand-btn" data-full="${encodeURIComponent(bodyFull)}">Read more</button>` : ''}
+          </div>`;
+      } else if (item.isLink && item.linkUrl) {
+        bodyHtml = `<div class="trending-link-hint">🔗 <a href="${item.linkUrl}" target="_blank" rel="noopener" style="color:var(--blue);font-size:12px;">${item.linkUrl.length > 60 ? item.linkUrl.slice(0,60)+'…' : item.linkUrl}</a></div>`;
+      }
+
       el.innerHTML = `
         <div class="trending-item-rank">${item.rank}</div>
         <div class="trending-item-body">
           <div class="trending-item-title">${safeText(item.title)}</div>
-          <div class="trending-item-meta">
+          ${bodyHtml}
+          <div class="trending-item-meta" style="margin-top:6px;">
             <span class="trending-meta-pill score">▲ ${item.score?.toLocaleString()}</span>
             <span class="trending-meta-pill">💬 ${item.comments}</span>
             <span class="trending-meta-pill sub">${safeText(item.sub)}</span>
             <span class="trending-meta-pill">${item.age}</span>
           </div>
-        </div>
-        <div class="trending-item-actions">
-          <button class="btn sm" title="Draft a post about this">→ Compose</button>
-          <a class="btn sm ghost" href="${item.url}" target="_blank" rel="noopener" title="Open source">↗</a>
+          <div class="trending-item-actions" style="margin-top:8px;">
+            <button class="btn sm trending-compose-btn">→ Compose</button>
+            <a class="btn sm ghost" href="${item.url}" target="_blank" rel="noopener">↗ Source</a>
+          </div>
         </div>`;
-      el.querySelector('.btn.sm:not(.ghost)').onclick = () => {
-        const draft = `💡 ${item.title}\n\n[Add your take here]\n\nSource: ${item.url}`;
+
+      // Expand/collapse body
+      const expandBtn = el.querySelector('.trending-expand-btn');
+      if (expandBtn) {
+        expandBtn.onclick = (e) => {
+          e.stopPropagation();
+          const preview = el.querySelector('.trending-body-preview');
+          if (expandBtn.dataset.expanded === '1') {
+            preview.textContent = bodyPreview;
+            expandBtn.textContent = 'Read more';
+            expandBtn.dataset.expanded = '0';
+          } else {
+            preview.textContent = decodeURIComponent(expandBtn.dataset.full);
+            expandBtn.textContent = 'Show less';
+            expandBtn.dataset.expanded = '1';
+          }
+        };
+      }
+
+      // Send to composer
+      el.querySelector('.trending-compose-btn').onclick = () => {
+        const bodyPart = hasBody ? `\n\n${item.body.trim().slice(0, 500)}${item.body.length > 500 ? '…' : ''}` : '';
+        const draft = `💡 ${item.title}${bodyPart}\n\n[Add your take here]\n\nSource: ${item.url}`;
         const editor = document.getElementById('composerEditor');
         editor.innerText = draft;
         document.getElementById('composerEmpty').style.display = 'none';
@@ -2695,6 +2767,7 @@ function init(){
           t.classList.toggle('active', t.dataset.view === 'composerView'));
         showToast('Story loaded into Composer');
       };
+
       container.appendChild(el);
     });
   }
