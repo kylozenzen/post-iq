@@ -9,9 +9,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="PostIQ" />
-  <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
   <meta name="description" content="PostIQ is a free Buffer companion app for serious creators. Thread Splitter, Content Calendar, Post Composer, and Snippets — no login required." />
 
   <!-- Open Graph -->
@@ -719,6 +719,86 @@
       transition: opacity 0.15s;
     }
     .img-library-item:hover .img-library-item-url { opacity: 1; }
+
+    /* ── COMPOSER TABS ── */
+    .composer-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .composer-tab {
+      padding: 10px 20px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all .12s;
+    }
+    .composer-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+    .composer-tab:hover { color: var(--text); }
+    .composer-tab-panel { }
+
+    /* ── THUMB POST LIST ── */
+    .thumb-post-list { display: flex; flex-direction: column; gap: 10px; }
+    .thumb-post-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .thumb-post-card:hover { border-color: var(--border2); }
+    .thumb-post-thumb {
+      width: 80px;
+      height: 52px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid var(--border2);
+      flex-shrink: 0;
+      background: var(--surface2);
+    }
+    .thumb-post-thumb-placeholder {
+      width: 80px;
+      height: 52px;
+      border-radius: 6px;
+      border: 1px dashed var(--border2);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      background: var(--surface2);
+    }
+    .thumb-post-body { flex: 1; min-width: 0; }
+    .thumb-post-text {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.45;
+      margin-bottom: 6px;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .thumb-post-meta { font-size: 11px; color: var(--subtle); font-family: 'DM Mono', monospace; margin-bottom: 8px; }
+    .thumb-post-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .thumb-upload-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
 
     /* ── IMAGE UPLOADER ── */
     .upload-zone {
@@ -1449,105 +1529,123 @@
       <div class="mob-view-hdr">
         <span class="mob-view-title">✍️ Compose</span>
       </div>
-      <div class="card">
 
-        <!-- Toolbar -->
-        <div class="rich-toolbar">
-          <button class="btn sm" data-cmd="bold"><strong>B</strong></button>
-          <button class="btn sm" data-cmd="italic"><em>I</em></button>
-          <button class="btn sm" data-cmd="ul">• List</button>
-          <button class="btn sm" data-cmd="ol">1. List</button>
-          <button class="btn sm ghost" data-cmd="clear">Clear</button>
-          <div style="width:1px;background:var(--border);margin:0 4px;"></div>
-          <button class="btn sm" id="insertSnippetBtn">Insert snippet</button>
-          <button class="btn sm ghost" id="saveSelectionSnippetBtn">Save selection</button>
-        </div>
-
-        <!-- Editor -->
-        <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here…"></div>
-        <div id="composerEmpty" class="empty mt8" style="display:none;">Start drafting above, then save draft, queue, or schedule.</div>
-
-        <!-- Controls row -->
-        <div class="composer-controls mt10">
-
-          <!-- Row A: channel + char count -->
-          <div class="composer-row-a">
-            <select id="composerChannel" class="input composer-channel-sel"></select>
-            <div id="composerNoChannels" class="status-txt" style="display:none;font-size:12px;">↻ Load from Buffer to see channels</div>
-            <span class="char-hint" id="composerCharCount">0 chars</span>
-          </div>
-          <div id="composerChannelHint" class="status-txt mt4" style="display:none;font-size:11px;"></div>
-
-          <!-- Row B: actions + schedule toggle -->
-          <div class="composer-row-b mt8">
-            <button class="btn" id="composerDraft">Save draft</button>
-            <button class="btn success" id="composerQueue">Add to queue</button>
-            <button class="btn primary" id="composerScheduleToggle">📅 Schedule…</button>
-          </div>
-
-          <!-- Schedule expander (hidden until toggle) -->
-          <div id="composerSchedulePanel" class="composer-expand-panel" style="display:none;">
-            <div class="composer-when-row mt8">
-              <span class="when-lbl">📅</span>
-              <input id="composerWhenDate" type="date" class="input when-date" />
-              <select id="composerWhenHour" class="input when-time"></select>
-              <select id="composerWhenMin" class="input when-time"></select>
-              <select id="composerWhenAmpm" class="input when-time"></select>
-              <button class="btn primary sm" id="composerSchedule">Send</button>
-              <button class="btn ghost sm" id="composerScheduleCancel">✕</button>
-            </div>
-            <input id="composerWhen" type="hidden" />
-          </div>
-
-          <!-- Image toggle -->
-          <div class="composer-row-c mt8">
-            <button class="btn sm ghost" id="composerImageToggle">🖼 Add image</button>
-            <button class="btn sm ghost" style="display:none;" id="composerImageToggleOff">🖼 Remove image</button>
-          </div>
-
-          <!-- Image expander (hidden until toggle) -->
-          <div id="composerImagePanel" class="composer-expand-panel" style="display:none;">
-
-            <!-- Upload zone -->
-            <div class="upload-zone" id="uploadZone">
-              <input type="file" id="uploadFileInput" accept="image/*,video/*" style="display:none;" />
-              <div class="upload-zone-inner" id="uploadZoneInner">
-                <div class="upload-icon">📎</div>
-                <div class="upload-label">Drop image here or <button class="upload-browse-btn" id="uploadBrowseBtn">browse files</button></div>
-                <div class="upload-hint">JPG, PNG, GIF, WEBP · or paste a URL below</div>
-              </div>
-              <div class="upload-progress" id="uploadProgress" style="display:none;">
-                <div class="upload-progress-bar" id="uploadProgressBar"></div>
-              </div>
-              <div class="upload-result" id="uploadResult" style="display:none;">
-                <img id="uploadThumb" class="upload-thumb" src="" alt="" />
-                <div class="upload-result-info">
-                  <div class="upload-result-name" id="uploadResultName"></div>
-                  <div class="upload-result-url" id="uploadResultUrl"></div>
-                </div>
-                <button class="btn sm ghost" id="uploadClearBtn">✕</button>
-              </div>
-            </div>
-
-            <!-- URL fallback -->
-            <div class="composer-image-row mt8">
-              <span class="img-row-lbl">or URL</span>
-              <div class="img-url-wrap">
-                <input id="composerImageUrl" class="input img-url-input" placeholder="https://… (direct public image URL)" />
-                <div class="img-url-tooltip">Needs a public direct image URL — e.g. ending in .jpg, .png, .webp<br>Right-click any image → "Copy image address" to get the URL.</div>
-              </div>
-              <button class="btn sm ghost" id="composerImageClear" style="display:none;">✕</button>
-              <button class="btn sm ghost" id="openImageLibraryBtn">📚 Past</button>
-              <div id="composerImagePreview" style="display:none;"></div>
-            </div>
-
-            <div id="uploadStatus" class="status-txt mt6" style="font-size:11px;"></div>
-          </div>
-
-          <div id="composerStatus" class="status-txt mt8"></div>
-        </div>
-
+      <!-- Composer tabs -->
+      <div class="composer-tabs">
+        <button class="composer-tab active" data-ctab="write">✍️ Write</button>
+        <button class="composer-tab" data-ctab="thumbnails">🎬 Thumbnails</button>
       </div>
+
+      <!-- ── WRITE TAB ── -->
+      <div id="composerTabWrite" class="composer-tab-panel">
+        <div class="card">
+          <div class="rich-toolbar">
+            <button class="btn sm" data-cmd="bold"><strong>B</strong></button>
+            <button class="btn sm" data-cmd="italic"><em>I</em></button>
+            <button class="btn sm" data-cmd="ul">• List</button>
+            <button class="btn sm" data-cmd="ol">1. List</button>
+            <button class="btn sm ghost" data-cmd="clear">Clear</button>
+            <div style="width:1px;background:var(--border);margin:0 4px;"></div>
+            <button class="btn sm" id="insertSnippetBtn">Insert snippet</button>
+            <button class="btn sm ghost" id="saveSelectionSnippetBtn">Save selection</button>
+          </div>
+          <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here…"></div>
+          <div id="composerEmpty" class="empty mt8" style="display:none;">Start drafting above, then save draft, queue, or schedule.</div>
+
+          <div class="composer-controls mt10">
+            <div class="composer-row-a">
+              <select id="composerChannel" class="input composer-channel-sel"></select>
+              <div id="composerNoChannels" class="status-txt" style="display:none;font-size:12px;">↻ Load from Buffer to see channels</div>
+              <span class="char-hint" id="composerCharCount">0 chars</span>
+            </div>
+            <div id="composerChannelHint" class="status-txt mt4" style="display:none;font-size:11px;"></div>
+
+            <div class="composer-row-b mt8">
+              <button class="btn" id="composerDraft">Save draft</button>
+              <button class="btn success" id="composerQueue">Add to queue</button>
+              <button class="btn primary" id="composerScheduleToggle">📅 Schedule…</button>
+            </div>
+
+            <div id="composerSchedulePanel" class="composer-expand-panel" style="display:none;">
+              <div class="composer-when-row mt8">
+                <span class="when-lbl">📅</span>
+                <input id="composerWhenDate" type="date" class="input when-date" />
+                <select id="composerWhenHour" class="input when-time"></select>
+                <select id="composerWhenMin" class="input when-time"></select>
+                <select id="composerWhenAmpm" class="input when-time"></select>
+                <button class="btn primary sm" id="composerSchedule">Send</button>
+                <button class="btn ghost sm" id="composerScheduleCancel">✕</button>
+              </div>
+              <input id="composerWhen" type="hidden" />
+            </div>
+
+            <div class="composer-row-c mt8">
+              <button class="btn sm ghost" id="composerImageToggle">🖼 Add media</button>
+              <button class="btn sm ghost" style="display:none;" id="composerImageToggleOff">🖼 Remove media</button>
+            </div>
+
+            <div id="composerImagePanel" class="composer-expand-panel" style="display:none;">
+              <div class="upload-zone" id="uploadZone">
+                <input type="file" id="uploadFileInput" accept="image/*,video/*" style="display:none;" />
+                <div class="upload-zone-inner" id="uploadZoneInner">
+                  <div class="upload-icon">📎</div>
+                  <div class="upload-label">Drop image here or <button class="upload-browse-btn" id="uploadBrowseBtn">browse files</button></div>
+                  <div class="upload-hint">JPG, PNG, GIF, WEBP · or paste a URL below</div>
+                </div>
+                <div class="upload-progress" id="uploadProgress" style="display:none;">
+                  <div class="upload-progress-bar" id="uploadProgressBar"></div>
+                </div>
+                <div class="upload-result" id="uploadResult" style="display:none;">
+                  <img id="uploadThumb" class="upload-thumb" src="" alt="" />
+                  <div class="upload-result-info">
+                    <div class="upload-result-name" id="uploadResultName"></div>
+                    <div class="upload-result-url" id="uploadResultUrl"></div>
+                  </div>
+                  <button class="btn sm ghost" id="uploadClearBtn">✕</button>
+                </div>
+              </div>
+
+              <div class="composer-image-row mt8">
+                <span class="img-row-lbl">or URL</span>
+                <div class="img-url-wrap">
+                  <input id="composerImageUrl" class="input img-url-input" placeholder="https://… (image or video URL)" />
+                  <div class="img-url-tooltip">Paste a direct image URL (jpg, png, webp) or a publicly hosted video URL (mp4, mov).</div>
+                </div>
+                <button class="btn sm ghost" id="composerImageClear" style="display:none;">✕</button>
+                <button class="btn sm ghost" id="openImageLibraryBtn">📚 Past</button>
+                <div id="composerImagePreview" style="display:none;"></div>
+              </div>
+
+              <div id="uploadStatus" class="status-txt mt6" style="font-size:11px;"></div>
+
+              <div id="videoThumbPanel" style="display:none;margin-top:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--amber-glow);border-radius:8px;">
+                <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--amber);font-weight:600;margin-bottom:8px;">🎬 Video detected — add a custom thumbnail</div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <input id="videoThumbUrl" class="input" placeholder="Thumbnail image URL…" style="flex:1;min-width:180px;" />
+                  <input type="file" id="videoThumbFile" accept="image/*" style="display:none;" />
+                  <button class="btn sm ghost" id="videoThumbUploadBtn">📎 Upload</button>
+                  <button class="btn sm ghost" id="videoThumbClear" style="display:none;">✕</button>
+                </div>
+                <div id="videoThumbPreview" style="display:none;margin-top:8px;">
+                  <img id="videoThumbImg" style="height:60px;border-radius:6px;border:1px solid var(--border2);object-fit:cover;" src="" alt="Thumbnail preview" />
+                </div>
+                <div id="videoThumbStatus" class="status-txt mt4" style="font-size:11px;"></div>
+              </div>
+            </div>
+
+            <div id="composerStatus" class="status-txt mt8"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── THUMBNAILS TAB ── -->
+      <div id="composerTabThumbnails" class="composer-tab-panel" style="display:none;">
+        <p class="page-desc mt8 mb8" style="color:var(--muted);font-size:13px;margin-bottom:12px;">Add or update custom thumbnails on your scheduled video posts. Syncs directly with Buffer.</p>
+        <div id="thumbTabStatus" class="status-txt mb8"></div>
+        <div id="thumbTabEmpty" class="empty" style="display:none;">No scheduled video posts found. Sync Buffer first, or schedule a video post.</div>
+        <div id="thumbPostList" class="thumb-post-list"></div>
+      </div>
+
     </section>
 
     <!-- Snippets -->
@@ -2339,9 +2437,18 @@ async function composerSend(action){
   if(action==='draft'){input.mode='addToQueue';input.saveToDraft=true;}
   if(action==='queue'){input.mode='addToQueue';}
   if(action==='schedule'){if(!when){qs('composerStatus').textContent='Pick a date/time first.';return;}input.mode='customScheduled';input.dueAt=when;}
-  // Attach image if URL provided
+  // Attach image or video with correct asset shape
   const imgUrl=qs('composerImageUrl').value.trim();
-  if(imgUrl)input.assets={images:[{url:imgUrl}]};
+  if(imgUrl){
+    if(isVideoUrl(imgUrl)){
+      const thumbUrl=qs('videoThumbUrl').value.trim();
+      const videoAsset={url:imgUrl};
+      if(thumbUrl)videoAsset.thumbnailUrl=thumbUrl;
+      input.assets={video:videoAsset};
+    } else {
+      input.assets={images:[{url:imgUrl}]};
+    }
+  }
   try{
     qs('composerStatus').textContent='Sending…';
     const res=await createPost(input);
@@ -2466,18 +2573,81 @@ function init(){
   };
   qs('composerChannel').addEventListener('change',updateComposerChannelHint);
 
-  // Image URL field
+  function isVideoUrl(url){
+    return /\.(mp4|mov|webm|avi|mkv|m4v)(\?|$)/i.test(url);
+  }
+
+  // Image/video URL field
   qs('composerImageUrl').addEventListener('input',()=>{
     const url=qs('composerImageUrl').value.trim();
     const preview=qs('composerImagePreview');const clearBtn=qs('composerImageClear');
+    const videoPanel=qs('videoThumbPanel');
     if(url){
-      preview.innerHTML=`<img class="img-preview-thumb" src="${url}" onerror="this.parentElement.style.display='none'" />`;
-      preview.style.display='inline-block';clearBtn.style.display='inline-flex';
-    }else{preview.style.display='none';preview.innerHTML='';clearBtn.style.display='none';}
+      if(isVideoUrl(url)){
+        preview.innerHTML=`<span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--amber);">🎬 Video</span>`;
+        preview.style.display='inline-block';
+        videoPanel.style.display='block';
+      } else {
+        preview.innerHTML=`<img class="img-preview-thumb" src="${url}" onerror="this.parentElement.style.display='none'" />`;
+        preview.style.display='inline-block';
+        videoPanel.style.display='none';
+      }
+      clearBtn.style.display='inline-flex';
+    }else{
+      preview.style.display='none';preview.innerHTML='';
+      clearBtn.style.display='none';
+      videoPanel.style.display='none';
+    }
   });
   qs('composerImageClear').onclick=()=>{
     qs('composerImageUrl').value='';qs('composerImagePreview').style.display='none';
     qs('composerImagePreview').innerHTML='';qs('composerImageClear').style.display='none';
+    qs('videoThumbPanel').style.display='none';
+    qs('videoThumbUrl').value='';qs('videoThumbPreview').style.display='none';
+    qs('videoThumbClear').style.display='none';
+  };
+
+  // Video thumbnail URL input — live preview
+  qs('videoThumbUrl').addEventListener('input',()=>{
+    const url=qs('videoThumbUrl').value.trim();
+    if(url){
+      qs('videoThumbImg').src=url;
+      qs('videoThumbPreview').style.display='block';
+      qs('videoThumbClear').style.display='inline-flex';
+    } else {
+      qs('videoThumbPreview').style.display='none';
+      qs('videoThumbClear').style.display='none';
+    }
+  });
+
+  // Video thumbnail file upload (reuse Imgur)
+  qs('videoThumbUploadBtn').onclick=()=>qs('videoThumbFile').click();
+  qs('videoThumbFile').onchange=async()=>{
+    const file=qs('videoThumbFile').files[0];
+    if(!file)return;
+    qs('videoThumbStatus').textContent='Uploading thumbnail…';
+    try{
+      const fd=new FormData();fd.append('image',file);
+      const res=await fetch('https://api.imgur.com/3/image',{
+        method:'POST',headers:{'Authorization':`Client-ID ${IMGUR_CLIENT_ID}`},body:fd
+      });
+      const data=await res.json();
+      if(!data.success)throw new Error(data.data?.error||'Upload failed');
+      const url=data.data.link;
+      qs('videoThumbUrl').value=url;
+      qs('videoThumbUrl').dispatchEvent(new Event('input'));
+      qs('videoThumbStatus').textContent='✅ Thumbnail uploaded.';
+    }catch(e){
+      qs('videoThumbStatus').textContent=`Failed: ${e.message}`;
+    }
+  };
+
+  // Clear thumbnail
+  qs('videoThumbClear').onclick=()=>{
+    qs('videoThumbUrl').value='';
+    qs('videoThumbPreview').style.display='none';
+    qs('videoThumbClear').style.display='none';
+    qs('videoThumbStatus').textContent='';
   };
   qs('openImageLibraryBtn').onclick=openImageLibrary;
   qs('closeImageLibrary').onclick=()=>closeModal('imageLibraryModal');
@@ -2498,6 +2668,147 @@ function init(){
 
   renderCalendar();
   if(!hasSeenOnboarding())openModal('onboardingModal');
+
+  // ── COMPOSER TABS ──
+  document.querySelectorAll('.composer-tab').forEach(tab => {
+    tab.onclick = () => {
+      document.querySelectorAll('.composer-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const panel = tab.dataset.ctab;
+      qs('composerTabWrite').style.display = panel === 'write' ? 'block' : 'none';
+      qs('composerTabThumbnails').style.display = panel === 'thumbnails' ? 'block' : 'none';
+      if (panel === 'thumbnails') renderThumbTab();
+    };
+  });
+
+  function renderThumbTab() {
+    const list = qs('thumbPostList');
+    const empty = qs('thumbTabEmpty');
+    const status = qs('thumbTabStatus');
+    list.innerHTML = '';
+
+    // Filter scheduled posts that have video assets
+    const videoPosts = (state.scheduled || []).filter(p =>
+      p.assets && p.assets.some(a =>
+        (a.mimeType && a.mimeType.startsWith('video')) ||
+        (a.source && /\.(mp4|mov|webm|m4v)/i.test(a.source))
+      )
+    );
+
+    if (!state.scheduled.length) {
+      status.textContent = 'Sync Buffer first to load your scheduled posts.';
+      empty.style.display = 'none';
+      return;
+    }
+    status.textContent = '';
+    if (!videoPosts.length) {
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    videoPosts.forEach(post => {
+      const videoAsset = post.assets.find(a =>
+        (a.mimeType && a.mimeType.startsWith('video')) ||
+        (a.source && /\.(mp4|mov|webm|m4v)/i.test(a.source))
+      );
+      const existingThumb = videoAsset?.thumbnail || null;
+      const dueDate = post.dueAt ? new Date(post.dueAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Queued';
+
+      const card = document.createElement('div');
+      card.className = 'thumb-post-card';
+      card.innerHTML = `
+        ${existingThumb
+          ? `<img class="thumb-post-thumb" src="${existingThumb}" alt="" />`
+          : `<div class="thumb-post-thumb-placeholder">🎬</div>`}
+        <div class="thumb-post-body">
+          <div class="thumb-post-text">${safeText(post.text || '(no caption)')}</div>
+          <div class="thumb-post-meta">${dueDate} · ${existingThumb ? '✅ Has thumbnail' : '⚠ No thumbnail'}</div>
+          <div class="thumb-post-actions">
+            <button class="btn sm thumb-add-btn">${existingThumb ? '↻ Replace thumbnail' : '+ Add thumbnail'}</button>
+          </div>
+          <div class="thumb-upload-row" style="display:none;">
+            <input type="file" class="thumb-file-input" accept="image/*" style="display:none;" />
+            <input class="input thumb-url-input" placeholder="Thumbnail URL or upload…" style="flex:1;min-width:160px;" />
+            <button class="btn sm ghost thumb-upload-file-btn">📎</button>
+            <button class="btn sm primary thumb-save-btn">Save</button>
+            <button class="btn sm ghost thumb-cancel-btn">✕</button>
+          </div>
+          <div class="thumb-status status-txt mt4" style="font-size:11px;"></div>
+        </div>`;
+
+      // Toggle upload row
+      card.querySelector('.thumb-add-btn').onclick = () => {
+        const row = card.querySelector('.thumb-upload-row');
+        row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+      };
+      card.querySelector('.thumb-cancel-btn').onclick = () => {
+        card.querySelector('.thumb-upload-row').style.display = 'none';
+        card.querySelector('.thumb-url-input').value = '';
+        card.querySelector('.thumb-status').textContent = '';
+      };
+
+      // File upload for thumbnail
+      const fileInput = card.querySelector('.thumb-file-input');
+      card.querySelector('.thumb-upload-file-btn').onclick = () => fileInput.click();
+      fileInput.onchange = async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        const thumbStatus = card.querySelector('.thumb-status');
+        thumbStatus.textContent = 'Uploading…';
+        try {
+          const fd = new FormData(); fd.append('image', file);
+          const res = await fetch('https://api.imgur.com/3/image', {
+            method: 'POST', headers: { 'Authorization': `Client-ID ${IMGUR_CLIENT_ID}` }, body: fd
+          });
+          const data = await res.json();
+          if (!data.success) throw new Error(data.data?.error || 'Upload failed');
+          card.querySelector('.thumb-url-input').value = data.data.link;
+          thumbStatus.textContent = '✅ Uploaded — hit Save to apply.';
+        } catch(e) {
+          thumbStatus.textContent = `Upload failed: ${e.message}`;
+        }
+      };
+
+      // Save thumbnail — updatePost mutation
+      card.querySelector('.thumb-save-btn').onclick = async () => {
+        const thumbUrl = card.querySelector('.thumb-url-input').value.trim();
+        const thumbStatus = card.querySelector('.thumb-status');
+        if (!thumbUrl) { thumbStatus.textContent = 'Add a thumbnail URL first.'; return; }
+        thumbStatus.textContent = 'Saving…';
+        try {
+          const mutation = `mutation UpdatePost($input:UpdatePostInput!){updatePost(input:$input){... on PostActionSuccess{post{id}} ... on MutationError{message}}}`;
+          const res = await callBuffer(mutation, {
+            input: { id: post.id, assets: { video: { url: videoAsset.source || '', thumbnailUrl: thumbUrl } } }
+          });
+          const cp = res?.data?.updatePost;
+          if (cp?.message) throw new Error(cp.message);
+          thumbStatus.textContent = '✅ Thumbnail saved.';
+          card.querySelector('.thumb-upload-row').style.display = 'none';
+          // Update the card thumb preview
+          const imgEl = card.querySelector('.thumb-post-thumb, .thumb-post-thumb-placeholder');
+          if (imgEl) {
+            const newImg = document.createElement('img');
+            newImg.className = 'thumb-post-thumb';
+            newImg.src = thumbUrl;
+            imgEl.replaceWith(newImg);
+          }
+          card.querySelector('.thumb-post-meta').textContent = `${dueDate} · ✅ Has thumbnail`;
+          card.querySelector('.thumb-add-btn').textContent = '↻ Replace thumbnail';
+          showToast('Thumbnail saved.');
+        } catch(e) {
+          thumbStatus.textContent = `Failed: ${e.message}`;
+        }
+      };
+
+      list.appendChild(card);
+    });
+  }
+
+  // Re-render thumb tab when sync completes
+  window.addEventListener('postiq:synced', () => {
+    if (qs('composerTabThumbnails').style.display !== 'none') renderThumbTab();
+  });
 
   // ── MOBILE TABS & DRAWER ──
   const isMobile=()=>window.innerWidth<=768;
@@ -2891,7 +3202,12 @@ function init(){
 
   async function handleUploadFile(file){
     if(!file.type.startsWith('image/')){
-      qs('uploadStatus').textContent='⚠ Video upload not supported via Imgur. Save as draft and attach video directly in Buffer.';
+      if(file.type.startsWith('video/')){
+        qs('uploadStatus').textContent='🎬 Paste your video URL in the field above, then upload a custom thumbnail below.';
+        qs('videoThumbPanel').style.display='block';
+      } else {
+        qs('uploadStatus').textContent='Only image files are supported for upload.';
+      }
       return;
     }
     qs('uploadZoneInner').style.display='none';
