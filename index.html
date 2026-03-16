@@ -9,9 +9,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="PostIQ" />
-  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png" />
   <meta name="description" content="PostIQ is a free Buffer companion app for serious creators. Thread Splitter, Content Calendar, Post Composer, and Snippets — no login required." />
 
   <!-- Open Graph -->
@@ -719,6 +719,54 @@
       transition: opacity 0.15s;
     }
     .img-library-item:hover .img-library-item-url { opacity: 1; }
+
+    /* ── IMAGE UPLOADER ── */
+    .upload-zone {
+      border: 2px dashed var(--border2);
+      border-radius: 10px;
+      background: var(--surface2);
+      transition: border-color .15s, background .15s;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .upload-zone.drag-over { border-color: var(--amber); background: var(--amber-dim); }
+    .upload-zone-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .upload-icon { font-size: 28px; line-height: 1; }
+    .upload-label { font-size: 13px; color: var(--muted); }
+    .upload-browse-btn {
+      background: none; border: none; color: var(--amber);
+      font-size: 13px; cursor: pointer; font-family: 'Inter', sans-serif;
+      font-weight: 600; padding: 0; text-decoration: underline;
+    }
+    .upload-hint { font-size: 11px; color: var(--subtle); font-family: 'DM Mono', monospace; }
+    .upload-progress { height: 4px; background: var(--surface3); }
+    .upload-progress-bar {
+      height: 100%; background: var(--amber); width: 0%;
+      transition: width .2s ease; border-radius: 2px;
+    }
+    .upload-result { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+    .upload-thumb {
+      width: 56px; height: 56px; object-fit: cover;
+      border-radius: 8px; border: 1px solid var(--border2); flex-shrink: 0;
+    }
+    .upload-result-info { flex: 1; min-width: 0; }
+    .upload-result-name {
+      font-size: 12px; font-weight: 600; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px;
+    }
+    .upload-result-url {
+      font-size: 11px; color: var(--green); font-family: 'DM Mono', monospace;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
 
     /* ── MODALS ── */
     .modal {
@@ -1459,17 +1507,41 @@
 
           <!-- Image expander (hidden until toggle) -->
           <div id="composerImagePanel" class="composer-expand-panel" style="display:none;">
+
+            <!-- Upload zone -->
+            <div class="upload-zone" id="uploadZone">
+              <input type="file" id="uploadFileInput" accept="image/*,video/*" style="display:none;" />
+              <div class="upload-zone-inner" id="uploadZoneInner">
+                <div class="upload-icon">📎</div>
+                <div class="upload-label">Drop image here or <button class="upload-browse-btn" id="uploadBrowseBtn">browse files</button></div>
+                <div class="upload-hint">JPG, PNG, GIF, WEBP · or paste a URL below</div>
+              </div>
+              <div class="upload-progress" id="uploadProgress" style="display:none;">
+                <div class="upload-progress-bar" id="uploadProgressBar"></div>
+              </div>
+              <div class="upload-result" id="uploadResult" style="display:none;">
+                <img id="uploadThumb" class="upload-thumb" src="" alt="" />
+                <div class="upload-result-info">
+                  <div class="upload-result-name" id="uploadResultName"></div>
+                  <div class="upload-result-url" id="uploadResultUrl"></div>
+                </div>
+                <button class="btn sm ghost" id="uploadClearBtn">✕</button>
+              </div>
+            </div>
+
+            <!-- URL fallback -->
             <div class="composer-image-row mt8">
-              <span class="img-row-lbl">URL</span>
+              <span class="img-row-lbl">or URL</span>
               <div class="img-url-wrap">
                 <input id="composerImageUrl" class="input img-url-input" placeholder="https://… (direct public image URL)" />
                 <div class="img-url-tooltip">Needs a public direct image URL — e.g. ending in .jpg, .png, .webp<br>Right-click any image → "Copy image address" to get the URL.</div>
               </div>
               <button class="btn sm ghost" id="composerImageClear" style="display:none;">✕</button>
-              <button class="btn sm ghost" id="openImageLibraryBtn">📚 Past images</button>
+              <button class="btn sm ghost" id="openImageLibraryBtn">📚 Past</button>
               <div id="composerImagePreview" style="display:none;"></div>
             </div>
-            <div class="status-txt mt4" style="color:var(--subtle);font-size:11px;">⚠ Video must be attached directly in Buffer.</div>
+
+            <div id="uploadStatus" class="status-txt mt6" style="font-size:11px;"></div>
           </div>
 
           <div id="composerStatus" class="status-txt mt8"></div>
@@ -2781,6 +2853,92 @@ function init(){
 
   // Init trending once the injected HTML exists
   setTimeout(initTrending, 50);
+
+  // ── IMAGE UPLOADER ──
+  const IMGUR_CLIENT_ID='546c25a59c58ad7';
+
+  function initUploader(){
+    const zone=qs('uploadZone');
+    if(!zone)return;
+    const inner=qs('uploadZoneInner');
+    const fileInput=qs('uploadFileInput');
+
+    inner.onclick=()=>fileInput.click();
+    qs('uploadBrowseBtn').onclick=(e)=>{e.stopPropagation();fileInput.click();};
+    fileInput.onchange=()=>{if(fileInput.files[0])handleUploadFile(fileInput.files[0]);};
+
+    zone.addEventListener('dragover',(e)=>{e.preventDefault();zone.classList.add('drag-over');});
+    zone.addEventListener('dragleave',()=>zone.classList.remove('drag-over'));
+    zone.addEventListener('drop',(e)=>{
+      e.preventDefault();zone.classList.remove('drag-over');
+      if(e.dataTransfer.files[0])handleUploadFile(e.dataTransfer.files[0]);
+    });
+    qs('uploadClearBtn').onclick=resetUploader;
+  }
+
+  function resetUploader(){
+    qs('uploadZoneInner').style.display='flex';
+    qs('uploadProgress').style.display='none';
+    qs('uploadResult').style.display='none';
+    qs('uploadProgressBar').style.width='0%';
+    qs('uploadStatus').textContent='';
+    qs('uploadFileInput').value='';
+    qs('composerImageUrl').value='';
+    qs('composerImagePreview').style.display='none';
+    qs('composerImagePreview').innerHTML='';
+    qs('composerImageClear').style.display='none';
+  }
+
+  async function handleUploadFile(file){
+    if(!file.type.startsWith('image/')){
+      qs('uploadStatus').textContent='⚠ Video upload not supported via Imgur. Save as draft and attach video directly in Buffer.';
+      return;
+    }
+    qs('uploadZoneInner').style.display='none';
+    qs('uploadProgress').style.display='block';
+    qs('uploadStatus').textContent='Uploading…';
+
+    let prog=0;
+    const tick=setInterval(()=>{
+      prog=Math.min(prog+Math.random()*15,85);
+      qs('uploadProgressBar').style.width=prog+'%';
+    },200);
+
+    try{
+      const fd=new FormData();
+      fd.append('image',file);
+      const res=await fetch('https://api.imgur.com/3/image',{
+        method:'POST',
+        headers:{'Authorization':`Client-ID ${IMGUR_CLIENT_ID}`},
+        body:fd
+      });
+      clearInterval(tick);
+      qs('uploadProgressBar').style.width='100%';
+      if(!res.ok)throw new Error(`Imgur ${res.status}`);
+      const data=await res.json();
+      if(!data.success)throw new Error(data.data?.error||'Upload failed');
+      const url=data.data.link;
+      setTimeout(()=>{
+        qs('uploadProgress').style.display='none';
+        qs('uploadResult').style.display='flex';
+        qs('uploadThumb').src=url;
+        qs('uploadResultName').textContent=file.name;
+        qs('uploadResultUrl').textContent=url;
+        qs('uploadStatus').textContent='✅ Uploaded — URL ready.';
+        qs('composerImageUrl').value=url;
+        qs('composerImageUrl').dispatchEvent(new Event('input'));
+      },300);
+    }catch(e){
+      clearInterval(tick);
+      qs('uploadProgress').style.display='none';
+      qs('uploadZoneInner').style.display='flex';
+      qs('uploadStatus').textContent=`Upload failed: ${e.message}`;
+      console.warn('[PostIQ] Imgur upload failed:',e);
+    }
+  }
+
+  initUploader();
+
   if('serviceWorker' in navigator && location.hostname !== 'localhost' && !location.hostname.includes('claudeusercontent')){
     navigator.serviceWorker.register('/sw.js').catch(e=>console.warn('SW:',e));
   }
