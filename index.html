@@ -1534,6 +1534,7 @@
       <div class="composer-tabs">
         <button class="composer-tab active" data-ctab="write">✍️ Write</button>
         <button class="composer-tab" data-ctab="thumbnails">🎬 Thumbnails</button>
+        <button class="composer-tab" data-ctab="ideas">💡 Ideas</button>
       </div>
 
       <!-- ── WRITE TAB ── -->
@@ -1644,6 +1645,25 @@
         <div id="thumbTabStatus" class="status-txt mb8"></div>
         <div id="thumbTabEmpty" class="empty" style="display:none;">No scheduled video posts found. Sync Buffer first, or schedule a video post.</div>
         <div id="thumbPostList" class="thumb-post-list"></div>
+      </div>
+
+      <!-- ── IDEAS TAB ── -->
+      <div id="composerTabIdeas" class="composer-tab-panel" style="display:none;">
+        <p class="page-desc mt8" style="color:var(--muted);font-size:13px;margin-bottom:12px;">Pull from your Buffer Ideas board. Filter by column, pick randomly, or click any idea to load it into the composer.</p>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+          <select id="ideasGroupFilter" class="input" style="flex:1;min-width:130px;">
+            <option value="all">All columns</option>
+          </select>
+          <select id="ideasCountPicker" class="input" style="width:56px;">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+          </select>
+          <button class="btn sm" id="ideasRandomBtn">🎲 Random</button>
+          <button class="btn sm ghost" id="ideasLoadBtn">↻ Load</button>
+        </div>
+        <div id="ideasStatus" class="status-txt mb8"></div>
+        <div id="ideasList" style="display:flex;flex-direction:column;gap:8px;"></div>
       </div>
 
     </section>
@@ -1928,7 +1948,7 @@ let bufferToken='';
 let tokenInputVisible=false;
 let tokenPanelOpen=false;
 let threadParts=[];
-const state={channels:[],scheduled:[],month:new Date(),selectedDate:null,syncState:'idle',snippets:[],snippetType:'All',snippetPlatform:'All Platforms',snippetSearch:'',editingSnippetId:null,pickerMode:'composer'};
+const state={channels:[],scheduled:[],month:new Date(),selectedDate:null,syncState:'idle',snippets:[],snippetType:'All',snippetPlatform:'All Platforms',snippetSearch:'',editingSnippetId:null,pickerMode:'composer',ideasCache:[],ideaGroups:[],ideasLoaded:false};
 const noteTags={gold:'Idea',blue:'Draft',green:'Campaign',violet:'Priority'};
 
 function qs(id){return document.getElementById(id)}
@@ -1953,6 +1973,74 @@ function slug(v){return String(v||'').toLowerCase()}
 function normalizeTags(v){if(Array.isArray(v))return v.map(x=>String(x).trim()).filter(Boolean);return String(v||'').split(',').map(x=>x.trim()).filter(Boolean)}
 
 // ── SNIPPETS ──
+// ── IDEAS ──
+async function loadIdeas(){
+  const statusEl=qs('ideasStatus');
+  statusEl.textContent='Loading ideas…';
+  qs('ideasList').innerHTML='';
+  if(!bufferToken){statusEl.textContent='Add your Buffer token first.';return;}
+  try{
+    const acc=await callBuffer('query { account { organizations { id } } }');
+    const orgId=acc?.data?.account?.organizations?.[0]?.id;
+    if(!orgId){statusEl.textContent='No organization found.';return;}
+    const q=`query GetIdeasBoard($organizationId: ID!) {
+      ideaGroups(input:{organizationId:$organizationId}){ id name }
+      ideasV2(input:{organizationId:$organizationId}, first:1000){
+        edges{ node{ id groupId content{ title text services tags{ name color } } } }
+      }
+    }`;
+    const res=await callBuffer(q,{organizationId:orgId});
+    state.ideaGroups=res?.data?.ideaGroups||[];
+    state.ideasCache=(res?.data?.ideasV2?.edges||[]).map(e=>e.node);
+    state.ideasLoaded=true;
+    // populate group dropdown
+    const sel=qs('ideasGroupFilter');
+    sel.innerHTML='<option value="all">All columns</option>';
+    state.ideaGroups.forEach(g=>{
+      const o=document.createElement('option');
+      o.value=g.id;o.textContent=g.name;sel.appendChild(o);
+    });
+    statusEl.textContent='';
+    renderIdeas(state.ideasCache);
+  }catch(e){statusEl.textContent='Error: '+e.message;}
+}
+
+function renderIdeas(list){
+  const el=qs('ideasList');
+  if(!list.length){el.innerHTML='<p class="status-txt">No ideas in this column.</p>';return;}
+  el.innerHTML=list.map(idea=>{
+    const title=idea.content?.title||'';
+    const text=idea.content?.text||'';
+    const preview=safeText((title||text).slice(0,120));
+    const hasMore=(title+text).length>120;
+    const services=(idea.content?.services||[]).map(s=>`<span class="chip">${safeText(s)}</span>`).join('');
+    const tags=(idea.content?.tags||[]).map(t=>`<span class="chip" style="border-color:${t.color||'var(--border)'};color:${t.color||'var(--muted)'};">${safeText(t.name)}</span>`).join('');
+    return `<div class="card" style="padding:10px;">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.4;">${preview}${hasMore?'…':''}</div>
+      ${services||tags?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">${services}${tags}</div>`:''}
+      <button class="btn sm" onclick="useIdeaInComposer(${JSON.stringify(idea.id)})">Import → Composer</button>
+    </div>`;
+  }).join('');
+}
+
+function useIdeaInComposer(id){
+  const idea=state.ideasCache.find(i=>i.id===id);
+  if(!idea)return;
+  const parts=[idea.content?.title,idea.content?.text].filter(Boolean);
+  const body=parts.join('\n\n');
+  const editor=qs('composerEditor');
+  editor.innerText=body;
+  editor.focus();
+  qs('composerEmpty').style.display='none';
+  updateComposerCharCount&&updateComposerCharCount();
+  // switch back to write tab
+  document.querySelectorAll('.composer-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.composer-tab[data-ctab="write"]').classList.add('active');
+  qs('composerTabWrite').style.display='block';
+  qs('composerTabIdeas').style.display='none';
+  showToast('Idea imported ✓');
+}
+
 function loadSnippets(){
   try{
     const raw=localStorage.getItem(SNIPPET_KEY);
@@ -2563,6 +2651,22 @@ function init(){
   syncComposerWhen();
 
   qs('insertSnippetBtn').onclick=()=>openSnippetPicker('composer');
+
+  // ── IDEAS TAB WIRING ──
+  qs('ideasLoadBtn').onclick=()=>{state.ideasLoaded=false;loadIdeas();};
+  qs('ideasGroupFilter').onchange=()=>{
+    const gid=qs('ideasGroupFilter').value;
+    const filtered=gid==='all'?state.ideasCache:state.ideasCache.filter(i=>i.groupId===gid);
+    renderIdeas(filtered);
+  };
+  qs('ideasRandomBtn').onclick=()=>{
+    const gid=qs('ideasGroupFilter').value;
+    const n=parseInt(qs('ideasCountPicker').value)||1;
+    const pool=(gid==='all'?state.ideasCache:state.ideasCache.filter(i=>i.groupId===gid)).slice();
+    const picked=pool.sort(()=>Math.random()-0.5).slice(0,n);
+    renderIdeas(picked);
+  };
+
   qs('saveSelectionSnippetBtn').onclick=()=>{
     const sel=window.getSelection();const text=(sel&&sel.toString?sel.toString():'').trim();
     if(!text){qs('composerStatus').textContent='Select text in Composer first.';return;}
@@ -2677,7 +2781,9 @@ function init(){
       const panel = tab.dataset.ctab;
       qs('composerTabWrite').style.display = panel === 'write' ? 'block' : 'none';
       qs('composerTabThumbnails').style.display = panel === 'thumbnails' ? 'block' : 'none';
+      qs('composerTabIdeas').style.display = panel === 'ideas' ? 'block' : 'none';
       if (panel === 'thumbnails') renderThumbTab();
+      if (panel === 'ideas' && !state.ideasLoaded) loadIdeas();
     };
   });
 
