@@ -59,6 +59,87 @@
       --sidebar: 240px;
     }
 
+    /* ── LIGHT THEME ── */
+    [data-theme="light"] {
+      --bg: #f4f5f7;
+      --surface: #ffffff;
+      --surface2: #f0f1f4;
+      --surface3: #e8eaee;
+      --border: #dde0e8;
+      --border2: #c8ccd6;
+      --text: #1a1d2e;
+      --muted: #5a6080;
+      --subtle: #9aa0b8;
+      --amber: #d49a10;
+      --amber-dim: rgba(212,154,16,.10);
+      --amber-glow: rgba(212,154,16,.22);
+      --green: #0f9a72;
+      --green-dim: rgba(15,154,114,.10);
+      --blue: #3b5fcf;
+      --blue-dim: rgba(59,95,207,.10);
+      --gold-tag: rgba(212,154,16,.15);
+      --blue-tag: rgba(59,95,207,.12);
+      --green-tag: rgba(15,154,114,.12);
+      --violet-tag: rgba(120,80,220,.12);
+    }
+
+    /* ── WARM THEME ── */
+    [data-theme="warm"] {
+      --bg: #100d0a;
+      --surface: #1a1510;
+      --surface2: #221c15;
+      --surface3: #2a231a;
+      --border: #332a20;
+      --border2: #40342a;
+      --text: #f0e8dc;
+      --muted: #8a7a68;
+      --subtle: #4a3d30;
+      --amber: #f5a623;
+      --amber-dim: rgba(245,166,35,.12);
+      --amber-glow: rgba(245,166,35,.28);
+      --green: #7ec87e;
+      --green-dim: rgba(126,200,126,.12);
+      --blue: #89b4f8;
+      --blue-dim: rgba(137,180,248,.12);
+      --gold-tag: rgba(245,166,35,.2);
+      --blue-tag: rgba(137,180,248,.15);
+      --green-tag: rgba(126,200,126,.15);
+      --violet-tag: rgba(180,140,240,.15);
+    }
+
+    /* ── THEME SWITCHER ── */
+    .theme-switcher {
+      display: flex;
+      gap: 6px;
+      padding: 8px 12px;
+      border-top: 1px solid var(--border);
+      margin-top: 4px;
+    }
+    .theme-btn {
+      flex: 1;
+      height: 24px;
+      border-radius: 5px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: border-color .15s, transform .1s;
+      position: relative;
+    }
+    .theme-btn:hover { transform: scale(1.08); }
+    .theme-btn.active { border-color: var(--amber); }
+    .theme-btn[data-t="dark"] { background: #13151b; }
+    .theme-btn[data-t="light"] { background: #f0f1f4; }
+    .theme-btn[data-t="warm"] { background: #1a1510; }
+    .theme-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--subtle);
+      text-align: center;
+      letter-spacing: .05em;
+      padding: 0 12px 8px;
+      display: flex;
+      justify-content: space-around;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -326,6 +407,74 @@
 
     /* ── STATUS TEXT ── */
     .status-txt { font-size: 12px; color: var(--muted); }
+
+    /* ── WHAT'S NEW ── */
+    .wn-entry {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .wn-entry:last-child { border-bottom: none; }
+    .wn-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .wn-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      padding: 2px 7px;
+      border-radius: 3px;
+      background: var(--surface3);
+      color: var(--muted);
+      border: 1px solid var(--border2);
+    }
+    .wn-badge.new { background: var(--amber-dim); color: var(--amber); border-color: var(--amber-glow); }
+    .wn-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--subtle); }
+    .wn-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 4px; }
+    .wn-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .wn-guide-item {
+      display: flex;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: flex-start;
+    }
+    .wn-guide-item:last-child { border-bottom: none; }
+    .wn-guide-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+
+    /* ── POLISH: page header ── */
+    .page-hdr {
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .page-title { letter-spacing: -.4px; }
+
+    /* ── POLISH: card hover ── */
+    .card { transition: border-color .15s; }
+
+    /* ── POLISH: nav active state glow ── */
+    .nav-btn.active {
+      background: var(--amber-dim);
+      color: var(--amber);
+      border: 1px solid var(--amber-glow);
+      box-shadow: inset 0 0 12px rgba(245,183,49,.04);
+    }
+
+    /* ── POLISH: primary button glow ── */
+    .btn.primary {
+      box-shadow: 0 2px 12px rgba(245,183,49,.2);
+      transition: all .15s;
+    }
+    .btn.primary:hover {
+      box-shadow: 0 4px 20px rgba(245,183,49,.35);
+      transform: translateY(-1px);
+    }
+
+    /* ── POLISH: input focus ring ── */
+    .input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--amber);
+      box-shadow: 0 0 0 3px var(--amber-dim);
+    }
 
     /* ── INLINE ROW ── */
     .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -1471,9 +1620,16 @@
       <button class="nav-btn" data-view="snippetsView"><span class="nav-icon">📚</span> Snippets</button>
     </nav>
     <div class="side-bottom">
+      <button class="nav-btn" id="openWhatsNew"><span class="nav-icon">✨</span> What's New <span id="whatsNewDot" style="display:none;width:6px;height:6px;background:var(--amber);border-radius:50%;margin-left:auto;flex-shrink:0;"></span></button>
       <button class="nav-btn" id="openOnboarding"><span class="nav-icon">👋</span> Welcome</button>
       <button class="nav-btn" id="openFounder"><span class="nav-icon">🏗</span> Built by Ben</button>
       <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener"><span class="nav-icon">↗</span> Open Buffer</a>
+      <div class="theme-switcher">
+        <button class="theme-btn active" data-t="dark" title="Dark"></button>
+        <button class="theme-btn" data-t="light" title="Light"></button>
+        <button class="theme-btn" data-t="warm" title="Warm"></button>
+      </div>
+      <div class="theme-label"><span>Dark</span><span>Light</span><span>Warm</span></div>
     </div>
   </aside>
 
@@ -1868,6 +2024,103 @@ document.addEventListener('DOMContentLoaded', () => {
   <p style="font-size:12px;color:var(--subtle);margin-bottom:12px;">Images from your synced Buffer posts. Click any to insert into the composer.</p>
   <div id="imageLibraryEmpty" class="empty" style="display:none;">No images found in synced posts. Sync Buffer first, or paste a URL directly.</div>
   <div id="imageLibraryGrid" class="img-library-grid"></div>
+</div></div>
+
+<!-- What's New -->
+<div id="whatsNewModal" class="modal"><div class="modal-card">
+  <div class="modal-hdr">
+    <span class="modal-title">✨ What's New in PostIQ</span>
+    <button class="btn sm ghost" id="closeWhatsNew">Close</button>
+  </div>
+  <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;">
+    <button class="btn ghost sm wn-tab active" data-wntab="changelog" style="border-radius:0;border-bottom:2px solid var(--amber);color:var(--amber);">Changelog</button>
+    <button class="btn ghost sm wn-tab" data-wntab="guide" style="border-radius:0;border-bottom:2px solid transparent;">Guide</button>
+  </div>
+
+  <!-- CHANGELOG TAB -->
+  <div id="wnChangelog">
+    <div class="wn-entry">
+      <div class="wn-meta"><span class="wn-badge new">New</span><span class="wn-date">Mar 2026</span></div>
+      <div class="wn-title">📈 Topics tab in Trending</div>
+      <p class="wn-desc">Search Reddit across all subreddits by topic. Saved searches persist as clickable pills. Edit your list anytime.</p>
+    </div>
+    <div class="wn-entry">
+      <div class="wn-meta"><span class="wn-badge new">New</span><span class="wn-date">Mar 2026</span></div>
+      <div class="wn-title">📌 Trending reference panel</div>
+      <p class="wn-desc">Pin any trending story as a reference above the composer. Write your own take — don't copy it in.</p>
+    </div>
+    <div class="wn-entry">
+      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Mar 2026</span></div>
+      <div class="wn-title">🎨 Themes — Dark, Light, Warm</div>
+      <p class="wn-desc">Three visual themes. Pick what works for your setup. Preference saves locally.</p>
+    </div>
+    <div class="wn-entry">
+      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Mar 2026</span></div>
+      <div class="wn-title">📏 Platform-aware character counter</div>
+      <p class="wn-desc">Counter now shows X/limit based on your selected channel. LinkedIn 3000, X 280, Threads 500, Instagram 2200.</p>
+    </div>
+    <div class="wn-entry">
+      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Mar 2026</span></div>
+      <div class="wn-title">✍️ Composer clears after sending</div>
+      <p class="wn-desc">Queue, draft, or schedule — the editor resets automatically after a successful action.</p>
+    </div>
+    <div class="wn-entry">
+      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Feb 2026</span></div>
+      <div class="wn-title">🎬 Video thumbnail manager</div>
+      <p class="wn-desc">Set custom thumbnails on scheduled video posts directly from PostIQ via the Buffer API.</p>
+    </div>
+    <div class="wn-entry">
+      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Feb 2026</span></div>
+      <div class="wn-title">🖼 Imgur image uploader</div>
+      <p class="wn-desc">Upload images directly from the composer. No account needed — anonymous Imgur hosting.</p>
+    </div>
+  </div>
+
+  <!-- GUIDE TAB -->
+  <div id="wnGuide" style="display:none;">
+    <div class="wn-guide-item">
+      <div class="wn-guide-icon">✍️</div>
+      <div>
+        <div class="wn-title">Post Composer</div>
+        <p class="wn-desc">Write your post, pick a channel, then hit Save Draft, Add to Queue, or Schedule. The character counter updates per platform. Use Insert Snippet to drop saved copy in. Add media via upload or URL.</p>
+      </div>
+    </div>
+    <div class="wn-guide-item">
+      <div class="wn-guide-icon">🧵</div>
+      <div>
+        <div class="wn-title">Thread Splitter</div>
+        <p class="wn-desc">Paste any long-form content into the left panel, hit Split Thread. PostIQ breaks it into numbered parts. Select an X or Threads channel, then queue, draft, or schedule the whole thread natively.</p>
+      </div>
+    </div>
+    <div class="wn-guide-item">
+      <div class="wn-guide-icon">📅</div>
+      <div>
+        <div class="wn-title">Content Calendar</div>
+        <p class="wn-desc">Sync Buffer to load your scheduled posts into the month view. Click any day to add a planning note — color-tagged by type. Share a read-only snapshot with your team.</p>
+      </div>
+    </div>
+    <div class="wn-guide-item">
+      <div class="wn-guide-icon">📈</div>
+      <div>
+        <div class="wn-title">Trending</div>
+        <p class="wn-desc">Reddit tab shows hot posts from saved subreddits. Topics tab searches across all of Reddit by keyword — saves your searches as pills. Click → Reference to pin a story above the composer without copying it in.</p>
+      </div>
+    </div>
+    <div class="wn-guide-item">
+      <div class="wn-guide-icon">📚</div>
+      <div>
+        <div class="wn-title">Snippets</div>
+        <p class="wn-desc">Save hooks, CTAs, hashtag sets, and openers. Filter by type or platform. Insert into Composer or Thread with one click. Select text in the Composer and hit Save Selection to create a snippet from it.</p>
+      </div>
+    </div>
+    <div class="wn-guide-item">
+      <div class="wn-guide-icon">🔑</div>
+      <div>
+        <div class="wn-title">Connecting Buffer</div>
+        <p class="wn-desc">Get your API token from buffer.com/developers. Paste it in the token panel — choose Session (clears on close) or Local (persists). Hit Load from Buffer to sync your channels and posts. Your token never leaves your device.</p>
+      </div>
+    </div>
+  </div>
 </div></div>
 
 <!-- Onboarding -->
@@ -2651,6 +2904,46 @@ function init(){
   qs('closeOnboarding').onclick=dismissOnboarding;
   qs('openOnboarding').onclick=openOnboarding;
   qs('openFounder').onclick=()=>openModal('founderModal');
+
+  // ── THEMES ──
+  const THEME_KEY='postiq_theme';
+  function applyTheme(t){
+    document.documentElement.setAttribute('data-theme', t==='dark'?'':t);
+    document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active',b.dataset.t===t));
+    try{localStorage.setItem(THEME_KEY,t)}catch{}
+  }
+  document.querySelectorAll('.theme-btn').forEach(btn=>{
+    btn.onclick=()=>applyTheme(btn.dataset.t);
+  });
+  // Load saved theme
+  try{const saved=localStorage.getItem(THEME_KEY);if(saved)applyTheme(saved);}catch{}
+
+  // ── WHAT'S NEW ──
+  const WN_KEY='postiq_wn_seen_v1';
+  function hasSeenWhatsNew(){try{return localStorage.getItem(WN_KEY)==='1'}catch{return false}}
+  function markWhatsNewSeen(){try{localStorage.setItem(WN_KEY,'1')}catch{}}
+  if(!hasSeenWhatsNew()) qs('whatsNewDot').style.display='block';
+  qs('openWhatsNew').onclick=()=>{
+    markWhatsNewSeen();
+    qs('whatsNewDot').style.display='none';
+    openModal('whatsNewModal');
+  };
+  qs('closeWhatsNew').onclick=()=>closeModal('whatsNewModal');
+  // What's New tab switching
+  document.querySelectorAll('.wn-tab').forEach(tab=>{
+    tab.onclick=()=>{
+      document.querySelectorAll('.wn-tab').forEach(t=>{
+        t.classList.remove('active');
+        t.style.borderBottomColor='transparent';
+        t.style.color='';
+      });
+      tab.classList.add('active');
+      tab.style.borderBottomColor='var(--amber)';
+      tab.style.color='var(--amber)';
+      qs('wnChangelog').style.display=tab.dataset.wntab==='changelog'?'block':'none';
+      qs('wnGuide').style.display=tab.dataset.wntab==='guide'?'block':'none';
+    };
+  });
   qs('closeFounder').onclick=()=>closeModal('founderModal');
 
   qs('manageTokenBtn').onclick=toggleTokenPanel;
