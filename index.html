@@ -721,6 +721,50 @@
     .img-library-item:hover .img-library-item-url { opacity: 1; }
 
     /* ── COMPOSER TABS ── */
+    .trending-ref-panel {
+      display: none;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--amber);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      position: relative;
+    }
+    .trending-ref-panel.visible { display: block; }
+    .trending-ref-label {
+      font-size: 10px;
+      font-family: 'DM Mono', monospace;
+      color: var(--amber);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: 4px;
+    }
+    .trending-ref-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+    .trending-ref-body {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 6px;
+    }
+    .trending-ref-dismiss {
+      position: absolute;
+      top: 8px; right: 10px;
+      background: none;
+      border: none;
+      color: var(--subtle);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      padding: 0;
+    }
+    .trending-ref-dismiss:hover { color: var(--text); }
     .composer-tabs {
       display: flex;
       gap: 0;
@@ -1530,11 +1574,21 @@
         <span class="mob-view-title">✍️ Compose</span>
       </div>
 
+      <!-- Trending reference panel -->
+      <div class="trending-ref-panel" id="trendingRefPanel">
+        <button class="trending-ref-dismiss" id="trendingRefDismiss" title="Dismiss">×</button>
+        <div class="trending-ref-label">📌 Writing from</div>
+        <div class="trending-ref-title" id="trendingRefTitle"></div>
+        <div class="trending-ref-body" id="trendingRefBody"></div>
+        <a class="btn sm ghost" id="trendingRefLink" href="#" target="_blank" rel="noopener" style="font-size:11px;">↗ View source</a>
+      </div>
+
       <!-- Composer tabs -->
       <div class="composer-tabs">
         <button class="composer-tab active" data-ctab="write">✍️ Write</button>
         <button class="composer-tab" data-ctab="thumbnails">🎬 Thumbnails</button>
-        <button class="composer-tab" data-ctab="ideas">💡 Ideas</button>
+        <!-- Ideas tab hidden until Buffer read API opens publicly -->
+        <!-- <button class="composer-tab" data-ctab="ideas">💡 Ideas</button> -->
       </div>
 
       <!-- ── WRITE TAB ── -->
@@ -1726,6 +1780,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="trending-tabs">
         <button class="trending-tab active" data-src="reddit">Reddit</button>
         <button class="trending-tab" data-src="hn">Hacker News</button>
+        <button class="trending-tab" data-src="topics">Topics</button>
       </div>
 
       <!-- Reddit panel -->
@@ -1763,6 +1818,20 @@ document.addEventListener('DOMContentLoaded', () => {
         <div id="trendingHNList" class="trending-list"></div>
       </div>
 
+      <!-- Topics panel -->
+      <div id="trendingTopics" class="trending-panel" style="display:none;">
+        <div class="trending-controls">
+          <div class="trending-custom-row">
+            <input id="topicsSearchInput" class="input" placeholder="e.g. content marketing, AI tools" style="flex:1;" />
+            <button class="btn sm" id="topicsSearchBtn">Search</button>
+            <button class="btn sm ghost" id="topicsEditBtn">Edit list</button>
+          </div>
+          <div id="topicsSavedPills" class="trending-subs" style="margin-top:8px;"></div>
+        </div>
+        <div id="topicsStatus" class="status-txt mt8"></div>
+        <div id="topicsList" class="trending-list"></div>
+      </div>
+
     </div>
   `;
   main.appendChild(tv);
@@ -1770,6 +1839,20 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <!-- ── MODALS ── -->
+
+<!-- Topics Edit Modal -->
+<div id="topicsEditModal" class="modal"><div class="modal-card">
+  <div class="modal-hdr">
+    <span class="modal-title">✏️ Edit Saved Topics</span>
+    <button class="btn sm ghost" id="closeTopicsModal">Close</button>
+  </div>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Click any topic to remove it. Changes save automatically.</p>
+  <div id="topicsEditList" style="display:flex;flex-wrap:wrap;gap:6px;min-height:40px;"></div>
+  <div style="margin-top:16px;display:flex;gap:8px;">
+    <input id="topicsEditAddInput" class="input" placeholder="Add a topic…" style="flex:1;" />
+    <button class="btn sm" id="topicsEditAddBtn">Add</button>
+  </div>
+</div></div>
 
 <!-- Image Library -->
 <div id="imageLibraryModal" class="modal"><div class="modal-card lg">
@@ -2545,6 +2628,13 @@ async function composerSend(action){
     if(apiErr)throw new Error(apiErr);
     const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
     qs('composerStatus').textContent=msg;showToast(msg);
+    // Clear composer after successful action
+    const editor=qs('composerEditor');
+    editor.innerText='';
+    qs('composerEmpty').style.display='block';
+    qs('composerChannel').selectedIndex=0;
+    qs('composerWhen').value='';
+    updateComposerChannelHint&&updateComposerChannelHint();
   }catch(e){qs('composerStatus').textContent=`Failed: ${e.message}`;}
 }
 
@@ -3058,6 +3148,8 @@ function init(){
         trendingState.source = tab.dataset.src;
         document.getElementById('trendingReddit').style.display = trendingState.source === 'reddit' ? 'block' : 'none';
         document.getElementById('trendingHN').style.display = trendingState.source === 'hn' ? 'block' : 'none';
+        document.getElementById('trendingTopics').style.display = trendingState.source === 'topics' ? 'block' : 'none';
+        if (trendingState.source === 'topics') { renderTopicsPills(); return; }
         loadTrending();
       };
     });
@@ -3244,17 +3336,18 @@ function init(){
         };
       }
 
-      // Send to composer
+      // Pin as reference instead of dumping into composer
       el.querySelector('.trending-compose-btn').onclick = () => {
-        const bodyPart = hasBody ? `\n\n${item.body.trim().slice(0, 500)}${item.body.length > 500 ? '…' : ''}` : '';
-        const draft = `💡 ${item.title}${bodyPart}\n\n[Add your take here]\n\nSource: ${item.url}`;
-        const editor = document.getElementById('composerEditor');
-        editor.innerText = draft;
-        document.getElementById('composerEmpty').style.display = 'none';
+        pinTrendingReference({
+          title: item.title,
+          body: hasBody ? item.body.trim().slice(0, 300) : null,
+          url: item.url,
+          sub: item.sub
+        });
         activateView('composerView');
         document.querySelectorAll('.mob-tab[data-view]').forEach(t =>
           t.classList.toggle('active', t.dataset.view === 'composerView'));
-        showToast('Story loaded into Composer');
+        showToast('Pinned as reference — write your take');
       };
 
       container.appendChild(el);
@@ -3268,8 +3361,141 @@ function init(){
     return `${Math.floor(diff/86400)}d ago`;
   }
 
+  function pinTrendingReference(item) {
+    const panel = qs('trendingRefPanel');
+    qs('trendingRefTitle').textContent = item.title;
+    qs('trendingRefBody').textContent = item.body || '';
+    qs('trendingRefBody').style.display = item.body ? 'block' : 'none';
+    qs('trendingRefLink').href = item.url;
+    qs('trendingRefLink').textContent = `↗ ${item.sub || 'View source'}`;
+    panel.classList.add('visible');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const dismissBtn = qs('trendingRefDismiss');
+    if (dismissBtn) dismissBtn.onclick = () => qs('trendingRefPanel').classList.remove('visible');
+  });
+
+  // ── TOPICS ──
+  const TOPICS_KEY = 'postiq_saved_topics';
+  const TOPICS_MAX = 10;
+
+  function getTopics() {
+    try { return JSON.parse(localStorage.getItem(TOPICS_KEY) || '[]'); } catch { return []; }
+  }
+
+  function saveTopics(arr) {
+    try { localStorage.setItem(TOPICS_KEY, JSON.stringify(arr)); } catch {}
+  }
+
+  function addTopic(term) {
+    term = term.trim().toLowerCase();
+    if (!term) return;
+    let arr = getTopics().filter(t => t !== term);
+    arr.unshift(term); // most recent first
+    if (arr.length > TOPICS_MAX) arr = arr.slice(0, TOPICS_MAX); // drop oldest
+    saveTopics(arr);
+  }
+
+  function removeTopic(term) {
+    saveTopics(getTopics().filter(t => t !== term));
+  }
+
+  function renderTopicsPills() {
+    const container = document.getElementById('topicsSavedPills');
+    if (!container) return;
+    const topics = getTopics();
+    if (!topics.length) { container.innerHTML = '<span style="font-size:12px;color:var(--subtle);">No saved topics yet — search something above.</span>'; return; }
+    container.innerHTML = topics.map(t =>
+      `<button class="sub-pill" data-topic="${t}">${t}</button>`
+    ).join('');
+    container.querySelectorAll('[data-topic]').forEach(pill => {
+      pill.onclick = () => {
+        document.getElementById('topicsSearchInput').value = pill.dataset.topic;
+        loadTopics(pill.dataset.topic);
+      };
+    });
+  }
+
+  function renderTopicsEditList() {
+    const el = document.getElementById('topicsEditList');
+    if (!el) return;
+    const topics = getTopics();
+    if (!topics.length) { el.innerHTML = '<span style="font-size:12px;color:var(--subtle);">No saved topics.</span>'; return; }
+    el.innerHTML = topics.map(t =>
+      `<button class="sub-pill" data-del="${t}" title="Click to remove" style="cursor:pointer;">${t} ×</button>`
+    ).join('');
+    el.querySelectorAll('[data-del]').forEach(btn => {
+      btn.onclick = () => { removeTopic(btn.dataset.del); renderTopicsEditList(); renderTopicsPills(); };
+    });
+  }
+
+  async function loadTopics(term) {
+    const list = document.getElementById('topicsList');
+    const status = document.getElementById('topicsStatus');
+    if (!list || !term) return;
+    status.textContent = `Searching Reddit for "${term}"…`;
+    list.innerHTML = '';
+    try {
+      const res = await fetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(term)}&sort=hot&limit=25&type=link`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const posts = (data?.data?.children || []).filter(p => !p.data.stickied);
+      if (!posts.length) { status.textContent = `No results for "${term}".`; return; }
+      status.textContent = `${posts.length} results for "${term}"`;
+      addTopic(term);
+      renderTopicsPills();
+      renderTrendingItems(list, posts.map((p, i) => ({
+        rank: i + 1,
+        title: p.data.title,
+        body: p.data.selftext || null,
+        isLink: !p.data.is_self,
+        linkUrl: p.data.url,
+        score: p.data.score,
+        comments: p.data.num_comments,
+        sub: `r/${p.data.subreddit}`,
+        url: `https://reddit.com${p.data.permalink}`,
+        age: timeAgo(p.data.created_utc * 1000),
+        type: 'topics'
+      })));
+    } catch(e) {
+      status.textContent = `Search failed — Reddit may be blocking. Try again.`;
+      console.warn('[PostIQ] Topics search failed:', e);
+    }
+  }
+
+  function initTopics() {
+    const searchBtn = document.getElementById('topicsSearchBtn');
+    const searchInput = document.getElementById('topicsSearchInput');
+    const editBtn = document.getElementById('topicsEditBtn');
+    const closeModalBtn = document.getElementById('closeTopicsModal');
+    const addBtn = document.getElementById('topicsEditAddBtn');
+    const addInput = document.getElementById('topicsEditAddInput');
+    if (!searchBtn) return;
+
+    searchBtn.onclick = () => loadTopics(searchInput.value.trim());
+    searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') loadTopics(searchInput.value.trim()); });
+
+    editBtn.onclick = () => { renderTopicsEditList(); openModal('topicsEditModal'); };
+    if (closeModalBtn) closeModalBtn.onclick = () => closeModal('topicsEditModal');
+
+    if (addBtn) addBtn.onclick = () => {
+      const val = addInput.value.trim();
+      if (!val) return;
+      addTopic(val);
+      addInput.value = '';
+      renderTopicsEditList();
+      renderTopicsPills();
+    };
+    if (addInput) addInput.addEventListener('keydown', e => { if (e.key === 'Enter') addBtn.click(); });
+
+    renderTopicsPills();
+  }
+
   // Init trending once the injected HTML exists
-  setTimeout(initTrending, 50);
+  setTimeout(() => { initTrending(); initTopics(); }, 50);
 
   // ── IMAGE UPLOADER ──
   const IMGUR_CLIENT_ID='546c25a59c58ad7';
