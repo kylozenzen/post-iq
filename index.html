@@ -2358,8 +2358,8 @@ const noteTags={gold:'Idea',blue:'Draft',green:'Campaign',violet:'Priority'};
 function qs(id){return document.getElementById(id)}
 function hasSeenOnboarding(){try{return localStorage.getItem(ONBOARDING_KEY)==='1'}catch{return false}}
 function markOnboardingSeen(){try{localStorage.setItem(ONBOARDING_KEY,'1')}catch{}}
-function openOnboarding(){openModal('onboardingModal')}
-function dismissOnboarding(){markOnboardingSeen();closeModal('onboardingModal')}
+function openOnboarding(){openSettings('guide')}
+function dismissOnboarding(){markOnboardingSeen();closeModal('settingsModal')}
 function fmtDate(d){return d.toISOString().slice(0,10)}
 function monthLabel(d){return d.toLocaleDateString(undefined,{month:'long',year:'numeric'})}
 function monthStart(d){return new Date(d.getFullYear(),d.getMonth(),1)}
@@ -2817,7 +2817,7 @@ function renderSharedFromHash(){
   if(!location.hash.startsWith('#share='))return false;
   try{
     const snap=JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(7)))));
-    closeModal('onboardingModal');qs('app').classList.add('hidden');qs('sharedView').classList.remove('hidden');
+    closeModal('settingsModal');qs('app').classList.add('hidden');qs('sharedView').classList.remove('hidden');
     qs('sharedMonthTitle').textContent=snap.month;
     qs('sharedBanner').textContent=`Read-only snapshot · ${snap.posts.length} scheduled posts · Notes ${snap.includeNotes?'included':'excluded'}`;
     const grid=qs('sharedGrid');grid.innerHTML='';const map={};
@@ -2963,8 +2963,7 @@ function init(){
   if(renderSharedFromHash())return;
   loadStoredToken();
 
-  qs('onboardingEnter').onclick=dismissOnboarding;
-  qs('closeOnboarding').onclick=dismissOnboarding;
+  // Onboarding merged into settings modal — no standalone modal
   // Onboarding now part of settings modal
   // Founder now in settings About tab
 
@@ -3243,7 +3242,7 @@ function init(){
   qs('pickerPlatform').onchange=renderSnippetPicker;
 
   renderCalendar();
-  if(!hasSeenOnboarding())openModal('onboardingModal');
+  if(!hasSeenOnboarding())openSettings('guide');
 
   // ── COMPOSER TABS ──
   document.querySelectorAll('.composer-tab').forEach(tab => {
@@ -3465,8 +3464,8 @@ function init(){
     localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
     bufferToken='';updateTokenUI();syncMobDrawerUI();showToast('Token removed');
   };
-  qs('mobOpenOnboarding').onclick=()=>{closeMobDrawer();openModal('onboardingModal');};
-  qs('mobOpenFounder').onclick=()=>{closeMobDrawer();openModal('founderModal');};
+  qs('mobOpenOnboarding').onclick=()=>{closeMobDrawer();openSettings('guide');};
+  qs('mobOpenFounder').onclick=()=>{closeMobDrawer();openSettings('about');};
 
   // Mobile-only buttons
   if(qs('shareMonthBtnMob'))qs('shareMonthBtnMob').onclick=()=>{shareSnapshot();openModal('shareModal');};
