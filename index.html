@@ -3374,6 +3374,8 @@ function init(){
           if (delRes?.data?.deletePost?.message) throw new Error(`Delete failed: ${delRes.data.deletePost.message}`);
 
           thumbStatus.textContent = 'Step 2/2 — Recreating with thumbnail…';
+          const postChannel = state.channels.find(c => c.id === post.channelId);
+          const svc = (postChannel?.service || '').toLowerCase();
           const createInput = {
             channelId: post.channelId,
             text: post.text || '',
@@ -3382,6 +3384,8 @@ function init(){
               videos: [{ url: videoAsset.source || '', thumbnailUrl: thumbUrl }]
             }
           };
+          // Instagram requires a postType — default to 'post' (vs 'reel' or 'story')
+          if (svc.includes('instagram')) createInput.postType = 'post';
           if (post.dueAt) { createInput.mode = 'customScheduled'; createInput.dueAt = post.dueAt; }
           else { createInput.mode = 'addToQueue'; }
 
