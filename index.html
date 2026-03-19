@@ -1685,7 +1685,7 @@
     </nav>
     <div class="side-bottom" style="padding:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
       <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="flex:1;font-size:12px;color:var(--subtle);"><span class="nav-icon">↗</span> Open Buffer</a>
-      <button id="openSettings" title="Settings &amp; Help" style="background:transparent;border:1px solid var(--border2);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:15px;flex-shrink:0;transition:all .12s;" onmouseover="this.style.borderColor='var(--subtle)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'">?<span id="whatsNewDot" style="display:none;width:6px;height:6px;background:var(--amber);border-radius:50%;position:absolute;top:6px;right:6px;"></span></button>
+      <button id="openSettings" title="Guides &amp; Settings" style="background:transparent;border:1px solid var(--border2);border-radius:8px;padding:0 10px;height:32px;display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--muted);font-size:12px;font-family:'DM Mono',monospace;flex-shrink:0;transition:all .12s;position:relative;" onmouseover="this.style.borderColor='var(--subtle)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)')">⚙ Guides &amp; Settings<span id="whatsNewDot" style="display:none;width:6px;height:6px;background:var(--amber);border-radius:50%;position:absolute;top:4px;right:4px;"></span></button>
     </div>
   </aside>
 
@@ -1803,7 +1803,6 @@
       <!-- Composer tabs -->
       <div class="composer-tabs">
         <button class="composer-tab active" data-ctab="write">✍️ Write</button>
-        <button class="composer-tab" data-ctab="thumbnails">🎬 Thumbnails</button>
         <!-- Ideas tab hidden until Buffer read API opens publicly -->
         <!-- <button class="composer-tab" data-ctab="ideas">💡 Ideas</button> -->
       </div>
@@ -1885,7 +1884,20 @@
                 </div>
                 <button class="btn sm ghost" id="composerImageClear" style="display:none;">✕</button>
                 <button class="btn sm ghost" id="openImageLibraryBtn">📚 Past</button>
+                <button class="btn sm ghost" id="openUnsplashBtn">🔍 Unsplash</button>
                 <div id="composerImagePreview" style="display:none;"></div>
+              </div>
+
+              <!-- Unsplash search panel -->
+              <div id="unsplashPanel" style="display:none;margin-top:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;">
+                <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
+                  <input id="unsplashQuery" class="input" placeholder="Search free photos…" style="flex:1;font-size:13px;" />
+                  <button class="btn sm" id="unsplashSearchBtn">Search</button>
+                  <button class="btn sm ghost" id="unsplashCloseBtn">✕</button>
+                </div>
+                <div id="unsplashStatus" style="font-size:11px;color:var(--muted);margin-bottom:6px;"></div>
+                <div id="unsplashGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;"></div>
+                <div style="font-size:10px;color:var(--muted);margin-top:6px;">Photos by <a href="https://unsplash.com" target="_blank" style="color:var(--amber);">Unsplash</a> — free, no attribution required but appreciated</div>
               </div>
 
               <div id="uploadStatus" class="status-txt mt6" style="font-size:11px;"></div>
@@ -1908,14 +1920,6 @@
             <div id="composerStatus" class="status-txt mt8"></div>
           </div>
         </div>
-      </div>
-
-      <!-- ── THUMBNAILS TAB ── -->
-      <div id="composerTabThumbnails" class="composer-tab-panel" style="display:none;">
-        <p class="page-desc mt8 mb8" style="color:var(--muted);font-size:13px;margin-bottom:12px;">Add custom thumbnails to scheduled video posts. Works on X/Twitter — LinkedIn and Instagram generate their own previews automatically.</p>
-        <div id="thumbTabStatus" class="status-txt mb8"></div>
-        <div id="thumbTabEmpty" class="empty" style="display:none;">No scheduled video posts found. Sync Buffer first, or schedule a video post.</div>
-        <div id="thumbPostList" class="thumb-post-list"></div>
       </div>
 
       <!-- ── IDEAS TAB ── -->
@@ -3227,6 +3231,54 @@ function init(){
   qs('openImageLibraryBtn').onclick=openImageLibrary;
   qs('closeImageLibrary').onclick=()=>closeModal('imageLibraryModal');
 
+  // ── Unsplash search ──
+  const UNSPLASH_KEY = 'tBuaYCO5p-pJPjgF29hR2yJGtlQaG4d5HqdVivV0lbQ'; // free demo key — 50 req/hr
+  function openUnsplashPanel(){
+    qs('unsplashPanel').style.display='block';
+    qs('unsplashQuery').focus();
+  }
+  function closeUnsplashPanel(){
+    qs('unsplashPanel').style.display='none';
+    qs('unsplashGrid').innerHTML='';
+    qs('unsplashStatus').textContent='';
+    qs('unsplashQuery').value='';
+  }
+  async function runUnsplashSearch(){
+    const q=qs('unsplashQuery').value.trim();
+    if(!q)return;
+    qs('unsplashStatus').textContent='Searching…';
+    qs('unsplashGrid').innerHTML='';
+    try{
+      const res=await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&per_page=9&orientation=landscape`,{
+        headers:{'Authorization':`Client-ID ${UNSPLASH_KEY}`}
+      });
+      if(!res.ok)throw new Error(`Unsplash ${res.status}`);
+      const data=await res.json();
+      if(!data.results.length){qs('unsplashStatus').textContent='No results — try a different search.';return;}
+      qs('unsplashStatus').textContent=`${data.total.toLocaleString()} results — click to use`;
+      qs('unsplashGrid').innerHTML=data.results.map(p=>`
+        <div style="cursor:pointer;border-radius:6px;overflow:hidden;aspect-ratio:16/9;border:2px solid transparent;transition:border-color .12s;" 
+             onclick="selectUnsplashPhoto('${p.urls.regular}','${p.user.name}','${p.links.html}')"
+             onmouseover="this.style.borderColor='var(--amber)'" onmouseout="this.style.borderColor='transparent'">
+          <img src="${p.urls.small}" style="width:100%;height:100%;object-fit:cover;" alt="${p.alt_description||q}" loading="lazy" />
+        </div>`).join('');
+    }catch(e){
+      qs('unsplashStatus').textContent=`Error: ${e.message}`;
+    }
+  }
+  window.selectUnsplashPhoto=function(url,author,photoLink){
+    qs('composerImageUrl').value=url;
+    qs('composerImageUrl').dispatchEvent(new Event('input'));
+    closeUnsplashPanel();
+    // Trigger URL preview update (reuse existing url-input handler)
+    qs('composerImageUrl').dispatchEvent(new Event('change'));
+    showToast(`Photo by ${author} via Unsplash ✓`);
+  };
+  qs('openUnsplashBtn').onclick=openUnsplashPanel;
+  qs('unsplashCloseBtn').onclick=closeUnsplashPanel;
+  qs('unsplashSearchBtn').onclick=runUnsplashSearch;
+  qs('unsplashQuery').addEventListener('keydown',e=>{if(e.key==='Enter')runUnsplashSearch();});
+
   // snippets
   loadSnippets();renderSnippets();
   renderSnippetSelectors();
@@ -3251,212 +3303,12 @@ function init(){
       tab.classList.add('active');
       const panel = tab.dataset.ctab;
       qs('composerTabWrite').style.display = panel === 'write' ? 'block' : 'none';
-      qs('composerTabThumbnails').style.display = panel === 'thumbnails' ? 'block' : 'none';
       qs('composerTabIdeas').style.display = panel === 'ideas' ? 'block' : 'none';
-      if (panel === 'thumbnails') renderThumbTab();
       if (panel === 'ideas' && !state.ideasLoaded) loadIdeas();
     };
   });
 
-  function renderThumbTab() {
-    const list = qs('thumbPostList');
-    const empty = qs('thumbTabEmpty');
-    const status = qs('thumbTabStatus');
-    list.innerHTML = '';
-
-    // Filter scheduled posts that have video assets
-    const videoPosts = (state.scheduled || []).filter(p =>
-      p.assets && p.assets.some(a =>
-        (a.mimeType && a.mimeType.startsWith('video')) ||
-        (a.source && /\.(mp4|mov|webm|m4v)/i.test(a.source))
-      )
-    );
-
-    if (!state.scheduled.length) {
-      status.textContent = 'Sync Buffer first to load your scheduled posts.';
-      empty.style.display = 'none';
-      return;
-    }
-    status.textContent = '';
-    if (!videoPosts.length) {
-      empty.style.display = 'block';
-      return;
-    }
-    empty.style.display = 'none';
-
-    videoPosts.forEach(post => {
-      const videoAsset = post.assets.find(a =>
-        (a.mimeType && a.mimeType.startsWith('video')) ||
-        (a.source && /\.(mp4|mov|webm|m4v)/i.test(a.source))
-      );
-      const existingThumb = videoAsset?.thumbnail || null;
-      const dueDate = post.dueAt ? new Date(post.dueAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Queued';
-
-      const card = document.createElement('div');
-      card.className = 'thumb-post-card';
-      card.innerHTML = `
-        ${existingThumb
-          ? `<img class="thumb-post-thumb" src="${existingThumb}" alt="" />`
-          : `<div class="thumb-post-thumb-placeholder">🎬</div>`}
-        <div class="thumb-post-body">
-          <div class="thumb-post-text">${safeText(post.text || '(no caption)')}</div>
-          <div class="thumb-post-meta">${dueDate} · ${existingThumb ? '✅ Has thumbnail' : '⚠ No thumbnail'}</div>
-          <div class="thumb-post-actions">
-            <button class="btn sm thumb-add-btn">${existingThumb ? '↻ Replace thumbnail' : '+ Add thumbnail'}</button>
-          </div>
-          <div class="thumb-upload-row" style="display:none;">
-            <input type="file" class="thumb-file-input" accept="image/*" style="display:none;" />
-            <input class="input thumb-url-input" placeholder="Thumbnail URL or upload…" style="flex:1;min-width:160px;" />
-            <button class="btn sm ghost thumb-upload-file-btn">📎</button>
-            <button class="btn sm primary thumb-save-btn">Save</button>
-            <button class="btn sm ghost thumb-cancel-btn">✕</button>
-          </div>
-          <div class="thumb-status status-txt mt4" style="font-size:11px;"></div>
-        </div>`;
-
-      // Toggle upload row
-      card.querySelector('.thumb-add-btn').onclick = () => {
-        const row = card.querySelector('.thumb-upload-row');
-        row.style.display = row.style.display === 'none' ? 'flex' : 'none';
-      };
-      card.querySelector('.thumb-cancel-btn').onclick = () => {
-        card.querySelector('.thumb-upload-row').style.display = 'none';
-        card.querySelector('.thumb-url-input').value = '';
-        card.querySelector('.thumb-status').textContent = '';
-      };
-
-      // File upload for thumbnail
-      const fileInput = card.querySelector('.thumb-file-input');
-      card.querySelector('.thumb-upload-file-btn').onclick = () => fileInput.click();
-      fileInput.onchange = async () => {
-        const file = fileInput.files[0];
-        if (!file) return;
-        const thumbStatus = card.querySelector('.thumb-status');
-        thumbStatus.textContent = 'Uploading…';
-        try {
-          const fd = new FormData(); fd.append('image', file);
-          const res = await fetch('https://api.imgur.com/3/image', {
-            method: 'POST', headers: { 'Authorization': `Client-ID ${IMGUR_CLIENT_ID}` }, body: fd
-          });
-          const data = await res.json();
-          if (!data.success) throw new Error(data.data?.error || 'Upload failed');
-          card.querySelector('.thumb-url-input').value = data.data.link;
-          thumbStatus.textContent = '✅ Uploaded — hit Save to apply.';
-        } catch(e) {
-          thumbStatus.textContent = `Upload failed: ${e.message}`;
-        }
-      };
-
-      // Save thumbnail — delete original + recreate with thumbnailUrl in VideoAssetInput
-      card.querySelector('.thumb-save-btn').onclick = async () => {
-        const thumbUrl = card.querySelector('.thumb-url-input').value.trim();
-        const thumbStatus = card.querySelector('.thumb-status');
-        if (!thumbUrl) { thumbStatus.textContent = 'Add a thumbnail URL first.'; return; }
-
-        const confirmed = confirm(
-          'PostIQ will delete this scheduled post and immediately recreate it with the thumbnail baked in.\n\n' +
-          'Post text, channel, and scheduled time are preserved.\n\n' +
-          'The post ID will change — direct Buffer links to this post will break.\n\nContinue?'
-        );
-        if (!confirmed) return;
-
-        thumbStatus.textContent = 'Step 1/2 — Deleting original…';
-        try {
-          const delRes = await callBuffer(
-            `mutation DeletePost($input: DeletePostInput!) {
-              deletePost(input: $input) {
-                ... on DeletePostSuccess { id }
-                ... on MutationError { message }
-              }
-            }`,
-            { input: { id: post.id } }
-          );
-          if (delRes?.data?.deletePost?.message) throw new Error(`Delete failed: ${delRes.data.deletePost.message}`);
-
-          thumbStatus.textContent = 'Step 2/2 — Recreating with thumbnail…';
-          const postChannel = state.channels.find(c => c.id === post.channelId);
-          const svc = (postChannel?.service || '').toLowerCase();
-          const createInput = {
-            channelId: post.channelId,
-            text: post.text || '',
-            schedulingType: 'automatic',
-            assets: {
-              videos: [{ url: videoAsset.source || '', thumbnailUrl: thumbUrl }]
-            }
-          };
-          // Pass platform metadata back through — PostMetadata is a union so fields sit
-          // directly on post.metadata (not nested under platform key)
-          const origMeta = post.metadata || {};
-          if (svc.includes('instagram')) {
-            createInput.metadata = { instagram: {
-              type: origMeta.type || 'post',
-              shouldShareToFeed: origMeta.shouldShareToFeed ?? true,
-              ...(origMeta.firstComment && { firstComment: origMeta.firstComment })
-            }};
-          } else if (svc.includes('facebook')) {
-            createInput.metadata = { facebook: {
-              type: origMeta.type || 'post',
-              ...(origMeta.firstComment && { firstComment: origMeta.firstComment })
-            }};
-          } else if (svc.includes('thread')) {
-            createInput.metadata = { threads: { type: origMeta.type || 'post' } };
-          } else if (svc.includes('youtube')) {
-            // Output type has 'category' object; input type needs 'categoryId' string
-            const ytCategoryId = origMeta.category?.categoryId || '22';
-            createInput.metadata = { youtube: {
-              title: origMeta.title || post.text?.slice(0, 100) || 'Video',
-              categoryId: String(ytCategoryId),
-              ...(origMeta.privacy && { privacy: origMeta.privacy }),
-              ...(origMeta.license && { license: origMeta.license }),
-              notifySubscribers: origMeta.notifySubscribers ?? true,
-              embeddable: origMeta.embeddable ?? true,
-              madeForKids: origMeta.madeForKids ?? false,
-            }};
-          }
-          if (post.dueAt) { createInput.mode = 'customScheduled'; createInput.dueAt = post.dueAt; }
-          else { createInput.mode = 'addToQueue'; }
-
-          console.log('[PostIQ] Sending video to Buffer:', {
-            videoUrl: videoAsset.source || '',
-            thumbUrl,
-            isDirectImage: /^https?:\/\/.+\.(jpg|jpeg|png|webp)(\?.*)?$/i.test(thumbUrl || '')
-          });
-          const createRes = await createPost(createInput);
-          const cp = createRes?.data?.createPost;
-          if (cp?.message) throw new Error(cp.message);
-
-          thumbStatus.textContent = '✅ Done — post recreated with thumbnail. Re-sync to replace again.';
-          card.querySelector('.thumb-upload-row').style.display = 'none';
-          const imgEl = card.querySelector('.thumb-post-thumb, .thumb-post-thumb-placeholder');
-          if (imgEl) {
-            const newImg = document.createElement('img');
-            newImg.className = 'thumb-post-thumb';
-            newImg.src = thumbUrl;
-            imgEl.replaceWith(newImg);
-          }
-          card.querySelector('.thumb-post-meta').textContent = `${dueDate} · ✅ Has thumbnail`;
-          // Disable replace button — post ID has changed, re-sync needed
-          const addBtn = card.querySelector('.thumb-add-btn');
-          addBtn.textContent = '✓ Thumbnail set';
-          addBtn.disabled = true;
-          addBtn.style.opacity = '0.5';
-          addBtn.style.cursor = 'default';
-          showToast('Thumbnail saved — re-sync Buffer to update again ✓');
-          post.assets = post.assets.map(a => a === videoAsset ? { ...a, thumbnail: thumbUrl } : a);
-        } catch(e) {
-          thumbStatus.textContent = `Failed: ${e.message}`;
-          console.error('[PostIQ] Thumbnail error:', e);
-        }
-      };
-
-      list.appendChild(card);
-    });
-  }
-
-  // Re-render thumb tab when sync completes
-  window.addEventListener('postiq:synced', () => {
-    if (qs('composerTabThumbnails').style.display !== 'none') renderThumbTab();
-  });
+  // Thumbnails tab removed — video thumbnail functionality lives inline in the media panel
 
   // ── MOBILE TABS & DRAWER ──
   const isMobile=()=>window.innerWidth<=768;
