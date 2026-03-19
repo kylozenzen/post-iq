@@ -2934,9 +2934,9 @@ async function composerSend(action){
   if(imgUrl){
     if(isVideoUrl(imgUrl)){
       const thumbUrl=qs('videoThumbUrl').value.trim();
-      const videoAsset={url:imgUrl};
-      if(thumbUrl)videoAsset.thumbnailUrl=thumbUrl;
-      input.assets={video:videoAsset};
+      const videoEntry={url:imgUrl};
+      if(thumbUrl)videoEntry.thumbnailUrl=thumbUrl;
+      input.assets={videos:[videoEntry]};
     } else {
       input.assets={images:[{url:imgUrl}]};
     }
@@ -3378,7 +3378,9 @@ function init(){
             channelId: post.channelId,
             text: post.text || '',
             schedulingType: 'automatic',
-            assets: { video: { url: videoAsset.source || '', thumbnailUrl: thumbUrl } }
+            assets: {
+              videos: [{ url: videoAsset.source || '', thumbnailUrl: thumbUrl }]
+            }
           };
           if (post.dueAt) { createInput.mode = 'customScheduled'; createInput.dueAt = post.dueAt; }
           else { createInput.mode = 'addToQueue'; }
