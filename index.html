@@ -2648,7 +2648,7 @@ async function syncBuffer(){
     const ch=await callBuffer(channelsQuery,{organizationId:orgId});
     state.channels=ch?.data?.channels||[];
     const cap=500;let after=null;let all=[];let hasNext=true;
-    const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId assets{ thumbnail mimeType source } metadata{ ... on InstagramPostMetadata{ type shouldShareToFeed firstComment } ... on FacebookPostMetadata{ type firstComment } ... on TwitterPostMetadata{ thread{ text } } ... on YoutubePostMetadata{ title privacy categoryId license notifySubscribers embeddable madeForKids } } } } pageInfo{ hasNextPage endCursor } } }';
+    const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId assets{ thumbnail mimeType source } metadata{ ... on InstagramPostMetadata{ type shouldShareToFeed firstComment } ... on FacebookPostMetadata{ type firstComment } ... on TwitterPostMetadata{ thread{ text } } ... on YoutubePostMetadata{ type title privacy category license notifySubscribers embeddable madeForKids } } } } pageInfo{ hasNextPage endCursor } } }';
     while(hasNext&&all.length<cap){
       const page=await callBuffer(postsQuery,{organizationId:orgId,after});
       const block=page?.data?.posts;const edges=block?.edges||[];
@@ -3401,9 +3401,11 @@ function init(){
           } else if (svc.includes('thread')) {
             createInput.metadata = { threads: { type: origMeta.type || 'post' } };
           } else if (svc.includes('youtube')) {
+            // Output type has 'category' object; input type needs 'categoryId' string
+            const ytCategoryId = origMeta.category?.id || origMeta.category || '22';
             createInput.metadata = { youtube: {
               title: origMeta.title || post.text?.slice(0, 100) || 'Video',
-              categoryId: origMeta.categoryId || '22',
+              categoryId: String(ytCategoryId),
               ...(origMeta.privacy && { privacy: origMeta.privacy }),
               ...(origMeta.license && { license: origMeta.license }),
               notifySubscribers: origMeta.notifySubscribers ?? true,
