@@ -3416,6 +3416,11 @@ function init(){
           if (post.dueAt) { createInput.mode = 'customScheduled'; createInput.dueAt = post.dueAt; }
           else { createInput.mode = 'addToQueue'; }
 
+          console.log('[PostIQ] Sending video to Buffer:', {
+            videoUrl: videoAsset.source || '',
+            thumbUrl,
+            isDirectImage: /^https?:\/\/.+\.(jpg|jpeg|png|webp)(\?.*)?$/i.test(thumbUrl || '')
+          });
           const createRes = await createPost(createInput);
           const cp = createRes?.data?.createPost;
           if (cp?.message) throw new Error(cp.message);
