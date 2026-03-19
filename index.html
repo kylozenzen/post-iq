@@ -2648,7 +2648,7 @@ async function syncBuffer(){
     const ch=await callBuffer(channelsQuery,{organizationId:orgId});
     state.channels=ch?.data?.channels||[];
     const cap=500;let after=null;let all=[];let hasNext=true;
-    const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId assets{ thumbnail mimeType source } metadata{ instagram{ type shouldShareToFeed firstComment } facebook{ type firstComment } threads{ type } twitter{ thread{ text } } youtube{ title privacy categoryId license notifySubscribers embeddable madeForKids } } } } pageInfo{ hasNextPage endCursor } } }';
+    const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId assets{ thumbnail mimeType source } metadata{ ... on InstagramPostMetadata{ type shouldShareToFeed firstComment } ... on FacebookPostMetadata{ type firstComment } ... on TwitterPostMetadata{ thread{ text } } ... on YoutubePostMetadata{ title privacy categoryId license notifySubscribers embeddable madeForKids } } } } pageInfo{ hasNextPage endCursor } } }';
     while(hasNext&&all.length<cap){
       const page=await callBuffer(postsQuery,{organizationId:orgId,after});
       const block=page?.data?.posts;const edges=block?.edges||[];
@@ -3384,35 +3384,31 @@ function init(){
               videos: [{ url: videoAsset.source || '', thumbnailUrl: thumbUrl }]
             }
           };
-          // Pass platform metadata back through so required fields aren't lost on recreate
+          // Pass platform metadata back through — PostMetadata is a union so fields sit
+          // directly on post.metadata (not nested under platform key)
           const origMeta = post.metadata || {};
-          if (svc.includes('instagram') && origMeta.instagram) {
+          if (svc.includes('instagram')) {
             createInput.metadata = { instagram: {
-              type: origMeta.instagram.type || 'post',
-              shouldShareToFeed: origMeta.instagram.shouldShareToFeed ?? true,
-              ...(origMeta.instagram.firstComment && { firstComment: origMeta.instagram.firstComment })
+              type: origMeta.type || 'post',
+              shouldShareToFeed: origMeta.shouldShareToFeed ?? true,
+              ...(origMeta.firstComment && { firstComment: origMeta.firstComment })
             }};
-          } else if (svc.includes('instagram')) {
-            // Fallback if metadata wasn't fetched
-            createInput.metadata = { instagram: { type: 'post', shouldShareToFeed: true } };
-          } else if (svc.includes('facebook') && origMeta.facebook) {
+          } else if (svc.includes('facebook')) {
             createInput.metadata = { facebook: {
-              type: origMeta.facebook.type || 'post',
-              ...(origMeta.facebook.firstComment && { firstComment: origMeta.facebook.firstComment })
+              type: origMeta.type || 'post',
+              ...(origMeta.firstComment && { firstComment: origMeta.firstComment })
             }};
-          } else if (svc.includes('thread') && origMeta.threads) {
-            createInput.metadata = { threads: { type: origMeta.threads.type || 'post' } };
-          } else if ((svc.includes('twitter') || svc.includes('x-')) && origMeta.twitter) {
-            createInput.metadata = { twitter: {} };
-          } else if (svc.includes('youtube') && origMeta.youtube) {
+          } else if (svc.includes('thread')) {
+            createInput.metadata = { threads: { type: origMeta.type || 'post' } };
+          } else if (svc.includes('youtube')) {
             createInput.metadata = { youtube: {
-              title: origMeta.youtube.title || post.text?.slice(0, 100) || 'Video',
-              categoryId: origMeta.youtube.categoryId || '22',
-              ...(origMeta.youtube.privacy && { privacy: origMeta.youtube.privacy }),
-              ...(origMeta.youtube.license && { license: origMeta.youtube.license }),
-              notifySubscribers: origMeta.youtube.notifySubscribers ?? true,
-              embeddable: origMeta.youtube.embeddable ?? true,
-              madeForKids: origMeta.youtube.madeForKids ?? false,
+              title: origMeta.title || post.text?.slice(0, 100) || 'Video',
+              categoryId: origMeta.categoryId || '22',
+              ...(origMeta.privacy && { privacy: origMeta.privacy }),
+              ...(origMeta.license && { license: origMeta.license }),
+              notifySubscribers: origMeta.notifySubscribers ?? true,
+              embeddable: origMeta.embeddable ?? true,
+              madeForKids: origMeta.madeForKids ?? false,
             }};
           }
           if (post.dueAt) { createInput.mode = 'customScheduled'; createInput.dueAt = post.dueAt; }
