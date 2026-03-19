@@ -1912,7 +1912,7 @@
 
       <!-- ── THUMBNAILS TAB ── -->
       <div id="composerTabThumbnails" class="composer-tab-panel" style="display:none;">
-        <p class="page-desc mt8 mb8" style="color:var(--muted);font-size:13px;margin-bottom:12px;">Add or update custom thumbnails on your scheduled video posts. Syncs directly with Buffer.</p>
+        <p class="page-desc mt8 mb8" style="color:var(--muted);font-size:13px;margin-bottom:12px;">Add custom thumbnails to scheduled video posts. Works on X/Twitter — LinkedIn and Instagram generate their own previews automatically.</p>
         <div id="thumbTabStatus" class="status-txt mb8"></div>
         <div id="thumbTabEmpty" class="empty" style="display:none;">No scheduled video posts found. Sync Buffer first, or schedule a video post.</div>
         <div id="thumbPostList" class="thumb-post-list"></div>
@@ -3389,7 +3389,7 @@ function init(){
           const cp = createRes?.data?.createPost;
           if (cp?.message) throw new Error(cp.message);
 
-          thumbStatus.textContent = '✅ Done — post recreated with thumbnail.';
+          thumbStatus.textContent = '✅ Done — post recreated with thumbnail. Re-sync to replace again.';
           card.querySelector('.thumb-upload-row').style.display = 'none';
           const imgEl = card.querySelector('.thumb-post-thumb, .thumb-post-thumb-placeholder');
           if (imgEl) {
@@ -3399,8 +3399,13 @@ function init(){
             imgEl.replaceWith(newImg);
           }
           card.querySelector('.thumb-post-meta').textContent = `${dueDate} · ✅ Has thumbnail`;
-          card.querySelector('.thumb-add-btn').textContent = '↻ Replace thumbnail';
-          showToast('Thumbnail saved — post recreated ✓');
+          // Disable replace button — post ID has changed, re-sync needed
+          const addBtn = card.querySelector('.thumb-add-btn');
+          addBtn.textContent = '✓ Thumbnail set';
+          addBtn.disabled = true;
+          addBtn.style.opacity = '0.5';
+          addBtn.style.cursor = 'default';
+          showToast('Thumbnail saved — re-sync Buffer to update again ✓');
           post.assets = post.assets.map(a => a === videoAsset ? { ...a, thumbnail: thumbUrl } : a);
         } catch(e) {
           thumbStatus.textContent = `Failed: ${e.message}`;
