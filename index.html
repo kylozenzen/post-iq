@@ -204,12 +204,21 @@
       margin-bottom: 6px;
     }
     .status-dot {
-      width: 6px; height: 6px;
+      width: 7px; height: 7px;
       border-radius: 50%;
       background: var(--subtle);
       flex-shrink: 0;
+      transition: background .3s, box-shadow .3s;
     }
-    .status-dot.connected { background: var(--green); box-shadow: 0 0 6px rgba(45,212,160,.5); }
+    .status-dot.connected {
+      background: var(--green);
+      box-shadow: 0 0 0 0 rgba(45,212,160,.5);
+      animation: dotPulse 2.4s ease-in-out infinite;
+    }
+    @keyframes dotPulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(45,212,160,.45); }
+      50%      { box-shadow: 0 0 0 5px rgba(45,212,160,0); }
+    }
     .token-label {
       font-size: 11px;
       font-weight: 500;
@@ -267,14 +276,24 @@
       cursor: pointer;
       width: 100%;
       text-align: left;
-      transition: all .15s;
+      transition: background .15s, color .15s, transform .1s;
       font-family: 'Inter', sans-serif;
+      position: relative;
     }
-    .nav-btn:hover { background: var(--surface2); color: var(--text); }
+    .nav-btn:hover { background: var(--surface2); color: var(--text); transform: translateX(2px); }
     .nav-btn.active {
       background: var(--amber-dim);
       color: var(--amber);
       border: 1px solid var(--amber-glow);
+      box-shadow: inset 0 0 12px rgba(245,183,49,.04);
+    }
+    .nav-btn.active::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 20%; bottom: 20%;
+      width: 3px;
+      background: var(--amber);
+      border-radius: 0 3px 3px 0;
     }
     .nav-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
 
@@ -287,6 +306,26 @@
     }
     .side-bottom .nav-btn { font-size: 12px; color: var(--subtle); }
     .side-bottom .nav-btn:hover { color: var(--muted); }
+
+    /* Guides & Settings button — CSS hover instead of inline handlers */
+    #openSettings {
+      background: transparent;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 0 10px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      flex-shrink: 0;
+      transition: border-color .15s, color .15s, background .15s;
+      position: relative;
+    }
+    #openSettings:hover { border-color: var(--subtle); color: var(--text); background: var(--surface2); }
 
     /* ── MAIN ── */
     .main { overflow: auto; }
@@ -450,7 +489,8 @@
     .page-title { letter-spacing: -.4px; }
 
     /* ── POLISH: card hover ── */
-    .card { transition: border-color .15s; }
+    .card { transition: border-color .15s, box-shadow .2s; }
+    .card:hover { box-shadow: 0 2px 16px rgba(0,0,0,.15); }
 
     /* ── POLISH: nav active state glow ── */
     .nav-btn.active {
@@ -469,6 +509,11 @@
       box-shadow: 0 4px 20px rgba(245,183,49,.35);
       transform: translateY(-1px);
     }
+    .btn.primary:active { transform: translateY(0); box-shadow: 0 1px 6px rgba(245,183,49,.2); }
+
+    /* ── POLISH: all buttons get active press feel ── */
+    .btn:active { transform: scale(.97); }
+    .btn.primary:active { transform: scale(.97) translateY(0); }
 
     /* ── POLISH: input focus ring ── */
     .input:focus, textarea:focus, select:focus {
@@ -476,6 +521,35 @@
       border-color: var(--amber);
       box-shadow: 0 0 0 3px var(--amber-dim);
     }
+
+    /* ── POLISH: view enter animation ── */
+    .view.active { animation: viewEnter .18s ease; }
+    @keyframes viewEnter { from { opacity:.6; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ── POLISH: composer expand panel smooth height ── */
+    .composer-expand-panel {
+      overflow: hidden;
+      transition: opacity .15s;
+    }
+
+    /* ── POLISH: status text transitions ── */
+    .status-txt { transition: color .2s; }
+
+    /* ── POLISH: snippet card lift ── */
+    .snippet-card { transition: border-color .12s, transform .12s, box-shadow .15s; }
+    .snippet-card:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.18); border-color: var(--border2); }
+
+    /* ── POLISH: trending item lift ── */
+    .trending-item { transition: border-color .12s, transform .12s, box-shadow .15s; }
+    .trending-item:hover { transform: translateX(2px); border-color: var(--border2); }
+
+    /* ── POLISH: sync button loading state ── */
+    @keyframes spinIcon { to { transform: rotate(360deg); } }
+    .syncing-icon { display: inline-block; animation: spinIcon .7s linear infinite; }
+
+    /* ── POLISH: modal entrance ── */
+    .modal-card { animation: modalIn .18s cubic-bezier(.34,1.3,.64,1); }
+    @keyframes modalIn { from { opacity:0; transform:scale(.95) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
 
     /* ── INLINE ROW ── */
     .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -999,10 +1073,11 @@
       border: 2px dashed var(--border2);
       border-radius: 10px;
       background: var(--surface2);
-      transition: border-color .15s, background .15s;
+      transition: border-color .2s, background .2s;
       overflow: hidden;
       margin-top: 8px;
     }
+    .upload-zone:hover { border-color: var(--subtle); }
     .upload-zone.drag-over { border-color: var(--amber); background: var(--amber-dim); }
     .upload-zone-inner {
       display: flex;
@@ -1014,20 +1089,36 @@
       text-align: center;
       cursor: pointer;
     }
-    .upload-icon { font-size: 28px; line-height: 1; }
+    .upload-icon {
+      font-size: 28px;
+      line-height: 1;
+      animation: floatIcon 3s ease-in-out infinite;
+    }
+    @keyframes floatIcon {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-4px); }
+    }
+    .upload-zone.drag-over .upload-icon { animation: none; transform: scale(1.15); transition: transform .15s; }
     .upload-label { font-size: 13px; color: var(--muted); }
     .upload-browse-btn {
       background: none; border: none; color: var(--amber);
       font-size: 13px; cursor: pointer; font-family: 'Inter', sans-serif;
       font-weight: 600; padding: 0; text-decoration: underline;
+      transition: color .12s;
     }
+    .upload-browse-btn:hover { color: #f7c44a; }
     .upload-hint { font-size: 11px; color: var(--subtle); font-family: 'DM Mono', monospace; }
-    .upload-progress { height: 4px; background: var(--surface3); }
+    .upload-progress { height: 3px; background: var(--surface3); }
     .upload-progress-bar {
       height: 100%; background: var(--amber); width: 0%;
       transition: width .2s ease; border-radius: 2px;
+      box-shadow: 0 0 8px var(--amber-glow);
     }
-    .upload-result { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+    .upload-result {
+      display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+      animation: fadeInUp .2s ease;
+    }
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
     .upload-thumb {
       width: 56px; height: 56px; object-fit: cover;
       border-radius: 8px; border: 1px solid var(--border2); flex-shrink: 0;
@@ -1088,19 +1179,30 @@
       flex-direction: column;
       gap: 6px;
       z-index: 80;
+      pointer-events: none;
     }
     .toast {
       background: var(--surface2);
       border: 1px solid var(--border2);
+      border-left: 3px solid var(--amber);
       border-radius: 8px;
-      padding: 9px 14px;
+      padding: 10px 16px 10px 13px;
       font-size: 12px;
       font-weight: 500;
       color: var(--text);
-      box-shadow: 0 8px 24px rgba(0,0,0,.4);
-      animation: slideUp .15s ease;
+      box-shadow: 0 8px 32px rgba(0,0,0,.45);
+      animation: toastIn .2s cubic-bezier(.34,1.56,.64,1);
+      max-width: 320px;
+      line-height: 1.45;
     }
-    @keyframes slideUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+    .toast.toast-success { border-left-color: var(--green); }
+    .toast.toast-error   { border-left-color: var(--red); }
+    .toast.toast-info    { border-left-color: var(--blue); }
+    .toast.toast-out {
+      animation: toastOut .22s ease forwards;
+    }
+    @keyframes toastIn  { from { opacity:0; transform:translateX(12px) scale(.96); } to { opacity:1; transform:translateX(0) scale(1); } }
+    @keyframes toastOut { from { opacity:1; transform:translateX(0) scale(1); } to { opacity:0; transform:translateX(10px) scale(.95); } }
     @keyframes pulse-amber { 0%,100% { box-shadow: 0 0 0 0 var(--amber)44; } 50% { box-shadow: 0 0 0 6px var(--amber)00; } }
     .sync-pulse { animation: pulse-amber 1.8s ease-in-out infinite; border-color: var(--amber) !important; color: var(--amber) !important; }
 
@@ -1685,7 +1787,7 @@
     </nav>
     <div class="side-bottom" style="padding:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
       <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="flex:1;font-size:12px;color:var(--subtle);"><span class="nav-icon">↗</span> Open Buffer</a>
-      <button id="openSettings" title="Guides &amp; Settings" style="background:transparent;border:1px solid var(--border2);border-radius:8px;padding:0 10px;height:32px;display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--muted);font-size:12px;font-family:'DM Mono',monospace;flex-shrink:0;transition:all .12s;position:relative;" onmouseover="this.style.borderColor='var(--subtle)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)')">⚙ Guides &amp; Settings<span id="whatsNewDot" style="display:none;width:6px;height:6px;background:var(--amber);border-radius:50%;position:absolute;top:4px;right:4px;"></span></button>
+      <button id="openSettings" title="Guides &amp; Settings">⚙ Guides &amp; Settings<span id="whatsNewDot" style="display:none;width:6px;height:6px;background:var(--amber);border-radius:50%;position:absolute;top:4px;right:4px;"></span></button>
     </div>
   </aside>
 
@@ -2370,10 +2472,17 @@ function monthStart(d){return new Date(d.getFullYear(),d.getMonth(),1)}
 function maskToken(t){if(!t)return '—';if(t.length<=8)return '••••';return `${t.slice(0,4)}••••${t.slice(-4)}`;}
 function openModal(id){qs(id).classList.add('open')}
 function closeModal(id){qs(id).classList.remove('open')}
-function showToast(msg){
+function showToast(msg, type=''){
   const wrap=qs('toastWrap');if(!wrap)return;
-  const t=document.createElement('div');t.className='toast';t.textContent=msg;
-  wrap.appendChild(t);setTimeout(()=>t.remove(),msg.length>40?3800:2800);
+  const t=document.createElement('div');
+  t.className='toast'+(type?' toast-'+type:'');
+  t.textContent=msg;
+  wrap.appendChild(t);
+  const delay=msg.length>40?3800:2800;
+  setTimeout(()=>{
+    t.classList.add('toast-out');
+    setTimeout(()=>t.remove(),230);
+  },delay);
 }
 function safeText(v=''){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function compactText(v,max=84){const t=(v||'').replace(/\s+/g,' ').trim();return t.length>max?`${t.slice(0,max-1)}…`:t}
@@ -2446,7 +2555,7 @@ function useIdeaInComposer(id){
   document.querySelector('.composer-tab[data-ctab="write"]').classList.add('active');
   qs('composerTabWrite').style.display='block';
   qs('composerTabIdeas').style.display='none';
-  showToast('Idea imported ✓');
+  showToast('Idea imported ✓','success');
 }
 
 function loadSnippets(){
@@ -2486,7 +2595,7 @@ function useSnippetInComposer(snippet){
     else{editor.innerText=editor.innerText?`${editor.innerText}\n\n${body}`:body;}
   }catch{editor.innerText=editor.innerText?`${editor.innerText}\n\n${body}`:body}
   qs('composerEmpty').style.display=editorHtmlToText(editor.innerHTML)?'none':'block';
-  showToast('Snippet inserted');
+  showToast('Snippet inserted','success');
 }
 function useSnippetInThread(snippet,position='prepend'){
   const input=qs('threadInput');const current=input.value.trim();const body=snippet.body||'';
@@ -2550,17 +2659,17 @@ function openSnippetModal(id=null){
 }
 function saveSnippet(){
   const title=qs('snippetTitle').value.trim();const body=qs('snippetBody').value.trim();
-  if(!title||!body){showToast('Title and body required');return}
+  if(!title||!body){showToast('Title and body required','error');return}
   const now=new Date().toISOString();
   const payload={id:state.editingSnippetId||`${Date.now()}-${Math.random().toString(16).slice(2,7)}`,title,type:qs('snippetType').value,platform:qs('snippetPlatform').value,tags:normalizeTags(qs('snippetTags').value),body,createdAt:now,updatedAt:now};
   if(state.editingSnippetId){const prev=state.snippets.find(s=>s.id===state.editingSnippetId);payload.createdAt=prev?.createdAt||now;state.snippets=state.snippets.map(s=>s.id===state.editingSnippetId?payload:s);}
   else state.snippets=[payload,...state.snippets];
-  persistSnippets();closeModal('snippetModal');renderSnippets();showToast('Snippet saved');
+  persistSnippets();closeModal('snippetModal');renderSnippets();showToast('Snippet saved','success');
 }
 function deleteSnippet(id){
   if(!confirm('Delete this snippet?'))return;
   state.snippets=state.snippets.filter(s=>s.id!==id);
-  persistSnippets();renderSnippets();showToast('Snippet deleted');
+  persistSnippets();renderSnippets();showToast('Snippet deleted','info');
 }
 function renderSnippetSelectors(){
   ['snippetPlatformFilter','snippetPlatform','pickerPlatform'].forEach(id=>{
@@ -2574,7 +2683,7 @@ function renderSnippetSelectors(){
   qs('snippetPlatformFilter').value=state.snippetPlatform;
 }
 function openSnippetPicker(mode){
-  if(!state.snippets.length){showToast('No snippets yet — create one in the Snippets tab first');return;}
+  if(!state.snippets.length){showToast('No snippets yet — create one in the Snippets tab first','error');return;}
   state.pickerMode=mode;
   qs('snippetPickerTitle').textContent=mode==='composer'?'Insert snippet into Composer':mode==='threadOpener'?'Add opener from Snippets':'Add ending CTA from Snippets';
   qs('pickerSearch').value='';qs('pickerType').value='All';qs('pickerPlatform').value='All Platforms';
@@ -2598,7 +2707,12 @@ function renderSnippetPicker(){
 }
 
 // ── TOKEN ──
-function setSyncStatus(stateName,msg){state.syncState=stateName;qs('syncStatus').textContent=msg;}
+function setSyncStatus(stateName,msg){
+  state.syncState=stateName;
+  const el=qs('syncStatus');
+  el.textContent=msg;
+  el.style.color = stateName==='success' ? 'var(--green)' : stateName==='failed' ? 'var(--red)' : 'var(--muted)';
+}
 function updateTokenUI(){
   const connected=!!bufferToken;
   qs('statusDot').classList.toggle('connected',connected);
@@ -2615,11 +2729,11 @@ function saveToken(){
   const token=qs('tokenInput').value.trim();
   const mode=[...document.querySelectorAll('input[name="tokenMode"]')].find(r=>r.checked).value;
   localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
-  if(!token){bufferToken='';qs('tokenMsg').textContent='Token removed.';updateTokenUI();showToast('Token removed');return;}
+  if(!token){bufferToken='';qs('tokenMsg').textContent='Token removed.';updateTokenUI();showToast('Token removed','info');return;}
   if(mode==='local')localStorage.setItem(STORE_KEY,token);else sessionStorage.setItem(STORE_KEY,token);
   bufferToken=token;
   qs('tokenMsg').textContent=mode==='local'?'Saved to localStorage.':'Saved for this session.';
-  showToast('Token saved');updateTokenUI();
+  showToast('Token saved','success');updateTokenUI();
 }
 function loadStoredToken(){
   bufferToken=sessionStorage.getItem(STORE_KEY)||localStorage.getItem(STORE_KEY)||'';
@@ -2644,6 +2758,10 @@ function setNotes(v){localStorage.setItem(NOTE_KEY,JSON.stringify(v))}
 async function syncBuffer(){
   if(!bufferToken){setSyncStatus('failed','Add your Buffer token first.');return;}
   setSyncStatus('syncing','Syncing…');
+  const syncBtn=qs('syncBtn');
+  const origLabel=syncBtn.innerHTML;
+  syncBtn.innerHTML='<span class="syncing-icon">↻</span> Syncing…';
+  syncBtn.disabled=true;
   try{
     const acc=await callBuffer('query { account { organizations { id name } } }');
     const orgId=acc?.data?.account?.organizations?.[0]?.id;
@@ -2663,7 +2781,7 @@ async function syncBuffer(){
     state.scheduled=all;renderChannelSelects();renderCalendar();
     setSyncStatus('success',`${all.length} scheduled posts loaded.`);
     qs('syncBtn').classList.remove('sync-pulse');
-    showToast(`Loaded ${all.length} posts`);
+    showToast(`Loaded ${all.length} posts`,'success');
     window.dispatchEvent(new Event('postiq:synced'));
   }catch(e){
     console.error('[PostIQ] syncBuffer error:', e);
@@ -2671,6 +2789,10 @@ async function syncBuffer(){
     if(m.includes('MISSING_TOKEN'))setSyncStatus('failed','Add a Buffer token first.');
     else if(/unauthorized|invalid|forbidden/i.test(m))setSyncStatus('failed','Token appears invalid or expired.');
     else setSyncStatus('failed',`Sync failed: ${m||'unknown error'}`);
+    showToast('Sync failed — check your token','error');
+  }finally{
+    syncBtn.innerHTML=origLabel;
+    syncBtn.disabled=false;
   }
 }
 
@@ -2786,11 +2908,11 @@ function saveNoteFromModal(){
   const text=qs('noteText').value.trim();const [tag,label]=qs('noteTag').value.split('|');
   const notes=getNotes();
   if(!text){delete notes[key];setNotes(notes);qs('noteStatus').textContent='Note removed.';renderCalendar();return;}
-  notes[key]={text,tag,label};setNotes(notes);qs('noteStatus').textContent='Saved.';renderCalendar();showToast('Note saved');
+  notes[key]={text,tag,label};setNotes(notes);qs('noteStatus').textContent='Saved.';renderCalendar();showToast('Note saved','success');
 }
 function deleteNote(){
   if(!state.selectedDate)return;const notes=getNotes();delete notes[fmtDate(state.selectedDate)];setNotes(notes);
-  qs('noteText').value='';qs('noteStatus').textContent='Deleted.';renderCalendar();showToast('Note deleted');
+  qs('noteText').value='';qs('noteStatus').textContent='Deleted.';renderCalendar();showToast('Note deleted','info');
 }
 function sendNoteToComposer(){
   if(!state.selectedDate)return;const text=qs('noteText').value.trim();
@@ -2892,7 +3014,7 @@ async function openImageLibrary(){
       item.onclick=()=>{
         qs('composerImageUrl').value=src;
         qs('composerImageUrl').dispatchEvent(new Event('input'));
-        closeModal('imageLibraryModal');showToast('Image URL inserted.');
+        closeModal('imageLibraryModal');showToast('Image URL inserted.','success');
       };
       grid.appendChild(item);
     });
@@ -3024,9 +3146,9 @@ function init(){
 
   document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>activateView(b.dataset.view));
 
-  qs('splitBtn').onclick=()=>{threadParts=splitThreadText(qs('threadInput').value);renderThread();if(threadParts.length)showToast(`${threadParts.length} thread parts`);};
+  qs('splitBtn').onclick=()=>{threadParts=splitThreadText(qs('threadInput').value);renderThread();if(threadParts.length)showToast(`${threadParts.length} thread parts`,'success');};
   qs('sampleBtn').onclick=()=>{qs('threadInput').value='PostIQ helps Buffer users move faster. Start with one big idea, split it into clear thread parts, refine each part, and send a cleaner post flow to Buffer.'};
-  qs('copyAllBtn').onclick=()=>{navigator.clipboard.writeText(threadParts.join('\n\n'));showToast('Thread copied');};
+  qs('copyAllBtn').onclick=()=>{navigator.clipboard.writeText(threadParts.join('\n\n'));showToast('Thread copied','success');};
   qs('draftThreadBtn').onclick=()=>sendThread('draft');
   qs('queueThreadBtn').onclick=()=>sendThread('queue');
   qs('scheduleThreadBtn').onclick=()=>sendThread('schedule');
@@ -3272,7 +3394,7 @@ function init(){
     closeUnsplashPanel();
     // Trigger URL preview update (reuse existing url-input handler)
     qs('composerImageUrl').dispatchEvent(new Event('change'));
-    showToast(`Photo by ${author} via Unsplash ✓`);
+    showToast(`Photo by ${author} via Unsplash ✓`,'success');
   };
   qs('openUnsplashBtn').onclick=openUnsplashPanel;
   qs('unsplashCloseBtn').onclick=closeUnsplashPanel;
@@ -3347,17 +3469,17 @@ function init(){
     const token=qs('mobTokenInput').value.trim();
     const mode=[...document.querySelectorAll('input[name="mobTokenMode"]')].find(r=>r.checked).value;
     localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
-    if(!token){bufferToken='';updateTokenUI();syncMobDrawerUI();showToast('Token removed');return;}
+    if(!token){bufferToken='';updateTokenUI();syncMobDrawerUI();showToast('Token removed','info');return;}
     if(mode==='local')localStorage.setItem(STORE_KEY,token);else sessionStorage.setItem(STORE_KEY,token);
     bufferToken=token;
     qs('mobTokenMsg').textContent=mode==='local'?'Saved locally.':'Saved for session.';
-    updateTokenUI();syncMobDrawerUI();showToast('Token saved');
+    updateTokenUI();syncMobDrawerUI();showToast('Token saved','success');
     syncBuffer();
   };
   qs('mobClearTokenBtn').onclick=()=>{
     qs('mobTokenInput').value='';
     localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
-    bufferToken='';updateTokenUI();syncMobDrawerUI();showToast('Token removed');
+    bufferToken='';updateTokenUI();syncMobDrawerUI();showToast('Token removed','info');
   };
   qs('mobOpenOnboarding').onclick=()=>{closeMobDrawer();openSettings('guide');};
   qs('mobOpenFounder').onclick=()=>{closeMobDrawer();openSettings('about');};
@@ -3651,7 +3773,7 @@ function init(){
         activateView('composerView');
         document.querySelectorAll('.mob-tab[data-view]').forEach(t =>
           t.classList.toggle('active', t.dataset.view === 'composerView'));
-        showToast('Pinned as reference — write your take');
+        showToast('Pinned as reference — write your take','info');
       };
 
       container.appendChild(el);
