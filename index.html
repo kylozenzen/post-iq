@@ -162,8 +162,7 @@
       height: 100vh;
       position: sticky;
       top: 0;
-      overflow-y: auto;
-      overflow-x: hidden;
+      overflow: hidden;
       padding: 0;
       min-width: 0;
     }
@@ -240,6 +239,8 @@
       display: flex;
       flex-direction: column;
       gap: 3px;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
     .nav-label {
       font-size: 10px;
@@ -1503,6 +1504,69 @@
 
     .section-hdr { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
     .section-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; }
+
+    /* ── SETTINGS MODAL ── */
+    .settings-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .settings-tab {
+      padding: 9px 16px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all .12s;
+      white-space: nowrap;
+    }
+    .settings-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+    .settings-tab:hover { color: var(--text); }
+    .settings-panel { display: none; }
+    .settings-panel.active { display: block; }
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .theme-option {
+      border: 2px solid var(--border2);
+      border-radius: 10px;
+      padding: 12px 10px;
+      cursor: pointer;
+      text-align: center;
+      transition: all .15s;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .theme-option:hover { border-color: var(--subtle); }
+    .theme-option.active { border-color: var(--amber); background: var(--amber-dim); }
+    .theme-swatch {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.1);
+    }
+    .theme-option-label {
+      font-size: 11px;
+      font-weight: 600;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .theme-option.active .theme-option-label { color: var(--amber); }
   </style>
 </head>
 <body>
@@ -1619,17 +1683,9 @@
       <button class="nav-btn" data-view="trendingView"><span class="nav-icon">📈</span> Trending</button>
       <button class="nav-btn" data-view="snippetsView"><span class="nav-icon">📚</span> Snippets</button>
     </nav>
-    <div class="side-bottom">
-      <button class="nav-btn" id="openWhatsNew"><span class="nav-icon">✨</span> What's New <span id="whatsNewDot" style="display:none;width:6px;height:6px;background:var(--amber);border-radius:50%;margin-left:auto;flex-shrink:0;"></span></button>
-      <button class="nav-btn" id="openOnboarding"><span class="nav-icon">👋</span> Welcome</button>
-      <button class="nav-btn" id="openFounder"><span class="nav-icon">🏗</span> Built by Ben</button>
-      <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener"><span class="nav-icon">↗</span> Open Buffer</a>
-      <div class="theme-switcher">
-        <button class="theme-btn active" data-t="dark" title="Dark"></button>
-        <button class="theme-btn" data-t="light" title="Light"></button>
-        <button class="theme-btn" data-t="warm" title="Warm"></button>
-      </div>
-      <div class="theme-label"><span>Dark</span><span>Light</span><span>Warm</span></div>
+    <div class="side-bottom" style="padding:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="flex:1;font-size:12px;color:var(--subtle);"><span class="nav-icon">↗</span> Open Buffer</a>
+      <button id="openSettings" title="Settings &amp; Help" style="background:transparent;border:1px solid var(--border2);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:15px;flex-shrink:0;transition:all .12s;" onmouseover="this.style.borderColor='var(--subtle)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'">?<span id="whatsNewDot" style="display:none;width:6px;height:6px;background:var(--amber);border-radius:50%;position:absolute;top:6px;right:6px;"></span></button>
     </div>
   </aside>
 
@@ -2026,58 +2082,23 @@ document.addEventListener('DOMContentLoaded', () => {
   <div id="imageLibraryGrid" class="img-library-grid"></div>
 </div></div>
 
-<!-- What's New -->
-<div id="whatsNewModal" class="modal"><div class="modal-card">
+<!-- Settings & Help Modal -->
+<div id="settingsModal" class="modal"><div class="modal-card" style="max-width:600px;">
   <div class="modal-hdr">
-    <span class="modal-title">✨ What's New in PostIQ</span>
-    <button class="btn sm ghost" id="closeWhatsNew">Close</button>
-  </div>
-  <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;">
-    <button class="btn ghost sm wn-tab active" data-wntab="changelog" style="border-radius:0;border-bottom:2px solid var(--amber);color:var(--amber);">Changelog</button>
-    <button class="btn ghost sm wn-tab" data-wntab="guide" style="border-radius:0;border-bottom:2px solid transparent;">Guide</button>
+    <span class="modal-title">⚙️ Settings &amp; Help</span>
+    <button class="btn sm ghost" id="closeSettings">Close</button>
   </div>
 
-  <!-- CHANGELOG TAB -->
-  <div id="wnChangelog">
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge new">New</span><span class="wn-date">Mar 2026</span></div>
-      <div class="wn-title">📈 Topics tab in Trending</div>
-      <p class="wn-desc">Search Reddit across all subreddits by topic. Saved searches persist as clickable pills. Edit your list anytime.</p>
-    </div>
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge new">New</span><span class="wn-date">Mar 2026</span></div>
-      <div class="wn-title">📌 Trending reference panel</div>
-      <p class="wn-desc">Pin any trending story as a reference above the composer. Write your own take — don't copy it in.</p>
-    </div>
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Mar 2026</span></div>
-      <div class="wn-title">🎨 Themes — Dark, Light, Warm</div>
-      <p class="wn-desc">Three visual themes. Pick what works for your setup. Preference saves locally.</p>
-    </div>
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Mar 2026</span></div>
-      <div class="wn-title">📏 Platform-aware character counter</div>
-      <p class="wn-desc">Counter now shows X/limit based on your selected channel. LinkedIn 3000, X 280, Threads 500, Instagram 2200.</p>
-    </div>
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Mar 2026</span></div>
-      <div class="wn-title">✍️ Composer clears after sending</div>
-      <p class="wn-desc">Queue, draft, or schedule — the editor resets automatically after a successful action.</p>
-    </div>
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Feb 2026</span></div>
-      <div class="wn-title">🎬 Video thumbnail manager</div>
-      <p class="wn-desc">Set custom thumbnails on scheduled video posts directly from PostIQ via the Buffer API.</p>
-    </div>
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Feb 2026</span></div>
-      <div class="wn-title">🖼 Imgur image uploader</div>
-      <p class="wn-desc">Upload images directly from the composer. No account needed — anonymous Imgur hosting.</p>
-    </div>
+  <!-- Tabs -->
+  <div class="settings-tabs">
+    <button class="settings-tab active" data-stab="guide">Guide</button>
+    <button class="settings-tab" data-stab="changelog">What's New</button>
+    <button class="settings-tab" data-stab="themes">Themes</button>
+    <button class="settings-tab" data-stab="about">About</button>
   </div>
 
-  <!-- GUIDE TAB -->
-  <div id="wnGuide" style="display:none;">
+  <!-- ── GUIDE ── -->
+  <div id="settingsPanelGuide" class="settings-panel active">
     <div class="wn-guide-item">
       <div class="wn-guide-icon">✍️</div>
       <div>
@@ -2107,6 +2128,13 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     </div>
     <div class="wn-guide-item">
+      <div class="wn-guide-icon">🎬</div>
+      <div>
+        <div class="wn-title">Video Thumbnails</div>
+        <p class="wn-desc">Sync Buffer, then open the Thumbnails tab in the Composer. PostIQ finds your scheduled video posts. Pick a thumbnail image — PostIQ deletes the original post and recreates it with the thumbnail baked in. Same text, channel, and time slot.</p>
+      </div>
+    </div>
+    <div class="wn-guide-item">
       <div class="wn-guide-icon">📚</div>
       <div>
         <div class="wn-title">Snippets</div>
@@ -2121,47 +2149,82 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     </div>
   </div>
-</div></div>
 
-<!-- Onboarding -->
-<div id="onboardingModal" class="modal"><div class="modal-card">
-  <div class="modal-hdr">
-    <span class="modal-title">Welcome to PostIQ</span>
-    <button class="btn sm ghost" id="closeOnboarding">Close</button>
-  </div>
-  <p style="font-size:13px;color:var(--muted);">Plan, draft, and schedule faster — a lightweight Buffer companion that keeps your workflow moving.</p>
-  <div class="onboarding-grid">
-    <div class="ob-card"><span class="ob-icon">🧵</span><div class="ob-title">Thread Splitter</div><p class="ob-desc">Split long-form ideas into clean thread parts to queue or schedule on X &amp; Threads.</p></div>
-    <div class="ob-card"><span class="ob-icon">📅</span><div class="ob-title">Content Calendar</div><p class="ob-desc">See scheduled Buffer posts month-by-month with color-tagged planning notes.</p></div>
-    <div class="ob-card"><span class="ob-icon">✍️</span><div class="ob-title">Post Composer</div><p class="ob-desc">Draft text-first posts with formatting, then send to Buffer as draft, queue, or scheduled.</p></div>
-    <div class="ob-card"><span class="ob-icon">📚</span><div class="ob-title">Snippets</div><p class="ob-desc">Save reusable hooks, CTAs, hashtag sets and openers. Insert them anywhere in one click.</p></div>
-  </div>
-  <div class="divider" style="margin:16px 0 12px;"></div>
-  <div style="font-size:12px;color:var(--muted);line-height:1.85;">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;">
-      <div><strong style="color:var(--text);">No login required</strong> — PostIQ needs no account.</div>
-      <div><strong style="color:var(--text);">Token stays local</strong> — your Buffer token never leaves your device.</div>
-      <div><strong style="color:var(--text);">Images via URL</strong> — paste a direct image URL in the Composer.</div>
-      <div><strong style="color:var(--text);">Share calendars</strong> — generate read-only month links for async reviews.</div>
+  <!-- ── CHANGELOG ── -->
+  <div id="settingsPanelChangelog" class="settings-panel">
+    <div class="wn-entry">
+      <div class="wn-meta"><span class="wn-badge new">New</span><span class="wn-date">Mar 2026</span></div>
+      <div class="wn-title">🎬 Video Thumbnail Manager</div>
+      <p class="wn-desc">Add custom thumbnails to scheduled video posts. PostIQ deletes and recreates the post with the thumbnail baked into the VideoAssetInput — same slot, new thumbnail.</p>
+    </div>
+    <div class="wn-entry">
+      <div class="wn-meta"><span class="wn-badge new">New</span><span class="wn-date">Mar 2026</span></div>
+      <div class="wn-title">⚙️ Unified Settings panel</div>
+      <p class="wn-desc">Guide, changelog, themes, and about consolidated into one place. Sidebar stays clean.</p>
+    </div>
+    <div class="wn-entry">
+      <div class="wn-meta"><span class="wn-badge new">New</span><span class="wn-date">Mar 2026</span></div>
+      <div class="wn-title">📈 Topics tab in Trending</div>
+      <p class="wn-desc">Search Reddit across all subreddits by topic. Saved searches persist as clickable pills. Edit your list anytime.</p>
+    </div>
+    <div class="wn-entry">
+      <div class="wn-meta"><span class="wn-badge new">New</span><span class="wn-date">Mar 2026</span></div>
+      <div class="wn-title">📌 Trending reference panel</div>
+      <p class="wn-desc">Pin any trending story as a reference above the composer. Write your own take — don't copy it in.</p>
+    </div>
+    <div class="wn-entry">
+      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Mar 2026</span></div>
+      <div class="wn-title">📏 Platform-aware character counter</div>
+      <p class="wn-desc">Counter now shows X/limit based on your selected channel. LinkedIn 3000, X 280, Threads 500, Instagram 2200.</p>
+    </div>
+    <div class="wn-entry">
+      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Mar 2026</span></div>
+      <div class="wn-title">✍️ Composer clears after sending</div>
+      <p class="wn-desc">Queue, draft, or schedule — the editor resets automatically after a successful action.</p>
+    </div>
+    <div class="wn-entry">
+      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Feb 2026</span></div>
+      <div class="wn-title">🖼 Imgur image uploader</div>
+      <p class="wn-desc">Upload images directly from the composer. No account needed — anonymous Imgur hosting.</p>
     </div>
   </div>
-  <div class="row mt16">
-    <button class="btn primary" id="onboardingEnter">Get started</button>
-  </div>
-</div></div>
 
-<!-- Founder -->
-<div id="founderModal" class="modal"><div class="modal-card">
-  <div class="modal-hdr">
-    <span class="modal-title">Built by Ben Campbell</span>
-    <button class="btn sm ghost" id="closeFounder">Close</button>
+  <!-- ── THEMES ── -->
+  <div id="settingsPanelThemes" class="settings-panel">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Choose your preferred color theme. Saves locally.</p>
+    <div class="theme-grid">
+      <button class="theme-option" data-theme="dark">
+        <div class="theme-swatch" style="background:#13151b;border:1px solid #252836;"></div>
+        <span class="theme-option-label">Dark</span>
+      </button>
+      <button class="theme-option" data-theme="light">
+        <div class="theme-swatch" style="background:#ffffff;border:1px solid #dde0e8;"></div>
+        <span class="theme-option-label">Light</span>
+      </button>
+      <button class="theme-option" data-theme="warm">
+        <div class="theme-swatch" style="background:#1a1510;border:1px solid #332a20;"></div>
+        <span class="theme-option-label">Warm</span>
+      </button>
+    </div>
   </div>
-  <p style="font-size:13px;color:var(--muted);line-height:1.7;">Open to work — social media and content marketing roles. If you enjoy this app, message Ben on Discord with feedback.</p>
-  <p style="font-size:13px;margin-top:10px;color:var(--muted);">
-    Email: <a href="/cdn-cgi/l/email-protection#741c1d061116111a1715190416111818341319151d185a171b19" style="color:var(--blue);"><span class="__cf_email__" data-cfemail="1971706b7c7b7c777a7874697b7c7575597e74787075377a7674">[email&#160;protected]</span></a><br>
-    Portfolio: <a href="https://bencampbell.netlify.app/" target="_blank" style="color:var(--blue);">bencampbell.netlify.app</a><br>
-    LinkedIn: <a href="https://www.linkedin.com/in/bencampbell8/" target="_blank" style="color:var(--blue);">linkedin.com/in/bencampbell8</a>
-  </p>
+
+  <!-- ── ABOUT ── -->
+  <div id="settingsPanelAbout" class="settings-panel">
+    <div style="margin-bottom:16px;">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:4px;">PostIQ <span style="background:var(--amber);color:#1a0f00;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;padding:2px 6px;border-radius:3px;vertical-align:middle;">BETA</span></div>
+      <p style="font-size:12px;color:var(--muted);line-height:1.6;">A free Buffer companion app for serious creators. No login required — your token never leaves your device.</p>
+    </div>
+    <div class="divider"></div>
+    <div style="margin-top:14px;">
+      <div style="font-weight:600;font-size:13px;margin-bottom:6px;">Built by Ben Campbell</div>
+      <p style="font-size:12px;color:var(--muted);line-height:1.7;">Open to work — social media and content marketing roles. Previously grew San Antonio Zoo to 6M+ followers.</p>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">
+        <a href="https://bencampbell.netlify.app/" target="_blank" style="color:var(--blue);font-size:12px;">Portfolio ↗</a>
+        <a href="https://www.linkedin.com/in/bencampbell8/" target="_blank" style="color:var(--blue);font-size:12px;">LinkedIn ↗</a>
+      </div>
+    </div>
+  </div>
+
 </div></div>
 
 <!-- Share -->
@@ -2902,49 +2965,49 @@ function init(){
 
   qs('onboardingEnter').onclick=dismissOnboarding;
   qs('closeOnboarding').onclick=dismissOnboarding;
-  qs('openOnboarding').onclick=openOnboarding;
-  qs('openFounder').onclick=()=>openModal('founderModal');
+  // Onboarding now part of settings modal
+  // Founder now in settings About tab
 
   // ── THEMES ──
   const THEME_KEY='postiq_theme';
   function applyTheme(t){
     document.documentElement.setAttribute('data-theme', t==='dark'?'':t);
-    document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active',b.dataset.t===t));
+    document.querySelectorAll('.theme-option').forEach(b=>b.classList.toggle('active',b.dataset.theme===t));
     try{localStorage.setItem(THEME_KEY,t)}catch{}
   }
-  document.querySelectorAll('.theme-btn').forEach(btn=>{
-    btn.onclick=()=>applyTheme(btn.dataset.t);
-  });
   // Load saved theme
-  try{const saved=localStorage.getItem(THEME_KEY);if(saved)applyTheme(saved);}catch{}
+  try{const saved=localStorage.getItem(THEME_KEY);if(saved)applyTheme(saved);else applyTheme('dark');}catch{}
 
   // ── WHAT'S NEW ──
   const WN_KEY='postiq_wn_seen_v1';
   function hasSeenWhatsNew(){try{return localStorage.getItem(WN_KEY)==='1'}catch{return false}}
   function markWhatsNewSeen(){try{localStorage.setItem(WN_KEY,'1')}catch{}}
   if(!hasSeenWhatsNew()) qs('whatsNewDot').style.display='block';
-  qs('openWhatsNew').onclick=()=>{
-    markWhatsNewSeen();
-    qs('whatsNewDot').style.display='none';
-    openModal('whatsNewModal');
-  };
-  qs('closeWhatsNew').onclick=()=>closeModal('whatsNewModal');
-  // What's New tab switching
-  document.querySelectorAll('.wn-tab').forEach(tab=>{
-    tab.onclick=()=>{
-      document.querySelectorAll('.wn-tab').forEach(t=>{
-        t.classList.remove('active');
-        t.style.borderBottomColor='transparent';
-        t.style.color='';
-      });
+  // ── SETTINGS MODAL ──
+  function openSettings(tab) {
+    // Switch to specified tab or default
+    const target = tab || 'guide';
+    document.querySelectorAll('.settings-tab').forEach(t => t.classList.toggle('active', t.dataset.stab === target));
+    document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.id === `settingsPanel${target.charAt(0).toUpperCase()+target.slice(1)}`));
+    // Mark new seen when opening changelog
+    if (target === 'changelog') { markWhatsNewSeen(); qs('whatsNewDot').style.display='none'; }
+    openModal('settingsModal');
+  }
+  qs('openSettings').onclick = () => openSettings('guide');
+  qs('closeSettings').onclick = () => closeModal('settingsModal');
+  document.querySelectorAll('.settings-tab').forEach(tab => {
+    tab.onclick = () => {
+      document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      tab.style.borderBottomColor='var(--amber)';
-      tab.style.color='var(--amber)';
-      qs('wnChangelog').style.display=tab.dataset.wntab==='changelog'?'block':'none';
-      qs('wnGuide').style.display=tab.dataset.wntab==='guide'?'block':'none';
+      const panel = 'settingsPanel' + tab.dataset.stab.charAt(0).toUpperCase() + tab.dataset.stab.slice(1);
+      document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.id === panel));
+      if (tab.dataset.stab === 'changelog') { markWhatsNewSeen(); qs('whatsNewDot').style.display='none'; }
     };
   });
-  qs('closeFounder').onclick=()=>closeModal('founderModal');
+  // Theme options inside settings modal
+  document.querySelectorAll('.theme-option').forEach(btn => {
+    btn.onclick = () => applyTheme(btn.dataset.theme);
+  });
 
   qs('manageTokenBtn').onclick=toggleTokenPanel;
   qs('revealCompactBtn').onclick=()=>{tokenPanelOpen=true;qs('tokenPanel').classList.add('open');qs('manageTokenBtn').textContent='Done';tokenInputVisible=true;qs('tokenInput').type='text';qs('toggleTokenVisibility').textContent='Hide';};
@@ -3285,22 +3348,48 @@ function init(){
         }
       };
 
-      // Save thumbnail — updatePost mutation
+      // Save thumbnail — delete original + recreate with thumbnailUrl in VideoAssetInput
       card.querySelector('.thumb-save-btn').onclick = async () => {
         const thumbUrl = card.querySelector('.thumb-url-input').value.trim();
         const thumbStatus = card.querySelector('.thumb-status');
         if (!thumbUrl) { thumbStatus.textContent = 'Add a thumbnail URL first.'; return; }
-        thumbStatus.textContent = 'Saving…';
+
+        const confirmed = confirm(
+          'PostIQ will delete this scheduled post and immediately recreate it with the thumbnail baked in.\n\n' +
+          'Post text, channel, and scheduled time are preserved.\n\n' +
+          'The post ID will change — direct Buffer links to this post will break.\n\nContinue?'
+        );
+        if (!confirmed) return;
+
+        thumbStatus.textContent = 'Step 1/2 — Deleting original…';
         try {
-          const mutation = `mutation UpdatePost($input:UpdatePostInput!){updatePost(input:$input){... on PostActionSuccess{post{id}} ... on MutationError{message}}}`;
-          const res = await callBuffer(mutation, {
-            input: { id: post.id, assets: { video: { url: videoAsset.source || '', thumbnailUrl: thumbUrl } } }
-          });
-          const cp = res?.data?.updatePost;
+          const delRes = await callBuffer(
+            `mutation DeletePost($input: DeletePostInput!) {
+              deletePost(input: $input) {
+                ... on DeleteSuccess { id }
+                ... on MutationError { message }
+              }
+            }`,
+            { input: { id: post.id } }
+          );
+          if (delRes?.data?.deletePost?.message) throw new Error(`Delete failed: ${delRes.data.deletePost.message}`);
+
+          thumbStatus.textContent = 'Step 2/2 — Recreating with thumbnail…';
+          const createInput = {
+            channelId: post.channelId,
+            text: post.text || '',
+            schedulingType: 'automatic',
+            assets: { video: { url: videoAsset.source || '', thumbnailUrl: thumbUrl } }
+          };
+          if (post.dueAt) { createInput.mode = 'customScheduled'; createInput.dueAt = post.dueAt; }
+          else { createInput.mode = 'addToQueue'; }
+
+          const createRes = await createPost(createInput);
+          const cp = createRes?.data?.createPost;
           if (cp?.message) throw new Error(cp.message);
-          thumbStatus.textContent = '✅ Thumbnail saved.';
+
+          thumbStatus.textContent = '✅ Done — post recreated with thumbnail.';
           card.querySelector('.thumb-upload-row').style.display = 'none';
-          // Update the card thumb preview
           const imgEl = card.querySelector('.thumb-post-thumb, .thumb-post-thumb-placeholder');
           if (imgEl) {
             const newImg = document.createElement('img');
@@ -3310,9 +3399,11 @@ function init(){
           }
           card.querySelector('.thumb-post-meta').textContent = `${dueDate} · ✅ Has thumbnail`;
           card.querySelector('.thumb-add-btn').textContent = '↻ Replace thumbnail';
-          showToast('Thumbnail saved.');
+          showToast('Thumbnail saved — post recreated ✓');
+          post.assets = post.assets.map(a => a === videoAsset ? { ...a, thumbnail: thumbUrl } : a);
         } catch(e) {
           thumbStatus.textContent = `Failed: ${e.message}`;
+          console.error('[PostIQ] Thumbnail error:', e);
         }
       };
 
