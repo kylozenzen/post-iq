@@ -856,8 +856,10 @@
     .composer-controls { display: flex; flex-direction: column; }
     .composer-row-a { display: flex; align-items: center; gap: 8px; }
     .composer-channel-sel { flex: 1; min-width: 0; }
-    .composer-row-b { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .composer-row-b { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: space-between; }
+    .composer-primary-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
     .composer-row-c { display: flex; align-items: center; gap: 6px; }
+    .composer-row-c .btn { min-width: 120px; justify-content: center; }
     .composer-expand-panel { border-left: 2px solid var(--border2); padding-left: 12px; }
     .mt4 { margin-top: 4px; }
 
@@ -2187,7 +2189,7 @@
     </nav>
     <div class="side-bottom" style="padding:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
       <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="flex:1;font-size:12px;color:var(--subtle);"><span class="nav-icon">↗</span> Open Buffer</a>
-      <button id="openSettings" title="Guides &amp; Settings">⚙ Guides &amp; Settings<span id="whatsNewDot" style="display:none;width:6px;height:6px;background:var(--amber);border-radius:50%;position:absolute;top:4px;right:4px;"></span></button>
+      <button id="openSettings" title="Guides &amp; Settings">⚙ Guides &amp; Settings</button>
     </div>
   </aside>
 
@@ -2334,9 +2336,15 @@
             <div id="composerChannelHint" class="status-txt mt4" style="display:none;font-size:11px;"></div>
 
             <div class="composer-row-b mt8">
-              <button class="btn" id="composerDraft">Save draft</button>
-              <button class="btn success" id="composerQueue">Add to queue</button>
-              <button class="btn primary" id="composerScheduleToggle">📅 Schedule…</button>
+              <div class="composer-primary-actions">
+                <button class="btn" id="composerDraft">Save draft</button>
+                <button class="btn success" id="composerQueue">Add to queue</button>
+                <button class="btn primary" id="composerScheduleToggle">📅 Schedule…</button>
+              </div>
+              <div class="composer-row-c">
+                <button class="btn sm ghost" id="composerImageToggle">🖼 Media options</button>
+                <button class="btn sm ghost" style="display:none;" id="composerImageToggleOff">Hide media</button>
+              </div>
             </div>
 
             <div id="composerSchedulePanel" class="composer-expand-panel" style="display:none;">
@@ -2352,12 +2360,7 @@
               <input id="composerWhen" type="hidden" />
             </div>
 
-            <div class="composer-row-c mt8">
-              <button class="btn sm ghost" id="composerImageToggle">🖼 Add media</button>
-              <button class="btn sm ghost" style="display:none;" id="composerImageToggleOff">🖼 Remove media</button>
-            </div>
-
-            <div id="composerImagePanel" class="composer-expand-panel" style="display:none;">
+            <div id="composerImagePanel" class="composer-expand-panel mt8" style="display:none;">
               <div class="upload-zone" id="uploadZone">
                 <input type="file" id="uploadFileInput" accept="image/*,video/*" style="display:none;" />
                 <div class="upload-zone-inner" id="uploadZoneInner">
@@ -2622,7 +2625,6 @@ document.addEventListener('DOMContentLoaded', () => {
   <!-- Tabs -->
   <div class="settings-tabs">
     <button class="settings-tab active" data-stab="guide">Guide</button>
-    <button class="settings-tab" data-stab="changelog">What's New</button>
     <button class="settings-tab" data-stab="themes">Themes</button>
     <button class="settings-tab" data-stab="about">About</button>
   </div>
@@ -2672,50 +2674,18 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     </div>
     <div class="wn-guide-item">
+      <div class="wn-guide-icon">✅</div>
+      <div>
+        <div class="wn-title">Approval Workflow</div>
+        <p class="wn-desc">Need review first? Add post text and/or media, check <strong>Needs approval</strong>, then save as draft. Reviewers can leave feedback, then click the post in Approvals to jump straight back into Composer for edits.</p>
+      </div>
+    </div>
+    <div class="wn-guide-item">
       <div class="wn-guide-icon">🔑</div>
       <div>
         <div class="wn-title">Connecting Buffer</div>
         <p class="wn-desc">Get your API token from buffer.com/developers. Paste it in the token panel — choose Session (clears on close) or Local (persists). Hit Load from Buffer to sync your channels and posts. Your token never leaves your device.</p>
       </div>
-    </div>
-  </div>
-
-  <!-- ── CHANGELOG ── -->
-  <div id="settingsPanelChangelog" class="settings-panel">
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge new">New</span><span class="wn-date">Mar 2026</span></div>
-      <div class="wn-title">🎬 Video Thumbnail Manager</div>
-      <p class="wn-desc">Add custom thumbnails to scheduled video posts. PostIQ deletes and recreates the post with the thumbnail baked into the VideoAssetInput — same slot, new thumbnail.</p>
-    </div>
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge new">New</span><span class="wn-date">Mar 2026</span></div>
-      <div class="wn-title">⚙️ Unified Settings panel</div>
-      <p class="wn-desc">Guide, changelog, themes, and about consolidated into one place. Sidebar stays clean.</p>
-    </div>
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge new">New</span><span class="wn-date">Mar 2026</span></div>
-      <div class="wn-title">📈 Topics tab in Trending</div>
-      <p class="wn-desc">Search Reddit across all subreddits by topic. Saved searches persist as clickable pills. Edit your list anytime.</p>
-    </div>
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge new">New</span><span class="wn-date">Mar 2026</span></div>
-      <div class="wn-title">📌 Trending reference panel</div>
-      <p class="wn-desc">Pin any trending story as a reference above the composer. Write your own take — don't copy it in.</p>
-    </div>
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Mar 2026</span></div>
-      <div class="wn-title">📏 Platform-aware character counter</div>
-      <p class="wn-desc">Counter now shows X/limit based on your selected channel. LinkedIn 3000, X 280, Threads 500, Instagram 2200.</p>
-    </div>
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Mar 2026</span></div>
-      <div class="wn-title">✍️ Composer clears after sending</div>
-      <p class="wn-desc">Queue, draft, or schedule — the editor resets automatically after a successful action.</p>
-    </div>
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Feb 2026</span></div>
-      <div class="wn-title">🖼 Imgur image uploader</div>
-      <p class="wn-desc">Upload images directly from the composer. No account needed — anonymous Imgur hosting.</p>
     </div>
   </div>
 
@@ -3518,19 +3488,33 @@ function editorHtmlToText(html){
   };
   return [...root.childNodes].map(walk).join('').replace(/\n{3,}/g,'\n\n').trim();
 }
+function updateComposerActionAvailability(){
+  const needsApproval=qs('composerNeedsApproval')?.checked||false;
+  const queueBtn=qs('composerQueue');
+  const scheduleBtn=qs('composerScheduleToggle');
+  const schedulePanel=qs('composerSchedulePanel');
+  if(queueBtn)queueBtn.style.display=needsApproval?'none':'inline-flex';
+  if(scheduleBtn)scheduleBtn.style.display=needsApproval?'none':'inline-flex';
+  if(needsApproval&&schedulePanel)schedulePanel.style.display='none';
+}
 async function composerSend(action){
   const text=editorHtmlToText(qs('composerEditor').innerHTML);
-  if(!text){qs('composerStatus').textContent='Write content first.';return;}
+  const imgUrl=qs('composerImageUrl').value.trim();
+  const hasPostPayload=Boolean(text||imgUrl);
+  if(!hasPostPayload){qs('composerStatus').textContent='Add post text and/or media first.';return;}
   const channelId=qs('composerChannel').value;
   if(!channelId){qs('composerStatus').textContent='Load channels first.';return;}
   const when=qs('composerWhen').value;
   const needsApproval=qs('composerNeedsApproval')?.checked||false;
-  const input={channelId,text,schedulingType:'automatic'};
+  const input={channelId,text:text||' ',schedulingType:'automatic'};
+  if(needsApproval&&action!=='draft'){
+    qs('composerStatus').textContent='Needs approval posts can only be saved as drafts.';
+    return;
+  }
   if(action==='draft'){input.mode='addToQueue';input.saveToDraft=true;}
   if(action==='queue'){input.mode='addToQueue';}
   if(action==='schedule'){if(!when){qs('composerStatus').textContent='Pick a date/time first.';return;}input.mode='customScheduled';input.dueAt=when;}
   // Attach image or video with correct asset shape
-  const imgUrl=qs('composerImageUrl').value.trim();
   if(imgUrl){
     if(isVideoUrl(imgUrl)){
       const thumbUrl=qs('videoThumbUrl').value.trim();
@@ -3575,6 +3559,7 @@ async function composerSend(action){
     qs('composerChannel').selectedIndex=0;
     qs('composerWhen').value='';
     if(qs('composerNeedsApproval'))qs('composerNeedsApproval').checked=false;
+    updateComposerActionAvailability();
     updateComposerChannelHint&&updateComposerChannelHint();
   }catch(e){qs('composerStatus').textContent=`Failed: ${e.message}`;}
 }
@@ -3687,8 +3672,11 @@ function renderApprovalCard(meta,bufferPost){
       <button class="btn sm ghost" onclick="approvalRemoveCard('${safeId}')" title="Remove">✕</button>
     </div>
     ${lockBanner}
-    <div class="approval-content-text">${safeText(content)}</div>
-    ${imageUrl?`<img src="${safeText(imageUrl)}" alt="Post media" style="max-width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-bottom:12px;border:1px solid var(--border);" />`:''}
+    <div class="approval-content-text" data-approval-open="${safeId}" title="Open in composer">${safeText(content)}</div>
+    ${imageUrl?`<img src="${safeText(imageUrl)}" data-approval-open="${safeId}" alt="Post media" title="Open in composer" style="max-width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-bottom:12px;border:1px solid var(--border);cursor:pointer;" />`:''}
+    <div style="margin:-2px 0 12px;">
+      <button class="btn sm ghost" onclick="approvalOpenInComposer('${safeId}')">✍️ Edit in composer</button>
+    </div>
     ${linkBox}
     ${genBtn}
     ${commentsHtml}
@@ -3731,6 +3719,10 @@ function renderApprovalCard(meta,bufferPost){
       }
     }
     if(dateIn)dateIn.value=new Date().toISOString().slice(0,10);
+    card.querySelectorAll('[data-approval-open]').forEach(el=>{
+      el.style.cursor='pointer';
+      el.onclick=()=>window.approvalOpenInComposer(safeId);
+    });
   },0);
 
   // Store draftId mapping by safeId for lookup in handlers
@@ -3738,6 +3730,26 @@ function renderApprovalCard(meta,bufferPost){
   window._approvalIdMap[safeId]=draftId;
   listEl.appendChild(card);
 }
+
+window.approvalOpenInComposer=function(safeId){
+  const draftId=(window._approvalIdMap||{})[safeId]||safeId;
+  const meta=getApprovalMeta(draftId);
+  if(!meta){showToast('Approval post not found','error');return;}
+  activateView('composerView');
+  const editor=qs('composerEditor');
+  editor.innerText=meta.content||'';
+  qs('composerEmpty').style.display=(meta.content||meta.image_url)?'none':'block';
+  if(meta.channel_id&&qs('composerChannel')){
+    const hasOption=[...qs('composerChannel').options].some(o=>o.value===meta.channel_id);
+    if(hasOption)qs('composerChannel').value=meta.channel_id;
+  }
+  qs('composerImageUrl').value=meta.image_url||'';
+  qs('composerImageUrl').dispatchEvent(new Event('input'));
+  qs('composerNeedsApproval').checked=true;
+  updateComposerActionAvailability();
+  qs('composerStatus').textContent='Loaded from approvals. Make updates, then save draft.';
+  editor.focus();
+};
 
 window.approvalGenerateLink=async function(safeId){
   const draftId=(window._approvalIdMap||{})[safeId]||safeId;
@@ -3950,19 +3962,12 @@ function init(){
   // Load saved theme
   try{const saved=localStorage.getItem(THEME_KEY);if(saved)applyTheme(saved);else applyTheme('dark');}catch{}
 
-  // ── WHAT'S NEW ──
-  const WN_KEY='postiq_wn_seen_v1';
-  function hasSeenWhatsNew(){try{return localStorage.getItem(WN_KEY)==='1'}catch{return false}}
-  function markWhatsNewSeen(){try{localStorage.setItem(WN_KEY,'1')}catch{}}
-  if(!hasSeenWhatsNew()) qs('whatsNewDot').style.display='block';
   // ── SETTINGS MODAL ──
   function openSettings(tab) {
     // Switch to specified tab or default
     const target = tab || 'guide';
     document.querySelectorAll('.settings-tab').forEach(t => t.classList.toggle('active', t.dataset.stab === target));
     document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.id === `settingsPanel${target.charAt(0).toUpperCase()+target.slice(1)}`));
-    // Mark new seen when opening changelog
-    if (target === 'changelog') { markWhatsNewSeen(); qs('whatsNewDot').style.display='none'; }
     openModal('settingsModal');
   }
   qs('openSettings').onclick = () => openSettings('guide');
@@ -3973,7 +3978,6 @@ function init(){
       tab.classList.add('active');
       const panel = 'settingsPanel' + tab.dataset.stab.charAt(0).toUpperCase() + tab.dataset.stab.slice(1);
       document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.id === panel));
-      if (tab.dataset.stab === 'changelog') { markWhatsNewSeen(); qs('whatsNewDot').style.display='none'; }
     };
   });
   // Theme options inside settings modal
@@ -4040,7 +4044,7 @@ function init(){
       counter.textContent=`${text.length} chars`;
       counter.style.color=text.length>500?'var(--amber)':text.length>280?'var(--muted)':'var(--subtle)';
     }
-    qs('composerEmpty').style.display=text?'none':'block';
+    qs('composerEmpty').style.display=(text||qs('composerImageUrl').value.trim())?'none':'block';
   });
 
   // Re-run counter when channel changes
@@ -4051,6 +4055,15 @@ function init(){
   qs('composerDraft').onclick=()=>composerSend('draft');
   qs('composerQueue').onclick=()=>composerSend('queue');
   qs('composerSchedule').onclick=()=>composerSend('schedule');
+  qs('composerNeedsApproval').addEventListener('change',()=>{
+    updateComposerActionAvailability();
+    if(qs('composerNeedsApproval').checked){
+      qs('composerStatus').textContent='Needs approval is on: this post can only be saved as a draft.';
+    }else if(qs('composerStatus').textContent.includes('Needs approval is on')){
+      qs('composerStatus').textContent='';
+    }
+  });
+  updateComposerActionAvailability();
 
   // Schedule toggle
   qs('composerScheduleToggle').onclick=()=>{
@@ -4133,6 +4146,7 @@ function init(){
     const url=qs('composerImageUrl').value.trim();
     const preview=qs('composerImagePreview');const clearBtn=qs('composerImageClear');
     const videoPanel=qs('videoThumbPanel');
+    const text=editorHtmlToText(qs('composerEditor').innerHTML);
     if(url){
       if(isVideoUrl(url)){
         preview.innerHTML=`<span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--amber);">🎬 Video</span>`;
@@ -4149,6 +4163,7 @@ function init(){
       clearBtn.style.display='none';
       videoPanel.style.display='none';
     }
+    qs('composerEmpty').style.display=(text||url)?'none':'block';
   });
   qs('composerImageClear').onclick=()=>{
     qs('composerImageUrl').value='';qs('composerImagePreview').style.display='none';
@@ -4266,7 +4281,10 @@ function init(){
   qs('pickerPlatform').onchange=renderSnippetPicker;
 
   renderCalendar();
-  if(!hasSeenOnboarding())openSettings('guide');
+  if(!hasSeenOnboarding()){
+    openSettings('guide');
+    markOnboardingSeen();
+  }
 
   // ── COMPOSER TABS ──
   document.querySelectorAll('.composer-tab').forEach(tab => {
