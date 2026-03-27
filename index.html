@@ -1669,6 +1669,404 @@
       letter-spacing: .05em;
     }
     .theme-option.active .theme-option-label { color: var(--amber); }
+
+    /* ── APPROVALS TAB ── */
+    .approval-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 18px;
+      margin-bottom: 14px;
+      transition: border-color .15s;
+    }
+    .approval-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .approval-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .approval-status-badge {
+      display: inline-flex;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+    }
+    .approval-status-badge.pending {
+      background: var(--amber-dim);
+      border: 1px solid var(--amber-glow);
+      color: var(--amber);
+    }
+    .approval-status-badge.approved {
+      background: var(--green-dim);
+      border: 1px solid rgba(45,212,160,.3);
+      color: var(--green);
+    }
+    .approval-status-badge.changes_requested {
+      background: rgba(247,112,112,.10);
+      border: 1px solid rgba(247,112,112,.28);
+      color: var(--red);
+    }
+    .approval-content-text {
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-bottom: 12px;
+      padding: 12px;
+      background: var(--surface2);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .approval-locked-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--amber-dim);
+      border: 1px solid var(--amber-glow);
+      border-radius: 7px;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      color: var(--amber);
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .approval-link-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .approval-link-url {
+      flex: 1;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--blue);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .approval-comments-section {
+      margin-top: 12px;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+    .approval-comment {
+      padding: 10px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    .approval-comment-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+      flex-wrap: wrap;
+    }
+    .approval-comment-author {
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--text);
+    }
+    .approval-comment-time {
+      font-size: 10px;
+      color: var(--subtle);
+      font-family: 'DM Mono', monospace;
+    }
+    .approval-comment-action-chip {
+      font-size: 10px;
+      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+    }
+    .approval-comment-action-chip.approved {
+      background: var(--green-dim);
+      color: var(--green);
+    }
+    .approval-comment-action-chip.changes_requested {
+      background: rgba(247,112,112,.10);
+      color: var(--red);
+    }
+    .approval-comment-text {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .approval-publisher-controls {
+      margin-top: 12px;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+    .approval-publisher-controls.approved-active {
+      border-color: rgba(45,212,160,.3);
+      background: var(--green-dim);
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid rgba(45,212,160,.3);
+    }
+    /* Needs-approval checkbox */
+    .approval-checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      padding: 8px 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 7px;
+      cursor: pointer;
+      transition: border-color .12s;
+    }
+    .approval-checkbox-row:hover { border-color: var(--amber-glow); }
+    .approval-checkbox-row input[type="checkbox"] {
+      accent-color: var(--amber);
+      width: 14px; height: 14px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .approval-checkbox-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* ── REVIEWER PAGE (standalone, light) ── */
+    #reviewerPage {
+      display: none;
+      min-height: 100vh;
+      background: #f4f6fb;
+      color: #1a1d2e;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    #reviewerPage.active { display: block; }
+    .reviewer-wrap {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 36px 20px 100px;
+    }
+    .reviewer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 36px;
+    }
+    .reviewer-brand-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      color: #1a1d2e;
+      letter-spacing: -.3px;
+    }
+    .reviewer-brand-tag {
+      font-size: 10px;
+      font-family: 'DM Mono', monospace;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #f5b731;
+      color: #1a0f00;
+      letter-spacing: .4px;
+    }
+    .reviewer-post-card {
+      background: #fff;
+      border: 1px solid #e4e7f0;
+      border-radius: 16px;
+      padding: 26px;
+      margin-bottom: 28px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.06);
+    }
+    .reviewer-platform-badge {
+      display: inline-flex;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+      border: 1px solid #e4e7f0;
+      color: #6b7294;
+      background: #f4f5f8;
+      margin-bottom: 16px;
+    }
+    .reviewer-content {
+      font-size: 15px;
+      line-height: 1.75;
+      color: #1a1d2e;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .reviewer-post-img {
+      width: 100%;
+      max-height: 360px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid #e4e7f0;
+      margin-top: 16px;
+    }
+    .reviewer-section-card {
+      background: #fff;
+      border: 1px solid #e4e7f0;
+      border-radius: 16px;
+      padding: 26px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.04);
+    }
+    .reviewer-form-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #6b7294;
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      font-family: 'DM Mono', monospace;
+      margin-bottom: 7px;
+    }
+    .reviewer-input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #dde0ec;
+      border-radius: 9px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: #1a1d2e;
+      background: #fff;
+      transition: border-color .12s, box-shadow .12s;
+      margin-bottom: 18px;
+      box-sizing: border-box;
+    }
+    .reviewer-input:focus {
+      outline: none;
+      border-color: #f5b731;
+      box-shadow: 0 0 0 3px rgba(245,183,49,.15);
+    }
+    .reviewer-textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #dde0ec;
+      border-radius: 9px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: #1a1d2e;
+      background: #fff;
+      min-height: 100px;
+      resize: vertical;
+      line-height: 1.6;
+      transition: border-color .12s, box-shadow .12s;
+      margin-bottom: 22px;
+      box-sizing: border-box;
+    }
+    .reviewer-textarea:focus {
+      outline: none;
+      border-color: #f5b731;
+      box-shadow: 0 0 0 3px rgba(245,183,49,.15);
+    }
+    .reviewer-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .reviewer-btn {
+      flex: 1;
+      min-width: 130px;
+      padding: 14px 20px;
+      border-radius: 11px;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+    .reviewer-btn.approve {
+      background: #2dd4a0;
+      color: #001a10;
+    }
+    .reviewer-btn.approve:hover { background: #25c191; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(45,212,160,.3); }
+    .reviewer-btn.changes {
+      background: #fff;
+      border: 1.5px solid #dde0ec;
+      color: #1a1d2e;
+    }
+    .reviewer-btn.changes:hover { border-color: #f77070; color: #f77070; background: #fff5f5; transform: translateY(-1px); }
+    .reviewer-btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+    .reviewer-confirmation {
+      text-align: center;
+      padding: 48px 20px 32px;
+    }
+    .reviewer-confirmation-icon { font-size: 52px; margin-bottom: 18px; display: block; }
+    .reviewer-confirmation-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 26px;
+      color: #1a1d2e;
+      margin-bottom: 10px;
+    }
+    .reviewer-confirmation-desc {
+      font-size: 15px;
+      color: #6b7294;
+      line-height: 1.6;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .reviewer-comment {
+      padding: 14px 16px;
+      background: #f4f6fb;
+      border-radius: 11px;
+      margin-bottom: 10px;
+    }
+    .reviewer-comment-author {
+      font-weight: 600;
+      font-size: 13px;
+      color: #1a1d2e;
+      margin-bottom: 3px;
+    }
+    .reviewer-comment-time {
+      font-size: 11px;
+      color: #9aa0b8;
+      margin-bottom: 7px;
+      font-family: 'DM Mono', monospace;
+    }
+    .reviewer-comment-text {
+      font-size: 14px;
+      color: #3a3f5c;
+      line-height: 1.55;
+    }
+    .reviewer-status-msg {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #6b7294;
+      text-align: center;
+      min-height: 20px;
+    }
   </style>
 </head>
 <body>
@@ -1680,6 +2078,7 @@
   <button class="mob-tab" data-view="calendarView"><span class="mob-icon">📅</span>Calendar</button>
   <button class="mob-tab" data-view="trendingView"><span class="mob-icon">📈</span>Trends</button>
   <button class="mob-tab" data-view="snippetsView"><span class="mob-icon">📚</span>Snippets</button>
+  <button class="mob-tab" data-view="approvalsView"><span class="mob-icon">✅</span>Approvals</button>
   <button class="mob-tab mob-menu" id="mobMenuBtn"><span class="mob-icon">☰</span>More</button>
 </nav>
 
@@ -1784,6 +2183,7 @@
       <button class="nav-btn" data-view="calendarView"><span class="nav-icon">📅</span> Content Calendar</button>
       <button class="nav-btn" data-view="trendingView"><span class="nav-icon">📈</span> Trending</button>
       <button class="nav-btn" data-view="snippetsView"><span class="nav-icon">📚</span> Snippets</button>
+      <button class="nav-btn" data-view="approvalsView"><span class="nav-icon">✅</span> Approvals</button>
     </nav>
     <div class="side-bottom" style="padding:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
       <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="flex:1;font-size:12px;color:var(--subtle);"><span class="nav-icon">↗</span> Open Buffer</a>
@@ -2020,6 +2420,10 @@
             </div>
 
             <div id="composerStatus" class="status-txt mt8"></div>
+            <label class="approval-checkbox-row" id="approvalCheckboxRow">
+              <input type="checkbox" id="composerNeedsApproval" />
+              <span class="approval-checkbox-label">Needs approval before publishing</span>
+            </label>
           </div>
         </div>
       </div>
@@ -2072,6 +2476,26 @@
           <div id="snippetGrid" class="snippet-grid"></div>
         </div>
       </div>
+    </section>
+
+    <!-- Approvals -->
+    <section id="approvalsView" class="view">
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Approvals</h1>
+          <p class="page-desc">Get sign-off before publishing. Generate a link, share it, and publish when approved.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn" id="approvalsRefreshBtn">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">✅ Approvals</span>
+        <button class="btn sm ghost" id="approvalsRefreshBtnMob">↻</button>
+      </div>
+      <div id="approvalsLoading" class="status-txt mt8" style="display:none;">Loading drafts…</div>
+      <div id="approvalsEmpty" class="empty" style="display:none;">No drafts marked for approval. Check <strong>"Needs approval"</strong> when saving a draft in the composer.</div>
+      <div id="approvalsList"></div>
     </section>
 
   </main>
@@ -2447,11 +2871,41 @@ document.addEventListener('DOMContentLoaded', () => {
   <div id="sharedGrid" class="cal-grid mt8"></div>
 </section>
 
+<!-- ── REVIEWER PAGE (rendered when ?approve= in URL) ── -->
+<div id="reviewerPage">
+  <div class="reviewer-wrap">
+    <div class="reviewer-brand">
+      <span class="reviewer-brand-name">PostIQ</span>
+      <span class="reviewer-brand-tag">REVIEW</span>
+    </div>
+    <div id="reviewerLoading" class="reviewer-section-card" style="text-align:center;padding:48px 20px;color:#9aa0b8;font-family:'DM Mono',monospace;font-size:13px;">
+      Loading review request…
+    </div>
+    <div id="reviewerContent" style="display:none;"></div>
+    <div id="reviewerConfirmed" style="display:none;">
+      <div class="reviewer-section-card">
+        <div class="reviewer-confirmation">
+          <span class="reviewer-confirmation-icon" id="reviewerConfirmIcon">✅</span>
+          <div class="reviewer-confirmation-title" id="reviewerConfirmTitle">Done!</div>
+          <p class="reviewer-confirmation-desc" id="reviewerConfirmDesc"></p>
+        </div>
+      </div>
+    </div>
+    <div id="reviewerError" style="display:none;">
+      <div class="reviewer-section-card" style="text-align:center;padding:48px 20px;">
+        <div style="font-size:40px;margin-bottom:16px;">🔍</div>
+        <div id="reviewerErrorMsg" style="font-size:14px;color:#6b7294;line-height:1.6;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const STORE_KEY='postiq_buffer_token';
 const NOTE_KEY='postiq_calendar_notes_v2';
 const ONBOARDING_KEY='postiq_onboarding_seen_v1';
 const SNIPPET_KEY='postiq_snippets_v1';
+const APPROVAL_META_PREFIX='postiq_approval_';
 const snippetTypes=['All','Hooks','CTAs','Hashtag Sets','First Comments','Thread Openers'];
 const snippetPlatforms=['All Platforms','LinkedIn','X','Threads','Instagram','Universal'];
 let bufferToken='';
@@ -2488,6 +2942,25 @@ function safeText(v=''){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<'
 function compactText(v,max=84){const t=(v||'').replace(/\s+/g,' ').trim();return t.length>max?`${t.slice(0,max-1)}…`:t}
 function slug(v){return String(v||'').toLowerCase()}
 function normalizeTags(v){if(Array.isArray(v))return v.map(x=>String(x).trim()).filter(Boolean);return String(v||'').split(',').map(x=>x.trim()).filter(Boolean)}
+
+// ── APPROVAL METADATA (localStorage) ──
+function getApprovalMeta(draftId){try{const r=localStorage.getItem(APPROVAL_META_PREFIX+draftId);return r?JSON.parse(r):null;}catch{return null;}}
+function setApprovalMeta(draftId,data){try{localStorage.setItem(APPROVAL_META_PREFIX+draftId,JSON.stringify(data));}catch{}}
+function clearApprovalMeta(draftId){try{localStorage.removeItem(APPROVAL_META_PREFIX+draftId);}catch{}}
+function getAllApprovalMetas(){
+  const result=[];
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const key=localStorage.key(i);
+      if(key&&key.startsWith(APPROVAL_META_PREFIX)){
+        const draftId=key.slice(APPROVAL_META_PREFIX.length);
+        const meta=getApprovalMeta(draftId);
+        if(meta&&meta.needs_approval)result.push({draftId,...meta});
+      }
+    }
+  }catch{}
+  return result;
+}
 
 // ── SNIPPETS ──
 // ── IDEAS ──
@@ -3051,6 +3524,7 @@ async function composerSend(action){
   const channelId=qs('composerChannel').value;
   if(!channelId){qs('composerStatus').textContent='Load channels first.';return;}
   const when=qs('composerWhen').value;
+  const needsApproval=qs('composerNeedsApproval')?.checked||false;
   const input={channelId,text,schedulingType:'automatic'};
   if(action==='draft'){input.mode='addToQueue';input.saveToDraft=true;}
   if(action==='queue'){input.mode='addToQueue';}
@@ -3071,21 +3545,394 @@ async function composerSend(action){
     qs('composerStatus').textContent='Sending…';
     const res=await createPost(input);
     const cp=res?.data?.createPost;
-    const apiErr=cp?.message||null; // MutationError shape
+    const apiErr=cp?.message||null;
     if(apiErr)throw new Error(apiErr);
+    const draftId=cp?.post?.id||null;
+    // If saved as draft with needs_approval, store approval metadata
+    if(action==='draft'&&needsApproval&&draftId){
+      const ch=state.channels.find(c=>c.id===channelId);
+      setApprovalMeta(draftId,{
+        needs_approval:true,
+        status:'pending',
+        comments:[],
+        link_generated:false,
+        locked:false,
+        content:text,
+        platform:ch?.service||null,
+        image_url:imgUrl||null,
+        channel_id:channelId,
+        created_at:Date.now()
+      });
+    }
+    // On queue/schedule: clear any existing approval metadata for this draft
+    if(action!=='draft'&&draftId){clearApprovalMeta(draftId);}
     const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
     qs('composerStatus').textContent=msg;showToast(msg);
-    // Clear composer after successful action
+    // Clear composer
     const editor=qs('composerEditor');
     editor.innerText='';
     qs('composerEmpty').style.display='block';
     qs('composerChannel').selectedIndex=0;
     qs('composerWhen').value='';
+    if(qs('composerNeedsApproval'))qs('composerNeedsApproval').checked=false;
     updateComposerChannelHint&&updateComposerChannelHint();
   }catch(e){qs('composerStatus').textContent=`Failed: ${e.message}`;}
 }
 
+// ── APPROVALS TAB ──────────────────────────────────────────────────────────
+
+const approvalsState={loading:false};
+
+async function loadApprovals(){
+  if(approvalsState.loading)return;
+  approvalsState.loading=true;
+  const listEl=qs('approvalsList');
+  const loadingEl=qs('approvalsLoading');
+  const emptyEl=qs('approvalsEmpty');
+  if(!listEl)return;
+  loadingEl.style.display='block';
+  listEl.innerHTML='';
+  emptyEl.style.display='none';
+  try{
+    const metas=getAllApprovalMetas();
+    if(!metas.length){emptyEl.style.display='block';loadingEl.style.display='none';approvalsState.loading=false;return;}
+    // Fetch Buffer drafts if connected (best-effort — local data is source of truth)
+    let bufferDrafts=[];
+    if(bufferToken){
+      try{
+        const acc=await callBuffer('query { account { organizations { id } } }');
+        const orgId=acc?.data?.account?.organizations?.[0]?.id;
+        if(orgId){
+          const dq=`query Drafts($organizationId: OrganizationId!){posts(first:100,input:{organizationId:$organizationId,filter:{status:[draft]}}){edges{node{id text channelId assets{thumbnail mimeType source}}}}}`;
+          const dr=await callBuffer(dq,{organizationId:orgId});
+          bufferDrafts=(dr?.data?.posts?.edges||[]).map(e=>e.node);
+        }
+      }catch(e){console.warn('[PostIQ] drafts fetch:',e);}
+    }
+    // Sync remote approval status for posts with generated links
+    for(const meta of metas){
+      if(meta.link_generated&&meta.approval_uuid){
+        try{
+          const r=await fetch('/.netlify/functions/approval',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'get',id:meta.approval_uuid})});
+          const d=await r.json();
+          if(!d.error){
+            const updated={...meta,status:d.status||meta.status,comments:d.comments||meta.comments};
+            // Changes requested → unlock so user can edit & regenerate link
+            if(d.status==='changes_requested'){updated.link_generated=false;updated.locked=false;}
+            setApprovalMeta(meta.draftId,updated);
+            Object.assign(meta,updated);
+          }
+        }catch(e){console.warn('[PostIQ] approval sync:',e);}
+      }
+    }
+    loadingEl.style.display='none';
+    if(!metas.length){emptyEl.style.display='block';}
+    else{metas.forEach(meta=>{const bp=bufferDrafts.find(p=>p.id===meta.draftId)||null;renderApprovalCard(meta,bp);});}
+  }catch(e){
+    console.error('[PostIQ] loadApprovals:',e);
+    loadingEl.textContent='Failed to load approvals.';
+  }finally{approvalsState.loading=false;}
+}
+
+function renderApprovalCard(meta,bufferPost){
+  const listEl=qs('approvalsList');
+  const draftId=meta.draftId;
+  const content=meta.content||bufferPost?.text||'(No content)';
+  const platform=meta.platform||'';
+  const imageUrl=meta.image_url||'';
+  const statusClass=meta.status==='approved'?'approved':meta.status==='changes_requested'?'changes_requested':'pending';
+  const statusLabel=meta.status==='approved'?'Approved':meta.status==='changes_requested'?'Changes Requested':'Pending';
+  const safeId=draftId.replace(/[^a-zA-Z0-9_-]/g,'_');
+
+  const card=document.createElement('div');
+  card.className='approval-card';
+  card.dataset.draftId=draftId;
+
+  const platformBadge=platform?`<span class="chip" style="text-transform:capitalize;">${safeText(platform)}</span>`:'';
+  const lockBanner=meta.link_generated?`<div class="approval-locked-banner">🔒 Locked for review — content is read-only while approval link is active</div>`:'';
+
+  let linkBox='';
+  if(meta.link_generated&&meta.approval_url){
+    linkBox=`<div class="approval-link-box">
+      <span class="approval-link-url">${safeText(meta.approval_url)}</span>
+      <button class="btn sm" onclick="approvalCopyLink('${safeId}')">Copy</button>
+    </div>`;
+  }
+  const genBtn=!meta.link_generated?`<button class="btn primary sm" id="approval-gen-${safeId}" onclick="approvalGenerateLink('${safeId}')">🔗 Generate Approval Link</button>`:'';
+
+  const commentsHtml=meta.comments&&meta.comments.length
+    ?`<div class="approval-comments-section">
+        <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Reviewer Feedback</div>
+        ${meta.comments.map(c=>`<div class="approval-comment">
+          <div class="approval-comment-meta">
+            <span class="approval-comment-author">${safeText(c.author||'Anonymous')}</span>
+            <span class="approval-comment-time">${c.timestamp?new Date(c.timestamp).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):''}</span>
+            ${c.action?`<span class="approval-comment-action-chip ${c.action==='approved'?'approved':'changes_requested'}">${c.action==='approved'?'Approved':'Changes'}</span>`:''}
+          </div>
+          <div class="approval-comment-text">${safeText(c.text||'')}</div>
+        </div>`).join('')}
+      </div>`
+    :'';
+
+  const isApproved=meta.status==='approved';
+  const pubClass=isApproved?'approval-publisher-controls approved-active':'approval-publisher-controls';
+  const pubBadge=isApproved?`<div style="font-size:12px;font-family:'DM Mono',monospace;color:var(--green);font-weight:600;margin-bottom:10px;">✓ Approved — ready to publish</div>`:'';
+
+  card.innerHTML=`
+    <div class="approval-card-header">
+      <div class="approval-card-meta">
+        ${platformBadge}
+        <span class="approval-status-badge ${statusClass}">${statusLabel}</span>
+      </div>
+      <button class="btn sm ghost" onclick="approvalRemoveCard('${safeId}')" title="Remove">✕</button>
+    </div>
+    ${lockBanner}
+    <div class="approval-content-text">${safeText(content)}</div>
+    ${imageUrl?`<img src="${safeText(imageUrl)}" alt="Post media" style="max-width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-bottom:12px;border:1px solid var(--border);" />`:''}
+    ${linkBox}
+    ${genBtn}
+    ${commentsHtml}
+    <div class="${pubClass}" id="approval-pub-${safeId}">
+      ${pubBadge}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+        <select id="approval-ch-${safeId}" class="input" style="flex:1;min-width:120px;font-size:13px;"></select>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn sm" onclick="approvalPublish('${safeId}','draft')">Save draft</button>
+        <button class="btn sm success" onclick="approvalPublish('${safeId}','queue')">Add to queue</button>
+        <button class="btn sm primary" onclick="approvalToggleSchedule('${safeId}')">📅 Schedule</button>
+      </div>
+      <div id="approval-sched-${safeId}" style="display:none;margin-top:8px;">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="date" id="approval-date-${safeId}" class="input" style="flex:1;font-size:13px;" />
+          <input type="time" id="approval-time-${safeId}" class="input" style="max-width:130px;font-size:13px;" value="09:00" />
+          <button class="btn sm primary" onclick="approvalPublish('${safeId}','schedule')">Send</button>
+          <button class="btn sm ghost" onclick="document.getElementById('approval-sched-${safeId}').style.display='none'">✕</button>
+        </div>
+      </div>
+      <div id="approval-status-${safeId}" class="status-txt mt8"></div>
+    </div>`;
+
+  // Populate channel selector after DOM insert
+  setTimeout(()=>{
+    const sel=document.getElementById(`approval-ch-${safeId}`);
+    const dateIn=document.getElementById(`approval-date-${safeId}`);
+    if(sel){
+      sel.innerHTML='';
+      if(state.channels.length){
+        state.channels.forEach(c=>{
+          const o=document.createElement('option');
+          o.value=c.id;o.textContent=`${c.displayName||c.name} (${c.service})`;
+          if(c.id===meta.channel_id)o.selected=true;
+          sel.appendChild(o);
+        });
+      }else{
+        const o=document.createElement('option');o.value='';o.textContent='↻ Load channels from Buffer first';sel.appendChild(o);
+      }
+    }
+    if(dateIn)dateIn.value=new Date().toISOString().slice(0,10);
+  },0);
+
+  // Store draftId mapping by safeId for lookup in handlers
+  window._approvalIdMap=window._approvalIdMap||{};
+  window._approvalIdMap[safeId]=draftId;
+  listEl.appendChild(card);
+}
+
+window.approvalGenerateLink=async function(safeId){
+  const draftId=(window._approvalIdMap||{})[safeId]||safeId;
+  const meta=getApprovalMeta(draftId);
+  if(!meta){showToast('Approval record not found','error');return;}
+  const btn=document.getElementById(`approval-gen-${safeId}`);
+  if(btn){btn.disabled=true;btn.textContent='Generating…';}
+  try{
+    const res=await fetch('/.netlify/functions/approval',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'create',post:{content:meta.content||'',platform:meta.platform||null,image_url:meta.image_url||null}})});
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
+    setApprovalMeta(draftId,{...meta,link_generated:true,locked:true,approval_uuid:data.id,approval_url:data.url});
+    showToast('Approval link generated!','success');
+    loadApprovals();
+  }catch(e){
+    showToast('Failed: '+e.message,'error');
+    if(btn){btn.disabled=false;btn.textContent='🔗 Generate Approval Link';}
+  }
+};
+
+window.approvalCopyLink=function(safeId){
+  const draftId=(window._approvalIdMap||{})[safeId]||safeId;
+  const meta=getApprovalMeta(draftId);
+  if(!meta?.approval_url){showToast('No link available','error');return;}
+  navigator.clipboard.writeText(meta.approval_url);
+  showToast('Link copied!','success');
+};
+
+window.approvalRemoveCard=function(safeId){
+  const draftId=(window._approvalIdMap||{})[safeId]||safeId;
+  if(!confirm('Remove this approval entry? The Buffer draft will not be deleted.'))return;
+  clearApprovalMeta(draftId);
+  const card=document.querySelector(`[data-draft-id="${CSS.escape(draftId)}"]`);
+  if(card)card.remove();
+  else loadApprovals();
+  showToast('Removed','info');
+};
+
+window.approvalToggleSchedule=function(safeId){
+  const panel=document.getElementById(`approval-sched-${safeId}`);
+  if(panel)panel.style.display=panel.style.display==='none'?'block':'none';
+};
+
+window.approvalPublish=async function(safeId,action){
+  const draftId=(window._approvalIdMap||{})[safeId]||safeId;
+  const meta=getApprovalMeta(draftId);
+  if(!meta){showToast('Approval record not found','error');return;}
+  // Warn if approval link is still active
+  if(meta.link_generated&&action!=='draft'){
+    if(!confirm('This post has an active approval link. The reviewer may still be looking at it. Publish anyway?'))return;
+  }
+  const channelId=document.getElementById(`approval-ch-${safeId}`)?.value;
+  if(!channelId){showToast('Select a channel first','error');return;}
+  const content=meta.content||'';
+  if(!content){showToast('No content to publish','error');return;}
+  const input={channelId,text:content,schedulingType:'automatic'};
+  if(action==='draft'){input.mode='addToQueue';input.saveToDraft=true;}
+  if(action==='queue'){input.mode='addToQueue';}
+  if(action==='schedule'){
+    const dv=document.getElementById(`approval-date-${safeId}`)?.value;
+    const tv=document.getElementById(`approval-time-${safeId}`)?.value||'09:00';
+    if(!dv){showToast('Pick a date first','error');return;}
+    input.mode='customScheduled';
+    input.dueAt=`${dv}T${tv}:00.000Z`;
+  }
+  if(meta.image_url){
+    if(/\.(mp4|mov|webm|avi|mkv|m4v)(\?|$)/i.test(meta.image_url)){
+      input.assets={videos:[{url:meta.image_url}]};
+    }else{
+      input.assets={images:[{url:meta.image_url}]};
+    }
+  }
+  const statusEl=document.getElementById(`approval-status-${safeId}`);
+  if(statusEl)statusEl.textContent='Sending…';
+  try{
+    const res=await createPost(input);
+    const cp=res?.data?.createPost;
+    if(cp?.message)throw new Error(cp.message);
+    clearApprovalMeta(draftId);
+    const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
+    showToast(msg,'success');
+    const card=document.querySelector(`[data-draft-id="${CSS.escape(draftId)}"]`);
+    if(card){card.style.opacity='.4';card.style.pointerEvents='none';setTimeout(()=>card.remove(),600);}
+  }catch(e){
+    if(statusEl)statusEl.textContent=`Failed: ${e.message}`;
+    showToast('Failed: '+e.message,'error');
+  }
+};
+
+// ── REVIEWER PAGE ────────────────────────────────────────────────────────────
+
+async function renderReviewerPage(uuid){
+  // Hide the main app UI
+  const appEl=document.getElementById('app');
+  if(appEl)appEl.style.display='none';
+  const mobTabs=document.querySelector('.mobile-tabs');
+  if(mobTabs)mobTabs.style.display='none';
+  const page=qs('reviewerPage');
+  if(!page)return;
+  page.classList.add('active');
+  const loadingEl=qs('reviewerLoading');
+  const contentEl=qs('reviewerContent');
+  const confirmedEl=qs('reviewerConfirmed');
+  const errorEl=qs('reviewerError');
+  loadingEl.style.display='block';
+  contentEl.style.display='none';
+  confirmedEl.style.display='none';
+  errorEl.style.display='none';
+  try{
+    const res=await fetch('/.netlify/functions/approval',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'get',id:uuid})});
+    const record=await res.json();
+    loadingEl.style.display='none';
+    if(record.error){
+      errorEl.style.display='block';
+      qs('reviewerErrorMsg').textContent='This review link could not be found. It may have expired or been removed.';
+      return;
+    }
+    contentEl.style.display='block';
+    const platform=record.post?.platform||'';
+    const content=record.post?.content||'';
+    const imageUrl=record.post?.image_url||'';
+    const comments=record.comments||[];
+    const safeUUID=safeText(uuid);
+    contentEl.innerHTML=`
+      <div class="reviewer-post-card">
+        ${platform?`<div class="reviewer-platform-badge">${safeText(platform)}</div>`:''}
+        <div class="reviewer-content">${safeText(content)}</div>
+        ${imageUrl?`<img src="${safeText(imageUrl)}" class="reviewer-post-img" alt="Post media" />`:''}
+      </div>
+      ${comments.length?`
+        <div class="reviewer-section-card" style="margin-bottom:16px;">
+          <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#9aa0b8;text-transform:uppercase;letter-spacing:.7px;margin-bottom:14px;">Previous Comments</div>
+          ${comments.map(c=>`
+            <div class="reviewer-comment">
+              <div class="reviewer-comment-author">${safeText(c.author||'Anonymous')}</div>
+              <div class="reviewer-comment-time">${c.timestamp?new Date(c.timestamp).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>
+              <div class="reviewer-comment-text">${safeText(c.text||'')}</div>
+            </div>`).join('')}
+        </div>`:''  }
+      <div class="reviewer-section-card">
+        <div style="margin-bottom:18px;">
+          <label class="reviewer-form-label" for="reviewerAuthor">Your name</label>
+          <input id="reviewerAuthor" class="reviewer-input" placeholder="Enter your name…" autocomplete="name" />
+        </div>
+        <div>
+          <label class="reviewer-form-label" for="reviewerComment">Notes (optional)</label>
+          <textarea id="reviewerComment" class="reviewer-textarea" placeholder="Leave feedback, suggestions, or approval notes for the author…"></textarea>
+        </div>
+        <div class="reviewer-actions">
+          <button class="reviewer-btn approve" id="reviewerApproveBtn" onclick="submitReviewAction('${safeUUID}','approved')">✓ Approve</button>
+          <button class="reviewer-btn changes" id="reviewerChangesBtn" onclick="submitReviewAction('${safeUUID}','changes_requested')">✎ Request Changes</button>
+        </div>
+        <div id="reviewerStatusMsg" class="reviewer-status-msg"></div>
+      </div>`;
+  }catch(e){
+    loadingEl.style.display='none';
+    errorEl.style.display='block';
+    qs('reviewerErrorMsg').textContent='Failed to load the review request. Please try again later.';
+    console.error('[PostIQ] reviewer page:',e);
+  }
+}
+
+window.submitReviewAction=async function(uuid,action){
+  const author=(qs('reviewerAuthor')?.value||'').trim()||'Anonymous';
+  const comment=(qs('reviewerComment')?.value||'').trim();
+  const approveBtn=qs('reviewerApproveBtn');
+  const changesBtn=qs('reviewerChangesBtn');
+  const statusEl=qs('reviewerStatusMsg');
+  if(approveBtn)approveBtn.disabled=true;
+  if(changesBtn)changesBtn.disabled=true;
+  if(statusEl)statusEl.textContent='Submitting…';
+  try{
+    const res=await fetch('/.netlify/functions/approval',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',id:uuid,status:action,author,comment:comment||(action==='approved'?'Approved.':'Changes requested.')})});
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
+    qs('reviewerContent').style.display='none';
+    qs('reviewerConfirmed').style.display='block';
+    const isApproved=action==='approved';
+    qs('reviewerConfirmIcon').textContent=isApproved?'✅':'📝';
+    qs('reviewerConfirmTitle').textContent=isApproved?'Approved!':'Feedback Sent';
+    qs('reviewerConfirmDesc').textContent=isApproved
+      ?'Your approval has been recorded. The author has been notified and can now publish.'
+      :'Your feedback has been sent. The author will make revisions and share a new link if needed.';
+  }catch(e){
+    if(approveBtn)approveBtn.disabled=false;
+    if(changesBtn)changesBtn.disabled=false;
+    if(statusEl)statusEl.textContent='Error: '+e.message;
+  }
+};
+
 function init(){
+  // ── REVIEWER PAGE CHECK ── (must be first — bypasses entire dashboard)
+  const approveParam=new URLSearchParams(location.search).get('approve');
+  if(approveParam){renderReviewerPage(approveParam);return;}
+
   if(renderSharedFromHash())return;
   loadStoredToken();
 
@@ -3144,7 +3991,10 @@ function init(){
   if(bufferToken){syncBuffer();}
   else{qs('syncBtn').classList.add('sync-pulse');}
 
-  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>activateView(b.dataset.view));
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{
+    activateView(b.dataset.view);
+    if(b.dataset.view==='approvalsView')loadApprovals();
+  });
 
   qs('splitBtn').onclick=()=>{threadParts=splitThreadText(qs('threadInput').value);renderThread();if(threadParts.length)showToast(`${threadParts.length} thread parts`,'success');};
   qs('sampleBtn').onclick=()=>{qs('threadInput').value='PostIQ helps Buffer users move faster. Start with one big idea, split it into clear thread parts, refine each part, and send a cleaner post flow to Buffer.'};
@@ -3487,6 +4337,8 @@ function init(){
   // Mobile-only buttons
   if(qs('shareMonthBtnMob'))qs('shareMonthBtnMob').onclick=()=>{shareSnapshot();openModal('shareModal');};
   if(qs('newSnippetBtnMob'))qs('newSnippetBtnMob').onclick=()=>openSnippetModal();
+  if(qs('approvalsRefreshBtn'))qs('approvalsRefreshBtn').onclick=loadApprovals;
+  if(qs('approvalsRefreshBtnMob'))qs('approvalsRefreshBtnMob').onclick=loadApprovals;
 
   // ── CALENDAR AGENDA VIEW ──
   function renderAgenda(){
