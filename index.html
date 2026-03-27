@@ -2963,6 +2963,8 @@ let tokenPanelOpen=false;
 let threadParts=[];
 const state={channels:[],scheduled:[],month:new Date(),selectedDate:null,syncState:'idle',snippets:[],snippetType:'All',snippetPlatform:'All Platforms',snippetSearch:'',editingSnippetId:null,pickerMode:'composer',ideasCache:[],ideaGroups:[],ideasLoaded:false};
 const noteTags={gold:'Idea',blue:'Draft',green:'Campaign',violet:'Priority'};
+let composerImageUploadPromise=null;
+let composerUploadInProgress=false;
 
 function qs(id){return document.getElementById(id)}
 function hasSeenOnboarding(){try{return localStorage.getItem(ONBOARDING_KEY)==='1'}catch{return false}}
@@ -2973,8 +2975,36 @@ function fmtDate(d){return d.toISOString().slice(0,10)}
 function monthLabel(d){return d.toLocaleDateString(undefined,{month:'long',year:'numeric'})}
 function monthStart(d){return new Date(d.getFullYear(),d.getMonth(),1)}
 function maskToken(t){if(!t)return '—';if(t.length<=8)return '••••';return `${t.slice(0,4)}••••${t.slice(-4)}`;}
-function openModal(id){qs(id).classList.add('open')}
-function closeModal(id){qs(id).classList.remove('open')}
+function openModal(id){const el=qs(id);if(el)el.classList.add('open')}
+function closeModal(id){const el=qs(id);if(el)el.classList.remove('open')}
+function setComposerActionButtonsDisabled(disabled){
+  ['composerDraft','composerQueue','composerSchedule'].forEach(id=>{
+    const btn=qs(id);
+    if(btn)btn.disabled=!!disabled;
+  });
+}
+function setComposerUploadState(active,msg=''){
+  composerUploadInProgress=!!active;
+  setComposerActionButtonsDisabled(active);
+  const status=qs('uploadStatus');
+  if(status&&msg)status.textContent=msg;
+}
+function safeSetText(id,text){
+  const el=qs(id);
+  if(el)el.textContent=text;
+}
+function openSettings(tab='guide'){
+  const target=tab||'guide';
+  document.querySelectorAll('.settings-tab').forEach(t=>t.classList.toggle('active',t.dataset.stab===target));
+  const panelId=`settingsPanel${target.charAt(0).toUpperCase()+target.slice(1)}`;
+  document.querySelectorAll('.settings-panel').forEach(p=>p.classList.toggle('active',p.id===panelId));
+  if(target==='changelog'){
+    try{localStorage.setItem('postiq_wn_seen_v1','1')}catch{}
+    const dot=qs('whatsNewDot');
+    if(dot)dot.style.display='none';
+  }
+  openModal('settingsModal');
+}
 function showToast(msg, type=''){
   const wrap=qs('toastWrap');if(!wrap)return;
   const t=document.createElement('div');
@@ -3568,21 +3598,39 @@ function editorHtmlToText(html){
   return [...root.childNodes].map(walk).join('').replace(/\n{3,}/g,'\n\n').trim();
 }
 async function composerSend(action){
-  const text=editorHtmlToText(qs('composerEditor').innerHTML);
-  if(!text){qs('composerStatus').textContent='Write content first.';return;}
-  const channelId=qs('composerChannel').value;
-  if(!channelId){qs('composerStatus').textContent='Load channels first.';return;}
-  const when=qs('composerWhen').value;
+  const editor=qs('composerEditor');
+  const channelSel=qs('composerChannel');
+  const whenInput=qs('composerWhen');
+  const imageInput=qs('composerImageUrl');
+  if(!editor||!channelSel||!whenInput||!imageInput){safeSetText('composerStatus','Composer is not fully loaded yet.');return;}
+  const text=editorHtmlToText(editor.innerHTML);
+  if(!text){safeSetText('composerStatus','Write content first.');return;}
+  const channelId=channelSel.value;
+  if(!channelId){safeSetText('composerStatus','Load channels first.');return;}
+  const when=whenInput.value;
   const needsApproval=qs('composerNeedsApproval')?.checked||false;
+  if(composerImageUploadPromise){
+    safeSetText('composerStatus','Waiting for image upload…');
+    try{
+      const resolvedUrl=await composerImageUploadPromise;
+      if(resolvedUrl&&!imageInput.value.trim())imageInput.value=resolvedUrl;
+    }catch(e){
+      safeSetText('composerStatus',`Upload failed: ${e.message}`);
+      return;
+    }finally{
+      composerImageUploadPromise=null;
+      setComposerUploadState(false);
+    }
+  }
   const input={channelId,text,schedulingType:'automatic'};
   if(action==='draft'){input.mode='addToQueue';input.saveToDraft=true;}
   if(action==='queue'){input.mode='addToQueue';}
-  if(action==='schedule'){if(!when){qs('composerStatus').textContent='Pick a date/time first.';return;}input.mode='customScheduled';input.dueAt=when;}
+  if(action==='schedule'){if(!when){safeSetText('composerStatus','Pick a date/time first.');return;}input.mode='customScheduled';input.dueAt=when;}
   // Attach image or video with correct asset shape
-  const imgUrl=qs('composerImageUrl').value.trim();
+  const imgUrl=imageInput.value.trim();
   if(imgUrl){
     if(isVideoUrl(imgUrl)){
-      const thumbUrl=qs('videoThumbUrl').value.trim();
+      const thumbUrl=qs('videoThumbUrl')?.value.trim()||'';
       const videoEntry={url:imgUrl};
       if(thumbUrl)videoEntry.thumbnailUrl=thumbUrl;
       input.assets={videos:[videoEntry]};
@@ -3591,7 +3639,7 @@ async function composerSend(action){
     }
   }
   try{
-    qs('composerStatus').textContent='Sending…';
+    safeSetText('composerStatus','Sending…');
     const res=await createPost(input);
     const cp=res?.data?.createPost;
     const apiErr=cp?.message||null;
@@ -3616,16 +3664,18 @@ async function composerSend(action){
     // On queue/schedule: clear any existing approval metadata for this draft
     if(action!=='draft'&&draftId){clearApprovalMeta(draftId);}
     const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
-    qs('composerStatus').textContent=msg;showToast(msg);
+    safeSetText('composerStatus',msg);showToast(msg);
     // Clear composer
-    const editor=qs('composerEditor');
     editor.innerText='';
-    qs('composerEmpty').style.display='block';
-    qs('composerChannel').selectedIndex=0;
-    qs('composerWhen').value='';
+    if(qs('composerEmpty'))qs('composerEmpty').style.display='block';
+    channelSel.selectedIndex=0;
+    whenInput.value='';
+    imageInput.value='';
+    if(qs('composerImagePreview')){qs('composerImagePreview').style.display='none';qs('composerImagePreview').innerHTML='';}
+    if(qs('composerImageClear'))qs('composerImageClear').style.display='none';
     if(qs('composerNeedsApproval'))qs('composerNeedsApproval').checked=false;
     updateComposerChannelHint&&updateComposerChannelHint();
-  }catch(e){qs('composerStatus').textContent=`Failed: ${e.message}`;}
+  }catch(e){safeSetText('composerStatus',`Failed: ${e.message}`);}
 }
 
 // ── APPROVALS TAB ──────────────────────────────────────────────────────────
@@ -3978,6 +4028,7 @@ window.submitReviewAction=async function(uuid,action){
 };
 
 function init(){
+  const guard=(label,fn)=>{try{fn();}catch(e){console.error(`[PostIQ] init section failed: ${label}`,e);}};
   // ── REVIEWER PAGE CHECK ── (must be first — bypasses entire dashboard)
   const approveParam=new URLSearchParams(location.search).get('approve');
   if(approveParam){renderReviewerPage(approveParam);return;}
@@ -4003,27 +4054,20 @@ function init(){
   const WN_KEY='postiq_wn_seen_v1';
   function hasSeenWhatsNew(){try{return localStorage.getItem(WN_KEY)==='1'}catch{return false}}
   function markWhatsNewSeen(){try{localStorage.setItem(WN_KEY,'1')}catch{}}
-  if(!hasSeenWhatsNew()) qs('whatsNewDot').style.display='block';
+  if(!hasSeenWhatsNew()&&qs('whatsNewDot')) qs('whatsNewDot').style.display='block';
   // ── SETTINGS MODAL ──
-  function openSettings(tab) {
-    // Switch to specified tab or default
-    const target = tab || 'guide';
-    document.querySelectorAll('.settings-tab').forEach(t => t.classList.toggle('active', t.dataset.stab === target));
-    document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.id === `settingsPanel${target.charAt(0).toUpperCase()+target.slice(1)}`));
-    // Mark new seen when opening changelog
-    if (target === 'changelog') { markWhatsNewSeen(); qs('whatsNewDot').style.display='none'; }
-    openModal('settingsModal');
-  }
-  qs('openSettings').onclick = () => openSettings('guide');
-  qs('closeSettings').onclick = () => closeModal('settingsModal');
-  document.querySelectorAll('.settings-tab').forEach(tab => {
-    tab.onclick = () => {
-      document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      const panel = 'settingsPanel' + tab.dataset.stab.charAt(0).toUpperCase() + tab.dataset.stab.slice(1);
-      document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.id === panel));
-      if (tab.dataset.stab === 'changelog') { markWhatsNewSeen(); qs('whatsNewDot').style.display='none'; }
-    };
+  guard('settings-modal',()=>{
+    if(qs('openSettings'))qs('openSettings').onclick=()=>openSettings('guide');
+    if(qs('closeSettings'))qs('closeSettings').onclick=()=>closeModal('settingsModal');
+    document.querySelectorAll('.settings-tab').forEach(tab => {
+      tab.onclick = () => {
+        document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const panel = 'settingsPanel' + tab.dataset.stab.charAt(0).toUpperCase() + tab.dataset.stab.slice(1);
+        document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.id === panel));
+        if (tab.dataset.stab === 'changelog') { markWhatsNewSeen(); if(qs('whatsNewDot'))qs('whatsNewDot').style.display='none'; }
+      };
+    });
   });
   // Theme options inside settings modal
   document.querySelectorAll('.theme-option').forEach(btn => {
@@ -4223,22 +4267,23 @@ function init(){
   // Video thumbnail file upload (reuse Imgur)
   qs('videoThumbUploadBtn').onclick=()=>qs('videoThumbFile').click();
   qs('videoThumbFile').onchange=async()=>{
-    const file=qs('videoThumbFile').files[0];
+    const file=qs('videoThumbFile')?.files?.[0];
     if(!file)return;
-    qs('videoThumbStatus').textContent='Uploading thumbnail…';
+    safeSetText('videoThumbStatus','Uploading thumbnail…');
+    setComposerUploadState(true);
     try{
-      const fd=new FormData();fd.append('image',file);
-      const res=await fetch('https://api.imgur.com/3/image',{
-        method:'POST',headers:{'Authorization':`Client-ID ${IMGUR_CLIENT_ID}`},body:fd
-      });
-      const data=await res.json();
-      if(!data.success)throw new Error(data.data?.error||'Upload failed');
-      const url=data.data.link;
-      qs('videoThumbUrl').value=url;
-      qs('videoThumbUrl').dispatchEvent(new Event('input'));
-      qs('videoThumbStatus').textContent='✅ Thumbnail uploaded.';
+      composerImageUploadPromise=uploadImageToImgur(file,()=>{});
+      const url=await composerImageUploadPromise;
+      if(qs('videoThumbUrl')){
+        qs('videoThumbUrl').value=url;
+        qs('videoThumbUrl').dispatchEvent(new Event('input'));
+      }
+      safeSetText('videoThumbStatus','✅ Thumbnail uploaded.');
+      showToast('Thumbnail upload complete.','success');
     }catch(e){
-      qs('videoThumbStatus').textContent=`Failed: ${e.message}`;
+      safeSetText('videoThumbStatus',`Failed: ${e.message}`);
+    }finally{
+      setComposerUploadState(false);
     }
   };
 
@@ -4826,6 +4871,20 @@ function init(){
 
   // ── IMAGE UPLOADER ──
   const IMGUR_CLIENT_ID='546c25a59c58ad7';
+  async function uploadImageToImgur(file,onProgress){
+    const fd=new FormData();
+    fd.append('image',file);
+    const res=await fetch('https://api.imgur.com/3/image',{
+      method:'POST',
+      headers:{'Authorization':`Client-ID ${IMGUR_CLIENT_ID}`},
+      body:fd
+    });
+    if(onProgress)onProgress(100);
+    if(!res.ok)throw new Error(`Imgur ${res.status}`);
+    const data=await res.json();
+    if(!data.success)throw new Error(data.data?.error||'Upload failed');
+    return data.data.link;
+  }
 
   function initUploader(){
     const zone=qs('uploadZone');
@@ -4847,16 +4906,15 @@ function init(){
   }
 
   function resetUploader(){
-    qs('uploadZoneInner').style.display='flex';
-    qs('uploadProgress').style.display='none';
-    qs('uploadResult').style.display='none';
-    qs('uploadProgressBar').style.width='0%';
-    qs('uploadStatus').textContent='';
-    qs('uploadFileInput').value='';
-    qs('composerImageUrl').value='';
-    qs('composerImagePreview').style.display='none';
-    qs('composerImagePreview').innerHTML='';
-    qs('composerImageClear').style.display='none';
+    if(qs('uploadZoneInner'))qs('uploadZoneInner').style.display='flex';
+    if(qs('uploadProgress'))qs('uploadProgress').style.display='none';
+    if(qs('uploadResult'))qs('uploadResult').style.display='none';
+    if(qs('uploadProgressBar'))qs('uploadProgressBar').style.width='0%';
+    safeSetText('uploadStatus','');
+    if(qs('uploadFileInput'))qs('uploadFileInput').value='';
+    if(qs('composerImageUrl'))qs('composerImageUrl').value='';
+    if(qs('composerImagePreview')){qs('composerImagePreview').style.display='none';qs('composerImagePreview').innerHTML='';}
+    if(qs('composerImageClear'))qs('composerImageClear').style.display='none';
   }
 
   async function handleUploadFile(file){
@@ -4869,46 +4927,51 @@ function init(){
       }
       return;
     }
-    qs('uploadZoneInner').style.display='none';
-    qs('uploadProgress').style.display='block';
-    qs('uploadStatus').textContent='Uploading…';
+    if(qs('uploadZoneInner'))qs('uploadZoneInner').style.display='none';
+    if(qs('uploadProgress'))qs('uploadProgress').style.display='block';
+    safeSetText('uploadStatus','Uploading…');
+    setComposerUploadState(true);
 
     let prog=0;
     const tick=setInterval(()=>{
       prog=Math.min(prog+Math.random()*15,85);
-      qs('uploadProgressBar').style.width=prog+'%';
+      if(qs('uploadProgressBar'))qs('uploadProgressBar').style.width=prog+'%';
     },200);
 
     try{
-      const fd=new FormData();
-      fd.append('image',file);
-      const res=await fetch('https://api.imgur.com/3/image',{
-        method:'POST',
-        headers:{'Authorization':`Client-ID ${IMGUR_CLIENT_ID}`},
-        body:fd
-      });
+      composerImageUploadPromise=uploadImageToImgur(file,()=>{});
+      const url=await composerImageUploadPromise;
       clearInterval(tick);
-      qs('uploadProgressBar').style.width='100%';
-      if(!res.ok)throw new Error(`Imgur ${res.status}`);
-      const data=await res.json();
-      if(!data.success)throw new Error(data.data?.error||'Upload failed');
-      const url=data.data.link;
+      if(qs('uploadProgressBar'))qs('uploadProgressBar').style.width='100%';
       setTimeout(()=>{
-        qs('uploadProgress').style.display='none';
-        qs('uploadResult').style.display='flex';
-        qs('uploadThumb').src=url;
-        qs('uploadResultName').textContent=file.name;
-        qs('uploadResultUrl').textContent=url;
-        qs('uploadStatus').textContent='✅ Uploaded — URL ready.';
-        qs('composerImageUrl').value=url;
-        qs('composerImageUrl').dispatchEvent(new Event('input'));
+        if(qs('uploadProgress'))qs('uploadProgress').style.display='none';
+        if(qs('uploadResult'))qs('uploadResult').style.display='flex';
+        if(qs('uploadThumb'))qs('uploadThumb').src=url;
+        safeSetText('uploadResultName',file.name);
+        safeSetText('uploadResultUrl',url);
+        safeSetText('uploadStatus','✅ Uploaded — URL ready.');
+        if(qs('composerImageUrl')){
+          qs('composerImageUrl').value=url;
+          qs('composerImageUrl').dispatchEvent(new Event('input'));
+        }
+        showToast('Image upload complete — post ready.','success');
+        setComposerUploadState(false);
       },300);
+      return url;
     }catch(e){
       clearInterval(tick);
-      qs('uploadProgress').style.display='none';
-      qs('uploadZoneInner').style.display='flex';
-      qs('uploadStatus').textContent=`Upload failed: ${e.message}`;
+      if(qs('uploadProgress'))qs('uploadProgress').style.display='none';
+      if(qs('uploadZoneInner'))qs('uploadZoneInner').style.display='flex';
+      safeSetText('uploadStatus',`Upload failed: ${e.message}`);
+      setComposerUploadState(false);
+      composerImageUploadPromise=null;
       console.warn('[PostIQ] Imgur upload failed:',e);
+      throw e;
+    }finally{
+      if(composerImageUploadPromise){
+        // keep resolved promise available until composerSend reads latest URL
+        Promise.resolve(composerImageUploadPromise).then(()=>{},()=>{});
+      }
     }
   }
 
