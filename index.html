@@ -5627,5 +5627,503 @@ document.addEventListener('DOMContentLoaded',()=>{try{init();}catch(e){console.e
 })();
 </script>
 
+
+<style id="postiq-bundle3-approvals-style">
+  .approval-lifecycle-chip{
+    display:inline-flex;
+    padding:3px 8px;
+    border-radius:99px;
+    font-size:10px;
+    font-weight:700;
+    font-family:'DM Mono', monospace;
+    letter-spacing:.04em;
+    border:1px solid var(--border2);
+    background:var(--surface2);
+    color:var(--muted);
+  }
+  .approval-lifecycle-chip.ready{ color:var(--blue); border-color:rgba(107,143,247,.35); background:var(--blue-dim); }
+  .approval-lifecycle-chip.awaiting{ color:var(--amber); border-color:var(--amber-glow); background:var(--amber-dim); }
+  .approval-lifecycle-chip.changes{ color:var(--red); border-color:rgba(247,112,112,.28); background:rgba(247,112,112,.1); }
+  .approval-lifecycle-chip.approved{ color:var(--green); border-color:rgba(45,212,160,.28); background:var(--green-dim); }
+  .approval-toolbar{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap;
+    margin-top:12px;
+  }
+  .approval-upload-input{ display:none; }
+  .approval-status-detail{
+    font-size:11px;
+    color:var(--muted);
+    line-height:1.5;
+    margin-top:6px;
+  }
+  .approval-history-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .approval-history-item{
+    display:grid;
+    grid-template-columns: 82px 1fr;
+    gap:10px;
+    align-items:start;
+    font-size:12px;
+    color:var(--muted);
+    padding-top:8px;
+    border-top:1px solid var(--border);
+  }
+  .approval-history-item:first-child{ border-top:none; padding-top:0; }
+  .approval-history-time{
+    font-family:'DM Mono', monospace;
+    font-size:10px;
+    color:var(--subtle);
+    line-height:1.5;
+  }
+  .approval-history-body{ line-height:1.55; }
+  .approval-history-title{
+    color:var(--text);
+    font-weight:600;
+    margin-bottom:2px;
+  }
+  .approval-media-actions .btn{ white-space:nowrap; }
+</style>
+
+<script id="postiq-bundle3-approvals-script">
+(function(){
+  function esc(v){ return (typeof safeText === 'function') ? safeText(v) : String(v||''); }
+  function nowIso(){ return new Date().toISOString(); }
+  function shortStamp(ts){
+    try{
+      return new Date(ts).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+    }catch(e){ return ''; }
+  }
+  function dayStamp(ts){
+    try{
+      return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+    }catch(e){ return ''; }
+  }
+  function getApprovalLifecycle(meta){
+    const status = meta?.status || 'pending';
+    if(status === 'changes_requested') return 'changes_requested';
+    if(status === 'approved') return 'approved_needs_schedule';
+    if(meta?.link_generated && meta?.approval_url) return 'awaiting_feedback';
+    return 'ready_to_share';
+  }
+  function lifecycleMeta(meta){
+    const lifecycle = getApprovalLifecycle(meta);
+    if(lifecycle === 'ready_to_share') return {label:'Ready to Share', cls:'ready', detail:'No active review link. This draft is ready to send for review.'};
+    if(lifecycle === 'awaiting_feedback') return {label:'Awaiting Feedback', cls:'awaiting', detail:'Review link is active. Waiting on reviewer response.'};
+    if(lifecycle === 'changes_requested') return {label:'Changes Requested', cls:'changes', detail:'Reviewer asked for updates. Save your revision and send back a fresh link.'};
+    return {label:'Approved / Need to Schedule', cls:'approved', detail:'Review is approved. Queue it, schedule it, or save the approved draft.'};
+  }
+  function ensureHistory(meta){
+    return Array.isArray(meta?.revision_history) ? meta.revision_history.slice() : [];
+  }
+  function pushHistoryEntry(draftId, entry){
+    const meta = getApprovalMeta(draftId) || {};
+    const history = ensureHistory(meta);
+    history.unshift(Object.assign({at: nowIso()}, entry));
+    setApprovalMeta(draftId, Object.assign({}, meta, {revision_history: history}));
+  }
+  function readApprovalDraftId(safeId){
+    return (window._approvalIdMap||{})[safeId] || safeId;
+  }
+  function approvalReadInputsV3(safeId){
+    return {
+      content: (document.getElementById(`approval-text-${safeId}`)?.value || '').trim(),
+      image_url: (document.getElementById(`approval-image-${safeId}`)?.value || '').trim(),
+      channel_id: (document.getElementById(`approval-ch-${safeId}`)?.value || '').trim()
+    };
+  }
+  function approvalSyncPreviewV3(safeId){
+    const url = (document.getElementById(`approval-image-${safeId}`)?.value || '').trim();
+    const img = document.getElementById(`approval-preview-${safeId}`);
+    const empty = document.getElementById(`approval-preview-empty-${safeId}`);
+    if(!img || !empty) return;
+    if(url){
+      img.src = url;
+      img.style.display = '';
+      empty.style.display = 'none';
+    }else{
+      img.removeAttribute('src');
+      img.style.display = 'none';
+      empty.style.display = '';
+    }
+  }
+  window.approvalSyncPreview = approvalSyncPreviewV3;
+
+  window.approvalTriggerUpload = function(safeId){
+    document.getElementById(`approval-upload-${safeId}`)?.click();
+  };
+
+  window.approvalHandleUpload = async function(safeId, input){
+    const file = input?.files?.[0];
+    if(!file) return;
+    const draftId = readApprovalDraftId(safeId);
+    const statusEl = document.getElementById(`approval-status-${safeId}`);
+    if(statusEl) statusEl.textContent = 'Uploading media…';
+    try{
+      const fd = new FormData();
+      fd.append('image', file);
+      const res = await fetch('https://api.imgur.com/3/image',{
+        method:'POST',
+        headers:{'Authorization':`Client-ID ${IMGUR_CLIENT_ID}`},
+        body:fd
+      });
+      if(!res.ok) throw new Error(`Imgur ${res.status}`);
+      const data = await res.json();
+      if(!data.success) throw new Error(data.data?.error || 'Upload failed');
+      const url = data.data.link;
+      const urlInput = document.getElementById(`approval-image-${safeId}`);
+      if(urlInput){
+        urlInput.value = url;
+        approvalSyncPreviewV3(safeId);
+      }
+      pushHistoryEntry(draftId,{type:'media_updated', title:'Media updated', detail:`Replaced media with ${file.name}`});
+      if(statusEl) statusEl.textContent = 'Media uploaded. Save your revision when ready.';
+      showToast('Media uploaded','success');
+    }catch(e){
+      if(statusEl) statusEl.textContent = `Upload failed: ${e.message}`;
+      showToast('Upload failed: '+e.message,'error');
+    }finally{
+      if(input) input.value = '';
+    }
+  };
+
+  window.approvalCancelReview = function(safeId){
+    const draftId = readApprovalDraftId(safeId);
+    const meta = getApprovalMeta(draftId);
+    if(!meta) return;
+    if(!confirm('Cancel the active review link and move this back to Ready to Share?')) return;
+    const prevUrl = meta.approval_url || meta.previous_approval_url || null;
+    setApprovalMeta(draftId, Object.assign({}, meta, {
+      link_generated: false,
+      locked: false,
+      is_editing: false,
+      approval_uuid: null,
+      approval_url: null,
+      previous_approval_url: prevUrl
+    }));
+    pushHistoryEntry(draftId,{type:'review_cancelled', title:'Review cancelled', detail:'Moved back to Ready to Share.'});
+    loadApprovals();
+    showToast('Review cancelled','info');
+  };
+
+  function buildHistoryHtml(meta){
+    const history = ensureHistory(meta);
+    if(!history.length){
+      return `<div class="approval-lock-note">No revision history yet.</div>`;
+    }
+    return history.map(item => `
+      <div class="approval-history-item">
+        <div class="approval-history-time">${esc(shortStamp(item.at))}</div>
+        <div class="approval-history-body">
+          <div class="approval-history-title">${esc(item.title || 'Update')}</div>
+          <div>${esc(item.detail || '')}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function buildPrimaryActions(meta, safeId, editable, hasActiveLink){
+    const life = getApprovalLifecycle(meta);
+    if(life === 'ready_to_share'){
+      return `
+        <div class="approval-actions-row">
+          <button class="btn sm" onclick="approvalStartEdit('${safeId}')">Edit Draft</button>
+          <button class="btn sm primary" id="approval-gen-${safeId}" onclick="approvalGenerateLink('${safeId}')">🔗 Generate Review Link</button>
+        </div>
+      `;
+    }
+    if(life === 'awaiting_feedback'){
+      return `
+        <div class="approval-actions-row">
+          <button class="btn sm" onclick="approvalCopyLink('${safeId}')">Copy Link</button>
+          <button class="btn sm" onclick="approvalStartEdit('${safeId}')">Start Revision</button>
+          <button class="btn sm primary" id="approval-gen-${safeId}" onclick="approvalGenerateLink('${safeId}')">Regenerate Link</button>
+          <button class="btn sm ghost" onclick="approvalCancelReview('${safeId}')">Cancel Review</button>
+        </div>
+      `;
+    }
+    if(life === 'changes_requested'){
+      return `
+        <div class="approval-actions-row">
+          <button class="btn sm success" onclick="approvalSaveRevision('${safeId}')">Save Revision</button>
+          <button class="btn sm primary" id="approval-gen-${safeId}" onclick="approvalGenerateLink('${safeId}')">🔁 Generate New Review Link</button>
+        </div>
+      `;
+    }
+    return `
+      <div class="approval-actions-row">
+        <button class="btn sm" onclick="approvalStartEdit('${safeId}')">Create Revision</button>
+        <button class="btn sm success" onclick="approvalPublish('${safeId}','queue')">Queue Approved Post</button>
+        <button class="btn sm primary" onclick="approvalToggleSchedule('${safeId}')">📅 Schedule Approved Post</button>
+      </div>
+    `;
+  }
+
+  const originalRender = window.renderApprovalCard;
+  window.renderApprovalCard = function(meta, bufferPost){
+    const listEl = qs('approvalsList');
+    const draftId = meta.draftId;
+    const safeId = draftId.replace(/[^a-zA-Z0-9_-]/g,'_');
+    const status = meta.status || 'pending';
+    const statusClass = status==='approved'?'approved':status==='changes_requested'?'changes_requested':'pending';
+    const revision = meta.revision_number || 1;
+    const editable = status === 'changes_requested' || !!meta.is_editing;
+    const content = (meta.content ?? bufferPost?.text ?? '').trim();
+    const imageUrl = (meta.image_url || bufferPost?.assets?.[0]?.thumbnail || '').trim();
+    const platform = meta.platform || '';
+    const updatedAt = meta.updated_at || meta.created_at || Date.now();
+    const submittedAt = meta.submitted_at || null;
+    const hasActiveLink = !!(meta.link_generated && meta.approval_url);
+    const life = lifecycleMeta(meta);
+
+    const card = document.createElement('div');
+    card.className = 'approval-card approval-card-v2';
+    card.dataset.draftId = draftId;
+
+    const commentsHtml = (meta.comments && meta.comments.length)
+      ? meta.comments.map(c => `<div class="approval-comment">
+          <div class="approval-comment-meta">
+            <span class="approval-comment-author">${esc(c.author||'Anonymous')}</span>
+            <span class="approval-comment-time">${esc(dayStamp(c.timestamp || c.at || updatedAt))}</span>
+            ${c.action ? `<span class="approval-comment-action-chip ${c.action==='approved'?'approved':'changes_requested'}">${c.action==='approved'?'Approved':'Changes'}</span>` : ''}
+          </div>
+          <div class="approval-comment-text">${esc(c.text||c.comment||'')}</div>
+        </div>`).join('')
+      : `<div class="approval-lock-note">No reviewer feedback yet.</div>`;
+
+    const linkBlock = hasActiveLink
+      ? `<div class="approval-link-box">
+          <span class="approval-link-url">${esc(meta.approval_url)}</span>
+          <button class="btn sm" onclick="approvalCopyLink('${safeId}')">Copy</button>
+        </div>`
+      : `<div class="approval-lock-note">${life.detail}</div>`;
+
+    card.innerHTML = `
+      <div class="approval-card-header">
+        <div class="approval-card-meta">
+          ${platform ? `<span class="chip" style="text-transform:capitalize;">${esc(platform)}</span>` : ''}
+          <span class="approval-status-badge ${statusClass}">${status==='approved'?'Approved':status==='changes_requested'?'Changes Requested':'Pending Review'}</span>
+          <span class="approval-lifecycle-chip ${life.cls}">${life.label}</span>
+          <span class="approval-revision-badge">Revision ${revision}</span>
+          <span class="approval-updated">Updated ${esc(dayStamp(updatedAt))}</span>
+        </div>
+        <button class="btn sm ghost" onclick="approvalRemoveCard('${safeId}')" title="Remove">✕</button>
+      </div>
+
+      ${hasActiveLink && !editable ? `<div class="approval-locked-banner">🔒 Review link is active. Start a revision to make changes and send back a fresh link.</div>` : ''}
+
+      <div class="approval-main-grid">
+        <div class="approval-section-card">
+          <div class="approval-section-title">Post content</div>
+          <textarea id="approval-text-${safeId}" class="approval-editor" ${editable ? '' : 'readonly'} placeholder="Write your revised post here…">${esc(content)}</textarea>
+          <div class="approval-status-detail">
+            ${esc(life.detail)}
+            ${submittedAt ? `<br>Last shared for review: ${esc(dayStamp(submittedAt))}` : ''}
+          </div>
+        </div>
+
+        <div class="approval-section-card">
+          <div class="approval-section-title">Media</div>
+          <div id="approval-preview-wrap-${safeId}">
+            <img id="approval-preview-${safeId}" class="approval-media-preview" src="${esc(imageUrl)}" style="${imageUrl ? '' : 'display:none;'}" />
+            <div id="approval-preview-empty-${safeId}" class="approval-lock-note" style="${imageUrl ? 'display:none;' : ''}">No media attached.</div>
+          </div>
+          <div class="approval-media-actions" style="margin-top:10px;">
+            <input id="approval-image-${safeId}" class="input approval-url-input" ${editable ? '' : 'readonly'} value="${esc(imageUrl)}" placeholder="Paste image URL to replace media" oninput="approvalSyncPreview('${safeId}')" />
+            ${editable ? `
+              <button class="btn sm" onclick="approvalTriggerUpload('${safeId}')">Upload / Replace</button>
+              <button class="btn sm ghost" onclick="approvalClearMedia('${safeId}')">Remove Media</button>
+              <input type="file" id="approval-upload-${safeId}" class="approval-upload-input" accept="image/*" onchange="approvalHandleUpload('${safeId}', this)" />
+            ` : ''}
+          </div>
+          <div class="approval-toolbar">
+            ${linkBlock}
+          </div>
+          <div style="margin-top:12px;">
+            ${buildPrimaryActions(meta, safeId, editable, hasActiveLink)}
+          </div>
+        </div>
+      </div>
+
+      <div class="approval-section-card" style="margin-top:14px;">
+        <div class="approval-section-title">Reviewer feedback</div>
+        <div class="approval-feedback-list">${commentsHtml}</div>
+      </div>
+
+      <div class="approval-section-card" style="margin-top:14px;">
+        <div class="approval-section-title">Revision history</div>
+        <div class="approval-history-list">${buildHistoryHtml(meta)}</div>
+      </div>
+
+      <div class="approval-controls-card">
+        <div class="approval-section-title">Publish controls</div>
+        <div class="approval-controls-row">
+          <select id="approval-ch-${safeId}" class="input" style="flex:1;min-width:170px;font-size:13px;"></select>
+          <button class="btn sm" onclick="approvalPublish('${safeId}','draft')">${life.label==='Approved / Need to Schedule' ? 'Save Approved Draft' : 'Save Draft'}</button>
+          <button class="btn sm success" onclick="approvalPublish('${safeId}','queue')">${life.label==='Approved / Need to Schedule' ? 'Queue Approved Post' : 'Add to Queue'}</button>
+          <button class="btn sm primary" onclick="approvalToggleSchedule('${safeId}')">${life.label==='Approved / Need to Schedule' ? '📅 Schedule Approved Post' : '📅 Schedule'}</button>
+        </div>
+        <div id="approval-sched-${safeId}" style="display:none;margin-top:10px;">
+          <div class="approval-controls-row">
+            <input type="date" id="approval-date-${safeId}" class="input" style="flex:1;font-size:13px;" />
+            <input type="time" id="approval-time-${safeId}" class="input" style="max-width:130px;font-size:13px;" value="09:00" />
+            <button class="btn sm primary" onclick="approvalPublish('${safeId}','schedule')">Send</button>
+            <button class="btn sm ghost" onclick="document.getElementById('approval-sched-${safeId}').style.display='none'">✕</button>
+          </div>
+        </div>
+        <div id="approval-status-${safeId}" class="status-txt mt8"></div>
+      </div>
+    `;
+
+    setTimeout(()=>{
+      const sel=document.getElementById(`approval-ch-${safeId}`);
+      const dateIn=document.getElementById(`approval-date-${safeId}`);
+      if(sel){
+        sel.innerHTML='';
+        if(state.channels.length){
+          state.channels.forEach(c=>{
+            const o=document.createElement('option');
+            o.value=c.id;
+            o.textContent=`${c.displayName||c.name} (${c.service})`;
+            if((meta.channel_id && c.id===meta.channel_id) || (!meta.channel_id && bufferPost?.channelId===c.id)) o.selected=true;
+            sel.appendChild(o);
+          });
+        }else{
+          const o=document.createElement('option'); o.value=''; o.textContent='↻ Load channels from Buffer first'; sel.appendChild(o);
+        }
+      }
+      if(dateIn) dateIn.value = new Date().toISOString().slice(0,10);
+      approvalSyncPreviewV3(safeId);
+    },0);
+
+    window._approvalIdMap = window._approvalIdMap || {};
+    window._approvalIdMap[safeId] = draftId;
+    listEl.appendChild(card);
+  };
+
+  const origStartEdit = window.approvalStartEdit;
+  window.approvalStartEdit = function(safeId){
+    const draftId = readApprovalDraftId(safeId);
+    const meta = getApprovalMeta(draftId);
+    if(!meta){ showToast('Approval record not found','error'); return; }
+    setApprovalMeta(draftId, Object.assign({}, meta, {
+      is_editing: true,
+      locked: false
+    }));
+    pushHistoryEntry(draftId,{type:'revision_started', title:'Revision opened', detail:'Editing started from the approval card.'});
+    loadApprovals();
+  };
+
+  window.approvalClearMedia = function(safeId){
+    const draftId = readApprovalDraftId(safeId);
+    const input = document.getElementById(`approval-image-${safeId}`);
+    if(input){
+      input.value = '';
+      approvalSyncPreviewV3(safeId);
+      pushHistoryEntry(draftId,{type:'media_removed', title:'Media removed', detail:'Removed media from this revision.'});
+    }
+  };
+
+  const origSaveRevision = window.approvalSaveRevision;
+  window.approvalSaveRevision = function(safeId){
+    const draftId = readApprovalDraftId(safeId);
+    const meta = getApprovalMeta(draftId);
+    if(!meta){ showToast('Approval record not found','error'); return; }
+    const vals = approvalReadInputsV3(safeId);
+    if(!vals.content){
+      showToast('Write content before saving the revision','error');
+      return;
+    }
+    const next = {
+      content: vals.content,
+      image_url: vals.image_url || null,
+      channel_id: vals.channel_id || meta.channel_id || null,
+      updated_at: Date.now(),
+      is_editing: true,
+      locked: false,
+      link_generated: false
+    };
+    if(meta.approval_uuid){
+      next.previous_approval_uuid = meta.approval_uuid;
+      next.previous_approval_url = meta.approval_url || meta.previous_approval_url || null;
+      next.approval_uuid = null;
+      next.approval_url = null;
+    }
+    setApprovalMeta(draftId, Object.assign({}, meta, next));
+    pushHistoryEntry(draftId,{type:'revision_saved', title:'Revision saved', detail:'Saved updated text/media and staged a fresh review cycle.'});
+    const statusEl = document.getElementById(`approval-status-${safeId}`);
+    if(statusEl) statusEl.textContent = 'Revision saved. Generate a new review link when ready.';
+    showToast('Revision saved','success');
+    loadApprovals();
+  };
+
+  const origGen = window.approvalGenerateLink;
+  window.approvalGenerateLink = async function(safeId){
+    const draftId = readApprovalDraftId(safeId);
+    const meta = getApprovalMeta(draftId);
+    if(!meta){ showToast('Approval record not found','error'); return; }
+    const vals = approvalReadInputsV3(safeId);
+    const content = vals.content || meta.content || '';
+    const image_url = vals.image_url || meta.image_url || null;
+    if(!content){
+      showToast('No content to send for review','error');
+      return;
+    }
+    const btn=document.getElementById(`approval-gen-${safeId}`);
+    if(btn){ btn.disabled=true; btn.textContent='Generating…'; }
+    try{
+      const res = await fetch('/.netlify/functions/approval',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'create',post:{content,platform:meta.platform||null,image_url}})
+      });
+      const data = await res.json();
+      if(data.error) throw new Error(data.error);
+      const existingRevision = meta.revision_number || 1;
+      const shouldIncrement = !!(meta.previous_approval_uuid || meta.previous_approval_url || meta.approval_uuid || meta.comments?.length);
+      setApprovalMeta(draftId, Object.assign({}, meta, {
+        content,
+        image_url,
+        status:'pending',
+        link_generated:true,
+        locked:true,
+        is_editing:false,
+        approval_uuid:data.id,
+        approval_url:data.url,
+        revision_number: shouldIncrement ? existingRevision + 1 : existingRevision,
+        updated_at:Date.now(),
+        submitted_at:Date.now()
+      }));
+      pushHistoryEntry(draftId,{type:'review_sent', title:'Review link generated', detail:'Sent this revision out for feedback.'});
+      showToast(shouldIncrement ? 'New review link generated' : 'Review link generated','success');
+      loadApprovals();
+    }catch(e){
+      showToast('Failed: '+e.message,'error');
+      if(btn){ btn.disabled=false; btn.textContent='🔗 Generate Review Link'; }
+    }
+  };
+
+  const origPublish = window.approvalPublish;
+  window.approvalPublish = async function(safeId, action){
+    const draftId = readApprovalDraftId(safeId);
+    pushHistoryEntry(draftId,{
+      type: action,
+      title: action==='queue' ? 'Queued from approvals' : action==='schedule' ? 'Scheduled from approvals' : 'Saved draft from approvals',
+      detail: action==='schedule' ? 'Sent to Buffer with a scheduled time.' : action==='queue' ? 'Sent to Buffer queue.' : 'Saved as a Buffer draft.'
+    });
+    return origPublish ? origPublish(safeId, action) : undefined;
+  };
+
+  try{
+    if(document.getElementById('approvalsView')?.classList.contains('active')) loadApprovals();
+  }catch(e){}
+})();
+</script>
+
 </body>
 </html>
