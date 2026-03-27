@@ -1855,49 +1855,99 @@
     }
 
     /* ── REVIEWER PAGE (standalone, light) ── */
+    /* ── REVIEWER PAGE ── */
     #reviewerPage {
       display: none;
       min-height: 100vh;
       background: #f4f6fb;
       color: #1a1d2e;
       font-family: 'Inter', system-ui, sans-serif;
+      flex-direction: column;
     }
-    #reviewerPage.active { display: block; }
-    .reviewer-wrap {
+    #reviewerPage.active { display: flex; }
+    .reviewer-hero {
+      background: linear-gradient(135deg, #1a1d2e 0%, #252836 100%);
+      padding: 0 20px;
+      flex-shrink: 0;
+    }
+    .reviewer-hero-inner {
       max-width: 640px;
       margin: 0 auto;
-      padding: 36px 20px 100px;
-    }
-    .reviewer-brand {
+      padding: 17px 0;
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 36px;
+    }
+    .reviewer-brand-mark {
+      width: 28px;
+      height: 28px;
+      background: #f5b731;
+      border-radius: 7px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 900;
+      color: #1a0f00;
+      font-family: 'Syne', sans-serif;
+      letter-spacing: -.5px;
+      flex-shrink: 0;
     }
     .reviewer-brand-name {
       font-family: 'Syne', sans-serif;
       font-weight: 800;
-      font-size: 20px;
-      color: #1a1d2e;
+      font-size: 17px;
+      color: #fff;
       letter-spacing: -.3px;
     }
     .reviewer-brand-tag {
-      font-size: 10px;
+      font-size: 9px;
       font-family: 'DM Mono', monospace;
       font-weight: 700;
-      padding: 2px 8px;
+      padding: 2px 7px;
       border-radius: 4px;
-      background: #f5b731;
-      color: #1a0f00;
-      letter-spacing: .4px;
+      background: rgba(245,183,49,.18);
+      color: #f5b731;
+      letter-spacing: .5px;
+      border: 1px solid rgba(245,183,49,.28);
+    }
+    .reviewer-wrap {
+      max-width: 640px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 36px 20px 40px;
+      flex: 1;
+    }
+    .reviewer-request-header {
+      margin-bottom: 24px;
+    }
+    .reviewer-request-label {
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      font-weight: 700;
+      color: #9aa0b8;
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      margin-bottom: 5px;
+    }
+    .reviewer-request-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+      color: #1a1d2e;
+      letter-spacing: -.3px;
+      line-height: 1.3;
     }
     .reviewer-post-card {
       background: #fff;
       border: 1px solid #e4e7f0;
       border-radius: 16px;
-      padding: 26px;
-      margin-bottom: 28px;
+      padding: 24px 26px 26px;
+      margin-bottom: 16px;
       box-shadow: 0 4px 24px rgba(0,0,0,.06);
+    }
+    .reviewer-post-card-header {
+      margin-bottom: 14px;
     }
     .reviewer-platform-badge {
       display: inline-flex;
@@ -1911,11 +1961,10 @@
       border: 1px solid #e4e7f0;
       color: #6b7294;
       background: #f4f5f8;
-      margin-bottom: 16px;
     }
     .reviewer-content {
       font-size: 15px;
-      line-height: 1.75;
+      line-height: 1.8;
       color: #1a1d2e;
       white-space: pre-wrap;
       word-break: break-word;
@@ -1932,9 +1981,18 @@
       background: #fff;
       border: 1px solid #e4e7f0;
       border-radius: 16px;
-      padding: 26px;
+      padding: 24px 26px;
       margin-bottom: 16px;
       box-shadow: 0 2px 12px rgba(0,0,0,.04);
+    }
+    .reviewer-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+      color: #9aa0b8;
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      margin-bottom: 16px;
     }
     .reviewer-form-label {
       display: block;
@@ -1973,7 +2031,7 @@
       font-size: 14px;
       color: #1a1d2e;
       background: #fff;
-      min-height: 100px;
+      min-height: 110px;
       resize: vertical;
       line-height: 1.6;
       transition: border-color .12s, box-shadow .12s;
@@ -1992,8 +2050,8 @@
     }
     .reviewer-btn {
       flex: 1;
-      min-width: 130px;
-      padding: 14px 20px;
+      min-width: 140px;
+      padding: 15px 20px;
       border-radius: 11px;
       border: none;
       font-family: 'Inter', sans-serif;
@@ -2004,13 +2062,15 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 7px;
+      gap: 8px;
+      letter-spacing: -.1px;
     }
     .reviewer-btn.approve {
-      background: #2dd4a0;
+      background: linear-gradient(135deg, #2dd4a0 0%, #22c58c 100%);
       color: #001a10;
+      box-shadow: 0 2px 8px rgba(45,212,160,.2);
     }
-    .reviewer-btn.approve:hover { background: #25c191; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(45,212,160,.3); }
+    .reviewer-btn.approve:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(45,212,160,.35); }
     .reviewer-btn.changes {
       background: #fff;
       border: 1.5px solid #dde0ec;
@@ -2018,11 +2078,29 @@
     }
     .reviewer-btn.changes:hover { border-color: #f77070; color: #f77070; background: #fff5f5; transform: translateY(-1px); }
     .reviewer-btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+    @keyframes reviewerFadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes reviewerBounce {
+      0% { transform: scale(0.4); opacity: 0; }
+      60% { transform: scale(1.18); }
+      80% { transform: scale(0.94); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .reviewer-animate-in {
+      animation: reviewerFadeUp .3s ease both;
+    }
     .reviewer-confirmation {
       text-align: center;
-      padding: 48px 20px 32px;
+      padding: 48px 20px 36px;
     }
-    .reviewer-confirmation-icon { font-size: 52px; margin-bottom: 18px; display: block; }
+    .reviewer-confirmation-icon {
+      font-size: 56px;
+      margin-bottom: 20px;
+      display: block;
+      animation: reviewerBounce .5s cubic-bezier(.34,1.56,.64,1) both;
+    }
     .reviewer-confirmation-title {
       font-family: 'Syne', sans-serif;
       font-weight: 700;
@@ -2033,28 +2111,62 @@
     .reviewer-confirmation-desc {
       font-size: 15px;
       color: #6b7294;
-      line-height: 1.6;
-      max-width: 400px;
+      line-height: 1.65;
+      max-width: 380px;
       margin: 0 auto;
     }
     .reviewer-comment {
-      padding: 14px 16px;
-      background: #f4f6fb;
-      border-radius: 11px;
-      margin-bottom: 10px;
+      display: flex;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid #f0f2f8;
+    }
+    .reviewer-comment:last-child { border-bottom: none; padding-bottom: 0; }
+    .reviewer-comment:first-child { padding-top: 0; }
+    .reviewer-comment-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #a78bfa, #7c3aed);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-family: 'Inter', sans-serif;
+    }
+    .reviewer-comment-body { flex: 1; min-width: 0; }
+    .reviewer-comment-meta {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 5px;
+      flex-wrap: wrap;
     }
     .reviewer-comment-author {
       font-weight: 600;
       font-size: 13px;
       color: #1a1d2e;
-      margin-bottom: 3px;
     }
     .reviewer-comment-time {
       font-size: 11px;
       color: #9aa0b8;
-      margin-bottom: 7px;
       font-family: 'DM Mono', monospace;
     }
+    .reviewer-comment-action-badge {
+      display: inline-flex;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+    }
+    .reviewer-comment-action-badge.approved { background: #d1fae5; color: #065f46; }
+    .reviewer-comment-action-badge.changes_requested { background: #fee2e2; color: #991b1b; }
     .reviewer-comment-text {
       font-size: 14px;
       color: #3a3f5c;
@@ -2067,6 +2179,20 @@
       text-align: center;
       min-height: 20px;
     }
+    .reviewer-footer {
+      text-align: center;
+      padding: 22px 20px 28px;
+      font-size: 12px;
+      color: #b0b6cc;
+      font-family: 'DM Mono', monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    .reviewer-footer-dot { opacity: .35; }
   </style>
 </head>
 <body>
@@ -2873,12 +2999,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <!-- ── REVIEWER PAGE (rendered when ?approve= in URL) ── -->
 <div id="reviewerPage">
-  <div class="reviewer-wrap">
-    <div class="reviewer-brand">
+  <div class="reviewer-hero">
+    <div class="reviewer-hero-inner">
+      <span class="reviewer-brand-mark">IQ</span>
       <span class="reviewer-brand-name">PostIQ</span>
       <span class="reviewer-brand-tag">REVIEW</span>
     </div>
-    <div id="reviewerLoading" class="reviewer-section-card" style="text-align:center;padding:48px 20px;color:#9aa0b8;font-family:'DM Mono',monospace;font-size:13px;">
+  </div>
+  <div class="reviewer-wrap">
+    <div id="reviewerLoading" style="text-align:center;padding:80px 20px 60px;color:#9aa0b8;font-family:'DM Mono',monospace;font-size:13px;">
       Loading review request…
     </div>
     <div id="reviewerContent" style="display:none;"></div>
@@ -2892,11 +3021,19 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     </div>
     <div id="reviewerError" style="display:none;">
-      <div class="reviewer-section-card" style="text-align:center;padding:48px 20px;">
+      <div class="reviewer-section-card" style="text-align:center;padding:60px 20px;">
         <div style="font-size:40px;margin-bottom:16px;">🔍</div>
-        <div id="reviewerErrorMsg" style="font-size:14px;color:#6b7294;line-height:1.6;"></div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:#1a1d2e;margin-bottom:10px;">Review not found</div>
+        <div id="reviewerErrorMsg" style="font-size:14px;color:#6b7294;line-height:1.6;max-width:340px;margin:0 auto;"></div>
       </div>
     </div>
+  </div>
+  <div class="reviewer-footer">
+    <span>Secure review link</span>
+    <span class="reviewer-footer-dot">·</span>
+    <span>Expires in 30 days</span>
+    <span class="reviewer-footer-dot">·</span>
+    <span>Powered by PostIQ</span>
   </div>
 </div>
 
@@ -3525,6 +3662,11 @@ async function composerSend(action){
   if(!channelId){qs('composerStatus').textContent='Load channels first.';return;}
   const when=qs('composerWhen').value;
   const needsApproval=qs('composerNeedsApproval')?.checked||false;
+  // When approval is required, only draft saves are allowed from the composer
+  if(needsApproval&&action!=='draft'){
+    qs('composerStatus').textContent='Save as draft first, then generate an approval link from the Approvals tab.';
+    return;
+  }
   const input={channelId,text,schedulingType:'automatic'};
   if(action==='draft'){input.mode='addToQueue';input.saveToDraft=true;}
   if(action==='queue'){input.mode='addToQueue';}
@@ -3861,30 +4003,46 @@ async function renderReviewerPage(uuid){
     const imageUrl=record.post?.image_url||'';
     const comments=record.comments||[];
     const safeUUID=safeText(uuid);
+    const avatarColors=['#7c3aed','#2563eb','#059669','#d97706','#dc2626','#db2777','#0891b2','#65a30d'];
     contentEl.innerHTML=`
-      <div class="reviewer-post-card">
-        ${platform?`<div class="reviewer-platform-badge">${safeText(platform)}</div>`:''}
+      <div class="reviewer-request-header reviewer-animate-in">
+        <div class="reviewer-request-label">Post Review Request</div>
+        <div class="reviewer-request-title">You've been asked to review a post</div>
+      </div>
+      <div class="reviewer-post-card reviewer-animate-in" style="animation-delay:.05s">
+        ${platform?`<div class="reviewer-post-card-header"><div class="reviewer-platform-badge">${safeText(platform)}</div></div>`:''}
         <div class="reviewer-content">${safeText(content)}</div>
         ${imageUrl?`<img src="${safeText(imageUrl)}" class="reviewer-post-img" alt="Post media" />`:''}
       </div>
       ${comments.length?`
-        <div class="reviewer-section-card" style="margin-bottom:16px;">
-          <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#9aa0b8;text-transform:uppercase;letter-spacing:.7px;margin-bottom:14px;">Previous Comments</div>
-          ${comments.map(c=>`
-            <div class="reviewer-comment">
-              <div class="reviewer-comment-author">${safeText(c.author||'Anonymous')}</div>
-              <div class="reviewer-comment-time">${c.timestamp?new Date(c.timestamp).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>
-              <div class="reviewer-comment-text">${safeText(c.text||'')}</div>
-            </div>`).join('')}
+        <div class="reviewer-section-card reviewer-animate-in" style="animation-delay:.08s">
+          <div class="reviewer-section-title">Previous Feedback</div>
+          ${comments.map(c=>{
+            const initials=(c.author||'?').trim().split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?';
+            const colorIdx=Math.abs(Array.from(c.author||'').reduce((a,x)=>a+x.charCodeAt(0),0))%avatarColors.length;
+            const badgeHtml=c.action?`<span class="reviewer-comment-action-badge ${c.action}">${c.action==='approved'?'Approved':'Changes'}</span>`:'';
+            return `<div class="reviewer-comment">
+              <div class="reviewer-comment-avatar" style="background:${avatarColors[colorIdx]}">${initials}</div>
+              <div class="reviewer-comment-body">
+                <div class="reviewer-comment-meta">
+                  <span class="reviewer-comment-author">${safeText(c.author||'Anonymous')}</span>
+                  ${badgeHtml}
+                  <span class="reviewer-comment-time">${c.timestamp?new Date(c.timestamp).toLocaleDateString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</span>
+                </div>
+                <div class="reviewer-comment-text">${safeText(c.text||'')}</div>
+              </div>
+            </div>`;
+          }).join('')}
         </div>`:''  }
-      <div class="reviewer-section-card">
+      <div class="reviewer-section-card reviewer-animate-in" style="animation-delay:.1s">
+        <div class="reviewer-section-title">Your Review</div>
         <div style="margin-bottom:18px;">
           <label class="reviewer-form-label" for="reviewerAuthor">Your name</label>
           <input id="reviewerAuthor" class="reviewer-input" placeholder="Enter your name…" autocomplete="name" />
         </div>
         <div>
           <label class="reviewer-form-label" for="reviewerComment">Notes (optional)</label>
-          <textarea id="reviewerComment" class="reviewer-textarea" placeholder="Leave feedback, suggestions, or approval notes for the author…"></textarea>
+          <textarea id="reviewerComment" class="reviewer-textarea" placeholder="Share your thoughts, feedback, or revision requests…"></textarea>
         </div>
         <div class="reviewer-actions">
           <button class="reviewer-btn approve" id="reviewerApproveBtn" onclick="submitReviewAction('${safeUUID}','approved')">✓ Approve</button>
@@ -4051,6 +4209,24 @@ function init(){
   qs('composerDraft').onclick=()=>composerSend('draft');
   qs('composerQueue').onclick=()=>composerSend('queue');
   qs('composerSchedule').onclick=()=>composerSend('schedule');
+
+  // Needs-approval checkbox: disable Queue/Schedule when checked
+  (function(){
+    const cb=qs('composerNeedsApproval');
+    if(!cb)return;
+    function syncApprovalState(){
+      const on=cb.checked;
+      const qBtn=qs('composerQueue');
+      const sBtn=qs('composerScheduleToggle');
+      const dBtn=qs('composerDraft');
+      if(qBtn){qBtn.disabled=on;qBtn.style.opacity=on?'.4':'';}
+      if(sBtn){sBtn.disabled=on;sBtn.style.opacity=on?'.4':'';}
+      if(dBtn){dBtn.classList.toggle('primary',on);}
+      if(on){qs('composerStatus').textContent='Save as draft → go to Approvals → generate a review link → publish when approved.';}
+      else if(qs('composerStatus').textContent.startsWith('Save as draft →')){qs('composerStatus').textContent='';}
+    }
+    cb.addEventListener('change',syncApprovalState);
+  })();
 
   // Schedule toggle
   qs('composerScheduleToggle').onclick=()=>{
