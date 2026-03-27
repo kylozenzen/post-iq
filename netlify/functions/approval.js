@@ -51,9 +51,18 @@ exports.handler = async function (event) {
     return await res.json();
   }
 
+  const ADJECTIVES = ["swift","vivid","amber","lunar","crisp","bold","calm","bright","clear","deep","prime","sharp","clean","fresh","pure","soft","warm","cool","grand","noble","brave","keen","wise","zen","nova","peak","core","solar","flux","stark","sleek","pure","still","vast","zeal"];
+  const NOUNS = ["summit","bridge","harbor","anchor","canvas","prism","beacon","haven","crown","stone","grove","vista","forge","crest","ridge","shore","light","cloud","spark","flame","comet","orbit","echo","bloom","brook","drift","glade","quill","vale","arc","relay","perch","cliff","bluff","knoll"];
+
   function generateUUID() {
     const hex = () => Math.floor(Math.random() * 0x10000).toString(16).padStart(4, "0");
     return `${hex()}${hex()}-${hex()}-4${hex().slice(1)}-${(Math.floor(Math.random()*4)+8).toString(16)}${hex().slice(1)}-${hex()}${hex()}${hex()}`;
+  }
+
+  function generateReadableId() {
+    const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
+    const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)];
+    return `${adj}-${noun}-${generateUUID()}`;
   }
 
   const TTL = 60 * 60 * 24 * 30; // 30 days in seconds
@@ -72,7 +81,7 @@ exports.handler = async function (event) {
         };
       }
 
-      const uuid = generateUUID();
+      const uuid = generateReadableId();
       const record = {
         id: uuid,
         post: {
@@ -105,7 +114,7 @@ exports.handler = async function (event) {
     // ── GET ─────────────────────────────────────────────────────────────────
     if (action === "get") {
       const { id } = payload;
-      if (!id || !/^[0-9a-f-]{36}$/i.test(id)) {
+      if (!id || !/^([a-z]+-[a-z]+-)?[0-9a-f-]{36}$/i.test(id)) {
         return {
           statusCode: 200,
           headers: corsHeaders,
@@ -132,7 +141,7 @@ exports.handler = async function (event) {
     // ── UPDATE ──────────────────────────────────────────────────────────────
     if (action === "update") {
       const { id, status, author, comment } = payload;
-      if (!id || !/^[0-9a-f-]{36}$/i.test(id)) {
+      if (!id || !/^([a-z]+-[a-z]+-)?[0-9a-f-]{36}$/i.test(id)) {
         return {
           statusCode: 200,
           headers: corsHeaders,
