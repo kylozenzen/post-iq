@@ -6125,5 +6125,289 @@ document.addEventListener('DOMContentLoaded',()=>{try{init();}catch(e){console.e
 })();
 </script>
 
+
+<style id="postiq-bundle4-style">
+  .approval-warning{
+    margin-top:12px;
+    padding:10px 12px;
+    border-radius:10px;
+    border:1px solid rgba(247,112,112,.28);
+    background:rgba(247,112,112,.09);
+    color:#f7b0b0;
+    font-size:12px;
+    line-height:1.55;
+  }
+  .approval-warning strong{ color:#ffd3d3; }
+  .approval-warning.info{
+    border-color:rgba(107,143,247,.28);
+    background:rgba(107,143,247,.10);
+    color:#bfd0ff;
+  }
+  .reviewer-superseded{
+    margin-bottom:16px;
+    padding:14px 16px;
+    border-radius:12px;
+    border:1px solid rgba(107,143,247,.28);
+    background:rgba(107,143,247,.1);
+    color:#dfe7ff;
+  }
+  .reviewer-superseded a{
+    color:#fff;
+    font-weight:700;
+    text-decoration:underline;
+  }
+  .reviewer-meta-row{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+  .reviewer-mini-chip{
+    display:inline-flex;
+    padding:3px 8px;
+    border-radius:99px;
+    font-size:10px;
+    font-weight:700;
+    font-family:'DM Mono', monospace;
+    letter-spacing:.05em;
+    border:1px solid rgba(255,255,255,.14);
+    color:#d8def0;
+    background:rgba(255,255,255,.05);
+  }
+  .reviewer-helper{
+    font-size:12px;
+    color:#9aa0b8;
+    line-height:1.6;
+    margin-bottom:16px;
+  }
+</style>
+
+<script id="postiq-bundle4-script">
+(function(){
+  function hashApprovalPayload(content, imageUrl){
+    const str = `${String(content||'').trim()}||${String(imageUrl||'').trim()}`;
+    let h = 2166136261;
+    for(let i=0;i<str.length;i++){
+      h ^= str.charCodeAt(i);
+      h += (h<<1) + (h<<4) + (h<<7) + (h<<8) + (h<<24);
+    }
+    return ('0000000' + (h>>>0).toString(16)).slice(-8);
+  }
+  function readDraftId(safeId){
+    return (window._approvalIdMap||{})[safeId] || safeId;
+  }
+  function safeEsc(v){ return typeof safeText === 'function' ? safeText(v) : String(v||''); }
+  function buildSupersedeMarker(url){
+    return `__POSTIQ_SUPERSEDED__::${url}`;
+  }
+  function parseSupersedeMarker(comments){
+    const arr = Array.isArray(comments) ? comments.slice().reverse() : [];
+    for(const c of arr){
+      const txt = String(c?.text || '');
+      if(txt.startsWith('__POSTIQ_SUPERSEDED__::')){
+        return txt.split('__POSTIQ_SUPERSEDED__::')[1] || '';
+      }
+    }
+    return '';
+  }
+  function summarizePublishState(meta){
+    if(meta?.published_at) return 'Published';
+    if(meta?.last_publish_action === 'queue') return 'Queued';
+    if(meta?.last_publish_action === 'schedule') return 'Scheduled';
+    if(meta?.status === 'approved') return 'Approved / Need to Schedule';
+    return '';
+  }
+
+  const prevRender = window.renderApprovalCard;
+  window.renderApprovalCard = function(meta, bufferPost){
+    prevRender(meta, bufferPost);
+    const draftId = meta.draftId;
+    const safeId = draftId.replace(/[^a-zA-Z0-9_-]/g,'_');
+    const card = document.querySelector(`[data-draft-id="${CSS.escape(draftId)}"]`);
+    if(!card) return;
+
+    const currentBufferText = (bufferPost?.text || '').trim();
+    const currentBufferImage = (bufferPost?.assets?.[0]?.thumbnail || '').trim();
+    const currentBufferHash = hashApprovalPayload(currentBufferText, currentBufferImage);
+
+    const submittedHash = meta.submitted_hash || '';
+    const publishState = summarizePublishState(meta);
+    const topMeta = card.querySelector('.approval-card-meta');
+    if(topMeta && publishState){
+      const chip = document.createElement('span');
+      chip.className = 'approval-lifecycle-chip approved';
+      chip.textContent = publishState;
+      topMeta.appendChild(chip);
+    }
+
+    if(submittedHash && currentBufferHash && submittedHash !== currentBufferHash){
+      const main = card.querySelector('.approval-controls-card') || card.lastElementChild;
+      const warn = document.createElement('div');
+      warn.className = 'approval-warning';
+      warn.innerHTML = `<strong>Version mismatch.</strong> The current Buffer draft differs from the version that was last shared for review. Reviewers may have approved an older version. Generate a new review link after confirming the latest draft.`;
+      main.parentNode.insertBefore(warn, main);
+    } else if(meta.submitted_at && bufferPost){
+      const main = card.querySelector('.approval-controls-card') || card.lastElementChild;
+      const info = document.createElement('div');
+      info.className = 'approval-warning info';
+      info.innerHTML = `Review link is tied to a submitted snapshot from <strong>${new Date(meta.submitted_at).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}</strong>. Buffer remains the draft source of truth for comparison.`;
+      main.parentNode.insertBefore(info, main);
+    }
+  };
+
+  const prevGen = window.approvalGenerateLink;
+  window.approvalGenerateLink = async function(safeId){
+    const draftId = readDraftId(safeId);
+    const meta = getApprovalMeta(draftId);
+    if(!meta){ showToast('Approval record not found','error'); return; }
+
+    const textEl = document.getElementById(`approval-text-${safeId}`);
+    const imageEl = document.getElementById(`approval-image-${safeId}`);
+    const content = (textEl?.value || meta.content || '').trim();
+    const image_url = (imageEl?.value || meta.image_url || '').trim() || null;
+    const previousApprovalId = meta.approval_uuid || meta.previous_approval_uuid || null;
+    const previousApprovalUrl = meta.approval_url || meta.previous_approval_url || '';
+
+    if(previousApprovalId && previousApprovalUrl){
+      try{
+        await fetch('/.netlify/functions/approval',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({
+            action:'update',
+            id:previousApprovalId,
+            author:'PostIQ',
+            comment:buildSupersedeMarker(window.location.origin + '/?approve=' + previousApprovalId)
+          })
+        });
+      }catch(e){}
+    }
+
+    await prevGen(safeId);
+
+    const updated = getApprovalMeta(draftId);
+    if(updated){
+      const submitted_hash = hashApprovalPayload(content, image_url);
+      setApprovalMeta(draftId, Object.assign({}, updated, {
+        submitted_hash,
+        submitted_snapshot: { content, image_url, at: Date.now() }
+      }));
+    }
+  };
+
+  const prevSaveRevision = window.approvalSaveRevision;
+  window.approvalSaveRevision = function(safeId){
+    const draftId = readDraftId(safeId);
+    const meta = getApprovalMeta(draftId) || {};
+    const res = prevSaveRevision ? prevSaveRevision(safeId) : undefined;
+    const after = getApprovalMeta(draftId) || {};
+    setApprovalMeta(draftId, Object.assign({}, after, {
+      source_of_truth: 'buffer_draft_compare'
+    }));
+    return res;
+  };
+
+  const prevPublish = window.approvalPublish;
+  window.approvalPublish = async function(safeId, action){
+    const draftId = readDraftId(safeId);
+    const result = await prevPublish(safeId, action);
+    const meta = getApprovalMeta(draftId);
+    if(meta){
+      setApprovalMeta(draftId, Object.assign({}, meta, {
+        last_publish_action: action,
+        published_at: action === 'draft' ? null : Date.now()
+      }));
+    }
+    return result;
+  };
+
+  const prevReviewer = window.renderReviewerPage;
+  window.renderReviewerPage = async function(uuid){
+    const appEl=document.getElementById('app');
+    if(appEl)appEl.style.display='none';
+    const mobTabs=document.querySelector('.mobile-tabs');
+    if(mobTabs)mobTabs.style.display='none';
+    const page=qs('reviewerPage');
+    if(!page)return;
+    page.classList.add('active');
+    const loadingEl=qs('reviewerLoading');
+    const contentEl=qs('reviewerContent');
+    const confirmedEl=qs('reviewerConfirmed');
+    const errorEl=qs('reviewerError');
+    loadingEl.style.display='block';
+    contentEl.style.display='none';
+    confirmedEl.style.display='none';
+    errorEl.style.display='none';
+    try{
+      const res=await fetch('/.netlify/functions/approval',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'get',id:uuid})});
+      const record=await res.json();
+      loadingEl.style.display='none';
+      if(record.error){
+        errorEl.style.display='block';
+        qs('reviewerErrorMsg').textContent='This review link could not be found. It may have expired or been removed.';
+        return;
+      }
+
+      const newerUrl = parseSupersedeMarker(record.comments || []);
+      const isSuperseded = !!newerUrl;
+      contentEl.style.display='block';
+      const platform=record.post?.platform||'';
+      const postContent=record.post?.content||'';
+      const imageUrl=record.post?.image_url||'';
+      const comments=(record.comments||[]).filter(c=>!String(c?.text||'').startsWith('__POSTIQ_SUPERSEDED__::'));
+      const safeUUID=safeText(uuid);
+
+      contentEl.innerHTML=`
+        ${isSuperseded ? `<div class="reviewer-superseded">
+          <div style="font-weight:700;margin-bottom:6px;">A newer revision is available.</div>
+          <div style="line-height:1.6;">This review link has been replaced by a more recent version. Please review the latest draft instead.</div>
+        </div>` : ''}
+        <div class="reviewer-post-card">
+          <div class="reviewer-meta-row">
+            ${platform?`<div class="reviewer-platform-badge">${safeText(platform)}</div>`:''}
+            <span class="reviewer-mini-chip">${safeText(record.status || 'pending')}</span>
+            <span class="reviewer-mini-chip">${comments.length ? comments.length + ' prior comment' + (comments.length===1?'':'s') : 'first review pass'}</span>
+          </div>
+          <div class="reviewer-helper">${isSuperseded ? 'Please ask the author for the newest link if you do not already have it.' : 'Approve if this version is ready, or request changes with specific feedback.'}</div>
+          <div class="reviewer-content">${safeText(postContent)}</div>
+          ${imageUrl?`<img src="${safeText(imageUrl)}" class="reviewer-post-img" alt="Post media" />`:''}
+        </div>
+        ${comments.length?`
+          <div class="reviewer-section-card" style="margin-bottom:16px;">
+            <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#9aa0b8;text-transform:uppercase;letter-spacing:.7px;margin-bottom:14px;">Previous Comments</div>
+            ${comments.map(c=>`
+              <div class="reviewer-comment">
+                <div class="reviewer-comment-author">${safeText(c.author||'Anonymous')}</div>
+                <div class="reviewer-comment-time">${c.timestamp?new Date(c.timestamp).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>
+                <div class="reviewer-comment-text">${safeText(c.text||'')}</div>
+              </div>`).join('')}
+          </div>`:''}
+        <div class="reviewer-section-card">
+          <div style="margin-bottom:18px;">
+            <label class="reviewer-form-label" for="reviewerAuthor">Your name</label>
+            <input id="reviewerAuthor" class="reviewer-input" placeholder="Enter your name…" autocomplete="name" ${isSuperseded ? 'disabled' : ''} />
+          </div>
+          <div>
+            <label class="reviewer-form-label" for="reviewerComment">Notes (optional)</label>
+            <textarea id="reviewerComment" class="reviewer-textarea" placeholder="${isSuperseded ? 'This link was replaced by a newer version.' : 'Leave feedback, suggestions, or approval notes for the author…'}" ${isSuperseded ? 'disabled' : ''}></textarea>
+          </div>
+          <div class="reviewer-actions">
+            <button class="reviewer-btn approve" id="reviewerApproveBtn" onclick="submitReviewAction('${safeUUID}','approved')" ${isSuperseded ? 'disabled style="opacity:.5;cursor:not-allowed;"' : ''}>✓ Approve</button>
+            <button class="reviewer-btn changes" id="reviewerChangesBtn" onclick="submitReviewAction('${safeUUID}','changes_requested')" ${isSuperseded ? 'disabled style="opacity:.5;cursor:not-allowed;"' : ''}>✎ Request Changes</button>
+          </div>
+          <div id="reviewerStatusMsg" class="reviewer-status-msg">${isSuperseded ? 'This link is no longer the latest revision.' : ''}</div>
+        </div>`;
+    }catch(e){
+      loadingEl.style.display='none';
+      errorEl.style.display='block';
+      qs('reviewerErrorMsg').textContent='Failed to load the review request. Please try again later.';
+      console.error('[PostIQ] reviewer page:',e);
+    }
+  };
+
+})();
+</script>
+
 </body>
 </html>
