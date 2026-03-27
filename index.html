@@ -1685,7 +1685,7 @@
     </nav>
     <div class="side-bottom" style="padding:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
       <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="flex:1;font-size:12px;color:var(--subtle);"><span class="nav-icon">↗</span> Open Buffer</a>
-      <button id="openSettings" title="Settings &amp; Help" style="background:transparent;border:1px solid var(--border2);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:15px;flex-shrink:0;transition:all .12s;" onmouseover="this.style.borderColor='var(--subtle)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'">?<span id="whatsNewDot" style="display:none;width:6px;height:6px;background:var(--amber);border-radius:50%;position:absolute;top:6px;right:6px;"></span></button>
+      <button id="openSettings" title="Settings &amp; Help" style="background:transparent;border:1px solid var(--border2);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:15px;flex-shrink:0;transition:all .12s;" onmouseover="this.style.borderColor='var(--subtle)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'">?</button>
     </div>
   </aside>
 
@@ -1837,6 +1837,10 @@
               <button class="btn success" id="composerQueue">Add to queue</button>
               <button class="btn primary" id="composerScheduleToggle">📅 Schedule…</button>
             </div>
+            <label class="mt8" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--muted);">
+              <input type="checkbox" id="composerRequiresApproval" />
+              <span>Requires approval</span>
+            </label>
 
             <div id="composerSchedulePanel" class="composer-expand-panel" style="display:none;">
               <div class="composer-when-row mt8">
@@ -2092,7 +2096,6 @@ document.addEventListener('DOMContentLoaded', () => {
   <!-- Tabs -->
   <div class="settings-tabs">
     <button class="settings-tab active" data-stab="guide">Guide</button>
-    <button class="settings-tab" data-stab="changelog">What's New</button>
     <button class="settings-tab" data-stab="themes">Themes</button>
     <button class="settings-tab" data-stab="about">About</button>
   </div>
@@ -2147,45 +2150,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="wn-title">Connecting Buffer</div>
         <p class="wn-desc">Get your API token from buffer.com/developers. Paste it in the token panel — choose Session (clears on close) or Local (persists). Hit Load from Buffer to sync your channels and posts. Your token never leaves your device.</p>
       </div>
-    </div>
-  </div>
-
-  <!-- ── CHANGELOG ── -->
-  <div id="settingsPanelChangelog" class="settings-panel">
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge new">New</span><span class="wn-date">Mar 2026</span></div>
-      <div class="wn-title">🎬 Video Thumbnail Manager</div>
-      <p class="wn-desc">Add custom thumbnails to scheduled video posts. PostIQ deletes and recreates the post with the thumbnail baked into the VideoAssetInput — same slot, new thumbnail.</p>
-    </div>
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge new">New</span><span class="wn-date">Mar 2026</span></div>
-      <div class="wn-title">⚙️ Unified Settings panel</div>
-      <p class="wn-desc">Guide, changelog, themes, and about consolidated into one place. Sidebar stays clean.</p>
-    </div>
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge new">New</span><span class="wn-date">Mar 2026</span></div>
-      <div class="wn-title">📈 Topics tab in Trending</div>
-      <p class="wn-desc">Search Reddit across all subreddits by topic. Saved searches persist as clickable pills. Edit your list anytime.</p>
-    </div>
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge new">New</span><span class="wn-date">Mar 2026</span></div>
-      <div class="wn-title">📌 Trending reference panel</div>
-      <p class="wn-desc">Pin any trending story as a reference above the composer. Write your own take — don't copy it in.</p>
-    </div>
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Mar 2026</span></div>
-      <div class="wn-title">📏 Platform-aware character counter</div>
-      <p class="wn-desc">Counter now shows X/limit based on your selected channel. LinkedIn 3000, X 280, Threads 500, Instagram 2200.</p>
-    </div>
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Mar 2026</span></div>
-      <div class="wn-title">✍️ Composer clears after sending</div>
-      <p class="wn-desc">Queue, draft, or schedule — the editor resets automatically after a successful action.</p>
-    </div>
-    <div class="wn-entry">
-      <div class="wn-meta"><span class="wn-badge">Update</span><span class="wn-date">Feb 2026</span></div>
-      <div class="wn-title">🖼 Imgur image uploader</div>
-      <p class="wn-desc">Upload images directly from the composer. No account needed — anonymous Imgur hosting.</p>
     </div>
   </div>
 
@@ -2925,8 +2889,12 @@ async function composerSend(action){
   const channelId=qs('composerChannel').value;
   if(!channelId){qs('composerStatus').textContent='Load channels first.';return;}
   const when=qs('composerWhen').value;
+  const requiresApproval=!!qs('composerRequiresApproval')?.checked;
   const input={channelId,text,schedulingType:'automatic'};
-  if(action==='draft'){input.mode='addToQueue';input.saveToDraft=true;}
+  if(action==='draft'){
+    input.mode='addToQueue';
+    if(!requiresApproval)input.saveToDraft=true;
+  }
   if(action==='queue'){input.mode='addToQueue';}
   if(action==='schedule'){if(!when){qs('composerStatus').textContent='Pick a date/time first.';return;}input.mode='customScheduled';input.dueAt=when;}
   // Attach image or video with correct asset shape
@@ -2947,7 +2915,7 @@ async function composerSend(action){
     const cp=res?.data?.createPost;
     const apiErr=cp?.message||null; // MutationError shape
     if(apiErr)throw new Error(apiErr);
-    const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
+    const msg=action==='draft'?(requiresApproval?'Sent to approvals queue.':'Draft saved.'):action==='queue'?'Added to queue.':'Scheduled.';
     qs('composerStatus').textContent=msg;showToast(msg);
     // Clear composer after successful action
     const editor=qs('composerEditor');
@@ -2963,8 +2931,10 @@ function init(){
   if(renderSharedFromHash())return;
   loadStoredToken();
 
-  qs('onboardingEnter').onclick=dismissOnboarding;
-  qs('closeOnboarding').onclick=dismissOnboarding;
+  const onboardingEnterBtn=qs('onboardingEnter');
+  const closeOnboardingBtn=qs('closeOnboarding');
+  if(onboardingEnterBtn)onboardingEnterBtn.onclick=dismissOnboarding;
+  if(closeOnboardingBtn)closeOnboardingBtn.onclick=dismissOnboarding;
   // Onboarding now part of settings modal
   // Founder now in settings About tab
 
@@ -2978,19 +2948,12 @@ function init(){
   // Load saved theme
   try{const saved=localStorage.getItem(THEME_KEY);if(saved)applyTheme(saved);else applyTheme('dark');}catch{}
 
-  // ── WHAT'S NEW ──
-  const WN_KEY='postiq_wn_seen_v1';
-  function hasSeenWhatsNew(){try{return localStorage.getItem(WN_KEY)==='1'}catch{return false}}
-  function markWhatsNewSeen(){try{localStorage.setItem(WN_KEY,'1')}catch{}}
-  if(!hasSeenWhatsNew()) qs('whatsNewDot').style.display='block';
   // ── SETTINGS MODAL ──
   function openSettings(tab) {
     // Switch to specified tab or default
     const target = tab || 'guide';
     document.querySelectorAll('.settings-tab').forEach(t => t.classList.toggle('active', t.dataset.stab === target));
     document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.id === `settingsPanel${target.charAt(0).toUpperCase()+target.slice(1)}`));
-    // Mark new seen when opening changelog
-    if (target === 'changelog') { markWhatsNewSeen(); qs('whatsNewDot').style.display='none'; }
     openModal('settingsModal');
   }
   qs('openSettings').onclick = () => openSettings('guide');
@@ -3001,7 +2964,6 @@ function init(){
       tab.classList.add('active');
       const panel = 'settingsPanel' + tab.dataset.stab.charAt(0).toUpperCase() + tab.dataset.stab.slice(1);
       document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.id === panel));
-      if (tab.dataset.stab === 'changelog') { markWhatsNewSeen(); qs('whatsNewDot').style.display='none'; }
     };
   });
   // Theme options inside settings modal
@@ -3243,7 +3205,10 @@ function init(){
   qs('pickerPlatform').onchange=renderSnippetPicker;
 
   renderCalendar();
-  if(!hasSeenOnboarding())openModal('onboardingModal');
+  if(!hasSeenOnboarding()){
+    if(qs('onboardingModal'))openModal('onboardingModal');
+    else markOnboardingSeen();
+  }
 
   // ── COMPOSER TABS ──
   document.querySelectorAll('.composer-tab').forEach(tab => {
@@ -3465,7 +3430,8 @@ function init(){
     localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
     bufferToken='';updateTokenUI();syncMobDrawerUI();showToast('Token removed');
   };
-  qs('mobOpenOnboarding').onclick=()=>{closeMobDrawer();openModal('onboardingModal');};
+  const mobOpenOnboardingBtn=qs('mobOpenOnboarding');
+  if(mobOpenOnboardingBtn)mobOpenOnboardingBtn.onclick=()=>{closeMobDrawer();if(qs('onboardingModal'))openModal('onboardingModal');};
   qs('mobOpenFounder').onclick=()=>{closeMobDrawer();openModal('founderModal');};
 
   // Mobile-only buttons
