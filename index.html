@@ -4871,5 +4871,127 @@ function init(){
 }
 document.addEventListener('DOMContentLoaded',()=>{try{init();}catch(e){console.error('[PostIQ] init() crashed:',e);}});
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const qs = (s,r=document)=>r.querySelector(s);
+  const uploadZone = qs('.upload-zone');
+  const fileInput = qs('#composerFileInput');
+  const imgUrlInput = qs('#composerImageUrl');
+
+  if(uploadZone && fileInput){
+    const handleFiles = async (files) => {
+      if(!files.length) return;
+      const file = files[0];
+      const formData = new FormData();
+      formData.append('image', file);
+      uploadZone.classList.add('uploading');
+
+      try{
+        const res = await fetch('https://api.imgur.com/3/image', {
+          method:'POST',
+          headers:{'Authorization':'Client-ID YOUR_CLIENT_ID'},
+          body: formData
+        });
+        const json = await res.json();
+        if(json.success && json.data.link){
+          imgUrlInput.value = json.data.link;
+          showToast('Upload complete','success');
+        } else throw new Error('Upload failed');
+      }catch(e){ console.error(e); showToast('Upload failed','error'); }
+      finally{ uploadZone.classList.remove('uploading'); }
+    }
+
+    uploadZone.addEventListener('click', ()=>fileInput.click());
+    uploadZone.addEventListener('dragover', e=>{ e.preventDefault(); uploadZone.classList.add('drag-over'); });
+    uploadZone.addEventListener('dragleave', e=>{ e.preventDefault(); uploadZone.classList.remove('drag-over'); });
+    uploadZone.addEventListener('drop', e=>{ e.preventDefault(); uploadZone.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
+    fileInput.addEventListener('change', e=>handleFiles(e.target.files));
+  }
+
+  // Toast helper
+  const showToast = (msg,type='info')=>{
+    const toastWrap = qs('.toast-wrap');
+    if(!toastWrap) return;
+    const t=document.createElement('div');
+    t.className=`toast toast-${type}`; t.innerText=msg;
+    toastWrap.appendChild(t);
+    setTimeout(()=>t.classList.add('toast-out'),2500);
+    setTimeout(()=>t.remove(),2800);
+  }
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const qs = (s,r=document)=>r.querySelector(s);
+  const uploadZone = qs('.upload-zone');
+  const fileInput = qs('#composerFileInput');
+  const imgUrlInput = qs('#composerImageUrl');
+
+  // Create a live preview container if it doesn't exist
+  let previewContainer = qs('.upload-preview');
+  if(!previewContainer){
+    previewContainer = document.createElement('div');
+    previewContainer.className = 'upload-preview';
+    previewContainer.style.display = 'flex';
+    previewContainer.style.gap = '8px';
+    previewContainer.style.marginTop = '10px';
+    uploadZone.appendChild(previewContainer);
+  }
+
+  if(uploadZone && fileInput){
+    const handleFiles = async (files) => {
+      if(!files.length) return;
+      const file = files[0];
+
+      // Show local preview immediately
+      const localPreview = document.createElement('img');
+      localPreview.src = URL.createObjectURL(file);
+      localPreview.style.width = '56px';
+      localPreview.style.height = '56px';
+      localPreview.style.objectFit = 'cover';
+      localPreview.style.borderRadius = '8px';
+      previewContainer.innerHTML = ''; // clear old preview
+      previewContainer.appendChild(localPreview);
+
+      const formData = new FormData();
+      formData.append('image', file);
+      uploadZone.classList.add('uploading');
+
+      try{
+        const res = await fetch('https://api.imgur.com/3/image', {
+          method:'POST',
+          headers:{'Authorization':'Client-ID YOUR_CLIENT_ID'},
+          body: formData
+        });
+        const json = await res.json();
+        if(json.success && json.data.link){
+          imgUrlInput.value = json.data.link;
+          showToast('Upload complete','success');
+          localPreview.src = json.data.link;
+        } else throw new Error('Upload failed');
+      }catch(e){ console.error(e); showToast('Upload failed','error'); }
+      finally{ uploadZone.classList.remove('uploading'); }
+    }
+
+    uploadZone.addEventListener('click', ()=>fileInput.click());
+    uploadZone.addEventListener('dragover', e=>{ e.preventDefault(); uploadZone.classList.add('drag-over'); });
+    uploadZone.addEventListener('dragleave', e=>{ e.preventDefault(); uploadZone.classList.remove('drag-over'); });
+    uploadZone.addEventListener('drop', e=>{ e.preventDefault(); uploadZone.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
+    fileInput.addEventListener('change', e=>handleFiles(e.target.files));
+  }
+
+  const showToast = (msg,type='info')=>{
+    const toastWrap = qs('.toast-wrap');
+    if(!toastWrap) return;
+    const t=document.createElement('div');
+    t.className=`toast toast-${type}`; t.innerText=msg;
+    toastWrap.appendChild(t);
+    setTimeout(()=>t.classList.add('toast-out'),2500);
+    setTimeout(()=>t.remove(),2800);
+  }
+});
+</script>
 </body>
 </html>
