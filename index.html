@@ -2926,6 +2926,7 @@ function monthStart(d){return new Date(d.getFullYear(),d.getMonth(),1)}
 function maskToken(t){if(!t)return '—';if(t.length<=8)return '••••';return `${t.slice(0,4)}••••${t.slice(-4)}`;}
 function openModal(id){qs(id).classList.add('open')}
 function closeModal(id){qs(id).classList.remove('open')}
+function isVideoUrlGlobal(url){return /\.(mp4|mov|webm|avi|mkv|m4v)(\?|$)/i.test(String(url||''))}
 function showToast(msg, type=''){
   const wrap=qs('toastWrap');if(!wrap)return;
   const t=document.createElement('div');
@@ -3532,7 +3533,7 @@ async function composerSend(action){
   // Attach image or video with correct asset shape
   const imgUrl=qs('composerImageUrl').value.trim();
   if(imgUrl){
-    if(isVideoUrl(imgUrl)){
+    if(window.isVideoUrlGlobal(imgUrl)){
       const thumbUrl=qs('videoThumbUrl').value.trim();
       const videoEntry={url:imgUrl};
       if(thumbUrl)videoEntry.thumbnailUrl=thumbUrl;
@@ -3965,8 +3966,8 @@ function init(){
     if (target === 'changelog') { markWhatsNewSeen(); qs('whatsNewDot').style.display='none'; }
     openModal('settingsModal');
   }
-  qs('openSettings').onclick = () => openSettings('guide');
-  qs('closeSettings').onclick = () => closeModal('settingsModal');
+  qs('openSettings').onclick = () => { markOnboardingSeen(); openSettings('guide'); };
+  qs('closeSettings').onclick = () => dismissOnboarding();
   document.querySelectorAll('.settings-tab').forEach(tab => {
     tab.onclick = () => {
       document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
@@ -4870,122 +4871,6 @@ function init(){
   }
 }
 document.addEventListener('DOMContentLoaded',()=>{try{init();}catch(e){console.error('[PostIQ] init() crashed:',e);}});
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const qs = (s,r=document)=>r.querySelector(s);
-  const uploadZone = qs('.upload-zone');
-  const fileInput = qs('#composerFileInput');
-  const imgUrlInput = qs('#composerImageUrl');
-  const settingsModal = qs('#settingsModal');
-  const closeSettingsBtn = qs('#closeSettings');
-
-  /* ── ONBOARDING FIRST-TIME LOGIC ── */
-  if(settingsModal){
-    const hasSeenGuide = localStorage.getItem('seenOnboarding');
-    if(!hasSeenGuide){
-      settingsModal.classList.add('open');
-      localStorage.setItem('seenOnboarding','true');
-    }
-  }
-  if(closeSettingsBtn && settingsModal){
-    closeSettingsBtn.addEventListener('click', () => {
-      settingsModal.classList.remove('open');
-    });
-  }
-
-  /* ── MEDIA UPLOAD / DRAG DROP / LIVE PREVIEW ── */
-  let previewContainer = qs('.upload-preview');
-  if(!previewContainer && uploadZone){
-    previewContainer = document.createElement('div');
-    previewContainer.className = 'upload-preview';
-    previewContainer.style.display = 'flex';
-    previewContainer.style.gap = '8px';
-    previewContainer.style.marginTop = '10px';
-    uploadZone.appendChild(previewContainer);
-  }
-
-  const handleFiles = async (files) => {
-    if(!files.length) return;
-    const file = files[0];
-
-    // local preview
-    const localPreview = document.createElement('img');
-    localPreview.src = URL.createObjectURL(file);
-    localPreview.style.width='56px'; localPreview.style.height='56px';
-    localPreview.style.objectFit='cover'; localPreview.style.borderRadius='8px';
-    previewContainer.innerHTML=''; previewContainer.appendChild(localPreview);
-
-    const formData = new FormData();
-    formData.append('image', file);
-    uploadZone.classList.add('uploading');
-
-    try{
-      const res = await fetch('https://api.imgur.com/3/image',{
-        method:'POST',
-        headers:{'Authorization':'Client-ID YOUR_CLIENT_ID'},
-        body: formData
-      });
-      const json = await res.json();
-      if(json.success && json.data.link){
-        imgUrlInput.value = json.data.link;
-        localPreview.src = json.data.link;
-        showToast('Upload complete','success');
-      } else throw new Error('Upload failed');
-    } catch(e){ console.error(e); showToast('Upload failed','error'); }
-    finally{ uploadZone.classList.remove('uploading'); }
-  }
-
-  if(uploadZone && fileInput){
-    uploadZone.addEventListener('click', ()=>fileInput.click());
-    uploadZone.addEventListener('dragover', e=>{ e.preventDefault(); uploadZone.classList.add('drag-over'); });
-    uploadZone.addEventListener('dragleave', e=>{ e.preventDefault(); uploadZone.classList.remove('drag-over'); });
-    uploadZone.addEventListener('drop', e=>{ e.preventDefault(); uploadZone.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
-    fileInput.addEventListener('change', e=>handleFiles(e.target.files));
-  }
-
-  /* ── COMPOSER SEND / DRAFT/QUEUE/SCHEDULE FIX ── */
-  const composerSend = async (action) => {
-    const imgUrl = imgUrlInput.value.trim();
-    if(!imgUrl && fileInput.files.length){
-      try{ await handleFiles(fileInput.files); }
-      catch(e){ showToast('Upload failed','error'); return; }
-    }
-
-    const assets = imgUrl ? { images:[{url:imgUrl}] } : {};
-    const text = qs('#richEditor').innerText.trim();
-    if(!text){ showToast('Cannot send empty post','error'); return; }
-
-    const postPayload = { text, assets };
-    fetch('/.netlify/functions/buffer-proxy',{
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({action, input: postPayload})
-    }).then(r=>r.json())
-      .then(()=>{ showToast(`${action} successful`,'success'); resetComposer(); })
-      .catch(()=> showToast(`${action} failed`,'error'));
-  };
-
-  ['#draftBtn','#queueBtn','#scheduleBtn'].forEach(sel=>{
-    const btn = qs(sel);
-    if(btn) btn.addEventListener('click', ()=>composerSend(btn.dataset.action));
-  });
-
-  const resetComposer = ()=>{
-    qs('#richEditor').innerText='';
-    imgUrlInput.value='';
-    fileInput.value='';
-    if(previewContainer) previewContainer.innerHTML='';
-  };
-
-  const showToast = (msg,type='info')=>{
-    const toastWrap = qs('.toast-wrap'); if(!toastWrap) return;
-    const t=document.createElement('div'); t.className=`toast toast-${type}`; t.innerText=msg;
-    toastWrap.appendChild(t);
-    setTimeout(()=>t.classList.add('toast-out'),2500);
-    setTimeout(()=>t.remove(),2800);
-  };
-});
 </script>
 </body>
 </html>
