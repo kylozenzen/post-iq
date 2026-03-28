@@ -2077,8 +2077,6 @@
   <button class="mob-tab" data-view="threadView"><span class="mob-icon">🧵</span>Thread</button>
   <button class="mob-tab" data-view="calendarView"><span class="mob-icon">📅</span>Calendar</button>
   <button class="mob-tab" data-view="trendingView"><span class="mob-icon">📈</span>Trends</button>
-  <button class="mob-tab" data-view="snippetsView"><span class="mob-icon">📚</span>Snippets</button>
-  <button class="mob-tab" data-view="approvalsView"><span class="mob-icon">✅</span>Approvals</button>
   <button class="mob-tab mob-menu" id="mobMenuBtn"><span class="mob-icon">☰</span>More</button>
 </nav>
 
@@ -2127,6 +2125,9 @@
   <div class="divider"></div>
 
   <div style="display:flex;flex-direction:column;gap:4px;">
+    <button class="nav-btn" data-view="snippetsView" id="mobSnippetsBtn"><span class="nav-icon">📚</span> Snippets</button>
+    <button class="nav-btn" data-view="approvalsView" id="mobApprovalsBtn"><span class="nav-icon">✅</span> Approvals</button>
+    <div style="height:1px;background:var(--border);margin:4px 0;"></div>
     <button class="nav-btn" id="mobOpenOnboarding"><span class="nav-icon">👋</span> Welcome</button>
     <button class="nav-btn" id="mobOpenFounder"><span class="nav-icon">🏗</span> Built by Ben</button>
     <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener"><span class="nav-icon">↗</span> Open Buffer</a>
@@ -2286,11 +2287,13 @@
           <p class="page-desc">Draft text-first posts, then push to Buffer.</p>
         </div>
         <div class="page-actions">
+          <button class="btn ghost" id="composerClearBtn" style="display:none;">Clear ✕</button>
           <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
         </div>
       </div>
       <div class="mob-view-hdr">
         <span class="mob-view-title">✍️ Compose</span>
+        <button class="btn sm ghost" id="composerClearBtnMob" style="display:none;">Clear ✕</button>
       </div>
 
       <!-- Trending reference panel -->
@@ -3524,9 +3527,23 @@ function isVideoUrlGlobal(url){
 
 async function composerSend(action){
   const text=editorHtmlToText(qs('composerEditor').innerHTML);
-  if(!text){qs('composerStatus').textContent='Write content first.';return;}
+  if(!text){
+    showToast('Write something first','error');
+    qs('composerStatus').textContent='Add content before sending.';
+    qs('composerEditor').focus();
+    return;
+  }
+  if(!bufferToken){
+    showToast('No Buffer token — add it in the sidebar','error');
+    qs('composerStatus').textContent='Connect Buffer first: paste your token in the sidebar.';
+    return;
+  }
   const channelId=qs('composerChannel').value;
-  if(!channelId){qs('composerStatus').textContent='Load channels first.';return;}
+  if(!channelId){
+    showToast('No channels loaded — sync Buffer first','error');
+    qs('composerStatus').textContent='Hit "Load from Buffer" to fetch your channels.';
+    return;
+  }
   const when=qs('composerWhen').value;
   const needsApproval=qs('composerNeedsApproval')?.checked||false;
   const input={channelId,text,schedulingType:'automatic'};
@@ -3970,7 +3987,7 @@ function init(){
     openModal('settingsModal');
   }
   qs('openSettings').onclick = () => openSettings('guide');
-  qs('closeSettings').onclick = () => closeModal('settingsModal');
+  qs('closeSettings').onclick = () => { markOnboardingSeen(); closeModal('settingsModal'); };
   document.querySelectorAll('.settings-tab').forEach(tab => {
     tab.onclick = () => {
       document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
@@ -4045,13 +4062,53 @@ function init(){
       counter.style.color=text.length>500?'var(--amber)':text.length>280?'var(--muted)':'var(--subtle)';
     }
     qs('composerEmpty').style.display=text?'none':'block';
+    const showClear=text.length>0;
+    if(qs('composerClearBtn'))qs('composerClearBtn').style.display=showClear?'inline-flex':'none';
+    if(qs('composerClearBtnMob'))qs('composerClearBtnMob').style.display=showClear?'inline-flex':'none';
   });
+  // Initialize char counter immediately so it shows "0 chars" on load
+  qs('composerCharCount').textContent='0 chars';
+  qs('composerCharCount').style.color='var(--subtle)';
 
   // Re-run counter when channel changes
   qs('composerChannel').addEventListener('change',()=>{
     qs('composerEditor').dispatchEvent(new Event('input'));
     updateComposerChannelHint();
   });
+  // ── COMPOSER BUTTON STATE MANAGEMENT ──
+  function updateComposerButtonStates(){
+    const hasToken=!!bufferToken;
+    const hasChannel=!!qs('composerChannel').value;
+    const ready=hasToken&&hasChannel;
+    const tip=!hasToken?'Add your Buffer token first':!hasChannel?'Load channels from Buffer first':'';
+    ['composerDraft','composerQueue','composerScheduleToggle'].forEach(id=>{
+      const btn=qs(id);if(!btn)return;
+      btn.disabled=!ready;
+      btn.title=tip;
+      btn.style.opacity=ready?'1':'0.45';
+      btn.style.cursor=ready?'pointer':'not-allowed';
+    });
+  }
+  updateComposerButtonStates();
+  window.addEventListener('postiq:synced', updateComposerButtonStates);
+  qs('composerChannel').addEventListener('change', updateComposerButtonStates);
+
+  function clearComposer(){
+    const editor=qs('composerEditor');
+    const text=editorHtmlToText(editor.innerHTML);
+    if(text&&!confirm('Clear the composer? This cannot be undone.'))return;
+    editor.innerHTML='';
+    qs('composerEmpty').style.display='block';
+    qs('composerCharCount').textContent='0 chars';
+    qs('composerCharCount').style.color='var(--subtle)';
+    if(qs('composerClearBtn'))qs('composerClearBtn').style.display='none';
+    if(qs('composerClearBtnMob'))qs('composerClearBtnMob').style.display='none';
+    qs('composerStatus').textContent='';
+    editor.focus();
+  }
+  if(qs('composerClearBtn'))qs('composerClearBtn').onclick=clearComposer;
+  if(qs('composerClearBtnMob'))qs('composerClearBtnMob').onclick=clearComposer;
+
   qs('composerDraft').onclick=()=>composerSend('draft');
   qs('composerQueue').onclick=()=>composerSend('queue');
   qs('composerSchedule').onclick=()=>composerSend('schedule');
@@ -4294,6 +4351,18 @@ function init(){
       activateView(btn.dataset.view);
       document.querySelectorAll('.mob-tab').forEach(t=>t.classList.remove('active'));
       btn.classList.add('active');
+    };
+  });
+
+  // Drawer nav buttons for Snippets + Approvals
+  ['mobSnippetsBtn','mobApprovalsBtn'].forEach(id=>{
+    const btn=qs(id);
+    if(!btn)return;
+    btn.onclick=()=>{
+      activateView(btn.dataset.view);
+      document.querySelectorAll('.mob-tab').forEach(t=>t.classList.remove('active'));
+      if(btn.dataset.view==='approvalsView') loadApprovals();
+      closeMobDrawer();
     };
   });
 
