@@ -2067,6 +2067,653 @@
       text-align: center;
       min-height: 20px;
     }
+
+    /* ════════════════════════════════════════════
+       DESIGN OVERHAUL — Premium Dark SaaS Pass
+       ════════════════════════════════════════════ */
+
+    /* ── 1. SIDEBAR — Widen + breathing room ── */
+    :root { --sidebar: 260px; }
+
+    .side-logo { padding: 22px 20px 18px; }
+    .logo-mark { font-size: 20px; gap: 10px; }
+    .logo-mark span { font-size: 11px; padding: 3px 8px; }
+
+    .side-token { padding: 10px 16px 12px; }
+    .token-status-row { gap: 6px; margin-bottom: 0; }
+    .token-label { font-size: 10px; }
+
+    .side-sync { padding: 8px 16px 14px; }
+    #syncBtn {
+      width: 100%;
+      justify-content: center;
+      background: transparent;
+      border: 1px dashed var(--border2);
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.02em;
+    }
+    #syncBtn:hover { border-color: var(--amber); color: var(--amber); background: transparent; }
+
+    .nav-btn {
+      padding: 10px 12px;
+      border-radius: 9px;
+      font-size: 13.5px;
+      font-weight: 500;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Active state — ambient radial glow */
+    .nav-btn.active::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 20% 50%, rgba(245,183,49,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .nav-btn.active {
+      background: rgba(245,183,49,0.08);
+      color: var(--amber);
+      border: 1px solid rgba(245,183,49,0.18);
+      box-shadow: none;
+    }
+    /* Remove the left bar from old active style — replaced by radial glow */
+    .nav-btn.active::before { display: none; }
+
+    .nav-label {
+      margin-top: 14px;
+      margin-bottom: 6px;
+      padding: 0 8px;
+      font-size: 9px;
+      letter-spacing: 1px;
+    }
+
+    .side-bottom {
+      padding: 12px 14px !important;
+      border-top: 1px solid var(--border);
+      gap: 4px;
+    }
+    #openSettings {
+      font-size: 11px;
+      padding: 0 12px;
+      height: 34px;
+      border-radius: 9px;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── 2. MAIN CONTENT AREA — Max-width + breathing room ── */
+    .view {
+      padding: 28px 32px;
+      max-width: 1100px;
+    }
+
+    @media (min-width: 1400px) {
+      .main {
+        background: var(--bg);
+        background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+        background-size: 24px 24px;
+        background-position: 0 0;
+      }
+    }
+
+    /* ── 3. PAGE HEADERS — Stronger hierarchy ── */
+    .page-hdr {
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-title {
+      font-size: 26px;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+    }
+    .page-desc {
+      font-size: 13.5px;
+      color: var(--muted);
+      margin-top: 3px;
+      line-height: 1.5;
+    }
+
+    /* ── 4. BUTTONS — Consistent scale system ── */
+    .btn {
+      height: 36px;
+      padding: 0 16px;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 9px;
+      letter-spacing: 0.01em;
+      gap: 7px;
+    }
+    .btn.sm {
+      height: 30px;
+      padding: 0 12px;
+      font-size: 12px;
+      border-radius: 7px;
+    }
+    .btn.lg {
+      height: 42px;
+      padding: 0 22px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 10px;
+    }
+    .btn.primary {
+      background: var(--amber);
+      color: #1a0800;
+      border: none;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      box-shadow: 0 1px 0 0 rgba(0,0,0,0.2), 0 0 0 1px rgba(245,183,49,0.15);
+    }
+    .btn.primary:hover {
+      background: #f8c53a;
+      box-shadow: 0 4px 16px rgba(245,183,49,0.3), 0 1px 0 0 rgba(0,0,0,0.2);
+      transform: translateY(-1px);
+    }
+    .btn.success {
+      background: rgba(45,212,160,0.12);
+      color: var(--green);
+      border: 1px solid rgba(45,212,160,0.25);
+      font-weight: 600;
+    }
+    .btn.success:hover { background: rgba(45,212,160,0.2); border-color: rgba(45,212,160,0.4); }
+    .btn.ghost {
+      background: transparent;
+      border-color: transparent;
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .btn.ghost:hover { background: var(--surface2); color: var(--text); border-color: transparent; }
+    .btn.icon {
+      width: 36px;
+      padding: 0;
+      justify-content: center;
+    }
+    .btn.sm.icon { width: 30px; }
+
+    /* ── 5. CARDS — Layered depth system ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .card:hover {
+      border-color: var(--border2);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    /* ── 6. COMPOSER — Complete QoL pass ── */
+    .rich-toolbar {
+      padding: 8px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      border-radius: 10px 10px 0 0;
+      display: flex;
+      gap: 2px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .rich-toolbar .btn.sm {
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 6px;
+      background: transparent;
+      border-color: transparent;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .rich-toolbar .btn.sm:hover {
+      background: var(--surface2);
+      color: var(--text);
+      border-color: var(--border2);
+    }
+    .toolbar-sep {
+      width: 1px;
+      height: 18px;
+      background: var(--border2);
+      margin: 0 6px;
+      flex-shrink: 0;
+    }
+    .rich-editor {
+      min-height: 220px;
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+      background: var(--surface);
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text);
+      caret-color: var(--amber);
+    }
+    .rich-editor:focus {
+      border-color: rgba(245,183,49,0.3);
+      box-shadow: 0 0 0 3px rgba(245,183,49,0.06);
+      outline: none;
+    }
+    .rich-editor:empty::before { color: var(--subtle); font-style: italic; }
+    .char-hint {
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      color: var(--subtle);
+      margin-left: auto;
+      transition: color 0.2s;
+    }
+    .composer-row-b {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .composer-channel-sel {
+      background: var(--surface2);
+      border-color: var(--border2);
+      border-radius: 9px;
+      font-size: 13px;
+      height: 36px;
+      padding: 0 12px;
+    }
+
+    /* ── 7. INPUTS — Consistent premium feel ── */
+    .input, textarea, select {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 9px;
+      padding: 9px 13px;
+      font-size: 13px;
+      color: var(--text);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      line-height: 1.5;
+    }
+    .input:focus, textarea:focus, select:focus {
+      border-color: rgba(245,183,49,0.5);
+      box-shadow: 0 0 0 3px rgba(245,183,49,0.08);
+      outline: none;
+    }
+    .input::placeholder, textarea::placeholder { color: var(--subtle); font-style: italic; }
+    select {
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7294'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    /* ── 8. CHIPS/BADGES — Sharper ── */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      height: 20px;
+      padding: 0 8px;
+      border-radius: 5px;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: 1px solid var(--border2);
+      color: var(--subtle);
+      white-space: nowrap;
+    }
+    .chip.amber {
+      background: rgba(245,183,49,0.1);
+      border-color: rgba(245,183,49,0.25);
+      color: var(--amber);
+    }
+    .chip.blue {
+      background: rgba(107,143,247,0.1);
+      border-color: rgba(107,143,247,0.25);
+      color: var(--blue);
+    }
+    .chip.green {
+      background: rgba(45,212,160,0.1);
+      border-color: rgba(45,212,160,0.25);
+      color: var(--green);
+    }
+
+    /* ── 9. MODALS — Premium sheet treatment ── */
+    .modal {
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .modal-card {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04) inset,
+        0 32px 64px rgba(0,0,0,0.6),
+        0 8px 24px rgba(0,0,0,0.4);
+    }
+    .modal-hdr {
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      font-family: 'Syne', sans-serif;
+      letter-spacing: -0.2px;
+    }
+    .modal-card { animation: modalSpring 0.22s cubic-bezier(0.34, 1.4, 0.64, 1); }
+    @keyframes modalSpring {
+      from { opacity: 0; transform: scale(0.94) translateY(12px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @media (max-width: 768px) {
+      .modal { align-items: flex-end; }
+      .modal-card {
+        border-radius: 20px 20px 0 0;
+        animation: sheetSpring 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+      }
+      @keyframes sheetSpring {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+    }
+
+    /* ── 10. TOASTS — More polished ── */
+    .toast {
+      background: var(--surface3);
+      border: 1px solid var(--border2);
+      border-left: 3px solid var(--amber);
+      border-radius: 10px;
+      padding: 11px 16px 11px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3);
+      max-width: 340px;
+      backdrop-filter: blur(12px);
+    }
+
+    /* ── 11. CALENDAR — Tighter, denser feel ── */
+    .cal-day {
+      min-height: 88px;
+      padding: 10px;
+      border-radius: 10px;
+      gap: 3px;
+    }
+    .cal-day:hover {
+      background: var(--surface2);
+      border-color: var(--border2);
+    }
+    .cal-day.today {
+      border-color: rgba(245,183,49,0.4);
+      background: rgba(245,183,49,0.03);
+    }
+    .day-num {
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .day-post-pill {
+      font-size: 10.5px;
+      border-radius: 4px;
+      padding: 2px 5px;
+    }
+    .dow-label {
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      padding: 2px 0 6px;
+      color: var(--subtle);
+    }
+    .cal-month {
+      font-size: 20px;
+      letter-spacing: -0.4px;
+    }
+
+    /* ── 12. SNIPPETS — Card refinement ── */
+    .snippet-card {
+      border-radius: 11px;
+      padding: 16px;
+      gap: 10px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+      transition: border-color 0.12s, box-shadow 0.15s, transform 0.12s;
+    }
+    .snippet-card:hover {
+      border-color: var(--border2);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.03);
+      transform: translateY(-1px);
+    }
+    .snippet-title { font-size: 13.5px; font-weight: 600; line-height: 1.3; }
+    .snippet-body { font-size: 12.5px; line-height: 1.6; }
+    .filter-btn {
+      border-radius: 7px;
+      padding: 8px 10px;
+      font-size: 12.5px;
+      transition: all 0.1s;
+    }
+    .filter-btn.active {
+      background: rgba(245,183,49,0.1);
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    /* ── 13. TRENDING ITEMS — Better visual separation ── */
+    .trending-item {
+      padding: 14px 16px;
+      border-radius: 11px;
+      gap: 14px;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .trending-item:hover {
+      background: var(--surface2);
+      border-color: var(--border2);
+      transform: none;
+    }
+    .trending-item-rank {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--subtle);
+      width: 24px;
+      padding-top: 2px;
+      opacity: 0.6;
+    }
+    .trending-item-title {
+      font-size: 13.5px;
+      font-weight: 500;
+      line-height: 1.45;
+      color: var(--text);
+    }
+    .trending-meta-pill.score {
+      color: var(--amber);
+      font-weight: 700;
+      font-size: 10.5px;
+    }
+
+    /* ── 14. MOBILE BOTTOM NAV — Legibility fix ── */
+    @media (max-width: 768px) {
+      .mobile-tabs {
+        height: 62px;
+        border-top: 1px solid var(--border);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        background: rgba(19,21,27,0.92);
+      }
+      .mob-tab {
+        font-size: 10px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 500;
+        letter-spacing: 0.01em;
+        text-transform: none;
+        color: var(--muted);
+        gap: 3px;
+        padding: 8px 4px 6px;
+        transition: color 0.15s;
+        position: relative;
+      }
+      .mob-tab .mob-icon { font-size: 20px; }
+      .mob-tab.active { color: var(--amber); }
+      .mob-tab.active::before {
+        content: '';
+        position: absolute;
+        top: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--amber);
+      }
+
+      /* ── 15. MOBILE DRAWER — Elevated ── */
+      .mob-drawer {
+        border-radius: 20px 20px 0 0;
+        padding: 24px 20px;
+        background: var(--surface);
+        box-shadow: 0 -24px 60px rgba(0,0,0,0.6);
+        animation: drawerIn 0.28s cubic-bezier(0.34, 1.2, 0.64, 1);
+        position: fixed;
+      }
+      @keyframes drawerIn {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+      .mob-drawer::before {
+        content: '';
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 36px;
+        height: 4px;
+        background: var(--border2);
+        border-radius: 2px;
+      }
+      .mob-drawer-hdr { margin-bottom: 20px; }
+      .mob-drawer-title { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+      .mob-drawer .nav-btn {
+        padding: 12px 14px;
+        font-size: 14px;
+        border-radius: 10px;
+        height: auto;
+      }
+    }
+
+    /* ── 16. APPROVAL CARDS — Authority and clarity ── */
+    .approval-card {
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      transition: box-shadow 0.2s;
+    }
+    .approval-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.25); }
+    .approval-status-badge {
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 10px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── 17. WELCOME SCREEN — Polish ── */
+    #welcomeScreen {
+      background-image: radial-gradient(ellipse 800px 600px at 50% -100px, rgba(245,183,49,0.08) 0%, transparent 70%);
+    }
+    .welcome-step > div {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+      transition: border-color 0.2s;
+    }
+    .welcome-step > div:focus-within { border-color: rgba(245,183,49,0.3); }
+    #welcomeDoneBtn {
+      height: 50px;
+      font-size: 15px;
+      border-radius: 12px;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── 18. GLOBAL — Scrollbars, selection, focus, animations ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--subtle); }
+    ::selection { background: rgba(245,183,49,0.2); color: var(--text); }
+    :focus-visible {
+      outline: 2px solid rgba(245,183,49,0.5);
+      outline-offset: 2px;
+    }
+    @keyframes viewEnter {
+      from { opacity: 0.4; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .view.active { animation: viewEnter 0.2s cubic-bezier(0.34, 1.2, 0.64, 1); }
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--border) 20%, var(--border) 80%, transparent);
+      margin: 16px 0;
+    }
+
+    /* ── 19. LIGHT THEME — Refinements ── */
+    [data-theme="light"] {
+      --bg: #f0f2f5;
+      --surface: #ffffff;
+      --surface2: #f5f6f9;
+      --surface3: #ebecf0;
+      --border: #e2e4ec;
+      --border2: #cfd2dc;
+      --text: #111320;
+      --muted: #4f566b;
+      --subtle: #8792a2;
+      --amber: #c68a00;
+      --amber-dim: rgba(198,138,0,0.08);
+      --amber-glow: rgba(198,138,0,0.2);
+    }
+    [data-theme="light"] .side {
+      background: #ffffff;
+      border-right: 1px solid var(--border);
+    }
+    [data-theme="light"] .main { background: var(--bg); }
+
+    /* ── 20. STATUS DOT — More impactful ── */
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--border2);
+      flex-shrink: 0;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .status-dot.connected {
+      background: var(--green);
+      box-shadow: 0 0 0 3px rgba(45,212,160,0.2);
+      animation: dotPulse 3s ease-in-out infinite;
+    }
+    @keyframes dotPulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(45,212,160,0.4); }
+      50% { box-shadow: 0 0 0 5px rgba(45,212,160,0); }
+    }
+
+    /* ── THREAD OUTPUT — Connection line ── */
+    #threadOut { position: relative; padding-left: 8px; }
+    #threadOut::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 20px; bottom: 20px;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--amber-glow), transparent);
+      border-radius: 1px;
+    }
+
   </style>
 </head>
 <body>
@@ -2337,7 +2984,7 @@
             <button class="btn sm ghost" id="threadAddOpener">+ Opener from Snippets</button>
             <button class="btn sm ghost" id="threadAddCta">+ Ending CTA</button>
           </div>
-          <div id="threadEmpty" class="empty mt12">Paste text above, then click <strong>Split thread</strong>.</div>
+          <div id="threadEmpty" class="empty mt12"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">🧵</div>Paste text above, then click <strong>Split thread</strong>.</div>
         </div>
         <div>
           <div class="thread-actions-bar">
@@ -2437,12 +3084,13 @@
             <button class="btn sm" data-cmd="ul">• List</button>
             <button class="btn sm" data-cmd="ol">1. List</button>
             <button class="btn sm ghost" data-cmd="clear">Clear</button>
-            <div style="width:1px;background:var(--border);margin:0 4px;"></div>
+            <div class="toolbar-sep"></div>
             <button class="btn sm" id="insertSnippetBtn">Insert snippet</button>
+            <div class="toolbar-sep"></div>
             <button class="btn sm ghost" id="saveSelectionSnippetBtn">Save selection</button>
           </div>
           <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here…"></div>
-          <div id="composerEmpty" class="empty mt8" style="display:none;">Start drafting above, then save draft, queue, or schedule.</div>
+          <div id="composerEmpty" class="empty mt8" style="display:none;"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">✍️</div>Start drafting above, then save draft, queue, or schedule.</div>
 
           <div class="composer-controls mt10">
             <div class="composer-row-a">
@@ -2497,6 +3145,7 @@
                 </div>
               </div>
 
+              <hr style="border:none;border-top:1px solid var(--border);margin:10px 0;">
               <div class="composer-image-row mt8">
                 <span class="img-row-lbl">or URL</span>
                 <div class="img-url-wrap">
@@ -2592,7 +3241,7 @@
             <select id="snippetPlatformFilter" class="input" style="max-width:180px;"></select>
             <button class="btn sm ghost" id="snippetViewToggle" title="Toggle view">⊞ Grid</button>
           </div>
-          <div id="snippetsEmpty" class="empty">No snippets yet. Create your first one to speed up writing.</div>
+          <div id="snippetsEmpty" class="empty"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">🗂</div>No snippets yet. Create your first one to speed up writing.</div>
           <div id="snippetGrid" class="snippet-grid"></div>
         </div>
       </div>
@@ -2622,7 +3271,7 @@
         <button class="sub-pill" data-afilter="changes_requested">✎ Changes Requested</button>
       </div>
       <div id="approvalsLoading" class="status-txt mt8" style="display:none;">Loading drafts…</div>
-      <div id="approvalsEmpty" class="empty" style="display:none;">No drafts marked for approval. Check <strong>"Needs approval"</strong> when saving a draft in the composer.</div>
+      <div id="approvalsEmpty" class="empty" style="display:none;"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">✅</div>No drafts marked for approval. Check <strong>"Needs approval"</strong> when saving a draft in the composer.</div>
       <div id="approvalsList"></div>
     </section>
 
@@ -2736,7 +3385,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <button class="btn sm ghost" id="closeImageLibrary">Close</button>
   </div>
   <p style="font-size:12px;color:var(--subtle);margin-bottom:12px;">Images from your synced Buffer posts. Click any to insert into the composer.</p>
-  <div id="imageLibraryEmpty" class="empty" style="display:none;">No images found in synced posts. Sync Buffer first, or paste a URL directly.</div>
+  <div id="imageLibraryEmpty" class="empty" style="display:none;"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">🖼</div>No images found in synced posts. Sync Buffer first, or paste a URL directly.</div>
   <div id="imageLibraryGrid" class="img-library-grid"></div>
 </div></div>
 
@@ -2749,9 +3398,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   <!-- Tabs -->
   <div class="settings-tabs">
-    <button class="settings-tab active" data-stab="guide">Guide</button>
-    <button class="settings-tab" data-stab="themes">Themes</button>
-    <button class="settings-tab" data-stab="about">About</button>
+    <button class="settings-tab active" data-stab="guide">📖 Guide</button>
+    <button class="settings-tab" data-stab="themes">🎨 Themes</button>
+    <button class="settings-tab" data-stab="about">👤 About</button>
   </div>
 
   <!-- ── GUIDE ── -->
