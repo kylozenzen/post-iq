@@ -2926,7 +2926,6 @@ function monthStart(d){return new Date(d.getFullYear(),d.getMonth(),1)}
 function maskToken(t){if(!t)return '—';if(t.length<=8)return '••••';return `${t.slice(0,4)}••••${t.slice(-4)}`;}
 function openModal(id){qs(id).classList.add('open')}
 function closeModal(id){qs(id).classList.remove('open')}
-function isVideoUrlGlobal(url){return /\.(mp4|mov|webm|avi|mkv|m4v)(\?|$)/i.test(String(url||''))}
 function showToast(msg, type=''){
   const wrap=qs('toastWrap');if(!wrap)return;
   const t=document.createElement('div');
@@ -3519,6 +3518,10 @@ function editorHtmlToText(html){
   };
   return [...root.childNodes].map(walk).join('').replace(/\n{3,}/g,'\n\n').trim();
 }
+function isVideoUrlGlobal(url){
+  return /\.(mp4|mov|webm|avi|mkv|m4v)(\?|$)/i.test(String(url||''));
+}
+
 async function composerSend(action){
   const text=editorHtmlToText(qs('composerEditor').innerHTML);
   if(!text){qs('composerStatus').textContent='Write content first.';return;}
@@ -3526,55 +3529,30 @@ async function composerSend(action){
   if(!channelId){qs('composerStatus').textContent='Load channels first.';return;}
   const when=qs('composerWhen').value;
   const needsApproval=qs('composerNeedsApproval')?.checked||false;
-  const imgUrl=qs('composerImageUrl').value.trim();
   const input={channelId,text,schedulingType:'automatic'};
   if(action==='draft'){input.mode='addToQueue';input.saveToDraft=true;}
   if(action==='queue'){input.mode='addToQueue';}
   if(action==='schedule'){if(!when){qs('composerStatus').textContent='Pick a date/time first.';return;}input.mode='customScheduled';input.dueAt=when;}
-
-  function attachComposerAssets(target){
-    if(!imgUrl) return;
-    if(window.isVideoUrlGlobal(imgUrl)){
-      const thumbUrl=qs('videoThumbUrl')?.value.trim()||'';
+  // Attach image or video with correct asset shape
+  const imgUrl=qs('composerImageUrl').value.trim();
+  if(imgUrl){
+    if(isVideoUrlGlobal(imgUrl)){
+      const thumbUrl=qs('videoThumbUrl').value.trim();
       const videoEntry={url:imgUrl};
       if(thumbUrl)videoEntry.thumbnailUrl=thumbUrl;
-      target.assets={videos:[videoEntry]};
+      input.assets={videos:[videoEntry]};
     } else {
-      target.assets={images:[{url:imgUrl}]};
+      input.assets={images:[{url:imgUrl}]};
     }
   }
-
-  const shouldDeferApprovalMedia = action==='draft' && needsApproval;
-  if(imgUrl && !shouldDeferApprovalMedia){
-    attachComposerAssets(input);
-  }
-
   try{
     qs('composerStatus').textContent='Sending…';
-    let res=await createPost(input);
-    let cp=res?.data?.createPost;
-    let apiErr=cp?.message||null;
-
-    // Retry text-only if Buffer rejects the media asset. This keeps composer usable.
-    if(apiErr && imgUrl && !shouldDeferApprovalMedia){
-      console.warn('[PostIQ] Composer media rejected, retrying text-only:', apiErr);
-      const fallbackInput={channelId,text,schedulingType:'automatic'};
-      if(action==='draft'){fallbackInput.mode='addToQueue';fallbackInput.saveToDraft=true;}
-      if(action==='queue'){fallbackInput.mode='addToQueue';}
-      if(action==='schedule'){fallbackInput.mode='customScheduled';fallbackInput.dueAt=when;}
-      qs('composerStatus').textContent='Media failed — retrying without media…';
-      res=await createPost(fallbackInput);
-      cp=res?.data?.createPost;
-      apiErr=cp?.message||null;
-      if(!apiErr){
-        showToast('Saved without media. You can attach it later in Buffer or Approvals.','info');
-      }
-    }
-
+    const res=await createPost(input);
+    const cp=res?.data?.createPost;
+    const apiErr=cp?.message||null;
     if(apiErr)throw new Error(apiErr);
     const draftId=cp?.post?.id||null;
-
-    // If saved as draft with needs_approval, store approval metadata (including media URL)
+    // If saved as draft with needs_approval, store approval metadata
     if(action==='draft'&&needsApproval&&draftId){
       const ch=state.channels.find(c=>c.id===channelId);
       setApprovalMeta(draftId,{
@@ -3590,37 +3568,19 @@ async function composerSend(action){
         created_at:Date.now()
       });
     }
-
     // On queue/schedule: clear any existing approval metadata for this draft
     if(action!=='draft'&&draftId){clearApprovalMeta(draftId);}
-
-    const msg=(action==='draft'&&needsApproval&&imgUrl)
-      ? 'Draft saved for approval.'
-      : action==='draft'
-        ? 'Draft saved.'
-        : action==='queue'
-          ? 'Added to queue.'
-          : 'Scheduled.';
-    qs('composerStatus').textContent=msg;
-    showToast(msg);
-
+    const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
+    qs('composerStatus').textContent=msg;showToast(msg);
     // Clear composer
     const editor=qs('composerEditor');
     editor.innerText='';
     qs('composerEmpty').style.display='block';
     qs('composerChannel').selectedIndex=0;
     qs('composerWhen').value='';
-    qs('composerImageUrl').value='';
-    if(qs('videoThumbUrl')) qs('videoThumbUrl').value='';
-    if(qs('uploadResult')) qs('uploadResult').style.display='none';
-    if(qs('uploadZoneInner')) qs('uploadZoneInner').style.display='flex';
-    if(qs('uploadStatus')) qs('uploadStatus').textContent='';
     if(qs('composerNeedsApproval'))qs('composerNeedsApproval').checked=false;
     updateComposerChannelHint&&updateComposerChannelHint();
-  }catch(e){
-    qs('composerStatus').textContent=`Failed: ${e.message}`;
-    showToast(`Failed: ${e.message}`,'error');
-  }
+  }catch(e){qs('composerStatus').textContent=`Failed: ${e.message}`;}
 }
 
 // ── APPROVALS TAB ──────────────────────────────────────────────────────────
@@ -4178,7 +4138,7 @@ function init(){
     const preview=qs('composerImagePreview');const clearBtn=qs('composerImageClear');
     const videoPanel=qs('videoThumbPanel');
     if(url){
-      if(isVideoUrl(url)){
+      if(isVideoUrlGlobal(url)){
         preview.innerHTML=`<span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--amber);">🎬 Video</span>`;
         preview.style.display='inline-block';
         videoPanel.style.display='block';
