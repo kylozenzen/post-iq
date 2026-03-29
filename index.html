@@ -2714,6 +2714,97 @@
       border-radius: 1px;
     }
 
+
+  /* ── UNIFIED MEDIA PANEL ── */
+  .media-panel{display:none;margin-top:10px;background:var(--surface);border:1px solid var(--border2);border-radius:12px;overflow:hidden}
+  .media-panel.open{display:block}
+  .media-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface2)}
+  .media-tab{flex:1;padding:10px 8px;border:none;background:transparent;color:var(--muted);font-size:12px;font-weight:500;font-family:'Inter',sans-serif;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .12s;display:flex;align-items:center;justify-content:center;gap:5px}
+  .media-tab:hover{color:var(--text);background:var(--surface3)}
+  .media-tab.active{color:var(--amber);border-bottom-color:var(--amber);background:transparent}
+  .media-tab-panel{display:none;padding:16px}
+  .media-tab-panel.active{display:block}
+  .media-dropzone{border:2px dashed var(--border2);border-radius:10px;background:var(--surface2);cursor:pointer;min-height:120px;display:flex;align-items:center;justify-content:center;transition:border-color .2s,background .2s}
+  .media-dropzone:hover{border-color:var(--subtle)}
+  .media-dropzone.drag-active{border-color:var(--amber);background:var(--amber-dim);border-style:solid}
+  .dropzone-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:28px 20px;text-align:center;pointer-events:none;width:100%}
+  .dropzone-icon{font-size:32px;animation:floatMed 3s ease-in-out infinite}
+  @keyframes floatMed{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  .media-dropzone.drag-active .dropzone-icon{animation:none;transform:scale(1.2)}
+  .dropzone-label{font-size:13px;color:var(--muted)}
+  .dropzone-browse{background:none;border:none;color:var(--amber);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;text-decoration:underline;padding:0;pointer-events:auto}
+  .dropzone-hint{font-size:11px;color:var(--subtle);font-family:'DM Mono',monospace}
+  .dropzone-progress{display:none;flex-direction:column;align-items:center;gap:10px;padding:28px 24px;width:100%}
+  .dropzone-progress.visible{display:flex}
+  .progress-filename{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .progress-track{width:100%;max-width:260px;height:3px;background:var(--surface3);border-radius:2px;overflow:hidden}
+  .progress-fill{height:100%;background:var(--amber);border-radius:2px;width:0%;transition:width .18s ease}
+  .progress-pct{font-size:11px;font-family:'DM Mono',monospace;color:var(--subtle)}
+  .dropzone-result{display:none;align-items:center;gap:14px;padding:16px 18px;width:100%}
+  .dropzone-result.visible{display:flex}
+  .result-thumb{width:64px;height:64px;border-radius:8px;object-fit:cover;border:1px solid var(--border2);flex-shrink:0}
+  .result-info{flex:1;min-width:0}
+  .result-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+  .result-url{font-size:11px;color:var(--green);font-family:'DM Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px}
+  .result-actions{display:flex;gap:6px}
+  .video-notice{display:none;margin-top:10px;padding:10px 14px;background:var(--amber-dim);border:1px solid var(--amber-glow);border-radius:8px;font-size:12px;color:var(--amber);font-family:'DM Mono',monospace;font-weight:600}
+  .video-notice.visible{display:block}
+  .video-thumb-section{display:none;margin-top:12px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px}
+  .video-thumb-section.visible{display:block}
+  .vts-label{font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+  .vts-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .vts-thumb-preview{display:none;margin-top:8px}
+  .vts-thumb-preview.visible{display:block}
+  .vts-thumb-img{height:56px;border-radius:6px;border:1px solid var(--border2);object-fit:cover}
+  .url-tab-inner{display:flex;flex-direction:column;gap:12px}
+  .url-input-row{display:flex;gap:8px;align-items:center}
+  .url-input-field{flex:1}
+  .url-preview-area{display:none;align-items:flex-start;gap:12px}
+  .url-preview-area.visible{display:flex}
+  .url-preview-img{width:100px;height:68px;border-radius:8px;object-fit:cover;border:1px solid var(--border2);flex-shrink:0;background:var(--surface2)}
+  .url-preview-meta{flex:1;min-width:0}
+  .url-preview-type{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+  .url-preview-value{font-size:11px;color:var(--subtle);font-family:'DM Mono',monospace;word-break:break-all;line-height:1.5}
+  .url-video-thumb-row{display:none;flex-direction:column;gap:8px;padding:12px 14px;background:var(--amber-dim);border:1px solid var(--amber-glow);border-radius:8px}
+  .url-video-thumb-row.visible{display:flex}
+  .url-vt-label{font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:var(--amber);text-transform:uppercase;letter-spacing:.06em}
+  .url-vt-input-row{display:flex;gap:8px}
+  .unsplash-tab-inner{display:flex;flex-direction:column;gap:10px}
+  .unsplash-search-row{display:flex;gap:8px}
+  .unsplash-query{flex:1}
+  .unsplash-status{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;min-height:18px}
+  .unsplash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .unsplash-item{position:relative;border-radius:8px;overflow:hidden;border:2px solid transparent;cursor:pointer;aspect-ratio:4/3;background:var(--surface2);transition:border-color .12s,transform .12s}
+  .unsplash-item:hover{border-color:var(--amber);transform:scale(1.02)}
+  .unsplash-item img{width:100%;height:100%;object-fit:cover;display:block}
+  .unsplash-item-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7) 0%,transparent 60%);opacity:0;transition:opacity .15s;display:flex;align-items:flex-end;padding:8px}
+  .unsplash-item:hover .unsplash-item-overlay{opacity:1}
+  .unsplash-item-author{font-size:10px;color:rgba(255,255,255,.85);font-family:'DM Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
+  .unsplash-skeleton{background:var(--surface2);border-radius:8px;aspect-ratio:4/3;animation:skelPulse 1.4s ease-in-out infinite}
+  @keyframes skelPulse{0%,100%{opacity:.4}50%{opacity:.9}}
+  .unsplash-attribution{font-size:10px;color:var(--subtle);text-align:center;padding-top:4px}
+  .unsplash-attribution a{color:var(--amber)}
+  .past-images-inner{display:flex;flex-direction:column;gap:10px}
+  .past-images-status{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace}
+  .past-images-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:6px;max-height:260px;overflow-y:auto}
+  .past-img-item{position:relative;border-radius:8px;overflow:hidden;border:2px solid transparent;cursor:pointer;aspect-ratio:1;background:var(--surface2);transition:border-color .12s,transform .12s}
+  .past-img-item:hover{border-color:var(--amber);transform:scale(1.03)}
+  .past-img-item img{width:100%;height:100%;object-fit:cover;display:block}
+  .past-img-checkmark{position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:50%;background:var(--amber);color:#1a0800;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700;opacity:0;transform:scale(0.6);transition:opacity .15s,transform .15s;pointer-events:none}
+  .past-img-item.selected{border-color:var(--amber)}
+  .past-img-item.selected .past-img-checkmark{opacity:1;transform:scale(1)}
+  .past-images-empty{font-size:13px;color:var(--muted);text-align:center;padding:24px 0}
+  .media-summary{display:none;align-items:center;gap:10px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;margin-top:8px}
+  .media-summary.visible{display:flex}
+  .media-summary-thumb{width:44px;height:30px;border-radius:5px;object-fit:cover;border:1px solid var(--border2);flex-shrink:0}
+  .media-summary-label{flex:1;min-width:0}
+  .media-summary-type{font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);text-transform:uppercase;letter-spacing:.05em}
+  .media-summary-url{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .media-toggle-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:7px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .15s}
+  .media-toggle-btn:hover{border-color:var(--amber-glow);color:var(--amber);background:var(--amber-dim)}
+  .media-toggle-btn.has-media{border-color:var(--amber-glow);color:var(--amber);background:var(--amber-dim)}
+  .media-toggle-thumb{width:18px;height:18px;border-radius:3px;object-fit:cover;border:1px solid rgba(255,255,255,.15);flex-shrink:0}
+
   </style>
 </head>
 <body>
@@ -3120,71 +3211,122 @@
             </div>
 
             <div class="composer-row-c mt8">
-              <button class="btn sm ghost" id="composerImageToggle">🖼 Add media</button>
-              <button class="btn sm ghost" style="display:none;" id="composerImageToggleOff">🖼 Remove media</button>
+              <button class="media-toggle-btn" id="composerImageToggle">🖼 Add media</button>
+              <button class="media-toggle-btn has-media" id="composerImageToggleOff" style="display:none;">
+                <img class="media-toggle-thumb" id="mediaToggleThumb" src="" style="display:none;" alt="" />
+                <span id="mediaToggleLabel">🖼 Image attached</span>
+              </button>
             </div>
 
-            <div id="composerImagePanel" class="composer-expand-panel" style="display:none;">
-              <div class="upload-zone" id="uploadZone">
-                <input type="file" id="uploadFileInput" accept="image/*,video/*" style="display:none;" />
-                <div class="upload-zone-inner" id="uploadZoneInner">
-                  <div class="upload-icon">📎</div>
-                  <div class="upload-label">Drop image here or <button class="upload-browse-btn" id="uploadBrowseBtn">browse files</button></div>
-                  <div class="upload-hint">JPG, PNG, GIF, WEBP · or paste a URL below</div>
-                </div>
-                <div class="upload-progress" id="uploadProgress" style="display:none;">
-                  <div class="upload-progress-bar" id="uploadProgressBar"></div>
-                </div>
-                <div class="upload-result" id="uploadResult" style="display:none;">
-                  <img id="uploadThumb" class="upload-thumb" src="" alt="" />
-                  <div class="upload-result-info">
-                    <div class="upload-result-name" id="uploadResultName"></div>
-                    <div class="upload-result-url" id="uploadResultUrl"></div>
+            <div id="composerImagePanel" class="media-panel">
+              <div class="media-tabs">
+                <button class="media-tab active" data-mtab="upload">📎 Upload</button>
+                <button class="media-tab" data-mtab="url">🔗 URL</button>
+                <button class="media-tab" data-mtab="unsplash">🔍 Unsplash</button>
+                <button class="media-tab" data-mtab="past">🕐 Past</button>
+              </div>
+
+              <!-- Upload Tab -->
+              <div class="media-tab-panel active" data-mtabpanel="upload">
+                <div class="media-dropzone" id="uploadZone">
+                  <input type="file" id="uploadFileInput" accept="image/*,video/*" style="display:none;" />
+                  <div class="dropzone-empty" id="uploadZoneInner">
+                    <div class="dropzone-icon">📎</div>
+                    <div class="dropzone-label">Drop image here or <button class="dropzone-browse" id="uploadBrowseBtn">browse files</button></div>
+                    <div class="dropzone-hint">JPG, PNG, GIF, WEBP · paste to upload</div>
                   </div>
-                  <button class="btn sm ghost" id="uploadClearBtn">✕</button>
+                  <div class="dropzone-progress" id="uploadProgress">
+                    <div class="progress-filename" id="uploadFilename"></div>
+                    <div class="progress-track"><div class="progress-fill" id="uploadProgressBar"></div></div>
+                    <div class="progress-pct" id="uploadPct">0%</div>
+                  </div>
+                  <div class="dropzone-result" id="uploadResult">
+                    <img class="result-thumb" id="uploadThumb" src="" alt="" />
+                    <div class="result-info">
+                      <div class="result-name" id="uploadResultName"></div>
+                      <div class="result-url" id="uploadResultUrl"></div>
+                      <div class="result-actions">
+                        <button class="btn sm ghost" id="uploadReplaceBtn">↺ Replace</button>
+                        <button class="btn sm ghost" id="uploadClearBtn">✕ Remove</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="video-notice" id="videoNotice">🎬 Video file detected — use the URL tab to paste a hosted video URL, then add a thumbnail here.</div>
+                <div class="video-thumb-section" id="videoThumbPanel">
+                  <div class="vts-label">Custom Thumbnail</div>
+                  <div class="vts-row">
+                    <input id="videoThumbUrl" class="input" placeholder="Thumbnail image URL…" style="flex:1;min-width:180px;" />
+                    <input type="file" id="videoThumbFile" accept="image/*" style="display:none;" />
+                    <button class="btn sm ghost" id="videoThumbUploadBtn">📎 Upload</button>
+                    <button class="btn sm ghost" id="videoThumbClear" style="display:none;">✕</button>
+                  </div>
+                  <div class="vts-thumb-preview" id="videoThumbPreview">
+                    <img class="vts-thumb-img" id="videoThumbImg" src="" alt="Thumbnail preview" />
+                  </div>
+                  <div id="videoThumbStatus" class="status-txt" style="font-size:11px;"></div>
+                </div>
+                <div id="uploadStatus" class="status-txt" style="font-size:11px;margin-top:8px;"></div>
+              </div>
+
+              <!-- URL Tab -->
+              <div class="media-tab-panel" data-mtabpanel="url">
+                <div class="url-tab-inner">
+                  <div class="url-input-row">
+                    <input id="composerImageUrl" class="input url-input-field" placeholder="https://… (image or video URL)" />
+                    <button class="btn sm ghost" id="urlClearBtn" style="display:none;">✕ Clear</button>
+                  </div>
+                  <div class="url-preview-area" id="urlPreviewArea">
+                    <img class="url-preview-img" id="urlPreviewImg" src="" alt="" />
+                    <div class="url-preview-meta">
+                      <div class="url-preview-type" id="urlPreviewType"></div>
+                      <div class="url-preview-value" id="urlPreviewValue"></div>
+                    </div>
+                  </div>
+                  <div class="url-video-thumb-row" id="urlVideoThumbRow">
+                    <div class="url-vt-label">Custom Thumbnail</div>
+                    <div class="url-vt-input-row">
+                      <input id="urlVideoThumbUrl" class="input" placeholder="Thumbnail image URL…" />
+                    </div>
+                    <small style="color:var(--subtle);font-size:11px;font-family:'DM Mono',monospace;">Optional — some platforms show a thumbnail for video posts.</small>
+                  </div>
+                  <small style="color:var(--subtle);font-size:11px;font-family:'DM Mono',monospace;">Paste a direct image URL (jpg, png, webp) or hosted video URL (mp4, mov).</small>
                 </div>
               </div>
 
-              <hr style="border:none;border-top:1px solid var(--border);margin:10px 0;">
-              <div class="composer-image-row mt8">
-                <span class="img-row-lbl">or URL</span>
-                <div class="img-url-wrap">
-                  <input id="composerImageUrl" class="input img-url-input" placeholder="https://… (image or video URL)" />
-                  <div class="img-url-tooltip">Paste a direct image URL (jpg, png, webp) or a publicly hosted video URL (mp4, mov).</div>
+              <!-- Unsplash Tab -->
+              <div class="media-tab-panel" data-mtabpanel="unsplash">
+                <div class="unsplash-tab-inner">
+                  <div class="unsplash-search-row">
+                    <input id="unsplashQuery" class="input unsplash-query" placeholder="Search free photos…" />
+                    <button class="btn sm" id="unsplashSearchBtn">Search</button>
+                  </div>
+                  <div class="unsplash-status" id="unsplashStatus"></div>
+                  <div class="unsplash-grid" id="unsplashGrid"></div>
+                  <div class="unsplash-attribution" id="unsplashAttribution" style="display:none;">Photos by <a href="https://unsplash.com" target="_blank">Unsplash</a> — free to use</div>
                 </div>
-                <button class="btn sm ghost" id="composerImageClear" style="display:none;">✕</button>
-                <button class="btn sm ghost" id="openImageLibraryBtn">📚 Past</button>
-                <button class="btn sm ghost" id="openUnsplashBtn">🔍 Unsplash</button>
-                <div id="composerImagePreview" style="display:none;"></div>
               </div>
 
-              <!-- Unsplash search panel -->
-              <div id="unsplashPanel" style="display:none;margin-top:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;">
-                <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
-                  <input id="unsplashQuery" class="input" placeholder="Search free photos…" style="flex:1;font-size:13px;" />
-                  <button class="btn sm" id="unsplashSearchBtn">Search</button>
-                  <button class="btn sm ghost" id="unsplashCloseBtn">✕</button>
+              <!-- Past Images Tab -->
+              <div class="media-tab-panel" data-mtabpanel="past">
+                <div class="past-images-inner">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                    <div class="past-images-status" id="pastImagesStatus"></div>
+                    <button class="btn sm ghost" id="pastImagesLoadBtn">↻ Refresh</button>
+                  </div>
+                  <div class="past-images-grid" id="pastImagesGrid"></div>
+                  <div class="past-images-empty" id="pastImagesEmpty" style="display:none;">🖼 No images found. Sync Buffer first.</div>
                 </div>
-                <div id="unsplashStatus" style="font-size:11px;color:var(--muted);margin-bottom:6px;"></div>
-                <div id="unsplashGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;"></div>
-                <div style="font-size:10px;color:var(--muted);margin-top:6px;">Photos by <a href="https://unsplash.com" target="_blank" style="color:var(--amber);">Unsplash</a> — free, no attribution required but appreciated</div>
               </div>
+            </div>
 
-              <div id="uploadStatus" class="status-txt mt6" style="font-size:11px;"></div>
-
-              <div id="videoThumbPanel" style="display:none;margin-top:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--amber-glow);border-radius:8px;">
-                <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--amber);font-weight:600;margin-bottom:8px;">🎬 Video detected — add a custom thumbnail</div>
-                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                  <input id="videoThumbUrl" class="input" placeholder="Thumbnail image URL…" style="flex:1;min-width:180px;" />
-                  <input type="file" id="videoThumbFile" accept="image/*" style="display:none;" />
-                  <button class="btn sm ghost" id="videoThumbUploadBtn">📎 Upload</button>
-                  <button class="btn sm ghost" id="videoThumbClear" style="display:none;">✕</button>
-                </div>
-                <div id="videoThumbPreview" style="display:none;margin-top:8px;">
-                  <img id="videoThumbImg" style="height:60px;border-radius:6px;border:1px solid var(--border2);object-fit:cover;" src="" alt="Thumbnail preview" />
-                </div>
-                <div id="videoThumbStatus" class="status-txt mt4" style="font-size:11px;"></div>
+            <div class="media-summary" id="mediaSummary">
+              <img class="media-summary-thumb" id="mediaSummaryThumb" src="" alt="" />
+              <div class="media-summary-label">
+                <div class="media-summary-type" id="mediaSummaryType"></div>
+                <div class="media-summary-url" id="mediaSummaryUrl"></div>
               </div>
+              <button class="btn sm ghost" id="mediaSummaryClear">✕ Remove</button>
             </div>
 
             <div id="composerStatus" class="status-txt mt8"></div>
@@ -3378,16 +3520,6 @@ document.addEventListener('DOMContentLoaded', () => {
   </div>
 </div></div>
 
-<!-- Image Library -->
-<div id="imageLibraryModal" class="modal"><div class="modal-card lg">
-  <div class="modal-hdr">
-    <span class="modal-title">📚 Past Images</span>
-    <button class="btn sm ghost" id="closeImageLibrary">Close</button>
-  </div>
-  <p style="font-size:12px;color:var(--subtle);margin-bottom:12px;">Images from your synced Buffer posts. Click any to insert into the composer.</p>
-  <div id="imageLibraryEmpty" class="empty" style="display:none;"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">🖼</div>No images found in synced posts. Sync Buffer first, or paste a URL directly.</div>
-  <div id="imageLibraryGrid" class="img-library-grid"></div>
-</div></div>
 
 <!-- Settings & Help Modal -->
 <div id="settingsModal" class="modal"><div class="modal-card" style="max-width:600px;">
@@ -4244,59 +4376,6 @@ async function createPost(input){
   return res;
 }
 
-// ── IMAGE LIBRARY ──
-async function openImageLibrary(){
-  const grid=qs('imageLibraryGrid');const empty=qs('imageLibraryEmpty');
-  grid.innerHTML='<div style="color:var(--subtle);font-size:12px;padding:12px;">Loading past images…</div>';
-  empty.style.display='none';
-  openModal('imageLibraryModal');
-
-  // Pull from already-synced scheduled posts first, then fetch recent sent posts for images
-  const seen=new Set();const images=[];
-
-  function addAssets(posts){
-    (posts||[]).forEach(post=>{
-      (post.assets||[]).forEach(asset=>{
-        const src=asset.source||asset.thumbnail;
-        if(src&&!seen.has(src)){seen.add(src);images.push(asset);}
-      });
-    });
-  }
-
-  addAssets(state.scheduled);
-
-  // Also fetch recent sent posts which is where most images live
-  if(bufferToken){
-    try{
-      const acc=await callBuffer('query { account { organizations { id name } } }');
-      const orgId=acc?.data?.account?.organizations?.[0]?.id;
-      if(orgId){
-        const sentQuery='query SentPosts($organizationId: OrganizationId!){ posts(first:50, input:{organizationId:$organizationId, filter:{status:[sent]}}){ edges{ node{ id assets{ thumbnail mimeType source } } } } }';
-        const res=await callBuffer(sentQuery,{organizationId:orgId});
-        const sentPosts=(res?.data?.posts?.edges||[]).map(e=>e.node);
-        addAssets(sentPosts);
-      }
-    }catch(e){console.warn('[PostIQ] sent posts fetch failed:',e);}
-  }
-
-  grid.innerHTML='';
-  if(!images.length){empty.style.display='block';grid.style.display='none';}
-  else{
-    empty.style.display='none';grid.style.display='grid';
-    images.forEach(asset=>{
-      const src=asset.source||asset.thumbnail;
-      const thumb=asset.thumbnail||asset.source;
-      const item=document.createElement('div');item.className='img-library-item';
-      item.innerHTML=`<img src="${thumb}" loading="lazy" alt="" /><div class="img-library-item-url">${src}</div>`;
-      item.onclick=()=>{
-        qs('composerImageUrl').value=src;
-        qs('composerImageUrl').dispatchEvent(new Event('input'));
-        closeModal('imageLibraryModal');showToast('Image URL inserted.','success');
-      };
-      grid.appendChild(item);
-    });
-  }
-}
 
 function composerFormat(cmd){
   const sel=window.getSelection();if(!sel.rangeCount)return;
@@ -4326,6 +4405,272 @@ function isVideoUrlGlobal(url){
   return /\.(mp4|mov|webm|avi|mkv|m4v)(\?|$)/i.test(String(url||''));
 }
 
+// ── UNIFIED MEDIA SYSTEM ──────────────────────────────────────────────────────
+const IMGUR_CLIENT_ID='546c25a59c58ad7';
+const UNSPLASH_KEY='tBuaYCO5p-pJPjgF29hR2yJGtlQaG4d5HqdVivV0lbQ';
+const mediaState={url:'',type:'',videoThumbUrl:'',source:''};
+
+function applyMedia(url,source,thumbUrl=''){
+  const type=isVideoUrlGlobal(url)?'video':'image';
+  mediaState.url=url;mediaState.type=type;mediaState.source=source;mediaState.videoThumbUrl=thumbUrl;
+  const li=qs('composerImageUrl');if(li)li.value=url;
+  const lt=qs('videoThumbUrl');if(lt)lt.value=thumbUrl;
+  const ton=qs('composerImageToggle'),toff=qs('composerImageToggleOff'),tthumb=qs('mediaToggleThumb'),tlabel=qs('mediaToggleLabel');
+  if(url){
+    ton.style.display='none';toff.style.display='inline-flex';
+    tlabel.textContent=type==='video'?'🎬 Video attached':'🖼 Image attached';
+    if(tthumb){tthumb.src=type==='image'?url:'';tthumb.style.display=type==='image'?'inline':'none';}
+    const ms=qs('mediaSummary');if(ms)ms.classList.add('visible');
+    const mst=qs('mediaSummaryThumb');if(mst){mst.src=type==='image'?url:'';mst.style.display=type==='image'?'block':'none';}
+    const mstype=qs('mediaSummaryType');if(mstype)mstype.textContent=type==='video'?'🎬 Video':'🖼 Image';
+    const msurl=qs('mediaSummaryUrl');if(msurl)msurl.textContent=url;
+  }else{clearMediaState();}
+}
+
+function clearMediaState(){
+  mediaState.url='';mediaState.type='';mediaState.source='';mediaState.videoThumbUrl='';
+  const li=qs('composerImageUrl');if(li)li.value='';
+  const lt=qs('videoThumbUrl');if(lt)lt.value='';
+  qs('composerImageToggle').style.display='inline-flex';
+  qs('composerImageToggleOff').style.display='none';
+  const ms=qs('mediaSummary');if(ms)ms.classList.remove('visible');
+  resetUploadTab();resetUrlTab();
+}
+
+function openMediaPanel(tab){qs('composerImagePanel').classList.add('open');if(tab)switchMediaTab(tab);}
+function closeMediaPanel(){qs('composerImagePanel').classList.remove('open');}
+
+function switchMediaTab(id){
+  document.querySelectorAll('.media-tab').forEach(t=>t.classList.toggle('active',t.dataset.mtab===id));
+  document.querySelectorAll('.media-tab-panel').forEach(p=>p.classList.toggle('active',p.dataset.mtabpanel===id));
+  if(id==='past')loadPastImages();
+}
+
+function resetUploadTab(){
+  const inner=qs('uploadZoneInner'),prog=qs('uploadProgress'),result=qs('uploadResult');
+  if(inner)inner.style.display='flex';
+  if(prog)prog.classList.remove('visible');
+  if(result)result.classList.remove('visible');
+  const bar=qs('uploadProgressBar');if(bar)bar.style.width='0%';
+  const pct=qs('uploadPct');if(pct)pct.textContent='0%';
+  const st=qs('uploadStatus');if(st){st.textContent='';st.style.color='';}
+  const fi=qs('uploadFileInput');if(fi)fi.value='';
+  const vn=qs('videoNotice');if(vn)vn.classList.remove('visible');
+  const vtp=qs('videoThumbPanel');if(vtp)vtp.classList.remove('visible');
+  const vtu=qs('videoThumbUrl');if(vtu)vtu.value='';
+  const vtprev=qs('videoThumbPreview');if(vtprev)vtprev.classList.remove('visible');
+  const vtc=qs('videoThumbClear');if(vtc)vtc.style.display='none';
+}
+
+async function imgurUpload(file){
+  const fd=new FormData();fd.append('image',file);
+  const res=await fetch('https://api.imgur.com/3/image',{method:'POST',headers:{'Authorization':`Client-ID ${IMGUR_CLIENT_ID}`},body:fd});
+  const data=await res.json();
+  if(!data.success)throw new Error(data.data?.error||'Upload failed');
+  return data.data.link;
+}
+
+async function handleUploadFile(file){
+  const isVideo=file.type.startsWith('video/'),isImage=file.type.startsWith('image/');
+  const st=qs('uploadStatus');
+  if(!isVideo&&!isImage){st.textContent='Unsupported file type.';st.style.color='var(--red)';return;}
+  if(isVideo){
+    qs('videoNotice').classList.add('visible');
+    qs('videoThumbPanel').classList.add('visible');
+    st.textContent='For video files, paste your hosted URL in the URL tab.';
+    switchMediaTab('url');qs('composerImageUrl').focus();return;
+  }
+  qs('uploadZoneInner').style.display='none';
+  qs('uploadProgress').classList.add('visible');
+  qs('uploadFilename').textContent=file.name||'image';
+  st.textContent='';st.style.color='';
+  let prog=0;
+  const tick=setInterval(()=>{prog=Math.min(prog+Math.random()*18,88);qs('uploadProgressBar').style.width=prog+'%';qs('uploadPct').textContent=Math.round(prog)+'%';},180);
+  try{
+    const url=await imgurUpload(file);
+    clearInterval(tick);
+    qs('uploadProgressBar').style.width='100%';qs('uploadPct').textContent='100%';
+    await new Promise(r=>setTimeout(r,250));
+    qs('uploadProgress').classList.remove('visible');
+    qs('uploadResult').classList.add('visible');
+    qs('uploadThumb').src=url;
+    qs('uploadResultName').textContent=file.name||'uploaded image';
+    qs('uploadResultUrl').textContent=url;
+    st.textContent='✅ Uploaded successfully.';st.style.color='var(--green)';
+    applyMedia(url,'upload');showToast('Image uploaded ✓','success');
+  }catch(err){
+    clearInterval(tick);
+    qs('uploadProgress').classList.remove('visible');
+    qs('uploadZoneInner').style.display='flex';
+    st.textContent='Upload failed: '+err.message;st.style.color='var(--red)';
+    showToast('Upload failed','error');
+  }
+}
+
+function updateVTPPreview(url){
+  const prev=qs('videoThumbPreview'),img=qs('videoThumbImg'),btn=qs('videoThumbClear');
+  if(url){img.src=url;prev.classList.add('visible');btn.style.display='inline-flex';}
+  else{prev.classList.remove('visible');btn.style.display='none';}
+}
+
+function initUploadTab(){
+  const zone=qs('uploadZone'),fi=qs('uploadFileInput');
+  zone.addEventListener('click',e=>{
+    if(e.target.closest('.dropzone-browse')||e.target.closest('.result-actions'))return;
+    if(!qs('uploadResult').classList.contains('visible'))fi.click();
+  });
+  qs('uploadBrowseBtn').addEventListener('click',e=>{e.stopPropagation();fi.click();});
+  fi.addEventListener('change',()=>{if(fi.files[0])handleUploadFile(fi.files[0]);});
+  zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag-active');});
+  zone.addEventListener('dragleave',e=>{if(!zone.contains(e.relatedTarget))zone.classList.remove('drag-active');});
+  zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('drag-active');if(e.dataTransfer.files[0])handleUploadFile(e.dataTransfer.files[0]);});
+  document.addEventListener('paste',e=>{
+    if(!qs('composerImagePanel').classList.contains('open'))return;
+    const active=document.querySelector('.media-tab.active')?.dataset.mtab;
+    if(active!=='upload')return;
+    const img=Array.from(e.clipboardData?.items||[]).find(i=>i.type.startsWith('image/'));
+    if(img)handleUploadFile(img.getAsFile());
+  });
+  qs('uploadReplaceBtn').addEventListener('click',e=>{e.stopPropagation();resetUploadTab();fi.click();});
+  qs('uploadClearBtn').addEventListener('click',e=>{e.stopPropagation();resetUploadTab();clearMediaState();showToast('Media removed','info');});
+  qs('videoThumbUploadBtn').addEventListener('click',e=>{e.stopPropagation();qs('videoThumbFile').click();});
+  qs('videoThumbFile').addEventListener('change',async()=>{
+    const f=qs('videoThumbFile').files[0];if(!f)return;
+    const st=qs('videoThumbStatus');st.textContent='Uploading…';
+    try{const url=await imgurUpload(f);qs('videoThumbUrl').value=url;updateVTPPreview(url);mediaState.videoThumbUrl=url;st.textContent='✅ Thumbnail ready.';st.style.color='var(--green)';}
+    catch(err){st.textContent='Failed: '+err.message;st.style.color='var(--red)';}
+  });
+  qs('videoThumbUrl').addEventListener('input',()=>{const url=qs('videoThumbUrl').value.trim();updateVTPPreview(url);mediaState.videoThumbUrl=url;});
+  qs('videoThumbClear').addEventListener('click',e=>{e.stopPropagation();qs('videoThumbUrl').value='';updateVTPPreview('');mediaState.videoThumbUrl='';});
+}
+
+function resetUrlTab(){
+  const inp=qs('composerImageUrl');if(inp)inp.value='';
+  const pa=qs('urlPreviewArea');if(pa)pa.classList.remove('visible');
+  const cb=qs('urlClearBtn');if(cb)cb.style.display='none';
+  const vr=qs('urlVideoThumbRow');if(vr)vr.classList.remove('visible');
+  const pi=qs('urlPreviewImg');if(pi)pi.style.display='';
+}
+
+function updateUrlPreview(url){
+  const pa=qs('urlPreviewArea'),pi=qs('urlPreviewImg'),pt=qs('urlPreviewType'),pv=qs('urlPreviewValue'),cb=qs('urlClearBtn'),vr=qs('urlVideoThumbRow');
+  if(!url){pa.classList.remove('visible');cb.style.display='none';vr.classList.remove('visible');return;}
+  cb.style.display='inline-flex';
+  if(isVideoUrlGlobal(url)){
+    pi.style.display='none';vr.classList.add('visible');
+    pt.textContent='🎬 Video URL';pv.textContent=url.length>80?url.slice(0,77)+'…':url;
+  }else{
+    pi.style.display='';pi.src=url;vr.classList.remove('visible');
+    pt.textContent='Image URL';pv.textContent=url.length>80?url.slice(0,77)+'…':url;
+  }
+  pa.classList.add('visible');
+}
+
+function initUrlTab(){
+  const inp=qs('composerImageUrl'),cb=qs('urlClearBtn');
+  inp.addEventListener('input',()=>{const url=inp.value.trim();updateUrlPreview(url);if(url)applyMedia(url,'url',qs('urlVideoThumbUrl')?.value?.trim()||'');else clearMediaState();});
+  inp.addEventListener('paste',()=>setTimeout(()=>{const url=inp.value.trim();updateUrlPreview(url);if(url)applyMedia(url,'url');},50));
+  cb.addEventListener('click',()=>{inp.value='';updateUrlPreview('');clearMediaState();showToast('Media removed','info');});
+  const uvt=qs('urlVideoThumbUrl');
+  if(uvt)uvt.addEventListener('input',()=>{mediaState.videoThumbUrl=uvt.value.trim();const lt=qs('videoThumbUrl');if(lt)lt.value=uvt.value.trim();});
+}
+
+let _unsplashLast='';
+
+function initUnsplashTab(){
+  qs('unsplashSearchBtn').addEventListener('click',runUnsplashSearch);
+  qs('unsplashQuery').addEventListener('keydown',e=>{if(e.key==='Enter')runUnsplashSearch();});
+}
+
+async function runUnsplashSearch(){
+  const q=qs('unsplashQuery').value.trim();if(!q)return;
+  if(q===_unsplashLast)return;_unsplashLast=q;
+  const grid=qs('unsplashGrid'),status=qs('unsplashStatus'),attr=qs('unsplashAttribution');
+  attr.style.display='none';status.textContent='Searching…';
+  grid.innerHTML=Array(9).fill('<div class="unsplash-skeleton"></div>').join('');
+  try{
+    const res=await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&per_page=9&orientation=landscape`,{headers:{'Authorization':`Client-ID ${UNSPLASH_KEY}`}});
+    if(!res.ok)throw new Error(res.status===403?'Rate limit — try again shortly':`Error ${res.status}`);
+    const data=await res.json();grid.innerHTML='';
+    if(!data.results?.length){status.textContent=`No results for "${q}".`;return;}
+    status.textContent=`${data.total.toLocaleString()} results for "${q}"`;
+    attr.style.display='block';
+    data.results.forEach(photo=>{
+      const item=document.createElement('div');item.className='unsplash-item';
+      item.innerHTML=`<img src="${photo.urls.small}" alt="${safeText(photo.alt_description||q)}" loading="lazy"/><div class="unsplash-item-overlay"><span class="unsplash-item-author">${safeText(photo.user.name)}</span></div>`;
+      item.title=`Photo by ${photo.user.name}`;
+      item.addEventListener('click',()=>{
+        applyMedia(photo.urls.regular,'unsplash');
+        document.querySelectorAll('.unsplash-item').forEach(el=>el.style.borderColor='transparent');
+        item.style.borderColor='var(--amber)';
+        closeMediaPanel();showToast(`Photo by ${photo.user.name} — added ✓`,'success');
+      });
+      grid.appendChild(item);
+    });
+  }catch(err){
+    grid.innerHTML='';status.textContent='Search failed: '+err.message;
+    showToast('Unsplash search failed','error');
+  }
+}
+
+let _pastLoaded=false,_pastCache=[];
+
+async function loadPastImages(){
+  if(_pastLoaded&&_pastCache.length){renderPastImages(_pastCache);return;}
+  const grid=qs('pastImagesGrid'),status=qs('pastImagesStatus'),empty=qs('pastImagesEmpty');
+  grid.innerHTML=Array(8).fill('<div class="unsplash-skeleton" style="aspect-ratio:1;border-radius:8px;"></div>').join('');
+  empty.style.display='none';status.textContent='Loading images from Buffer…';
+  const seen=new Set(),images=[];
+  (state.scheduled||[]).forEach(p=>(p.assets||[]).forEach(a=>{
+    const src=a.source||a.thumbnail;
+    if(src&&!seen.has(src)&&/\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(src)){seen.add(src);images.push({src,thumb:a.thumbnail||src});}
+  }));
+  if(bufferToken){
+    try{
+      const acc=await callBuffer('query{account{organizations{id}}}');
+      const orgId=acc?.data?.account?.organizations?.[0]?.id;
+      if(orgId){
+        const r=await callBuffer(`query SentPosts($organizationId:OrganizationId!){posts(first:50,input:{organizationId:$organizationId,filter:{status:[sent]}}){edges{node{assets{thumbnail mimeType source}}}}}`,{organizationId:orgId});
+        (r?.data?.posts?.edges||[]).forEach(e=>(e.node?.assets||[]).forEach(a=>{
+          const src=a.source||a.thumbnail;
+          if(src&&!seen.has(src)&&/\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(src)){seen.add(src);images.push({src,thumb:a.thumbnail||src});}
+        }));
+      }
+    }catch(err){console.warn('[PostIQ] past images:',err);}
+  }
+  _pastCache=images;_pastLoaded=true;
+  status.textContent=images.length?`${images.length} past image${images.length!==1?'s':''} — click to use`:'';
+  renderPastImages(images);
+}
+
+function renderPastImages(images){
+  const grid=qs('pastImagesGrid'),empty=qs('pastImagesEmpty');
+  grid.innerHTML='';
+  if(!images.length){empty.style.display='block';return;}
+  empty.style.display='none';
+  images.forEach(img=>{
+    const item=document.createElement('div');item.className='past-img-item';
+    if(img.src===mediaState.url)item.classList.add('selected');
+    item.innerHTML=`<img src="${img.thumb}" loading="lazy" alt=""/><div class="past-img-checkmark">✓</div>`;
+    item.addEventListener('click',()=>{
+      document.querySelectorAll('.past-img-item').forEach(el=>el.classList.remove('selected'));
+      item.classList.add('selected');
+      applyMedia(img.src,'past');closeMediaPanel();showToast('Image selected ✓','success');
+    });
+    grid.appendChild(item);
+  });
+}
+
+function initUnifiedMediaSystem(){
+  qs('composerImageToggle').addEventListener('click',()=>{qs('composerImagePanel').classList.contains('open')?closeMediaPanel():openMediaPanel('upload');});
+  qs('composerImageToggleOff').addEventListener('click',()=>{qs('composerImagePanel').classList.contains('open')?closeMediaPanel():openMediaPanel();});
+  document.querySelectorAll('.media-tab').forEach(t=>t.addEventListener('click',()=>switchMediaTab(t.dataset.mtab)));
+  qs('mediaSummaryClear').addEventListener('click',()=>{clearMediaState();showToast('Media removed','info');});
+  qs('pastImagesLoadBtn').addEventListener('click',()=>{_pastLoaded=false;_pastCache=[];loadPastImages();});
+  initUploadTab();initUrlTab();initUnsplashTab();
+  window.openImageLibrary=()=>{openMediaPanel('past');activateView('composerView');};
+}
+
 async function composerSend(action){
   const text=editorHtmlToText(qs('composerEditor').innerHTML);
   if(!text){
@@ -4352,14 +4697,14 @@ async function composerSend(action){
   if(action==='queue'){input.mode='addToQueue';}
   if(action==='schedule'){if(!when){qs('composerStatus').textContent='Pick a date/time first.';return;}input.mode='customScheduled';input.dueAt=when;}
   // Attach image or video with correct asset shape
-  const imgUrl=qs('composerImageUrl').value.trim();
+  const imgUrl=mediaState?.url||qs('composerImageUrl')?.value?.trim()||'';
   if(imgUrl){
     if(isVideoUrlGlobal(imgUrl)){
-      const thumbUrl=qs('videoThumbUrl').value.trim();
+      const thumbUrl=mediaState?.videoThumbUrl||qs('videoThumbUrl')?.value?.trim()||'';
       const videoEntry={url:imgUrl};
       if(thumbUrl)videoEntry.thumbnailUrl=thumbUrl;
       input.assets={videos:[videoEntry]};
-    } else {
+    }else{
       input.assets={images:[{url:imgUrl}]};
     }
   }
@@ -4399,26 +4744,8 @@ async function composerSend(action){
     if(qs('composerNeedsApproval'))qs('composerNeedsApproval').checked=false;
     updateComposerChannelHint&&updateComposerChannelHint();
     // Clear media panel
-    qs('composerImageUrl').value='';
-    qs('composerImagePreview').style.display='none';
-    qs('composerImagePreview').innerHTML='';
-    qs('composerImageClear').style.display='none';
-    qs('videoThumbPanel').style.display='none';
-    qs('videoThumbUrl').value='';
-    qs('videoThumbPreview').style.display='none';
-    qs('videoThumbClear').style.display='none';
-    qs('videoThumbStatus').textContent='';
-    qs('uploadStatus').textContent='';
-    // Reset upload zone back to default state
-    qs('uploadZoneInner').style.display='flex';
-    qs('uploadProgress').style.display='none';
-    qs('uploadResult').style.display='none';
-    qs('uploadProgressBar').style.width='0%';
-    qs('uploadFileInput').value='';
-    // Collapse media panel
-    qs('composerImagePanel').style.display='none';
-    qs('composerImageToggle').style.display='inline-flex';
-    qs('composerImageToggleOff').style.display='none';
+    clearMediaState();
+    closeMediaPanel();
   }catch(e){qs('composerStatus').textContent=`Failed: ${e.message}`;}
 }
 
@@ -5050,22 +5377,6 @@ function init(){
     qs('composerScheduleToggle').style.display='inline-flex';
   };
 
-  // Image toggle
-  qs('composerImageToggle').onclick=()=>{
-    qs('composerImagePanel').style.display='block';
-    qs('composerImageToggle').style.display='none';
-    qs('composerImageToggleOff').style.display='inline-flex';
-  };
-  qs('composerImageToggleOff').onclick=()=>{
-    qs('composerImagePanel').style.display='none';
-    qs('composerImageToggle').style.display='inline-flex';
-    qs('composerImageToggleOff').style.display='none';
-    qs('composerImageUrl').value='';
-    qs('composerImagePreview').style.display='none';
-    qs('composerImagePreview').innerHTML='';
-    qs('composerImageClear').style.display='none';
-  };
-
   function buildTimePickers(hourId,minId,ampmId){
     const hSel=qs(hourId),mSel=qs(minId),amSel=qs(ampmId);
     for(let h=1;h<=12;h++){const o=document.createElement('option');o.value=h;o.textContent=String(h).padStart(2,'0');hSel.appendChild(o);}
@@ -5111,133 +5422,6 @@ function init(){
     qs('snippetTitle').value='';qs('snippetType').value='Hooks';qs('snippetPlatform').value='Universal';
     qs('snippetTags').value='';qs('snippetBody').value=text;openModal('snippetModal');
   };
-
-  function isVideoUrl(url){
-    return /\.(mp4|mov|webm|avi|mkv|m4v)(\?|$)/i.test(url);
-  }
-
-  // Image/video URL field
-  qs('composerImageUrl').addEventListener('input',()=>{
-    const url=qs('composerImageUrl').value.trim();
-    const preview=qs('composerImagePreview');const clearBtn=qs('composerImageClear');
-    const videoPanel=qs('videoThumbPanel');
-    if(url){
-      if(isVideoUrlGlobal(url)){
-        preview.innerHTML=`<span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--amber);">🎬 Video</span>`;
-        preview.style.display='inline-block';
-        videoPanel.style.display='block';
-      } else {
-        preview.innerHTML=`<img class="img-preview-thumb" src="${url}" onerror="this.parentElement.style.display='none'" />`;
-        preview.style.display='inline-block';
-        videoPanel.style.display='none';
-      }
-      clearBtn.style.display='inline-flex';
-    }else{
-      preview.style.display='none';preview.innerHTML='';
-      clearBtn.style.display='none';
-      videoPanel.style.display='none';
-    }
-  });
-  qs('composerImageClear').onclick=()=>{
-    qs('composerImageUrl').value='';qs('composerImagePreview').style.display='none';
-    qs('composerImagePreview').innerHTML='';qs('composerImageClear').style.display='none';
-    qs('videoThumbPanel').style.display='none';
-    qs('videoThumbUrl').value='';qs('videoThumbPreview').style.display='none';
-    qs('videoThumbClear').style.display='none';
-  };
-
-  // Video thumbnail URL input — live preview
-  qs('videoThumbUrl').addEventListener('input',()=>{
-    const url=qs('videoThumbUrl').value.trim();
-    if(url){
-      qs('videoThumbImg').src=url;
-      qs('videoThumbPreview').style.display='block';
-      qs('videoThumbClear').style.display='inline-flex';
-    } else {
-      qs('videoThumbPreview').style.display='none';
-      qs('videoThumbClear').style.display='none';
-    }
-  });
-
-  // Video thumbnail file upload (reuse Imgur)
-  qs('videoThumbUploadBtn').onclick=()=>qs('videoThumbFile').click();
-  qs('videoThumbFile').onchange=async()=>{
-    const file=qs('videoThumbFile').files[0];
-    if(!file)return;
-    qs('videoThumbStatus').textContent='Uploading thumbnail…';
-    try{
-      const fd=new FormData();fd.append('image',file);
-      const res=await fetch('https://api.imgur.com/3/image',{
-        method:'POST',headers:{'Authorization':`Client-ID ${IMGUR_CLIENT_ID}`},body:fd
-      });
-      const data=await res.json();
-      if(!data.success)throw new Error(data.data?.error||'Upload failed');
-      const url=data.data.link;
-      qs('videoThumbUrl').value=url;
-      qs('videoThumbUrl').dispatchEvent(new Event('input'));
-      qs('videoThumbStatus').textContent='✅ Thumbnail uploaded.';
-    }catch(e){
-      qs('videoThumbStatus').textContent=`Failed: ${e.message}`;
-    }
-  };
-
-  // Clear thumbnail
-  qs('videoThumbClear').onclick=()=>{
-    qs('videoThumbUrl').value='';
-    qs('videoThumbPreview').style.display='none';
-    qs('videoThumbClear').style.display='none';
-    qs('videoThumbStatus').textContent='';
-  };
-  qs('openImageLibraryBtn').onclick=openImageLibrary;
-  qs('closeImageLibrary').onclick=()=>closeModal('imageLibraryModal');
-
-  // ── Unsplash search ──
-  const UNSPLASH_KEY = 'tBuaYCO5p-pJPjgF29hR2yJGtlQaG4d5HqdVivV0lbQ'; // free demo key — 50 req/hr
-  function openUnsplashPanel(){
-    qs('unsplashPanel').style.display='block';
-    qs('unsplashQuery').focus();
-  }
-  function closeUnsplashPanel(){
-    qs('unsplashPanel').style.display='none';
-    qs('unsplashGrid').innerHTML='';
-    qs('unsplashStatus').textContent='';
-    qs('unsplashQuery').value='';
-  }
-  async function runUnsplashSearch(){
-    const q=qs('unsplashQuery').value.trim();
-    if(!q)return;
-    qs('unsplashStatus').textContent='Searching…';
-    qs('unsplashGrid').innerHTML='';
-    try{
-      const res=await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&per_page=9&orientation=landscape`,{
-        headers:{'Authorization':`Client-ID ${UNSPLASH_KEY}`}
-      });
-      if(!res.ok)throw new Error(`Unsplash ${res.status}`);
-      const data=await res.json();
-      if(!data.results.length){qs('unsplashStatus').textContent='No results — try a different search.';return;}
-      qs('unsplashStatus').textContent=`${data.total.toLocaleString()} results — click to use`;
-      qs('unsplashGrid').innerHTML=data.results.map(p=>`
-        <div style="cursor:pointer;border-radius:6px;overflow:hidden;aspect-ratio:16/9;border:2px solid transparent;transition:border-color .12s;" 
-             onclick="selectUnsplashPhoto('${p.urls.regular}','${p.user.name}','${p.links.html}')"
-             onmouseover="this.style.borderColor='var(--amber)'" onmouseout="this.style.borderColor='transparent'">
-          <img src="${p.urls.small}" style="width:100%;height:100%;object-fit:cover;" alt="${p.alt_description||q}" loading="lazy" />
-        </div>`).join('');
-    }catch(e){
-      qs('unsplashStatus').textContent=`Error: ${e.message}`;
-    }
-  }
-  window.selectUnsplashPhoto=function(url,author,photoLink){
-    qs('composerImageUrl').value=url;
-    qs('composerImageUrl').dispatchEvent(new Event('input'));
-    closeUnsplashPanel();
-    // Trigger URL preview update (reuse existing url-input handler)
-    qs('composerImageUrl').dispatchEvent(new Event('change'));
-    showToast(`Photo by ${author} via Unsplash ✓`,'success');
-  };
-  qs('openUnsplashBtn').onclick=openUnsplashPanel;
-  qs('unsplashCloseBtn').onclick=closeUnsplashPanel;
-  qs('unsplashSearchBtn').onclick=runUnsplashSearch;
-  qs('unsplashQuery').addEventListener('keydown',e=>{if(e.key==='Enter')runUnsplashSearch();});
 
   // snippets
   loadSnippets();renderSnippets();
@@ -5847,95 +6031,7 @@ function init(){
   // Init trending once the injected HTML exists
   setTimeout(() => { initTrending(); initTopics(); }, 50);
 
-  // ── IMAGE UPLOADER ──
-  const IMGUR_CLIENT_ID='546c25a59c58ad7';
-
-  function initUploader(){
-    const zone=qs('uploadZone');
-    if(!zone)return;
-    const inner=qs('uploadZoneInner');
-    const fileInput=qs('uploadFileInput');
-
-    inner.onclick=()=>fileInput.click();
-    qs('uploadBrowseBtn').onclick=(e)=>{e.stopPropagation();fileInput.click();};
-    fileInput.onchange=()=>{if(fileInput.files[0])handleUploadFile(fileInput.files[0]);};
-
-    zone.addEventListener('dragover',(e)=>{e.preventDefault();zone.classList.add('drag-over');});
-    zone.addEventListener('dragleave',()=>zone.classList.remove('drag-over'));
-    zone.addEventListener('drop',(e)=>{
-      e.preventDefault();zone.classList.remove('drag-over');
-      if(e.dataTransfer.files[0])handleUploadFile(e.dataTransfer.files[0]);
-    });
-    qs('uploadClearBtn').onclick=resetUploader;
-  }
-
-  function resetUploader(){
-    qs('uploadZoneInner').style.display='flex';
-    qs('uploadProgress').style.display='none';
-    qs('uploadResult').style.display='none';
-    qs('uploadProgressBar').style.width='0%';
-    qs('uploadStatus').textContent='';
-    qs('uploadFileInput').value='';
-    qs('composerImageUrl').value='';
-    qs('composerImagePreview').style.display='none';
-    qs('composerImagePreview').innerHTML='';
-    qs('composerImageClear').style.display='none';
-  }
-
-  async function handleUploadFile(file){
-    if(!file.type.startsWith('image/')){
-      if(file.type.startsWith('video/')){
-        qs('uploadStatus').textContent='🎬 Paste your video URL in the field above, then upload a custom thumbnail below.';
-        qs('videoThumbPanel').style.display='block';
-      } else {
-        qs('uploadStatus').textContent='Only image files are supported for upload.';
-      }
-      return;
-    }
-    qs('uploadZoneInner').style.display='none';
-    qs('uploadProgress').style.display='block';
-    qs('uploadStatus').textContent='Uploading…';
-
-    let prog=0;
-    const tick=setInterval(()=>{
-      prog=Math.min(prog+Math.random()*15,85);
-      qs('uploadProgressBar').style.width=prog+'%';
-    },200);
-
-    try{
-      const fd=new FormData();
-      fd.append('image',file);
-      const res=await fetch('https://api.imgur.com/3/image',{
-        method:'POST',
-        headers:{'Authorization':`Client-ID ${IMGUR_CLIENT_ID}`},
-        body:fd
-      });
-      clearInterval(tick);
-      qs('uploadProgressBar').style.width='100%';
-      if(!res.ok)throw new Error(`Imgur ${res.status}`);
-      const data=await res.json();
-      if(!data.success)throw new Error(data.data?.error||'Upload failed');
-      const url=data.data.link;
-      setTimeout(()=>{
-        qs('uploadProgress').style.display='none';
-        qs('uploadResult').style.display='flex';
-        qs('uploadThumb').src=url;
-        qs('uploadResultName').textContent=file.name;
-        qs('uploadResultUrl').textContent=url;
-        qs('uploadStatus').textContent='✅ Uploaded — URL ready.';
-        qs('composerImageUrl').value=url;
-        qs('composerImageUrl').dispatchEvent(new Event('input'));
-      },300);
-    }catch(e){
-      clearInterval(tick);
-      qs('uploadProgress').style.display='none';
-      qs('uploadZoneInner').style.display='flex';
-      qs('uploadStatus').textContent=`Upload failed: ${e.message}`;
-      console.warn('[PostIQ] Imgur upload failed:',e);
-    }
-  }
-
-  initUploader();
+  initUnifiedMediaSystem();
 
   if('serviceWorker' in navigator && location.hostname !== 'localhost' && !location.hostname.includes('claudeusercontent')){
     navigator.serviceWorker.register('/sw.js').catch(e=>console.warn('SW:',e));
