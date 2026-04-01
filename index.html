@@ -2821,6 +2821,14 @@
     .home-faq summary{cursor:pointer;font-weight:700;}
     .home-faq p{margin-top:8px;color:var(--muted);font-size:13px;}
 
+    .view-state-pill{margin-top:8px;width:fit-content;}
+    .home-walkthrough-card{padding:22px;}
+    .home-tab-panel{padding:16px 16px 14px;border-radius:12px;background:linear-gradient(180deg,var(--surface),var(--surface2));}
+    .home-tab-panel h3{font-size:20px;line-height:1.2;margin-bottom:8px;font-family:'Syne',sans-serif;letter-spacing:-.01em;color:var(--text);}
+    .home-tab-panel p{font-size:14px;line-height:1.65;color:var(--muted);margin-bottom:12px;}
+    .home-tab-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+
+
   </style>
 </head>
 <body>
@@ -2998,18 +3006,35 @@
           <div class="row"><button class="btn primary" id="homeJumpThreadBtn">Open Thread Splitter</button></div>
         </article>
 
-        <article class="card mt12">
-          <div class="section-hdr"><span class="section-title">Walkthrough</span></div>
+        <article class="card mt12 home-walkthrough-card">
+          <div class="section-hdr"><span class="section-title">Interactive walkthrough</span></div>
+          <p class="page-desc" style="margin-top:8px;">Pick a workflow step below. Each path shows what you can do now and where PostIQ takes over once Buffer is connected.</p>
           <div class="home-tabs" id="homeTabs">
             <button class="home-tab active" data-home-tab="thread">Thread Splitter</button>
             <button class="home-tab" data-home-tab="calendar">Calendar</button>
             <button class="home-tab" data-home-tab="composer">Composer</button>
             <button class="home-tab" data-home-tab="snippets">Snippets</button>
           </div>
-          <div class="home-tab-panel active" data-home-panel="thread"><strong>Thread Splitter</strong> helps you turn rough paragraphs into clean thread-ready posts. <span class="state-pill try">Try now</span></div>
-          <div class="home-tab-panel" data-home-panel="calendar"><strong>Calendar</strong> gives you a visual month view of scheduled posts and planning notes once Buffer is connected. <span class="state-pill key">Needs Buffer key</span></div>
-          <div class="home-tab-panel" data-home-panel="composer"><strong>Composer</strong> lets you draft, queue, and schedule directly into your Buffer workflow when connected. <span class="state-pill key">Needs Buffer key</span></div>
-          <div class="home-tab-panel" data-home-panel="snippets"><strong>Snippets</strong> keeps reusable hooks, CTAs, and openers ready so you can move faster even before connecting. <span class="state-pill preview">Preview-friendly</span></div>
+          <div class="home-tab-panel active" data-home-panel="thread">
+            <h3>Turn rough ideas into thread-ready posts in minutes</h3>
+            <p>Paste raw notes, blog chunks, or thought dumps and PostIQ splits them into cleaner, numbered posts. This works immediately, no Buffer key required.</p>
+            <div class="home-tab-actions"><span class="state-pill try">Try now</span><button class="btn sm primary" data-home-cta="thread">Open Thread Splitter</button></div>
+          </div>
+          <div class="home-tab-panel" data-home-panel="calendar">
+            <h3>See your month clearly before content gaps happen</h3>
+            <p>Calendar becomes powerful after connection: scheduled posts appear in-context so you can plan smarter and fill weak spots faster.</p>
+            <div class="home-tab-actions"><span class="state-pill key" data-pill-dynamic="calendar">Needs Buffer key</span><button class="btn sm" data-home-cta="calendar">Open Calendar</button></div>
+          </div>
+          <div class="home-tab-panel" data-home-panel="composer">
+            <h3>Draft once, then queue or schedule with confidence</h3>
+            <p>Use Composer as your writing cockpit. Connect Buffer to unlock draft saving, queueing, and scheduling inside your existing publishing workflow.</p>
+            <div class="home-tab-actions"><span class="state-pill key" data-pill-dynamic="composer">Needs Buffer key</span><button class="btn sm" data-home-cta="composer">Open Composer</button></div>
+          </div>
+          <div class="home-tab-panel" data-home-panel="snippets">
+            <h3>Keep your best hooks and CTAs one click away</h3>
+            <p>Build reusable copy blocks for faster writing sessions. Snippets are preview-friendly and useful right away even before you connect Buffer.</p>
+            <div class="home-tab-actions"><span class="state-pill preview">Preview-friendly</span><button class="btn sm" data-home-cta="snippets">Open Snippets</button></div>
+          </div>
         </article>
 
         <article class="card mt12">
@@ -3026,7 +3051,7 @@
             <details><summary>What if I want to revoke access later?</summary><p>You can revoke or replace your token in Buffer settings at any time, then update it in PostIQ.</p></details>
             <details><summary>Will this work for every Buffer account setup?</summary><p>Most standard Buffer account setups work. Connect your key and run a sync to confirm your channels load correctly.</p></details>
           </div>
-          <div class="row mt12"><button class="btn primary" id="homeConnectBtn">Take me to PostIQ</button></div>
+          <div class="row mt12" style="gap:8px;flex-wrap:wrap;"><button class="btn primary" id="homeConnectBtn">Take me to PostIQ</button><button class="btn" id="homeOpenTokenBtn">Connect Buffer key</button></div>
         </article>
       </div>
     </section>
@@ -3036,6 +3061,7 @@
       <div class="page-hdr">
         <div class="page-hdr-left">
           <h1 class="page-title">Thread Splitter</h1>
+          <div class="state-pill try view-state-pill">Try now</div>
           <p class="page-desc">Turn long-form copy into a clean thread, then push to Buffer.</p>
         </div>
         <div class="page-actions">
@@ -3089,6 +3115,7 @@
       <div class="page-hdr">
         <div class="page-hdr-left">
           <h1 class="page-title">Content Calendar</h1>
+          <div class="state-pill key view-state-pill" id="calendarStatePill">Needs Buffer key</div>
           <p class="page-desc">Scheduled Buffer posts + lightweight planning notes.</p>
         </div>
         <div class="page-actions">
@@ -3111,6 +3138,7 @@
         <div class="dow-label">Wed</div><div class="dow-label">Thu</div><div class="dow-label">Fri</div><div class="dow-label">Sat</div>
       </div>
       <div class="cal-grid" id="calGrid"></div>
+      <div id="calendarEmptyHint" class="status-txt mt8" style="display:none;">Connect Buffer, then click <strong>Load from Buffer</strong> to populate scheduled posts in this calendar.</div>
       <!-- Mobile agenda view (hidden on desktop, shown on mobile) -->
       <div id="calAgenda"></div>
     </section>
@@ -3120,6 +3148,7 @@
       <div class="page-hdr">
         <div class="page-hdr-left">
           <h1 class="page-title">Post Composer</h1>
+          <div class="state-pill key view-state-pill" id="composerStatePill">Needs Buffer key</div>
           <p class="page-desc">Draft text-first posts, then push to Buffer.</p>
         </div>
         <div class="page-actions">
@@ -3346,6 +3375,7 @@
       <div class="page-hdr">
         <div class="page-hdr-left">
           <h1 class="page-title">Snippets</h1>
+          <div class="state-pill preview view-state-pill">Preview-friendly</div>
           <p class="page-desc">Hooks, CTAs, hashtag sets, openers — reusable across Composer and Thread Splitter.</p>
         </div>
         <div class="page-actions">
@@ -3376,6 +3406,7 @@
       <div class="page-hdr">
         <div class="page-hdr-left">
           <h1 class="page-title">Approvals</h1>
+          <div class="state-pill key view-state-pill" id="approvalsStatePill">Needs Buffer key</div>
           <p class="page-desc">Get sign-off before publishing. Generate a link, share it, and publish when approved.</p>
         </div>
         <div class="page-actions">
@@ -3414,6 +3445,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="page-hdr">
       <div class="page-hdr-left">
         <h1 class="page-title">Trending</h1>
+        <div class="state-pill preview view-state-pill">Preview-friendly</div>
         <p class="page-desc">What's hot on Reddit and Hacker News right now. Click any story to draft a post.</p>
       </div>
     </div>
@@ -4108,11 +4140,34 @@ function updateTokenUI(){
   qs('tokenStatusLabel').textContent=connected?'Connected':'Not connected';
   qs('tokenMaskedPreview').textContent=maskToken(bufferToken);
   tokenInputVisible=false;qs('tokenInput').type='password';qs('toggleTokenVisibility').textContent='Show';
+  updateViewStatePills();
 }
 function toggleTokenPanel(){
   tokenPanelOpen=!tokenPanelOpen;
   qs('tokenPanel').classList.toggle('open',tokenPanelOpen);
   qs('manageTokenBtn').textContent=tokenPanelOpen?'Done':'Manage';
+}
+function openTokenManagement(){
+  if(window.innerWidth<=768){
+    openMobDrawer();
+    mobTokenPanelOpen=true;
+    qs('mobTokenPanel').style.display='block';
+    qs('mobManageTokenBtn').textContent='Done';
+  }else{
+    tokenPanelOpen=true;
+    qs('tokenPanel').classList.add('open');
+    qs('manageTokenBtn').textContent='Done';
+    qs('tokenInput').focus();
+  }
+}
+function updateViewStatePills(){
+  const connected=!!bufferToken;
+  const set=(id,txt,cls)=>{const el=qs(id);if(!el)return;el.className=`state-pill view-state-pill ${cls}`;el.textContent=txt;};
+  set('composerStatePill',connected?'Connected · ready':'Needs Buffer key',connected?'try':'key');
+  set('calendarStatePill',connected?'Connected · ready':'Needs Buffer key',connected?'try':'key');
+  set('approvalsStatePill',connected?'Connected · ready':'Needs Buffer key',connected?'try':'key');
+  document.querySelectorAll('[data-pill-dynamic="calendar"],[data-pill-dynamic="composer"]').forEach(el=>{el.className=`state-pill ${connected?'try':'key'}`;el.textContent=connected?'Connected · ready':'Needs Buffer key';});
+  const hint=qs('calendarEmptyHint'); if(hint) hint.style.display=connected?'none':'block';
 }
 function saveToken(){
   const token=qs('tokenInput').value.trim();
@@ -5425,10 +5480,12 @@ function init(){
   qs('pickerPlatform').onchange=renderSnippetPicker;
 
   renderCalendar();
+  updateViewStatePills();
 
   // ── HOME VIEW ──
-  qs('homeToAppBtn').onclick=()=>activateView('composerView');
-  qs('homeConnectBtn').onclick=()=>activateView('composerView');
+  qs('homeToAppBtn').onclick=()=>{if(bufferToken)activateView('composerView');else openTokenManagement();};
+  qs('homeConnectBtn').onclick=()=>{if(bufferToken)activateView('composerView');else openTokenManagement();};
+  qs('homeOpenTokenBtn').onclick=()=>openTokenManagement();
   qs('homeTryToolBtn').onclick=()=>activateView('threadView');
   qs('homeJumpThreadBtn').onclick=()=>activateView('threadView');
   document.querySelectorAll('.home-tab').forEach(btn=>{
@@ -5437,6 +5494,15 @@ function init(){
       btn.classList.add('active');
       const k=btn.dataset.homeTab;
       document.querySelectorAll('.home-tab-panel').forEach(p=>p.classList.toggle('active',p.dataset.homePanel===k));
+    };
+  });
+  document.querySelectorAll('[data-home-cta]').forEach(btn=>{
+    btn.onclick=()=>{
+      const target=btn.dataset.homeCta;
+      if(target==='thread') return activateView('threadView');
+      if(target==='snippets') return activateView('snippetsView');
+      if(target==='calendar') return bufferToken?activateView('calendarView'):openTokenManagement();
+      if(target==='composer') return bufferToken?activateView('composerView'):openTokenManagement();
     };
   });
 
