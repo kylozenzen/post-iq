@@ -832,8 +832,8 @@
     <div class="topbar">
       <div class="brand">PostIQ <span class="badge">Beta</span></div>
       <div class="top-actions">
-        <a href="#connect" class="btn">Take me to PostIQ</a>
-        <a href="#try" class="btn primary">Try a tool first</a>
+        <a href="app.html" class="btn">Take me to PostIQ</a>
+        <a href="app.html?view=threadView" class="btn primary">Try a tool first</a>
       </div>
     </div>
 
@@ -846,8 +846,8 @@
             Plan, draft, and approve content faster with a workflow built to make Buffer easier to use.
           </p>
           <div class="hero-ctas">
-            <a href="#connect" class="btn primary">Take me to PostIQ</a>
-            <a href="#try" class="btn">Try a tool first</a>
+            <a href="app.html" class="btn primary">Take me to PostIQ</a>
+            <a href="app.html?view=threadView" class="btn">Try a tool first</a>
           </div>
           <div class="trust-strip">
             <div class="trust-pill">No login required</div>
@@ -1112,8 +1112,7 @@
         } else {
           sessionStorage.setItem('postiq_buffer_token', token);
         }
-        message.textContent = 'Token saved locally for demo purposes. In your real app, this is where you would hand off to PostIQ.';
-        message.className = 'message success';
+        window.location.href = 'app.html';
       } catch (err) {
         message.textContent = 'Could not store the token in this browser.';
         message.className = 'message error';
