@@ -1502,7 +1502,9 @@
       }
       /* Thread parts — bigger tap targets */
       .thread-part { margin-bottom: 10px; }
-      .thread-part textarea { min-height: 90px; font-size: 14px; }
+      .thread-part textarea {
+      background: #1a1e28;
+      border-color: rgba(245,183,49,.25); min-height: 90px; font-size: 14px; }
       /* Action buttons — full width, tall */
       #threadView .row.mt12 { flex-direction: column; gap: 8px; }
       #threadView .row.mt12 .btn { width: 100%; padding: 14px; font-size: 15px; justify-content: center; }
@@ -1599,6 +1601,7 @@
     }
 
     @media (max-width: 900px) {
+      .home-hero-grid,.home-feature-grid,.home-api-grid{grid-template-columns:1fr;}
       .cols, .onboarding-grid { grid-template-columns: 1fr; }
       .snippets-layout { grid-template-columns: 1fr; }
       .snippet-filters { position: static; }
@@ -2625,24 +2628,6 @@
       letter-spacing: 0.06em;
     }
 
-    /* ── 17. WELCOME SCREEN — Polish ── */
-    #welcomeScreen {
-      background-image: radial-gradient(ellipse 800px 600px at 50% -100px, rgba(245,183,49,0.08) 0%, transparent 70%);
-    }
-    .welcome-step > div {
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
-      transition: border-color 0.2s;
-    }
-    .welcome-step > div:focus-within { border-color: rgba(245,183,49,0.3); }
-    #welcomeDoneBtn {
-      height: 50px;
-      font-size: 15px;
-      border-radius: 12px;
-      letter-spacing: 0.02em;
-    }
-
     /* ── 18. GLOBAL — Scrollbars, selection, focus, animations ── */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -2805,129 +2790,45 @@
   .media-toggle-btn.has-media{border-color:var(--amber-glow);color:var(--amber);background:var(--amber-dim)}
   .media-toggle-thumb{width:18px;height:18px;border-radius:3px;object-fit:cover;border:1px solid rgba(255,255,255,.15);flex-shrink:0}
 
+
+    .state-pill { display:inline-flex;align-items:center;border-radius:999px;padding:3px 8px;font-size:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;border:1px solid var(--border2); }
+    .state-pill.try { color:var(--green);background:var(--green-dim);border-color:rgba(45,212,160,.25); }
+    .state-pill.key { color:var(--amber);background:var(--amber-dim);border-color:rgba(245,183,49,.35); }
+    .state-pill.preview { color:var(--blue);background:var(--blue-dim);border-color:rgba(107,143,247,.35); }
+    .home-shell { max-width:1200px; }
+    .home-hero-grid { display:grid;grid-template-columns:1.08fr .92fr;gap:14px;align-items:stretch; }
+    .home-hero-copy,.home-hero-media{min-height:360px;}
+    .home-hero-media{position:relative;overflow:hidden;padding:0;}
+    .home-hero-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.65);}
+    .home-hero-overlay{position:absolute;inset:auto 14px 14px 14px;background:rgba(12,13,16,.7);border:1px solid var(--border2);border-radius:10px;padding:12px;}
+    .home-overlay-kicker{font-size:10px;font-family:'DM Mono',monospace;color:var(--amber);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+    .home-overlay-copy{font-weight:600;}
+    .home-pills{display:flex;gap:8px;flex-wrap:wrap;}
+    .home-pill{padding:7px 12px;border-radius:999px;background:linear-gradient(135deg, rgba(245,183,49,.28), rgba(107,143,247,.2));border:1px solid rgba(245,183,49,.35);font-size:11px;font-family:'DM Mono',monospace;color:var(--text)}
+    .home-feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px;}
+    .home-feature-item{border:1px solid var(--border2);border-radius:10px;padding:11px;background:linear-gradient(180deg,var(--surface2),var(--surface));display:flex;justify-content:space-between;align-items:center;gap:8px;}
+    .home-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+    .home-tab{border:1px solid var(--border2);background:var(--surface2);color:var(--muted);padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:600;}
+    .home-tab.active{color:var(--text);border-color:var(--amber);background:var(--amber-dim);}
+    .home-tab-panel{display:none;margin-top:10px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--muted);}
+    .home-tab-panel.active{display:block;}
+    .home-api-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+    .home-api-card{border:1px solid var(--border);border-radius:12px;padding:14px;background:linear-gradient(180deg,var(--surface2),var(--surface));}
+    .home-api-no{font-family:'Syne',sans-serif;font-size:28px;color:rgba(245,183,49,.35);line-height:1;margin-bottom:6px;}
+    .home-api-card h4{font-size:12px;text-transform:uppercase;letter-spacing:.05em;font-family:'DM Mono',monospace;margin-bottom:6px;}
+    .home-api-card p{font-size:13px;color:var(--muted);line-height:1.6;}
+    .home-faq details{border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--surface2);margin-bottom:8px;}
+    .home-faq summary{cursor:pointer;font-weight:700;}
+    .home-faq p{margin-top:8px;color:var(--muted);font-size:13px;}
+
   </style>
 </head>
 <body>
 
-<!-- ── WELCOME SCREEN ── -->
-<div id="welcomeScreen" style="display:none;position:fixed;inset:0;z-index:200;
-  background:var(--bg);overflow-y:auto;padding:40px 20px 60px;">
-  <div style="max-width:520px;margin:0 auto;">
-
-    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:28px;
-                letter-spacing:-.5px;margin-bottom:4px;">
-      Welcome to PostIQ <span style="background:var(--amber);color:#1a0f00;font-size:12px;
-        font-family:'DM Mono',monospace;font-weight:700;padding:3px 8px;border-radius:4px;
-        vertical-align:middle;">BETA</span>
-    </div>
-    <p style="font-size:15px;color:var(--muted);line-height:1.6;margin-bottom:32px;">
-      A free Buffer companion for serious creators. Get set up in three steps.
-    </p>
-
-    <!-- Step 1 -->
-    <div class="welcome-step" id="wstep1">
-      <div style="display:flex;align-items:flex-start;gap:16px;padding:20px;
-                  background:var(--surface);border:1px solid var(--border);
-                  border-radius:12px;margin-bottom:12px;">
-        <div style="width:32px;height:32px;border-radius:50%;background:var(--amber);
-                    color:#1a0f00;font-weight:800;font-family:'DM Mono',monospace;
-                    display:flex;align-items:center;justify-content:center;
-                    font-size:14px;flex-shrink:0;">1</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:15px;margin-bottom:4px;">
-            Connect your Buffer account
-          </div>
-          <p style="font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:12px;">
-            Get your API token from
-            <a href="https://publish.buffer.com/settings/api" target="_blank"
-              style="color:var(--amber);">buffer.com/settings/api</a>.
-            Your token never leaves your device.
-          </p>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <input id="welcomeTokenInput" class="input mono"
-              type="password" placeholder="Paste your Buffer token…"
-              style="flex:1;font-size:13px;" />
-            <button class="btn primary" id="welcomeSaveToken">Save</button>
-          </div>
-          <div style="display:flex;gap:14px;margin-top:8px;">
-            <label style="font-size:12px;color:var(--muted);cursor:pointer;">
-              <input type="radio" name="welcomeTokenMode" value="session" checked /> Session only
-            </label>
-            <label style="font-size:12px;color:var(--muted);cursor:pointer;">
-              <input type="radio" name="welcomeTokenMode" value="local" /> Save on this device
-            </label>
-          </div>
-          <div id="welcomeTokenMsg" style="font-size:12px;color:var(--green);
-            margin-top:6px;min-height:18px;font-family:'DM Mono',monospace;"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Step 2 -->
-    <div class="welcome-step" id="wstep2">
-      <div style="display:flex;align-items:flex-start;gap:16px;padding:20px;
-                  background:var(--surface);border:1px solid var(--border);
-                  border-radius:12px;margin-bottom:12px;">
-        <div style="width:32px;height:32px;border-radius:50%;background:var(--surface3);
-                    color:var(--muted);font-weight:800;font-family:'DM Mono',monospace;
-                    display:flex;align-items:center;justify-content:center;
-                    font-size:14px;flex-shrink:0;" id="wstep2num">2</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:15px;margin-bottom:4px;">
-            Load your channels and scheduled posts
-          </div>
-          <p style="font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:12px;">
-            PostIQ reads your Buffer schedule so it can show posts in the
-            calendar and let you queue or schedule directly from the composer.
-          </p>
-          <button class="btn" id="welcomeSyncBtn" style="justify-content:center;">
-            ↻ Load from Buffer
-          </button>
-          <div id="welcomeSyncMsg" style="font-size:12px;color:var(--muted);
-            margin-top:6px;min-height:18px;font-family:'DM Mono',monospace;"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Step 3 -->
-    <div class="welcome-step" id="wstep3">
-      <div style="display:flex;align-items:flex-start;gap:16px;padding:20px;
-                  background:var(--surface);border:1px solid var(--border);
-                  border-radius:12px;margin-bottom:24px;">
-        <div style="width:32px;height:32px;border-radius:50%;background:var(--surface3);
-                    color:var(--muted);font-weight:800;font-family:'DM Mono',monospace;
-                    display:flex;align-items:center;justify-content:center;
-                    font-size:14px;flex-shrink:0;" id="wstep3num">3</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:15px;margin-bottom:4px;">
-            Start creating
-          </div>
-          <p style="font-size:13px;color:var(--muted);line-height:1.55;">
-            Use the Post Composer to draft and queue posts, the Thread Splitter
-            to break long copy into threads, the Calendar to plan ahead, and
-            Trending to find what to write about.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <button class="btn primary" id="welcomeDoneBtn"
-      style="width:100%;padding:16px;font-size:15px;justify-content:center;">
-      Go to PostIQ →
-    </button>
-    <div style="text-align:center;margin-top:16px;">
-      <button class="btn ghost" id="welcomeSkipBtn"
-        style="font-size:13px;color:var(--subtle);">
-        Skip setup — I'll connect later
-      </button>
-    </div>
-
-  </div>
-</div>
-
 <!-- ── MOBILE BOTTOM TABS ── -->
 <nav class="mobile-tabs" id="mobileTabs">
-  <button class="mob-tab active" data-view="composerView"><span class="mob-icon">✍️</span>Compose</button>
+  <button class="mob-tab active" data-view="homeView"><span class="mob-icon">🏠</span>Home</button>
+  <button class="mob-tab" data-view="composerView"><span class="mob-icon">✍️</span>Compose</button>
   <button class="mob-tab" data-view="threadView"><span class="mob-icon">🧵</span>Thread</button>
   <button class="mob-tab" data-view="calendarView"><span class="mob-icon">📅</span>Calendar</button>
   <button class="mob-tab" data-view="trendingView"><span class="mob-icon">📈</span>Trends</button>
@@ -2982,8 +2883,7 @@
     <button class="nav-btn" data-view="snippetsView" id="mobSnippetsBtn"><span class="nav-icon">📚</span> Snippets</button>
     <button class="nav-btn" data-view="approvalsView" id="mobApprovalsBtn"><span class="nav-icon">✅</span> Approvals</button>
     <div style="height:1px;background:var(--border);margin:4px 0;"></div>
-    <button class="nav-btn" id="mobOpenOnboarding"><span class="nav-icon">👋</span> Welcome</button>
-    <button class="nav-btn" id="mobOpenFounder"><span class="nav-icon">🏗</span> Built by Ben</button>
+        <button class="nav-btn" id="mobOpenFounder"><span class="nav-icon">🏗</span> Built by Ben</button>
     <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener"><span class="nav-icon">↗</span> Open Buffer</a>
   </div>
 </div>
@@ -3033,7 +2933,8 @@
     </div>
     <nav class="side-nav">
       <div class="nav-label">Tools</div>
-      <button class="nav-btn active" data-view="composerView"><span class="nav-icon">✍️</span> Post Composer</button>
+      <button class="nav-btn active" data-view="homeView"><span class="nav-icon">🏠</span> Home</button>
+      <button class="nav-btn" data-view="composerView"><span class="nav-icon">✍️</span> Post Composer</button>
       <button class="nav-btn" data-view="threadView"><span class="nav-icon">🧵</span> Thread Splitter</button>
       <button class="nav-btn" data-view="calendarView"><span class="nav-icon">📅</span> Content Calendar</button>
       <button class="nav-btn" data-view="trendingView"><span class="nav-icon">📈</span> Trending</button>
@@ -3048,6 +2949,87 @@
 
   <!-- ── MAIN ── -->
   <main class="main">
+
+
+    <!-- Home -->
+    <section id="homeView" class="view active">
+      <div class="home-shell">
+        <div class="home-hero-grid">
+          <article class="card home-hero-copy">
+            <div class="label">A Buffer companion app</div>
+            <h1 class="page-title" style="font-size:40px;line-height:1.05;">Give your Buffer workflow superpowers.</h1>
+            <p class="page-desc" style="max-width:780px;">PostIQ gives you a clearer path from rough idea to ready-to-share content, with tools built to make your Buffer workflow feel easier, faster, and more organized.</p>
+            <div class="row mt12" style="gap:10px;flex-wrap:wrap;">
+              <button class="btn primary" id="homeToAppBtn">Take me to PostIQ</button>
+              <button class="btn" id="homeTryToolBtn">Try a tool first</button>
+            </div>
+            <div class="home-pills mt12">
+              <span class="home-pill">No login required</span>
+              <span class="home-pill">Stored in your browser</span>
+              <span class="home-pill">Connect when ready</span>
+            </div>
+          </article>
+          <article class="card home-hero-media">
+            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1400&q=80" alt="People working on laptops and devices"/>
+            <div class="home-hero-overlay">
+              <div class="home-overlay-kicker">See the workflow first</div>
+              <div class="home-overlay-copy">Explore first. Connect when it makes sense.</div>
+            </div>
+          </article>
+        </div>
+
+        <article class="card mt12">
+          <div class="section-hdr"><span class="section-title">Tools at a glance</span></div>
+          <p class="page-desc" style="margin-top:6px;">PostIQ helps serious Buffer users move faster, plan smarter, and clean up the messier parts of content creation without changing the workflow they already know.</p>
+          <div class="home-feature-grid">
+            <div class="home-feature-item"><strong>Thread Splitter</strong><span class="state-pill try">Try now</span></div>
+            <div class="home-feature-item"><strong>Composer</strong><span class="state-pill key">Needs Buffer key</span></div>
+            <div class="home-feature-item"><strong>Approvals</strong><span class="state-pill key">Needs Buffer key</span></div>
+            <div class="home-feature-item"><strong>Snippets</strong><span class="state-pill preview">Preview-friendly</span></div>
+            <div class="home-feature-item"><strong>Trending</strong><span class="state-pill preview">Preview-friendly</span></div>
+            <div class="home-feature-item"><strong>Calendar</strong><span class="state-pill key">Needs Buffer key</span></div>
+          </div>
+        </article>
+
+        <article class="card mt12" id="homeQuickWin">
+          <div class="section-hdr"><span class="section-title">Quick win · Thread Splitter <span class="state-pill try" style="margin-left:8px;">Try now</span></span></div>
+          <h2 style="font-family:'Syne',sans-serif;font-size:28px;margin-top:6px;">Start with a quick win.</h2>
+          <p class="page-desc">Try the Thread Splitter first and see how PostIQ helps turn rough ideas into cleaner, ready-to-share content.</p>
+          <div class="row"><button class="btn primary" id="homeJumpThreadBtn">Open Thread Splitter</button></div>
+        </article>
+
+        <article class="card mt12">
+          <div class="section-hdr"><span class="section-title">Walkthrough</span></div>
+          <div class="home-tabs" id="homeTabs">
+            <button class="home-tab active" data-home-tab="thread">Thread Splitter</button>
+            <button class="home-tab" data-home-tab="calendar">Calendar</button>
+            <button class="home-tab" data-home-tab="composer">Composer</button>
+            <button class="home-tab" data-home-tab="snippets">Snippets</button>
+          </div>
+          <div class="home-tab-panel active" data-home-panel="thread"><strong>Thread Splitter</strong> helps you turn rough paragraphs into clean thread-ready posts. <span class="state-pill try">Try now</span></div>
+          <div class="home-tab-panel" data-home-panel="calendar"><strong>Calendar</strong> gives you a visual month view of scheduled posts and planning notes once Buffer is connected. <span class="state-pill key">Needs Buffer key</span></div>
+          <div class="home-tab-panel" data-home-panel="composer"><strong>Composer</strong> lets you draft, queue, and schedule directly into your Buffer workflow when connected. <span class="state-pill key">Needs Buffer key</span></div>
+          <div class="home-tab-panel" data-home-panel="snippets"><strong>Snippets</strong> keeps reusable hooks, CTAs, and openers ready so you can move faster even before connecting. <span class="state-pill preview">Preview-friendly</span></div>
+        </article>
+
+        <article class="card mt12">
+          <div class="section-hdr"><span class="section-title">Buffer API key explained</span></div>
+          <p class="page-desc">Your Buffer API key is a private access code from Buffer that lets PostIQ connect to your account. It gives PostIQ permission to read parts of your workflow and send actions back to Buffer when you choose to save a draft, queue a post, or schedule content. Think of it like a private permission pass for your Buffer account.</p>
+          <div class="home-api-grid">
+            <div class="home-api-card"><div class="home-api-no">01</div><h4>What it actually is</h4><p>Your API key is a private code generated by Buffer. PostIQ uses it to securely connect to your Buffer account so the app can work on your behalf inside your own workflow.</p></div>
+            <div class="home-api-card"><div class="home-api-no">02</div><h4>What it lets PostIQ do</h4><p>With your permission, PostIQ can read parts of your Buffer setup and send actions back when you choose to save a draft, queue a post, or schedule content. It does not post on its own.</p></div>
+            <div class="home-api-card"><div class="home-api-no">03</div><h4>Where it lives and how you control it</h4><p>Your key stays in your browser on your device. You can save it just for the session or keep it locally for convenience, and you can revoke or replace it anytime from Buffer settings.</p></div>
+          </div>
+          <div class="home-faq mt12">
+            <details open><summary>Can someone else use my key?</summary><p>Only if you share it. Keep it private just like a password and avoid posting it publicly.</p></details>
+            <details><summary>Does PostIQ post automatically?</summary><p>No. PostIQ only sends actions when you choose to save a draft, queue, or schedule.</p></details>
+            <details><summary>What if I want to revoke access later?</summary><p>You can revoke or replace your token in Buffer settings at any time, then update it in PostIQ.</p></details>
+            <details><summary>Will this work for every Buffer account setup?</summary><p>Most standard Buffer account setups work. Connect your key and run a sync to confirm your channels load correctly.</p></details>
+          </div>
+          <div class="row mt12"><button class="btn primary" id="homeConnectBtn">Take me to PostIQ</button></div>
+        </article>
+      </div>
+    </section>
 
     <!-- Thread Splitter -->
     <section id="threadView" class="view">
@@ -3075,7 +3057,7 @@
             <button class="btn sm ghost" id="threadAddOpener">+ Opener from Snippets</button>
             <button class="btn sm ghost" id="threadAddCta">+ Ending CTA</button>
           </div>
-          <div id="threadEmpty" class="empty mt12"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">🧵</div>Paste text above, then click <strong>Split thread</strong>.</div>
+          <div id="threadEmpty" class="empty mt12"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">🧵</div>Paste some text first to see how PostIQ turns rough ideas into cleaner, thread-ready posts.</div>
         </div>
         <div>
           <div class="thread-actions-bar">
@@ -3134,7 +3116,7 @@
     </section>
 
     <!-- Post Composer -->
-    <section id="composerView" class="view active">
+    <section id="composerView" class="view">
       <div class="page-hdr">
         <div class="page-hdr-left">
           <h1 class="page-title">Post Composer</h1>
@@ -3181,7 +3163,7 @@
             <button class="btn sm ghost" id="saveSelectionSnippetBtn">Save selection</button>
           </div>
           <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here…"></div>
-          <div id="composerEmpty" class="empty mt8" style="display:none;"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">✍️</div>Start drafting above, then save draft, queue, or schedule.</div>
+          <div id="composerEmpty" class="empty mt8" style="display:none;"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">✍️</div>Connect Buffer to unlock drafts, queueing, and scheduling. You can still write here right now.</div>
 
           <div class="composer-controls mt10">
             <div class="composer-row-a">
@@ -3413,7 +3395,7 @@
         <button class="sub-pill" data-afilter="changes_requested">✎ Changes Requested</button>
       </div>
       <div id="approvalsLoading" class="status-txt mt8" style="display:none;">Loading drafts…</div>
-      <div id="approvalsEmpty" class="empty" style="display:none;"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">✅</div>No drafts marked for approval. Check <strong>"Needs approval"</strong> when saving a draft in the composer.</div>
+      <div id="approvalsEmpty" class="empty" style="display:none;"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">✅</div>Connect Buffer and save drafts with <strong>"Needs approval"</strong> to start routing review requests here.</div>
       <div id="approvalsList"></div>
     </section>
 
@@ -3772,7 +3754,6 @@ document.addEventListener('DOMContentLoaded', () => {
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const STORE_KEY='postiq_buffer_token';
 const NOTE_KEY='postiq_calendar_notes_v2';
-const ONBOARDING_KEY='postiq_onboarding_seen_v1';
 const SNIPPET_KEY='postiq_snippets_v1';
 const APPROVAL_META_PREFIX='postiq_approval_';
 const snippetTypes=['All','Hooks','CTAs','Hashtag Sets','First Comments','Thread Openers'];
@@ -3785,10 +3766,6 @@ const state={channels:[],scheduled:[],month:new Date(),selectedDate:null,syncSta
 const noteTags={gold:'Idea',blue:'Draft',green:'Campaign',violet:'Priority'};
 
 function qs(id){return document.getElementById(id)}
-function hasSeenOnboarding(){try{return localStorage.getItem(ONBOARDING_KEY)==='1'}catch{return false}}
-function markOnboardingSeen(){try{localStorage.setItem(ONBOARDING_KEY,'1')}catch{}}
-function openOnboarding(){openSettings('guide')}
-function dismissOnboarding(){markOnboardingSeen();closeModal('settingsModal')}
 function fmtDate(d){return d.toISOString().slice(0,10)}
 function monthLabel(d){return d.toLocaleDateString(undefined,{month:'long',year:'numeric'})}
 function monthStart(d){return new Date(d.getFullYear(),d.getMonth(),1)}
@@ -4054,6 +4031,9 @@ function renderSnippets(){
 function activateView(viewId){
   document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===viewId));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
+  const mob=document.querySelector(`.mob-tab[data-view="${viewId}"]`);
+  if(mob){document.querySelectorAll('.mob-tab[data-view]').forEach(t=>t.classList.remove('active'));mob.classList.add('active');}
+  if(viewId==='approvalsView') loadApprovals();
 }
 function openSnippetModal(id=null){
   state.editingSnippetId=id;
@@ -4307,7 +4287,7 @@ function openDayNote(date){
   const dayPosts=state.scheduled.filter(p=>fmtDate(new Date(p.dueAt))===key);
   qs('dayModalPostPreview').innerHTML=dayPosts.length
     ?`<div class="label mb8">Scheduled posts</div>${dayPosts.map(p=>`<div class="day-post-pill mb8" style="border-radius:6px;">${safeText(p.text||'(no text)')}</div>`).join('')}`
-    :`<div class="status-txt mb8" style="font-size:12px;">No scheduled posts on this day.${state.syncState==='idle'?' <span style="color:var(--subtle);">Load from Buffer to sync posts.</span>':''}</div>`;
+    :`<div class="status-txt mb8" style="font-size:12px;">No scheduled posts on this day.${!bufferToken?' <span style="color:var(--subtle);">Connect Buffer to load scheduled posts here.</span>':' <span style="color:var(--subtle);">Load from Buffer to sync posts.</span>'}</div>`;
   qs('dayModalNotePreview').innerHTML=note.text
     ?`<div class="day-note-pill ${note.tag||'gold'} mb8"><span class="note-pill-label">${safeText(note.label||noteTags[note.tag||'gold']||'Note')}</span>${safeText(note.text)}</div>`:'';
   qs('noteStatus').textContent='';openModal('noteModal');
@@ -5445,53 +5425,20 @@ function init(){
   qs('pickerPlatform').onchange=renderSnippetPicker;
 
   renderCalendar();
-  // ── WELCOME SCREEN ──
-  function showWelcomeScreen(){
-    qs('welcomeScreen').style.display='block';
-    document.body.style.overflow='hidden';
-  }
-  function hideWelcomeScreen(){
-    qs('welcomeScreen').style.display='none';
-    document.body.style.overflow='';
-    markOnboardingSeen();
-  }
 
-  // Welcome token save
-  qs('welcomeSaveToken').onclick=()=>{
-    const token=qs('welcomeTokenInput').value.trim();
-    if(!token){qs('welcomeTokenMsg').textContent='Paste a token first.';return;}
-    const mode=[...document.querySelectorAll('input[name="welcomeTokenMode"]')]
-      .find(r=>r.checked).value;
-    localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
-    if(mode==='local')localStorage.setItem(STORE_KEY,token);
-    else sessionStorage.setItem(STORE_KEY,token);
-    bufferToken=token;
-    if(qs('tokenInput'))qs('tokenInput').value=token;
-    updateTokenUI();
-    qs('welcomeTokenMsg').textContent='✓ Token saved';
-    // Highlight step 2
-    qs('wstep2num').style.background='var(--amber)';
-    qs('wstep2num').style.color='#1a0f00';
-  };
-
-  // Welcome sync button
-  qs('welcomeSyncBtn').onclick=async()=>{
-    qs('welcomeSyncMsg').textContent='Syncing…';
-    qs('welcomeSyncBtn').disabled=true;
-    await syncBuffer();
-    const count=state.scheduled.length;
-    qs('welcomeSyncMsg').textContent=
-      count>0?`✓ Loaded ${count} scheduled posts`:'✓ Synced — no scheduled posts found yet';
-    qs('welcomeSyncBtn').disabled=false;
-    // Highlight step 3
-    qs('wstep3num').style.background='var(--amber)';
-    qs('wstep3num').style.color='#1a0f00';
-  };
-
-  qs('welcomeDoneBtn').onclick=hideWelcomeScreen;
-  qs('welcomeSkipBtn').onclick=hideWelcomeScreen;
-
-  if(!hasSeenOnboarding()) showWelcomeScreen();
+  // ── HOME VIEW ──
+  qs('homeToAppBtn').onclick=()=>activateView('composerView');
+  qs('homeConnectBtn').onclick=()=>activateView('composerView');
+  qs('homeTryToolBtn').onclick=()=>activateView('threadView');
+  qs('homeJumpThreadBtn').onclick=()=>activateView('threadView');
+  document.querySelectorAll('.home-tab').forEach(btn=>{
+    btn.onclick=()=>{
+      document.querySelectorAll('.home-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const k=btn.dataset.homeTab;
+      document.querySelectorAll('.home-tab-panel').forEach(p=>p.classList.toggle('active',p.dataset.homePanel===k));
+    };
+  });
 
   // ── COMPOSER TABS ──
   document.querySelectorAll('.composer-tab').forEach(tab => {
@@ -5568,7 +5515,6 @@ function init(){
     localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
     bufferToken='';updateTokenUI();syncMobDrawerUI();showToast('Token removed','info');
   };
-  qs('mobOpenOnboarding').onclick=()=>{closeMobDrawer();openSettings('guide');};
   qs('mobOpenFounder').onclick=()=>{closeMobDrawer();openSettings('about');};
 
   // Mobile-only buttons
@@ -5656,7 +5602,7 @@ function init(){
 
     if(!hasAny){
       const empty=document.createElement('div');empty.className='empty mt8';
-      empty.textContent='No posts or notes this month. Sync Buffer to load posts.';
+      empty.textContent='No posts or notes this month. Connect Buffer, then sync to load scheduled posts here.';
       agenda.appendChild(empty);
     }
   }
