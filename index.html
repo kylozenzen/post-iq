@@ -2625,23 +2625,20 @@
       letter-spacing: 0.06em;
     }
 
-    /* ── 17. WELCOME SCREEN — Polish ── */
-    #welcomeScreen {
-      background-image: radial-gradient(ellipse 800px 600px at 50% -100px, rgba(245,183,49,0.08) 0%, transparent 70%);
-    }
-    .welcome-step > div {
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
-      transition: border-color 0.2s;
-    }
-    .welcome-step > div:focus-within { border-color: rgba(245,183,49,0.3); }
-    #welcomeDoneBtn {
-      height: 50px;
-      font-size: 15px;
-      border-radius: 12px;
-      letter-spacing: 0.02em;
-    }
+    /* ── 17. LANDING OVERLAY + TOOL HINTS ── */
+    #welcomeScreen { background: var(--bg); }
+    .landing-shell { max-width: 960px; margin: 0 auto; }
+    .landing-grid { display:grid; grid-template-columns:1.1fr .9fr; gap:14px; }
+    .landing-card { background: var(--surface); border:1px solid var(--border); border-radius: 14px; padding: 18px; }
+    .landing-tools { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:10px; }
+    .landing-tool { border:1px solid var(--border2); border-radius:10px; padding:8px 10px; font-size:12px; color:var(--muted); }
+    .landing-tool b { color: var(--text); display:block; margin-bottom:2px; font-size:12px; }
+    .tool-tip { border:1px solid var(--border2); background:var(--surface2); border-radius:10px; padding:10px 12px; margin-bottom:10px; }
+    .tool-tip-h { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:4px; }
+    .tool-tip p { font-size:12px; color:var(--muted); margin:0; }
+    .nav-req { margin-left:auto; font-size:10px; font-family:'DM Mono',monospace; border:1px solid var(--border2); border-radius:999px; padding:1px 6px; color:var(--muted); }
+    .nav-req.ok { color:var(--green); border-color:rgba(45,212,160,.35); }
+    @media (max-width: 840px){ .landing-grid{grid-template-columns:1fr;} .landing-tools{grid-template-columns:1fr;} }
 
     /* ── 18. GLOBAL — Scrollbars, selection, focus, animations ── */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -2810,118 +2807,44 @@
 <body>
 
 <!-- ── WELCOME SCREEN ── -->
-<div id="welcomeScreen" style="display:none;position:fixed;inset:0;z-index:200;
-  background:var(--bg);overflow-y:auto;padding:40px 20px 60px;">
-  <div style="max-width:520px;margin:0 auto;">
-
-    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:28px;
-                letter-spacing:-.5px;margin-bottom:4px;">
-      Welcome to PostIQ <span style="background:var(--amber);color:#1a0f00;font-size:12px;
-        font-family:'DM Mono',monospace;font-weight:700;padding:3px 8px;border-radius:4px;
-        vertical-align:middle;">BETA</span>
-    </div>
-    <p style="font-size:15px;color:var(--muted);line-height:1.6;margin-bottom:32px;">
-      A free Buffer companion for serious creators. Get set up in three steps.
-    </p>
-
-    <!-- Step 1 -->
-    <div class="welcome-step" id="wstep1">
-      <div style="display:flex;align-items:flex-start;gap:16px;padding:20px;
-                  background:var(--surface);border:1px solid var(--border);
-                  border-radius:12px;margin-bottom:12px;">
-        <div style="width:32px;height:32px;border-radius:50%;background:var(--amber);
-                    color:#1a0f00;font-weight:800;font-family:'DM Mono',monospace;
-                    display:flex;align-items:center;justify-content:center;
-                    font-size:14px;flex-shrink:0;">1</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:15px;margin-bottom:4px;">
-            Connect your Buffer account
-          </div>
-          <p style="font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:12px;">
-            Get your API token from
-            <a href="https://publish.buffer.com/settings/api" target="_blank"
-              style="color:var(--amber);">buffer.com/settings/api</a>.
-            Your token never leaves your device.
-          </p>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <input id="welcomeTokenInput" class="input mono"
-              type="password" placeholder="Paste your Buffer token…"
-              style="flex:1;font-size:13px;" />
-            <button class="btn primary" id="welcomeSaveToken">Save</button>
-          </div>
-          <div style="display:flex;gap:14px;margin-top:8px;">
-            <label style="font-size:12px;color:var(--muted);cursor:pointer;">
-              <input type="radio" name="welcomeTokenMode" value="session" checked /> Session only
-            </label>
-            <label style="font-size:12px;color:var(--muted);cursor:pointer;">
-              <input type="radio" name="welcomeTokenMode" value="local" /> Save on this device
-            </label>
-          </div>
-          <div id="welcomeTokenMsg" style="font-size:12px;color:var(--green);
-            margin-top:6px;min-height:18px;font-family:'DM Mono',monospace;"></div>
+<div id="welcomeScreen" style="display:none;position:fixed;inset:0;z-index:200;overflow-y:auto;padding:32px 16px 60px;">
+  <div class="landing-shell">
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:32px;letter-spacing:-.04em;margin-bottom:6px;">PostIQ <span style="background:var(--amber);color:#1a0f00;font-size:11px;font-family:'DM Mono',monospace;padding:3px 7px;border-radius:999px;vertical-align:middle;">BETA</span></div>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:14px;">Plan, draft, and approve content faster with a workflow built around Buffer. This screen only appears the first time.</p>
+    <div class="landing-grid">
+      <div class="landing-card">
+        <div style="font-size:11px;color:var(--amber);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.08em;">Try before you connect</div>
+        <h2 style="font-size:28px;line-height:1.04;margin:8px 0 6px;">Six tools.<br><em style="color:var(--amber);font-style:normal;">One workflow.</em></h2>
+        <div class="landing-tools">
+          <div class="landing-tool"><b>🧵 Thread Splitter</b>No key needed</div>
+          <div class="landing-tool"><b>📈 Trending</b>No key needed</div>
+          <div class="landing-tool"><b>📚 Snippets</b>No key needed</div>
+          <div class="landing-tool"><b>✍️ Composer</b>Buffer key required</div>
+          <div class="landing-tool"><b>📅 Calendar</b>Buffer key required</div>
+          <div class="landing-tool"><b>✅ Approvals</b>Buffer key required</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+          <button class="btn primary" id="welcomeDoneBtn">Open PostIQ</button>
+          <button class="btn" id="welcomeSkipBtn">Skip for now</button>
         </div>
       </div>
-    </div>
-
-    <!-- Step 2 -->
-    <div class="welcome-step" id="wstep2">
-      <div style="display:flex;align-items:flex-start;gap:16px;padding:20px;
-                  background:var(--surface);border:1px solid var(--border);
-                  border-radius:12px;margin-bottom:12px;">
-        <div style="width:32px;height:32px;border-radius:50%;background:var(--surface3);
-                    color:var(--muted);font-weight:800;font-family:'DM Mono',monospace;
-                    display:flex;align-items:center;justify-content:center;
-                    font-size:14px;flex-shrink:0;" id="wstep2num">2</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:15px;margin-bottom:4px;">
-            Load your channels and scheduled posts
-          </div>
-          <p style="font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:12px;">
-            PostIQ reads your Buffer schedule so it can show posts in the
-            calendar and let you queue or schedule directly from the composer.
-          </p>
-          <button class="btn" id="welcomeSyncBtn" style="justify-content:center;">
-            ↻ Load from Buffer
-          </button>
-          <div id="welcomeSyncMsg" style="font-size:12px;color:var(--muted);
-            margin-top:6px;min-height:18px;font-family:'DM Mono',monospace;"></div>
+      <div class="landing-card">
+        <div style="font-weight:700;margin-bottom:6px;">Connect Buffer (optional now)</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">Your token stays in your browser. You can add or remove it later.</p>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="welcomeTokenInput" class="input mono" type="password" placeholder="Paste Buffer token…" style="flex:1;" />
+          <button class="btn primary" id="welcomeSaveToken">Save</button>
         </div>
+        <div style="display:flex;gap:14px;margin-top:8px;">
+          <label style="font-size:12px;color:var(--muted);"><input type="radio" name="welcomeTokenMode" value="session" checked /> Session</label>
+          <label style="font-size:12px;color:var(--muted);"><input type="radio" name="welcomeTokenMode" value="local" /> Local</label>
+        </div>
+        <div id="welcomeTokenMsg" style="font-size:12px;color:var(--green);margin-top:6px;min-height:16px;"></div>
+        <div style="height:1px;background:var(--border);margin:12px 0;"></div>
+        <button class="btn" id="welcomeSyncBtn">↻ Load from Buffer</button>
+        <div id="welcomeSyncMsg" style="font-size:12px;color:var(--muted);margin-top:6px;min-height:16px;"></div>
       </div>
     </div>
-
-    <!-- Step 3 -->
-    <div class="welcome-step" id="wstep3">
-      <div style="display:flex;align-items:flex-start;gap:16px;padding:20px;
-                  background:var(--surface);border:1px solid var(--border);
-                  border-radius:12px;margin-bottom:24px;">
-        <div style="width:32px;height:32px;border-radius:50%;background:var(--surface3);
-                    color:var(--muted);font-weight:800;font-family:'DM Mono',monospace;
-                    display:flex;align-items:center;justify-content:center;
-                    font-size:14px;flex-shrink:0;" id="wstep3num">3</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:15px;margin-bottom:4px;">
-            Start creating
-          </div>
-          <p style="font-size:13px;color:var(--muted);line-height:1.55;">
-            Use the Post Composer to draft and queue posts, the Thread Splitter
-            to break long copy into threads, the Calendar to plan ahead, and
-            Trending to find what to write about.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <button class="btn primary" id="welcomeDoneBtn"
-      style="width:100%;padding:16px;font-size:15px;justify-content:center;">
-      Go to PostIQ →
-    </button>
-    <div style="text-align:center;margin-top:16px;">
-      <button class="btn ghost" id="welcomeSkipBtn"
-        style="font-size:13px;color:var(--subtle);">
-        Skip setup — I'll connect later
-      </button>
-    </div>
-
   </div>
 </div>
 
@@ -3033,16 +2956,16 @@
     </div>
     <nav class="side-nav">
       <div class="nav-label">Tools</div>
-      <button class="nav-btn active" data-view="composerView"><span class="nav-icon">✍️</span> Post Composer</button>
-      <button class="nav-btn" data-view="threadView"><span class="nav-icon">🧵</span> Thread Splitter</button>
-      <button class="nav-btn" data-view="calendarView"><span class="nav-icon">📅</span> Content Calendar</button>
-      <button class="nav-btn" data-view="trendingView"><span class="nav-icon">📈</span> Trending</button>
-      <button class="nav-btn" data-view="snippetsView"><span class="nav-icon">📚</span> Snippets</button>
-      <button class="nav-btn" data-view="approvalsView"><span class="nav-icon">✅</span> Approvals</button>
+      <button class="nav-btn active" data-view="composerView"><span class="nav-icon">✍️</span> Post Composer <span class="nav-req" data-key-state="required">Key required</span></button>
+      <button class="nav-btn" data-view="threadView"><span class="nav-icon">🧵</span> Thread Splitter <span class="nav-req" data-key-state="none">No key</span></button>
+      <button class="nav-btn" data-view="calendarView"><span class="nav-icon">📅</span> Content Calendar <span class="nav-req" data-key-state="required">Key required</span></button>
+      <button class="nav-btn" data-view="trendingView"><span class="nav-icon">📈</span> Trending <span class="nav-req" data-key-state="none">No key</span></button>
+      <button class="nav-btn" data-view="snippetsView"><span class="nav-icon">📚</span> Snippets <span class="nav-req" data-key-state="none">No key</span></button>
+      <button class="nav-btn" data-view="approvalsView"><span class="nav-icon">✅</span> Approvals <span class="nav-req" data-key-state="required">Key required</span></button>
     </nav>
     <div class="side-bottom" style="padding:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
       <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="flex:1;font-size:12px;color:var(--subtle);"><span class="nav-icon">↗</span> Open Buffer</a>
-      <button id="openSettings" title="Guides &amp; Settings">⚙ Guides &amp; Settings</button>
+      <div style="display:flex;gap:6px;"><button id="showTipsBtn" title="Show tool walkthrough tips">💡 Tips</button><button id="openSettings" title="Guides &amp; Settings">⚙ Guides &amp; Settings</button></div>
     </div>
   </aside>
 
@@ -4054,6 +3977,7 @@ function renderSnippets(){
 function activateView(viewId){
   document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===viewId));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
+  maybeShowToolTip(viewId);
 }
 function openSnippetModal(id=null){
   state.editingSnippetId=id;
@@ -4127,6 +4051,10 @@ function updateTokenUI(){
   qs('statusDot').classList.toggle('connected',connected);
   qs('tokenStatusLabel').textContent=connected?'Connected':'Not connected';
   qs('tokenMaskedPreview').textContent=maskToken(bufferToken);
+  document.querySelectorAll('.nav-req[data-key-state="required"]').forEach(el=>{
+    el.textContent=connected?'Key connected':'Key required';
+    el.classList.toggle('ok',connected);
+  });
   tokenInputVisible=false;qs('tokenInput').type='password';qs('toggleTokenVisibility').textContent='Show';
 }
 function toggleTokenPanel(){
@@ -5211,6 +5139,39 @@ window.submitReviewAction=async function(uuid,action){
   }
 };
 
+
+const TOOL_TIP_KEY='postiq_tool_tips_v1';
+const TOOL_TIPS={
+  composerView:'Draft in the editor, choose a channel, then Save Draft / Queue / Schedule. Use Insert Snippet and Save Selection to speed up writing.',
+  threadView:'Paste long text, click Split thread, optionally add opener/CTA snippets, then draft/queue/schedule once channels are synced.',
+  calendarView:'Sync Buffer first, then click any date to add planning notes and keep your publishing cadence visible.',
+  trendingView:'Use Reddit, HN, or Topics to find story ideas, then send any item to Composer as a writing reference.',
+  snippetsView:'Save reusable hooks, CTAs, and hashtag sets. Insert snippets directly into Composer or Thread Splitter.',
+  approvalsView:'Load drafts from Buffer, create share links, and collect approvals/changes before publishing.'
+};
+function getDismissedTips(){try{return JSON.parse(localStorage.getItem(TOOL_TIP_KEY)||'{}')}catch{return {}}}
+function setTipDismissed(viewId,val){const m=getDismissedTips();m[viewId]=val;try{localStorage.setItem(TOOL_TIP_KEY,JSON.stringify(m))}catch{}}
+function ensureToolTip(viewId){
+  const view=qs(viewId); if(!view||!TOOL_TIPS[viewId]||view.querySelector('.tool-tip'))return;
+  const el=document.createElement('div'); el.className='tool-tip';
+  el.innerHTML='<div class="tool-tip-h"><strong>Quick walkthrough</strong><button class="btn sm ghost" data-tip-dismiss="'+viewId+'">Skip</button></div><p>'+TOOL_TIPS[viewId]+'</p>';
+  view.insertBefore(el, view.firstElementChild);
+  const btn=el.querySelector('[data-tip-dismiss]');
+  btn.onclick=()=>{ setTipDismissed(viewId,true); el.style.display='none'; };
+}
+function maybeShowToolTip(viewId){
+  ensureToolTip(viewId);
+  const dismissed=getDismissedTips()[viewId];
+  const el=qs(viewId)?.querySelector('.tool-tip');
+  if(el)el.style.display=dismissed?'none':'block';
+}
+function resetToolTips(){
+  try{localStorage.removeItem(TOOL_TIP_KEY)}catch{}
+  document.querySelectorAll('.tool-tip').forEach(el=>el.style.display='block');
+  maybeShowToolTip(document.querySelector('.view.active')?.id||'composerView');
+  showToast('Tool tips reset','success');
+}
+
 function init(){
   // ── REVIEWER PAGE CHECK ── (must be first — bypasses entire dashboard)
   const approveParam=new URLSearchParams(location.search).get('approve');
@@ -5242,6 +5203,7 @@ function init(){
     openModal('settingsModal');
   }
   qs('openSettings').onclick = () => openSettings('guide');
+  if(qs('showTipsBtn')) qs('showTipsBtn').onclick = resetToolTips;
   qs('closeSettings').onclick = () => { markOnboardingSeen(); closeModal('settingsModal'); };
   document.querySelectorAll('.settings-tab').forEach(tab => {
     tab.onclick = () => {
@@ -5469,9 +5431,6 @@ function init(){
     if(qs('tokenInput'))qs('tokenInput').value=token;
     updateTokenUI();
     qs('welcomeTokenMsg').textContent='✓ Token saved';
-    // Highlight step 2
-    qs('wstep2num').style.background='var(--amber)';
-    qs('wstep2num').style.color='#1a0f00';
   };
 
   // Welcome sync button
@@ -5483,15 +5442,13 @@ function init(){
     qs('welcomeSyncMsg').textContent=
       count>0?`✓ Loaded ${count} scheduled posts`:'✓ Synced — no scheduled posts found yet';
     qs('welcomeSyncBtn').disabled=false;
-    // Highlight step 3
-    qs('wstep3num').style.background='var(--amber)';
-    qs('wstep3num').style.color='#1a0f00';
   };
 
   qs('welcomeDoneBtn').onclick=hideWelcomeScreen;
   qs('welcomeSkipBtn').onclick=hideWelcomeScreen;
 
   if(!hasSeenOnboarding()) showWelcomeScreen();
+  maybeShowToolTip('composerView');
 
   // ── COMPOSER TABS ──
   document.querySelectorAll('.composer-tab').forEach(tab => {
