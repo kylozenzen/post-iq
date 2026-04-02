@@ -2918,6 +2918,7 @@
         <button class="btn grow" id="syncBtn" style="justify-content:center;">↻ Load from Buffer</button>
       </div>
       <div id="syncStatus" class="status-txt mt8">Not synced.</div>
+      <span id="lastSynced" class="last-synced-txt"></span>
     </div>
     <nav class="side-nav">
       <div class="nav-label">Tools</div>
@@ -2965,7 +2966,11 @@
             <button class="btn sm ghost" id="threadAddOpener">+ Opener from Snippets</button>
             <button class="btn sm ghost" id="threadAddCta">+ Ending CTA</button>
           </div>
-          <div id="threadEmpty" class="empty mt12"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">🧵</div>Paste some text first to see how PostIQ turns rough ideas into cleaner, thread-ready posts.</div>
+          <div id="threadEmpty" class="empty mt12">
+            <div class="empty-icon">✂️</div>
+            <div class="empty-title">Nothing split yet</div>
+            <div class="empty-desc">Paste some text above to see how PostIQ turns rough ideas into cleaner, thread-ready posts.</div>
+          </div>
         </div>
         <div>
           <div class="thread-actions-bar">
@@ -3020,7 +3025,14 @@
         <div class="dow-label">Wed</div><div class="dow-label">Thu</div><div class="dow-label">Fri</div><div class="dow-label">Sat</div>
       </div>
       <div class="cal-grid" id="calGrid"></div>
-      <div id="calendarEmptyHint" class="status-txt mt8" style="display:none;">Connect Buffer, then click <strong>Load from Buffer</strong> to populate scheduled posts in this calendar.</div>
+      <div id="calendarEmptyHint" class="empty mt8" style="display:none;">
+        <div class="empty-icon">📅</div>
+        <div class="empty-title">No posts scheduled</div>
+        <div class="empty-desc">Connect Buffer and sync to populate your calendar, or head to the Composer to draft your first post.</div>
+        <div class="empty-action">
+          <button class="btn primary sm" onclick="showView('composerView')">Open Composer</button>
+        </div>
+      </div>
       <!-- Mobile agenda view (hidden on desktop, shown on mobile) -->
       <div id="calAgenda"></div>
     </section>
@@ -3068,9 +3080,9 @@
             <button class="btn sm" data-cmd="ul">• List</button>
             <button class="btn sm" data-cmd="ol">1. List</button>
             <button class="btn sm ghost" data-cmd="clear">Clear</button>
-            <div class="toolbar-sep"></div>
+            <span class="tb-sep"></span>
             <button class="btn sm" id="insertSnippetBtn">Insert snippet</button>
-            <div class="toolbar-sep"></div>
+            <span class="tb-sep"></span>
             <button class="btn sm ghost" id="saveSelectionSnippetBtn">Save selection</button>
           </div>
           <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here…"></div>
@@ -3277,7 +3289,14 @@
             <select id="snippetPlatformFilter" class="input" style="max-width:180px;"></select>
             <button class="btn sm ghost" id="snippetViewToggle" title="Toggle view">⊞ Grid</button>
           </div>
-          <div id="snippetsEmpty" class="empty"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">🗂</div>No snippets yet. Create your first one to speed up writing.</div>
+          <div id="snippetsEmpty" class="empty">
+            <div class="empty-icon">⚡</div>
+            <div class="empty-title">No snippets yet</div>
+            <div class="empty-desc">Save reusable hooks, CTAs, and copy to speed up every post you write.</div>
+            <div class="empty-action">
+              <button class="btn primary sm" id="snippetsEmptyAddBtn">Add first snippet</button>
+            </div>
+          </div>
           <div id="snippetGrid" class="snippet-grid"></div>
         </div>
       </div>
@@ -3308,7 +3327,11 @@
         <button class="sub-pill" data-afilter="changes_requested">✎ Changes Requested</button>
       </div>
       <div id="approvalsLoading" class="status-txt mt8" style="display:none;">Loading drafts…</div>
-      <div id="approvalsEmpty" class="empty" style="display:none;"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">✅</div>Connect Buffer and save drafts with <strong>"Needs approval"</strong> to start routing review requests here.</div>
+      <div id="approvalsEmpty" class="empty" style="display:none;">
+        <div class="empty-icon">✅</div>
+        <div class="empty-title">No pending approvals</div>
+        <div class="empty-desc">Save a draft with "Needs approval" checked in the Composer to start routing review requests here.</div>
+      </div>
       <div id="approvalsList"></div>
     </section>
 
@@ -3391,7 +3414,16 @@ document.addEventListener('DOMContentLoaded', () => {
           <div id="topicsSavedPills" class="trending-subs" style="margin-top:8px;"></div>
         </div>
         <div id="topicsStatus" class="status-txt mt8"></div>
-        <div id="topicsList" class="trending-list"></div>
+        <div id="topicsList" class="trending-list">
+          <div class="empty" id="topicsEmpty">
+            <div class="empty-icon">📈</div>
+            <div class="empty-title">No trending topics loaded</div>
+            <div class="empty-desc">Enter a topic above and hit Search, or pick a saved topic to see what's trending.</div>
+            <div class="empty-action">
+              <button class="btn primary sm" onclick="document.getElementById('topicsSearchBtn').click()">Refresh</button>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -3729,6 +3761,7 @@ async function loadIdeas(){
   statusEl.textContent='Loading ideas…';
   qs('ideasList').innerHTML='';
   if(!bufferToken){statusEl.textContent='Add your Buffer token first.';return;}
+  qs('ideasList').insertAdjacentHTML('beforeend','<div class="view-loading">Fetching from Buffer\u2026</div>');
   try{
     const acc=await callBuffer('query { account { organizations { id } } }');
     const orgId=acc?.data?.account?.organizations?.[0]?.id;
@@ -3752,7 +3785,7 @@ async function loadIdeas(){
     });
     statusEl.textContent='';
     renderIdeas(state.ideasCache);
-  }catch(e){statusEl.textContent='Error: '+e.message;}
+  }catch(e){qs('ideasList').querySelector('.view-loading')?.remove();statusEl.textContent='Error: '+e.message;}
 }
 
 function renderIdeas(list){
@@ -4024,6 +4057,8 @@ function setSyncStatus(stateName,msg){
 function updateTokenUI(){
   const connected=!!bufferToken;
   qs('statusDot').classList.toggle('connected',connected);
+  if(connected) document.querySelector('.side-nav').dataset.connected='true';
+  else document.querySelector('.side-nav').removeAttribute('data-connected');
   qs('tokenStatusLabel').textContent=connected?'Connected':'Not connected';
   qs('tokenMaskedPreview').textContent=maskToken(bufferToken);
   tokenInputVisible=false;qs('tokenInput').type='password';qs('toggleTokenVisibility').textContent='Show';
@@ -4098,6 +4133,7 @@ async function syncBuffer(){
   const origLabel=syncBtn.innerHTML;
   syncBtn.innerHTML='<span class="syncing-icon">↻</span> Syncing…';
   syncBtn.disabled=true;
+  qs('calGrid').insertAdjacentHTML('beforeend','<div class="view-loading">Fetching from Buffer\u2026</div>');
   try{
     const acc=await callBuffer('query { account { organizations { id name } } }');
     const orgId=acc?.data?.account?.organizations?.[0]?.id;
@@ -4116,6 +4152,8 @@ async function syncBuffer(){
     }
     state.scheduled=all;renderChannelSelects();renderCalendar();
     setSyncStatus('success',`${all.length} scheduled posts loaded.`);
+    const _now=new Date();const _t=_now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('lastSynced').textContent=`synced ${_t}`;
     qs('syncBtn').classList.remove('sync-pulse');
     showToast(`Loaded ${all.length} posts`,'success');
     window.dispatchEvent(new Event('postiq:synced'));
@@ -4127,6 +4165,7 @@ async function syncBuffer(){
     else setSyncStatus('failed',`Sync failed: ${m||'unknown error'}`);
     showToast('Sync failed — check your token','error');
   }finally{
+    qs('calGrid').querySelector('.view-loading')?.remove();
     syncBtn.innerHTML=origLabel;
     syncBtn.disabled=false;
   }
@@ -4696,6 +4735,7 @@ async function loadApprovals(){
     // Fetch Buffer drafts if connected (best-effort — local data is source of truth)
     let bufferDrafts=[];
     if(bufferToken){
+      listEl.insertAdjacentHTML('beforeend','<div class="view-loading">Fetching from Buffer\u2026</div>');
       try{
         const acc=await callBuffer('query { account { organizations { id } } }');
         const orgId=acc?.data?.account?.organizations?.[0]?.id;
@@ -4705,6 +4745,7 @@ async function loadApprovals(){
           bufferDrafts=(dr?.data?.posts?.edges||[]).map(e=>e.node);
         }
       }catch(e){console.warn('[PostIQ] drafts fetch:',e);}
+      listEl.querySelector('.view-loading')?.remove();
     }
     // Sync remote approval status for posts with generated links
     for(const meta of metas){
@@ -5354,6 +5395,7 @@ function init(){
   loadSnippets();renderSnippets();
   renderSnippetSelectors();
   qs('newSnippetBtn').onclick=()=>openSnippetModal();
+  if(qs('snippetsEmptyAddBtn'))qs('snippetsEmptyAddBtn').onclick=()=>openSnippetModal();
   qs('closeSnippetModal').onclick=()=>closeModal('snippetModal');
   qs('cancelSnippetBtn').onclick=()=>closeModal('snippetModal');
   qs('saveSnippetBtn').onclick=saveSnippet;
@@ -5538,7 +5580,7 @@ function init(){
 
     if(!hasAny){
       const empty=document.createElement('div');empty.className='empty mt8';
-      empty.textContent='No posts or notes this month. Connect Buffer, then sync to load scheduled posts here.';
+      empty.innerHTML='<div class="empty-icon">📅</div><div class="empty-title">No posts scheduled</div><div class="empty-desc">Connect Buffer and sync to load scheduled posts, or open the Composer to draft your first post.</div>';
       agenda.appendChild(empty);
     }
   }
