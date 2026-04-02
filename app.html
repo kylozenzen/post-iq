@@ -233,8 +233,30 @@
       color: var(--subtle);
     }
     .token-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .token-actions .btn { flex: 1; }
+    .token-value {
+      min-height: 18px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
     .token-panel { display: none; margin-top: 10px; }
+    .sync-status-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-top: 8px;
+      min-height: 34px;
+    }
+    #syncStatus,
+    #lastSynced {
+      line-height: 1.35;
+      font-size: 11px;
+    }
+    #lastSynced { color: var(--subtle); min-height: 15px; }
     .token-panel.open { display: block; }
 
     .side-sync {
@@ -295,9 +317,17 @@
       background: var(--amber);
       border-radius: 0 3px 3px 0;
     }
-    .nav-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+    .nav-icon { font-size: 14px; width: 18px; text-align: center; flex: 0 0 18px; }
+    .nav-text {
+      flex: 1 1 auto;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .nav-badge {
       margin-left: auto;
+      flex-shrink: 0;
       font-size: 9px;
       font-family: 'DM Mono', monospace;
       text-transform: uppercase;
@@ -457,6 +487,21 @@
       color: var(--muted);
       font-size: 13px;
       text-align: center;
+    }
+    .empty-state { display:flex; flex-direction:column; align-items:center; gap:6px; }
+    .empty-icon { font-size: 26px; opacity: .65; line-height: 1; }
+    .empty-title { font-size: 14px; color: var(--text); font-weight: 600; }
+    .empty-desc { font-size: 12px; color: var(--muted); line-height: 1.55; max-width: 60ch; }
+    .view-loading {
+      border: 1px dashed var(--border2);
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.01);
     }
 
     /* ── STATUS TEXT ── */
@@ -2295,7 +2340,7 @@
       color: var(--text);
       border-color: var(--border2);
     }
-    .toolbar-sep {
+    .toolbar-sep, .tb-sep {
       width: 1px;
       height: 18px;
       background: var(--border2);
@@ -2868,11 +2913,11 @@
   <div class="divider"></div>
 
   <div style="display:flex;flex-direction:column;gap:4px;">
-    <button class="nav-btn" data-view="snippetsView" id="mobSnippetsBtn"><span class="nav-icon">📚</span> Snippets</button>
-    <button class="nav-btn" data-view="approvalsView" id="mobApprovalsBtn"><span class="nav-icon">✅</span> Approvals</button>
+    <button class="nav-btn" data-view="snippetsView" id="mobSnippetsBtn"><span class="nav-icon">📚</span><span class="nav-text">Snippets</span></button>
+    <button class="nav-btn" data-view="approvalsView" id="mobApprovalsBtn"><span class="nav-icon">✅</span><span class="nav-text">Approvals</span></button>
     <div style="height:1px;background:var(--border);margin:4px 0;"></div>
-        <button class="nav-btn" id="mobOpenFounder"><span class="nav-icon">🏗</span> Built by Ben</button>
-    <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener"><span class="nav-icon">↗</span> Open Buffer</a>
+        <button class="nav-btn" id="mobOpenFounder"><span class="nav-icon">🏗</span><span class="nav-text">Built by Ben</span></button>
+    <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener"><span class="nav-icon">↗</span><span class="nav-text">Open Buffer</span></a>
   </div>
 </div>
 
@@ -2888,7 +2933,7 @@
         <div class="status-dot" id="statusDot"></div>
         <span class="token-label" id="tokenStatusLabel">Not connected</span>
       </div>
-      <div class="token-value mono" id="tokenMaskedPreview">—</div>
+      <div class="token-value mono" id="tokenMaskedPreview">Not connected</div>
       <div class="token-actions">
         <button class="btn sm" id="manageTokenBtn">Manage</button>
         <button class="btn sm ghost" id="revealCompactBtn">Reveal</button>
@@ -2910,26 +2955,26 @@
           <button class="btn sm primary" id="saveTokenBtn">Save</button>
           <button class="btn sm ghost" id="clearTokenBtn">Remove</button>
         </div>
-        <div id="tokenMsg" class="status-txt mt8">—</div>
+        <div id="tokenMsg" class="status-txt mt8"></div>
       </div>
     </div>
     <div class="side-sync">
       <div class="row">
         <button class="btn grow" id="syncBtn" style="justify-content:center;">↻ Load from Buffer</button>
       </div>
-      <div id="syncStatus" class="status-txt mt8">Not synced.</div>
+      <div class="sync-status-wrap"><div id="syncStatus" class="status-txt">Not synced.</div><div id="lastSynced" class="status-txt">Not synced yet.</div></div>
     </div>
     <nav class="side-nav">
       <div class="nav-label">Tools</div>
-      <button class="nav-btn active" data-view="composerView"><span class="nav-icon">✍️</span> Post Composer <span class="nav-badge key" data-key-badge="composer">Needs Key</span></button>
-      <button class="nav-btn" data-view="threadView"><span class="nav-icon">🧵</span> Thread Splitter</button>
-      <button class="nav-btn" data-view="calendarView"><span class="nav-icon">📅</span> Content Calendar <span class="nav-badge key" data-key-badge="calendar">Needs Key</span></button>
-      <button class="nav-btn" data-view="trendingView"><span class="nav-icon">📈</span> Trending <span class="nav-badge preview">Preview</span></button>
-      <button class="nav-btn" data-view="snippetsView"><span class="nav-icon">📚</span> Snippets <span class="nav-badge preview">Preview</span></button>
-      <button class="nav-btn" data-view="approvalsView"><span class="nav-icon">✅</span> Approvals <span class="nav-badge key" data-key-badge="approvals">Needs Key</span></button>
+      <button class="nav-btn active" data-view="composerView"><span class="nav-icon">✍️</span><span class="nav-text">Post Composer</span><span class="nav-badge key" data-key-badge="composer">Needs Key</span></button>
+      <button class="nav-btn" data-view="threadView"><span class="nav-icon">🧵</span><span class="nav-text">Thread Splitter</span></button>
+      <button class="nav-btn" data-view="calendarView"><span class="nav-icon">📅</span><span class="nav-text">Content Calendar</span><span class="nav-badge key" data-key-badge="calendar">Needs Key</span></button>
+      <button class="nav-btn" data-view="trendingView"><span class="nav-icon">📈</span><span class="nav-text">Trending</span><span class="nav-badge preview">Preview</span></button>
+      <button class="nav-btn" data-view="snippetsView"><span class="nav-icon">📚</span><span class="nav-text">Snippets</span><span class="nav-badge preview">Preview</span></button>
+      <button class="nav-btn" data-view="approvalsView"><span class="nav-icon">✅</span><span class="nav-text">Approvals</span><span class="nav-badge key" data-key-badge="approvals">Needs Key</span></button>
     </nav>
     <div class="side-bottom" style="padding:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-      <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="flex:1;font-size:12px;color:var(--subtle);"><span class="nav-icon">↗</span> Open Buffer</a>
+      <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="flex:1;font-size:12px;color:var(--subtle);"><span class="nav-icon">↗</span><span class="nav-text">Open Buffer</span></a>
       <button id="openSettings" title="Guides &amp; Settings">⚙ Guides &amp; Settings</button>
     </div>
   </aside>
@@ -2965,7 +3010,7 @@
             <button class="btn sm ghost" id="threadAddOpener">+ Opener from Snippets</button>
             <button class="btn sm ghost" id="threadAddCta">+ Ending CTA</button>
           </div>
-          <div id="threadEmpty" class="empty mt12"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">🧵</div>Paste some text first to see how PostIQ turns rough ideas into cleaner, thread-ready posts.</div>
+          <div id="threadEmpty" class="empty mt12"><div class="empty-state"><div class="empty-icon">✂️</div><div class="empty-title">Nothing split yet</div><div class="empty-desc">Paste your source post, then split it into clean thread parts ready to edit and publish.</div></div></div>
         </div>
         <div>
           <div class="thread-actions-bar">
@@ -3052,29 +3097,23 @@
         <a class="btn sm ghost" id="trendingRefLink" href="#" target="_blank" rel="noopener" style="font-size:11px;">↗ View source</a>
       </div>
 
-      <!-- Composer tabs -->
-      <div class="composer-tabs">
-        <button class="composer-tab active" data-ctab="write">✍️ Write</button>
-        <!-- Ideas tab hidden until Buffer read API opens publicly -->
-        <!-- <button class="composer-tab" data-ctab="ideas">💡 Ideas</button> -->
-      </div>
-
       <!-- ── WRITE TAB ── -->
       <div id="composerTabWrite" class="composer-tab-panel">
         <div class="card">
           <div class="rich-toolbar">
             <button class="btn sm" data-cmd="bold"><strong>B</strong></button>
             <button class="btn sm" data-cmd="italic"><em>I</em></button>
+            <span class="tb-sep"></span>
             <button class="btn sm" data-cmd="ul">• List</button>
             <button class="btn sm" data-cmd="ol">1. List</button>
-            <button class="btn sm ghost" data-cmd="clear">Clear</button>
-            <div class="toolbar-sep"></div>
+            <span class="tb-sep"></span>
             <button class="btn sm" id="insertSnippetBtn">Insert snippet</button>
-            <div class="toolbar-sep"></div>
             <button class="btn sm ghost" id="saveSelectionSnippetBtn">Save selection</button>
+            <span class="tb-sep"></span>
+            <button class="btn sm ghost" data-cmd="clear">Clear</button>
           </div>
           <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here…"></div>
-          <div id="composerEmpty" class="empty mt8" style="display:none;"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">✍️</div>Connect Buffer to unlock drafts, queueing, and scheduling. You can still write here right now.</div>
+          <div id="composerEmpty" class="empty mt8" style="display:none;"><div class="empty-state"><div class="empty-icon">✍️</div><div class="empty-title">Ready to compose</div><div class="empty-desc">Connect Buffer to unlock drafts, queueing, and scheduling. You can still write here right now.</div></div></div>
 
           <div class="composer-controls mt10">
             <div class="composer-row-a">
@@ -3277,7 +3316,7 @@
             <select id="snippetPlatformFilter" class="input" style="max-width:180px;"></select>
             <button class="btn sm ghost" id="snippetViewToggle" title="Toggle view">⊞ Grid</button>
           </div>
-          <div id="snippetsEmpty" class="empty"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">🗂</div>No snippets yet. Create your first one to speed up writing.</div>
+          <div id="snippetsEmpty" class="empty"><div class="empty-state"><div class="empty-icon">⚡</div><div class="empty-title">No snippets yet</div><div class="empty-desc">Create your first snippet to quickly reuse hooks, CTAs, hashtag sets, and openers.</div></div></div>
           <div id="snippetGrid" class="snippet-grid"></div>
         </div>
       </div>
@@ -3307,8 +3346,8 @@
         <button class="sub-pill" data-afilter="approved">✓ Approved</button>
         <button class="sub-pill" data-afilter="changes_requested">✎ Changes Requested</button>
       </div>
-      <div id="approvalsLoading" class="status-txt mt8" style="display:none;">Loading drafts…</div>
-      <div id="approvalsEmpty" class="empty" style="display:none;"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">✅</div>Connect Buffer and save drafts with <strong>"Needs approval"</strong> to start routing review requests here.</div>
+      <div id="approvalsLoading" class="status-txt mt8" style="display:none;">Fetching from Buffer…</div>
+      <div id="approvalsEmpty" class="empty" style="display:none;"><div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">No pending approvals</div><div class="empty-desc">Connect Buffer and save drafts with <strong>"Needs approval"</strong> to start routing review requests here.</div></div></div>
       <div id="approvalsList"></div>
     </section>
 
@@ -3617,7 +3656,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <select id="pickerPlatform" class="input" style="max-width:160px;"></select>
   </div>
   <div id="pickerList" class="picker-list"></div>
-  <div id="pickerEmpty" class="empty mt8">No snippets match these filters.</div>
+  <div id="pickerEmpty" class="empty mt8"><div class="empty-state"><div class="empty-icon">⚡</div><div class="empty-title">No snippets found</div><div class="empty-desc">Try a different search or filter to find matching snippets.</div></div></div>
 </div></div>
 
 <!-- Toast container -->
@@ -3785,9 +3824,12 @@ function useIdeaInComposer(id){
   updateComposerCharCount&&updateComposerCharCount();
   // switch back to write tab
   document.querySelectorAll('.composer-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelector('.composer-tab[data-ctab="write"]').classList.add('active');
-  qs('composerTabWrite').style.display='block';
-  qs('composerTabIdeas').style.display='none';
+  const writeTab=document.querySelector('.composer-tab[data-ctab="write"]');
+  if(writeTab)writeTab.classList.add('active');
+  const composerWrite=qs('composerTabWrite');
+  const composerIdeas=qs('composerTabIdeas');
+  if(composerWrite)composerWrite.style.display='block';
+  if(composerIdeas)composerIdeas.style.display='none';
   showToast('Idea imported ✓','success');
 }
 
@@ -4015,17 +4057,46 @@ function renderSnippetPicker(){
 }
 
 // ── TOKEN ──
+function showFetchLoading(container){
+  if(!container) return null;
+  let el=container.querySelector('.view-loading[data-loading="buffer"]');
+  if(el) return el;
+  el=document.createElement('div');
+  el.className='view-loading';
+  el.dataset.loading='buffer';
+  el.textContent='Fetching from Buffer…';
+  container.prepend(el);
+  return el;
+}
+function clearFetchLoading(container){
+  if(!container) return;
+  container.querySelectorAll('.view-loading[data-loading="buffer"]').forEach(el=>el.remove());
+}
 function setSyncStatus(stateName,msg){
   state.syncState=stateName;
   const el=qs('syncStatus');
+  const lastEl=qs('lastSynced');
   el.textContent=msg;
   el.style.color = stateName==='success' ? 'var(--green)' : stateName==='failed' ? 'var(--red)' : 'var(--muted)';
+  if(lastEl){
+    if(stateName==='success'){
+      const now=new Date();
+      lastEl.textContent=`Synced at ${now.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}`;
+    }else if(stateName==='failed' && !state.scheduled?.length){
+      lastEl.textContent='Not synced yet.';
+    }
+  }
 }
 function updateTokenUI(){
   const connected=!!bufferToken;
   qs('statusDot').classList.toggle('connected',connected);
   qs('tokenStatusLabel').textContent=connected?'Connected':'Not connected';
   qs('tokenMaskedPreview').textContent=maskToken(bufferToken);
+  const sideNav=document.querySelector('.side-nav');
+  if(sideNav){
+    if(connected)sideNav.dataset.connected='true';
+    else sideNav.removeAttribute('data-connected');
+  }
   tokenInputVisible=false;qs('tokenInput').type='password';qs('toggleTokenVisibility').textContent='Show';
   updateViewStatePills();
   updateSidebarBadges();
@@ -4094,6 +4165,8 @@ function setNotes(v){localStorage.setItem(NOTE_KEY,JSON.stringify(v))}
 async function syncBuffer(){
   if(!bufferToken){setSyncStatus('failed','Add your Buffer token first.');return;}
   setSyncStatus('syncing','Syncing…');
+  showFetchLoading(qs('calGrid'));
+  showFetchLoading(qs('calAgenda'));
   const syncBtn=qs('syncBtn');
   const origLabel=syncBtn.innerHTML;
   syncBtn.innerHTML='<span class="syncing-icon">↻</span> Syncing…';
@@ -4127,6 +4200,8 @@ async function syncBuffer(){
     else setSyncStatus('failed',`Sync failed: ${m||'unknown error'}`);
     showToast('Sync failed — check your token','error');
   }finally{
+    clearFetchLoading(qs('calGrid'));
+    clearFetchLoading(qs('calAgenda'));
     syncBtn.innerHTML=origLabel;
     syncBtn.disabled=false;
   }
@@ -4545,8 +4620,10 @@ let _pastLoaded=false,_pastCache=[];
 async function loadPastImages(){
   if(_pastLoaded&&_pastCache.length){renderPastImages(_pastCache);return;}
   const grid=qs('pastImagesGrid'),status=qs('pastImagesStatus'),empty=qs('pastImagesEmpty');
-  grid.innerHTML=Array(8).fill('<div class="unsplash-skeleton" style="aspect-ratio:1;border-radius:8px;"></div>').join('');
-  empty.style.display='none';status.textContent='Loading images from Buffer…';
+  grid.innerHTML='';
+  empty.style.display='none';
+  status.textContent='';
+  showFetchLoading(grid);
   const seen=new Set(),images=[];
   (state.scheduled||[]).forEach(p=>(p.assets||[]).forEach(a=>{
     const src=a.source||a.thumbnail;
@@ -4566,6 +4643,7 @@ async function loadPastImages(){
     }catch(err){console.warn('[PostIQ] past images:',err);}
   }
   _pastCache=images;_pastLoaded=true;
+  clearFetchLoading(grid);
   status.textContent=images.length?`${images.length} past image${images.length!==1?'s':''} — click to use`:'';
   renderPastImages(images);
 }
@@ -4687,12 +4765,13 @@ async function loadApprovals(){
   const loadingEl=qs('approvalsLoading');
   const emptyEl=qs('approvalsEmpty');
   if(!listEl)return;
-  loadingEl.style.display='block';
+  loadingEl.style.display='none';
   listEl.innerHTML='';
+  showFetchLoading(listEl);
   emptyEl.style.display='none';
   try{
     const metas=getAllApprovalMetas();
-    if(!metas.length){emptyEl.style.display='block';loadingEl.style.display='none';approvalsState.loading=false;return;}
+    if(!metas.length){clearFetchLoading(listEl);emptyEl.style.display='block';approvalsState.loading=false;return;}
     // Fetch Buffer drafts if connected (best-effort — local data is source of truth)
     let bufferDrafts=[];
     if(bufferToken){
@@ -4722,11 +4801,13 @@ async function loadApprovals(){
         }catch(e){console.warn('[PostIQ] approval sync:',e);}
       }
     }
-    loadingEl.style.display='none';
+    clearFetchLoading(listEl);
     if(!metas.length){emptyEl.style.display='block';}
     else{metas.forEach(meta=>{const bp=bufferDrafts.find(p=>p.id===meta.draftId)||null;renderApprovalCard(meta,bp);});}
   }catch(e){
     console.error('[PostIQ] loadApprovals:',e);
+    clearFetchLoading(listEl);
+    loadingEl.style.display='block';
     loadingEl.textContent='Failed to load approvals.';
   }finally{approvalsState.loading=false;}
 }
@@ -5382,8 +5463,10 @@ function init(){
       document.querySelectorAll('.composer-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       const panel = tab.dataset.ctab;
-      qs('composerTabWrite').style.display = panel === 'write' ? 'block' : 'none';
-      qs('composerTabIdeas').style.display = panel === 'ideas' ? 'block' : 'none';
+      const composerWrite=qs('composerTabWrite');
+      const composerIdeas=qs('composerTabIdeas');
+      if(composerWrite)composerWrite.style.display = panel === 'write' ? 'block' : 'none';
+      if(composerIdeas)composerIdeas.style.display = panel === 'ideas' ? 'block' : 'none';
       if (panel === 'ideas' && !state.ideasLoaded) loadIdeas();
     };
   });
@@ -5538,7 +5621,7 @@ function init(){
 
     if(!hasAny){
       const empty=document.createElement('div');empty.className='empty mt8';
-      empty.textContent='No posts or notes this month. Connect Buffer, then sync to load scheduled posts here.';
+      empty.innerHTML='<div class="empty-state"><div class="empty-icon">📅</div><div class="empty-title">No posts scheduled</div><div class="empty-desc">No posts or notes this month yet. Connect Buffer, then sync to load your upcoming schedule.</div></div>';
       agenda.appendChild(empty);
     }
   }
@@ -5635,8 +5718,9 @@ function init(){
     const list = document.getElementById('trendingRedditList');
     const status = document.getElementById('trendingRedditStatus');
     if (!list) return;
-    status.textContent = 'Loading…';
+    status.textContent = '';
     list.innerHTML = '';
+    showFetchLoading(list);
     try {
       const res = await fetch(`https://www.reddit.com/r/${trendingState.sub}/hot.json?limit=25`, {
         headers: { 'Accept': 'application/json' }
@@ -5644,6 +5728,7 @@ function init(){
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const posts = (data?.data?.children || []).filter(p => !p.data.stickied);
+      clearFetchLoading(list);
       status.textContent = `${posts.length} posts from r/${trendingState.sub}`;
       renderTrendingItems(list, posts.map((p, i) => ({
         rank: i + 1,
@@ -5660,6 +5745,7 @@ function init(){
       })));
     } catch(e) {
       status.textContent = `Failed to load — Reddit may be blocking the request. Try again.`;
+      clearFetchLoading(list);
       console.warn('[PostIQ] Reddit fetch failed:', e);
     }
   }
@@ -5668,16 +5754,17 @@ function init(){
     const list = document.getElementById('trendingHNList');
     const status = document.getElementById('trendingHNStatus');
     if (!list) return;
-    status.textContent = 'Loading…';
+    status.textContent = '';
     list.innerHTML = '';
+    showFetchLoading(list);
     try {
       const idsRes = await fetch(`https://hacker-news.firebaseio.com/v0/${trendingState.hnFeed}.json`);
       const ids = await idsRes.json();
       const top = ids.slice(0, 20);
-      status.textContent = 'Fetching stories…';
       const stories = await Promise.all(
         top.map(id => fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(r => r.json()))
       );
+      clearFetchLoading(list);
       status.textContent = `${stories.length} stories from Hacker News`;
       renderTrendingItems(list, stories.filter(s => s && s.title).map((s, i) => ({
         rank: i + 1,
@@ -5691,12 +5778,17 @@ function init(){
       })));
     } catch(e) {
       status.textContent = 'Failed to load Hacker News.';
+      clearFetchLoading(list);
       console.warn('[PostIQ] HN fetch failed:', e);
     }
   }
 
   function renderTrendingItems(container, items) {
     container.innerHTML = '';
+    if(!items.length){
+      container.innerHTML = '<div class="empty"><div class="empty-state"><div class="empty-icon">📈</div><div class="empty-title">No trending topics loaded</div><div class="empty-desc">Refresh to fetch current stories from the selected source.</div></div></div>';
+      return;
+    }
     items.forEach(item => {
       const el = document.createElement('div');
       el.className = 'trending-item';
@@ -5850,8 +5942,9 @@ function init(){
     const list = document.getElementById('topicsList');
     const status = document.getElementById('topicsStatus');
     if (!list || !term) return;
-    status.textContent = `Searching Reddit for "${term}"…`;
+    status.textContent = '';
     list.innerHTML = '';
+    showFetchLoading(list);
     try {
       const res = await fetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(term)}&sort=hot&limit=25&type=link`, {
         headers: { 'Accept': 'application/json' }
@@ -5859,7 +5952,8 @@ function init(){
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const posts = (data?.data?.children || []).filter(p => !p.data.stickied);
-      if (!posts.length) { status.textContent = `No results for "${term}".`; return; }
+      if (!posts.length) { clearFetchLoading(list); status.textContent = `No results for "${term}".`; list.innerHTML='<div class="empty"><div class="empty-state"><div class="empty-icon">📈</div><div class="empty-title">No trending topics loaded</div><div class="empty-desc">Try another keyword or refresh to fetch current posts.</div></div></div>'; return; }
+      clearFetchLoading(list);
       status.textContent = `${posts.length} results for "${term}"`;
       addTopic(term);
       renderTopicsPills();
@@ -5878,6 +5972,7 @@ function init(){
       })));
     } catch(e) {
       status.textContent = `Search failed — Reddit may be blocking. Try again.`;
+      clearFetchLoading(list);
       console.warn('[PostIQ] Topics search failed:', e);
     }
   }
