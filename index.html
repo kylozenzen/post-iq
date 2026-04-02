@@ -742,7 +742,7 @@ h2 em { font-style: normal; color: var(--amber); }
   padding: 0 18px 18px;
 }
 
-/* ── CONNECT / WAITLIST ── */
+/* ── FINAL CTA ── */
 .connect {
   padding: 56px 0 96px;
   text-align: center;
@@ -787,93 +787,6 @@ h2 em { font-style: normal; color: var(--amber); }
   line-height: 1.68;
 }
 
-.input-row {
-  display: flex;
-  gap: 0;
-  border-radius: 14px;
-  overflow: hidden;
-  border: 1px solid var(--border-2);
-  background: #0a0a0d;
-  width: min(580px, 100%);
-  margin: 0 auto;
-  transition: border-color .15s, box-shadow .15s;
-}
-
-.input-row:focus-within {
-  border-color: rgba(245,183,49,.35);
-  box-shadow: 0 0 0 3px rgba(245,183,49,.07);
-}
-
-.input-row input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  color: var(--text);
-  padding: 15px 18px;
-  font-family: 'DM Mono', monospace;
-  font-size: .9rem;
-  min-width: 0;
-  outline: none;
-}
-
-.input-row input::placeholder { color: var(--subtle); }
-
-.input-row button {
-  border-radius: 0;
-  border: none;
-  border-left: 1px solid var(--border-2);
-  min-width: 180px;
-  font-size: .9rem;
-}
-
-.fineprint {
-  margin-top: 16px;
-  color: var(--subtle);
-  font-family: 'DM Mono', monospace;
-  font-size: .72rem;
-  line-height: 1.9;
-}
-
-.fineprint a { color: var(--amber); text-decoration: none; }
-.fineprint a:hover { text-decoration: underline; }
-
-.message {
-  min-height: 20px;
-  margin-top: 14px;
-  font-family: 'DM Mono', monospace;
-  font-size: .8rem;
-  text-align: center;
-}
-
-.message.success { color: var(--green); }
-.message.error { color: var(--red); }
-
-/* ── SCROLL REVEAL ── */
-.reveal {
-  opacity: 0;
-  transform: translateY(16px);
-  transition: opacity .5s ease, transform .5s ease;
-}
-
-.reveal.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* stagger children */
-.reveal-group > * {
-  opacity: 0;
-  transform: translateY(14px);
-  transition: opacity .45s ease, transform .45s ease;
-}
-
-.reveal-group.visible > *:nth-child(1) { opacity: 1; transform: none; transition-delay: .05s; }
-.reveal-group.visible > *:nth-child(2) { opacity: 1; transform: none; transition-delay: .12s; }
-.reveal-group.visible > *:nth-child(3) { opacity: 1; transform: none; transition-delay: .19s; }
-.reveal-group.visible > *:nth-child(4) { opacity: 1; transform: none; transition-delay: .26s; }
-.reveal-group.visible > *:nth-child(5) { opacity: 1; transform: none; transition-delay: .33s; }
-.reveal-group.visible > *:nth-child(6) { opacity: 1; transform: none; transition-delay: .40s; }
-
 /* ── RESPONSIVE ── */
 @media (max-width: 980px) {
   .hero-top { grid-template-columns: 1fr; }
@@ -891,8 +804,6 @@ h2 em { font-style: normal; color: var(--amber); }
   .hero-ctas { flex-direction: column; align-items: stretch; }
   .hero-ctas .btn { text-align: center; }
   .top-actions .btn:first-child { display: none; } /* hide secondary nav CTA on mobile */
-  .input-row { flex-direction: column; }
-  .input-row button { width: 100%; min-width: 0; border-left: none; border-top: 1px solid var(--border-2); border-radius: 0 0 14px 14px; }
   .connect-card { padding: 24px 20px; }
   section { padding: 40px 0 8px; }
 }
@@ -909,8 +820,8 @@ h2 em { font-style: normal; color: var(--amber); }
   <div class="topbar">
     <a href="#" class="brand">PostIQ <span class="badge">Beta</span></a>
     <div class="top-actions">
-      <a href="app.html" class="btn ghost">Open app</a>
-      <a href="app.html?view=threadView" class="btn primary">Try a tool first</a>
+      <a href="app.html" class="btn ghost">Open PostIQ</a>
+      <a href="app.html?view=threadView" class="btn primary">Try Thread Splitter</a>
     </div>
   </div>
 
@@ -927,15 +838,15 @@ h2 em { font-style: normal; color: var(--amber); }
           A Buffer Companion App
         </div>
         <h1>Give your <em>Buffer</em><br>workflow superpowers.</h1>
-        <p>Plan, draft, and approve content faster with a workflow built to make Buffer easier to use.</p>
+        <p>A faster layer for planning, drafting, and approvals—built alongside your Buffer workflow.</p>
 
         <div class="hero-ctas">
-          <a href="app.html" class="btn primary">Take me to PostIQ</a>
-          <a href="#try" class="btn">See how it works</a>
+          <a href="app.html" class="btn primary">Open PostIQ</a>
+          <a href="#try" class="btn">Try Thread Splitter</a>
         </div>
 
         <div class="trust-strip">
-          <div class="trust-pill">No login required</div>
+          <div class="trust-pill">No login needed</div>
           <div class="trust-pill">Stored in your browser</div>
           <div class="trust-pill">Connect when ready</div>
         </div>
@@ -943,7 +854,7 @@ h2 em { font-style: normal; color: var(--amber); }
         <div class="proof-line">
           <div class="proof-avatar">BC</div>
           <div class="proof-text">
-            <strong>Built by a practitioner.</strong> Grew a social account to 6M+ followers as a solo operator. PostIQ is the tool I wished Buffer already had.
+            <strong>Built by a practitioner.</strong> Created by a solo operator who grew a social account to 6M+ followers—now shaped into extra tools for Buffer users.
           </div>
         </div>
       </div>
@@ -959,7 +870,7 @@ h2 em { font-style: normal; color: var(--amber); }
             <textarea id="demoInputHero" placeholder="Paste a chunky paragraph, blog intro, newsletter snippet, or idea dump here. Then split it into thread-ready posts."></textarea>
             <div class="demo-actions">
               <button class="btn primary" id="splitBtnHero" type="button">Split into thread posts</button>
-              <div class="helper">No Buffer key needed</div>
+              <div class="helper">No key needed</div>
             </div>
           </div>
         </div>
@@ -970,7 +881,7 @@ h2 em { font-style: normal; color: var(--amber); }
           </div>
           <div class="demo-body">
             <div id="threadOutputHero" class="thread-output">
-              <div class="empty">Paste some text first to see how PostIQ turns rough ideas into thread-ready posts.</div>
+              <div class="empty">Paste text to get instant thread-ready posts you can refine and share.</div>
             </div>
           </div>
         </div>
@@ -982,14 +893,14 @@ h2 em { font-style: normal; color: var(--amber); }
   <section id="try" class="mobile-demo">
     <div class="section-label">Try before you connect</div>
     <h2>Start with a quick win.</h2>
-    <div class="section-desc">Try the Thread Splitter first and see how PostIQ helps turn rough ideas into cleaner, ready-to-share content.</div>
+    <div class="section-desc">Start with Thread Splitter for a quick win—no key needed.</div>
     <div class="panel">
       <div class="panel-head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="panel-label">Thread Splitter Demo</span></div>
       <div class="demo-body">
         <textarea id="demoInputMobile" placeholder="Paste a chunky paragraph, blog intro, newsletter snippet, or idea dump here."></textarea>
         <div class="demo-actions">
           <button class="btn primary" id="splitBtnMobile" type="button">Split into thread posts</button>
-          <div class="helper">No Buffer key needed for this demo</div>
+          <div class="helper">No key needed for this demo</div>
         </div>
       </div>
     </div>
@@ -997,7 +908,7 @@ h2 em { font-style: normal; color: var(--amber); }
       <div class="panel-head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="panel-label">Output</span></div>
       <div class="demo-body">
         <div id="threadOutputMobile" class="thread-output">
-          <div class="empty">Paste some text first to see how PostIQ turns rough ideas into cleaner, thread-ready posts.</div>
+          <div class="empty">Paste text to instantly split it into clean, thread-ready posts.</div>
         </div>
       </div>
     </div>
@@ -1007,44 +918,44 @@ h2 em { font-style: normal; color: var(--amber); }
   <section>
     <div class="section-label reveal">What you get</div>
     <h2 class="reveal">Six tools.<br><em>One workflow.</em></h2>
-    <div class="section-desc reveal">PostIQ helps serious Buffer users move faster, plan smarter, and clean up the messier parts of content creation without changing the workflow they already know.</div>
+    <div class="section-desc reveal">Extra tools for Buffer users to plan, draft, review, and schedule with less friction.</div>
 
     <div class="cards-grid reveal-group">
       <article class="card card-featured">
         <div class="status try">Try now</div>
         <span class="icon">✂️</span>
         <h3>Thread Splitter</h3>
-        <p>Paste long-form content and split it into clean, numbered thread posts with character counts before you ever connect your account.</p>
+        <p>Split long-form ideas into clean, numbered thread posts with live character counts.</p>
       </article>
       <article class="card card-featured">
         <div class="status key">Requires Buffer key</div>
         <span class="icon">✍️</span>
         <h3>Composer</h3>
-        <p>Draft and format content in a focused writing space, then queue, schedule, or save to Buffer when you are ready.</p>
+        <p>Draft in a focused editor, then queue, schedule, or save to Buffer when you’re ready.</p>
       </article>
       <article class="card card-featured">
         <div class="status key">Requires Buffer key</div>
         <span class="icon">✅</span>
         <h3>Approvals</h3>
-        <p>Create a cleaner review flow for clients or teammates so content gets sign-off before it goes live.</p>
+        <p>Run clean client or teammate approvals so posts are aligned before they go live.</p>
       </article>
       <article class="card">
         <div class="status preview">Preview-friendly</div>
         <span class="icon">⚡</span>
         <h3>Snippets</h3>
-        <p>Keep go-to hooks, CTAs, and copy blocks close by so writing starts faster and repeated work gets a lot less annoying.</p>
+        <p>Keep go-to hooks, CTAs, and blocks close so writing starts faster every time.</p>
       </article>
       <article class="card">
         <div class="status preview">Preview-friendly</div>
         <span class="icon">📈</span>
         <h3>Trending</h3>
-        <p>Use Reddit and Hacker News signals as inspiration, then turn interesting topics into posts without juggling a hundred tabs.</p>
+        <p>Use Reddit and Hacker News signals for ideas, then turn them into posts quickly.</p>
       </article>
       <article class="card">
         <div class="status key">Requires Buffer key</div>
         <span class="icon">📅</span>
         <h3>Calendar</h3>
-        <p>See scheduled content in a more visual monthly planning view and spot gaps before your content plan quietly falls apart.</p>
+        <p>See your schedule in a visual monthly view and spot gaps before they slow your cadence.</p>
       </article>
     </div>
   </section>
@@ -1052,24 +963,24 @@ h2 em { font-style: normal; color: var(--amber); }
   <!-- ── TRUST / API KEY EXPLAINER ── -->
   <section>
     <div class="section-label reveal">Trust and setup</div>
-    <h2 class="reveal">What the Buffer key does —<br><em>and what it does not.</em></h2>
-    <div class="section-desc reveal">Your Buffer API key is a private access code from Buffer that lets PostIQ connect to your account. It gives PostIQ permission to read parts of your workflow and send actions back to Buffer when you choose to save a draft, queue a post, or schedule content. Think of it like a private permission pass for your Buffer account.</div>
+    <h2 class="reveal">How your Buffer key works —<br><em>quick and clear.</em></h2>
+    <div class="section-desc reveal">Your Buffer API key is a private token from Buffer. It lets PostIQ connect to your account and act only when you choose to draft, queue, or schedule.</div>
 
     <div class="explainers reveal-group">
       <article class="step">
         <div class="step-no">01</div>
         <h4>What it actually is</h4>
-        <p>Your API key is a private code generated by Buffer. PostIQ uses it to securely connect to your Buffer account so the app can work on your behalf inside your own workflow.</p>
+        <p>Your API key is a private code from Buffer that securely connects PostIQ to your account.</p>
       </article>
       <article class="step">
         <div class="step-no">02</div>
         <h4>What it lets PostIQ do</h4>
-        <p>With your permission, PostIQ can read parts of your Buffer setup and send actions back when you choose to save a draft, queue a post, or schedule content. It does not post on its own.</p>
+        <p>It can read key account details and send actions to Buffer when you click save, queue, or schedule. It never posts on its own.</p>
       </article>
       <article class="step">
         <div class="step-no">03</div>
         <h4>Where it lives and how you control it</h4>
-        <p>Your key stays in your browser on your device. You can save it just for the session or keep it locally for convenience, and you can revoke or replace it anytime from Buffer settings.</p>
+        <p>Your key stays in your browser. Save it for the session or locally, and revoke or replace it anytime in Buffer settings.</p>
       </article>
     </div>
 
@@ -1101,31 +1012,26 @@ h2 em { font-style: normal; color: var(--amber); }
             <span>Will this work for every Buffer account setup?</span>
             <span class="faq-icon">+</span>
           </button>
-          <div class="faq-answer">PostIQ is designed to work with standard Buffer API access. If you are unsure, grab your token from Buffer settings first and test the connection.</div>
+          <div class="faq-answer">PostIQ works with standard Buffer API access. Grab your token from Buffer settings and test the connection in seconds.</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ── CONNECT / WAITLIST ── -->
+  <!-- ── FINAL CTA ── -->
   <div class="connect">
     <div class="connect-card reveal">
       <div class="eyebrow" style="justify-content:center; margin-bottom:14px;">
         <span class="eyebrow-dot"></span>
-        Stay in the loop
+        Ready when you are
       </div>
-      <h2>Get notified<br>when <em>new tools</em> ship.</h2>
-      <p>Drop your email and we will let you know when new PostIQ features are ready. No spam, no noise — just updates when it matters.</p>
+      <h2>Ready to try <em>PostIQ</em>?</h2>
+      <p>Start with the Thread Splitter, then connect your Buffer key when you’re ready to draft, queue, and schedule.</p>
 
-      <div class="input-row">
-        <input type="email" id="emailInput" placeholder="your@email.com" />
-        <button class="btn primary" id="submitBtn" type="button">Keep me posted</button>
+      <div class="hero-ctas" style="justify-content:center; margin-top: 8px;">
+        <a href="app.html" class="btn primary">Open PostIQ</a>
+        <a href="app.html?view=threadView" class="btn">Try Thread Splitter</a>
       </div>
-
-      <div class="fineprint">
-        By signing up you agree to our <a href="#">Privacy Policy</a>. Unsubscribe anytime.
-      </div>
-      <div class="message" id="formMsg"></div>
     </div>
   </div>
 
@@ -1172,7 +1078,7 @@ function splitIntoThreads(text, maxLen = 280) {
 function renderThreadOutput(outputEl, posts) {
   outputEl.innerHTML = '';
   if (!posts.length) {
-    outputEl.innerHTML = '<div class="empty">Paste some text first to see how PostIQ turns rough ideas into thread-ready posts.</div>';
+    outputEl.innerHTML = '<div class="empty">Paste text to get instant thread-ready posts you can refine and share.</div>';
     return;
   }
   posts.forEach((post, i) => {
@@ -1199,7 +1105,7 @@ function bindSplitter(inputId, btnId, outputId) {
   btn.addEventListener('click', () => {
     const text = input.value.trim();
     if (!text) {
-      output.innerHTML = '<div class="empty">Nothing to split yet — paste some text above first.</div>';
+      output.innerHTML = '<div class="empty">Nothing to split yet—paste text above first.</div>';
       return;
     }
     const posts = splitIntoThreads(text);
@@ -1225,41 +1131,6 @@ document.querySelectorAll('.faq-question').forEach(btn => {
     // Open clicked if it was closed
     if (!isOpen) item.classList.add('open');
   });
-});
-
-// ── Waitlist form ──
-document.getElementById('submitBtn')?.addEventListener('click', async () => {
-  const email = document.getElementById('emailInput').value.trim();
-  const msg = document.getElementById('formMsg');
-  if (!email || !email.includes('@')) {
-    msg.className = 'message error';
-    msg.textContent = 'Please enter a valid email address.';
-    return;
-  }
-  const btn = document.getElementById('submitBtn');
-  btn.textContent = 'Sending…';
-  btn.disabled = true;
-
-  try {
-    const res = await fetch('/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ 'form-name': 'waitlist', email }).toString()
-    });
-    if (res.ok) {
-      msg.className = 'message success';
-      msg.textContent = '✓ You\'re on the list. We\'ll be in touch.';
-      document.getElementById('emailInput').value = '';
-    } else {
-      throw new Error();
-    }
-  } catch {
-    msg.className = 'message error';
-    msg.textContent = 'Something went wrong — try again in a moment.';
-  } finally {
-    btn.textContent = 'Keep me posted';
-    btn.disabled = false;
-  }
 });
 
 // ── Scroll reveal ──
