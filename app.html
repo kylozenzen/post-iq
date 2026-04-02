@@ -1070,6 +1070,9 @@
     .composer-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
     .composer-tab:hover { color: var(--text); }
     .composer-tab-panel { }
+    #composerView .page-hdr { margin-bottom: 10px; }
+    #composerView .page-desc { margin-top: 6px; }
+    #composerView .composer-tab-panel { margin-top: 2px; }
 
     /* ── THUMB POST LIST ── */
     .thumb-post-list { display: flex; flex-direction: column; gap: 10px; }
@@ -2969,8 +2972,8 @@
       <button class="nav-btn active" data-view="composerView"><span class="nav-icon">✍️</span><span class="nav-text">Post Composer</span><span class="nav-badge key" data-key-badge="composer">Needs Key</span></button>
       <button class="nav-btn" data-view="threadView"><span class="nav-icon">🧵</span><span class="nav-text">Thread Splitter</span></button>
       <button class="nav-btn" data-view="calendarView"><span class="nav-icon">📅</span><span class="nav-text">Content Calendar</span><span class="nav-badge key" data-key-badge="calendar">Needs Key</span></button>
-      <button class="nav-btn" data-view="trendingView"><span class="nav-icon">📈</span><span class="nav-text">Trending</span><span class="nav-badge preview">Preview</span></button>
-      <button class="nav-btn" data-view="snippetsView"><span class="nav-icon">📚</span><span class="nav-text">Snippets</span><span class="nav-badge preview">Preview</span></button>
+      <button class="nav-btn" data-view="trendingView"><span class="nav-icon">📈</span><span class="nav-text">Trending</span><span class="nav-badge preview" data-preview-badge="trending">Preview</span></button>
+      <button class="nav-btn" data-view="snippetsView"><span class="nav-icon">📚</span><span class="nav-text">Snippets</span><span class="nav-badge preview" data-preview-badge="snippets">Preview</span></button>
       <button class="nav-btn" data-view="approvalsView"><span class="nav-icon">✅</span><span class="nav-text">Approvals</span><span class="nav-badge key" data-key-badge="approvals">Needs Key</span></button>
     </nav>
     <div class="side-bottom" style="padding:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
@@ -3076,7 +3079,7 @@
         <div class="page-hdr-left">
           <h1 class="page-title">Post Composer</h1>
           <div class="state-pill key view-state-pill" id="composerStatePill">Needs Buffer key</div>
-          <p class="page-desc">Draft text-first posts, then push to Buffer.</p>
+          <p class="page-desc" id="composerSubhead">Draft text-first posts, then send them to Buffer.</p>
         </div>
         <div class="page-actions">
           <button class="btn ghost" id="composerClearBtn" style="display:none;">Clear ✕</button>
@@ -3113,7 +3116,7 @@
             <button class="btn sm ghost" data-cmd="clear">Clear</button>
           </div>
           <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here…"></div>
-          <div id="composerEmpty" class="empty mt8" style="display:none;"><div class="empty-state"><div class="empty-icon">✍️</div><div class="empty-title">Ready to compose</div><div class="empty-desc">Connect Buffer to unlock drafts, queueing, and scheduling. You can still write here right now.</div></div></div>
+          <div id="composerEmpty" class="empty mt6" style="display:none;"><div class="empty-state"><div class="empty-icon">✍️</div><div class="empty-title" id="composerEmptyTitle">Ready to compose</div><div class="empty-desc" id="composerEmptyDesc">Write your post, then send it to Buffer as a draft, queued post, or scheduled post.</div></div></div>
 
           <div class="composer-controls mt10">
             <div class="composer-row-a">
@@ -3296,7 +3299,7 @@
       <div class="page-hdr">
         <div class="page-hdr-left">
           <h1 class="page-title">Snippets</h1>
-          <div class="state-pill preview view-state-pill">Preview-friendly</div>
+          <div class="state-pill preview view-state-pill" id="snippetsStatePill">Preview-friendly</div>
           <p class="page-desc">Hooks, CTAs, hashtag sets, openers — reusable across Composer and Thread Splitter.</p>
         </div>
         <div class="page-actions">
@@ -3366,7 +3369,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="page-hdr">
       <div class="page-hdr-left">
         <h1 class="page-title">Trending</h1>
-        <div class="state-pill preview view-state-pill">Preview-friendly</div>
+        <div class="state-pill preview view-state-pill" id="trendingStatePill">Preview-friendly</div>
         <p class="page-desc">What's hot on Reddit and Hacker News right now. Click any story to draft a post.</p>
       </div>
     </div>
@@ -3709,12 +3712,16 @@ const STORE_KEY='postiq_buffer_token';
 const NOTE_KEY='postiq_calendar_notes_v2';
 const SNIPPET_KEY='postiq_snippets_v1';
 const APPROVAL_META_PREFIX='postiq_approval_';
+const GA_MEASUREMENT_ID = 'G-XXXXXXXXXX'; // Replace with your real GA4 Measurement ID.
 const snippetTypes=['All','Hooks','CTAs','Hashtag Sets','First Comments','Thread Openers'];
 const snippetPlatforms=['All Platforms','LinkedIn','X','Threads','Instagram','Universal'];
 let bufferToken='';
 let tokenInputVisible=false;
 let tokenPanelOpen=false;
 let threadParts=[];
+let currentViewId='';
+let hasTrackedBufferConnected=false;
+let modalOpenCount=0;
 const state={channels:[],scheduled:[],month:new Date(),selectedDate:null,syncState:'idle',snippets:[],snippetType:'All',snippetPlatform:'All Platforms',snippetSearch:'',editingSnippetId:null,pickerMode:'composer',ideasCache:[],ideaGroups:[],ideasLoaded:false};
 const noteTags={gold:'Idea',blue:'Draft',green:'Campaign',violet:'Priority'};
 
@@ -3723,8 +3730,46 @@ function fmtDate(d){return d.toISOString().slice(0,10)}
 function monthLabel(d){return d.toLocaleDateString(undefined,{month:'long',year:'numeric'})}
 function monthStart(d){return new Date(d.getFullYear(),d.getMonth(),1)}
 function maskToken(t){if(!t)return '—';if(t.length<=8)return '••••';return `${t.slice(0,4)}••••${t.slice(-4)}`;}
-function openModal(id){qs(id).classList.add('open')}
-function closeModal(id){qs(id).classList.remove('open')}
+function isAnalyticsEnabled(){return !!(GA_MEASUREMENT_ID && GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX');}
+function initAnalytics(){
+  if(!isAnalyticsEnabled() || window.__postiqGAInitialized) return;
+  window.__postiqGAInitialized = true;
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = window.gtag || function(){ window.dataLayer.push(arguments); };
+  const s=document.createElement('script');
+  s.async=true;
+  s.src=`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GA_MEASUREMENT_ID)}`;
+  s.onerror=()=>console.warn('[PostIQ] GA4 script failed to load');
+  document.head.appendChild(s);
+  window.gtag('js', new Date());
+  window.gtag('config', GA_MEASUREMENT_ID, { send_page_view: false });
+}
+function trackEvent(name,params={}){
+  if(!isAnalyticsEnabled() || typeof window.gtag!=='function') return;
+  window.gtag('event', name, params);
+}
+function trackPageView(view){
+  if(!isAnalyticsEnabled()) return;
+  trackEvent('page_view',{page_title:`PostIQ · ${view}`,page_path:`/${view}`});
+}
+function syncBodyScrollLock(){
+  document.body.style.overflow = modalOpenCount > 0 ? 'hidden' : '';
+}
+function getOpenModals(){return [...document.querySelectorAll('.modal.open')];}
+function openModal(id){
+  const modal=qs(id);
+  if(!modal || modal.classList.contains('open')) return;
+  modal.classList.add('open');
+  modalOpenCount += 1;
+  syncBodyScrollLock();
+}
+function closeModal(id){
+  const modal=qs(id);
+  if(!modal || !modal.classList.contains('open')) return;
+  modal.classList.remove('open');
+  modalOpenCount = Math.max(0, modalOpenCount - 1);
+  syncBodyScrollLock();
+}
 function showToast(msg, type=''){
   const wrap=qs('toastWrap');if(!wrap)return;
   const t=document.createElement('div');
@@ -3985,10 +4030,16 @@ function renderSnippets(){
   });
 }
 function activateView(viewId){
+  const previousView=currentViewId;
   document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===viewId));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
   const mob=document.querySelector(`.mob-tab[data-view="${viewId}"]`);
   if(mob){document.querySelectorAll('.mob-tab[data-view]').forEach(t=>t.classList.remove('active'));mob.classList.add('active');}
+  currentViewId=viewId;
+  if(previousView!==viewId){
+    trackEvent('tool_view',{tool:viewId});
+    trackPageView(viewId);
+  }
   if(viewId==='approvalsView') loadApprovals();
 }
 function getStartupViewFromQuery(){
@@ -4104,6 +4155,7 @@ function updateTokenUI(){
 function updateSidebarBadges(){
   const connected=!!bufferToken;
   document.querySelectorAll('[data-key-badge]').forEach(el=>{el.style.display=connected?'none':'inline-flex';});
+  document.querySelectorAll('[data-preview-badge]').forEach(el=>{el.style.display=connected?'none':'inline-flex';});
 }
 
 function toggleTokenPanel(){
@@ -4130,13 +4182,29 @@ function updateViewStatePills(){
   set('composerStatePill',connected?'Connected · ready':'Needs Buffer key',connected?'try':'key');
   set('calendarStatePill',connected?'Connected · ready':'Needs Buffer key',connected?'try':'key');
   set('approvalsStatePill',connected?'Connected · ready':'Needs Buffer key',connected?'try':'key');
+  set('snippetsStatePill',connected?'Connected · ready':'Preview-friendly',connected?'try':'preview');
+  set('trendingStatePill',connected?'Connected · ready':'Preview-friendly',connected?'try':'preview');
+  const subhead=qs('composerSubhead');
+  if(subhead){
+    subhead.textContent=connected
+      ?'Draft text-first posts, then send them to Buffer.'
+      :'Write here now. Connect Buffer to unlock drafts, queueing, and scheduling.';
+  }
+  const emptyTitle=qs('composerEmptyTitle');
+  const emptyDesc=qs('composerEmptyDesc');
+  if(emptyTitle)emptyTitle.textContent=connected?'Ready to compose':'Start writing now';
+  if(emptyDesc){
+    emptyDesc.textContent=connected
+      ?'Write your post, then send it to Buffer as a draft, queued post, or scheduled post.'
+      :'Write here now. Connect Buffer to unlock drafts, queueing, and scheduling.';
+  }
   const hint=qs('calendarEmptyHint'); if(hint) hint.style.display=connected?'none':'block';
 }
 function saveToken(){
   const token=qs('tokenInput').value.trim();
   const mode=[...document.querySelectorAll('input[name="tokenMode"]')].find(r=>r.checked).value;
   localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
-  if(!token){bufferToken='';qs('tokenMsg').textContent='Token removed.';updateTokenUI();showToast('Token removed','info');return;}
+  if(!token){bufferToken='';hasTrackedBufferConnected=false;qs('tokenMsg').textContent='Token removed.';updateTokenUI();showToast('Token removed','info');return;}
   if(mode==='local')localStorage.setItem(STORE_KEY,token);else sessionStorage.setItem(STORE_KEY,token);
   bufferToken=token;
   qs('tokenMsg').textContent=mode==='local'?'Saved to localStorage.':'Saved for this session.';
@@ -4145,6 +4213,7 @@ function saveToken(){
 function loadStoredToken(){
   bufferToken=sessionStorage.getItem(STORE_KEY)||localStorage.getItem(STORE_KEY)||'';
   if(bufferToken)qs('tokenInput').value=bufferToken;
+  if(!bufferToken)hasTrackedBufferConnected=false;
   updateTokenUI();
 }
 
@@ -4189,6 +4258,10 @@ async function syncBuffer(){
     }
     state.scheduled=all;renderChannelSelects();renderCalendar();
     setSyncStatus('success',`${all.length} scheduled posts loaded.`);
+    if(!hasTrackedBufferConnected){
+      trackEvent('buffer_connected',{channel_count:state.channels.length});
+      hasTrackedBufferConnected=true;
+    }
     qs('syncBtn').classList.remove('sync-pulse');
     showToast(`Loaded ${all.length} posts`,'success');
     window.dispatchEvent(new Event('postiq:synced'));
@@ -4740,6 +4813,9 @@ async function composerSend(action){
     if(action!=='draft'&&draftId){clearApprovalMeta(draftId);}
     const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
     qs('composerStatus').textContent=msg;showToast(msg);
+    if(action==='draft')trackEvent('draft_to_buffer');
+    if(action==='queue')trackEvent('queue_to_buffer');
+    if(action==='schedule')trackEvent('schedule_to_buffer');
     // Clear composer
     const editor=qs('composerEditor');
     editor.innerText='';
@@ -5225,7 +5301,15 @@ function init(){
   if(approveParam){renderReviewerPage(approveParam);return;}
 
   if(renderSharedFromHash())return;
+  initAnalytics();
   loadStoredToken();
+
+  const ONBOARDING_SEEN_KEY='postiq_onboarding_seen_v1';
+  function markOnboardingSeen(){
+    const wasSeen=localStorage.getItem(ONBOARDING_SEEN_KEY)==='1';
+    localStorage.setItem(ONBOARDING_SEEN_KEY,'1');
+    if(!wasSeen)trackEvent('onboarding_completed');
+  }
 
   // Onboarding merged into settings modal — no standalone modal
   // Onboarding now part of settings modal
@@ -5248,9 +5332,11 @@ function init(){
     document.querySelectorAll('.settings-tab').forEach(t => t.classList.toggle('active', t.dataset.stab === target));
     document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.id === `settingsPanel${target.charAt(0).toUpperCase()+target.slice(1)}`));
     openModal('settingsModal');
+    trackEvent('settings_open',{tab:target});
+    if(localStorage.getItem(ONBOARDING_SEEN_KEY)!=='1')trackEvent('onboarding_started');
   }
   qs('openSettings').onclick = () => openSettings('guide');
-  qs('closeSettings').onclick = () => { markOnboardingSeen(); closeModal('settingsModal'); };
+  qs('closeSettings').onclick = () => { markOnboardingSeen(); trackEvent('settings_close',{method:'button'}); closeModal('settingsModal'); };
   document.querySelectorAll('.settings-tab').forEach(tab => {
     tab.onclick = () => {
       document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
@@ -5269,6 +5355,28 @@ function init(){
   qs('saveTokenBtn').onclick=saveToken;
   qs('clearTokenBtn').onclick=()=>{qs('tokenInput').value='';saveToken()};
   qs('toggleTokenVisibility').onclick=()=>{tokenInputVisible=!tokenInputVisible;qs('tokenInput').type=tokenInputVisible?'text':'password';qs('toggleTokenVisibility').textContent=tokenInputVisible?'Hide':'Show';};
+
+  document.querySelectorAll('.modal').forEach(modal=>{
+    modal.addEventListener('click',e=>{
+      if(e.target!==modal) return;
+      if(modal.id==='settingsModal'){
+        markOnboardingSeen();
+        trackEvent('settings_close',{method:'overlay'});
+      }
+      closeModal(modal.id);
+    });
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key!=='Escape')return;
+    const openModals=getOpenModals();
+    if(!openModals.length)return;
+    const top=openModals[openModals.length-1];
+    if(top.id==='settingsModal'){
+      markOnboardingSeen();
+      trackEvent('settings_close',{method:'escape'});
+    }
+    closeModal(top.id);
+  });
 
   qs('syncBtn').onclick=syncBuffer;
   if(bufferToken){syncBuffer();}
@@ -5522,7 +5630,7 @@ function init(){
     const token=qs('mobTokenInput').value.trim();
     const mode=[...document.querySelectorAll('input[name="mobTokenMode"]')].find(r=>r.checked).value;
     localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
-    if(!token){bufferToken='';updateTokenUI();syncMobDrawerUI();showToast('Token removed','info');return;}
+    if(!token){bufferToken='';hasTrackedBufferConnected=false;updateTokenUI();syncMobDrawerUI();showToast('Token removed','info');return;}
     if(mode==='local')localStorage.setItem(STORE_KEY,token);else sessionStorage.setItem(STORE_KEY,token);
     bufferToken=token;
     qs('mobTokenMsg').textContent=mode==='local'?'Saved locally.':'Saved for session.';
@@ -5532,7 +5640,7 @@ function init(){
   qs('mobClearTokenBtn').onclick=()=>{
     qs('mobTokenInput').value='';
     localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
-    bufferToken='';updateTokenUI();syncMobDrawerUI();showToast('Token removed','info');
+    bufferToken='';hasTrackedBufferConnected=false;updateTokenUI();syncMobDrawerUI();showToast('Token removed','info');
   };
   qs('mobOpenFounder').onclick=()=>{closeMobDrawer();openSettings('about');};
 
