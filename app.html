@@ -2295,7 +2295,7 @@
       color: var(--text);
       border-color: var(--border2);
     }
-    .toolbar-sep {
+    .toolbar-sep, .tb-sep {
       width: 1px;
       height: 18px;
       background: var(--border2);
@@ -2809,6 +2809,12 @@
     .state-pill.key { color:var(--amber);background:var(--amber-dim);border-color:rgba(245,183,49,.35); }
     .state-pill.preview { color:var(--blue);background:var(--blue-dim);border-color:rgba(107,143,247,.35); }
     .view-state-pill{margin-top:8px;width:fit-content;}
+    .last-synced-txt { display:block; font-size:10px; font-family:'DM Mono',monospace; color:var(--subtle); margin-top:4px; letter-spacing:.03em; }
+    .view-loading { padding:16px; text-align:center; font-size:12px; color:var(--muted); font-family:'DM Mono',monospace; border:1px dashed var(--border2); border-radius:8px; margin-top:12px; }
+    .empty-icon { font-size:32px; margin-bottom:8px; line-height:1; }
+    .empty-title { font-weight:700; font-size:14px; color:var(--text); margin-bottom:6px; font-family:'Syne',sans-serif; }
+    .empty-desc { font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:12px; }
+    .empty-action { margin-top:4px; }
 
 
   </style>
@@ -2918,6 +2924,7 @@
         <button class="btn grow" id="syncBtn" style="justify-content:center;">↻ Load from Buffer</button>
       </div>
       <div id="syncStatus" class="status-txt mt8">Not synced.</div>
+      <span id="lastSynced" class="last-synced-txt"></span>
     </div>
     <nav class="side-nav">
       <div class="nav-label">Tools</div>
@@ -2965,7 +2972,11 @@
             <button class="btn sm ghost" id="threadAddOpener">+ Opener from Snippets</button>
             <button class="btn sm ghost" id="threadAddCta">+ Ending CTA</button>
           </div>
-          <div id="threadEmpty" class="empty mt12"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">🧵</div>Paste some text first to see how PostIQ turns rough ideas into cleaner, thread-ready posts.</div>
+          <div id="threadEmpty" class="empty mt12">
+            <div class="empty-icon">✂️</div>
+            <div class="empty-title">Nothing split yet</div>
+            <div class="empty-desc">Paste your long-form content above and hit Split Thread to see it broken into numbered parts.</div>
+          </div>
         </div>
         <div>
           <div class="thread-actions-bar">
@@ -3020,7 +3031,14 @@
         <div class="dow-label">Wed</div><div class="dow-label">Thu</div><div class="dow-label">Fri</div><div class="dow-label">Sat</div>
       </div>
       <div class="cal-grid" id="calGrid"></div>
-      <div id="calendarEmptyHint" class="status-txt mt8" style="display:none;">Connect Buffer, then click <strong>Load from Buffer</strong> to populate scheduled posts in this calendar.</div>
+      <div id="calendarEmptyHint" class="empty mt8" style="display:none;">
+        <div class="empty-icon">📅</div>
+        <div class="empty-title">No posts scheduled</div>
+        <div class="empty-desc">Head to the Composer to draft your first post, or connect Buffer and sync to load your schedule.</div>
+        <div class="empty-action">
+          <button class="btn primary sm" onclick="activateView('composerView')">Open Composer</button>
+        </div>
+      </div>
       <!-- Mobile agenda view (hidden on desktop, shown on mobile) -->
       <div id="calAgenda"></div>
     </section>
@@ -3068,9 +3086,9 @@
             <button class="btn sm" data-cmd="ul">• List</button>
             <button class="btn sm" data-cmd="ol">1. List</button>
             <button class="btn sm ghost" data-cmd="clear">Clear</button>
-            <div class="toolbar-sep"></div>
+            <span class="tb-sep"></span>
             <button class="btn sm" id="insertSnippetBtn">Insert snippet</button>
-            <div class="toolbar-sep"></div>
+            <span class="tb-sep"></span>
             <button class="btn sm ghost" id="saveSelectionSnippetBtn">Save selection</button>
           </div>
           <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here…"></div>
@@ -3277,7 +3295,14 @@
             <select id="snippetPlatformFilter" class="input" style="max-width:180px;"></select>
             <button class="btn sm ghost" id="snippetViewToggle" title="Toggle view">⊞ Grid</button>
           </div>
-          <div id="snippetsEmpty" class="empty"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">🗂</div>No snippets yet. Create your first one to speed up writing.</div>
+          <div id="snippetsEmpty" class="empty">
+            <div class="empty-icon">⚡</div>
+            <div class="empty-title">No snippets yet</div>
+            <div class="empty-desc">Save hooks, CTAs, hashtag sets, and openers to reuse across posts and threads.</div>
+            <div class="empty-action">
+              <button class="btn primary sm" onclick="openSnippetModal()">+ Add Snippet</button>
+            </div>
+          </div>
           <div id="snippetGrid" class="snippet-grid"></div>
         </div>
       </div>
@@ -3308,7 +3333,11 @@
         <button class="sub-pill" data-afilter="changes_requested">✎ Changes Requested</button>
       </div>
       <div id="approvalsLoading" class="status-txt mt8" style="display:none;">Loading drafts…</div>
-      <div id="approvalsEmpty" class="empty" style="display:none;"><div style="font-size:28px;margin-bottom:8px;opacity:0.4;">✅</div>Connect Buffer and save drafts with <strong>"Needs approval"</strong> to start routing review requests here.</div>
+      <div id="approvalsEmpty" class="empty" style="display:none;">
+        <div class="empty-icon">✅</div>
+        <div class="empty-title">No pending approvals</div>
+        <div class="empty-desc">Connect Buffer and save drafts with "Needs approval" to start routing review requests here.</div>
+      </div>
       <div id="approvalsList"></div>
     </section>
 
@@ -4027,6 +4056,8 @@ function updateTokenUI(){
   qs('tokenStatusLabel').textContent=connected?'Connected':'Not connected';
   qs('tokenMaskedPreview').textContent=maskToken(bufferToken);
   tokenInputVisible=false;qs('tokenInput').type='password';qs('toggleTokenVisibility').textContent='Show';
+  if(connected){document.querySelector('.side-nav').dataset.connected='true';}
+  else{document.querySelector('.side-nav').removeAttribute('data-connected');}
   updateViewStatePills();
   updateSidebarBadges();
 }
@@ -4098,6 +4129,9 @@ async function syncBuffer(){
   const origLabel=syncBtn.innerHTML;
   syncBtn.innerHTML='<span class="syncing-icon">↻</span> Syncing…';
   syncBtn.disabled=true;
+  const calGrid=qs('calGrid');
+  const loadingEl=document.createElement('div');loadingEl.className='view-loading';loadingEl.textContent='Fetching from Buffer…';
+  if(calGrid){calGrid.innerHTML='';calGrid.appendChild(loadingEl);}
   try{
     const acc=await callBuffer('query { account { organizations { id name } } }');
     const orgId=acc?.data?.account?.organizations?.[0]?.id;
@@ -4118,6 +4152,9 @@ async function syncBuffer(){
     setSyncStatus('success',`${all.length} scheduled posts loaded.`);
     qs('syncBtn').classList.remove('sync-pulse');
     showToast(`Loaded ${all.length} posts`,'success');
+    const now = new Date();
+    const t = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    document.getElementById('lastSynced').textContent = `synced ${t}`;
     window.dispatchEvent(new Event('postiq:synced'));
   }catch(e){
     console.error('[PostIQ] syncBuffer error:', e);
@@ -4129,6 +4166,7 @@ async function syncBuffer(){
   }finally{
     syncBtn.innerHTML=origLabel;
     syncBtn.disabled=false;
+    if(loadingEl&&loadingEl.parentNode)loadingEl.remove();
   }
 }
 
@@ -4690,9 +4728,11 @@ async function loadApprovals(){
   loadingEl.style.display='block';
   listEl.innerHTML='';
   emptyEl.style.display='none';
+  const approvalsViewLoading=document.createElement('div');approvalsViewLoading.className='view-loading';approvalsViewLoading.textContent='Fetching from Buffer…';
+  listEl.appendChild(approvalsViewLoading);
   try{
     const metas=getAllApprovalMetas();
-    if(!metas.length){emptyEl.style.display='block';loadingEl.style.display='none';approvalsState.loading=false;return;}
+    if(!metas.length){approvalsViewLoading.remove();emptyEl.style.display='block';loadingEl.style.display='none';approvalsState.loading=false;return;}
     // Fetch Buffer drafts if connected (best-effort — local data is source of truth)
     let bufferDrafts=[];
     if(bufferToken){
@@ -4722,11 +4762,13 @@ async function loadApprovals(){
         }catch(e){console.warn('[PostIQ] approval sync:',e);}
       }
     }
+    approvalsViewLoading.remove();
     loadingEl.style.display='none';
     if(!metas.length){emptyEl.style.display='block';}
     else{metas.forEach(meta=>{const bp=bufferDrafts.find(p=>p.id===meta.draftId)||null;renderApprovalCard(meta,bp);});}
   }catch(e){
     console.error('[PostIQ] loadApprovals:',e);
+    approvalsViewLoading.remove();
     loadingEl.textContent='Failed to load approvals.';
   }finally{approvalsState.loading=false;}
 }
@@ -5538,7 +5580,7 @@ function init(){
 
     if(!hasAny){
       const empty=document.createElement('div');empty.className='empty mt8';
-      empty.textContent='No posts or notes this month. Connect Buffer, then sync to load scheduled posts here.';
+      empty.innerHTML='<div class="empty-icon">📅</div><div class="empty-title">No posts scheduled</div><div class="empty-desc">Head to the Composer to draft your first post.</div><div class="empty-action"><button class="btn primary sm" onclick="activateView(\'composerView\')">Open Composer</button></div>';
       agenda.appendChild(empty);
     }
   }
@@ -5636,7 +5678,7 @@ function init(){
     const status = document.getElementById('trendingRedditStatus');
     if (!list) return;
     status.textContent = 'Loading…';
-    list.innerHTML = '';
+    list.innerHTML = '<div class="view-loading">Fetching from Buffer…</div>';
     try {
       const res = await fetch(`https://www.reddit.com/r/${trendingState.sub}/hot.json?limit=25`, {
         headers: { 'Accept': 'application/json' }
@@ -5644,6 +5686,12 @@ function init(){
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const posts = (data?.data?.children || []).filter(p => !p.data.stickied);
+      list.innerHTML = '';
+      if (!posts.length) {
+        list.innerHTML = '<div class="empty"><div class="empty-icon">📈</div><div class="empty-title">No trending topics loaded</div><div class="empty-desc">Nothing came back from this subreddit. Hit Refresh to try again.</div></div>';
+        status.textContent = '';
+        return;
+      }
       status.textContent = `${posts.length} posts from r/${trendingState.sub}`;
       renderTrendingItems(list, posts.map((p, i) => ({
         rank: i + 1,
@@ -5659,6 +5707,7 @@ function init(){
         type: 'reddit'
       })));
     } catch(e) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">📈</div><div class="empty-title">No trending topics loaded</div><div class="empty-desc">Reddit may be blocking the request. Hit Refresh to try again.</div></div>';
       status.textContent = `Failed to load — Reddit may be blocking the request. Try again.`;
       console.warn('[PostIQ] Reddit fetch failed:', e);
     }
@@ -5669,7 +5718,7 @@ function init(){
     const status = document.getElementById('trendingHNStatus');
     if (!list) return;
     status.textContent = 'Loading…';
-    list.innerHTML = '';
+    list.innerHTML = '<div class="view-loading">Fetching from Buffer…</div>';
     try {
       const idsRes = await fetch(`https://hacker-news.firebaseio.com/v0/${trendingState.hnFeed}.json`);
       const ids = await idsRes.json();
@@ -5678,6 +5727,7 @@ function init(){
       const stories = await Promise.all(
         top.map(id => fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(r => r.json()))
       );
+      list.innerHTML = '';
       status.textContent = `${stories.length} stories from Hacker News`;
       renderTrendingItems(list, stories.filter(s => s && s.title).map((s, i) => ({
         rank: i + 1,
@@ -5690,6 +5740,7 @@ function init(){
         type: 'hn'
       })));
     } catch(e) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">📈</div><div class="empty-title">No trending topics loaded</div><div class="empty-desc">Failed to load Hacker News. Hit Refresh to try again.</div></div>';
       status.textContent = 'Failed to load Hacker News.';
       console.warn('[PostIQ] HN fetch failed:', e);
     }
@@ -5851,7 +5902,7 @@ function init(){
     const status = document.getElementById('topicsStatus');
     if (!list || !term) return;
     status.textContent = `Searching Reddit for "${term}"…`;
-    list.innerHTML = '';
+    list.innerHTML = '<div class="view-loading">Fetching from Buffer…</div>';
     try {
       const res = await fetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(term)}&sort=hot&limit=25&type=link`, {
         headers: { 'Accept': 'application/json' }
@@ -5859,7 +5910,11 @@ function init(){
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const posts = (data?.data?.children || []).filter(p => !p.data.stickied);
-      if (!posts.length) { status.textContent = `No results for "${term}".`; return; }
+      list.innerHTML = '';
+      if (!posts.length) {
+        list.innerHTML = '<div class="empty"><div class="empty-icon">📈</div><div class="empty-title">No trending topics loaded</div><div class="empty-desc">No results found for this topic. Try a different search term.</div></div>';
+        status.textContent = `No results for "${term}".`; return;
+      }
       status.textContent = `${posts.length} results for "${term}"`;
       addTopic(term);
       renderTopicsPills();
@@ -5877,6 +5932,7 @@ function init(){
         type: 'topics'
       })));
     } catch(e) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">📈</div><div class="empty-title">No trending topics loaded</div><div class="empty-desc">Reddit may be blocking the request. Try again.</div></div>';
       status.textContent = `Search failed — Reddit may be blocking. Try again.`;
       console.warn('[PostIQ] Topics search failed:', e);
     }
