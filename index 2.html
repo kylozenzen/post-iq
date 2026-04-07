@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PostIQ — Buffer Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=Syne:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #09090b;
+  --surface: #0d0d13;
+  --surface-2: #12121a;
+  --surface-3: #171722;
+  --border: #1a1a26;
+  --border-2: #25253a;
+  --text: #f0ece4;
+  --muted: #a7a197;
+  --subtle: #666276;
+  --quiet: #3f3d4f;
+  --amber: #f5b731;
+  --amber-2: #f7c44a;
+  --green: #2dd4a0;
+  --blue: #7ea6ff;
+  --red: #f77070;
+  --radius: 18px;
+  --shadow: 0 18px 48px rgba(0,0,0,.32);
+  --max: 1180px;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Hero-scoped glow instead of fixed full-page */
+.hero-glow {
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 900px;
+  height: 500px;
+  background: radial-gradient(ellipse at center top, rgba(245,183,49,.09), transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Subtle grid overlay scoped to hero */
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(245,183,49,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245,183,49,.025) 1px, transparent 1px);
+  background-size: 52px 52px;
+  z-index: 0;
+}
+
+.wrap {
+  width: min(calc(100% - 32px), var(--max));
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0 18px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(14px);
+  background: linear-gradient(to bottom, rgba(9,9,11,.96), rgba(9,9,11,.78));
+  border-bottom: 1px solid rgba(26,26,38,.8);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  letter-spacing: -.03em;
+  font-size: 1.1rem;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.badge {
+  font-family: 'DM Mono', monospace;
+  font-size: .62rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--amber);
+  color: #1a0800;
+  font-weight: 700;
+}
+
+.top-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 14px;
+  border: 1px solid var(--border-2);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: .94rem;
+  cursor: pointer;
+  transition: transform .15s ease, border-color .15s ease, background .15s ease, box-shadow .15s ease;
+  padding: 11px 20px;
+  color: var(--text);
+  background: transparent;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  border-color: #373755;
+  background: rgba(255,255,255,.03);
+}
+
+.btn.primary {
+  background: var(--amber);
+  color: #1a0800;
+  border-color: transparent;
+  box-shadow: 0 6px 20px rgba(245,183,49,.22);
+}
+
+.btn.primary:hover {
+  background: var(--amber-2);
+  box-shadow: 0 10px 28px rgba(245,183,49,.33);
+  transform: translateY(-2px);
+}
+
+.btn.ghost {
+  border-color: rgba(245,183,49,.2);
+  color: var(--amber);
+  background: rgba(245,183,49,.06);
+}
+.btn.ghost:hover {
+  background: rgba(245,183,49,.1);
+  border-color: rgba(245,183,49,.35);
+}
+
+/* ── HERO ── */
+.hero {
+  padding: 52px 0 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Stacked layout: headline dominates, demo below */
+.hero-top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-copy {
+  padding: 8px 0;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  color: var(--amber);
+  margin-bottom: 20px;
+}
+
+.eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .5; transform: scale(.75); }
+}
+
+h1 {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.8rem, 5.5vw, 4.8rem);
+  line-height: .96;
+  letter-spacing: -.04em;
+  max-width: 620px;
+}
+
+h1 em { font-style: normal; color: var(--amber); }
+
+.hero-copy p {
+  width: min(520px, 100%);
+  margin: 20px 0 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.72;
+}
+
+.hero-ctas {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 28px;
+  align-items: center;
+}
+
+.trust-strip {
+  margin: 20px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trust-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid rgba(245,183,49,.15);
+  border-radius: 999px;
+  background: rgba(245,183,49,.06);
+  font-family: 'DM Mono', monospace;
+  font-size: .73rem;
+  color: #c8bfaf;
+  letter-spacing: .02em;
+}
+
+.trust-pill::before {
+  content: "✓";
+  color: var(--amber);
+  font-size: .7rem;
+}
+
+/* Social proof — practitioner line */
+.proof-line {
+  margin-top: 24px;
+  padding: 14px 18px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 14px;
+  background: rgba(255,255,255,.02);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 480px;
+}
+
+.proof-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--amber), #c87c00);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: .8rem;
+  color: #1a0800;
+  font-family: 'Syne', sans-serif;
+}
+
+.proof-text {
+  font-size: .84rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.proof-text strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ── HERO DEMO PANEL (right side) ── */
+.hero-demo {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── INLINE DEMO (moved up into hero) ── */
+.panel {
+  background: linear-gradient(160deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px rgba(245,183,49,.04);
+  overflow: hidden;
+  position: relative;
+}
+
+.panel::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(245,183,49,.7), rgba(245,183,49,.05));
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,.02);
+  font-family: 'DM Mono', monospace;
+  font-size: .7rem;
+  color: var(--quiet);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #2a2a3a; }
+.dot:nth-child(1) { background: #f77070; }
+.dot:nth-child(2) { background: #f5b731; }
+.dot:nth-child(3) { background: #2dd4a0; }
+
+.panel-label {
+  margin-left: 4px;
+}
+
+.demo-body {
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(245,183,49,.04), rgba(255,255,255,.01));
+}
+
+textarea {
+  width: 100%;
+  min-height: 130px;
+  background: #13131a;
+  border: 1px solid rgba(245,183,49,.12);
+  border-radius: 12px;
+  color: var(--text);
+  padding: 13px 14px;
+  resize: vertical;
+  font-family: 'DM Mono', monospace;
+  font-size: .88rem;
+  line-height: 1.7;
+  outline: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+textarea:focus, input:focus {
+  border-color: rgba(245,183,49,.4);
+  box-shadow: 0 0 0 3px rgba(245,183,49,.07);
+}
+
+.demo-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.helper {
+  font-family: 'DM Mono', monospace;
+  font-size: .69rem;
+  color: var(--subtle);
+}
+
+.thread-output {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.thread-output::-webkit-scrollbar { width: 4px; }
+.thread-output::-webkit-scrollbar-track { background: transparent; }
+.thread-output::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 4px; }
+
+.thread-card {
+  border: 1px solid rgba(245,183,49,.1);
+  border-left: 3px solid var(--amber);
+  border-radius: 10px;
+  background: #13131a;
+  padding: 11px 13px;
+  font-family: 'DM Mono', monospace;
+  font-size: .84rem;
+  line-height: 1.65;
+  color: #dcd6cd;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+  animation: fadeSlideUp .22s ease both;
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.thread-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: .65rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--amber);
+}
+
+.empty {
+  border: 1px dashed rgba(245,183,49,.18);
+  border-radius: 10px;
+  padding: 24px 16px;
+  text-align: center;
+  color: #9f978a;
+  font-family: 'DM Mono', monospace;
+  font-size: .82rem;
+  background: rgba(245,183,49,.03);
+  line-height: 1.65;
+}
+
+/* ── SECTIONS ── */
+section {
+  padding: 56px 0 8px;
+}
+
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: .65rem;
+  text-transform: uppercase;
+  letter-spacing: .22em;
+  color: var(--amber);
+}
+
+.section-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+h2 {
+  margin: 0;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  line-height: .98;
+  letter-spacing: -.04em;
+}
+
+h2 em { font-style: normal; color: var(--amber); }
+
+.section-desc {
+  width: min(680px, 100%);
+  margin: 14px 0 32px;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.72;
+}
+
+/* ── FEATURE CARDS ── */
+/* 2-col asymmetric grid: primary features larger */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto auto;
+  gap: 14px;
+}
+
+/* Make Thread Splitter and Calendar span more */
+.card-featured {
+  grid-column: span 1;
+  min-height: 260px;
+}
+
+.card {
+  background: linear-gradient(160deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.04);
+  position: relative;
+  overflow: hidden;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+  min-height: 220px;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(245,183,49,.14);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.04), 0 0 0 1px rgba(245,183,49,.08);
+}
+
+.card::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(245,183,49,.6), rgba(245,183,49,.04));
+  opacity: .8;
+}
+
+/* Status pills */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-family: 'DM Mono', monospace;
+  font-size: .63rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  border: 1px solid var(--border-2);
+  color: var(--muted);
+  background: var(--surface-2);
+}
+
+.status::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.status.try { color: var(--green); border-color: rgba(45,212,160,.22); background: rgba(45,212,160,.07); }
+.status.key { color: var(--amber); border-color: rgba(245,183,49,.22); background: rgba(245,183,49,.07); }
+.status.preview { color: var(--blue); border-color: rgba(126,166,255,.2); background: rgba(126,166,255,.07); }
+
+.card .icon {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.card h3 {
+  margin: 0 0 8px;
+  font-family: 'Syne', sans-serif;
+  font-size: 1.12rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+
+.card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.68;
+  font-size: .93rem;
+}
+
+/* ── TRUST SECTION ── */
+.explainers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.step {
+  position: relative;
+  padding: 26px 20px 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: linear-gradient(160deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+  min-height: 200px;
+  overflow: hidden;
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.04);
+  transition: border-color .18s, transform .18s;
+}
+
+.step:hover {
+  border-color: rgba(245,183,49,.12);
+  transform: translateY(-2px);
+}
+
+.step::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(245,183,49,.6), rgba(245,183,49,.04));
+}
+
+.step-no {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  font-family: 'Syne', sans-serif;
+  font-size: 3rem;
+  line-height: 1;
+  font-weight: 800;
+  color: rgba(245,183,49,.1);
+  pointer-events: none;
+}
+
+.step h4 {
+  margin: 0 0 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #d9d5ce;
+}
+
+.step p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: .93rem;
+}
+
+/* ── FAQ ── */
+.faq {
+  margin-top: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: linear-gradient(160deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+  padding: 24px;
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.04);
+  position: relative;
+  overflow: hidden;
+}
+
+.faq::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(245,183,49,.6), rgba(245,183,49,.04));
+}
+
+.faq-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.faq-item {
+  border: 1px solid rgba(255,255,255,.05);
+  border-radius: 14px;
+  background: rgba(255,255,255,.015);
+  overflow: hidden;
+  transition: border-color .15s;
+}
+
+.faq-item.open {
+  border-color: rgba(245,183,49,.14);
+}
+
+.faq-question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: #e7e2db;
+  padding: 16px 18px;
+  font: inherit;
+  font-weight: 600;
+  font-size: .94rem;
+  cursor: pointer;
+  transition: background .12s;
+}
+
+.faq-question:hover { background: rgba(255,255,255,.02); }
+
+.faq-icon {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.1rem;
+  color: var(--amber);
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  transition: transform .2s ease;
+}
+
+.faq-item.open .faq-icon {
+  transform: rotate(45deg);
+}
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .25s ease, padding .25s ease;
+  padding: 0 18px;
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: .93rem;
+}
+
+.faq-item.open .faq-answer {
+  max-height: 200px;
+  padding: 0 18px 18px;
+}
+
+/* ── FINAL CTA ── */
+.connect {
+  padding: 56px 0 96px;
+  text-align: center;
+}
+
+.connect-card {
+  width: min(760px, 100%);
+  margin: 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 36px 32px;
+  background: linear-gradient(160deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+  box-shadow: 0 24px 64px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.connect-card::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -80px;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 200px;
+  background: radial-gradient(ellipse, rgba(245,183,49,.09), transparent 65%);
+  pointer-events: none;
+}
+
+.connect-card > * { position: relative; z-index: 1; }
+
+.connect-card h2 {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  margin-bottom: 10px;
+}
+
+.connect-card p {
+  color: var(--muted);
+  margin: 0 auto 24px;
+  max-width: 480px;
+  font-size: 1rem;
+  line-height: 1.68;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 980px) {
+  .hero-top { grid-template-columns: 1fr; }
+  .hero-demo { display: none; } /* demo moves to its own section on mobile */
+  .mobile-demo { display: block !important; }
+  .cards-grid { grid-template-columns: 1fr 1fr; }
+  .explainers { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .wrap { width: min(calc(100% - 24px), var(--max)); }
+  h1 { font-size: clamp(2.6rem, 11vw, 3.6rem); }
+  .hero { padding: 32px 0 16px; }
+  .cards-grid { grid-template-columns: 1fr; }
+  .hero-ctas { flex-direction: column; align-items: stretch; }
+  .hero-ctas .btn { text-align: center; }
+  .top-actions .btn:first-child { display: none; } /* hide secondary nav CTA on mobile */
+  .connect-card { padding: 24px 20px; }
+  section { padding: 40px 0 8px; }
+}
+
+/* Mobile demo shown only when hero-demo is hidden */
+.mobile-demo { display: none; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ── TOPBAR ── -->
+  <div class="topbar">
+    <a href="#" class="brand">PostIQ <span class="badge">Beta</span></a>
+    <div class="top-actions">
+      <a href="app.html" class="btn ghost">Open PostIQ</a>
+      <a href="app.html?view=threadView" class="btn primary">Try Thread Splitter</a>
+    </div>
+  </div>
+
+  <!-- ── HERO ── -->
+  <header class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-grid"></div>
+
+    <div class="hero-top">
+      <!-- Left: copy -->
+      <div class="hero-copy">
+        <div class="eyebrow">
+          <span class="eyebrow-dot"></span>
+          A Buffer Companion App
+        </div>
+        <h1>Give your <em>Buffer</em><br>workflow superpowers.</h1>
+        <p>A faster layer for planning, drafting, and approvals—built alongside your Buffer workflow.</p>
+
+        <div class="hero-ctas">
+          <a href="app.html" class="btn primary">Open PostIQ</a>
+          <a href="#try" class="btn">Try Thread Splitter</a>
+        </div>
+
+        <div class="trust-strip">
+          <div class="trust-pill">No login needed</div>
+          <div class="trust-pill">Stored in your browser</div>
+          <div class="trust-pill">Connect when ready</div>
+        </div>
+
+        <div class="proof-line">
+          <div class="proof-avatar">BC</div>
+          <div class="proof-text">
+            <strong>Built by a practitioner.</strong> Created by a solo operator who grew a social account to 6M+ followers—now shaped into extra tools for Buffer users.
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: live demo (hidden on mobile, shown below instead) -->
+      <div class="hero-demo">
+        <div class="panel">
+          <div class="panel-head">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            <span class="panel-label">Thread Splitter — Try it now</span>
+          </div>
+          <div class="demo-body">
+            <textarea id="demoInputHero" placeholder="Paste a chunky paragraph, blog intro, newsletter snippet, or idea dump here. Then split it into thread-ready posts."></textarea>
+            <div class="demo-actions">
+              <button class="btn primary" id="splitBtnHero" type="button">Split into thread posts</button>
+              <div class="helper">No key needed</div>
+            </div>
+          </div>
+        </div>
+        <div class="panel" style="margin-top:12px;">
+          <div class="panel-head">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            <span class="panel-label">Output</span>
+          </div>
+          <div class="demo-body">
+            <div id="threadOutputHero" class="thread-output">
+              <div class="empty">Paste text to get instant thread-ready posts you can refine and share.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── MOBILE DEMO (only visible when hero-demo is hidden) ── -->
+  <section id="try" class="mobile-demo">
+    <div class="section-label">Try before you connect</div>
+    <h2>Start with a quick win.</h2>
+    <div class="section-desc">Start with Thread Splitter for a quick win—no key needed.</div>
+    <div class="panel">
+      <div class="panel-head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="panel-label">Thread Splitter Demo</span></div>
+      <div class="demo-body">
+        <textarea id="demoInputMobile" placeholder="Paste a chunky paragraph, blog intro, newsletter snippet, or idea dump here."></textarea>
+        <div class="demo-actions">
+          <button class="btn primary" id="splitBtnMobile" type="button">Split into thread posts</button>
+          <div class="helper">No key needed for this demo</div>
+        </div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:12px;">
+      <div class="panel-head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="panel-label">Output</span></div>
+      <div class="demo-body">
+        <div id="threadOutputMobile" class="thread-output">
+          <div class="empty">Paste text to instantly split it into clean, thread-ready posts.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FEATURES ── -->
+  <section>
+    <div class="section-label reveal">What you get</div>
+    <h2 class="reveal">Six tools.<br><em>One workflow.</em></h2>
+    <div class="section-desc reveal">Extra tools for Buffer users to plan, draft, review, and schedule with less friction.</div>
+
+    <div class="cards-grid reveal-group">
+      <article class="card card-featured">
+        <div class="status try">Try now</div>
+        <span class="icon">✂️</span>
+        <h3>Thread Splitter</h3>
+        <p>Split long-form ideas into clean, numbered thread posts with live character counts.</p>
+      </article>
+      <article class="card card-featured">
+        <div class="status key">Requires Buffer key</div>
+        <span class="icon">✍️</span>
+        <h3>Composer</h3>
+        <p>Draft in a focused editor, then queue, schedule, or save to Buffer when you’re ready.</p>
+      </article>
+      <article class="card card-featured">
+        <div class="status key">Requires Buffer key</div>
+        <span class="icon">✅</span>
+        <h3>Approvals</h3>
+        <p>Run clean client or teammate approvals so posts are aligned before they go live.</p>
+      </article>
+      <article class="card">
+        <div class="status preview">Preview-friendly</div>
+        <span class="icon">⚡</span>
+        <h3>Snippets</h3>
+        <p>Keep go-to hooks, CTAs, and blocks close so writing starts faster every time.</p>
+      </article>
+      <article class="card">
+        <div class="status preview">Preview-friendly</div>
+        <span class="icon">📈</span>
+        <h3>Trending</h3>
+        <p>Use Reddit and Hacker News signals for ideas, then turn them into posts quickly.</p>
+      </article>
+      <article class="card">
+        <div class="status key">Requires Buffer key</div>
+        <span class="icon">📅</span>
+        <h3>Calendar</h3>
+        <p>See your schedule in a visual monthly view and spot gaps before they slow your cadence.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ── TRUST / API KEY EXPLAINER ── -->
+  <section>
+    <div class="section-label reveal">Trust and setup</div>
+    <h2 class="reveal">How your Buffer key works —<br><em>quick and clear.</em></h2>
+    <div class="section-desc reveal">Your Buffer API key is a private token from Buffer. It lets PostIQ connect to your account and act only when you choose to draft, queue, or schedule.</div>
+
+    <div class="explainers reveal-group">
+      <article class="step">
+        <div class="step-no">01</div>
+        <h4>What it actually is</h4>
+        <p>Your API key is a private code from Buffer that securely connects PostIQ to your account.</p>
+      </article>
+      <article class="step">
+        <div class="step-no">02</div>
+        <h4>What it lets PostIQ do</h4>
+        <p>It can read key account details and send actions to Buffer when you click save, queue, or schedule. It never posts on its own.</p>
+      </article>
+      <article class="step">
+        <div class="step-no">03</div>
+        <h4>Where it lives and how you control it</h4>
+        <p>Your key stays in your browser. Save it for the session or locally, and revoke or replace it anytime in Buffer settings.</p>
+      </article>
+    </div>
+
+    <div class="faq reveal">
+      <div class="faq-accordion">
+        <div class="faq-item open">
+          <button class="faq-question" type="button">
+            <span>Can someone else use my key?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">Only if you share it. Treat it like a password and do not paste it somewhere public.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" type="button">
+            <span>Does PostIQ post automatically?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">No. It only sends actions to Buffer when you choose to queue, save, or schedule content yourself.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" type="button">
+            <span>What if I want to revoke access later?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">Generate a new token in Buffer settings and the old one stops being useful.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" type="button">
+            <span>Will this work for every Buffer account setup?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">PostIQ works with standard Buffer API access. Grab your token from Buffer settings and test the connection in seconds.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FINAL CTA ── -->
+  <div class="connect">
+    <div class="connect-card reveal">
+      <div class="eyebrow" style="justify-content:center; margin-bottom:14px;">
+        <span class="eyebrow-dot"></span>
+        Ready when you are
+      </div>
+      <h2>Ready to try <em>PostIQ</em>?</h2>
+      <p>Start with the Thread Splitter, then connect your Buffer key when you’re ready to draft, queue, and schedule.</p>
+
+      <div class="hero-ctas" style="justify-content:center; margin-top: 8px;">
+        <a href="app.html" class="btn primary">Open PostIQ</a>
+        <a href="app.html?view=threadView" class="btn">Try Thread Splitter</a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+// ── Thread splitter logic (shared across all instances) ──
+function splitIntoThreads(text, maxLen = 280) {
+  const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+  const posts = [];
+  let current = '';
+
+  for (const sentence of sentences) {
+    const trimmed = sentence.trim();
+    if (!trimmed) continue;
+
+    if ((current + ' ' + trimmed).trim().length <= maxLen) {
+      current = (current + ' ' + trimmed).trim();
+    } else {
+      if (current) posts.push(current);
+      if (trimmed.length > maxLen) {
+        // chunk long sentence
+        const words = trimmed.split(' ');
+        let chunk = '';
+        for (const word of words) {
+          if ((chunk + ' ' + word).trim().length <= maxLen) {
+            chunk = (chunk + ' ' + word).trim();
+          } else {
+            if (chunk) posts.push(chunk);
+            chunk = word;
+          }
+        }
+        if (chunk) current = chunk;
+        else current = '';
+      } else {
+        current = trimmed;
+      }
+    }
+  }
+  if (current) posts.push(current);
+  return posts;
+}
+
+function renderThreadOutput(outputEl, posts) {
+  outputEl.innerHTML = '';
+  if (!posts.length) {
+    outputEl.innerHTML = '<div class="empty">Paste text to get instant thread-ready posts you can refine and share.</div>';
+    return;
+  }
+  posts.forEach((post, i) => {
+    const card = document.createElement('div');
+    card.className = 'thread-card';
+    card.style.animationDelay = (i * 0.04) + 's';
+    card.innerHTML = `
+      <div class="thread-meta">
+        <span>Post ${i + 1} of ${posts.length}</span>
+        <span>${post.length} / 280</span>
+      </div>
+      <div>${post}</div>
+    `;
+    outputEl.appendChild(card);
+  });
+}
+
+function bindSplitter(inputId, btnId, outputId) {
+  const input = document.getElementById(inputId);
+  const btn = document.getElementById(btnId);
+  const output = document.getElementById(outputId);
+  if (!input || !btn || !output) return;
+
+  btn.addEventListener('click', () => {
+    const text = input.value.trim();
+    if (!text) {
+      output.innerHTML = '<div class="empty">Nothing to split yet—paste text above first.</div>';
+      return;
+    }
+    const posts = splitIntoThreads(text);
+    renderThreadOutput(output, posts);
+  });
+}
+
+bindSplitter('demoInputHero', 'splitBtnHero', 'threadOutputHero');
+bindSplitter('demoInputMobile', 'splitBtnMobile', 'threadOutputMobile');
+
+// ── FAQ accordion ──
+document.querySelectorAll('.faq-question').forEach(btn => {
+  // Init open state
+  const item = btn.closest('.faq-item');
+  if (item.classList.contains('open')) {
+    btn.querySelector('.faq-icon').textContent = '+';
+  }
+
+  btn.addEventListener('click', () => {
+    const isOpen = item.classList.contains('open');
+    // Close all
+    document.querySelectorAll('.faq-item').forEach(el => el.classList.remove('open'));
+    // Open clicked if it was closed
+    if (!isOpen) item.classList.add('open');
+  });
+});
+
+// ── Scroll reveal ──
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.08 });
+
+document.querySelectorAll('.reveal, .reveal-group').forEach(el => observer.observe(el));
+
+function postIQTrack(eventName, params = {}) {
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', eventName, params);
+  }
+}
+
+document.querySelectorAll('a[href="app.html"]').forEach((link) => {
+  link.addEventListener('click', () => {
+    postIQTrack('landing_open_postiq_click', {
+      location: link.closest('.topbar') ? 'topbar' : link.closest('.connect-card') ? 'final_cta' : 'page'
+    });
+  });
+});
+
+document.querySelectorAll('a[href="app.html?view=threadView"]').forEach((link) => {
+  link.addEventListener('click', () => {
+    postIQTrack('landing_try_thread_splitter_click', {
+      location: link.closest('.topbar') ? 'topbar' : link.closest('.connect-card') ? 'final_cta' : 'page'
+    });
+  });
+});
+
+const splitBtnHero = document.getElementById('splitBtnHero');
+if (splitBtnHero) {
+  splitBtnHero.addEventListener('click', () => {
+    postIQTrack('landing_hero_splitter_used');
+  });
+}
+
+const splitBtnMobile = document.getElementById('splitBtnMobile');
+if (splitBtnMobile) {
+  splitBtnMobile.addEventListener('click', () => {
+    postIQTrack('landing_mobile_splitter_used');
+  });
+}
+</script>
+</body>
+</html>

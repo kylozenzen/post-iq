@@ -14,29 +14,6 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
   <meta name="description" content="PostIQ is a free Buffer companion app for serious creators. Thread Splitter, Content Calendar, Post Composer, and Snippets — no login required." />
 
-<script>
-  const GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
-
-  function initAnalytics() {
-    window.postIQAnalyticsReady = typeof window.gtag === 'function';
-    if (window.postIQAnalyticsReady) {
-      trackEvent('app_loaded', {
-        page_type: 'app'
-      });
-    }
-  }
-
-  function trackEvent(eventName, params = {}) {
-    if (typeof window.gtag !== 'function') return;
-
-    window.gtag('event', eventName, {
-      app_name: 'PostIQ',
-      ...params
-    });
-  }
-</script>
-
-  
   <!-- Open Graph -->
   <meta property="og:title" content="PostIQ — Buffer Power Tools" />
   <meta property="og:description" content="Thread Splitter, Content Calendar, Composer, and Snippets. The power-user layer on top of Buffer. Free, no login required." />
@@ -3524,13 +3501,6 @@ document.addEventListener('DOMContentLoaded', () => {
       <div>
         <div class="wn-title">Trending</div>
         <p class="wn-desc">Reddit tab shows hot posts from saved subreddits. Topics tab searches across all of Reddit by keyword — saves your searches as pills. Click → Reference to pin a story above the composer without copying it in.</p>
-      </div>
-    </div>
-    <div class="wn-guide-item">
-      <div class="wn-guide-icon">🎬</div>
-      <div>
-        <div class="wn-title">Video Thumbnails</div>
-        <p class="wn-desc">Sync Buffer, then open the Thumbnails tab in the Composer. PostIQ finds your scheduled video posts. Pick a thumbnail image — PostIQ deletes the original post and recreates it with the thumbnail baked in. Same text, channel, and time slot.</p>
       </div>
     </div>
     <div class="wn-guide-item">
