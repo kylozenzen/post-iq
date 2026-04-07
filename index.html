@@ -1155,6 +1155,39 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.08 });
 
 document.querySelectorAll('.reveal, .reveal-group').forEach(el => observer.observe(el));
+
+  <script>
+  window.postIQTrack = function(eventName, params = {}) {
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', eventName, params);
+    }
+  };
+
+  document.querySelectorAll('a[href="app.html"]').forEach((link) => {
+    link.addEventListener('click', () => {
+      window.postIQTrack('landing_open_postiq_click', {
+        location: link.closest('.topbar') ? 'topbar' :
+                  link.closest('.connect-card') ? 'final_cta' : 'page'
+      });
+    });
+  });
+
+  document.querySelectorAll('a[href="app.html?view=threadView"]').forEach((link) => {
+    link.addEventListener('click', () => {
+      window.postIQTrack('landing_try_thread_splitter_click', {
+        location: link.closest('.topbar') ? 'topbar' :
+                  link.closest('.connect-card') ? 'final_cta' : 'page'
+      });
+    });
+  });
+
+  const splitBtnHero = document.getElementById('splitBtnHero');
+  if (splitBtnHero) {
+    splitBtnHero.addEventListener('click', () => {
+      window.postIQTrack('landing_hero_splitter_used');
+    });
+  }
+</script>
 </script>
 </body>
 </html>
