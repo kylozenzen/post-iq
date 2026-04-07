@@ -14,14 +14,26 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
   <meta name="description" content="PostIQ is a free Buffer companion app for serious creators. Thread Splitter, Content Calendar, Post Composer, and Snippets — no login required." />
 
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  const GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
 
-  gtag('config', 'G-XXXXXXXXXX');
+  function initAnalytics() {
+    window.postIQAnalyticsReady = typeof window.gtag === 'function';
+    if (window.postIQAnalyticsReady) {
+      trackEvent('app_loaded', {
+        page_type: 'app'
+      });
+    }
+  }
+
+  function trackEvent(eventName, params = {}) {
+    if (typeof window.gtag !== 'function') return;
+
+    window.gtag('event', eventName, {
+      app_name: 'PostIQ',
+      ...params
+    });
+  }
 </script>
 
   
