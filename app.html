@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -2859,7 +2859,148 @@
     .view-state-pill{margin-top:8px;width:fit-content;}
 
 
-  </style>
+  
+/* === PostIQ light premium overhaul === */
+:root{
+  --bg:#f6f7fb;
+  --surface:#ffffff;
+  --surface2:#f8f9fc;
+  --surface3:#eef1f7;
+  --border:#e3e7f0;
+  --border2:#d3d9e6;
+  --text:#182033;
+  --muted:#5f6b85;
+  --subtle:#97a1b5;
+  --amber:#3366ff;
+  --amber-dim:rgba(51,102,255,.08);
+  --amber-glow:rgba(51,102,255,.18);
+  --green:#138a63;
+  --green-dim:rgba(19,138,99,.10);
+  --blue:#3366ff;
+  --blue-dim:rgba(51,102,255,.08);
+  --violet:#7c5cff;
+  --red:#d95d5d;
+  --gold-tag:rgba(255,183,77,.16);
+  --blue-tag:rgba(51,102,255,.10);
+  --green-tag:rgba(19,138,99,.12);
+  --violet-tag:rgba(124,92,255,.10);
+  --r:16px;
+}
+body{
+  background:
+    radial-gradient(circle at top left, rgba(51,102,255,.06), transparent 22%),
+    linear-gradient(180deg, #fafbfe 0%, #f4f6fb 100%);
+  color:var(--text);
+}
+.app{grid-template-columns:260px 1fr;background:transparent}
+.side{
+  background:rgba(255,255,255,.82);
+  backdrop-filter: blur(16px);
+  border-right:1px solid rgba(227,231,240,.95);
+  box-shadow: 8px 0 30px rgba(20,31,66,.04);
+}
+.side-logo,.side-token,.side-sync,.side-bottom{border-color:var(--border)}
+.logo-mark{font-size:20px}
+.logo-mark span{
+  background:#111827;
+  color:#fff;
+  border-radius:999px;
+  padding:3px 8px;
+}
+.nav-btn{
+  border:1px solid transparent;
+  border-radius:12px;
+  padding:10px 12px;
+}
+.nav-btn:hover{
+  background:#f7f9fd;
+  transform:none;
+}
+.nav-btn.active{
+  color:var(--blue);
+  background:linear-gradient(180deg,#f4f7ff,#eef3ff);
+  border-color:rgba(51,102,255,.14);
+  box-shadow:none;
+}
+.nav-btn.active::before{display:none}
+.nav-badge{
+  background:#f5f7fb;
+  border-color:var(--border);
+}
+.theme-switcher{padding-top:12px}
+.theme-btn.active{border-color:var(--blue)}
+.main{background:transparent}
+.view{padding:28px 32px}
+.page-hdr{
+  border-bottom:none;
+  margin-bottom:24px;
+  padding-bottom:0;
+}
+.page-title{font-size:28px;letter-spacing:-.03em}
+.page-desc{font-size:14px;color:var(--muted)}
+.card,.modal-card,.snippet-filters,.upload-zone,.thread-part,.thumb-post-card,.cal-day,.trending-ref-panel{
+  background:rgba(255,255,255,.88);
+  border:1px solid rgba(227,231,240,.95);
+  box-shadow:0 10px 28px rgba(19,30,61,.05);
+  border-radius:16px;
+}
+.card:hover,.thumb-post-card:hover,.snippet-card:hover,.trending-item:hover{
+  box-shadow:0 14px 32px rgba(19,30,61,.08);
+}
+.btn{
+  border-radius:12px;
+  border-color:var(--border);
+  background:#fff;
+  color:var(--text);
+  box-shadow:0 1px 2px rgba(15,23,42,.03);
+}
+.btn:hover{background:#f8faff;border-color:#c8d3eb}
+.btn.primary{
+  background:#111827;
+  color:#fff;
+  box-shadow:0 10px 20px rgba(17,24,39,.12);
+}
+.btn.primary:hover{background:#0f172a}
+.btn.success{background:#e8faf3;color:#0f6d4f}
+.input, textarea, select, .rich-toolbar, .rich-editor, .composer-image-row{
+  background:#fbfcfe;
+  border-color:var(--border);
+  color:var(--text);
+}
+.input:focus, textarea:focus, select:focus, .rich-editor:focus{
+  border-color:rgba(51,102,255,.35)!important;
+  box-shadow:0 0 0 4px rgba(51,102,255,.08)!important;
+}
+.chip.amber,.part-num,.filter-btn.active,.composer-tab.active,.wn-badge.new{
+  color:var(--blue);
+  background:rgba(51,102,255,.08);
+  border-color:rgba(51,102,255,.16);
+}
+.cal-day.today{border-color:rgba(51,102,255,.24)}
+.cal-day.today .day-num,.cal-month,.token-value a{color:var(--blue)}
+.day-post-pill{background:#eef3ff;color:#2d4fd2;border-color:#dbe5ff}
+.day-note-pill.gold{background:#fff4df;color:#9a6a10;border-color:#f2deb4}
+.day-note-pill.green{background:#e9faf4;color:#117b59;border-color:#c5eddc}
+.day-note-pill.violet{background:#f1edff;color:#6d52dd;border-color:#e0d8ff}
+.empty,.view-loading{
+  background:rgba(255,255,255,.65);
+  border-color:var(--border);
+}
+.thread-actions-bar{
+  background:linear-gradient(180deg, rgba(246,247,251,.97), rgba(246,247,251,.86));
+  backdrop-filter: blur(8px);
+}
+@media (max-width: 960px){
+  .app{grid-template-columns:1fr}
+  .side{
+    position:static;
+    height:auto;
+    border-right:none;
+    border-bottom:1px solid var(--border);
+  }
+}
+
+</style>
 </head>
 <body>
 <!-- ── MOBILE BOTTOM TABS ── -->
@@ -6117,5 +6258,14 @@ function init(){
 }
 document.addEventListener('DOMContentLoaded',()=>{try{init();}catch(e){console.error('[PostIQ] init() crashed:',e);}});
 </script>
+
+<script>
+try{
+  const root=document.documentElement;
+  const saved=localStorage.getItem('postiq-theme');
+  if(!saved){root.setAttribute('data-theme','light');}
+}catch(e){}
+</script>
+
 </body>
 </html>
