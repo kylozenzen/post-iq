@@ -416,6 +416,12 @@
     .page-desc { font-size: 13px; color: var(--muted); }
     .page-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
 
+    /* Hide large empty-state icons and duplicate titles on desktop */
+    @media (min-width: 960px) {
+      .empty-icon { display: none; }
+      .page-hdr .page-title { display: none; }
+    }
+
     /* ── BUTTONS ── */
     .btn {
       display: inline-flex;
@@ -1577,6 +1583,19 @@
         padding-bottom: 12px;
         border-bottom: 1px solid var(--border);
       }
+
+    /* Hide mobile view header on larger screens. On desktop the full page header already
+       includes the tool name and actions, so the mobile-only header would duplicate
+       the title and its icon. This ensures large SVG icons and redundant titles do
+       not appear on desktop views. */
+    /* Always hide the mobile header by default. We'll explicitly re-enable
+       it for narrow screens via a max-width media query. This prevents the
+       mobile view header (which contains large icons and duplicate titles)
+       from appearing on desktop. */
+    .mob-view-hdr { display: none !important; }
+    @media (max-width: 959px) {
+      .mob-view-hdr { display: flex !important; }
+    }
       .mob-view-title {
         font-family: 'Syne', sans-serif;
         font-weight: 700;
@@ -3285,6 +3304,11 @@ body{
               <select id="threadChannel" class="input grow"></select>
               <div id="threadNoChannels" class="empty mt8" style="display:none;">No X or Threads channels found. <button class="btn sm ghost" onclick="syncBuffer()" style="margin-top:6px;display:block;width:100%;">↻ Load from Buffer</button></div>
             </div>
+            <!-- Numbering toggle for thread parts -->
+            <div class="row mt8" style="align-items:center;gap:6px;">
+              <input type="checkbox" id="threadNumberToggle" />
+              <label for="threadNumberToggle" style="font-size:13px;">Add numbering (1/n)</label>
+            </div>
             <div class="row mt8">
               <button class="btn" id="draftThreadBtn">Save draft</button>
               <button class="btn success" id="queueThreadBtn">Add to queue</button>
@@ -3348,6 +3372,12 @@ body{
       <div class="mob-view-hdr">
         <span class="mob-view-title"><span class="mob-icon"><svg><use href="#i-compose"></use></svg></span>Compose</span>
         <button class="btn sm ghost" id="composerClearBtnMob" style="display:none;">Clear ✕</button>
+      </div>
+
+      <!-- Composer tab navigation (Write / LinkedIn) -->
+      <div class="composer-tabs">
+        <button class="composer-tab active" data-ctab="write">Write</button>
+        <button class="composer-tab" data-ctab="linkedin">LinkedIn</button>
       </div>
 
       <!-- Trending reference panel -->
@@ -3532,23 +3562,15 @@ body{
         </div>
       </div>
 
-      <!-- ── IDEAS TAB ── -->
-      <div id="composerTabIdeas" class="composer-tab-panel" style="display:none;">
-        <p class="page-desc mt8" style="color:var(--muted);font-size:13px;margin-bottom:12px;">Pull from your Buffer Ideas board. Filter by column, pick randomly, or click any idea to load it into the composer.</p>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
-          <select id="ideasGroupFilter" class="input" style="flex:1;min-width:130px;">
-            <option value="all">All columns</option>
-          </select>
-          <select id="ideasCountPicker" class="input" style="width:56px;">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-          </select>
-          <button class="btn sm" id="ideasRandomBtn">🎲 Random</button>
-          <button class="btn sm ghost" id="ideasLoadBtn">↻ Load</button>
-        </div>
-        <div id="ideasStatus" class="status-txt mb8"></div>
-        <div id="ideasList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <!-- The Ideas tab has been removed. -->
+
+      <!-- ── LINKEDIN TAB ── -->
+      <div id="composerTabLinkedIn" class="composer-tab-panel" style="display:none;">
+        <p class="page-desc mt8" style="color:var(--muted);font-size:13px;margin-bottom:12px;">Pull from your recent LinkedIn posts. Select a post to send it into Thread Splitter and repurpose it as a thread.</p>
+        <div id="linkedinStatus" class="status-txt mb8"></div>
+        <!-- List of LinkedIn posts will be injected here -->
+        <div id="linkedinList" class="thumb-post-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+        <button class="btn sm ghost" id="linkedinLoadBtn" style="display:none;margin-top:8px;">↻ Load more</button>
       </div>
 
     </section>
@@ -3978,7 +4000,29 @@ let threadParts=[];
 let currentViewId='';
 let hasTrackedBufferConnected=false;
 let modalOpenCount=0;
-const state={channels:[],scheduled:[],month:new Date(),agendaView:'day',selectedDate:null,syncState:'idle',snippets:[],snippetType:'All',snippetPlatform:'All Platforms',snippetSearch:'',editingSnippetId:null,pickerMode:'composer',ideasCache:[],ideaGroups:[],ideasLoaded:false};
+const state={
+  channels:[],
+  scheduled:[],
+  month:new Date(),
+  agendaView:'day',
+  selectedDate:null,
+  syncState:'idle',
+  snippets:[],
+  snippetType:'All',
+  snippetPlatform:'All Platforms',
+  snippetSearch:'',
+  editingSnippetId:null,
+  pickerMode:'composer',
+  ideasCache:[],
+  ideaGroups:[],
+  ideasLoaded:false,
+  // LinkedIn posts integration
+  linkedInLoaded:false,
+  linkedInPosts:[],
+  linkedInNextIndex:0,
+  // Thread numbering toggle for thread splitter
+  numbering:false
+};
 const noteTags={gold:'Idea',blue:'Draft',green:'Campaign',violet:'Priority'};
 
 function qs(id){return document.getElementById(id)}
@@ -4093,6 +4137,103 @@ async function loadIdeas(){
     statusEl.textContent='';
     renderIdeas(state.ideasCache);
   }catch(e){statusEl.textContent='Error: '+e.message;}
+}
+
+// ── LINKEDIN POSTS ──
+// Populate the LinkedIn tab with recent posts. Since external APIs are disabled,
+// this stub uses a set of sample posts stored in state.linkedInPosts. The first
+// call seeds the sample data and resets the pagination index. Subsequent calls
+// simply render the next batch of posts.
+function loadLinkedInPosts(){
+  const statusEl = qs('linkedinStatus');
+  const listEl = qs('linkedinList');
+  const loadBtn = qs('linkedinLoadBtn');
+  if(!statusEl || !listEl || !loadBtn) return;
+  statusEl.textContent = 'Loading LinkedIn posts…';
+  listEl.innerHTML = '';
+  // If posts haven't been loaded before, seed with sample data. In a future
+  // integration this would call Buffer or LinkedIn APIs using the Buffer token.
+  if(!state.linkedInLoaded){
+    state.linkedInPosts = [
+      { text: 'Storytelling is the backbone of good marketing. If you can connect with your audience through a narrative, you will engage them on a deeper level. Build your posts around a clear arc: start with the problem, reveal the journey, and end with the solution. Remember, facts tell but stories sell. Apply this approach to your own LinkedIn posts and watch the engagement rise.' },
+      { text: 'I recently revisited some of my most successful posts and realized a common thread: authenticity. People resonate with real experiences and genuine perspectives. If you\'re struggling to find your voice, start by sharing a lesson you\'ve learned this year and how it changed your outlook. Don\'t be afraid to be vulnerable – that\'s what makes social media social.' },
+      { text: 'Did you know that repurposing content across platforms can multiply your reach? A thoughtful article published on LinkedIn can be broken into smaller insights and threaded into a captivating tweetstorm. Doing so not only extends the life of your content but also lets you tailor the message for different audiences. Next time you write a long post, think about how you can adapt it into a multi-part thread.' },
+      { text: 'Your LinkedIn headline is like the opening scene of a movie – it either hooks viewers or sends them scrolling. When crafting headlines for your posts, lean into curiosity. Ask a thought-provoking question or hint at a surprising insight. Then deliver on that promise in the body. The more intrigued readers are, the more likely they\'ll engage with your content.' },
+      { text: 'Consistency beats perfection. It’s better to share valuable ideas regularly than to wait until you have the “perfect” post. Set a cadence for yourself – maybe once or twice a week – and stick to it. Over time you\'ll refine your writing and build an audience that looks forward to your insights. And remember, your existing posts are a treasure trove of ideas to remix into fresh formats.' },
+      { text: 'Use visuals to amplify your message. Even on LinkedIn, a simple chart, diagram, or infographic can make complex concepts accessible and memorable. Next time you publish a data-driven post, consider attaching a visual summary. Tools like Canva and Figma make it easy to create professional graphics without a designer.' },
+      { text: 'Networking isn\'t about collecting contacts – it\'s about building relationships. Share updates on projects you\'re working on and ask for feedback. Respond thoughtfully to comments on your posts. When someone\'s insight helps you, mention them in your next article. Reciprocity and genuine interest in others go a long way.' }
+    ];
+    state.linkedInLoaded = true;
+  }
+  // Start pagination from zero on every fresh load
+  state.linkedInNextIndex = 0;
+  // Render the first batch of posts
+  renderLinkedInPosts();
+}
+
+// Render the next batch of LinkedIn posts to the list. Shows 5 posts at a time
+// and reveals a Load more button if additional posts remain.
+function renderLinkedInPosts(){
+  const listEl = qs('linkedinList');
+  const statusEl = qs('linkedinStatus');
+  const loadBtn = qs('linkedinLoadBtn');
+  if(!listEl || !statusEl || !loadBtn) return;
+  const posts = state.linkedInPosts || [];
+  const start = state.linkedInNextIndex || 0;
+  const batchSize = 5;
+  const end = Math.min(start + batchSize, posts.length);
+  // On first call clear any existing items
+  if(start === 0) listEl.innerHTML = '';
+  if(posts.length === 0){
+    statusEl.textContent = 'No LinkedIn posts found.';
+    loadBtn.style.display = 'none';
+    return;
+  }
+  statusEl.textContent = '';
+  for(let i = start; i < end; i++){
+    const post = posts[i];
+    const preview = post.text.slice(0, 280);
+    const truncated = post.text.length > 280;
+    const idx = i;
+    listEl.insertAdjacentHTML('beforeend', `<div class="card" style="padding:10px;">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.4;">${safeText(preview)}${truncated ? '…' : ''}</div>
+      <button class="btn sm" onclick="useLinkedInInThread(${idx})">Use → Thread</button>
+    </div>`);
+  }
+  state.linkedInNextIndex = end;
+  loadBtn.style.display = end < posts.length ? 'inline-flex' : 'none';
+}
+
+// Handler for the Load more button in the LinkedIn tab
+const linkedinLoadBtn = qs('linkedinLoadBtn');
+if(linkedinLoadBtn){
+  linkedinLoadBtn.onclick = () => {
+    renderLinkedInPosts();
+  };
+}
+
+// Send a LinkedIn post into the Thread Splitter. Takes the index of the post
+// in state.linkedInPosts, moves the user to the thread view, inserts the
+// content into the thread input, and automatically splits it.
+function useLinkedInInThread(idx){
+  const posts = state.linkedInPosts || [];
+  const post = posts[idx];
+  if(!post) return;
+  // Switch to thread view
+  activateView('threadView');
+  // Clear any existing thread text and set the new content
+  const input = qs('threadInput');
+  if(input){
+    input.value = post.text;
+    input.dispatchEvent(new Event('input'));
+  }
+  // Highlight the Thread tab in the sidebar/nav
+  const threadNav = document.querySelectorAll('[data-view="threadView"]');
+  threadNav.forEach(btn => btn.classList.add('active'));
+  // Perform splitting immediately
+  const splitBtn = qs('splitBtn');
+  if(splitBtn) splitBtn.click();
+  showToast('Post loaded into thread','success');
 }
 
 function renderIdeas(list){
@@ -4583,19 +4724,43 @@ function renderThread(){
     const hdr=e.target.closest('.thread-part').querySelector('.thread-part-hdr span:last-of-type');
     if(hdr){const c=e.target.value.length;hdr.style.color=c>280?'var(--red)':'var(--subtle)';hdr.textContent=`${c}/280`;}
   }));
-  out.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{navigator.clipboard.writeText(threadParts[+b.dataset.copy]||'');showToast('Part copied');});
+  out.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{
+    const idx = +b.dataset.copy;
+    const original = threadParts[idx] || '';
+    const text = state.numbering ? `${idx+1}/${threadParts.length} ${original}` : original;
+    navigator.clipboard.writeText(text);
+    showToast('Part copied');
+  });
 }
 function getThreadMetadata(channelId){
   const channel=state.channels.find(c=>c.id===channelId);
   const svc=(channel?.service||'').toLowerCase();
   const isThreads=svc.includes('thread');
-  return threadParts.length>1?{metadata:{[isThreads?'threads':'twitter']:isThreads?{type:'thread',thread:threadParts.slice(1).map(t=>({text:t}))}:{thread:threadParts.slice(1).map(t=>({text:t}))}}}:{};
+  // If numbering toggle is enabled, prefix each part with index/total
+  const parts = state.numbering
+    ? threadParts.map((p,i) => `${i+1}/${threadParts.length} ${p}`)
+    : threadParts.slice();
+  return parts.length>1
+    ? {
+        metadata: {
+          [isThreads ? 'threads' : 'twitter']:
+            isThreads
+              ? { type: 'thread', thread: parts.slice(1).map(t => ({ text: t })) }
+              : { thread: parts.slice(1).map(t => ({ text: t })) }
+        }
+      }
+    : {};
 }
 async function sendThread(action){
   if(!threadParts.length){qs('threadStatus').textContent='Split content first.';return;}
   const channelId=qs('threadChannel').value;if(!channelId){qs('threadStatus').textContent='Load channels first.';return;}
-  const first=threadParts[0];const when=qs('threadWhen').value;
-  const input={channelId,text:first,schedulingType:'automatic',...getThreadMetadata(channelId)};
+  // Determine parts and prefix numbering if enabled
+  const parts = state.numbering
+    ? threadParts.map((p,i) => `${i+1}/${threadParts.length} ${p}`)
+    : threadParts.slice();
+  const first = parts[0];
+  const when = qs('threadWhen').value;
+  const input = { channelId, text: first, schedulingType:'automatic', ...getThreadMetadata(channelId) };
   if(action==='draft'){input.mode='addToQueue';input.saveToDraft=true;}
   if(action==='queue'){input.mode='addToQueue';}
   if(action==='schedule'){if(!when){qs('threadStatus').textContent='Choose date/time first.';return;}input.mode='customScheduled';input.dueAt=when;}
@@ -5661,12 +5826,27 @@ function init(){
 
   qs('splitBtn').onclick=()=>{threadParts=splitThreadText(qs('threadInput').value);renderThread();if(threadParts.length)showToast(`${threadParts.length} thread parts`,'success');};
   qs('sampleBtn').onclick=()=>{qs('threadInput').value='PostIQ helps Buffer users move faster. Start with one big idea, split it into clear thread parts, refine each part, and send a cleaner post flow to Buffer.'};
-  qs('copyAllBtn').onclick=()=>{navigator.clipboard.writeText(threadParts.join('\n\n'));showToast('Thread copied','success');};
+  qs('copyAllBtn').onclick = () => {
+    if(!threadParts || !threadParts.length) return;
+    const parts = state.numbering
+      ? threadParts.map((p,i) => `${i+1}/${threadParts.length} ${p}`)
+      : threadParts.slice();
+    navigator.clipboard.writeText(parts.join('\n\n'));
+    showToast('Thread copied','success');
+  };
   qs('draftThreadBtn').onclick=()=>sendThread('draft');
   qs('queueThreadBtn').onclick=()=>sendThread('queue');
   qs('scheduleThreadBtn').onclick=()=>sendThread('schedule');
   qs('threadAddOpener').onclick=()=>openSnippetPicker('threadOpener');
   qs('threadAddCta').onclick=()=>openSnippetPicker('threadCta');
+
+  // Toggle numbering prefix for thread posts (1/n)
+  const threadNumberToggle = qs('threadNumberToggle');
+  if (threadNumberToggle) {
+    threadNumberToggle.onchange = (e) => {
+      state.numbering = !!e.target.checked;
+    };
+  }
 
   qs('prevMonth').onclick=()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()-1,1);renderCalendar()};
   qs('nextMonth').onclick=()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()+1,1);renderCalendar()};
@@ -5843,11 +6023,13 @@ function init(){
       document.querySelectorAll('.composer-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       const panel = tab.dataset.ctab;
-      const composerWrite=qs('composerTabWrite');
-      const composerIdeas=qs('composerTabIdeas');
-      if(composerWrite)composerWrite.style.display = panel === 'write' ? 'block' : 'none';
-      if(composerIdeas)composerIdeas.style.display = panel === 'ideas' ? 'block' : 'none';
-      if (panel === 'ideas' && !state.ideasLoaded) loadIdeas();
+      const composerWrite = qs('composerTabWrite');
+      const composerLinkedIn = qs('composerTabLinkedIn');
+      // Show only the selected composer panel. The removed Ideas tab is no longer checked.
+      if (composerWrite) composerWrite.style.display = panel === 'write' ? 'block' : 'none';
+      if (composerLinkedIn) composerLinkedIn.style.display = panel === 'linkedin' ? 'block' : 'none';
+      // On first open of LinkedIn tab, load recent posts (stubbed via loadLinkedInPosts)
+      if (panel === 'linkedin' && !state.linkedInLoaded) loadLinkedInPosts();
     };
   });
 
