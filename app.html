@@ -3218,8 +3218,7 @@
       </div>
       <div id="threadTabLinkedIn" class="composer-tab-panel" style="display:none;">
         <h3 style="font-family:'Syne',sans-serif;font-size:20px;line-height:1.2;margin-bottom:6px;">Repurpose from LinkedIn</h3>
-        <p class="page-desc mt8" style="color:var(--muted);font-size:13px;margin-bottom:8px;">Pick from recent sent LinkedIn posts, scan useful context fast, and keep moving inside Composer.</p>
-        <p style="font-size:12px;line-height:1.55;color:var(--blue);background:var(--blue-dim);border:1px solid rgba(51,102,255,.2);border-radius:10px;padding:10px 12px;margin-bottom:12px;">Source picker mode: choose one post and send it to <strong>Compose</strong> or <strong>Split</strong>. No extra dashboards.</p>
+        <p class="page-desc mt8" style="color:var(--muted);font-size:13px;margin-bottom:10px;">Choose a recent LinkedIn post, then send it to Compose or Split.</p>
         <div id="linkedinStatus" class="status-txt mb8"></div>
         <div id="linkedinList" class="thumb-post-list" style="display:flex;flex-direction:column;gap:10px;"></div>
         <button class="btn sm ghost" id="linkedinLoadBtn" style="display:none;margin-top:8px;">↻ Load more</button>
@@ -3278,9 +3277,9 @@
       </div>
       <!-- Composer tab navigation -->
       <div class="composer-tabs">
-        <button class="composer-tab active" data-ctab="write"><span class="composer-tab-title">Compose</span><span class="composer-tab-meta" id="composerModeMetaWrite">Needs Buffer for publishing</span></button>
-        <button class="composer-tab" data-ctab="split"><span class="composer-tab-title">Split</span><span class="composer-tab-meta" id="composerModeMetaSplit">Free preview mode</span></button>
-        <button class="composer-tab" data-ctab="repurpose"><span class="composer-tab-title">Repurpose</span><span class="composer-tab-meta" id="composerModeMetaRepurpose">Needs Buffer to load LinkedIn</span></button>
+        <button class="composer-tab active" data-ctab="write"><span class="composer-tab-title">Compose</span><span class="composer-tab-meta" id="composerModeMetaWrite">Draft and publish to Buffer</span></button>
+        <button class="composer-tab" data-ctab="split"><span class="composer-tab-title">Split</span><span class="composer-tab-meta" id="composerModeMetaSplit">Build thread-ready drafts</span></button>
+        <button class="composer-tab" data-ctab="repurpose"><span class="composer-tab-title">Repurpose</span><span class="composer-tab-meta" id="composerModeMetaRepurpose">Load recent LinkedIn posts</span></button>
       </div>
 
       <!-- Trending reference panel -->
@@ -4462,13 +4461,13 @@ function updateComposerModeCards(){
   const splitMeta=qs('composerModeMetaSplit');
   const repurposeMeta=qs('composerModeMetaRepurpose');
   if(writeMeta){
-    writeMeta.textContent=connected?'Connected · publish ready':'Needs Buffer for publishing';
+    writeMeta.textContent=connected?'Draft and publish to Buffer':'Needs Buffer for publishing';
   }
   if(splitMeta){
-    splitMeta.textContent='Free preview mode';
+    splitMeta.textContent=connected?'Build thread-ready drafts':'Free preview mode';
   }
   if(repurposeMeta){
-    repurposeMeta.textContent=connected?'Connected · loads recent LinkedIn':'Needs Buffer to load LinkedIn';
+    repurposeMeta.textContent=connected?'Load recent LinkedIn posts':'Needs Buffer to load LinkedIn';
   }
 }
 function ensureRepurposeLoaded({force=false}={}){
