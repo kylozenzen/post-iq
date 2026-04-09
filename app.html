@@ -3278,9 +3278,9 @@
       </div>
       <!-- Composer tab navigation -->
       <div class="composer-tabs">
-        <button class="composer-tab active" data-ctab="write"><span class="composer-tab-title">Compose</span><span class="composer-tab-meta">Needs Buffer for publishing</span></button>
-        <button class="composer-tab" data-ctab="split"><span class="composer-tab-title">Split</span><span class="composer-tab-meta">Free preview mode</span></button>
-        <button class="composer-tab" data-ctab="repurpose"><span class="composer-tab-title">Repurpose</span><span class="composer-tab-meta">Needs Buffer to load LinkedIn</span></button>
+        <button class="composer-tab active" data-ctab="write"><span class="composer-tab-title">Compose</span><span class="composer-tab-meta" id="composerModeMetaWrite">Needs Buffer for publishing</span></button>
+        <button class="composer-tab" data-ctab="split"><span class="composer-tab-title">Split</span><span class="composer-tab-meta" id="composerModeMetaSplit">Free preview mode</span></button>
+        <button class="composer-tab" data-ctab="repurpose"><span class="composer-tab-title">Repurpose</span><span class="composer-tab-meta" id="composerModeMetaRepurpose">Needs Buffer to load LinkedIn</span></button>
       </div>
 
       <!-- Trending reference panel -->
@@ -3919,6 +3919,7 @@ const state={
   linkedInHasNext:false,
   linkedInPhase:'idle',
   linkedInError:'',
+  activeComposerTab:'write',
   organizationId:null,
   // Thread numbering toggle for thread splitter
   numbering:false
@@ -4455,7 +4456,32 @@ function isComposerRepurposeActive(){
   const panel=qs('composerTabRepurpose');
   return !!panel && panel.style.display!=='none';
 }
+function updateComposerModeCards(){
+  const connected=!!bufferToken;
+  const writeMeta=qs('composerModeMetaWrite');
+  const splitMeta=qs('composerModeMetaSplit');
+  const repurposeMeta=qs('composerModeMetaRepurpose');
+  if(writeMeta){
+    writeMeta.textContent=connected?'Connected · publish ready':'Needs Buffer for publishing';
+  }
+  if(splitMeta){
+    splitMeta.textContent='Free preview mode';
+  }
+  if(repurposeMeta){
+    repurposeMeta.textContent=connected?'Connected · loads recent LinkedIn':'Needs Buffer to load LinkedIn';
+  }
+}
+function ensureRepurposeLoaded({force=false}={}){
+  renderLinkedInPosts();
+  if(!bufferToken) return;
+  if(!state.channels.length) return;
+  if(state.linkedInPhase==='loading') return;
+  if(force || !state.linkedInLoaded){
+    loadLinkedInPosts({append:false});
+  }
+}
 function setComposerTab(tab='write'){
+  state.activeComposerTab=tab;
   document.querySelectorAll('.composer-tab[data-ctab]').forEach(btn=>{
     btn.classList.toggle('active',btn.dataset.ctab===tab);
   });
@@ -4466,8 +4492,7 @@ function setComposerTab(tab='write'){
   if(tab==='split') setThreadTab('splitter');
   if(tab==='repurpose'){
     setThreadTab('linkedin');
-    renderLinkedInPosts();
-    if(!state.linkedInLoaded) loadLinkedInPosts({append:false});
+    ensureRepurposeLoaded();
   }
 }
 function activateView(viewId){
@@ -4633,6 +4658,7 @@ function openTokenManagement(){
 }
 function updateViewStatePills(){
   const connected=!!bufferToken;
+  updateComposerModeCards();
   const set=(id,txt,cls)=>{const el=qs(id);if(!el)return;el.className=`state-pill view-state-pill ${cls}`;el.textContent=txt;};
   set('composerStatePill',connected?'Connected · ready':'Free Preview · Split mode',connected?'try':'preview');
   set('calendarStatePill',connected?'Connected · ready':'Needs Buffer key',connected?'try':'key');
@@ -4641,7 +4667,7 @@ function updateViewStatePills(){
   set('trendingStatePill',connected?'Connected · ready':'Free Preview',connected?'try':'preview');
   const repurposeNoKey=qs('repurposeNoKeyState');
   if(repurposeNoKey) repurposeNoKey.style.display=connected?'none':'block';
-  if(isComposerRepurposeActive()) renderLinkedInPosts();
+  if(isComposerRepurposeActive()) ensureRepurposeLoaded();
   const subhead=qs('composerSubhead');
   if(subhead){
     subhead.textContent=connected
@@ -4799,7 +4825,11 @@ async function syncBuffer(){
     qs('syncBtn').classList.remove('sync-pulse');
     showToast(`Loaded ${all.length} posts`,'success');
     window.dispatchEvent(new Event('postiq:synced'));
-    if(isComposerRepurposeActive())loadLinkedInPosts({append:false});
+    if(getLinkedInChannels().length){
+      ensureRepurposeLoaded({force:true});
+    }else{
+      renderLinkedInPosts();
+    }
   }catch(e){
     console.error('[PostIQ] syncBuffer error:', e);
     const message=getActionErrorMessage(e,'Sync failed.');
