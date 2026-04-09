@@ -8,6 +8,12 @@ function formatProxyError(message, extras = {}) {
   };
 }
 
+function toIntOrNull(value) {
+  if (value == null) return null;
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+}
+
 exports.handler = async function(event) {
   const corsHeaders = {
     "Content-Type": "application/json",
@@ -25,27 +31,27 @@ exports.handler = async function(event) {
     payload = JSON.parse(event.body || "{}");
   } catch {
     return {
-      statusCode: 200,
+      statusCode: 400,
       headers: corsHeaders,
-      body: JSON.stringify(formatProxyError("Invalid request body", { code: "BAD_REQUEST", retryable: false })),
+      body: JSON.stringify(formatProxyError("Invalid request body", { code: "BAD_REQUEST", status: 400, retryable: false })),
     };
   }
 
   const { token, query, variables } = payload;
 
-  if (!token) {
+  if (!query) {
     return {
-      statusCode: 200,
+      statusCode: 400,
       headers: corsHeaders,
-      body: JSON.stringify(formatProxyError("No Buffer token provided", { code: "MISSING_TOKEN", retryable: false })),
+      body: JSON.stringify(formatProxyError("No query provided", { code: "BAD_REQUEST", status: 400, retryable: false })),
     };
   }
 
-  if (!query) {
+  if (!token) {
     return {
-      statusCode: 200,
+      statusCode: 401,
       headers: corsHeaders,
-      body: JSON.stringify(formatProxyError("No query provided", { code: "BAD_REQUEST", retryable: false })),
+      body: JSON.stringify(formatProxyError("No Buffer token provided", { code: "MISSING_TOKEN", status: 401, retryable: false })),
     };
   }
 
@@ -66,7 +72,7 @@ exports.handler = async function(event) {
       data = JSON.parse(text);
     } catch {
       return {
-        statusCode: 200,
+        statusCode: res.status >= 500 ? res.status : 502,
         headers: corsHeaders,
         body: JSON.stringify(
           formatProxyError(
@@ -89,14 +95,14 @@ exports.handler = async function(event) {
       else if (res.status >= 500) code = "BUFFER_SERVER_ERROR";
 
       return {
-        statusCode: 200,
+        statusCode: res.status,
         headers: corsHeaders,
         body: JSON.stringify(
           formatProxyError(msg, {
             code,
             status: res.status,
             retryable: res.status === 429 || res.status >= 500,
-            ...(res.headers.get("retry-after") ? { retryAfter: res.headers.get("retry-after") } : {}),
+            retryAfter: toIntOrNull(res.headers.get("retry-after")),
           })
         ),
       };
@@ -109,11 +115,12 @@ exports.handler = async function(event) {
     };
   } catch (err) {
     return {
-      statusCode: 200,
+      statusCode: 502,
       headers: corsHeaders,
       body: JSON.stringify(
         formatProxyError(err.message || "Proxy error", {
           code: "PROXY_NETWORK_ERROR",
+          status: 502,
           retryable: true,
         })
       ),

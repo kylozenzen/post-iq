@@ -3840,6 +3840,15 @@ function clearBufferTokenForAuthFailure(message='Buffer token expired or invalid
   refreshTokenUI();
   setSyncStatus('failed',message);
 }
+function isAuthFailureError(err){
+  const code=String(err?.code||'').toUpperCase();
+  const status=Number(err?.status||0);
+  const msg=String(err?.message||'');
+  return code==='AUTH_ERROR'
+    || status===401
+    || status===403
+    || /unauthorized|invalid token|token.*expired|forbidden|auth/i.test(msg);
+}
 function isAnalyticsEnabled(){return !!(GA_MEASUREMENT_ID && GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX');}
 function initAnalytics(){
   if(!isAnalyticsEnabled() || window.__postiqGAInitialized) return;
@@ -4525,6 +4534,15 @@ async function callBuffer(query,variables={}){
     e.retryAfter=first.retryAfter||null;
     throw e;
   }
+  if(!res.ok){
+    const first=data?.errors?.[0]||{};
+    const e=new Error(first.message||`Buffer request failed with HTTP ${res.status}.`);
+    e.code=first.code||'BUFFER_HTTP_ERROR';
+    e.status=first.status||res.status;
+    e.retryable=typeof first.retryable==='boolean' ? first.retryable : (res.status===429||res.status>=500);
+    e.retryAfter=first.retryAfter||null;
+    throw e;
+  }
   if(data.errors?.length)console.warn('[PostIQ] GraphQL partial errors:',data.errors);
   return data;
 }
@@ -4533,6 +4551,8 @@ function getActionErrorMessage(err,fallback='Request failed. Please try again.')
   const code=String(err?.code||'').toUpperCase();
   const msg=String(err?.message||'');
   if(code==='MISSING_TOKEN')return 'Add your Buffer token first.';
+  if(code==='MUTATION_INVALID_INPUT')return 'Post details are invalid. Check content length, media, or schedule time and retry.';
+  if(code==='MUTATION_LIMIT_REACHED')return 'Buffer posting limit reached for this channel or plan. Wait and try again.';
   if(code==='RATE_LIMIT' || err?.status===429) return `Buffer rate limit hit.${err?.retryAfter?` Retry in about ${err.retryAfter}s.`:''}`;
   if(code==='AUTH_ERROR' || /unauthorized|invalid|forbidden|expired|auth/i.test(msg)) return 'Token appears invalid or expired. Reconnect Buffer and sync again.';
   if(code==='PROXY_NETWORK_ERROR') return 'Network issue reaching Buffer. Check connection and retry.';
@@ -4592,7 +4612,7 @@ async function syncBuffer(){
   }catch(e){
     console.error('[PostIQ] syncBuffer error:', e);
     const message=getActionErrorMessage(e,'Sync failed.');
-    if(String(e?.code||'').toUpperCase()==='AUTH_ERROR' || /token appears invalid or expired/i.test(message)){
+    if(isAuthFailureError(e) || /token appears invalid or expired/i.test(message)){
       clearBufferTokenForAuthFailure(message);
     }else{
       setSyncStatus('failed',message);
@@ -4699,7 +4719,9 @@ async function sendThread(action){
     qs('threadStatus').textContent=msg;showToast(msg);
     refreshCalendarAfterPostAction(action,createdPost?.post);
   }catch(e){
-    qs('threadStatus').textContent=`Failed: ${getActionErrorMessage(e,'Check token/channel and retry.')}`;
+    const message=getActionErrorMessage(e,'Check token/channel and retry.');
+    if(isAuthFailureError(e)) clearBufferTokenForAuthFailure(message);
+    qs('threadStatus').textContent=`Failed: ${message}`;
   }
 }
 
@@ -4816,20 +4838,64 @@ function renderSharedFromHash(){
 
 // ── POSTS ──
 async function createPost(input){
-  const res=await callBuffer(`mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename ... on PostActionSuccess{post{id dueAt text channelId}} ... on MutationError{message}}}`,{input});
-  const result=res?.data?.createPost;
-  if(!result)throw new Error('Empty mutation response from Buffer.');
-  if(result.__typename==='MutationError'){
-    const err=new Error(result.message||'Buffer rejected this post request.');
-    err.code='MUTATION_ERROR';
+  const parseCreatePostResult=(result)=>{
+    if(!result)throw new Error('Empty mutation response from Buffer.');
+    if(result.__typename==='PostActionSuccess') return result;
+
+    const typename=String(result.__typename||'');
+    const normalized=typename.toLowerCase();
+    if(typename==='MutationError'){
+      const err=new Error(result.message||'Buffer rejected this post request.');
+      err.code='MUTATION_ERROR';
+      throw err;
+    }
+    if(['InvalidInputError','PostInvalidInputError','PostActionInvalidInputError'].includes(typename)
+      || normalized.includes('invalid') || normalized.includes('input')){
+      const err=new Error(result.message||'Buffer rejected this post due to invalid content or scheduling values.');
+      err.code='MUTATION_INVALID_INPUT';
+      err.typename=typename;
+      throw err;
+    }
+    if(['LimitReachedError','PostLimitReachedError','PostActionLimitReachedError'].includes(typename)
+      || normalized.includes('limit') || normalized.includes('quota') || normalized.includes('rate')){
+      const err=new Error(result.message||'Posting limit reached for this channel or plan. Try again later.');
+      err.code='MUTATION_LIMIT_REACHED';
+      err.typename=typename;
+      throw err;
+    }
+    const err=new Error(`Buffer returned unsupported post result type: ${typename||'unknown'}`);
+    err.code='MUTATION_UNSUPPORTED_TYPE';
+    err.typename=typename||null;
     throw err;
+  };
+
+  const baseMutation=`mutation CreatePost($input:CreatePostInput!){
+    createPost(input:$input){
+      __typename
+      ... on PostActionSuccess{post{id dueAt text channelId}}
+      ... on MutationError{message}
+    }
+  }`;
+  const richMutation=`mutation CreatePost($input:CreatePostInput!){
+    createPost(input:$input){
+      __typename
+      ... on PostActionSuccess{post{id dueAt text channelId}}
+      ... on MutationError{message}
+      ... on InvalidInputError{message}
+      ... on LimitReachedError{message}
+    }
+  }`;
+
+  try{
+    const res=await callBuffer(richMutation,{input});
+    return parseCreatePostResult(res?.data?.createPost);
+  }catch(err){
+    const msg=String(err?.message||'');
+    const validationFailed=/Unknown type|Cannot query field|Fragment cannot be spread|Validation error/i.test(msg);
+    if(!validationFailed) throw err;
+    const res=await callBuffer(baseMutation,{input});
+    return parseCreatePostResult(res?.data?.createPost);
   }
-  if(result.__typename && result.__typename!=='PostActionSuccess'){
-    const err=new Error(`Unexpected mutation response type: ${result.__typename}`);
-    err.code='MUTATION_UNEXPECTED_TYPE';
-    throw err;
-  }
-  return result;
 }
 
 function appendScheduledPostToCalendar(post){
@@ -5231,7 +5297,7 @@ async function composerSend(action){
     closeMediaPanel();
   }catch(e){
     const message=getActionErrorMessage(e,'Failed to send post.');
-    if(String(e?.code||'').toUpperCase()==='AUTH_ERROR') clearBufferTokenForAuthFailure(message);
+    if(isAuthFailureError(e)) clearBufferTokenForAuthFailure(message);
     qs('composerStatus').textContent=`Failed: ${message}`;
   }
 }
@@ -5598,6 +5664,7 @@ window.approvalPublish=async function(safeId,action){
     if(card){card.style.opacity='.4';card.style.pointerEvents='none';setTimeout(()=>card.remove(),600);}
   }catch(e){
     const message=getActionErrorMessage(e,'Failed to publish approval item.');
+    if(isAuthFailureError(e)) clearBufferTokenForAuthFailure(message);
     if(statusEl)statusEl.textContent=`Failed: ${message}`;
     showToast('Failed: '+message,'error');
   }
