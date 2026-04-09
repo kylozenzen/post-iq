@@ -505,18 +505,50 @@ h2 em { font-style: normal; color: var(--amber); }
 }
 
 /* ── FEATURE CARDS ── */
-/* 2-col asymmetric grid: primary features larger */
-.cards-grid {
+.tools-layout {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: auto auto;
+  grid-template-columns: 1.5fr 1fr;
   gap: 14px;
+  align-items: stretch;
 }
 
-/* Make Thread Splitter and Calendar span more */
-.card-featured {
-  grid-column: span 1;
-  min-height: 260px;
+.composer-featured {
+  min-height: 320px;
+}
+
+.composer-modes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.mode-chip {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255,255,255,.58);
+}
+
+.mode-chip h4 {
+  margin: 0 0 4px;
+  font-family: 'DM Mono', monospace;
+  font-size: .75rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+
+.mode-chip p {
+  margin: 0;
+  font-size: .84rem;
+  line-height: 1.5;
+}
+
+.supporting-tools {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .card {
@@ -801,7 +833,7 @@ h2 em { font-style: normal; color: var(--amber); }
   .hero-top { grid-template-columns: 1fr; }
   .hero-demo { display: none; } /* demo moves to its own section on mobile */
   .mobile-demo { display: block !important; }
-  .cards-grid { grid-template-columns: 1fr 1fr; }
+  .tools-layout { grid-template-columns: 1fr; }
   .explainers { grid-template-columns: 1fr; }
 }
 
@@ -809,7 +841,8 @@ h2 em { font-style: normal; color: var(--amber); }
   .wrap { width: min(calc(100% - 24px), var(--max)); }
   h1 { font-size: clamp(2.6rem, 11vw, 3.6rem); }
   .hero { padding: 32px 0 16px; }
-  .cards-grid { grid-template-columns: 1fr; }
+  .composer-modes { grid-template-columns: 1fr; }
+  .supporting-tools { grid-template-columns: 1fr; }
   .hero-ctas { flex-direction: column; align-items: stretch; }
   .hero-ctas .btn { text-align: center; }
   .top-actions .btn:first-child { display: none; } /* hide secondary nav CTA on mobile */
@@ -1039,7 +1072,7 @@ textarea:focus,input:focus{
     <a href="#" class="brand">PostIQ <span class="badge">Beta</span></a>
     <div class="top-actions">
       <a href="app.html" class="btn ghost">Open PostIQ</a>
-      <a href="app.html?view=threadView" class="btn primary">Try Thread Splitter</a>
+      <a href="app.html?view=threadView" class="btn primary">Try Split mode</a>
     </div>
   </div>
 
@@ -1056,11 +1089,11 @@ textarea:focus,input:focus{
           A Buffer Companion App
         </div>
         <h1>Give your <em>Buffer</em><br>workflow superpowers.</h1>
-        <p>A faster layer for planning, drafting, and approvals—built alongside your Buffer workflow.</p>
+        <p><strong>Build faster, publish smarter.</strong> PostIQ keeps your workflow centered in one Composer workspace for writing, splitting, repurposing, and shipping polished posts with media.</p>
 
         <div class="hero-ctas">
           <a href="app.html" class="btn primary">Open PostIQ</a>
-          <a href="#try" class="btn">Try Thread Splitter</a>
+          <a href="#try" class="btn">Try Split mode demo</a>
         </div>
 
         <div class="trust-strip">
@@ -1082,12 +1115,12 @@ textarea:focus,input:focus{
         <div class="panel">
           <div class="panel-head">
             <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            <span class="panel-label">Thread Splitter — Try it now</span>
+            <span class="panel-label">Composer — Split mode demo</span>
           </div>
           <div class="demo-body">
-            <textarea id="demoInputHero" placeholder="Paste a chunky paragraph, blog intro, newsletter snippet, or idea dump here. Then split it into thread-ready posts."></textarea>
+            <textarea id="demoInputHero" placeholder="Paste a chunky paragraph, blog intro, newsletter snippet, or idea dump here. Then split it into post-ready drafts."></textarea>
             <div class="demo-actions">
-              <button class="btn primary" id="splitBtnHero" type="button">Split into thread posts</button>
+              <button class="btn primary" id="splitBtnHero" type="button">Split into post drafts</button>
               <div class="helper">No key needed</div>
             </div>
           </div>
@@ -1099,7 +1132,7 @@ textarea:focus,input:focus{
           </div>
           <div class="demo-body">
             <div id="threadOutputHero" class="thread-output">
-              <div class="empty">Paste text to get instant thread-ready posts you can refine and share.</div>
+              <div class="empty">Paste text to get instant post-ready drafts you can refine and share.</div>
             </div>
           </div>
         </div>
@@ -1110,14 +1143,14 @@ textarea:focus,input:focus{
   <!-- ── MOBILE DEMO (only visible when hero-demo is hidden) ── -->
   <section id="try" class="mobile-demo">
     <div class="section-label">Try before you connect</div>
-    <h2>Start with a quick win.</h2>
-    <div class="section-desc">Start with Thread Splitter for a quick win—no key needed.</div>
+    <h2>Try Composer <em>Split mode</em>.</h2>
+    <div class="section-desc">Quickly turn long text into post-ready drafts inside the Composer workflow—no key needed for this preview.</div>
     <div class="panel">
-      <div class="panel-head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="panel-label">Thread Splitter Demo</span></div>
+      <div class="panel-head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="panel-label">Composer Split demo</span></div>
       <div class="demo-body">
         <textarea id="demoInputMobile" placeholder="Paste a chunky paragraph, blog intro, newsletter snippet, or idea dump here."></textarea>
         <div class="demo-actions">
-          <button class="btn primary" id="splitBtnMobile" type="button">Split into thread posts</button>
+          <button class="btn primary" id="splitBtnMobile" type="button">Split into post drafts</button>
           <div class="helper">No key needed for this demo</div>
         </div>
       </div>
@@ -1126,7 +1159,7 @@ textarea:focus,input:focus{
       <div class="panel-head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="panel-label">Output</span></div>
       <div class="demo-body">
         <div id="threadOutputMobile" class="thread-output">
-          <div class="empty">Paste text to instantly split it into clean, thread-ready posts.</div>
+          <div class="empty">Paste text to instantly split it into clean, post-ready drafts.</div>
         </div>
       </div>
     </div>
@@ -1135,46 +1168,56 @@ textarea:focus,input:focus{
   <!-- ── FEATURES ── -->
   <section>
     <div class="section-label reveal">What you get</div>
-    <h2 class="reveal">Six tools.<br><em>One workflow.</em></h2>
-    <div class="section-desc reveal">Extra tools for Buffer users to plan, draft, review, and schedule with less friction.</div>
+    <h2 class="reveal">One Composer workspace.<br><em>Smarter publishing flow.</em></h2>
+    <div class="section-desc reveal">PostIQ is a smarter Buffer companion built around Composer. Use Compose, Split, and Repurpose to build faster, then move into supporting tools to finalize and publish confidently.</div>
 
-    <div class="cards-grid reveal-group">
-      <article class="card card-featured">
-        <div class="status try">Try now</div>
-        <span class="icon"><svg><use href="#i-thread"></use></svg></span>
-        <h3>Thread Splitter</h3>
-        <p>Split long-form ideas into clean, numbered thread posts with live character counts.</p>
-      </article>
-      <article class="card card-featured">
+    <div class="tools-layout reveal-group">
+      <article class="card composer-featured">
         <div class="status key">Requires Buffer key</div>
         <span class="icon"><svg><use href="#i-compose"></use></svg></span>
         <h3>Composer</h3>
-        <p>Draft in a focused editor, then queue, schedule, or save to Buffer when you’re ready.</p>
+        <p>Your main product surface for building posts quickly with copy and media, then sending finished work to Buffer.</p>
+        <div class="composer-modes">
+          <div class="mode-chip">
+            <h4>Compose</h4>
+            <p>Write and refine originals in one focused workspace.</p>
+          </div>
+          <div class="mode-chip">
+            <h4>Split</h4>
+            <p>Turn long-form drafts into structured post sequences instantly.</p>
+          </div>
+          <div class="mode-chip">
+            <h4>Repurpose</h4>
+            <p>Adapt one idea for different channels without starting over.</p>
+          </div>
+        </div>
       </article>
-      <article class="card card-featured">
-        <div class="status key">Requires Buffer key</div>
-        <span class="icon"><svg><use href="#i-approvals"></use></svg></span>
-        <h3>Approvals</h3>
-        <p>Run clean client or teammate approvals so posts are aligned before they go live.</p>
-      </article>
-      <article class="card">
-        <div class="status preview">Preview-friendly</div>
-        <span class="icon"><svg><use href="#i-snippets"></use></svg></span>
-        <h3>Snippets</h3>
-        <p>Keep go-to hooks, CTAs, and blocks close so writing starts faster every time.</p>
-      </article>
-      <article class="card">
-        <div class="status preview">Preview-friendly</div>
-        <span class="icon"><svg><use href="#i-trending"></use></svg></span>
-        <h3>Trending</h3>
-        <p>Use Reddit and Hacker News signals for ideas, then turn them into posts quickly.</p>
-      </article>
-      <article class="card">
-        <div class="status key">Requires Buffer key</div>
-        <span class="icon"><svg><use href="#i-calendar"></use></svg></span>
-        <h3>Calendar</h3>
-        <p>See your schedule in a visual monthly view and spot gaps before they slow your cadence.</p>
-      </article>
+      <div class="supporting-tools">
+        <article class="card">
+          <div class="status key">Requires Buffer key</div>
+          <span class="icon"><svg><use href="#i-calendar"></use></svg></span>
+          <h3>Content Calendar</h3>
+          <p>Keep your schedule visible and spot gaps before they slow your posting cadence.</p>
+        </article>
+        <article class="card">
+          <div class="status key">Requires Buffer key</div>
+          <span class="icon"><svg><use href="#i-approvals"></use></svg></span>
+          <h3>Approvals</h3>
+          <p>Run clean client or teammate approvals before posts go live.</p>
+        </article>
+        <article class="card">
+          <div class="status preview">Preview-friendly</div>
+          <span class="icon"><svg><use href="#i-trending"></use></svg></span>
+          <h3>Trending</h3>
+          <p>Capture timely signals and feed stronger ideas back into Composer.</p>
+        </article>
+        <article class="card">
+          <div class="status preview">Preview-friendly</div>
+          <span class="icon"><svg><use href="#i-snippets"></use></svg></span>
+          <h3>Snippets</h3>
+          <p>Save reusable hooks and CTA blocks so drafts come together faster.</p>
+        </article>
+      </div>
     </div>
   </section>
 
@@ -1244,11 +1287,11 @@ textarea:focus,input:focus{
         Ready when you are
       </div>
       <h2>Ready to try <em>PostIQ</em>?</h2>
-      <p>Start with the Thread Splitter, then connect your Buffer key when you’re ready to draft, queue, and schedule.</p>
+      <p>Start in Composer, use Split when you need speed, and connect your Buffer key when you’re ready to queue and schedule.</p>
 
       <div class="hero-ctas" style="justify-content:center; margin-top: 8px;">
         <a href="app.html" class="btn primary">Open PostIQ</a>
-        <a href="app.html?view=threadView" class="btn">Try Thread Splitter</a>
+        <a href="app.html?view=threadView" class="btn">Try Split mode</a>
       </div>
     </div>
   </div>
@@ -1256,7 +1299,7 @@ textarea:focus,input:focus{
 </div><!-- /wrap -->
 
 <script>
-// ── Thread splitter logic (shared across all instances) ──
+// ── Composer Split mode logic (shared across all instances) ──
 function splitIntoThreads(text, maxLen = 280) {
   const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
   const posts = [];
@@ -1296,7 +1339,7 @@ function splitIntoThreads(text, maxLen = 280) {
 function renderThreadOutput(outputEl, posts) {
   outputEl.innerHTML = '';
   if (!posts.length) {
-    outputEl.innerHTML = '<div class="empty">Paste text to get instant thread-ready posts you can refine and share.</div>';
+    outputEl.innerHTML = '<div class="empty">Paste text to get instant post-ready drafts you can refine and share.</div>';
     return;
   }
   posts.forEach((post, i) => {
@@ -1379,7 +1422,7 @@ document.querySelectorAll('a[href="app.html"]').forEach((link) => {
 
 document.querySelectorAll('a[href="app.html?view=threadView"]').forEach((link) => {
   link.addEventListener('click', () => {
-    postIQTrack('landing_try_thread_splitter_click', {
+    postIQTrack('landing_try_split_mode_click', {
       location: link.closest('.topbar') ? 'topbar' : link.closest('.connect-card') ? 'final_cta' : 'page'
     });
   });
@@ -1388,14 +1431,14 @@ document.querySelectorAll('a[href="app.html?view=threadView"]').forEach((link) =
 const splitBtnHero = document.getElementById('splitBtnHero');
 if (splitBtnHero) {
   splitBtnHero.addEventListener('click', () => {
-    postIQTrack('landing_hero_splitter_used');
+    postIQTrack('landing_hero_split_mode_used');
   });
 }
 
 const splitBtnMobile = document.getElementById('splitBtnMobile');
 if (splitBtnMobile) {
   splitBtnMobile.addEventListener('click', () => {
-    postIQTrack('landing_mobile_splitter_used');
+    postIQTrack('landing_mobile_split_mode_used');
   });
 }
 </script>
