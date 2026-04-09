@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -33,111 +33,30 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0c0d10;
-      --surface: #13151b;
-      --surface2: #1a1d26;
-      --surface3: #202330;
-      --border: #252836;
-      --border2: #2e3347;
-      --text: #e8eaf2;
-      --muted: #6b7294;
-      --subtle: #3d4260;
-      --amber: #f5b731;
-      --amber-dim: rgba(245,183,49,.12);
-      --amber-glow: rgba(245,183,49,.25);
-      --green: #2dd4a0;
-      --green-dim: rgba(45,212,160,.12);
-      --blue: #6b8ff7;
-      --blue-dim: rgba(107,143,247,.12);
-      --violet: #9d7efc;
-      --red: #f77070;
-      --gold-tag: rgba(245,183,49,.2);
-      --blue-tag: rgba(107,143,247,.2);
-      --green-tag: rgba(45,212,160,.2);
-      --violet-tag: rgba(157,126,252,.2);
-      --r: 10px;
-      --sidebar: 240px;
-    }
-
-    /* ── LIGHT THEME ── */
-    [data-theme="light"] {
-      --bg: #f4f5f7;
+      --bg: #f6f7fb;
       --surface: #ffffff;
-      --surface2: #f0f1f4;
-      --surface3: #e8eaee;
-      --border: #dde0e8;
-      --border2: #c8ccd6;
-      --text: #1a1d2e;
-      --muted: #5a6080;
-      --subtle: #9aa0b8;
-      --amber: #d49a10;
-      --amber-dim: rgba(212,154,16,.10);
-      --amber-glow: rgba(212,154,16,.22);
-      --green: #0f9a72;
-      --green-dim: rgba(15,154,114,.10);
-      --blue: #3b5fcf;
-      --blue-dim: rgba(59,95,207,.10);
-      --gold-tag: rgba(212,154,16,.15);
-      --blue-tag: rgba(59,95,207,.12);
-      --green-tag: rgba(15,154,114,.12);
-      --violet-tag: rgba(120,80,220,.12);
-    }
-
-    /* ── WARM THEME ── */
-    [data-theme="warm"] {
-      --bg: #100d0a;
-      --surface: #1a1510;
-      --surface2: #221c15;
-      --surface3: #2a231a;
-      --border: #332a20;
-      --border2: #40342a;
-      --text: #f0e8dc;
-      --muted: #8a7a68;
-      --subtle: #4a3d30;
-      --amber: #f5a623;
-      --amber-dim: rgba(245,166,35,.12);
-      --amber-glow: rgba(245,166,35,.28);
-      --green: #7ec87e;
-      --green-dim: rgba(126,200,126,.12);
-      --blue: #89b4f8;
-      --blue-dim: rgba(137,180,248,.12);
-      --gold-tag: rgba(245,166,35,.2);
-      --blue-tag: rgba(137,180,248,.15);
-      --green-tag: rgba(126,200,126,.15);
-      --violet-tag: rgba(180,140,240,.15);
-    }
-
-    /* ── THEME SWITCHER ── */
-    .theme-switcher {
-      display: flex;
-      gap: 6px;
-      padding: 8px 12px;
-      border-top: 1px solid var(--border);
-      margin-top: 4px;
-    }
-    .theme-btn {
-      flex: 1;
-      height: 24px;
-      border-radius: 5px;
-      border: 2px solid transparent;
-      cursor: pointer;
-      transition: border-color .15s, transform .1s;
-      position: relative;
-    }
-    .theme-btn:hover { transform: scale(1.08); }
-    .theme-btn.active { border-color: var(--amber); }
-    .theme-btn[data-t="dark"] { background: #13151b; }
-    .theme-btn[data-t="light"] { background: #f0f1f4; }
-    .theme-btn[data-t="warm"] { background: #1a1510; }
-    .theme-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 9px;
-      color: var(--subtle);
-      text-align: center;
-      letter-spacing: .05em;
-      padding: 0 12px 8px;
-      display: flex;
-      justify-content: space-around;
+      --surface2: #f8f9fc;
+      --surface3: #eef1f7;
+      --border: #e3e7f0;
+      --border2: #d3d9e6;
+      --text: #182033;
+      --muted: #5f6b85;
+      --subtle: #97a1b5;
+      --amber: #3366ff;
+      --amber-dim: rgba(51,102,255,.08);
+      --amber-glow: rgba(51,102,255,.18);
+      --green: #138a63;
+      --green-dim: rgba(19,138,99,.10);
+      --blue: #3366ff;
+      --blue-dim: rgba(51,102,255,.08);
+      --violet: #7c5cff;
+      --red: #d95d5d;
+      --gold-tag: rgba(255,183,77,.16);
+      --blue-tag: rgba(51,102,255,.10);
+      --green-tag: rgba(19,138,99,.12);
+      --violet-tag: rgba(124,92,255,.10);
+      --r: 16px;
+      --sidebar: 260px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1759,42 +1678,6 @@
     .settings-tab:hover { color: var(--text); }
     .settings-panel { display: none; }
     .settings-panel.active { display: block; }
-    .theme-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-top: 8px;
-    }
-    .theme-option {
-      border: 2px solid var(--border2);
-      border-radius: 10px;
-      padding: 12px 10px;
-      cursor: pointer;
-      text-align: center;
-      transition: all .15s;
-      background: transparent;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-    .theme-option:hover { border-color: var(--subtle); }
-    .theme-option.active { border-color: var(--amber); background: var(--amber-dim); }
-    .theme-swatch {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,.1);
-    }
-    .theme-option-label {
-      font-size: 11px;
-      font-weight: 600;
-      font-family: 'DM Mono', monospace;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .05em;
-    }
-    .theme-option.active .theme-option-label { color: var(--amber); }
 
     /* ── APPROVALS TAB ── */
     .approval-card {
@@ -2789,27 +2672,6 @@
       margin: 16px 0;
     }
 
-    /* ── 19. LIGHT THEME — Refinements ── */
-    [data-theme="light"] {
-      --bg: #f0f2f5;
-      --surface: #ffffff;
-      --surface2: #f5f6f9;
-      --surface3: #ebecf0;
-      --border: #e2e4ec;
-      --border2: #cfd2dc;
-      --text: #111320;
-      --muted: #4f566b;
-      --subtle: #8792a2;
-      --amber: #c68a00;
-      --amber-dim: rgba(198,138,0,0.08);
-      --amber-glow: rgba(198,138,0,0.2);
-    }
-    [data-theme="light"] .side {
-      background: #ffffff;
-      border-right: 1px solid var(--border);
-    }
-    [data-theme="light"] .main { background: var(--bg); }
-
     /* ── 20. STATUS DOT — More impactful ── */
     .status-dot {
       width: 8px; height: 8px;
@@ -2937,134 +2799,94 @@
     .state-pill.preview { color:var(--blue);background:var(--blue-dim);border-color:rgba(107,143,247,.35); }
     .view-state-pill{margin-top:8px;width:fit-content;}
 
-
-  
-/* === PostIQ light premium overhaul === */
-:root{
-  --bg:#f6f7fb;
-  --surface:#ffffff;
-  --surface2:#f8f9fc;
-  --surface3:#eef1f7;
-  --border:#e3e7f0;
-  --border2:#d3d9e6;
-  --text:#182033;
-  --muted:#5f6b85;
-  --subtle:#97a1b5;
-  --amber:#3366ff;
-  --amber-dim:rgba(51,102,255,.08);
-  --amber-glow:rgba(51,102,255,.18);
-  --green:#138a63;
-  --green-dim:rgba(19,138,99,.10);
-  --blue:#3366ff;
-  --blue-dim:rgba(51,102,255,.08);
-  --violet:#7c5cff;
-  --red:#d95d5d;
-  --gold-tag:rgba(255,183,77,.16);
-  --blue-tag:rgba(51,102,255,.10);
-  --green-tag:rgba(19,138,99,.12);
-  --violet-tag:rgba(124,92,255,.10);
-  --r:16px;
-}
-body{
-  background:
-    radial-gradient(circle at top left, rgba(51,102,255,.06), transparent 22%),
-    linear-gradient(180deg, #fafbfe 0%, #f4f6fb 100%);
-  color:var(--text);
-}
-.app{grid-template-columns:260px 1fr;background:transparent}
-.side{
-  background:rgba(255,255,255,.82);
-  backdrop-filter: blur(16px);
-  border-right:1px solid rgba(227,231,240,.95);
-  box-shadow: 8px 0 30px rgba(20,31,66,.04);
-}
-.side-logo,.side-token,.side-sync,.side-bottom{border-color:var(--border)}
-.logo-mark{font-size:20px}
-.logo-mark span{
-  background:#111827;
-  color:#fff;
-  border-radius:999px;
-  padding:3px 8px;
-}
-.nav-btn{
-  border:1px solid transparent;
-  border-radius:12px;
-  padding:10px 12px;
-}
-.nav-btn:hover{
-  background:#f7f9fd;
-  transform:none;
-}
-.nav-btn.active{
-  color:var(--blue);
-  background:linear-gradient(180deg,#f4f7ff,#eef3ff);
-  border-color:rgba(51,102,255,.14);
-  box-shadow:none;
-}
-.nav-btn.active::before{display:none}
-.nav-badge{
-  background:#f5f7fb;
-  border-color:var(--border);
-}
-.theme-switcher{padding-top:12px}
-.theme-btn.active{border-color:var(--blue)}
-.main{background:transparent}
-.view{padding:28px 32px}
-.page-hdr{
-  border-bottom:none;
-  margin-bottom:24px;
-  padding-bottom:0;
-}
-.page-title{font-size:28px;letter-spacing:-.03em}
-.page-desc{font-size:14px;color:var(--muted)}
-.card,.modal-card,.snippet-filters,.upload-zone,.thread-part,.thumb-post-card,.cal-day,.trending-ref-panel{
-  background:rgba(255,255,255,.88);
-  border:1px solid rgba(227,231,240,.95);
-  box-shadow:0 10px 28px rgba(19,30,61,.05);
-  border-radius:16px;
-}
-.card:hover,.thumb-post-card:hover,.snippet-card:hover,.trending-item:hover{
-  box-shadow:0 14px 32px rgba(19,30,61,.08);
-}
-.btn{
-  border-radius:12px;
-  border-color:var(--border);
-  background:#fff;
-  color:var(--text);
-  box-shadow:0 1px 2px rgba(15,23,42,.03);
-}
-.btn:hover{background:#f8faff;border-color:#c8d3eb}
-.btn.primary{
-  background:#111827;
-  color:#fff;
-  box-shadow:0 10px 20px rgba(17,24,39,.12);
-}
-.btn.primary:hover{background:#0f172a}
-.btn.success{background:#e8faf3;color:#0f6d4f}
-.input, textarea, select, .rich-toolbar, .rich-editor, .composer-image-row{
-  background:#fbfcfe;
-  border-color:var(--border);
-  color:var(--text);
-}
-.input:focus, textarea:focus, select:focus, .rich-editor:focus{
-  border-color:rgba(51,102,255,.35)!important;
-  box-shadow:0 0 0 4px rgba(51,102,255,.08)!important;
-}
-.chip.amber,.part-num,.filter-btn.active,.composer-tab.active,.wn-badge.new{
-  color:var(--blue);
-  background:rgba(51,102,255,.08);
-  border-color:rgba(51,102,255,.16);
-}
-.cal-day.today{border-color:rgba(51,102,255,.24)}
-.cal-day.today .day-num,.cal-month,.token-value a{color:var(--blue)}
-.day-post-pill{background:#eef3ff;color:#2d4fd2;border-color:#dbe5ff}
-.day-note-pill.gold{background:#fff4df;color:#9a6a10;border-color:#f2deb4}
-.day-note-pill.green{background:#e9faf4;color:#117b59;border-color:#c5eddc}
-.day-note-pill.violet{background:#f1edff;color:#6d52dd;border-color:#e0d8ff}
-.empty,.view-loading{
-  background:rgba(255,255,255,.65);
-  border-color:var(--border);
-}
+    /* ── LIGHT POLISH PASS ── */
+    .btn.primary{
+      color:#f8fbff;
+      border:1px solid rgba(40,94,255,.55);
+      background:linear-gradient(180deg,#4d86ff 0%,#2d66f3 100%);
+      box-shadow:0 8px 18px rgba(45,102,243,.26), inset 0 1px 0 rgba(255,255,255,.22);
+      text-shadow:0 1px 0 rgba(0,0,0,.15);
+    }
+    .btn.primary:hover{
+      background:linear-gradient(180deg,#5c92ff 0%,#326ef8 100%);
+      border-color:rgba(41,97,255,.72);
+      box-shadow:0 10px 22px rgba(45,102,243,.3), inset 0 1px 0 rgba(255,255,255,.22);
+    }
+    .btn.primary:focus-visible{
+      outline:2px solid rgba(56,116,255,.42);
+      outline-offset:2px;
+    }
+    .nav-btn.active{
+      background:linear-gradient(180deg,rgba(52,112,255,.14) 0%, rgba(52,112,255,.08) 100%);
+      border-color:rgba(52,112,255,.26);
+      color:#2356d4;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+    }
+    .composer-tab.active,
+    .settings-tab.active,
+    .sub-pill.active{
+      color:#2457d9;
+      border-color:rgba(49,104,248,.35);
+      background:rgba(49,104,248,.1);
+    }
+    .state-pill.key{
+      color:#2a60dd;
+      background:rgba(49,104,248,.13);
+      border-color:rgba(49,104,248,.3);
+    }
+    .state-pill.preview{
+      color:#2758ce;
+      background:rgba(78,125,255,.12);
+      border-color:rgba(78,125,255,.3);
+    }
+    .chip.amber{
+      color:#2b62de;
+      background:rgba(49,104,248,.1);
+      border-color:rgba(49,104,248,.24);
+    }
+    .about-stack{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .about-card{
+      background:linear-gradient(180deg,#fff 0%, #fbfcff 100%);
+      border:1px solid rgba(214,223,242,.95);
+      border-radius:14px;
+      padding:16px;
+      box-shadow:0 10px 24px rgba(33,67,138,.06);
+    }
+    .about-label{
+      font-family:'DM Mono', monospace;
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#5a77c7;
+      margin-bottom:8px;
+    }
+    .about-title{
+      font-family:'Syne', sans-serif;
+      font-size:18px;
+      line-height:1.25;
+      letter-spacing:-.02em;
+      margin-bottom:8px;
+      color:#1c2a49;
+    }
+    .about-copy{
+      font-size:13px;
+      line-height:1.65;
+      color:#506080;
+    }
+    .about-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+    .about-actions .btn{flex:1;min-width:220px;}
+    @media (max-width: 768px){
+      .about-actions .btn{min-width:100%;}
+    }
 .thread-actions-bar{
   background:linear-gradient(180deg, rgba(246,247,251,.97), rgba(246,247,251,.86));
   backdrop-filter: blur(8px);
@@ -3129,8 +2951,8 @@ body{
 <!-- ── MOBILE BOTTOM TABS ── -->
 <nav class="mobile-tabs" id="mobileTabs">
   <!-- Mobile tabs trimmed to Thread, Snippets, and Calendar with SVG icons -->
-  <button class="mob-tab active" data-view="threadView"><span class="mob-icon"><svg><use href="#i-thread"></use></svg></span>Thread</button>
-  <button class="mob-tab" data-view="snippetsView"><span class="mob-icon"><svg><use href="#i-snippets"></use></svg></span>Snippets</button>
+  <button class="mob-tab active" data-view="composerView"><span class="mob-icon"><svg><use href="#i-compose"></use></svg></span>Compose</button>
+  <button class="mob-tab" data-view="threadView"><span class="mob-icon"><svg><use href="#i-thread"></use></svg></span>Thread</button>
   <button class="mob-tab" data-view="calendarView"><span class="mob-icon"><svg><use href="#i-calendar"></use></svg></span>Calendar</button>
   <!-- New settings button opens the settings modal on mobile -->
   <button class="mob-tab" id="mobSettingsBtn"><span class="mob-icon"><svg><use href="#i-menu"></use></svg></span>Settings</button>
@@ -3739,7 +3561,6 @@ document.addEventListener('DOMContentLoaded', () => {
   <!-- Tabs -->
   <div class="settings-tabs">
     <button class="settings-tab active" data-stab="guide">📖 Guide</button>
-    <button class="settings-tab" data-stab="themes">🎨 Themes</button>
     <button class="settings-tab" data-stab="about">👤 About</button>
   </div>
 
@@ -3794,39 +3615,23 @@ document.addEventListener('DOMContentLoaded', () => {
     </p>
   </div>
 
-  <!-- ── THEMES ── -->
-  <div id="settingsPanelThemes" class="settings-panel">
-    <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Choose your preferred color theme. Saves locally.</p>
-    <div class="theme-grid">
-      <button class="theme-option" data-theme="dark">
-        <div class="theme-swatch" style="background:#13151b;border:1px solid #252836;"></div>
-        <span class="theme-option-label">Dark</span>
-      </button>
-      <button class="theme-option" data-theme="light">
-        <div class="theme-swatch" style="background:#ffffff;border:1px solid #dde0e8;"></div>
-        <span class="theme-option-label">Light</span>
-      </button>
-      <button class="theme-option" data-theme="warm">
-        <div class="theme-swatch" style="background:#1a1510;border:1px solid #332a20;"></div>
-        <span class="theme-option-label">Warm</span>
-      </button>
-    </div>
-  </div>
-
   <!-- ── ABOUT ── -->
   <div id="settingsPanelAbout" class="settings-panel">
-    <div style="margin-bottom:16px;">
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:4px;">PostIQ <span style="background:var(--amber);color:#1a0f00;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;padding:2px 6px;border-radius:3px;vertical-align:middle;">BETA</span></div>
-      <p style="font-size:12px;color:var(--muted);line-height:1.6;">A free Buffer companion app for serious creators. No login required — your token never leaves your device.</p>
-    </div>
-    <div class="divider"></div>
-    <div style="margin-top:14px;">
-      <div style="font-weight:600;font-size:13px;margin-bottom:6px;">Built by Ben Campbell</div>
-      <p style="font-size:12px;color:var(--muted);line-height:1.7;">Open to work — social media and content marketing roles. Previously grew San Antonio Zoo to 6M+ followers.</p>
-      <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">
-        <a href="https://bencampbell.netlify.app/" target="_blank" style="color:var(--blue);font-size:12px;">Portfolio ↗</a>
-        <a href="https://www.linkedin.com/in/bencampbell8/" target="_blank" style="color:var(--blue);font-size:12px;">LinkedIn ↗</a>
-      </div>
+    <div class="about-stack">
+      <article class="about-card">
+        <div class="about-label">About PostIQ</div>
+        <h3 class="about-title">Buffer power tools for serious creators</h3>
+        <p class="about-copy">Draft faster, split long-form posts into threads, organize snippets, track your calendar, and keep approvals moving — without adding another bloated workflow.</p>
+      </article>
+      <article class="about-card">
+        <div class="about-label">Built By</div>
+        <h3 class="about-title">Ben Campbell</h3>
+        <p class="about-copy">Social strategist, content builder, and creative problem solver building tools that make content workflows cleaner, faster, and a little less annoying.</p>
+        <div class="about-actions">
+          <a href="https://bencampbell.netlify.app/" target="_blank" rel="noopener" class="btn primary">Check out my work</a>
+          <a href="https://www.linkedin.com/in/bencampbell8/" target="_blank" rel="noopener" class="btn ghost">Connect with me on LinkedIn</a>
+        </div>
+      </article>
     </div>
   </div>
 
@@ -4003,9 +3808,6 @@ const state={
   snippetSearch:'',
   editingSnippetId:null,
   pickerMode:'composer',
-  ideasCache:[],
-  ideaGroups:[],
-  ideasLoaded:false,
   // LinkedIn posts integration
   linkedInLoaded:false,
   linkedInPosts:[],
@@ -4097,37 +3899,6 @@ function getAllApprovalMetas(){
 }
 
 // ── SNIPPETS ──
-// ── IDEAS ──
-async function loadIdeas(){
-  const statusEl=qs('ideasStatus');
-  statusEl.textContent='Loading ideas…';
-  qs('ideasList').innerHTML='';
-  if(!bufferToken){statusEl.textContent='Add your Buffer token first.';return;}
-  try{
-    const acc=await callBuffer('query { account { organizations { id } } }');
-    const orgId=acc?.data?.account?.organizations?.[0]?.id;
-    if(!orgId){statusEl.textContent='No organization found.';return;}
-    const q=`query GetIdeasBoard($organizationId: ID!) {
-      ideaGroups(input:{organizationId:$organizationId}){ id name }
-      ideasV2(input:{organizationId:$organizationId}, first:1000){
-        edges{ node{ id groupId content{ title text services tags{ name color } } } }
-      }
-    }`;
-    const res=await callBuffer(q,{organizationId:orgId});
-    state.ideaGroups=res?.data?.ideaGroups||[];
-    state.ideasCache=(res?.data?.ideasV2?.edges||[]).map(e=>e.node);
-    state.ideasLoaded=true;
-    // populate group dropdown
-    const sel=qs('ideasGroupFilter');
-    sel.innerHTML='<option value="all">All columns</option>';
-    state.ideaGroups.forEach(g=>{
-      const o=document.createElement('option');
-      o.value=g.id;o.textContent=g.name;sel.appendChild(o);
-    });
-    statusEl.textContent='';
-    renderIdeas(state.ideasCache);
-  }catch(e){statusEl.textContent='Error: '+e.message;}
-}
 
 // ── LINKEDIN POSTS ──
 // Populate the LinkedIn tab with recent posts. Since external APIs are disabled,
@@ -4231,44 +4002,6 @@ function useLinkedInInThread(idx){
   showToast('Post loaded into thread','success');
 }
 
-function renderIdeas(list){
-  const el=qs('ideasList');
-  if(!list.length){el.innerHTML='<p class="status-txt">No ideas in this column.</p>';return;}
-  el.innerHTML=list.map(idea=>{
-    const title=idea.content?.title||'';
-    const text=idea.content?.text||'';
-    const preview=safeText((title||text).slice(0,120));
-    const hasMore=(title+text).length>120;
-    const services=(idea.content?.services||[]).map(s=>`<span class="chip">${safeText(s)}</span>`).join('');
-    const tags=(idea.content?.tags||[]).map(t=>`<span class="chip" style="border-color:${t.color||'var(--border)'};color:${t.color||'var(--muted)'};">${safeText(t.name)}</span>`).join('');
-    return `<div class="card" style="padding:10px;">
-      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.4;">${preview}${hasMore?'…':''}</div>
-      ${services||tags?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">${services}${tags}</div>`:''}
-      <button class="btn sm" onclick="useIdeaInComposer(${JSON.stringify(idea.id)})">Import → Composer</button>
-    </div>`;
-  }).join('');
-}
-
-function useIdeaInComposer(id){
-  const idea=state.ideasCache.find(i=>i.id===id);
-  if(!idea)return;
-  const parts=[idea.content?.title,idea.content?.text].filter(Boolean);
-  const body=parts.join('\n\n');
-  const editor=qs('composerEditor');
-  editor.innerText=body;
-  editor.focus();
-  qs('composerEmpty').style.display='none';
-  updateComposerCharCount&&updateComposerCharCount();
-  // switch back to write tab
-  document.querySelectorAll('.composer-tab').forEach(t=>t.classList.remove('active'));
-  const writeTab=document.querySelector('.composer-tab[data-ctab="write"]');
-  if(writeTab)writeTab.classList.add('active');
-  const composerWrite=qs('composerTabWrite');
-  const composerIdeas=qs('composerTabIdeas');
-  if(composerWrite)composerWrite.style.display='block';
-  if(composerIdeas)composerIdeas.style.display='none';
-  showToast('Idea imported ✓','success');
-}
 
 function loadSnippets(){
   try{
@@ -4421,12 +4154,14 @@ function renderSnippets(){
     grid.appendChild(card);
   });
 }
+function syncMobileActiveTab(viewId=currentViewId){
+  document.querySelectorAll('.mob-tab[data-view]').forEach(t=>t.classList.toggle('active',t.dataset.view===viewId));
+}
 function activateView(viewId){
   const previousView=currentViewId;
   document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===viewId));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===viewId));
-  const mob=document.querySelector(`.mob-tab[data-view="${viewId}"]`);
-  if(mob){document.querySelectorAll('.mob-tab[data-view]').forEach(t=>t.classList.remove('active'));mob.classList.add('active');}
+  syncMobileActiveTab(viewId);
   currentViewId=viewId;
   if(previousView!==viewId){
     trackEvent('tool_view',{tool:viewId});
@@ -4544,6 +4279,20 @@ function updateTokenUI(){
   updateViewStatePills();
   updateSidebarBadges();
 }
+function refreshTokenUI(){
+  updateTokenUI();
+  const mobInput=qs('mobTokenInput');
+  if(mobInput){
+    mobInput.value=bufferToken||'';
+  }
+  const connected=!!bufferToken;
+  const mobDot=qs('mobStatusDot');
+  const mobLabel=qs('mobTokenLabel');
+  const mobSyncStatus=qs('mobSyncStatus');
+  if(mobDot)mobDot.classList.toggle('connected',connected);
+  if(mobLabel)mobLabel.textContent=connected?'Connected':'Not connected';
+  if(mobSyncStatus&&qs('syncStatus'))mobSyncStatus.textContent=qs('syncStatus').textContent;
+}
 function updateSidebarBadges(){
   const connected=!!bufferToken;
   document.querySelectorAll('[data-key-badge]').forEach(el=>{el.style.display=connected?'none':'inline-flex';});
@@ -4596,17 +4345,17 @@ function saveToken(){
   const token=qs('tokenInput').value.trim();
   const mode=[...document.querySelectorAll('input[name="tokenMode"]')].find(r=>r.checked).value;
   localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
-  if(!token){bufferToken='';hasTrackedBufferConnected=false;qs('tokenMsg').textContent='Token removed.';updateTokenUI();showToast('Token removed','info');return;}
+  if(!token){bufferToken='';hasTrackedBufferConnected=false;qs('tokenMsg').textContent='Token removed.';refreshTokenUI();showToast('Token removed','info');return;}
   if(mode==='local')localStorage.setItem(STORE_KEY,token);else sessionStorage.setItem(STORE_KEY,token);
   bufferToken=token;
   qs('tokenMsg').textContent=mode==='local'?'Saved to localStorage.':'Saved for this session.';
-  showToast('Token saved','success');updateTokenUI();
+  showToast('Token saved','success');refreshTokenUI();
 }
 function loadStoredToken(){
   bufferToken=sessionStorage.getItem(STORE_KEY)||localStorage.getItem(STORE_KEY)||'';
   if(bufferToken)qs('tokenInput').value=bufferToken;
   if(!bufferToken)hasTrackedBufferConnected=false;
-  updateTokenUI();
+  refreshTokenUI();
 }
 
 // ── BUFFER API ──
@@ -4618,6 +4367,14 @@ async function callBuffer(query,variables={}){
   if(data.errors?.length && !data.data)throw new Error(data.errors[0].message);
   if(data.errors?.length)console.warn('[PostIQ] GraphQL partial errors:',data.errors);
   return data;
+}
+
+
+function clearSyncedData(){
+  state.channels=[];
+  state.scheduled=[];
+  renderChannelSelects();
+  renderCalendar();
 }
 
 function getNotes(){try{return JSON.parse(localStorage.getItem(NOTE_KEY)||'{}')}catch{return {}}}
@@ -4635,7 +4392,7 @@ async function syncBuffer(){
   try{
     const acc=await callBuffer('query { account { organizations { id name } } }');
     const orgId=acc?.data?.account?.organizations?.[0]?.id;
-    if(!orgId){setSyncStatus('failed','No organization found.');return;}
+    if(!orgId){clearSyncedData();setSyncStatus('failed','No organization found.');return;}
     const channelsQuery='query Channels($organizationId: OrganizationId!){ channels(input:{organizationId:$organizationId}) { id displayName name service } }';
     const ch=await callBuffer(channelsQuery,{organizationId:orgId});
     state.channels=ch?.data?.channels||[];
@@ -4661,7 +4418,7 @@ async function syncBuffer(){
     console.error('[PostIQ] syncBuffer error:', e);
     const m=String(e.message||'');
     if(m.includes('MISSING_TOKEN'))setSyncStatus('failed','Add a Buffer token first.');
-    else if(/unauthorized|invalid|forbidden/i.test(m))setSyncStatus('failed','Token appears invalid or expired.');
+    else if(/unauthorized|invalid|forbidden/i.test(m)){clearSyncedData();setSyncStatus('failed','Token appears invalid or expired.');}
     else setSyncStatus('failed',`Sync failed: ${m||'unknown error'}`);
     showToast('Sync failed — check your token','error');
   }finally{
@@ -5333,6 +5090,7 @@ function renderApprovalCard(meta,bufferPost){
   const card=document.createElement('div');
   card.className='approval-card';
   card.dataset.draftId=draftId;
+  card.dataset.safeId=safeId;
 
   const platformBadge=platform?`<span class="chip" style="text-transform:capitalize;">${safeText(platform)}</span>`:'';
   const lockBanner=meta.link_generated?`<div class="approval-locked-banner">🔒 Locked for review — content is read-only while approval link is active</div>`:'';
@@ -5532,14 +5290,16 @@ function renderApprovalCard(meta,bufferPost){
     if(dateIn)dateIn.value=new Date().toISOString().slice(0,10);
   },0);
 
-  // Store draftId mapping by safeId for lookup in handlers
-  window._approvalIdMap=window._approvalIdMap||{};
-  window._approvalIdMap[safeId]=draftId;
   listEl.appendChild(card);
 }
 
+function getApprovalDraftId(safeId){
+  const card=document.querySelector(`.approval-card[data-safe-id="${CSS.escape(safeId)}"]`);
+  return card?.dataset?.draftId||safeId;
+}
+
 window.approvalGenerateLink=async function(safeId){
-  const draftId=(window._approvalIdMap||{})[safeId]||safeId;
+  const draftId=getApprovalDraftId(safeId);
   const meta=getApprovalMeta(draftId);
   if(!meta){showToast('Approval record not found','error');return;}
   const btn=document.getElementById(`approval-gen-${safeId}`);
@@ -5558,7 +5318,7 @@ window.approvalGenerateLink=async function(safeId){
 };
 
 window.approvalCopyLink=function(safeId){
-  const draftId=(window._approvalIdMap||{})[safeId]||safeId;
+  const draftId=getApprovalDraftId(safeId);
   const meta=getApprovalMeta(draftId);
   if(!meta?.approval_url){showToast('No link available','error');return;}
   navigator.clipboard.writeText(meta.approval_url);
@@ -5566,7 +5326,7 @@ window.approvalCopyLink=function(safeId){
 };
 
 window.approvalRemoveCard=function(safeId){
-  const draftId=(window._approvalIdMap||{})[safeId]||safeId;
+  const draftId=getApprovalDraftId(safeId);
   if(!confirm('Remove this approval entry? The Buffer draft will not be deleted.'))return;
   clearApprovalMeta(draftId);
   const card=document.querySelector(`[data-draft-id="${CSS.escape(draftId)}"]`);
@@ -5581,7 +5341,7 @@ window.approvalToggleSchedule=function(safeId){
 };
 
 window.approvalPublish=async function(safeId,action){
-  const draftId=(window._approvalIdMap||{})[safeId]||safeId;
+  const draftId=getApprovalDraftId(safeId);
   const meta=getApprovalMeta(draftId);
   if(!meta){showToast('Approval record not found','error');return;}
   // Warn if approval link is still active
@@ -5747,16 +5507,6 @@ function init(){
   // Onboarding now part of settings modal
   // Founder now in settings About tab
 
-  // ── THEMES ──
-  const THEME_KEY='postiq_theme';
-  function applyTheme(t){
-    document.documentElement.setAttribute('data-theme', t==='dark'?'':t);
-    document.querySelectorAll('.theme-option').forEach(b=>b.classList.toggle('active',b.dataset.theme===t));
-    try{localStorage.setItem(THEME_KEY,t)}catch{}
-  }
-  // Load saved theme
-  try{const saved=localStorage.getItem(THEME_KEY);if(saved)applyTheme(saved);else applyTheme('dark');}catch{}
-
   // ── SETTINGS MODAL ──
   function openSettings(tab) {
     // Switch to specified tab or default
@@ -5768,7 +5518,7 @@ function init(){
     if(localStorage.getItem(ONBOARDING_SEEN_KEY)!=='1')trackEvent('onboarding_started');
   }
   qs('openSettings').onclick = () => openSettings('guide');
-  qs('closeSettings').onclick = () => { markOnboardingSeen(); trackEvent('settings_close',{method:'button'}); closeModal('settingsModal'); };
+  qs('closeSettings').onclick = () => { markOnboardingSeen(); trackEvent('settings_close',{method:'button'}); closeModal('settingsModal'); syncMobileActiveTab(); };
   document.querySelectorAll('.settings-tab').forEach(tab => {
     tab.onclick = () => {
       document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
@@ -5777,11 +5527,6 @@ function init(){
       document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.id === panel));
     };
   });
-  // Theme options inside settings modal
-  document.querySelectorAll('.theme-option').forEach(btn => {
-    btn.onclick = () => applyTheme(btn.dataset.theme);
-  });
-
   qs('manageTokenBtn').onclick=toggleTokenPanel;
   qs('revealCompactBtn').onclick=()=>{tokenPanelOpen=true;qs('tokenPanel').classList.add('open');qs('manageTokenBtn').textContent='Done';tokenInputVisible=true;qs('tokenInput').type='text';qs('toggleTokenVisibility').textContent='Hide';};
   qs('saveTokenBtn').onclick=saveToken;
@@ -5796,6 +5541,7 @@ function init(){
         trackEvent('settings_close',{method:'overlay'});
       }
       closeModal(modal.id);
+      if(modal.id==='settingsModal')syncMobileActiveTab();
     });
   });
   document.addEventListener('keydown',e=>{
@@ -5808,6 +5554,7 @@ function init(){
       trackEvent('settings_close',{method:'escape'});
     }
     closeModal(top.id);
+    if(top.id==='settingsModal')syncMobileActiveTab();
   });
 
   qs('syncBtn').onclick=syncBuffer;
@@ -5820,7 +5567,7 @@ function init(){
   });
 
   qs('splitBtn').onclick=()=>{threadParts=splitThreadText(qs('threadInput').value);renderThread();if(threadParts.length)showToast(`${threadParts.length} thread parts`,'success');};
-  qs('sampleBtn').onclick=()=>{qs('threadInput').value='PostIQ helps Buffer users move faster. Start with one big idea, split it into clear thread parts, refine each part, and send a cleaner post flow to Buffer.'};
+  qs('sampleBtn').onclick=()=>{qs('threadInput').value='PostIQ helps Buffer users move faster. Start with one big idea, split it into clear thread parts, refine each part, and send a cleaner post flow to Buffer.';qs('splitBtn').click();};
   qs('copyAllBtn').onclick = () => {
     if(!threadParts || !threadParts.length) return;
     const parts = state.numbering
@@ -5962,21 +5709,6 @@ function init(){
 
   qs('insertSnippetBtn').onclick=()=>openSnippetPicker('composer');
 
-  // ── IDEAS TAB WIRING ──
-  qs('ideasLoadBtn').onclick=()=>{state.ideasLoaded=false;loadIdeas();};
-  qs('ideasGroupFilter').onchange=()=>{
-    const gid=qs('ideasGroupFilter').value;
-    const filtered=gid==='all'?state.ideasCache:state.ideasCache.filter(i=>i.groupId===gid);
-    renderIdeas(filtered);
-  };
-  qs('ideasRandomBtn').onclick=()=>{
-    const gid=qs('ideasGroupFilter').value;
-    const n=parseInt(qs('ideasCountPicker').value)||1;
-    const pool=(gid==='all'?state.ideasCache:state.ideasCache.filter(i=>i.groupId===gid)).slice();
-    const picked=pool.sort(()=>Math.random()-0.5).slice(0,n);
-    renderIdeas(picked);
-  };
-
   qs('saveSelectionSnippetBtn').onclick=()=>{
     const sel=window.getSelection();const text=(sel&&sel.toString?sel.toString():'').trim();
     if(!text){qs('composerStatus').textContent='Select text in Composer first.';return;}
@@ -6045,8 +5777,6 @@ function init(){
   document.querySelectorAll('.mob-tab[data-view]').forEach(btn=>{
     btn.onclick=()=>{
       activateView(btn.dataset.view);
-      document.querySelectorAll('.mob-tab').forEach(t=>t.classList.remove('active'));
-      btn.classList.add('active');
     };
   });
 
@@ -6066,11 +5796,8 @@ function init(){
   const mobSettingsBtn = qs('mobSettingsBtn');
   if (mobSettingsBtn) {
     mobSettingsBtn.onclick = () => {
-      // Deselect other tabs
-      document.querySelectorAll('.mob-tab').forEach(t => t.classList.remove('active'));
-      // Highlight the settings tab
+      document.querySelectorAll('.mob-tab[data-view]').forEach(t => t.classList.remove('active'));
       mobSettingsBtn.classList.add('active');
-      // Open settings on the guide tab
       openSettings('guide');
     };
   }
@@ -6100,17 +5827,17 @@ function init(){
     const token=qs('mobTokenInput').value.trim();
     const mode=[...document.querySelectorAll('input[name="mobTokenMode"]')].find(r=>r.checked).value;
     localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
-    if(!token){bufferToken='';hasTrackedBufferConnected=false;updateTokenUI();syncMobDrawerUI();showToast('Token removed','info');return;}
+    if(!token){bufferToken='';hasTrackedBufferConnected=false;refreshTokenUI();showToast('Token removed','info');return;}
     if(mode==='local')localStorage.setItem(STORE_KEY,token);else sessionStorage.setItem(STORE_KEY,token);
     bufferToken=token;
     qs('mobTokenMsg').textContent=mode==='local'?'Saved locally.':'Saved for session.';
-    updateTokenUI();syncMobDrawerUI();showToast('Token saved','success');
+    refreshTokenUI();showToast('Token saved','success');
     syncBuffer();
   };
   qs('mobClearTokenBtn').onclick=()=>{
     qs('mobTokenInput').value='';
     localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
-    bufferToken='';hasTrackedBufferConnected=false;updateTokenUI();syncMobDrawerUI();showToast('Token removed','info');
+    bufferToken='';hasTrackedBufferConnected=false;refreshTokenUI();showToast('Token removed','info');
   };
   qs('mobOpenFounder').onclick=()=>{closeMobDrawer();openSettings('about');};
 
@@ -6592,8 +6319,8 @@ function init(){
     renderTopicsPills();
   }
 
-  // Init trending once the injected HTML exists
-  setTimeout(() => { initTrending(); initTopics(); }, 50);
+  initTrending();
+  initTopics();
 
   initUnifiedMediaSystem();
 
@@ -6604,13 +6331,6 @@ function init(){
 document.addEventListener('DOMContentLoaded',()=>{try{init();}catch(e){console.error('[PostIQ] init() crashed:',e);}});
 </script>
 
-<script>
-try{
-  const root=document.documentElement;
-  const saved=localStorage.getItem('postiq-theme');
-  if(!saved){root.setAttribute('data-theme','light');}
-}catch(e){}
-</script>
 
 </body>
 </html>
