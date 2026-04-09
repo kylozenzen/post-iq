@@ -102,12 +102,14 @@
     }
     .logo-mark span {
       display: inline-block;
-      background: var(--amber);
-      color: #1a0f00;
+      background: var(--blue-dim);
+      color: var(--blue);
+      border: 1px solid rgba(51,102,255,.28);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.35);
       font-size: 10px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 4px;
+      font-weight: 600;
+      padding: 3px 7px;
+      border-radius: 999px;
       letter-spacing: .5px;
       font-family: 'DM Mono', monospace;
     }
@@ -365,11 +367,18 @@
       border: 1px solid var(--border2);
       background: var(--surface2);
       white-space: nowrap;
+      cursor: pointer;
+      transition: border-color .12s, color .12s, background .12s;
     }
+    .workflow-step:hover { border-color: var(--subtle); color: var(--text); }
     .workflow-step.active {
       color: var(--amber);
       border-color: var(--amber-glow);
       background: var(--amber-dim);
+    }
+    .workflow-step.optional {
+      color: var(--subtle);
+      border-style: dashed;
     }
     .workflow-arrow { color: var(--subtle); font-size: 11px; }
     .workflow-actions { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -3139,15 +3148,14 @@
       </div>
       <div class="workflow-strip">
         <div class="workflow-steps">
-          <span class="workflow-step" data-workflow-step="composer">1. Compose</span>
+          <span class="workflow-step" data-workflow-step="composer">Compose</span>
           <span class="workflow-arrow">→</span>
-          <span class="workflow-step" data-workflow-step="linkedin">2. Repurpose LinkedIn</span>
+          <span class="workflow-step" data-workflow-step="linkedin">Repurpose from LinkedIn</span>
           <span class="workflow-arrow">→</span>
-          <span class="workflow-step active" data-workflow-step="thread">3. Split + Publish Thread</span>
+          <span class="workflow-step optional active" data-workflow-step="thread">Optional: Split into Thread</span>
         </div>
         <div class="workflow-actions">
           <button class="btn sm ghost" id="threadBackToComposerBtn">← Back to Composer</button>
-          <button class="btn sm" id="threadOpenRepurposeBtn">LinkedIn Repurpose</button>
         </div>
       </div>
       <div class="composer-tabs">
@@ -3260,15 +3268,14 @@
       </div>
       <div class="workflow-strip">
         <div class="workflow-steps">
-          <span class="workflow-step active" data-workflow-step="composer">1. Compose</span>
+          <span class="workflow-step active" data-workflow-step="composer">Compose</span>
           <span class="workflow-arrow">→</span>
-          <span class="workflow-step" data-workflow-step="linkedin">2. Repurpose LinkedIn</span>
+          <span class="workflow-step" data-workflow-step="linkedin">Repurpose from LinkedIn</span>
           <span class="workflow-arrow">→</span>
-          <span class="workflow-step" data-workflow-step="thread">3. Split + Publish Thread</span>
+          <span class="workflow-step optional" data-workflow-step="thread">Optional: Split into Thread</span>
         </div>
         <div class="workflow-actions">
-          <button class="btn sm ghost" id="composerOpenRepurposeBtn">Browse LinkedIn Posts</button>
-          <button class="btn sm" id="composerToThreadBtn">Continue to Thread Splitter →</button>
+          <button class="btn sm" id="composerRepurposeBtn">Repurpose from LinkedIn</button>
         </div>
       </div>
 
@@ -4219,18 +4226,6 @@ function hydrateThreadFromText(text='',{autoSplit=false}={}){
     input.dispatchEvent(new Event('input'));
   }
   if(autoSplit) qs('splitBtn')?.click();
-}
-
-function sendComposerToThread(){
-  const editor=qs('composerEditor');
-  const text=editor?editorHtmlToText(editor.innerHTML).trim():'';
-  if(!text){
-    qs('composerStatus').textContent='Write in Composer first, then continue to Thread Splitter.';
-    activateView('composerView');
-    return;
-  }
-  hydrateThreadFromText(text,{autoSplit:true});
-  showToast('Composer draft moved to Thread Splitter','success');
 }
 
 function loadSnippets(){
@@ -6156,6 +6151,14 @@ function init(){
     tab.onclick = () => setThreadTab(tab.dataset.ttab);
   });
   setThreadTab('splitter');
+  document.querySelectorAll('.workflow-step[data-workflow-step]').forEach(step=>{
+    step.onclick=()=>{
+      const target=step.dataset.workflowStep;
+      if(target==='composer'){activateView('composerView');return;}
+      if(target==='linkedin'){activateView('threadView');setThreadTab('linkedin');return;}
+      if(target==='thread'){activateView('threadView');setThreadTab('splitter');}
+    };
+  });
 
   const linkedInLoadBtn=qs('linkedinLoadBtn');
   if(linkedInLoadBtn){
@@ -6174,12 +6177,9 @@ function init(){
     });
   }
 
-  const composerToThreadBtn=qs('composerToThreadBtn');
-  if(composerToThreadBtn) composerToThreadBtn.onclick=sendComposerToThread;
-
-  const composerOpenRepurposeBtn=qs('composerOpenRepurposeBtn');
-  if(composerOpenRepurposeBtn){
-    composerOpenRepurposeBtn.onclick=()=>{
+  const composerRepurposeBtn=qs('composerRepurposeBtn');
+  if(composerRepurposeBtn){
+    composerRepurposeBtn.onclick=()=>{
       activateView('threadView');
       setThreadTab('linkedin');
     };
@@ -6187,13 +6187,6 @@ function init(){
   const threadBackToComposerBtn=qs('threadBackToComposerBtn');
   if(threadBackToComposerBtn){
     threadBackToComposerBtn.onclick=()=>activateView('composerView');
-  }
-  const threadOpenRepurposeBtn=qs('threadOpenRepurposeBtn');
-  if(threadOpenRepurposeBtn){
-    threadOpenRepurposeBtn.onclick=()=>{
-      activateView('threadView');
-      setThreadTab('linkedin');
-    };
   }
 
   // Thumbnails tab removed — video thumbnail functionality lives inline in the media panel
