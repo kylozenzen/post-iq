@@ -59,29 +59,6 @@
       --sidebar: 260px;
     }
 
-    [data-theme="dark"] {
-      --bg: #0f131b;
-      --surface: #151b24;
-      --surface2: #1b2330;
-      --surface3: #222c3b;
-      --border: #283244;
-      --border2: #334058;
-      --text: #e7edf8;
-      --muted: #9aa7c0;
-      --subtle: #71809b;
-      --amber: #6e94ff;
-      --amber-dim: rgba(110,148,255,.16);
-      --amber-glow: rgba(110,148,255,.28);
-      --green: #46c79c;
-      --green-dim: rgba(70,199,156,.14);
-      --blue: #6e94ff;
-      --blue-dim: rgba(110,148,255,.14);
-      --gold-tag: rgba(255,183,77,.18);
-      --blue-tag: rgba(110,148,255,.20);
-      --green-tag: rgba(70,199,156,.18);
-      --violet-tag: rgba(149,128,255,.20);
-    }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -2821,6 +2798,95 @@
     .state-pill.key { color:var(--amber);background:var(--amber-dim);border-color:rgba(245,183,49,.35); }
     .state-pill.preview { color:var(--blue);background:var(--blue-dim);border-color:rgba(107,143,247,.35); }
     .view-state-pill{margin-top:8px;width:fit-content;}
+
+    /* ── LIGHT POLISH PASS ── */
+    .btn.primary{
+      color:#f8fbff;
+      border:1px solid rgba(40,94,255,.55);
+      background:linear-gradient(180deg,#4d86ff 0%,#2d66f3 100%);
+      box-shadow:0 8px 18px rgba(45,102,243,.26), inset 0 1px 0 rgba(255,255,255,.22);
+      text-shadow:0 1px 0 rgba(0,0,0,.15);
+    }
+    .btn.primary:hover{
+      background:linear-gradient(180deg,#5c92ff 0%,#326ef8 100%);
+      border-color:rgba(41,97,255,.72);
+      box-shadow:0 10px 22px rgba(45,102,243,.3), inset 0 1px 0 rgba(255,255,255,.22);
+    }
+    .btn.primary:focus-visible{
+      outline:2px solid rgba(56,116,255,.42);
+      outline-offset:2px;
+    }
+    .nav-btn.active{
+      background:linear-gradient(180deg,rgba(52,112,255,.14) 0%, rgba(52,112,255,.08) 100%);
+      border-color:rgba(52,112,255,.26);
+      color:#2356d4;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+    }
+    .composer-tab.active,
+    .settings-tab.active,
+    .sub-pill.active{
+      color:#2457d9;
+      border-color:rgba(49,104,248,.35);
+      background:rgba(49,104,248,.1);
+    }
+    .state-pill.key{
+      color:#2a60dd;
+      background:rgba(49,104,248,.13);
+      border-color:rgba(49,104,248,.3);
+    }
+    .state-pill.preview{
+      color:#2758ce;
+      background:rgba(78,125,255,.12);
+      border-color:rgba(78,125,255,.3);
+    }
+    .chip.amber{
+      color:#2b62de;
+      background:rgba(49,104,248,.1);
+      border-color:rgba(49,104,248,.24);
+    }
+    .about-stack{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .about-card{
+      background:linear-gradient(180deg,#fff 0%, #fbfcff 100%);
+      border:1px solid rgba(214,223,242,.95);
+      border-radius:14px;
+      padding:16px;
+      box-shadow:0 10px 24px rgba(33,67,138,.06);
+    }
+    .about-label{
+      font-family:'DM Mono', monospace;
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#5a77c7;
+      margin-bottom:8px;
+    }
+    .about-title{
+      font-family:'Syne', sans-serif;
+      font-size:18px;
+      line-height:1.25;
+      letter-spacing:-.02em;
+      margin-bottom:8px;
+      color:#1c2a49;
+    }
+    .about-copy{
+      font-size:13px;
+      line-height:1.65;
+      color:#506080;
+    }
+    .about-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+    .about-actions .btn{flex:1;min-width:220px;}
+    @media (max-width: 768px){
+      .about-actions .btn{min-width:100%;}
+    }
 .thread-actions-bar{
   background:linear-gradient(180deg, rgba(246,247,251,.97), rgba(246,247,251,.86));
   backdrop-filter: blur(8px);
@@ -3495,7 +3561,6 @@ document.addEventListener('DOMContentLoaded', () => {
   <!-- Tabs -->
   <div class="settings-tabs">
     <button class="settings-tab active" data-stab="guide">📖 Guide</button>
-    <button class="settings-tab" data-stab="appearance">🌓 Appearance</button>
     <button class="settings-tab" data-stab="about">👤 About</button>
   </div>
 
@@ -3550,30 +3615,23 @@ document.addEventListener('DOMContentLoaded', () => {
     </p>
   </div>
 
-  <!-- ── APPEARANCE ── -->
-  <div id="settingsPanelAppearance" class="settings-panel">
-    <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Choose color mode.</p>
-    <div class="row" style="gap:8px;">
-      <button class="btn" id="colorModeLightBtn" data-color-mode="light">Light</button>
-      <button class="btn" id="colorModeDarkBtn" data-color-mode="dark">Dark</button>
-    </div>
-    <p style="font-size:12px;color:var(--subtle);margin-top:10px;">Saved on this device.</p>
-  </div>
-
   <!-- ── ABOUT ── -->
   <div id="settingsPanelAbout" class="settings-panel">
-    <div style="margin-bottom:16px;">
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:4px;">PostIQ <span style="background:var(--amber);color:#1a0f00;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;padding:2px 6px;border-radius:3px;vertical-align:middle;">BETA</span></div>
-      <p style="font-size:12px;color:var(--muted);line-height:1.6;">A free Buffer companion app for serious creators. No login required — your token never leaves your device.</p>
-    </div>
-    <div class="divider"></div>
-    <div style="margin-top:14px;">
-      <div style="font-weight:600;font-size:13px;margin-bottom:6px;">Built by Ben Campbell</div>
-      <p style="font-size:12px;color:var(--muted);line-height:1.7;">Open to work — social media and content marketing roles. Previously grew San Antonio Zoo to 6M+ followers.</p>
-      <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">
-        <a href="https://bencampbell.netlify.app/" target="_blank" style="color:var(--blue);font-size:12px;">Portfolio ↗</a>
-        <a href="https://www.linkedin.com/in/bencampbell8/" target="_blank" style="color:var(--blue);font-size:12px;">LinkedIn ↗</a>
-      </div>
+    <div class="about-stack">
+      <article class="about-card">
+        <div class="about-label">About PostIQ</div>
+        <h3 class="about-title">Buffer power tools for serious creators</h3>
+        <p class="about-copy">Draft faster, split long-form posts into threads, organize snippets, track your calendar, and keep approvals moving — without adding another bloated workflow.</p>
+      </article>
+      <article class="about-card">
+        <div class="about-label">Built By</div>
+        <h3 class="about-title">Ben Campbell</h3>
+        <p class="about-copy">Social strategist, content builder, and creative problem solver building tools that make content workflows cleaner, faster, and a little less annoying.</p>
+        <div class="about-actions">
+          <a href="https://bencampbell.netlify.app/" target="_blank" rel="noopener" class="btn primary">Check out my work</a>
+          <a href="https://www.linkedin.com/in/bencampbell8/" target="_blank" rel="noopener" class="btn ghost">Connect with me on LinkedIn</a>
+        </div>
+      </article>
     </div>
   </div>
 
@@ -5449,26 +5507,6 @@ function init(){
   // Onboarding now part of settings modal
   // Founder now in settings About tab
 
-  // ── COLOR MODE ──
-  const COLOR_MODE_KEY='postiq_color_mode';
-  function applyColorMode(mode){
-    const dark=mode==='dark';
-    if(dark)document.documentElement.setAttribute('data-theme','dark');
-    else document.documentElement.removeAttribute('data-theme');
-    document.querySelectorAll('[data-color-mode]').forEach(btn=>{
-      const active=btn.dataset.colorMode===mode;
-      btn.classList.toggle('primary',active);
-      btn.classList.toggle('ghost',!active);
-    });
-    try{localStorage.setItem(COLOR_MODE_KEY,mode);}catch{}
-  }
-  function initColorMode(){
-    let saved='light';
-    try{saved=localStorage.getItem(COLOR_MODE_KEY)||'light';}catch{}
-    applyColorMode(saved==='dark'?'dark':'light');
-  }
-  initColorMode();
-
   // ── SETTINGS MODAL ──
   function openSettings(tab) {
     // Switch to specified tab or default
@@ -5489,10 +5527,6 @@ function init(){
       document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.id === panel));
     };
   });
-  document.querySelectorAll('[data-color-mode]').forEach(btn=>{
-    btn.onclick=()=>applyColorMode(btn.dataset.colorMode||'light');
-  });
-
   qs('manageTokenBtn').onclick=toggleTokenPanel;
   qs('revealCompactBtn').onclick=()=>{tokenPanelOpen=true;qs('tokenPanel').classList.add('open');qs('manageTokenBtn').textContent='Done';tokenInputVisible=true;qs('tokenInput').type='text';qs('toggleTokenVisibility').textContent='Hide';};
   qs('saveTokenBtn').onclick=saveToken;
