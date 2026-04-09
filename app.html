@@ -1391,10 +1391,15 @@
 
     /* ── MOBILE ELEMENTS hidden on desktop by default ── */
     .mobile-tabs { display: none; }
-    .mob-view-hdr { display: none; }
+    .mob-view-hdr { display: none !important; }
     #calAgenda { display: none; }
     .mob-drawer { display: none; }
     .mob-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 98; display: none; }
+
+    @media (min-width: 769px) {
+      .page-hdr { display: flex !important; }
+      .mob-view-hdr { display: none !important; }
+    }
 
     /* ══════════════════════════════════════════
        MOBILE — native app feel
@@ -1546,8 +1551,7 @@
       /* Thread parts — bigger tap targets */
       .thread-part { margin-bottom: 10px; }
       .thread-part textarea {
-      background: #1a1e28;
-      border-color: rgba(245,183,49,.25); min-height: 90px; font-size: 14px; }
+      min-height: 90px; font-size: 14px; }
       /* Action buttons — full width, tall */
       #threadView .row.mt12 { flex-direction: column; gap: 8px; }
       #threadView .row.mt12 .btn { width: 100%; padding: 14px; font-size: 15px; justify-content: center; }
@@ -3090,7 +3094,7 @@
       </div>
       <div class="composer-tabs">
         <button class="composer-tab active" data-ttab="splitter">Splitter</button>
-        <button class="composer-tab" data-ttab="linkedin">LinkedIn</button>
+        <button class="composer-tab" data-ttab="linkedin">Repurpose</button>
       </div>
       <div id="threadTabSplitter" class="composer-tab-panel">
         <div class="cols">
@@ -3137,7 +3141,9 @@
         </div>
       </div>
       <div id="threadTabLinkedIn" class="composer-tab-panel" style="display:none;">
-        <p class="page-desc mt8" style="color:var(--muted);font-size:13px;margin-bottom:12px;">Pull from your recent LinkedIn posts. Select a post to send it into Thread Splitter and repurpose it as a thread.</p>
+        <h3 style="font-family:'Syne',sans-serif;font-size:20px;line-height:1.2;margin-bottom:6px;">Turn LinkedIn Posts into Threads</h3>
+        <p class="page-desc mt8" style="color:var(--muted);font-size:13px;margin-bottom:8px;">Pull from your previously published LinkedIn posts and reuse them as thread drafts. Great for turning long-form ideas into shorter, multi-part posts.</p>
+        <p style="font-size:12px;line-height:1.55;color:var(--blue);background:var(--blue-dim);border:1px solid rgba(51,102,255,.2);border-radius:10px;padding:10px 12px;margin-bottom:12px;">Repurpose posts you’ve already published on LinkedIn by quickly turning long-form ideas into thread-ready drafts for X or Threads.</p>
         <div id="linkedinStatus" class="status-txt mb8"></div>
         <div id="linkedinList" class="thumb-post-list" style="display:flex;flex-direction:column;gap:10px;"></div>
         <button class="btn sm ghost" id="linkedinLoadBtn" style="display:none;margin-top:8px;">↻ Load more</button>
@@ -3795,6 +3801,7 @@ let threadParts=[];
 let currentViewId='';
 let hasTrackedBufferConnected=false;
 let modalOpenCount=0;
+let setThreadTab=()=>{};
 const state={
   channels:[],
   scheduled:[],
@@ -3811,7 +3818,9 @@ const state={
   // LinkedIn posts integration
   linkedInLoaded:false,
   linkedInPosts:[],
-  linkedInNextIndex:0,
+  linkedInCursor:null,
+  linkedInHasNext:false,
+  organizationId:null,
   // Thread numbering toggle for thread splitter
   numbering:false
 };
@@ -3900,108 +3909,192 @@ function getAllApprovalMetas(){
 
 // ── SNIPPETS ──
 
-// ── LINKEDIN POSTS ──
-// Populate the LinkedIn tab with recent posts. Since external APIs are disabled,
-// this stub uses a set of sample posts stored in state.linkedInPosts. The first
-// call seeds the sample data and resets the pagination index. Subsequent calls
-// simply render the next batch of posts.
-function loadLinkedInPosts(){
-  const statusEl = qs('linkedinStatus');
-  const listEl = qs('linkedinList');
-  const loadBtn = qs('linkedinLoadBtn');
-  if(!statusEl || !listEl || !loadBtn) return;
-  statusEl.textContent = 'Loading LinkedIn posts…';
-  listEl.innerHTML = '';
-  // If posts haven't been loaded before, seed with sample data. In a future
-  // integration this would call Buffer or LinkedIn APIs using the Buffer token.
-  if(!state.linkedInLoaded){
-    state.linkedInPosts = [
-      { text: 'Storytelling is the backbone of good marketing. If you can connect with your audience through a narrative, you will engage them on a deeper level. Build your posts around a clear arc: start with the problem, reveal the journey, and end with the solution. Remember, facts tell but stories sell. Apply this approach to your own LinkedIn posts and watch the engagement rise.' },
-      { text: 'I recently revisited some of my most successful posts and realized a common thread: authenticity. People resonate with real experiences and genuine perspectives. If you\'re struggling to find your voice, start by sharing a lesson you\'ve learned this year and how it changed your outlook. Don\'t be afraid to be vulnerable – that\'s what makes social media social.' },
-      { text: 'Did you know that repurposing content across platforms can multiply your reach? A thoughtful article published on LinkedIn can be broken into smaller insights and threaded into a captivating tweetstorm. Doing so not only extends the life of your content but also lets you tailor the message for different audiences. Next time you write a long post, think about how you can adapt it into a multi-part thread.' },
-      { text: 'Your LinkedIn headline is like the opening scene of a movie – it either hooks viewers or sends them scrolling. When crafting headlines for your posts, lean into curiosity. Ask a thought-provoking question or hint at a surprising insight. Then deliver on that promise in the body. The more intrigued readers are, the more likely they\'ll engage with your content.' },
-      { text: 'Consistency beats perfection. It’s better to share valuable ideas regularly than to wait until you have the “perfect” post. Set a cadence for yourself – maybe once or twice a week – and stick to it. Over time you\'ll refine your writing and build an audience that looks forward to your insights. And remember, your existing posts are a treasure trove of ideas to remix into fresh formats.' },
-      { text: 'Use visuals to amplify your message. Even on LinkedIn, a simple chart, diagram, or infographic can make complex concepts accessible and memorable. Next time you publish a data-driven post, consider attaching a visual summary. Tools like Canva and Figma make it easy to create professional graphics without a designer.' },
-      { text: 'Networking isn\'t about collecting contacts – it\'s about building relationships. Share updates on projects you\'re working on and ask for feedback. Respond thoughtfully to comments on your posts. When someone\'s insight helps you, mention them in your next article. Reciprocity and genuine interest in others go a long way.' }
-    ];
-    state.linkedInLoaded = true;
-  }
-  // Start pagination from zero on every fresh load
-  state.linkedInNextIndex = 0;
-  // Render the first batch of posts
-  renderLinkedInPosts();
-}
+// ── LINKEDIN POSTS / REPURPOSE ──
+const LINKEDIN_MIN_REPURPOSE_LENGTH = 80;
 
-// Render the next batch of LinkedIn posts to the list. Shows 5 posts at a time
-// and reveals a Load more button if additional posts remain.
+function getLinkedInChannels(){
+  return (state.channels||[]).filter(c=>String(c.service||'').toLowerCase().includes('linkedin'));
+}
+function getLinkedInMediaAsset(post){
+  const assets=Array.isArray(post?.assets)?post.assets:[];
+  return assets.find(a=>a?.thumbnail)||assets.find(a=>String(a?.mimeType||'').startsWith('image/'))||assets[0]||null;
+}
+function formatLinkedInDate(post){
+  const raw=post?.sentAt||post?.createdAt;
+  if(!raw) return '';
+  const d=new Date(raw);
+  if(Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+}
+function clearLinkedInRepurposeData(){
+  state.linkedInLoaded=false;
+  state.linkedInPosts=[];
+  state.linkedInCursor=null;
+  state.linkedInHasNext=false;
+}
 function renderLinkedInPosts(){
-  const listEl = qs('linkedinList');
-  const statusEl = qs('linkedinStatus');
-  const loadBtn = qs('linkedinLoadBtn');
-  if(!listEl || !statusEl || !loadBtn) return;
-  const posts = state.linkedInPosts || [];
-  const start = state.linkedInNextIndex || 0;
-  const batchSize = 5;
-  const end = Math.min(start + batchSize, posts.length);
-  // On first call clear any existing items
-  if(start === 0) listEl.innerHTML = '';
-  if(posts.length === 0){
-    statusEl.textContent = 'No LinkedIn posts found.';
-    loadBtn.style.display = 'none';
+  const statusEl=qs('linkedinStatus');
+  const listEl=qs('linkedinList');
+  const loadBtn=qs('linkedinLoadBtn');
+  if(!statusEl||!listEl||!loadBtn) return;
+  listEl.innerHTML='';
+
+  if(!bufferToken){
+    statusEl.textContent='Connect Buffer and sync your channels first.';
+    loadBtn.style.display='none';
     return;
   }
-  statusEl.textContent = '';
-  for(let i = start; i < end; i++){
-    const post = posts[i];
-    const preview = post.text.slice(0, 280);
-    const truncated = post.text.length > 280;
-    const idx = i;
-    listEl.insertAdjacentHTML('beforeend', `<div class="card" style="padding:10px;">
-      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.4;">${safeText(preview)}${truncated ? '…' : ''}</div>
-      <button class="btn sm" onclick="useLinkedInInThread(${idx})">Use → Thread</button>
-    </div>`);
+  const linkedInChannels=getLinkedInChannels();
+  if(!linkedInChannels.length){
+    statusEl.textContent='No LinkedIn channels found in your synced Buffer account.';
+    loadBtn.style.display='none';
+    return;
   }
-  state.linkedInNextIndex = end;
-  loadBtn.style.display = end < posts.length ? 'inline-flex' : 'none';
+  if(!state.linkedInPosts.length){
+    statusEl.innerHTML='<div class="empty-state" style="text-align:left;padding:14px 0;"><div class="empty-title">No LinkedIn posts found yet</div><div class="empty-desc">Sync Buffer to load your previously published LinkedIn posts and repurpose them into threads.</div></div>';
+    loadBtn.style.display='none';
+    return;
+  }
+
+  statusEl.textContent='';
+  state.linkedInPosts.forEach(post=>{
+    const preview=safeText((post.text||'').replace(/\s+/g,' ').trim().slice(0,320));
+    const dateLabel=formatLinkedInDate(post);
+    const media=getLinkedInMediaAsset(post);
+    const thumb=media?.thumbnail||media?.source||'';
+    const externalLink=post.externalLink&&/^https?:\/\//i.test(post.externalLink)?post.externalLink:'';
+    const card=document.createElement('div');
+    card.className='card';
+    card.style.padding='12px';
+    card.innerHTML=`
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        ${thumb?`<img src="${safeText(thumb)}" alt="LinkedIn media preview" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--border2);flex-shrink:0;">`:''}
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;line-height:1.55;color:var(--text);white-space:pre-wrap;">${preview}${(post.text||'').length>320?'…':''}</div>
+          <div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+            ${dateLabel?`<span class="chip" style="font-size:10px;">Published ${safeText(dateLabel)}</span>`:''}
+            ${externalLink?`<a href="${safeText(externalLink)}" target="_blank" rel="noopener" class="btn sm ghost" style="height:26px;">View post ↗</a>`:''}
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:10px;display:flex;justify-content:flex-end;">
+        <button class="btn sm primary" data-linkedin-use="${safeText(post.id)}">Turn into Thread</button>
+      </div>`;
+    listEl.appendChild(card);
+  });
+  loadBtn.style.display=state.linkedInHasNext?'inline-flex':'none';
 }
 
-// Handler for the Load more button in the LinkedIn tab
-const linkedinLoadBtn = qs('linkedinLoadBtn');
-if(linkedinLoadBtn){
-  linkedinLoadBtn.onclick = () => {
-    renderLinkedInPosts();
+async function fetchLinkedInPostsPage(after=null){
+  const orgId=state.organizationId;
+  const channelIds=getLinkedInChannels().map(c=>c.id).filter(Boolean);
+  if(!orgId||!channelIds.length) return {posts:[],pageInfo:{hasNextPage:false,endCursor:null}};
+  const query=`query GetSentLinkedInPostsWithMedia($organizationId: OrganizationId!, $channelIds: [ChannelId!]!, $after: String) {
+    posts(
+      first: 30
+      after: $after
+      input: {
+        organizationId: $organizationId
+        filter: {
+          status: [sent]
+          channelIds: $channelIds
+        }
+        sort: [{ field: createdAt, direction: desc }]
+      }
+    ) {
+      edges {
+        node {
+          id
+          text
+          createdAt
+          channelId
+          sentAt
+          externalLink
+          assets {
+            thumbnail
+            mimeType
+            source
+            ... on ImageAsset {
+              image {
+                altText
+                width
+                height
+              }
+            }
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }`;
+  const res=await callBuffer(query,{organizationId:orgId,channelIds,after});
+  const block=res?.data?.posts;
+  return {
+    posts:(block?.edges||[]).map(e=>e.node).filter(Boolean),
+    pageInfo:block?.pageInfo||{hasNextPage:false,endCursor:null}
   };
 }
 
-// Send a LinkedIn post into the Thread Splitter. Takes the index of the post
-// in state.linkedInPosts, moves the user to the thread view, inserts the
-// content into the thread input, and automatically splits it.
-function useLinkedInInThread(idx){
-  const posts = state.linkedInPosts || [];
-  const post = posts[idx];
-  if(!post) return;
-  // Switch to thread view
-  activateView('threadView');
-  document.querySelectorAll('.composer-tab[data-ttab]').forEach(t => t.classList.toggle('active', t.dataset.ttab === 'splitter'));
-  const splitterPanel = qs('threadTabSplitter');
-  const linkedInPanel = qs('threadTabLinkedIn');
-  if (splitterPanel) splitterPanel.style.display = 'block';
-  if (linkedInPanel) linkedInPanel.style.display = 'none';
-  // Clear any existing thread text and set the new content
-  const input = qs('threadInput');
-  if(input){
-    input.value = post.text;
-    input.dispatchEvent(new Event('input'));
+async function loadLinkedInPosts({append=false}={}){
+  const statusEl=qs('linkedinStatus');
+  if(!statusEl) return;
+  if(!bufferToken){
+    clearLinkedInRepurposeData();
+    renderLinkedInPosts();
+    return;
   }
-  // Highlight the Thread tab in the sidebar/nav
-  const threadNav = document.querySelectorAll('[data-view="threadView"]');
-  threadNav.forEach(btn => btn.classList.add('active'));
-  // Perform splitting immediately
-  const splitBtn = qs('splitBtn');
-  if(splitBtn) splitBtn.click();
-  showToast('Post loaded into thread','success');
+  if(!state.channels.length){
+    clearLinkedInRepurposeData();
+    renderLinkedInPosts();
+    return;
+  }
+  const linkedInChannels=getLinkedInChannels();
+  if(!linkedInChannels.length){
+    clearLinkedInRepurposeData();
+    renderLinkedInPosts();
+    return;
+  }
+
+  statusEl.textContent='Loading your LinkedIn posts…';
+  try{
+    const {posts,pageInfo}=await fetchLinkedInPostsPage(append?state.linkedInCursor:null);
+    const useful=posts.filter(p=>{
+      const text=(p?.text||'').replace(/\s+/g,' ').trim();
+      return text.length>=LINKEDIN_MIN_REPURPOSE_LENGTH;
+    });
+    const merged=append?state.linkedInPosts.concat(useful):useful;
+    const deduped=[];
+    const seen=new Set();
+    merged.forEach(p=>{if(p?.id&&!seen.has(p.id)){seen.add(p.id);deduped.push(p);}});
+    deduped.sort((a,b)=>new Date(b.sentAt||b.createdAt||0)-new Date(a.sentAt||a.createdAt||0));
+    state.linkedInPosts=deduped;
+    state.linkedInCursor=pageInfo?.endCursor||null;
+    state.linkedInHasNext=!!pageInfo?.hasNextPage;
+    state.linkedInLoaded=true;
+    renderLinkedInPosts();
+  }catch(e){
+    console.error('[PostIQ] loadLinkedInPosts error:',e);
+    statusEl.textContent='Couldn’t load LinkedIn posts right now. Try syncing again.';
+    qs('linkedinLoadBtn').style.display='none';
+  }
 }
 
+function useLinkedInInThread(postId){
+  const post=(state.linkedInPosts||[]).find(p=>String(p.id)===String(postId));
+  if(!post) return;
+  activateView('threadView');
+  setThreadTab('splitter');
+  const input=qs('threadInput');
+  if(input){
+    input.value=post.text||'';
+    input.dispatchEvent(new Event('input'));
+  }
+  qs('splitBtn')?.click();
+  showToast('Loaded into Thread Splitter','success');
+}
 
 function loadSnippets(){
   try{
@@ -4341,15 +4434,32 @@ function updateViewStatePills(){
   }
   const hint=qs('calendarEmptyHint'); if(hint) hint.style.display=connected?'none':'block';
 }
+
+function setBufferToken(token,{mode='session',messageEl=null,savedMessage='Token saved'}={}){
+  localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
+  const clean=String(token||'').trim();
+  if(!clean){
+    bufferToken='';
+    hasTrackedBufferConnected=false;
+    clearSyncedData();
+    if(messageEl)messageEl.textContent='Token removed.';
+    refreshTokenUI();
+    showToast('Token removed','info');
+    return false;
+  }
+  if(mode==='local')localStorage.setItem(STORE_KEY,clean);else sessionStorage.setItem(STORE_KEY,clean);
+  bufferToken=clean;
+  if(messageEl)messageEl.textContent=mode==='local'?'Saved locally.':'Saved for session.';
+  refreshTokenUI();
+  showToast(savedMessage,'success');
+  return true;
+}
+
 function saveToken(){
   const token=qs('tokenInput').value.trim();
   const mode=[...document.querySelectorAll('input[name="tokenMode"]')].find(r=>r.checked).value;
-  localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
-  if(!token){bufferToken='';hasTrackedBufferConnected=false;qs('tokenMsg').textContent='Token removed.';refreshTokenUI();showToast('Token removed','info');return;}
-  if(mode==='local')localStorage.setItem(STORE_KEY,token);else sessionStorage.setItem(STORE_KEY,token);
-  bufferToken=token;
-  qs('tokenMsg').textContent=mode==='local'?'Saved to localStorage.':'Saved for this session.';
-  showToast('Token saved','success');refreshTokenUI();
+  const ok=setBufferToken(token,{mode,messageEl:qs('tokenMsg'),savedMessage:'Token saved'});
+  if(ok)syncBuffer();
 }
 function loadStoredToken(){
   bufferToken=sessionStorage.getItem(STORE_KEY)||localStorage.getItem(STORE_KEY)||'';
@@ -4373,7 +4483,10 @@ async function callBuffer(query,variables={}){
 function clearSyncedData(){
   state.channels=[];
   state.scheduled=[];
+  state.organizationId=null;
+  clearLinkedInRepurposeData();
   renderChannelSelects();
+  renderLinkedInPosts();
   renderCalendar();
 }
 
@@ -4393,6 +4506,7 @@ async function syncBuffer(){
     const acc=await callBuffer('query { account { organizations { id name } } }');
     const orgId=acc?.data?.account?.organizations?.[0]?.id;
     if(!orgId){clearSyncedData();setSyncStatus('failed','No organization found.');return;}
+    state.organizationId=orgId;
     const channelsQuery='query Channels($organizationId: OrganizationId!){ channels(input:{organizationId:$organizationId}) { id displayName name service } }';
     const ch=await callBuffer(channelsQuery,{organizationId:orgId});
     state.channels=ch?.data?.channels||[];
@@ -4414,11 +4528,12 @@ async function syncBuffer(){
     qs('syncBtn').classList.remove('sync-pulse');
     showToast(`Loaded ${all.length} posts`,'success');
     window.dispatchEvent(new Event('postiq:synced'));
+    if(qs('threadTabLinkedIn')?.style.display!=='none')loadLinkedInPosts({append:false});
   }catch(e){
     console.error('[PostIQ] syncBuffer error:', e);
     const m=String(e.message||'');
     if(m.includes('MISSING_TOKEN'))setSyncStatus('failed','Add a Buffer token first.');
-    else if(/unauthorized|invalid|forbidden/i.test(m)){clearSyncedData();setSyncStatus('failed','Token appears invalid or expired.');}
+    else if(/unauthorized|invalid|forbidden|organization|auth/i.test(m)){clearSyncedData();setSyncStatus('failed','Token appears invalid or expired.');}
     else setSyncStatus('failed',`Sync failed: ${m||'unknown error'}`);
     showToast('Sync failed — check your token','error');
   }finally{
@@ -5756,18 +5871,31 @@ function init(){
       if (composerWrite) composerWrite.style.display = panel === 'write' ? 'block' : 'none';
     };
   });
-  const setThreadTab = (panel) => {
+  setThreadTab = (panel) => {
     document.querySelectorAll('.composer-tab[data-ttab]').forEach(t => t.classList.toggle('active', t.dataset.ttab === panel));
     const splitter = qs('threadTabSplitter');
     const linkedin = qs('threadTabLinkedIn');
     if (splitter) splitter.style.display = panel === 'splitter' ? 'block' : 'none';
     if (linkedin) linkedin.style.display = panel === 'linkedin' ? 'block' : 'none';
-    if (panel === 'linkedin' && !state.linkedInLoaded) loadLinkedInPosts();
+    if (panel === 'linkedin' && !state.linkedInLoaded) loadLinkedInPosts({append:false});
   };
   document.querySelectorAll('.composer-tab[data-ttab]').forEach(tab => {
     tab.onclick = () => setThreadTab(tab.dataset.ttab);
   });
   setThreadTab('splitter');
+
+  const linkedInLoadBtn=qs('linkedinLoadBtn');
+  if(linkedInLoadBtn){
+    linkedInLoadBtn.onclick=()=>loadLinkedInPosts({append:true});
+  }
+  const linkedInList=qs('linkedinList');
+  if(linkedInList){
+    linkedInList.addEventListener('click',e=>{
+      const btn=e.target.closest('[data-linkedin-use]');
+      if(!btn) return;
+      useLinkedInInThread(btn.dataset.linkedinUse);
+    });
+  }
 
   // Thumbnails tab removed — video thumbnail functionality lives inline in the media panel
 
@@ -5826,18 +5954,12 @@ function init(){
   qs('mobSaveTokenBtn').onclick=()=>{
     const token=qs('mobTokenInput').value.trim();
     const mode=[...document.querySelectorAll('input[name="mobTokenMode"]')].find(r=>r.checked).value;
-    localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
-    if(!token){bufferToken='';hasTrackedBufferConnected=false;refreshTokenUI();showToast('Token removed','info');return;}
-    if(mode==='local')localStorage.setItem(STORE_KEY,token);else sessionStorage.setItem(STORE_KEY,token);
-    bufferToken=token;
-    qs('mobTokenMsg').textContent=mode==='local'?'Saved locally.':'Saved for session.';
-    refreshTokenUI();showToast('Token saved','success');
-    syncBuffer();
+    const ok=setBufferToken(token,{mode,messageEl:qs('mobTokenMsg'),savedMessage:'Token saved'});
+    if(ok)syncBuffer();
   };
   qs('mobClearTokenBtn').onclick=()=>{
     qs('mobTokenInput').value='';
-    localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
-    bufferToken='';hasTrackedBufferConnected=false;refreshTokenUI();showToast('Token removed','info');
+    setBufferToken('',{mode:'session',messageEl:qs('mobTokenMsg')});
   };
   qs('mobOpenFounder').onclick=()=>{closeMobDrawer();openSettings('about');};
 
@@ -6165,8 +6287,6 @@ function init(){
           sub: item.sub
         });
         activateView('composerView');
-        document.querySelectorAll('.mob-tab[data-view]').forEach(t =>
-          t.classList.toggle('active', t.dataset.view === 'composerView'));
         showToast('Pinned as reference — write your take','info');
       };
 
@@ -6191,12 +6311,13 @@ function init(){
     panel.classList.add('visible');
   }
 
-  document.addEventListener('click', (e) => {
-    const dismissBtn = e.target.closest('#trendingRefDismiss');
-    if (!dismissBtn) return;
-    const panel = qs('trendingRefPanel');
-    if (panel) panel.classList.remove('visible');
-  });
+  const trendingDismissBtn=qs('trendingRefDismiss');
+  if(trendingDismissBtn){
+    trendingDismissBtn.onclick=()=>{
+      const panel=qs('trendingRefPanel');
+      if(panel) panel.classList.remove('visible');
+    };
+  }
 
   // ── TOPICS ──
   const TOPICS_KEY = 'postiq_saved_topics';
