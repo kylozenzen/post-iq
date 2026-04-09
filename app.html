@@ -334,6 +334,45 @@
     }
     .page-desc { font-size: 13px; color: var(--muted); }
     .page-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+    .workflow-strip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px 14px;
+      margin: -10px 0 14px;
+    }
+    .workflow-steps {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+    .workflow-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      border: 1px solid var(--border2);
+      background: var(--surface2);
+      white-space: nowrap;
+    }
+    .workflow-step.active {
+      color: var(--amber);
+      border-color: var(--amber-glow);
+      background: var(--amber-dim);
+    }
+    .workflow-arrow { color: var(--subtle); font-size: 11px; }
+    .workflow-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 
     /* Hide large empty-state icons on desktop */
     @media (min-width: 960px) {
@@ -1398,6 +1437,7 @@
 
     @media (min-width: 769px) {
       .page-hdr { display: flex !important; }
+      .workflow-strip { margin-top: -6px; }
       .mob-view-hdr { display: none !important; }
     }
 
@@ -1413,6 +1453,11 @@
 
       /* Hide desktop page headers — waste of space on mobile */
       .page-hdr { display: none; }
+      .workflow-strip {
+        margin: 2px 0 10px;
+        padding: 8px 10px;
+      }
+      .workflow-step { font-size: 10px; }
 
       /* Cards lose border/shadow, just clean sections */
       .card {
@@ -3083,7 +3128,7 @@
         <div class="page-hdr-left">
           <h1 class="page-title">Thread Splitter</h1>
           <div class="state-pill try view-state-pill">Try now</div>
-          <p class="page-desc">Turn long-form copy into a clean thread, then push to Buffer.</p>
+          <p class="page-desc">Continue from Composer or LinkedIn repurposing, split into parts, then push to Buffer.</p>
         </div>
         <div class="page-actions">
           <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
@@ -3091,6 +3136,19 @@
       </div>
       <div class="mob-view-hdr">
         <span class="mob-view-title"><span class="mob-icon"><svg><use href="#i-thread"></use></svg></span>Thread Splitter</span>
+      </div>
+      <div class="workflow-strip">
+        <div class="workflow-steps">
+          <span class="workflow-step" data-workflow-step="composer">1. Compose</span>
+          <span class="workflow-arrow">→</span>
+          <span class="workflow-step" data-workflow-step="linkedin">2. Repurpose LinkedIn</span>
+          <span class="workflow-arrow">→</span>
+          <span class="workflow-step active" data-workflow-step="thread">3. Split + Publish Thread</span>
+        </div>
+        <div class="workflow-actions">
+          <button class="btn sm ghost" id="threadBackToComposerBtn">← Back to Composer</button>
+          <button class="btn sm" id="threadOpenRepurposeBtn">LinkedIn Repurpose</button>
+        </div>
       </div>
       <div class="composer-tabs">
         <button class="composer-tab active" data-ttab="splitter">Splitter</button>
@@ -3189,7 +3247,7 @@
         <div class="page-hdr-left">
           <h1 class="page-title">Post Composer</h1>
           <div class="state-pill key view-state-pill" id="composerStatePill">Needs Buffer key</div>
-          <p class="page-desc" id="composerSubhead">Draft text-first posts, then send them to Buffer.</p>
+          <p class="page-desc" id="composerSubhead">Start a draft here, then continue into LinkedIn repurposing or Thread Splitter.</p>
         </div>
         <div class="page-actions">
           <button class="btn ghost" id="composerClearBtn" style="display:none;">Clear ✕</button>
@@ -3199,6 +3257,19 @@
       <div class="mob-view-hdr">
         <span class="mob-view-title"><span class="mob-icon"><svg><use href="#i-compose"></use></svg></span>Compose</span>
         <button class="btn sm ghost" id="composerClearBtnMob" style="display:none;">Clear ✕</button>
+      </div>
+      <div class="workflow-strip">
+        <div class="workflow-steps">
+          <span class="workflow-step active" data-workflow-step="composer">1. Compose</span>
+          <span class="workflow-arrow">→</span>
+          <span class="workflow-step" data-workflow-step="linkedin">2. Repurpose LinkedIn</span>
+          <span class="workflow-arrow">→</span>
+          <span class="workflow-step" data-workflow-step="thread">3. Split + Publish Thread</span>
+        </div>
+        <div class="workflow-actions">
+          <button class="btn sm ghost" id="composerOpenRepurposeBtn">Browse LinkedIn Posts</button>
+          <button class="btn sm" id="composerToThreadBtn">Continue to Thread Splitter →</button>
+        </div>
       </div>
 
       <!-- Composer tab navigation (Write) -->
@@ -4004,7 +4075,8 @@ function renderLinkedInPosts(){
           </div>
         </div>
       </div>
-      <div style="margin-top:10px;display:flex;justify-content:flex-end;">
+      <div style="margin-top:10px;display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap;">
+        <button class="btn sm ghost" data-linkedin-compose="${safeText(postKey)}">Use in Composer</button>
         <button class="btn sm primary" data-linkedin-use="${safeText(postKey)}">Turn into Thread</button>
       </div>`;
     listEl.appendChild(card);
@@ -4118,15 +4190,47 @@ async function loadLinkedInPosts({append=false}={}){
 function useLinkedInInThread(postId){
   const post=(state.linkedInPosts||[]).find((p,idx)=>String(p?._repurposeKey||getLinkedInPostKey(p,idx))===String(postId));
   if(!post) return;
+  hydrateThreadFromText(post.text||'',{autoSplit:true});
+  showToast('Loaded into Thread Splitter','success');
+}
+
+function useLinkedInInComposer(postId){
+  const post=(state.linkedInPosts||[]).find((p,idx)=>String(p?._repurposeKey||getLinkedInPostKey(p,idx))===String(postId));
+  if(!post) return;
+  hydrateComposerFromText(post.text||'');
+  showToast('Loaded into Composer','success');
+}
+
+function hydrateComposerFromText(text=''){
+  activateView('composerView');
+  const editor=qs('composerEditor');
+  if(!editor) return;
+  editor.innerText=text||'';
+  editor.dispatchEvent(new Event('input'));
+  editor.focus();
+}
+
+function hydrateThreadFromText(text='',{autoSplit=false}={}){
   activateView('threadView');
   setThreadTab('splitter');
   const input=qs('threadInput');
   if(input){
-    input.value=post.text||'';
+    input.value=text||'';
     input.dispatchEvent(new Event('input'));
   }
-  qs('splitBtn')?.click();
-  showToast('Loaded into Thread Splitter','success');
+  if(autoSplit) qs('splitBtn')?.click();
+}
+
+function sendComposerToThread(){
+  const editor=qs('composerEditor');
+  const text=editor?editorHtmlToText(editor.innerHTML).trim():'';
+  if(!text){
+    qs('composerStatus').textContent='Write in Composer first, then continue to Thread Splitter.';
+    activateView('composerView');
+    return;
+  }
+  hydrateThreadFromText(text,{autoSplit:true});
+  showToast('Composer draft moved to Thread Splitter','success');
 }
 
 function loadSnippets(){
@@ -6061,9 +6165,35 @@ function init(){
   if(linkedInList){
     linkedInList.addEventListener('click',e=>{
       const btn=e.target.closest('[data-linkedin-use]');
-      if(!btn) return;
-      useLinkedInInThread(btn.dataset.linkedinUse);
+      if(btn){
+        useLinkedInInThread(btn.dataset.linkedinUse);
+        return;
+      }
+      const composeBtn=e.target.closest('[data-linkedin-compose]');
+      if(composeBtn) useLinkedInInComposer(composeBtn.dataset.linkedinCompose);
     });
+  }
+
+  const composerToThreadBtn=qs('composerToThreadBtn');
+  if(composerToThreadBtn) composerToThreadBtn.onclick=sendComposerToThread;
+
+  const composerOpenRepurposeBtn=qs('composerOpenRepurposeBtn');
+  if(composerOpenRepurposeBtn){
+    composerOpenRepurposeBtn.onclick=()=>{
+      activateView('threadView');
+      setThreadTab('linkedin');
+    };
+  }
+  const threadBackToComposerBtn=qs('threadBackToComposerBtn');
+  if(threadBackToComposerBtn){
+    threadBackToComposerBtn.onclick=()=>activateView('composerView');
+  }
+  const threadOpenRepurposeBtn=qs('threadOpenRepurposeBtn');
+  if(threadOpenRepurposeBtn){
+    threadOpenRepurposeBtn.onclick=()=>{
+      activateView('threadView');
+      setThreadTab('linkedin');
+    };
   }
 
   // Thumbnails tab removed — video thumbnail functionality lives inline in the media panel
