@@ -1132,7 +1132,7 @@ textarea:focus,input:focus{
           </div>
           <div class="demo-body">
             <div id="threadOutputHero" class="thread-output">
-              <div class="empty">Paste text to get instant thread-ready posts you can refine and share.</div>
+              <div class="empty">Paste text to get instant post-ready drafts you can refine and share.</div>
             </div>
           </div>
         </div>
@@ -1159,7 +1159,7 @@ textarea:focus,input:focus{
       <div class="panel-head"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="panel-label">Output</span></div>
       <div class="demo-body">
         <div id="threadOutputMobile" class="thread-output">
-          <div class="empty">Paste text to instantly split it into clean, thread-ready posts.</div>
+          <div class="empty">Paste text to instantly split it into clean, post-ready drafts.</div>
         </div>
       </div>
     </div>
@@ -1299,7 +1299,7 @@ textarea:focus,input:focus{
 </div><!-- /wrap -->
 
 <script>
-// ── Thread splitter logic (shared across all instances) ──
+// ── Composer Split mode logic (shared across all instances) ──
 function splitIntoThreads(text, maxLen = 280) {
   const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
   const posts = [];
@@ -1339,7 +1339,7 @@ function splitIntoThreads(text, maxLen = 280) {
 function renderThreadOutput(outputEl, posts) {
   outputEl.innerHTML = '';
   if (!posts.length) {
-    outputEl.innerHTML = '<div class="empty">Paste text to get instant thread-ready posts you can refine and share.</div>';
+    outputEl.innerHTML = '<div class="empty">Paste text to get instant post-ready drafts you can refine and share.</div>';
     return;
   }
   posts.forEach((post, i) => {
@@ -1422,7 +1422,7 @@ document.querySelectorAll('a[href="app.html"]').forEach((link) => {
 
 document.querySelectorAll('a[href="app.html?view=threadView"]').forEach((link) => {
   link.addEventListener('click', () => {
-    postIQTrack('landing_try_thread_splitter_click', {
+    postIQTrack('landing_try_split_mode_click', {
       location: link.closest('.topbar') ? 'topbar' : link.closest('.connect-card') ? 'final_cta' : 'page'
     });
   });
@@ -1431,14 +1431,14 @@ document.querySelectorAll('a[href="app.html?view=threadView"]').forEach((link) =
 const splitBtnHero = document.getElementById('splitBtnHero');
 if (splitBtnHero) {
   splitBtnHero.addEventListener('click', () => {
-    postIQTrack('landing_hero_splitter_used');
+    postIQTrack('landing_hero_split_mode_used');
   });
 }
 
 const splitBtnMobile = document.getElementById('splitBtnMobile');
 if (splitBtnMobile) {
   splitBtnMobile.addEventListener('click', () => {
-    postIQTrack('landing_mobile_splitter_used');
+    postIQTrack('landing_mobile_split_mode_used');
   });
 }
 </script>
