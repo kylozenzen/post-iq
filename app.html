@@ -416,10 +416,9 @@
     .page-desc { font-size: 13px; color: var(--muted); }
     .page-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
 
-    /* Hide large empty-state icons and duplicate titles on desktop */
+    /* Hide large empty-state icons on desktop */
     @media (min-width: 960px) {
       .empty-icon { display: none; }
-      .page-hdr .page-title { display: none; }
     }
 
     /* ── BUTTONS ── */
@@ -1473,6 +1472,7 @@
 
     /* ── MOBILE ELEMENTS hidden on desktop by default ── */
     .mobile-tabs { display: none; }
+    .mob-view-hdr { display: none; }
     #calAgenda { display: none; }
     .mob-drawer { display: none; }
     .mob-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 98; display: none; }
@@ -1583,19 +1583,6 @@
         padding-bottom: 12px;
         border-bottom: 1px solid var(--border);
       }
-
-    /* Hide mobile view header on larger screens. On desktop the full page header already
-       includes the tool name and actions, so the mobile-only header would duplicate
-       the title and its icon. This ensures large SVG icons and redundant titles do
-       not appear on desktop views. */
-    /* Always hide the mobile header by default. We'll explicitly re-enable
-       it for narrow screens via a max-width media query. This prevents the
-       mobile view header (which contains large icons and duplicate titles)
-       from appearing on desktop. */
-    .mob-view-hdr { display: none !important; }
-    @media (max-width: 959px) {
-      .mob-view-hdr { display: flex !important; }
-    }
       .mob-view-title {
         font-family: 'Syne', sans-serif;
         font-weight: 700;
@@ -3279,47 +3266,59 @@ body{
       <div class="mob-view-hdr">
         <span class="mob-view-title"><span class="mob-icon"><svg><use href="#i-thread"></use></svg></span>Thread Splitter</span>
       </div>
-      <div class="cols">
-        <div class="card">
-          <div class="card-title">Source text</div>
-          <textarea id="threadInput" placeholder="Paste long-form content, notes, or a rough draft…"></textarea>
-          <div class="row mt12">
-            <button class="btn primary" id="splitBtn">Split thread</button>
-            <button class="btn" id="sampleBtn">Sample</button>
-          </div>
-          <div class="row mt8">
-            <button class="btn sm ghost" id="threadAddOpener">+ Opener from Snippets</button>
-            <button class="btn sm ghost" id="threadAddCta">+ Ending CTA</button>
-          </div>
-          <div id="threadEmpty" class="empty mt12"><div class="empty-state"><div class="empty-icon">✂️</div><div class="empty-title">Nothing split yet</div><div class="empty-desc">Paste your source post, then split it into clean thread parts ready to edit and publish.</div></div></div>
-        </div>
-        <div>
-          <div class="thread-actions-bar">
-            <div class="section-hdr" style="margin-bottom:10px;">
-              <span class="section-title">Thread builder</span>
-              <button class="btn sm" id="copyAllBtn">Copy all</button>
-            </div>
-            <div id="threadChannelWrap">
-              <div class="label mb8">Channel <span style="color:var(--subtle);font-weight:400;text-transform:none;letter-spacing:0;">(X &amp; Threads only)</span></div>
-              <select id="threadChannel" class="input grow"></select>
-              <div id="threadNoChannels" class="empty mt8" style="display:none;">No X or Threads channels found. <button class="btn sm ghost" onclick="syncBuffer()" style="margin-top:6px;display:block;width:100%;">↻ Load from Buffer</button></div>
-            </div>
-            <!-- Numbering toggle for thread parts -->
-            <div class="row mt8" style="align-items:center;gap:6px;">
-              <input type="checkbox" id="threadNumberToggle" />
-              <label for="threadNumberToggle" style="font-size:13px;">Add numbering (1/n)</label>
+      <div class="composer-tabs">
+        <button class="composer-tab active" data-ttab="splitter">Splitter</button>
+        <button class="composer-tab" data-ttab="linkedin">LinkedIn</button>
+      </div>
+      <div id="threadTabSplitter" class="composer-tab-panel">
+        <div class="cols">
+          <div class="card">
+            <div class="card-title">Source text</div>
+            <textarea id="threadInput" placeholder="Paste long-form content, notes, or a rough draft…"></textarea>
+            <div class="row mt12">
+              <button class="btn primary" id="splitBtn">Split thread</button>
+              <button class="btn" id="sampleBtn">Sample</button>
             </div>
             <div class="row mt8">
-              <button class="btn" id="draftThreadBtn">Save draft</button>
-              <button class="btn success" id="queueThreadBtn">Add to queue</button>
-              <button class="btn primary" id="scheduleThreadBtn">Schedule ↓</button>
+              <button class="btn sm ghost" id="threadAddOpener">+ Opener from Snippets</button>
+              <button class="btn sm ghost" id="threadAddCta">+ Ending CTA</button>
             </div>
-            <input id="threadWhen" type="datetime-local" class="input mt8" style="width:100%" />
-            <div class="status-txt mt8" style="color:var(--subtle);font-size:11px;">Schedule requires a date/time above.</div>
-            <div id="threadStatus" class="status-txt mt8"></div>
+            <div id="threadEmpty" class="empty mt12"><div class="empty-state"><div class="empty-icon">✂️</div><div class="empty-title">Nothing split yet</div><div class="empty-desc">Paste your source post, then split it into clean thread parts ready to edit and publish.</div></div></div>
           </div>
-          <div id="threadOut" style="margin-top:8px;"></div>
+          <div>
+            <div class="thread-actions-bar">
+              <div class="section-hdr" style="margin-bottom:10px;">
+                <span class="section-title">Thread builder</span>
+                <button class="btn sm" id="copyAllBtn">Copy all</button>
+              </div>
+              <div id="threadChannelWrap">
+                <div class="label mb8">Channel <span style="color:var(--subtle);font-weight:400;text-transform:none;letter-spacing:0;">(X &amp; Threads only)</span></div>
+                <select id="threadChannel" class="input grow"></select>
+                <div id="threadNoChannels" class="empty mt8" style="display:none;">No X or Threads channels found. <button class="btn sm ghost" onclick="syncBuffer()" style="margin-top:6px;display:block;width:100%;">↻ Load from Buffer</button></div>
+              </div>
+              <!-- Numbering toggle for thread parts -->
+              <div class="row mt8" style="align-items:center;gap:6px;">
+                <input type="checkbox" id="threadNumberToggle" />
+                <label for="threadNumberToggle" style="font-size:13px;">Add numbering (1/n)</label>
+              </div>
+              <div class="row mt8">
+                <button class="btn" id="draftThreadBtn">Save draft</button>
+                <button class="btn success" id="queueThreadBtn">Add to queue</button>
+                <button class="btn primary" id="scheduleThreadBtn">Schedule ↓</button>
+              </div>
+              <input id="threadWhen" type="datetime-local" class="input mt8" style="width:100%" />
+              <div class="status-txt mt8" style="color:var(--subtle);font-size:11px;">Schedule requires a date/time above.</div>
+              <div id="threadStatus" class="status-txt mt8"></div>
+            </div>
+            <div id="threadOut" style="margin-top:8px;"></div>
+          </div>
         </div>
+      </div>
+      <div id="threadTabLinkedIn" class="composer-tab-panel" style="display:none;">
+        <p class="page-desc mt8" style="color:var(--muted);font-size:13px;margin-bottom:12px;">Pull from your recent LinkedIn posts. Select a post to send it into Thread Splitter and repurpose it as a thread.</p>
+        <div id="linkedinStatus" class="status-txt mb8"></div>
+        <div id="linkedinList" class="thumb-post-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+        <button class="btn sm ghost" id="linkedinLoadBtn" style="display:none;margin-top:8px;">↻ Load more</button>
       </div>
     </section>
 
@@ -3374,10 +3373,9 @@ body{
         <button class="btn sm ghost" id="composerClearBtnMob" style="display:none;">Clear ✕</button>
       </div>
 
-      <!-- Composer tab navigation (Write / LinkedIn) -->
+      <!-- Composer tab navigation (Write) -->
       <div class="composer-tabs">
         <button class="composer-tab active" data-ctab="write">Write</button>
-        <button class="composer-tab" data-ctab="linkedin">LinkedIn</button>
       </div>
 
       <!-- Trending reference panel -->
@@ -3564,15 +3562,6 @@ body{
 
       <!-- The Ideas tab has been removed. -->
 
-      <!-- ── LINKEDIN TAB ── -->
-      <div id="composerTabLinkedIn" class="composer-tab-panel" style="display:none;">
-        <p class="page-desc mt8" style="color:var(--muted);font-size:13px;margin-bottom:12px;">Pull from your recent LinkedIn posts. Select a post to send it into Thread Splitter and repurpose it as a thread.</p>
-        <div id="linkedinStatus" class="status-txt mb8"></div>
-        <!-- List of LinkedIn posts will be injected here -->
-        <div id="linkedinList" class="thumb-post-list" style="display:flex;flex-direction:column;gap:10px;"></div>
-        <button class="btn sm ghost" id="linkedinLoadBtn" style="display:none;margin-top:8px;">↻ Load more</button>
-      </div>
-
     </section>
 
     <!-- Snippets -->
@@ -3750,6 +3739,7 @@ document.addEventListener('DOMContentLoaded', () => {
   <!-- Tabs -->
   <div class="settings-tabs">
     <button class="settings-tab active" data-stab="guide">📖 Guide</button>
+    <button class="settings-tab" data-stab="themes">🎨 Themes</button>
     <button class="settings-tab" data-stab="about">👤 About</button>
   </div>
 
@@ -4221,6 +4211,11 @@ function useLinkedInInThread(idx){
   if(!post) return;
   // Switch to thread view
   activateView('threadView');
+  document.querySelectorAll('.composer-tab[data-ttab]').forEach(t => t.classList.toggle('active', t.dataset.ttab === 'splitter'));
+  const splitterPanel = qs('threadTabSplitter');
+  const linkedInPanel = qs('threadTabLinkedIn');
+  if (splitterPanel) splitterPanel.style.display = 'block';
+  if (linkedInPanel) linkedInPanel.style.display = 'none';
   // Clear any existing thread text and set the new content
   const input = qs('threadInput');
   if(input){
@@ -6019,19 +6014,28 @@ function init(){
 
   // ── COMPOSER TABS ──
   document.querySelectorAll('.composer-tab').forEach(tab => {
+    if (!tab.dataset.ctab) return;
     tab.onclick = () => {
-      document.querySelectorAll('.composer-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.composer-tab[data-ctab]').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       const panel = tab.dataset.ctab;
       const composerWrite = qs('composerTabWrite');
-      const composerLinkedIn = qs('composerTabLinkedIn');
-      // Show only the selected composer panel. The removed Ideas tab is no longer checked.
+      // Show only the selected composer panel.
       if (composerWrite) composerWrite.style.display = panel === 'write' ? 'block' : 'none';
-      if (composerLinkedIn) composerLinkedIn.style.display = panel === 'linkedin' ? 'block' : 'none';
-      // On first open of LinkedIn tab, load recent posts (stubbed via loadLinkedInPosts)
-      if (panel === 'linkedin' && !state.linkedInLoaded) loadLinkedInPosts();
     };
   });
+  const setThreadTab = (panel) => {
+    document.querySelectorAll('.composer-tab[data-ttab]').forEach(t => t.classList.toggle('active', t.dataset.ttab === panel));
+    const splitter = qs('threadTabSplitter');
+    const linkedin = qs('threadTabLinkedIn');
+    if (splitter) splitter.style.display = panel === 'splitter' ? 'block' : 'none';
+    if (linkedin) linkedin.style.display = panel === 'linkedin' ? 'block' : 'none';
+    if (panel === 'linkedin' && !state.linkedInLoaded) loadLinkedInPosts();
+  };
+  document.querySelectorAll('.composer-tab[data-ttab]').forEach(tab => {
+    tab.onclick = () => setThreadTab(tab.dataset.ttab);
+  });
+  setThreadTab('splitter');
 
   // Thumbnails tab removed — video thumbnail functionality lives inline in the media panel
 
@@ -6073,8 +6077,6 @@ function init(){
 
   function openMobDrawer(){qs('mobDrawer').classList.add('open');qs('mobBackdrop').classList.add('open');syncMobDrawerUI();}
   function closeMobDrawer(){qs('mobDrawer').classList.remove('open');qs('mobBackdrop').classList.remove('open');}
-  const mobMenuBtn=qs('mobMenuBtn');
-  if(mobMenuBtn) mobMenuBtn.onclick=openMobDrawer;
   qs('mobDrawerClose').onclick=closeMobDrawer;
   qs('mobBackdrop').onclick=closeMobDrawer;
 
@@ -6462,9 +6464,11 @@ function init(){
     panel.classList.add('visible');
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const dismissBtn = qs('trendingRefDismiss');
-    if (dismissBtn) dismissBtn.onclick = () => qs('trendingRefPanel').classList.remove('visible');
+  document.addEventListener('click', (e) => {
+    const dismissBtn = e.target.closest('#trendingRefDismiss');
+    if (!dismissBtn) return;
+    const panel = qs('trendingRefPanel');
+    if (panel) panel.classList.remove('visible');
   });
 
   // ── TOPICS ──
