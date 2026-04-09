@@ -2,6 +2,12 @@
 // Accepts the Buffer token from the client request body.
 // The token is never stored — it's forwarded directly to Buffer's API.
 
+function formatProxyError(message, extras = {}) {
+  return {
+    errors: [{ message, ...extras }],
+  };
+}
+
 exports.handler = async function(event) {
   const corsHeaders = {
     "Content-Type": "application/json",
@@ -21,7 +27,7 @@ exports.handler = async function(event) {
     return {
       statusCode: 200,
       headers: corsHeaders,
-      body: JSON.stringify({ errors: [{ message: "Invalid request body" }] }),
+      body: JSON.stringify(formatProxyError("Invalid request body", { code: "BAD_REQUEST", retryable: false })),
     };
   }
 
@@ -31,7 +37,7 @@ exports.handler = async function(event) {
     return {
       statusCode: 200,
       headers: corsHeaders,
-      body: JSON.stringify({ errors: [{ message: "No Buffer token provided" }] }),
+      body: JSON.stringify(formatProxyError("No Buffer token provided", { code: "MISSING_TOKEN", retryable: false })),
     };
   }
 
@@ -39,7 +45,7 @@ exports.handler = async function(event) {
     return {
       statusCode: 200,
       headers: corsHeaders,
-      body: JSON.stringify({ errors: [{ message: "No query provided" }] }),
+      body: JSON.stringify(formatProxyError("No query provided", { code: "BAD_REQUEST", retryable: false })),
     };
   }
 
@@ -62,9 +68,37 @@ exports.handler = async function(event) {
       return {
         statusCode: 200,
         headers: corsHeaders,
-        body: JSON.stringify({
-          errors: [{ message: `Buffer returned HTTP ${res.status} with non-JSON body: ${text.slice(0, 300)}` }]
-        }),
+        body: JSON.stringify(
+          formatProxyError(
+            `Buffer returned HTTP ${res.status} with non-JSON body: ${text.slice(0, 300)}`,
+            {
+              code: "BUFFER_NON_JSON",
+              status: res.status,
+              retryable: res.status >= 500,
+            }
+          )
+        ),
+      };
+    }
+
+    if (!res.ok) {
+      const msg = data?.errors?.[0]?.message || `Buffer returned HTTP ${res.status}`;
+      let code = "BUFFER_HTTP_ERROR";
+      if (res.status === 401 || res.status === 403) code = "AUTH_ERROR";
+      else if (res.status === 429) code = "RATE_LIMIT";
+      else if (res.status >= 500) code = "BUFFER_SERVER_ERROR";
+
+      return {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: JSON.stringify(
+          formatProxyError(msg, {
+            code,
+            status: res.status,
+            retryable: res.status === 429 || res.status >= 500,
+            ...(res.headers.get("retry-after") ? { retryAfter: res.headers.get("retry-after") } : {}),
+          })
+        ),
       };
     }
 
@@ -73,12 +107,16 @@ exports.handler = async function(event) {
       headers: corsHeaders,
       body: JSON.stringify(data),
     };
-
   } catch (err) {
     return {
       statusCode: 200,
       headers: corsHeaders,
-      body: JSON.stringify({ errors: [{ message: err.message || "Proxy error" }] }),
+      body: JSON.stringify(
+        formatProxyError(err.message || "Proxy error", {
+          code: "PROXY_NETWORK_ERROR",
+          retryable: true,
+        })
+      ),
     };
   }
-}
+};
