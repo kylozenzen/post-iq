@@ -3217,9 +3217,9 @@
         </div>
       </div>
       <div id="threadTabLinkedIn" class="composer-tab-panel" style="display:none;">
-        <h3 style="font-family:'Syne',sans-serif;font-size:20px;line-height:1.2;margin-bottom:6px;">Turn LinkedIn Posts into Threads</h3>
-        <p class="page-desc mt8" style="color:var(--muted);font-size:13px;margin-bottom:8px;">Pull from your previously published LinkedIn posts and reuse them as thread drafts. Great for turning long-form ideas into shorter, multi-part posts.</p>
-        <p style="font-size:12px;line-height:1.55;color:var(--blue);background:var(--blue-dim);border:1px solid rgba(51,102,255,.2);border-radius:10px;padding:10px 12px;margin-bottom:12px;">Repurpose posts you’ve already published on LinkedIn by quickly turning long-form ideas into thread-ready drafts for X or Threads.</p>
+        <h3 style="font-family:'Syne',sans-serif;font-size:20px;line-height:1.2;margin-bottom:6px;">Repurpose from LinkedIn</h3>
+        <p class="page-desc mt8" style="color:var(--muted);font-size:13px;margin-bottom:8px;">Pick from recent sent LinkedIn posts, scan useful context fast, and keep moving inside Composer.</p>
+        <p style="font-size:12px;line-height:1.55;color:var(--blue);background:var(--blue-dim);border:1px solid rgba(51,102,255,.2);border-radius:10px;padding:10px 12px;margin-bottom:12px;">Source picker mode: choose one post and send it to <strong>Compose</strong> or <strong>Split</strong>. No extra dashboards.</p>
         <div id="linkedinStatus" class="status-txt mb8"></div>
         <div id="linkedinList" class="thumb-post-list" style="display:flex;flex-direction:column;gap:10px;"></div>
         <button class="btn sm ghost" id="linkedinLoadBtn" style="display:none;margin-top:8px;">↻ Load more</button>
@@ -3470,11 +3470,14 @@
         <div id="composerSplitMount"></div>
       </div>
       <div id="composerTabRepurpose" class="composer-tab-panel" style="display:none;">
-        <div id="repurposeNoKeyState" class="card" style="display:none;padding:16px 18px;margin-bottom:10px;">
-          <div class="card-title" style="margin-bottom:6px;">Connect Buffer to repurpose from LinkedIn</div>
+        <div id="repurposeNoKeyState" class="card" style="display:none;padding:16px 18px;margin-bottom:10px;border:1px dashed rgba(51,102,255,.35);background:linear-gradient(180deg,#f8faff,#f5f8ff);">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <span style="width:28px;height:28px;border-radius:8px;background:rgba(51,102,255,.12);display:inline-flex;align-items:center;justify-content:center;font-size:14px;">🔒</span>
+            <div class="card-title" style="margin-bottom:0;">Connect Buffer to unlock Repurpose</div>
+          </div>
           <div class="status-txt" style="font-size:13px;line-height:1.55;">
-            Repurpose pulls your previously published LinkedIn posts from Buffer.
-            Add your key, then sync channels to browse and reuse posts here.
+            Repurpose is a LinkedIn source picker inside Composer.
+            Connect Buffer to load recent sent LinkedIn posts, choose one quickly, and send it to Compose or Split.
           </div>
           <div class="row mt12">
             <button class="btn sm" id="repurposeManageTokenBtn">Manage token</button>
@@ -3914,6 +3917,8 @@ const state={
   linkedInPosts:[],
   linkedInCursor:null,
   linkedInHasNext:false,
+  linkedInPhase:'idle',
+  linkedInError:'',
   organizationId:null,
   // Thread numbering toggle for thread splitter
   numbering:false
@@ -4023,6 +4028,7 @@ function getAllApprovalMetas(){
 
 // ── LINKEDIN POSTS / REPURPOSE ──
 const LINKEDIN_MIN_REPURPOSE_LENGTH = 80;
+const LINKEDIN_PREVIEW_LENGTH = 320;
 
 function getLinkedInPostKey(post,idx=0){
   if(post?.id!=null && String(post.id).trim()!=='') return String(post.id);
@@ -4032,6 +4038,37 @@ function getLinkedInPostKey(post,idx=0){
 
 function getLinkedInChannels(){
   return (state.channels||[]).filter(c=>String(c.service||'').toLowerCase().includes('linkedin'));
+}
+function setLinkedInPhase(phase,message=''){
+  state.linkedInPhase=phase;
+  state.linkedInError=message||'';
+}
+function normalizeLinkedInPost(post,idx=0){
+  if(!post||typeof post!=='object') return null;
+  const text=typeof post.text==='string'?post.text.replace(/\s+/g,' ').trim():'';
+  const assets=Array.isArray(post.assets)?post.assets.filter(Boolean):[];
+  const externalLink=typeof post.externalLink==='string' && /^https?:\/\//i.test(post.externalLink.trim())
+    ?post.externalLink.trim()
+    :'';
+  const createdAt=post.createdAt||null;
+  const sentAt=post.sentAt||null;
+  const id=(post.id!=null && String(post.id).trim()!=='')?String(post.id):null;
+  return {
+    id,
+    text,
+    createdAt,
+    sentAt,
+    channelId:post.channelId||null,
+    externalLink,
+    assets,
+    _repurposeKey:getLinkedInPostKey({...post,text,externalLink,id},idx)
+  };
+}
+function getRepurposeScore(post){
+  const textLen=(post?.text||'').length;
+  const lengthScore=Math.min(textLen,1200);
+  const recencyScore=new Date(post?.sentAt||post?.createdAt||0).getTime()||0;
+  return (lengthScore*10000000000000)+recencyScore;
 }
 function getLinkedInMediaAsset(post){
   const assets=Array.isArray(post?.assets)?post.assets:[];
@@ -4049,6 +4086,7 @@ function clearLinkedInRepurposeData(){
   state.linkedInPosts=[];
   state.linkedInCursor=null;
   state.linkedInHasNext=false;
+  setLinkedInPhase('idle','');
 }
 function renderLinkedInPosts(){
   const statusEl=qs('linkedinStatus');
@@ -4058,32 +4096,44 @@ function renderLinkedInPosts(){
   listEl.innerHTML='';
 
   if(!bufferToken){
-    statusEl.textContent='Connect Buffer and sync your channels first.';
+    statusEl.innerHTML='<div class="empty-state" style="text-align:left;padding:14px 0;"><div class="empty-title">Buffer connection required</div><div class="empty-desc">Add your Buffer key and sync once to load recent sent LinkedIn posts for repurposing.</div></div>';
     loadBtn.style.display='none';
     return;
   }
   const linkedInChannels=getLinkedInChannels();
   if(!linkedInChannels.length){
-    statusEl.textContent='No LinkedIn channels found in your synced Buffer account.';
+    statusEl.innerHTML='<div class="empty-state" style="text-align:left;padding:14px 0;"><div class="empty-title">No LinkedIn channels detected</div><div class="empty-desc">Sync Buffer after connecting a LinkedIn channel to browse repurpose sources.</div></div>';
+    loadBtn.style.display='none';
+    return;
+  }
+  if(state.linkedInPhase==='loading'){
+    statusEl.innerHTML='<div class="empty-state" style="text-align:left;padding:14px 0;"><div class="empty-title">Loading LinkedIn posts…</div><div class="empty-desc">Pulling your most recent sent content from Buffer.</div></div>';
+    loadBtn.style.display='none';
+    return;
+  }
+  if(state.linkedInPhase==='error'){
+    statusEl.innerHTML=`<div class="empty-state" style="text-align:left;padding:14px 0;"><div class="empty-title">Couldn’t load LinkedIn posts</div><div class="empty-desc">${safeText(state.linkedInError||'Try syncing Buffer again.')}</div></div>`;
     loadBtn.style.display='none';
     return;
   }
   if(!state.linkedInPosts.length){
-    statusEl.innerHTML='<div class="empty-state" style="text-align:left;padding:14px 0;"><div class="empty-title">No LinkedIn posts found yet</div><div class="empty-desc">Sync Buffer to load your previously published LinkedIn posts and repurpose them into threads.</div></div>';
+    statusEl.innerHTML='<div class="empty-state" style="text-align:left;padding:14px 0;"><div class="empty-title">No repurpose-ready posts yet</div><div class="empty-desc">We looked at your recent sent LinkedIn posts, but none had enough content to reuse. Try loading more or publishing longer source posts.</div></div>';
     loadBtn.style.display='none';
     return;
   }
 
-  statusEl.textContent='';
+  statusEl.innerHTML='<div class="status-txt" style="font-size:12px;color:var(--muted);">Showing strongest recent LinkedIn candidates first (longer posts are prioritized).</div>';
   state.linkedInPosts.forEach((rawPost,idx)=>{
     const post=rawPost&&typeof rawPost==='object'?rawPost:{};
-    const postKey=getLinkedInPostKey(post,idx);
+    const postKey=post._repurposeKey||getLinkedInPostKey(post,idx);
     const text=typeof post.text==='string'?post.text:'';
-    const preview=safeText(text.replace(/\s+/g,' ').trim().slice(0,320));
+    const preview=safeText(text.slice(0,LINKEDIN_PREVIEW_LENGTH));
     const dateLabel=formatLinkedInDate(post);
     const media=getLinkedInMediaAsset(post);
     const thumb=media?.thumbnail||media?.source||'';
     const externalLink=post.externalLink&&/^https?:\/\//i.test(post.externalLink)?post.externalLink:'';
+    const mediaType=String(media?.mimeType||'').toLowerCase();
+    const mediaLabel=thumb?'Image attached':mediaType?mediaType.split('/')[0].toUpperCase():'No media';
     const card=document.createElement('div');
     card.className='card';
     card.style.padding='12px';
@@ -4091,16 +4141,18 @@ function renderLinkedInPosts(){
       <div style="display:flex;gap:12px;align-items:flex-start;">
         ${thumb?`<img src="${safeText(thumb)}" alt="LinkedIn media preview" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--border2);flex-shrink:0;">`:''}
         <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;line-height:1.55;color:var(--text);white-space:pre-wrap;">${preview}${text.length>320?'…':''}</div>
+          <div style="font-size:13px;line-height:1.55;color:var(--text);white-space:pre-wrap;">${preview||'<span style="color:var(--subtle);">No text content available.</span>'}${text.length>LINKEDIN_PREVIEW_LENGTH?'…':''}</div>
           <div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
             ${dateLabel?`<span class="chip" style="font-size:10px;">Published ${safeText(dateLabel)}</span>`:''}
+            <span class="chip" style="font-size:10px;">${safeText(mediaLabel)}</span>
+            <span class="chip" style="font-size:10px;">${text.length} chars</span>
             ${externalLink?`<a href="${safeText(externalLink)}" target="_blank" rel="noopener" class="btn sm ghost" style="height:26px;">View post ↗</a>`:''}
           </div>
         </div>
       </div>
       <div style="margin-top:10px;display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap;">
         <button class="btn sm ghost" data-linkedin-compose="${safeText(postKey)}">Use in Composer</button>
-        <button class="btn sm primary" data-linkedin-use="${safeText(postKey)}">Turn into Thread</button>
+        <button class="btn sm primary" data-linkedin-use="${safeText(postKey)}">Send to Split</button>
       </div>`;
     listEl.appendChild(card);
   });
@@ -4111,7 +4163,7 @@ async function fetchLinkedInPostsPage(after=null){
   const orgId=state.organizationId;
   const channelIds=getLinkedInChannels().map(c=>c.id).filter(Boolean);
   if(!orgId||!channelIds.length) return {posts:[],pageInfo:{hasNextPage:false,endCursor:null}};
-  const query=`query GetSentLinkedInPostsWithMedia($organizationId: OrganizationId!, $channelIds: [ChannelId!]!, $after: String) {
+  const query=`query GetLast30LinkedInPosts($organizationId: OrganizationId!, $channelIds: [ChannelId!]!, $after: String) {
     posts(
       first: 30
       after: $after
@@ -4180,33 +4232,33 @@ async function loadLinkedInPosts({append=false}={}){
     return;
   }
 
-  statusEl.textContent='Loading your LinkedIn posts…';
+  setLinkedInPhase('loading');
+  renderLinkedInPosts();
   try{
     const {posts,pageInfo}=await fetchLinkedInPostsPage(append?state.linkedInCursor:null);
-    const useful=posts.filter(p=>{
-      const text=(p?.text||'').replace(/\s+/g,' ').trim();
-      return text.length>=LINKEDIN_MIN_REPURPOSE_LENGTH;
-    });
+    const normalized=posts.map((p,idx)=>normalizeLinkedInPost(p,idx)).filter(Boolean);
+    const useful=normalized.filter(p=>p.text.length>=LINKEDIN_MIN_REPURPOSE_LENGTH);
     const merged=append?state.linkedInPosts.concat(useful):useful;
     const deduped=[];
     const seen=new Set();
     merged.forEach((p,idx)=>{
       if(!p||typeof p!=='object')return;
-      const key=getLinkedInPostKey(p,idx);
+      const key=p._repurposeKey||getLinkedInPostKey(p,idx);
       if(seen.has(key))return;
       seen.add(key);
       deduped.push({...p,_repurposeKey:key});
     });
-    deduped.sort((a,b)=>new Date(b.sentAt||b.createdAt||0)-new Date(a.sentAt||a.createdAt||0));
+    deduped.sort((a,b)=>getRepurposeScore(b)-getRepurposeScore(a));
     state.linkedInPosts=deduped;
     state.linkedInCursor=pageInfo?.endCursor||null;
     state.linkedInHasNext=!!pageInfo?.hasNextPage;
     state.linkedInLoaded=true;
+    setLinkedInPhase('success');
     renderLinkedInPosts();
   }catch(e){
     console.error('[PostIQ] loadLinkedInPosts error:',e);
-    statusEl.textContent='Couldn’t load LinkedIn posts right now. Try syncing again.';
-    qs('linkedinLoadBtn').style.display='none';
+    setLinkedInPhase('error',getActionErrorMessage(e,'Couldn’t load LinkedIn posts right now. Try syncing again.'));
+    renderLinkedInPosts();
   }
 }
 
@@ -4214,7 +4266,7 @@ function useLinkedInInThread(postId){
   const post=(state.linkedInPosts||[]).find((p,idx)=>String(p?._repurposeKey||getLinkedInPostKey(p,idx))===String(postId));
   if(!post) return;
   hydrateThreadFromText(post.text||'',{autoSplit:true});
-  showToast('Loaded into Thread Splitter','success');
+  showToast('Sent to Split','success');
 }
 
 function useLinkedInInComposer(postId){
@@ -4399,6 +4451,10 @@ function renderSnippets(){
 function syncMobileActiveTab(viewId=currentViewId){
   document.querySelectorAll('.mob-tab[data-view]').forEach(t=>t.classList.toggle('active',t.dataset.view===viewId));
 }
+function isComposerRepurposeActive(){
+  const panel=qs('composerTabRepurpose');
+  return !!panel && panel.style.display!=='none';
+}
 function setComposerTab(tab='write'){
   document.querySelectorAll('.composer-tab[data-ctab]').forEach(btn=>{
     btn.classList.toggle('active',btn.dataset.ctab===tab);
@@ -4407,7 +4463,12 @@ function setComposerTab(tab='write'){
   show('composerTabWrite',tab==='write');
   show('composerTabSplit',tab==='split');
   show('composerTabRepurpose',tab==='repurpose');
-  if(tab==='repurpose' && !state.linkedInLoaded) loadLinkedInPosts({append:false});
+  if(tab==='split') setThreadTab('splitter');
+  if(tab==='repurpose'){
+    setThreadTab('linkedin');
+    renderLinkedInPosts();
+    if(!state.linkedInLoaded) loadLinkedInPosts({append:false});
+  }
 }
 function activateView(viewId){
   const previousView=currentViewId;
@@ -4580,6 +4641,7 @@ function updateViewStatePills(){
   set('trendingStatePill',connected?'Connected · ready':'Free Preview',connected?'try':'preview');
   const repurposeNoKey=qs('repurposeNoKeyState');
   if(repurposeNoKey) repurposeNoKey.style.display=connected?'none':'block';
+  if(isComposerRepurposeActive()) renderLinkedInPosts();
   const subhead=qs('composerSubhead');
   if(subhead){
     subhead.textContent=connected
@@ -4737,7 +4799,7 @@ async function syncBuffer(){
     qs('syncBtn').classList.remove('sync-pulse');
     showToast(`Loaded ${all.length} posts`,'success');
     window.dispatchEvent(new Event('postiq:synced'));
-    if(qs('threadTabLinkedIn')?.style.display!=='none')loadLinkedInPosts({append:false});
+    if(isComposerRepurposeActive())loadLinkedInPosts({append:false});
   }catch(e){
     console.error('[PostIQ] syncBuffer error:', e);
     const message=getActionErrorMessage(e,'Sync failed.');
