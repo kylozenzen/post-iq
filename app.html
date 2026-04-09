@@ -382,6 +382,40 @@
     }
     .workflow-arrow { color: var(--subtle); font-size: 11px; }
     .workflow-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .composer-workspace-switch {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin: -10px 0 14px;
+    }
+    .composer-workspace-head {
+      font-size: 10px;
+      color: var(--subtle);
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      margin-bottom: 8px;
+      font-family: 'DM Mono', monospace;
+    }
+    .composer-mode-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .composer-mode-btn {
+      border: 1px solid var(--border2);
+      background: var(--surface2);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 6px 11px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      transition: border-color .12s, color .12s, background .12s;
+    }
+    .composer-mode-btn:hover { border-color: var(--subtle); color: var(--text); }
+    .composer-mode-btn.active {
+      border-color: var(--amber-glow);
+      background: var(--amber-dim);
+      color: var(--amber);
+    }
 
     /* Hide large empty-state icons on desktop */
     @media (min-width: 960px) {
@@ -1467,6 +1501,7 @@
         padding: 8px 10px;
       }
       .workflow-step { font-size: 10px; }
+      .composer-workspace-switch { margin: 2px 0 10px; padding: 8px 10px; }
 
       /* Cards lose border/shadow, just clean sections */
       .card {
@@ -3266,16 +3301,12 @@
         <span class="mob-view-title"><span class="mob-icon"><svg><use href="#i-compose"></use></svg></span>Compose</span>
         <button class="btn sm ghost" id="composerClearBtnMob" style="display:none;">Clear ✕</button>
       </div>
-      <div class="workflow-strip">
-        <div class="workflow-steps">
-          <span class="workflow-step active" data-workflow-step="composer">Compose</span>
-          <span class="workflow-arrow">→</span>
-          <span class="workflow-step" data-workflow-step="linkedin">Repurpose from LinkedIn</span>
-          <span class="workflow-arrow">→</span>
-          <span class="workflow-step optional" data-workflow-step="thread">Optional: Split into Thread</span>
-        </div>
-        <div class="workflow-actions">
-          <button class="btn sm" id="composerRepurposeBtn">Repurpose from LinkedIn</button>
+      <div class="composer-workspace-switch">
+        <div class="composer-workspace-head">Workspace mode</div>
+        <div class="composer-mode-row">
+          <button class="composer-mode-btn active" data-compose-mode="write">Write</button>
+          <button class="composer-mode-btn" data-compose-mode="linkedin">Import from LinkedIn</button>
+          <button class="composer-mode-btn" data-compose-mode="thread">Split into Thread</button>
         </div>
       </div>
 
@@ -4382,6 +4413,11 @@ function renderSnippets(){
 function syncMobileActiveTab(viewId=currentViewId){
   document.querySelectorAll('.mob-tab[data-view]').forEach(t=>t.classList.toggle('active',t.dataset.view===viewId));
 }
+function setComposerMode(mode='write'){
+  document.querySelectorAll('.composer-mode-btn[data-compose-mode]').forEach(btn=>{
+    btn.classList.toggle('active',btn.dataset.composeMode===mode);
+  });
+}
 function activateView(viewId){
   const previousView=currentViewId;
   document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===viewId));
@@ -4392,6 +4428,7 @@ function activateView(viewId){
     trackEvent('tool_view',{tool:viewId});
     trackPageView(viewId);
   }
+  if(viewId==='composerView') setComposerMode('write');
   if(viewId==='approvalsView') loadApprovals();
 }
 function getStartupViewFromQuery(){
@@ -6145,6 +6182,7 @@ function init(){
     const linkedin = qs('threadTabLinkedIn');
     if (splitter) splitter.style.display = panel === 'splitter' ? 'block' : 'none';
     if (linkedin) linkedin.style.display = panel === 'linkedin' ? 'block' : 'none';
+    setComposerMode(panel==='linkedin'?'linkedin':'thread');
     if (panel === 'linkedin' && !state.linkedInLoaded) loadLinkedInPosts({append:false});
   };
   document.querySelectorAll('.composer-tab[data-ttab]').forEach(tab => {
@@ -6177,16 +6215,21 @@ function init(){
     });
   }
 
-  const composerRepurposeBtn=qs('composerRepurposeBtn');
-  if(composerRepurposeBtn){
-    composerRepurposeBtn.onclick=()=>{
-      activateView('threadView');
-      setThreadTab('linkedin');
+  document.querySelectorAll('.composer-mode-btn[data-compose-mode]').forEach(btn=>{
+    btn.onclick=()=>{
+      const mode=btn.dataset.composeMode;
+      setComposerMode(mode);
+      if(mode==='write'){activateView('composerView');return;}
+      if(mode==='linkedin'){activateView('threadView');setThreadTab('linkedin');return;}
+      if(mode==='thread'){activateView('threadView');setThreadTab('splitter');}
     };
-  }
+  });
   const threadBackToComposerBtn=qs('threadBackToComposerBtn');
   if(threadBackToComposerBtn){
-    threadBackToComposerBtn.onclick=()=>activateView('composerView');
+    threadBackToComposerBtn.onclick=()=>{
+      activateView('composerView');
+      setComposerMode('write');
+    };
   }
 
   // Thumbnails tab removed — video thumbnail functionality lives inline in the media panel
