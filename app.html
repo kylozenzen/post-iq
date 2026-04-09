@@ -3831,6 +3831,15 @@ function fmtDate(d){return d.toISOString().slice(0,10)}
 function monthLabel(d){return d.toLocaleDateString(undefined,{month:'long',year:'numeric'})}
 function monthStart(d){return new Date(d.getFullYear(),d.getMonth(),1)}
 function maskToken(t){if(!t)return '—';if(t.length<=8)return '••••';return `${t.slice(0,4)}••••${t.slice(-4)}`;}
+function clearBufferTokenStorage(){localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);}
+function clearBufferTokenForAuthFailure(message='Buffer token expired or invalid. Please reconnect.') {
+  bufferToken='';
+  hasTrackedBufferConnected=false;
+  clearBufferTokenStorage();
+  clearSyncedData();
+  refreshTokenUI();
+  setSyncStatus('failed',message);
+}
 function isAnalyticsEnabled(){return !!(GA_MEASUREMENT_ID && GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX');}
 function initAnalytics(){
   if(!isAnalyticsEnabled() || window.__postiqGAInitialized) return;
@@ -3912,6 +3921,12 @@ function getAllApprovalMetas(){
 // ── LINKEDIN POSTS / REPURPOSE ──
 const LINKEDIN_MIN_REPURPOSE_LENGTH = 80;
 
+function getLinkedInPostKey(post,idx=0){
+  if(post?.id!=null && String(post.id).trim()!=='') return String(post.id);
+  const fallback=[post?.externalLink,post?.sentAt,post?.createdAt,post?.text,idx].map(v=>String(v||'')).join('|');
+  return `li-${btoa(unescape(encodeURIComponent(fallback))).replace(/=+$/,'')}`;
+}
+
 function getLinkedInChannels(){
   return (state.channels||[]).filter(c=>String(c.service||'').toLowerCase().includes('linkedin'));
 }
@@ -3957,8 +3972,11 @@ function renderLinkedInPosts(){
   }
 
   statusEl.textContent='';
-  state.linkedInPosts.forEach(post=>{
-    const preview=safeText((post.text||'').replace(/\s+/g,' ').trim().slice(0,320));
+  state.linkedInPosts.forEach((rawPost,idx)=>{
+    const post=rawPost&&typeof rawPost==='object'?rawPost:{};
+    const postKey=getLinkedInPostKey(post,idx);
+    const text=typeof post.text==='string'?post.text:'';
+    const preview=safeText(text.replace(/\s+/g,' ').trim().slice(0,320));
     const dateLabel=formatLinkedInDate(post);
     const media=getLinkedInMediaAsset(post);
     const thumb=media?.thumbnail||media?.source||'';
@@ -3970,7 +3988,7 @@ function renderLinkedInPosts(){
       <div style="display:flex;gap:12px;align-items:flex-start;">
         ${thumb?`<img src="${safeText(thumb)}" alt="LinkedIn media preview" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--border2);flex-shrink:0;">`:''}
         <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;line-height:1.55;color:var(--text);white-space:pre-wrap;">${preview}${(post.text||'').length>320?'…':''}</div>
+          <div style="font-size:13px;line-height:1.55;color:var(--text);white-space:pre-wrap;">${preview}${text.length>320?'…':''}</div>
           <div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
             ${dateLabel?`<span class="chip" style="font-size:10px;">Published ${safeText(dateLabel)}</span>`:''}
             ${externalLink?`<a href="${safeText(externalLink)}" target="_blank" rel="noopener" class="btn sm ghost" style="height:26px;">View post ↗</a>`:''}
@@ -3978,7 +3996,7 @@ function renderLinkedInPosts(){
         </div>
       </div>
       <div style="margin-top:10px;display:flex;justify-content:flex-end;">
-        <button class="btn sm primary" data-linkedin-use="${safeText(post.id)}">Turn into Thread</button>
+        <button class="btn sm primary" data-linkedin-use="${safeText(postKey)}">Turn into Thread</button>
       </div>`;
     listEl.appendChild(card);
   });
@@ -4068,7 +4086,13 @@ async function loadLinkedInPosts({append=false}={}){
     const merged=append?state.linkedInPosts.concat(useful):useful;
     const deduped=[];
     const seen=new Set();
-    merged.forEach(p=>{if(p?.id&&!seen.has(p.id)){seen.add(p.id);deduped.push(p);}});
+    merged.forEach((p,idx)=>{
+      if(!p||typeof p!=='object')return;
+      const key=getLinkedInPostKey(p,idx);
+      if(seen.has(key))return;
+      seen.add(key);
+      deduped.push({...p,_repurposeKey:key});
+    });
     deduped.sort((a,b)=>new Date(b.sentAt||b.createdAt||0)-new Date(a.sentAt||a.createdAt||0));
     state.linkedInPosts=deduped;
     state.linkedInCursor=pageInfo?.endCursor||null;
@@ -4083,7 +4107,7 @@ async function loadLinkedInPosts({append=false}={}){
 }
 
 function useLinkedInInThread(postId){
-  const post=(state.linkedInPosts||[]).find(p=>String(p.id)===String(postId));
+  const post=(state.linkedInPosts||[]).find((p,idx)=>String(p?._repurposeKey||getLinkedInPostKey(p,idx))===String(postId));
   if(!post) return;
   activateView('threadView');
   setThreadTab('splitter');
@@ -4436,7 +4460,7 @@ function updateViewStatePills(){
 }
 
 function setBufferToken(token,{mode='session',messageEl=null,savedMessage='Token saved'}={}){
-  localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);
+  clearBufferTokenStorage();
   const clean=String(token||'').trim();
   if(!clean){
     bufferToken='';
@@ -4471,14 +4495,50 @@ function loadStoredToken(){
 // ── BUFFER API ──
 async function callBuffer(query,variables={}){
   if(!bufferToken)throw new Error('MISSING_TOKEN');
-  const res=await fetch('/.netlify/functions/buffer-proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:bufferToken,query,variables})});
-  const data=await res.json();
-  // Only throw if no data returned — partial errors alongside data are normal in GraphQL
-  if(data.errors?.length && !data.data)throw new Error(data.errors[0].message);
+
+  let res;
+  try{
+    res=await fetch('/.netlify/functions/buffer-proxy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:bufferToken,query,variables})});
+  }catch(err){
+    const e=new Error('Network error while contacting Buffer proxy.');
+    e.code='PROXY_NETWORK_ERROR';
+    e.retryable=true;
+    e.cause=err;
+    throw e;
+  }
+
+  let data;
+  try{
+    data=await res.json();
+  }catch{
+    const e=new Error('Invalid proxy response. Please retry.');
+    e.code='PROXY_BAD_RESPONSE';
+    throw e;
+  }
+
+  if(data.errors?.length && !data.data){
+    const first=data.errors[0]||{};
+    const e=new Error(first.message||'Buffer request failed');
+    e.code=first.code||'BUFFER_ERROR';
+    e.status=first.status||null;
+    e.retryable=!!first.retryable;
+    e.retryAfter=first.retryAfter||null;
+    throw e;
+  }
   if(data.errors?.length)console.warn('[PostIQ] GraphQL partial errors:',data.errors);
   return data;
 }
 
+function getActionErrorMessage(err,fallback='Request failed. Please try again.'){
+  const code=String(err?.code||'').toUpperCase();
+  const msg=String(err?.message||'');
+  if(code==='MISSING_TOKEN')return 'Add your Buffer token first.';
+  if(code==='RATE_LIMIT' || err?.status===429) return `Buffer rate limit hit.${err?.retryAfter?` Retry in about ${err.retryAfter}s.`:''}`;
+  if(code==='AUTH_ERROR' || /unauthorized|invalid|forbidden|expired|auth/i.test(msg)) return 'Token appears invalid or expired. Reconnect Buffer and sync again.';
+  if(code==='PROXY_NETWORK_ERROR') return 'Network issue reaching Buffer. Check connection and retry.';
+  if(code==='BUFFER_SERVER_ERROR') return 'Buffer is temporarily unavailable. Please retry shortly.';
+  return msg||fallback;
+}
 
 function clearSyncedData(){
   state.channels=[];
@@ -4531,11 +4591,13 @@ async function syncBuffer(){
     if(qs('threadTabLinkedIn')?.style.display!=='none')loadLinkedInPosts({append:false});
   }catch(e){
     console.error('[PostIQ] syncBuffer error:', e);
-    const m=String(e.message||'');
-    if(m.includes('MISSING_TOKEN'))setSyncStatus('failed','Add a Buffer token first.');
-    else if(/unauthorized|invalid|forbidden|organization|auth/i.test(m)){clearSyncedData();setSyncStatus('failed','Token appears invalid or expired.');}
-    else setSyncStatus('failed',`Sync failed: ${m||'unknown error'}`);
-    showToast('Sync failed — check your token','error');
+    const message=getActionErrorMessage(e,'Sync failed.');
+    if(String(e?.code||'').toUpperCase()==='AUTH_ERROR' || /token appears invalid or expired/i.test(message)){
+      clearBufferTokenForAuthFailure(message);
+    }else{
+      setSyncStatus('failed',message);
+    }
+    showToast(message,'error');
   }finally{
     clearFetchLoading(qs('calGrid'));
     clearFetchLoading(qs('calAgenda'));
@@ -4632,10 +4694,13 @@ async function sendThread(action){
   if(action==='queue'){input.mode='addToQueue';}
   if(action==='schedule'){if(!when){qs('threadStatus').textContent='Choose date/time first.';return;}input.mode='customScheduled';input.dueAt=when;}
   try{
-    await createPost(input);
+    const createdPost=await createPost(input);
     const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
     qs('threadStatus').textContent=msg;showToast(msg);
-  }catch(e){qs('threadStatus').textContent='Failed. Check token/channel.';}
+    refreshCalendarAfterPostAction(action,createdPost?.post);
+  }catch(e){
+    qs('threadStatus').textContent=`Failed: ${getActionErrorMessage(e,'Check token/channel and retry.')}`;
+  }
 }
 
 // ── CALENDAR ──
@@ -4751,10 +4816,45 @@ function renderSharedFromHash(){
 
 // ── POSTS ──
 async function createPost(input){
-  const res=await callBuffer(`mutation CreatePost($input:CreatePostInput!){createPost(input:$input){... on PostActionSuccess{post{id}} ... on MutationError{message}}}`,{input});
-  return res;
+  const res=await callBuffer(`mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename ... on PostActionSuccess{post{id dueAt text channelId}} ... on MutationError{message}}}`,{input});
+  const result=res?.data?.createPost;
+  if(!result)throw new Error('Empty mutation response from Buffer.');
+  if(result.__typename==='MutationError'){
+    const err=new Error(result.message||'Buffer rejected this post request.');
+    err.code='MUTATION_ERROR';
+    throw err;
+  }
+  if(result.__typename && result.__typename!=='PostActionSuccess'){
+    const err=new Error(`Unexpected mutation response type: ${result.__typename}`);
+    err.code='MUTATION_UNEXPECTED_TYPE';
+    throw err;
+  }
+  return result;
 }
 
+function appendScheduledPostToCalendar(post){
+  const dueAt=post?.dueAt;
+  const id=post?.id;
+  if(!dueAt||!id)return false;
+  if((state.scheduled||[]).some(p=>String(p?.id)===String(id))) return true;
+  state.scheduled=[...state.scheduled,{id,text:post?.text||'',dueAt,channelId:post?.channelId||null}];
+  return true;
+}
+
+async function refreshCalendarAfterPostAction(action,createdPost){
+  const shouldAffectCalendar=action==='queue'||action==='schedule';
+  if(!shouldAffectCalendar) return;
+  const optimisticAdded=appendScheduledPostToCalendar(createdPost);
+  if(optimisticAdded){
+    renderCalendar();
+    renderAgenda();
+  }
+  try{
+    await syncBuffer();
+  }catch(err){
+    console.warn('[PostIQ] calendar refresh after post action failed:',err);
+  }
+}
 
 function composerFormat(cmd){
   const sel=window.getSelection();if(!sel.rangeCount)return;
@@ -5092,11 +5192,8 @@ async function composerSend(action){
   }
   try{
     qs('composerStatus').textContent='Sending…';
-    const res=await createPost(input);
-    const cp=res?.data?.createPost;
-    const apiErr=cp?.message||null;
-    if(apiErr)throw new Error(apiErr);
-    const draftId=cp?.post?.id||null;
+    const created=await createPost(input);
+    const draftId=created?.post?.id||null;
     // If saved as draft with needs_approval, store approval metadata
     if(action==='draft'&&needsApproval&&draftId){
       const ch=state.channels.find(c=>c.id===channelId);
@@ -5120,6 +5217,7 @@ async function composerSend(action){
     if(action==='draft')trackEvent('draft_to_buffer');
     if(action==='queue')trackEvent('queue_to_buffer');
     if(action==='schedule')trackEvent('schedule_to_buffer');
+    await refreshCalendarAfterPostAction(action,created?.post);
     // Clear composer
     const editor=qs('composerEditor');
     editor.innerText='';
@@ -5131,7 +5229,11 @@ async function composerSend(action){
     // Clear media panel
     clearMediaState();
     closeMediaPanel();
-  }catch(e){qs('composerStatus').textContent=`Failed: ${e.message}`;}
+  }catch(e){
+    const message=getActionErrorMessage(e,'Failed to send post.');
+    if(String(e?.code||'').toUpperCase()==='AUTH_ERROR') clearBufferTokenForAuthFailure(message);
+    qs('composerStatus').textContent=`Failed: ${message}`;
+  }
 }
 
 // ── APPROVALS TAB ──────────────────────────────────────────────────────────
@@ -5487,17 +5589,17 @@ window.approvalPublish=async function(safeId,action){
   const statusEl=document.getElementById(`approval-status-${safeId}`);
   if(statusEl)statusEl.textContent='Sending…';
   try{
-    const res=await createPost(input);
-    const cp=res?.data?.createPost;
-    if(cp?.message)throw new Error(cp.message);
+    const created=await createPost(input);
     clearApprovalMeta(draftId);
     const msg=action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
     showToast(msg,'success');
+    await refreshCalendarAfterPostAction(action,created?.post);
     const card=document.querySelector(`[data-draft-id="${CSS.escape(draftId)}"]`);
     if(card){card.style.opacity='.4';card.style.pointerEvents='none';setTimeout(()=>card.remove(),600);}
   }catch(e){
-    if(statusEl)statusEl.textContent=`Failed: ${e.message}`;
-    showToast('Failed: '+e.message,'error');
+    const message=getActionErrorMessage(e,'Failed to publish approval item.');
+    if(statusEl)statusEl.textContent=`Failed: ${message}`;
+    showToast('Failed: '+message,'error');
   }
 };
 
