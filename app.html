@@ -1040,41 +1040,38 @@
     }
     .trending-ref-dismiss:hover { color: var(--text); }
     .composer-tabs {
-      display: flex;
-      gap: 0;
-      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(3,minmax(0,1fr));
+      gap: 8px;
       margin-bottom: 16px;
     }
     .composer-tab {
-      padding: 10px 20px;
-      border: none;
-      background: transparent;
+      padding: 10px 12px;
+      border: 1px solid var(--border2);
+      background: var(--surface2);
       color: var(--muted);
-      font-size: 13px;
-      font-weight: 600;
       cursor: pointer;
       font-family: 'Inter', sans-serif;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
+      border-radius: 10px;
       transition: all .12s;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      text-align: left;
+      min-height: 56px;
+      justify-content: center;
     }
-    .composer-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
-    .composer-tab:hover { color: var(--text); }
-    .tab-key-pill {
-      display: inline-flex;
-      align-items: center;
-      margin-left: 6px;
-      padding: 1px 6px;
-      border-radius: 999px;
-      border: 1px solid rgba(245,183,49,.35);
-      background: var(--amber-dim);
+    .composer-tab-title { font-size: 13px; font-weight: 700; line-height: 1.15; color: inherit; }
+    .composer-tab-meta { font-size: 11px; color: var(--subtle); font-family: 'DM Mono', monospace; }
+    .composer-tab.active {
       color: var(--amber);
-      font-size: 10px;
-      font-weight: 600;
-      font-family: 'DM Mono', monospace;
-      letter-spacing: .3px;
-      vertical-align: middle;
+      border-color: var(--amber-glow);
+      background: var(--amber-dim);
     }
+    .composer-tab.active .composer-tab-meta { color: var(--muted); }
+    .composer-tab:hover { border-color: var(--subtle); color: var(--text); }
+    .composer-tab:hover .composer-tab-meta { color: var(--muted); }
     .composer-tab-panel { }
     #composerView .page-hdr { margin-bottom: 10px; }
     #composerView .page-desc { margin-top: 6px; }
@@ -3128,7 +3125,7 @@
     </div>
     <nav class="side-nav">
       <div class="nav-label">Tools</div>
-      <button class="nav-btn active" data-view="composerView"><span class="nav-icon"><svg><use href="#i-compose"></use></svg></span><span class="nav-text">Post Composer</span><span class="nav-badge key" data-key-badge="composer">Needs Key</span></button>
+      <button class="nav-btn active" data-view="composerView"><span class="nav-icon"><svg><use href="#i-compose"></use></svg></span><span class="nav-text">Post Composer</span><span class="nav-badge preview" data-preview-badge="composer">Free Preview</span></button>
       <button class="nav-btn" data-view="calendarView"><span class="nav-icon"><svg><use href="#i-calendar"></use></svg></span><span class="nav-text">Content Calendar</span><span class="nav-badge key" data-key-badge="calendar">Needs Key</span></button>
       <button class="nav-btn" data-view="trendingView"><span class="nav-icon"><svg><use href="#i-trending"></use></svg></span><span class="nav-text">Trending</span><span class="nav-badge preview" data-preview-badge="trending">Free Preview</span></button>
       <button class="nav-btn" data-view="snippetsView"><span class="nav-icon"><svg><use href="#i-snippets"></use></svg></span><span class="nav-text">Snippets</span><span class="nav-badge preview" data-preview-badge="snippets">Free Preview</span></button>
@@ -3267,7 +3264,7 @@
       <div class="page-hdr">
         <div class="page-hdr-left">
           <h1 class="page-title">Post Composer</h1>
-          <div class="state-pill key view-state-pill" id="composerStatePill">Needs Buffer key</div>
+          <div class="state-pill preview view-state-pill" id="composerStatePill">Free Preview · Split mode</div>
           <p class="page-desc" id="composerSubhead">Start a draft here, then continue into LinkedIn repurposing or Thread Splitter.</p>
         </div>
         <div class="page-actions">
@@ -3281,9 +3278,9 @@
       </div>
       <!-- Composer tab navigation -->
       <div class="composer-tabs">
-        <button class="composer-tab active" data-ctab="write">Write <span class="tab-key-pill" id="composerWriteNeedKeyPill">Needs Key</span></button>
-        <button class="composer-tab" data-ctab="split">Split</button>
-        <button class="composer-tab" data-ctab="repurpose">Repurpose <span class="tab-key-pill" id="composerRepurposeNeedKeyPill">Needs Key</span></button>
+        <button class="composer-tab active" data-ctab="write"><span class="composer-tab-title">Compose</span><span class="composer-tab-meta">Needs Buffer for publishing</span></button>
+        <button class="composer-tab" data-ctab="split"><span class="composer-tab-title">Split</span><span class="composer-tab-meta">Free preview mode</span></button>
+        <button class="composer-tab" data-ctab="repurpose"><span class="composer-tab-title">Repurpose</span><span class="composer-tab-meta">Needs Buffer to load LinkedIn</span></button>
       </div>
 
       <!-- Trending reference panel -->
@@ -3469,8 +3466,23 @@
       </div>
 
       <!-- The Ideas tab has been removed. -->
-      <div id="composerTabSplit" class="composer-tab-panel" style="display:none;"></div>
-      <div id="composerTabRepurpose" class="composer-tab-panel" style="display:none;"></div>
+      <div id="composerTabSplit" class="composer-tab-panel" style="display:none;">
+        <div id="composerSplitMount"></div>
+      </div>
+      <div id="composerTabRepurpose" class="composer-tab-panel" style="display:none;">
+        <div id="repurposeNoKeyState" class="card" style="display:none;padding:16px 18px;margin-bottom:10px;">
+          <div class="card-title" style="margin-bottom:6px;">Connect Buffer to repurpose from LinkedIn</div>
+          <div class="status-txt" style="font-size:13px;line-height:1.55;">
+            Repurpose pulls your previously published LinkedIn posts from Buffer.
+            Add your key, then sync channels to browse and reuse posts here.
+          </div>
+          <div class="row mt12">
+            <button class="btn sm" id="repurposeManageTokenBtn">Manage token</button>
+            <button class="btn sm ghost" id="repurposeSyncBtn">↻ Load from Buffer</button>
+          </div>
+        </div>
+        <div id="composerRepurposeMount"></div>
+      </div>
 
     </section>
 
@@ -4561,15 +4573,13 @@ function openTokenManagement(){
 function updateViewStatePills(){
   const connected=!!bufferToken;
   const set=(id,txt,cls)=>{const el=qs(id);if(!el)return;el.className=`state-pill view-state-pill ${cls}`;el.textContent=txt;};
-  set('composerStatePill',connected?'Connected · ready':'Needs Buffer key',connected?'try':'key');
+  set('composerStatePill',connected?'Connected · ready':'Free Preview · Split mode',connected?'try':'preview');
   set('calendarStatePill',connected?'Connected · ready':'Needs Buffer key',connected?'try':'key');
   set('approvalsStatePill',connected?'Connected · ready':'Needs Buffer key',connected?'try':'key');
   set('snippetsStatePill',connected?'Connected · ready':'Free Preview',connected?'try':'preview');
   set('trendingStatePill',connected?'Connected · ready':'Free Preview',connected?'try':'preview');
-  const writePill=qs('composerWriteNeedKeyPill');
-  const repurposePill=qs('composerRepurposeNeedKeyPill');
-  if(writePill) writePill.style.display=connected?'none':'inline-flex';
-  if(repurposePill) repurposePill.style.display=connected?'none':'inline-flex';
+  const repurposeNoKey=qs('repurposeNoKeyState');
+  if(repurposeNoKey) repurposeNoKey.style.display=connected?'none':'block';
   const subhead=qs('composerSubhead');
   if(subhead){
     subhead.textContent=connected
@@ -6163,8 +6173,8 @@ function init(){
     tab.onclick = () => setThreadTab(tab.dataset.ttab);
   });
   setThreadTab('splitter');
-  const composerSplitMount=qs('composerTabSplit');
-  const composerRepurposeMount=qs('composerTabRepurpose');
+  const composerSplitMount=qs('composerSplitMount');
+  const composerRepurposeMount=qs('composerRepurposeMount');
   if(composerSplitMount && qs('threadTabSplitter')) composerSplitMount.appendChild(qs('threadTabSplitter'));
   if(composerRepurposeMount && qs('threadTabLinkedIn')) composerRepurposeMount.appendChild(qs('threadTabLinkedIn'));
   setComposerTab('write');
@@ -6185,6 +6195,10 @@ function init(){
       if(composeBtn) useLinkedInInComposer(composeBtn.dataset.linkedinCompose);
     });
   }
+  const repurposeManageTokenBtn=qs('repurposeManageTokenBtn');
+  if(repurposeManageTokenBtn) repurposeManageTokenBtn.onclick=openTokenManagement;
+  const repurposeSyncBtn=qs('repurposeSyncBtn');
+  if(repurposeSyncBtn) repurposeSyncBtn.onclick=syncBuffer;
 
 
   // Thumbnails tab removed — video thumbnail functionality lives inline in the media panel
