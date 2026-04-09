@@ -382,40 +382,6 @@
     }
     .workflow-arrow { color: var(--subtle); font-size: 11px; }
     .workflow-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-    .composer-workspace-switch {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 12px;
-      margin: -10px 0 14px;
-    }
-    .composer-workspace-head {
-      font-size: 10px;
-      color: var(--subtle);
-      text-transform: uppercase;
-      letter-spacing: .7px;
-      margin-bottom: 8px;
-      font-family: 'DM Mono', monospace;
-    }
-    .composer-mode-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .composer-mode-btn {
-      border: 1px solid var(--border2);
-      background: var(--surface2);
-      color: var(--muted);
-      border-radius: 999px;
-      padding: 6px 11px;
-      font-size: 12px;
-      cursor: pointer;
-      font-family: inherit;
-      font-weight: 500;
-      transition: border-color .12s, color .12s, background .12s;
-    }
-    .composer-mode-btn:hover { border-color: var(--subtle); color: var(--text); }
-    .composer-mode-btn.active {
-      border-color: var(--amber-glow);
-      background: var(--amber-dim);
-      color: var(--amber);
-    }
 
     /* Hide large empty-state icons on desktop */
     @media (min-width: 960px) {
@@ -1094,6 +1060,21 @@
     }
     .composer-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
     .composer-tab:hover { color: var(--text); }
+    .tab-key-pill {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 6px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(245,183,49,.35);
+      background: var(--amber-dim);
+      color: var(--amber);
+      font-size: 10px;
+      font-weight: 600;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: .3px;
+      vertical-align: middle;
+    }
     .composer-tab-panel { }
     #composerView .page-hdr { margin-bottom: 10px; }
     #composerView .page-desc { margin-top: 6px; }
@@ -1501,7 +1482,6 @@
         padding: 8px 10px;
       }
       .workflow-step { font-size: 10px; }
-      .composer-workspace-switch { margin: 2px 0 10px; padding: 8px 10px; }
 
       /* Cards lose border/shadow, just clean sections */
       .card {
@@ -3045,7 +3025,6 @@
 <nav class="mobile-tabs" id="mobileTabs">
   <!-- Mobile tabs trimmed to Thread, Snippets, and Calendar with SVG icons -->
   <button class="mob-tab active" data-view="composerView"><span class="mob-icon"><svg><use href="#i-compose"></use></svg></span>Compose</button>
-  <button class="mob-tab" data-view="threadView"><span class="mob-icon"><svg><use href="#i-thread"></use></svg></span>Thread</button>
   <button class="mob-tab" data-view="calendarView"><span class="mob-icon"><svg><use href="#i-calendar"></use></svg></span>Calendar</button>
   <!-- New settings button opens the settings modal on mobile -->
   <button class="mob-tab" id="mobSettingsBtn"><span class="mob-icon"><svg><use href="#i-menu"></use></svg></span>Settings</button>
@@ -3150,10 +3129,9 @@
     <nav class="side-nav">
       <div class="nav-label">Tools</div>
       <button class="nav-btn active" data-view="composerView"><span class="nav-icon"><svg><use href="#i-compose"></use></svg></span><span class="nav-text">Post Composer</span><span class="nav-badge key" data-key-badge="composer">Needs Key</span></button>
-      <button class="nav-btn" data-view="threadView"><span class="nav-icon"><svg><use href="#i-thread"></use></svg></span><span class="nav-text">Thread Splitter</span></button>
       <button class="nav-btn" data-view="calendarView"><span class="nav-icon"><svg><use href="#i-calendar"></use></svg></span><span class="nav-text">Content Calendar</span><span class="nav-badge key" data-key-badge="calendar">Needs Key</span></button>
-      <button class="nav-btn" data-view="trendingView"><span class="nav-icon"><svg><use href="#i-trending"></use></svg></span><span class="nav-text">Trending</span><span class="nav-badge preview" data-preview-badge="trending">Preview</span></button>
-      <button class="nav-btn" data-view="snippetsView"><span class="nav-icon"><svg><use href="#i-snippets"></use></svg></span><span class="nav-text">Snippets</span><span class="nav-badge preview" data-preview-badge="snippets">Preview</span></button>
+      <button class="nav-btn" data-view="trendingView"><span class="nav-icon"><svg><use href="#i-trending"></use></svg></span><span class="nav-text">Trending</span><span class="nav-badge preview" data-preview-badge="trending">Free Preview</span></button>
+      <button class="nav-btn" data-view="snippetsView"><span class="nav-icon"><svg><use href="#i-snippets"></use></svg></span><span class="nav-text">Snippets</span><span class="nav-badge preview" data-preview-badge="snippets">Free Preview</span></button>
       <button class="nav-btn" data-view="approvalsView"><span class="nav-icon"><svg><use href="#i-approvals"></use></svg></span><span class="nav-text">Approvals</span><span class="nav-badge key" data-key-badge="approvals">Needs Key</span></button>
     </nav>
     <div class="side-bottom" style="padding:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
@@ -3301,18 +3279,11 @@
         <span class="mob-view-title"><span class="mob-icon"><svg><use href="#i-compose"></use></svg></span>Compose</span>
         <button class="btn sm ghost" id="composerClearBtnMob" style="display:none;">Clear ✕</button>
       </div>
-      <div class="composer-workspace-switch">
-        <div class="composer-workspace-head">Workspace mode</div>
-        <div class="composer-mode-row">
-          <button class="composer-mode-btn active" data-compose-mode="write">Write</button>
-          <button class="composer-mode-btn" data-compose-mode="linkedin">Import from LinkedIn</button>
-          <button class="composer-mode-btn" data-compose-mode="thread">Split into Thread</button>
-        </div>
-      </div>
-
-      <!-- Composer tab navigation (Write) -->
+      <!-- Composer tab navigation -->
       <div class="composer-tabs">
-        <button class="composer-tab active" data-ctab="write">Write</button>
+        <button class="composer-tab active" data-ctab="write">Write <span class="tab-key-pill" id="composerWriteNeedKeyPill">Needs Key</span></button>
+        <button class="composer-tab" data-ctab="split">Split</button>
+        <button class="composer-tab" data-ctab="repurpose">Repurpose <span class="tab-key-pill" id="composerRepurposeNeedKeyPill">Needs Key</span></button>
       </div>
 
       <!-- Trending reference panel -->
@@ -3498,6 +3469,8 @@
       </div>
 
       <!-- The Ideas tab has been removed. -->
+      <div id="composerTabSplit" class="composer-tab-panel" style="display:none;"></div>
+      <div id="composerTabRepurpose" class="composer-tab-panel" style="display:none;"></div>
 
     </section>
 
@@ -3506,7 +3479,7 @@
       <div class="page-hdr">
         <div class="page-hdr-left">
           <h1 class="page-title">Snippets</h1>
-          <div class="state-pill preview view-state-pill" id="snippetsStatePill">Preview-friendly</div>
+          <div class="state-pill preview view-state-pill" id="snippetsStatePill">Free Preview</div>
           <p class="page-desc">Hooks, CTAs, hashtag sets, openers — reusable across Composer and Thread Splitter.</p>
         </div>
         <div class="page-actions">
@@ -3576,7 +3549,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="page-hdr">
       <div class="page-hdr-left">
         <h1 class="page-title">Trending</h1>
-        <div class="state-pill preview view-state-pill" id="trendingStatePill">Preview-friendly</div>
+          <div class="state-pill preview view-state-pill" id="trendingStatePill">Free Preview</div>
         <p class="page-desc">What's hot on Reddit and Hacker News right now. Click any story to draft a post.</p>
       </div>
     </div>
@@ -4249,7 +4222,8 @@ function hydrateComposerFromText(text=''){
 }
 
 function hydrateThreadFromText(text='',{autoSplit=false}={}){
-  activateView('threadView');
+  activateView('composerView');
+  setComposerTab('split');
   setThreadTab('splitter');
   const input=qs('threadInput');
   if(input){
@@ -4413,10 +4387,15 @@ function renderSnippets(){
 function syncMobileActiveTab(viewId=currentViewId){
   document.querySelectorAll('.mob-tab[data-view]').forEach(t=>t.classList.toggle('active',t.dataset.view===viewId));
 }
-function setComposerMode(mode='write'){
-  document.querySelectorAll('.composer-mode-btn[data-compose-mode]').forEach(btn=>{
-    btn.classList.toggle('active',btn.dataset.composeMode===mode);
+function setComposerTab(tab='write'){
+  document.querySelectorAll('.composer-tab[data-ctab]').forEach(btn=>{
+    btn.classList.toggle('active',btn.dataset.ctab===tab);
   });
+  const show=(id,on)=>{const el=qs(id);if(el)el.style.display=on?'block':'none';};
+  show('composerTabWrite',tab==='write');
+  show('composerTabSplit',tab==='split');
+  show('composerTabRepurpose',tab==='repurpose');
+  if(tab==='repurpose' && !state.linkedInLoaded) loadLinkedInPosts({append:false});
 }
 function activateView(viewId){
   const previousView=currentViewId;
@@ -4428,11 +4407,11 @@ function activateView(viewId){
     trackEvent('tool_view',{tool:viewId});
     trackPageView(viewId);
   }
-  if(viewId==='composerView') setComposerMode('write');
+  if(viewId==='composerView') setComposerTab('write');
   if(viewId==='approvalsView') loadApprovals();
 }
 function getStartupViewFromQuery(){
-  const allowed=new Set(['composerView','threadView','calendarView','trendingView','snippetsView','approvalsView']);
+  const allowed=new Set(['composerView','calendarView','trendingView','snippetsView','approvalsView']);
   const fromQuery=new URLSearchParams(window.location.search).get('view');
   return allowed.has(fromQuery)?fromQuery:'composerView';
 }
@@ -4488,8 +4467,8 @@ function renderSnippetPicker(){
     el.innerHTML=`<strong style="font-size:13px;">${safeText(s.title)}</strong><div class="snippet-body mt8">${safeText(compactText(s.body,180))}</div><div class="row mt8">${snippetBadge(s.type)}${snippetBadge(s.platform)}</div>`;
     el.onclick=()=>{
       if(state.pickerMode==='composer'){activateView('composerView');useSnippetInComposer(s);}
-      if(state.pickerMode==='threadOpener'){activateView('threadView');useSnippetInThread(s,'prepend');}
-      if(state.pickerMode==='threadCta'){activateView('threadView');useSnippetInThread(s,'append');}
+      if(state.pickerMode==='threadOpener'){activateView('composerView');setComposerTab('split');useSnippetInThread(s,'prepend');}
+      if(state.pickerMode==='threadCta'){activateView('composerView');setComposerTab('split');useSnippetInThread(s,'append');}
       closeModal('snippetPickerModal');
     };
     wrap.appendChild(el);
@@ -4585,8 +4564,12 @@ function updateViewStatePills(){
   set('composerStatePill',connected?'Connected · ready':'Needs Buffer key',connected?'try':'key');
   set('calendarStatePill',connected?'Connected · ready':'Needs Buffer key',connected?'try':'key');
   set('approvalsStatePill',connected?'Connected · ready':'Needs Buffer key',connected?'try':'key');
-  set('snippetsStatePill',connected?'Connected · ready':'Preview-friendly',connected?'try':'preview');
-  set('trendingStatePill',connected?'Connected · ready':'Preview-friendly',connected?'try':'preview');
+  set('snippetsStatePill',connected?'Connected · ready':'Free Preview',connected?'try':'preview');
+  set('trendingStatePill',connected?'Connected · ready':'Free Preview',connected?'try':'preview');
+  const writePill=qs('composerWriteNeedKeyPill');
+  const repurposePill=qs('composerRepurposeNeedKeyPill');
+  if(writePill) writePill.style.display=connected?'none':'inline-flex';
+  if(repurposePill) repurposePill.style.display=connected?'none':'inline-flex';
   const subhead=qs('composerSubhead');
   if(subhead){
     subhead.textContent=connected
@@ -6165,16 +6148,8 @@ function init(){
   activateView(startupView);
 
   // ── COMPOSER TABS ──
-  document.querySelectorAll('.composer-tab').forEach(tab => {
-    if (!tab.dataset.ctab) return;
-    tab.onclick = () => {
-      document.querySelectorAll('.composer-tab[data-ctab]').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      const panel = tab.dataset.ctab;
-      const composerWrite = qs('composerTabWrite');
-      // Show only the selected composer panel.
-      if (composerWrite) composerWrite.style.display = panel === 'write' ? 'block' : 'none';
-    };
+  document.querySelectorAll('.composer-tab[data-ctab]').forEach(tab => {
+    tab.onclick = () => setComposerTab(tab.dataset.ctab);
   });
   setThreadTab = (panel) => {
     document.querySelectorAll('.composer-tab[data-ttab]').forEach(t => t.classList.toggle('active', t.dataset.ttab === panel));
@@ -6182,21 +6157,17 @@ function init(){
     const linkedin = qs('threadTabLinkedIn');
     if (splitter) splitter.style.display = panel === 'splitter' ? 'block' : 'none';
     if (linkedin) linkedin.style.display = panel === 'linkedin' ? 'block' : 'none';
-    setComposerMode(panel==='linkedin'?'linkedin':'thread');
     if (panel === 'linkedin' && !state.linkedInLoaded) loadLinkedInPosts({append:false});
   };
   document.querySelectorAll('.composer-tab[data-ttab]').forEach(tab => {
     tab.onclick = () => setThreadTab(tab.dataset.ttab);
   });
   setThreadTab('splitter');
-  document.querySelectorAll('.workflow-step[data-workflow-step]').forEach(step=>{
-    step.onclick=()=>{
-      const target=step.dataset.workflowStep;
-      if(target==='composer'){activateView('composerView');return;}
-      if(target==='linkedin'){activateView('threadView');setThreadTab('linkedin');return;}
-      if(target==='thread'){activateView('threadView');setThreadTab('splitter');}
-    };
-  });
+  const composerSplitMount=qs('composerTabSplit');
+  const composerRepurposeMount=qs('composerTabRepurpose');
+  if(composerSplitMount && qs('threadTabSplitter')) composerSplitMount.appendChild(qs('threadTabSplitter'));
+  if(composerRepurposeMount && qs('threadTabLinkedIn')) composerRepurposeMount.appendChild(qs('threadTabLinkedIn'));
+  setComposerTab('write');
 
   const linkedInLoadBtn=qs('linkedinLoadBtn');
   if(linkedInLoadBtn){
@@ -6215,22 +6186,6 @@ function init(){
     });
   }
 
-  document.querySelectorAll('.composer-mode-btn[data-compose-mode]').forEach(btn=>{
-    btn.onclick=()=>{
-      const mode=btn.dataset.composeMode;
-      setComposerMode(mode);
-      if(mode==='write'){activateView('composerView');return;}
-      if(mode==='linkedin'){activateView('threadView');setThreadTab('linkedin');return;}
-      if(mode==='thread'){activateView('threadView');setThreadTab('splitter');}
-    };
-  });
-  const threadBackToComposerBtn=qs('threadBackToComposerBtn');
-  if(threadBackToComposerBtn){
-    threadBackToComposerBtn.onclick=()=>{
-      activateView('composerView');
-      setComposerMode('write');
-    };
-  }
 
   // Thumbnails tab removed — video thumbnail functionality lives inline in the media panel
 
