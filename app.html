@@ -4451,6 +4451,10 @@ function renderSnippets(){
 function syncMobileActiveTab(viewId=currentViewId){
   document.querySelectorAll('.mob-tab[data-view]').forEach(t=>t.classList.toggle('active',t.dataset.view===viewId));
 }
+function isComposerRepurposeActive(){
+  const panel=qs('composerTabRepurpose');
+  return !!panel && panel.style.display!=='none';
+}
 function setComposerTab(tab='write'){
   document.querySelectorAll('.composer-tab[data-ctab]').forEach(btn=>{
     btn.classList.toggle('active',btn.dataset.ctab===tab);
@@ -4459,7 +4463,12 @@ function setComposerTab(tab='write'){
   show('composerTabWrite',tab==='write');
   show('composerTabSplit',tab==='split');
   show('composerTabRepurpose',tab==='repurpose');
-  if(tab==='repurpose' && !state.linkedInLoaded) loadLinkedInPosts({append:false});
+  if(tab==='split') setThreadTab('splitter');
+  if(tab==='repurpose'){
+    setThreadTab('linkedin');
+    renderLinkedInPosts();
+    if(!state.linkedInLoaded) loadLinkedInPosts({append:false});
+  }
 }
 function activateView(viewId){
   const previousView=currentViewId;
@@ -4632,6 +4641,7 @@ function updateViewStatePills(){
   set('trendingStatePill',connected?'Connected · ready':'Free Preview',connected?'try':'preview');
   const repurposeNoKey=qs('repurposeNoKeyState');
   if(repurposeNoKey) repurposeNoKey.style.display=connected?'none':'block';
+  if(isComposerRepurposeActive()) renderLinkedInPosts();
   const subhead=qs('composerSubhead');
   if(subhead){
     subhead.textContent=connected
@@ -4789,7 +4799,7 @@ async function syncBuffer(){
     qs('syncBtn').classList.remove('sync-pulse');
     showToast(`Loaded ${all.length} posts`,'success');
     window.dispatchEvent(new Event('postiq:synced'));
-    if(qs('threadTabLinkedIn')?.style.display!=='none')loadLinkedInPosts({append:false});
+    if(isComposerRepurposeActive())loadLinkedInPosts({append:false});
   }catch(e){
     console.error('[PostIQ] syncBuffer error:', e);
     const message=getActionErrorMessage(e,'Sync failed.');
