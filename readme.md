@@ -1,26 +1,27 @@
 # PostIQ — Lightweight Buffer Companion
 
-PostIQ is a no-login, lightweight companion for Buffer users.
+PostIQ is a free, no-login companion app for Buffer users who want a cleaner creation workflow.
 
-It helps text-first teams move faster with four focused workflows:
-- Thread Splitter
-- Content Calendar
-- Post Composer
-- Shareable read-only month snapshots
+It started as personal workflow tooling, then evolved into a public companion app so other creators can explore and use the same process for free.
 
-PostIQ is **not** trying to replace Buffer. It is designed to help you plan better, draft faster, and send cleaner posts to Buffer.
+PostIQ is intentionally focused on one connected flow:
+
+1. **Compose** (draft faster)
+2. **Split** (turn long-form into thread-ready parts)
+3. **Repurpose** (pull recent LinkedIn source posts into the workflow)
+4. **Publish** (send draft, queue, or scheduled posts to Buffer)
+
+It does **not** try to replace Buffer. It sits beside Buffer and helps you move from idea to publish-ready copy with less friction.
 
 ---
 
-## What changed in the public app
+## Product direction (current)
 
-The public app no longer includes Post Recycler / Evergreen Library in the product surface.
+PostIQ has been condensed into stronger, connected workflows instead of a pile of disconnected tools.
 
-The focus is now:
-1. Splitting long text into thread-ready parts
-2. Viewing scheduled Buffer posts in a monthly calendar
-3. Drafting text-first posts and sending them to Buffer
-4. Sharing read-only month planning snapshots
+- Composer, Splitter, and Repurpose now work as a unified writing pipeline.
+- Calendar remains lightweight for visibility and planning notes.
+- Legacy/extra surfaces were reduced so the core workflow stays fast and usable.
 
 ---
 
@@ -62,9 +63,31 @@ The token is only sent when making requests to the Netlify proxy, which forwards
 
 ## ✍️ Post Composer
 - Draft text-first posts with a lightweight formatting toolbar (bold, italic, bullet/numbered lists, clear formatting)
+- Use **Word Help** (Datamuse-powered) directly inside Composer for quick wording assistance
 - Save as Buffer draft
 - Add to Buffer queue
 - Schedule for a specific date/time
+
+### 🧠 Word Help (Datamuse-powered)
+Word Help lives in the **Composer** panel as a compact tool near the writing controls.
+
+It is built to support writing *inside* the main workflow (not as a separate product area):
+
+- **Related** suggestions (meaning-like terms)
+- **Stronger** wording options (synonym-style alternatives)
+- **Autocomplete** suggestions
+- **Sounds like** suggestions (helpful for naming/phrasing checks)
+
+Usage is intentionally lightweight:
+
+1. Type or select a word/phrase in Composer
+2. Open **Word Help**
+3. Run a suggestion mode
+4. Click a suggestion to replace the current selection (if present) and copy it
+
+Word Help uses Datamuse endpoints:
+- `https://api.datamuse.com/words`
+- `https://api.datamuse.com/sug`
 
 **Media workflow:**
 If your post needs images or video, save it as a draft in PostIQ, then open Buffer to attach media and schedule or publish it there.
