@@ -910,6 +910,33 @@
     .composer-row-c { display: flex; align-items: center; gap: 6px; }
     .composer-expand-panel { border-left: 2px solid var(--border2); padding-left: 12px; }
     .mt4 { margin-top: 4px; }
+    .word-help-wrap { margin: 10px 0 8px; }
+    .word-help-panel {
+      display: none;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 8px;
+    }
+    .word-help-panel.open { display: block; }
+    .word-help-top { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .word-help-input { flex:1; min-width:180px; }
+    .word-help-modes { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+    .word-help-modes .sub-pill { font-size:11px; }
+    .word-help-results { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+    .word-help-chip {
+      border:1px solid var(--border2);
+      background:var(--surface);
+      color:var(--text);
+      border-radius:999px;
+      padding:5px 10px;
+      cursor:pointer;
+      font-size:12px;
+      line-height:1.2;
+    }
+    .word-help-chip:hover { border-color: var(--blue); color: var(--blue); }
+    .word-help-status { margin-top:8px; font-size:11px; color:var(--muted); }
 
     /* ── DATE/TIME PICKER ROW ── */
     .composer-when-row {
@@ -3306,6 +3333,23 @@
             <span class="tb-sep"></span>
             <button class="btn sm ghost" data-cmd="clear">Clear</button>
           </div>
+          <div class="word-help-wrap">
+            <button class="btn sm ghost" id="wordHelpToggleBtn">Word Help</button>
+            <div id="wordHelpPanel" class="word-help-panel">
+              <div class="word-help-top">
+                <input id="wordHelpInput" class="input word-help-input" placeholder="Type or select a word/phrase…" />
+                <button class="btn sm" id="wordHelpSearchBtn">Get suggestions</button>
+              </div>
+              <div class="word-help-modes" id="wordHelpModes">
+                <button class="sub-pill active" data-wmode="related">Related</button>
+                <button class="sub-pill" data-wmode="stronger">Stronger</button>
+                <button class="sub-pill" data-wmode="autocomplete">Autocomplete</button>
+                <button class="sub-pill" data-wmode="sounds">Sounds like</button>
+              </div>
+              <div id="wordHelpStatus" class="word-help-status">Select text in Composer or type a word, then run Word Help.</div>
+              <div id="wordHelpResults" class="word-help-results"></div>
+            </div>
+          </div>
           <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here…"></div>
           <div id="composerEmpty" class="empty mt6" style="display:none;"><div class="empty-state"><div class="empty-icon">✍️</div><div class="empty-title" id="composerEmptyTitle">Ready to compose</div><div class="empty-desc" id="composerEmptyDesc">Write your post, then send it to Buffer as a draft, queued post, or scheduled post.</div></div></div>
 
@@ -3923,7 +3967,9 @@ const state={
   activeComposerTab:'write',
   organizationId:null,
   // Thread numbering toggle for thread splitter
-  numbering:false
+  numbering:false,
+  wordHelpMode:'related',
+  wordHelpSelectionRange:null
 };
 const noteTags={gold:'Idea',blue:'Draft',green:'Campaign',violet:'Priority'};
 const CACHE_CONFIG={
@@ -4084,6 +4130,47 @@ function safeText(v=''){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<'
 function compactText(v,max=84){const t=(v||'').replace(/\s+/g,' ').trim();return t.length>max?`${t.slice(0,max-1)}…`:t}
 function slug(v){return String(v||'').toLowerCase()}
 function normalizeTags(v){if(Array.isArray(v))return v.map(x=>String(x).trim()).filter(Boolean);return String(v||'').split(',').map(x=>x.trim()).filter(Boolean)}
+function debounce(fn,wait=320){
+  let t=null;
+  return (...args)=>{
+    clearTimeout(t);
+    t=setTimeout(()=>fn(...args),wait);
+  };
+}
+function dedupeWordHelp(items=[]){
+  const seen=new Set();
+  return items.filter(item=>{
+    const key=String(item||'').toLowerCase();
+    if(!key||seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+async function fetchDatamuseSuggestions({term,mode='related',signal}){
+  const q=(term||'').trim();
+  if(!q) return [];
+  const base='https://api.datamuse.com';
+  let url='';
+  if(mode==='autocomplete'){
+    url=`${base}/sug?s=${encodeURIComponent(q)}&max=12`;
+  }else if(mode==='stronger'){
+    url=`${base}/words?rel_syn=${encodeURIComponent(q)}&max=16`;
+  }else if(mode==='sounds'){
+    url=`${base}/words?sl=${encodeURIComponent(q)}&max=16`;
+  }else{
+    url=`${base}/words?ml=${encodeURIComponent(q)}&max=16`;
+  }
+  const res=await fetch(url,{signal});
+  if(!res.ok) throw new Error(`Datamuse ${res.status}`);
+  const data=await res.json();
+  const words=(Array.isArray(data)?data:[]).map(item=>item?.word).filter(Boolean);
+  if(mode==='stronger'){
+    const baseLen=q.length;
+    return dedupeWordHelp(words.filter(w=>w.toLowerCase()!==q.toLowerCase()).sort((a,b)=>b.length-a.length)).slice(0,10)
+      .sort((a,b)=>Math.abs(a.length-baseLen)-Math.abs(b.length-baseLen));
+  }
+  return dedupeWordHelp(words).slice(0,12);
+}
 
 // ── APPROVAL METADATA (localStorage) ──
 function getApprovalMeta(draftId){try{const r=localStorage.getItem(APPROVAL_META_PREFIX+draftId);return r?JSON.parse(r):null;}catch{return null;}}
@@ -6186,6 +6273,85 @@ window.submitReviewAction=async function(uuid,action){
   }
 };
 
+function cacheComposerSelection(){
+  const editor=qs('composerEditor');
+  const sel=window.getSelection();
+  if(!editor||!sel||!sel.rangeCount) return;
+  const range=sel.getRangeAt(0);
+  if(editor.contains(range.commonAncestorContainer)){
+    state.wordHelpSelectionRange=range.cloneRange();
+  }
+}
+function getComposerSelectionText(){
+  const editor=qs('composerEditor');
+  const sel=window.getSelection();
+  if(!editor||!sel||!sel.rangeCount) return '';
+  const range=sel.getRangeAt(0);
+  if(!editor.contains(range.commonAncestorContainer)) return '';
+  return (sel.toString()||'').trim();
+}
+function applyWordHelpSuggestion(word){
+  const value=(word||'').trim();
+  if(!value) return;
+  const editor=qs('composerEditor');
+  if(!editor) return;
+  let replaced=false;
+  const range=state.wordHelpSelectionRange;
+  if(range && editor.contains(range.commonAncestorContainer)){
+    range.deleteContents();
+    range.insertNode(document.createTextNode(value));
+    replaced=true;
+    const sel=window.getSelection();
+    const endRange=document.createRange();
+    endRange.selectNodeContents(editor);
+    endRange.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(endRange);
+  }
+  if(!replaced){
+    if(editor.innerHTML && !editor.innerHTML.endsWith(' ')) editor.innerHTML += ' ';
+    editor.innerHTML += safeText(value);
+  }
+  qs('composerEditor').dispatchEvent(new Event('input'));
+  navigator.clipboard.writeText(value).catch(()=>{});
+  showToast(replaced?'Replaced selection + copied':'Inserted + copied','success');
+}
+function renderWordHelpResults(words=[]){
+  const wrap=qs('wordHelpResults');
+  if(!wrap) return;
+  wrap.innerHTML='';
+  words.forEach(word=>{
+    const btn=document.createElement('button');
+    btn.className='word-help-chip';
+    btn.type='button';
+    btn.textContent=word;
+    btn.onclick=()=>applyWordHelpSuggestion(word);
+    wrap.appendChild(btn);
+  });
+}
+let datamuseRequestController=null;
+async function runWordHelpLookup({term,mode}){
+  const q=(term||'').trim();
+  const status=qs('wordHelpStatus');
+  if(!q){
+    renderWordHelpResults([]);
+    if(status) status.textContent='Enter a word or select text in Composer first.';
+    return;
+  }
+  if(datamuseRequestController) datamuseRequestController.abort();
+  datamuseRequestController=new AbortController();
+  if(status) status.textContent='Searching Datamuse…';
+  try{
+    const words=await fetchDatamuseSuggestions({term:q,mode,signal:datamuseRequestController.signal});
+    renderWordHelpResults(words);
+    if(status) status.textContent=words.length?`Showing ${words.length} suggestions. Click one to replace selection (if any) and copy.`:'No suggestions found.';
+  }catch(err){
+    if(err?.name==='AbortError') return;
+    renderWordHelpResults([]);
+    if(status) status.textContent='Datamuse is unavailable right now. Try again.';
+  }
+}
+
 function init(){
   // ── REVIEWER PAGE CHECK ── (must be first — bypasses entire dashboard)
   const approveParam=new URLSearchParams(location.search).get('approve');
@@ -6304,6 +6470,45 @@ function init(){
   qs('openSharePreview').onclick=()=>{if(qs('shareLink').value)window.open(qs('shareLink').value,'_blank')};
 
   document.querySelectorAll('[data-cmd]').forEach(btn=>btn.onclick=()=>composerFormat(btn.dataset.cmd));
+  const wordHelpToggleBtn=qs('wordHelpToggleBtn');
+  const wordHelpPanel=qs('wordHelpPanel');
+  const wordHelpInput=qs('wordHelpInput');
+  const debouncedWordHelpAutocomplete=debounce(()=>{
+    if(state.wordHelpMode!=='autocomplete') return;
+    runWordHelpLookup({term:wordHelpInput.value,mode:state.wordHelpMode});
+  },300);
+  if(wordHelpToggleBtn && wordHelpPanel){
+    wordHelpToggleBtn.onclick=()=>{
+      const isOpen=wordHelpPanel.classList.toggle('open');
+      wordHelpToggleBtn.textContent=isOpen?'Hide Word Help':'Word Help';
+      if(isOpen){
+        const selected=getComposerSelectionText();
+        if(selected) wordHelpInput.value=selected;
+        wordHelpInput.focus();
+      }
+    };
+  }
+  qs('wordHelpSearchBtn').onclick=()=>runWordHelpLookup({term:wordHelpInput.value,mode:state.wordHelpMode});
+  wordHelpInput.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){
+      e.preventDefault();
+      runWordHelpLookup({term:wordHelpInput.value,mode:state.wordHelpMode});
+    }
+  });
+  wordHelpInput.addEventListener('input',debouncedWordHelpAutocomplete);
+  qs('wordHelpModes').querySelectorAll('[data-wmode]').forEach(btn=>{
+    btn.onclick=()=>{
+      state.wordHelpMode=btn.dataset.wmode;
+      qs('wordHelpModes').querySelectorAll('[data-wmode]').forEach(x=>x.classList.toggle('active',x===btn));
+      const label=state.wordHelpMode==='autocomplete'?'Autocomplete mode: type to search.':'Mode updated. Click "Get suggestions".';
+      qs('wordHelpStatus').textContent=label;
+      if(state.wordHelpMode==='autocomplete' && wordHelpInput.value.trim()){
+        runWordHelpLookup({term:wordHelpInput.value,mode:state.wordHelpMode});
+      }
+    };
+  });
+  qs('composerEditor').addEventListener('mouseup',cacheComposerSelection);
+  qs('composerEditor').addEventListener('keyup',cacheComposerSelection);
 
   qs('composerEditor').addEventListener('input',()=>{
     const text=editorHtmlToText(qs('composerEditor').innerHTML);
