@@ -3947,6 +3947,19 @@ function qs(id){return document.getElementById(id)}
 function fmtDate(d){return d.toISOString().slice(0,10)}
 function monthLabel(d){return d.toLocaleDateString(undefined,{month:'long',year:'numeric'})}
 function monthStart(d){return new Date(d.getFullYear(),d.getMonth(),1)}
+function getScheduledWindowBounds(visibleMonth=state.month){
+  const monthAnchor=visibleMonth instanceof Date ? visibleMonth : new Date();
+  const windowStart=new Date(monthAnchor.getFullYear(),monthAnchor.getMonth(),1);
+  windowStart.setDate(windowStart.getDate()-7);
+  const windowEnd=new Date(monthAnchor.getFullYear(),monthAnchor.getMonth()+1,0);
+  windowEnd.setDate(windowEnd.getDate()+60);
+  return {windowStart,windowEnd};
+}
+function isRelevantScheduledPost(post,bounds=getScheduledWindowBounds()){
+  const dueAt=post?.dueAt?new Date(post.dueAt):null;
+  if(!dueAt || Number.isNaN(dueAt.getTime())) return false;
+  return dueAt>=bounds.windowStart && dueAt<=bounds.windowEnd;
+}
 function loadCacheState(){
   try{
     const raw=localStorage.getItem(CACHE_STORAGE_KEY);
@@ -4928,18 +4941,32 @@ async function syncScheduledPosts({force=false}={}){
   }
   const orgId=await getOrgId({force});
   if(!orgId) return [];
-  const cap=500;let after=null;let all=[];let hasNext=true;
-  const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId } } pageInfo{ hasNextPage endCursor } } }';
-  while(hasNext&&all.length<cap){
-    const page=await callBuffer(postsQuery,{organizationId:orgId,after});
+  const maxFetch=150;
+  const pageSize=50;
+  const bounds=getScheduledWindowBounds(state.month);
+  let fetchedCount=0;
+  let after=null;
+  let hasNext=true;
+  let relevant=[];
+  const seen=new Set();
+  const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String, $first: Int!){ posts(first:$first, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId } } pageInfo{ hasNextPage endCursor } } }';
+  while(hasNext && fetchedCount<maxFetch && relevant.length<maxFetch){
+    const page=await callBuffer(postsQuery,{organizationId:orgId,after,first:pageSize});
     const block=page?.data?.posts;const edges=block?.edges||[];
-    all=all.concat(edges.map(e=>e.node));
+    fetchedCount+=edges.length;
+    edges.forEach(edge=>{
+      const post=edge?.node;
+      if(!post?.id || seen.has(post.id) || !isRelevantScheduledPost(post,bounds)) return;
+      seen.add(post.id);
+      relevant.push(post);
+    });
     hasNext=!!block?.pageInfo?.hasNextPage;after=block?.pageInfo?.endCursor||null;
     if(!block?.pageInfo)break;
   }
-  state.scheduled=all;
-  setCachedValue('scheduled',all);
-  return all;
+  relevant.sort((a,b)=>new Date(a.dueAt)-new Date(b.dueAt));
+  state.scheduled=relevant;
+  setCachedValue('scheduled',relevant);
+  return relevant;
 }
 
 async function getDrafts({force=false}={}){
