@@ -3196,7 +3196,7 @@
               <div id="threadChannelWrap">
                 <div class="label mb8">Channel <span style="color:var(--subtle);font-weight:400;text-transform:none;letter-spacing:0;">(X &amp; Threads only)</span></div>
                 <select id="threadChannel" class="input grow"></select>
-                <div id="threadNoChannels" class="empty mt8" style="display:none;">No X or Threads channels found. <button class="btn sm ghost" onclick="syncBuffer()" style="margin-top:6px;display:block;width:100%;">↻ Load from Buffer</button></div>
+                <div id="threadNoChannels" class="empty mt8" style="display:none;">No X or Threads channels found. <button class="btn sm ghost" onclick="syncBuffer({force:true})" style="margin-top:6px;display:block;width:100%;">↻ Load from Buffer</button></div>
               </div>
               <!-- Numbering toggle for thread parts -->
               <div class="row mt8" style="align-items:center;gap:6px;">
@@ -3886,6 +3886,7 @@ document.addEventListener('DOMContentLoaded', () => {
 const STORE_KEY='postiq_buffer_token';
 const NOTE_KEY='postiq_calendar_notes_v2';
 const SNIPPET_KEY='postiq_snippets_v1';
+const CACHE_STORAGE_KEY='postiq_buffer_cache_v1';
 const APPROVAL_META_PREFIX='postiq_approval_';
 const GA_MEASUREMENT_ID = 'G-5RV57M7J0K'; // Replace with your real GA4 Measurement ID.
 const snippetTypes=['All','Hooks','CTAs','Hashtag Sets','First Comments','Thread Openers'];
@@ -3918,17 +3919,83 @@ const state={
   linkedInHasNext:false,
   linkedInPhase:'idle',
   linkedInError:'',
+  drafts:[],
   activeComposerTab:'write',
   organizationId:null,
   // Thread numbering toggle for thread splitter
   numbering:false
 };
 const noteTags={gold:'Idea',blue:'Draft',green:'Campaign',violet:'Priority'};
+const CACHE_CONFIG={
+  orgId:24*60*60*1000,
+  channels:24*60*60*1000,
+  scheduled:10*60*1000,
+  linkedInPosts:20*60*1000,
+  pastImages:45*60*1000,
+  drafts:10*60*1000
+};
+const cacheState={
+  orgId:{value:null,updatedAt:0},
+  channels:{value:[],updatedAt:0},
+  scheduled:{value:[],updatedAt:0},
+  linkedInPosts:{value:[],updatedAt:0},
+  pastImages:{value:[],updatedAt:0},
+  drafts:{value:[],updatedAt:0}
+};
 
 function qs(id){return document.getElementById(id)}
 function fmtDate(d){return d.toISOString().slice(0,10)}
 function monthLabel(d){return d.toLocaleDateString(undefined,{month:'long',year:'numeric'})}
 function monthStart(d){return new Date(d.getFullYear(),d.getMonth(),1)}
+function loadCacheState(){
+  try{
+    const raw=localStorage.getItem(CACHE_STORAGE_KEY);
+    if(!raw) return;
+    const parsed=JSON.parse(raw);
+    Object.keys(cacheState).forEach(key=>{
+      const entry=parsed?.[key];
+      if(entry && typeof entry.updatedAt==='number'){
+        cacheState[key]={value:entry.value,updatedAt:entry.updatedAt};
+      }
+    });
+  }catch{}
+}
+function persistCacheState(){
+  try{
+    localStorage.setItem(CACHE_STORAGE_KEY,JSON.stringify(cacheState));
+  }catch{}
+}
+function clearCacheState(){
+  Object.keys(cacheState).forEach(key=>{cacheState[key]={value:Array.isArray(cacheState[key].value)?[]:null,updatedAt:0};});
+  cacheState.channels.value=[];
+  cacheState.scheduled.value=[];
+  cacheState.linkedInPosts.value=[];
+  cacheState.pastImages.value=[];
+  cacheState.drafts.value=[];
+  try{localStorage.removeItem(CACHE_STORAGE_KEY);}catch{}
+}
+function isCacheFresh(key){
+  const entry=cacheState[key];
+  const ttl=CACHE_CONFIG[key]||0;
+  return !!entry?.updatedAt && (Date.now()-entry.updatedAt)<ttl;
+}
+function getCachedValue(key){
+  return cacheState[key]?.value;
+}
+function setCachedValue(key,value){
+  cacheState[key]={value,updatedAt:Date.now()};
+  persistCacheState();
+}
+function hydrateStateFromCache(){
+  if(getCachedValue('orgId')) state.organizationId=getCachedValue('orgId');
+  if(Array.isArray(getCachedValue('channels')) && getCachedValue('channels').length) state.channels=getCachedValue('channels');
+  if(Array.isArray(getCachedValue('scheduled')) && getCachedValue('scheduled').length) state.scheduled=getCachedValue('scheduled');
+  if(Array.isArray(getCachedValue('linkedInPosts')) && getCachedValue('linkedInPosts').length){
+    state.linkedInPosts=getCachedValue('linkedInPosts');
+    state.linkedInLoaded=true;
+  }
+  if(Array.isArray(getCachedValue('drafts')) && getCachedValue('drafts').length) state.drafts=getCachedValue('drafts');
+}
 function maskToken(t){if(!t)return '—';if(t.length<=8)return '••••';return `${t.slice(0,4)}••••${t.slice(-4)}`;}
 function clearBufferTokenStorage(){localStorage.removeItem(STORE_KEY);sessionStorage.removeItem(STORE_KEY);}
 function clearBufferTokenForAuthFailure(message='Buffer token expired or invalid. Please reconnect.') {
@@ -4081,12 +4148,13 @@ function formatLinkedInDate(post){
   if(Number.isNaN(d.getTime())) return '';
   return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
 }
-function clearLinkedInRepurposeData(){
+function clearLinkedInRepurposeData({clearCache=false}={}){
   state.linkedInLoaded=false;
   state.linkedInPosts=[];
   state.linkedInCursor=null;
   state.linkedInHasNext=false;
   setLinkedInPhase('idle','');
+  if(clearCache) setCachedValue('linkedInPosts',[]);
 }
 function renderLinkedInPosts(){
   const statusEl=qs('linkedinStatus');
@@ -4212,7 +4280,7 @@ async function fetchLinkedInPostsPage(after=null){
   };
 }
 
-async function loadLinkedInPosts({append=false}={}){
+async function loadLinkedInPosts({append=false,force=false}={}){
   const statusEl=qs('linkedinStatus');
   if(!statusEl) return;
   if(!bufferToken){
@@ -4230,6 +4298,16 @@ async function loadLinkedInPosts({append=false}={}){
     clearLinkedInRepurposeData();
     renderLinkedInPosts();
     return;
+  }
+  if(!append && !force && isCacheFresh('linkedInPosts')){
+    const cached=getCachedValue('linkedInPosts');
+    if(Array.isArray(cached)){
+      state.linkedInPosts=cached;
+      state.linkedInLoaded=true;
+      setLinkedInPhase('success');
+      renderLinkedInPosts();
+      return;
+    }
   }
 
   setLinkedInPhase('loading');
@@ -4253,6 +4331,7 @@ async function loadLinkedInPosts({append=false}={}){
     state.linkedInCursor=pageInfo?.endCursor||null;
     state.linkedInHasNext=!!pageInfo?.hasNextPage;
     state.linkedInLoaded=true;
+    setCachedValue('linkedInPosts',deduped);
     setLinkedInPhase('success');
     renderLinkedInPosts();
   }catch(e){
@@ -4475,8 +4554,18 @@ function ensureRepurposeLoaded({force=false}={}){
   if(!bufferToken) return;
   if(!state.channels.length) return;
   if(state.linkedInPhase==='loading') return;
-  if(force || !state.linkedInLoaded){
-    loadLinkedInPosts({append:false});
+  if(!force && isCacheFresh('linkedInPosts')){
+    const cached=getCachedValue('linkedInPosts');
+    if(Array.isArray(cached)){
+      state.linkedInPosts=cached;
+      state.linkedInLoaded=true;
+      setLinkedInPhase('success');
+      renderLinkedInPosts();
+      return;
+    }
+  }
+  if(force || !state.linkedInLoaded || !isCacheFresh('linkedInPosts')){
+    loadLinkedInPosts({append:false,force});
   }
 }
 function setComposerTab(tab='write'){
@@ -4708,11 +4797,13 @@ function saveToken(){
   const token=qs('tokenInput').value.trim();
   const mode=[...document.querySelectorAll('input[name="tokenMode"]')].find(r=>r.checked).value;
   const ok=setBufferToken(token,{mode,messageEl:qs('tokenMsg'),savedMessage:'Token saved'});
-  if(ok)syncBuffer();
+  if(ok)syncBuffer({force:true});
 }
 function loadStoredToken(){
+  loadCacheState();
   bufferToken=sessionStorage.getItem(STORE_KEY)||localStorage.getItem(STORE_KEY)||'';
   if(bufferToken)qs('tokenInput').value=bufferToken;
+  if(bufferToken) hydrateStateFromCache();
   if(!bufferToken)hasTrackedBufferConnected=false;
   refreshTokenUI();
 }
@@ -4779,8 +4870,10 @@ function getActionErrorMessage(err,fallback='Request failed. Please try again.')
 function clearSyncedData(){
   state.channels=[];
   state.scheduled=[];
+  state.drafts=[];
   state.organizationId=null;
   clearLinkedInRepurposeData();
+  clearCacheState();
   renderChannelSelects();
   renderLinkedInPosts();
   renderCalendar();
@@ -4789,7 +4882,85 @@ function clearSyncedData(){
 function getNotes(){try{return JSON.parse(localStorage.getItem(NOTE_KEY)||'{}')}catch{return {}}}
 function setNotes(v){localStorage.setItem(NOTE_KEY,JSON.stringify(v))}
 
-async function syncBuffer(){
+async function getOrgId({force=false}={}){
+  if(!force){
+    if(state.organizationId && isCacheFresh('orgId')) return state.organizationId;
+    const cached=getCachedValue('orgId');
+    if(cached && isCacheFresh('orgId')){
+      state.organizationId=cached;
+      return cached;
+    }
+  }
+  const acc=await callBuffer('query { account { organizations { id name } } }');
+  const orgId=acc?.data?.account?.organizations?.[0]?.id||null;
+  if(!orgId) return null;
+  state.organizationId=orgId;
+  setCachedValue('orgId',orgId);
+  return orgId;
+}
+
+async function getChannels({force=false}={}){
+  if(!force && state.channels.length && isCacheFresh('channels')) return state.channels;
+  if(!force){
+    const cached=getCachedValue('channels');
+    if(Array.isArray(cached) && cached.length && isCacheFresh('channels')){
+      state.channels=cached;
+      return cached;
+    }
+  }
+  const orgId=await getOrgId({force});
+  if(!orgId) return [];
+  const channelsQuery='query Channels($organizationId: OrganizationId!){ channels(input:{organizationId:$organizationId}) { id displayName name service } }';
+  const ch=await callBuffer(channelsQuery,{organizationId:orgId});
+  state.channels=ch?.data?.channels||[];
+  setCachedValue('channels',state.channels);
+  return state.channels;
+}
+
+async function syncScheduledPosts({force=false}={}){
+  if(!force && state.scheduled.length && isCacheFresh('scheduled')) return state.scheduled;
+  if(!force){
+    const cached=getCachedValue('scheduled');
+    if(Array.isArray(cached) && isCacheFresh('scheduled')){
+      state.scheduled=cached;
+      return cached;
+    }
+  }
+  const orgId=await getOrgId({force});
+  if(!orgId) return [];
+  const cap=500;let after=null;let all=[];let hasNext=true;
+  const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId } } pageInfo{ hasNextPage endCursor } } }';
+  while(hasNext&&all.length<cap){
+    const page=await callBuffer(postsQuery,{organizationId:orgId,after});
+    const block=page?.data?.posts;const edges=block?.edges||[];
+    all=all.concat(edges.map(e=>e.node));
+    hasNext=!!block?.pageInfo?.hasNextPage;after=block?.pageInfo?.endCursor||null;
+    if(!block?.pageInfo)break;
+  }
+  state.scheduled=all;
+  setCachedValue('scheduled',all);
+  return all;
+}
+
+async function getDrafts({force=false}={}){
+  if(!force && state.drafts.length && isCacheFresh('drafts')) return state.drafts;
+  if(!force){
+    const cached=getCachedValue('drafts');
+    if(Array.isArray(cached) && isCacheFresh('drafts')){
+      state.drafts=cached;
+      return cached;
+    }
+  }
+  const orgId=await getOrgId({force});
+  if(!orgId) return [];
+  const dq=`query Drafts($organizationId: OrganizationId!){posts(first:100,input:{organizationId:$organizationId,filter:{status:[draft]}}){edges{node{id text channelId assets{thumbnail mimeType source}}}}}`;
+  const dr=await callBuffer(dq,{organizationId:orgId});
+  state.drafts=(dr?.data?.posts?.edges||[]).map(e=>e.node);
+  setCachedValue('drafts',state.drafts);
+  return state.drafts;
+}
+
+async function syncBuffer({force=false}={}){
   if(!bufferToken){setSyncStatus('failed','Add your Buffer token first.');return;}
   setSyncStatus('syncing','Syncing…');
   showFetchLoading(qs('calGrid'));
@@ -4799,36 +4970,21 @@ async function syncBuffer(){
   syncBtn.innerHTML='<span class="syncing-icon">↻</span> Syncing…';
   syncBtn.disabled=true;
   try{
-    const acc=await callBuffer('query { account { organizations { id name } } }');
-    const orgId=acc?.data?.account?.organizations?.[0]?.id;
+    const orgId=await getOrgId({force});
     if(!orgId){clearSyncedData();setSyncStatus('failed','No organization found.');return;}
-    state.organizationId=orgId;
-    const channelsQuery='query Channels($organizationId: OrganizationId!){ channels(input:{organizationId:$organizationId}) { id displayName name service } }';
-    const ch=await callBuffer(channelsQuery,{organizationId:orgId});
-    state.channels=ch?.data?.channels||[];
-    const cap=500;let after=null;let all=[];let hasNext=true;
-    const postsQuery='query ScheduledPosts($organizationId: OrganizationId!, $after: String){ posts(first:100, after:$after, input:{organizationId:$organizationId, filter:{status:[scheduled]}}){ edges{ node{ id text dueAt channelId assets{ thumbnail mimeType source } metadata{ ... on InstagramPostMetadata{ type shouldShareToFeed firstComment } ... on FacebookPostMetadata{ type firstComment } ... on TwitterPostMetadata{ thread{ text } } ... on YoutubePostMetadata{ type title privacy category{ categoryId } license notifySubscribers embeddable madeForKids } } } } pageInfo{ hasNextPage endCursor } } }';
-    while(hasNext&&all.length<cap){
-      const page=await callBuffer(postsQuery,{organizationId:orgId,after});
-      const block=page?.data?.posts;const edges=block?.edges||[];
-      all=all.concat(edges.map(e=>e.node));
-      hasNext=!!block?.pageInfo?.hasNextPage;after=block?.pageInfo?.endCursor||null;
-      if(!block?.pageInfo)break;
-    }
-    state.scheduled=all;renderChannelSelects();renderCalendar();
-    setSyncStatus('success',`${all.length} scheduled posts loaded.`);
+    await getChannels({force});
+    const scheduled=await syncScheduledPosts({force});
+    renderChannelSelects();
+    renderCalendar();
+    setSyncStatus('success',`${scheduled.length} scheduled posts loaded.`);
     if(!hasTrackedBufferConnected){
       trackEvent('buffer_connected',{channel_count:state.channels.length});
       hasTrackedBufferConnected=true;
     }
     qs('syncBtn').classList.remove('sync-pulse');
-    showToast(`Loaded ${all.length} posts`,'success');
+    showToast(`Loaded ${scheduled.length} posts`,'success');
     window.dispatchEvent(new Event('postiq:synced'));
-    if(getLinkedInChannels().length){
-      ensureRepurposeLoaded({force:true});
-    }else{
-      renderLinkedInPosts();
-    }
+    renderLinkedInPosts();
   }catch(e){
     console.error('[PostIQ] syncBuffer error:', e);
     const message=getActionErrorMessage(e,'Sync failed.');
@@ -5124,21 +5280,39 @@ function appendScheduledPostToCalendar(post){
   if(!dueAt||!id)return false;
   if((state.scheduled||[]).some(p=>String(p?.id)===String(id))) return true;
   state.scheduled=[...state.scheduled,{id,text:post?.text||'',dueAt,channelId:post?.channelId||null}];
+  setCachedValue('scheduled',state.scheduled);
+  return true;
+}
+
+function appendDraftPost(post){
+  const id=post?.id;
+  if(!id) return false;
+  if((state.drafts||[]).some(p=>String(p?.id)===String(id))) return true;
+  state.drafts=[{id,text:post?.text||'',channelId:post?.channelId||null},...(state.drafts||[])];
+  setCachedValue('drafts',state.drafts);
   return true;
 }
 
 async function refreshCalendarAfterPostAction(action,createdPost){
   const shouldAffectCalendar=action==='queue'||action==='schedule';
-  if(!shouldAffectCalendar) return;
-  const optimisticAdded=appendScheduledPostToCalendar(createdPost);
-  if(optimisticAdded){
+  if(shouldAffectCalendar){
+    const optimisticAdded=appendScheduledPostToCalendar(createdPost);
+    if(optimisticAdded){
+      renderCalendar();
+      renderAgenda();
+    }
+    return;
+  }
+  if(action==='draft'){
+    const draftAdded=appendDraftPost(createdPost);
+    if(draftAdded){
+      window.dispatchEvent(new Event('postiq:synced'));
+    }
+  }
+  if(!shouldAffectCalendar && action!=='draft') return;
+  if(action==='draft'){
     renderCalendar();
     renderAgenda();
-  }
-  try{
-    await syncBuffer();
-  }catch(err){
-    console.warn('[PostIQ] calendar refresh after post action failed:',err);
   }
 }
 
@@ -5378,10 +5552,11 @@ async function runUnsplashSearch(){
   }
 }
 
-let _pastLoaded=false,_pastCache=[];
-
-async function loadPastImages(){
-  if(_pastLoaded&&_pastCache.length){renderPastImages(_pastCache);return;}
+async function loadPastImages({force=false}={}){
+  if(!force && isCacheFresh('pastImages')){
+    const cached=getCachedValue('pastImages');
+    if(Array.isArray(cached)){renderPastImages(cached);return;}
+  }
   const grid=qs('pastImagesGrid'),status=qs('pastImagesStatus'),empty=qs('pastImagesEmpty');
   grid.innerHTML='';
   empty.style.display='none';
@@ -5394,8 +5569,7 @@ async function loadPastImages(){
   }));
   if(bufferToken){
     try{
-      const acc=await callBuffer('query{account{organizations{id}}}');
-      const orgId=acc?.data?.account?.organizations?.[0]?.id;
+      const orgId=await getOrgId();
       if(orgId){
         const r=await callBuffer(`query SentPosts($organizationId:OrganizationId!){posts(first:50,input:{organizationId:$organizationId,filter:{status:[sent]}}){edges{node{assets{thumbnail mimeType source}}}}}`,{organizationId:orgId});
         (r?.data?.posts?.edges||[]).forEach(e=>(e.node?.assets||[]).forEach(a=>{
@@ -5405,7 +5579,7 @@ async function loadPastImages(){
       }
     }catch(err){console.warn('[PostIQ] past images:',err);}
   }
-  _pastCache=images;_pastLoaded=true;
+  setCachedValue('pastImages',images);
   clearFetchLoading(grid);
   status.textContent=images.length?`${images.length} past image${images.length!==1?'s':''} — click to use`:'';
   renderPastImages(images);
@@ -5434,7 +5608,7 @@ function initUnifiedMediaSystem(){
   qs('composerImageToggleOff').addEventListener('click',()=>{qs('composerImagePanel').classList.contains('open')?closeMediaPanel():openMediaPanel();});
   document.querySelectorAll('.media-tab').forEach(t=>t.addEventListener('click',()=>switchMediaTab(t.dataset.mtab)));
   qs('mediaSummaryClear').addEventListener('click',()=>{clearMediaState();showToast('Media removed','info');});
-  qs('pastImagesLoadBtn').addEventListener('click',()=>{_pastLoaded=false;_pastCache=[];loadPastImages();});
+  qs('pastImagesLoadBtn').addEventListener('click',()=>loadPastImages({force:true}));
   initUploadTab();initUrlTab();initUnsplashTab();
   window.openImageLibrary=()=>{openMediaPanel('past');activateView('composerView');};
 }
@@ -5544,13 +5718,7 @@ async function loadApprovals(){
     let bufferDrafts=[];
     if(bufferToken){
       try{
-        const acc=await callBuffer('query { account { organizations { id } } }');
-        const orgId=acc?.data?.account?.organizations?.[0]?.id;
-        if(orgId){
-          const dq=`query Drafts($organizationId: OrganizationId!){posts(first:100,input:{organizationId:$organizationId,filter:{status:[draft]}}){edges{node{id text channelId assets{thumbnail mimeType source}}}}}`;
-          const dr=await callBuffer(dq,{organizationId:orgId});
-          bufferDrafts=(dr?.data?.posts?.edges||[]).map(e=>e.node);
-        }
+        bufferDrafts=await getDrafts();
       }catch(e){console.warn('[PostIQ] drafts fetch:',e);}
     }
     // Sync remote approval status for posts with generated links
@@ -6061,7 +6229,7 @@ function init(){
     if(top.id==='settingsModal')syncMobileActiveTab();
   });
 
-  qs('syncBtn').onclick=syncBuffer;
+  qs('syncBtn').onclick=()=>syncBuffer({force:true});
   if(bufferToken){syncBuffer();}
   else{qs('syncBtn').classList.add('sync-pulse');}
 
@@ -6258,7 +6426,7 @@ function init(){
     const linkedin = qs('threadTabLinkedIn');
     if (splitter) splitter.style.display = panel === 'splitter' ? 'block' : 'none';
     if (linkedin) linkedin.style.display = panel === 'linkedin' ? 'block' : 'none';
-    if (panel === 'linkedin' && !state.linkedInLoaded) loadLinkedInPosts({append:false});
+    if (panel === 'linkedin') ensureRepurposeLoaded();
   };
   document.querySelectorAll('.composer-tab[data-ttab]').forEach(tab => {
     tab.onclick = () => setThreadTab(tab.dataset.ttab);
@@ -6289,7 +6457,7 @@ function init(){
   const repurposeManageTokenBtn=qs('repurposeManageTokenBtn');
   if(repurposeManageTokenBtn) repurposeManageTokenBtn.onclick=openTokenManagement;
   const repurposeSyncBtn=qs('repurposeSyncBtn');
-  if(repurposeSyncBtn) repurposeSyncBtn.onclick=syncBuffer;
+  if(repurposeSyncBtn) repurposeSyncBtn.onclick=()=>ensureRepurposeLoaded({force:true});
 
 
   // Thumbnails tab removed — video thumbnail functionality lives inline in the media panel
@@ -6337,7 +6505,7 @@ function init(){
     qs('mobSyncStatus').textContent=qs('syncStatus').textContent;
   }
 
-  qs('mobSyncBtn').onclick=()=>{syncBuffer();closeMobDrawer();};
+  qs('mobSyncBtn').onclick=()=>{syncBuffer({force:true});closeMobDrawer();};
 
   let mobTokenPanelOpen=false;
   qs('mobManageTokenBtn').onclick=()=>{
@@ -6350,7 +6518,7 @@ function init(){
     const token=qs('mobTokenInput').value.trim();
     const mode=[...document.querySelectorAll('input[name="mobTokenMode"]')].find(r=>r.checked).value;
     const ok=setBufferToken(token,{mode,messageEl:qs('mobTokenMsg'),savedMessage:'Token saved'});
-    if(ok)syncBuffer();
+    if(ok)syncBuffer({force:true});
   };
   qs('mobClearTokenBtn').onclick=()=>{
     qs('mobTokenInput').value='';
