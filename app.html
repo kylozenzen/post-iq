@@ -2500,6 +2500,7 @@
      JAVASCRIPT
      ══════════════════════════════════ -->
 <script>
+
 'use strict';
 
 // ── CONSTANTS ──────────────────────────────────────
@@ -2552,6 +2553,13 @@ const CACHE_TTL = { orgId: 86400000, channels: 86400000, scheduled: 600000 };
 
 // ── UTILITIES ──────────────────────────────────────
 const qs = id => document.getElementById(id);
+const on = (id, evt, handler, opts) => { const el = qs(id); if (el) el.addEventListener(evt, handler, opts); return el; };
+const setIfPresent = (id, fn) => { const el = qs(id); if (el) fn(el); return el; };
+function parseLocalDateKey(key) { const [y,m,d] = String(key||'').split('-').map(Number); return new Date(y||0, (m||1)-1, d||1); }
+async function safeWriteText(text) {
+  try { if (navigator.clipboard && window.isSecureContext) { await safeWriteText(text); return true; } } catch {}
+  try { const ta = document.createElement('textarea'); ta.value = String(text ?? ''); ta.setAttribute('readonly', ''); ta.style.position='fixed'; ta.style.opacity='0'; ta.style.pointerEvents='none'; document.body.appendChild(ta); ta.focus(); ta.select(); const ok = document.execCommand('copy'); ta.remove(); return !!ok; } catch { return false; }
+}
 const fmtDate = d => d.toISOString().slice(0, 10);
 const monthLabel = d => d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 const monthStart = d => new Date(d.getFullYear(), d.getMonth(), 1);
@@ -2721,7 +2729,7 @@ function renderTemplates() {
         <button class="btn sm ghost" data-act="edit" style="margin-left:auto;">✏️</button>
         <button class="btn sm ghost" data-act="del">🗑</button>
       </div>`;
-    card.querySelector('[data-act="copy"]').onclick = () => { navigator.clipboard.writeText(s.body || ''); showToast('Copied'); };
+    card.querySelector('[data-act="copy"]').onclick = () => { safeWriteText(s.body || ''); showToast('Copied'); };
     card.querySelector('[data-act="use"]').onclick  = () => { activateView('composerView'); useTemplateInEditor(s); };
     card.querySelector('[data-act="edit"]').onclick = () => openTemplateModal(s.id);
     card.querySelector('[data-act="del"]').onclick  = () => deleteTemplate(s.id);
@@ -2869,19 +2877,23 @@ My role: ${roleLabel}
 My audience: ${state.bucketAudience || 'General audience'}
 
 Here are my current buckets:
-${state.contentBuckets.map(b => `- ${b.title}: ${(b.ideas||[]).join('; ') || 'No starter ideas yet'}`).join('\n')}
+${state.contentBuckets.map(b => `- ${b.title}: ${(b.ideas||[]).join('; ') || 'No starter ideas yet'}`).join('
+')}
 
 Using the five content types Teach, Share, Show, Tell, and Prove, help me refine these into stronger repeatable content lanes. Give me 5 fresh ideas per bucket. Keep them specific, practical, and not overly corporate.`;
 }
 function bucketIdeasToText(bucket) {
   return `${bucket.title}
-${(bucket.ideas||[]).map((idea,i)=>`${i+1}. ${idea}`).join('\n')}`;
+${(bucket.ideas||[]).map((idea,i)=>`${i+1}. ${idea}`).join('
+')}`;
 }
 function sendBucketsToComposer(which='all') {
   ensureBuckets();
   const editor = qs('composerEditor'); if (!editor) return;
   const buckets = which==='all' ? state.contentBuckets : state.contentBuckets.filter(b => b.type===which || b.title===which);
-  const block = buckets.map(bucketIdeasToText).join('\n\n');
+  const block = buckets.map(bucketIdeasToText).join('
+
+');
   if (!block.trim()) { showToast('No bucket ideas yet', 'error'); return; }
   const existing = editorToText(editor.innerHTML);
   editor.innerText = existing ? `${existing}
@@ -2948,7 +2960,7 @@ function renderBuckets() {
 
     <div class="field" style="margin-bottom:10px;">
       <label class="label">Starter ideas</label>
-      <textarea data-bucket-ideas="${state.bucketStep}" style="min-height:150px;" placeholder="Add one idea per line…">${safeText((bucket.ideas||[]).join('\\n'))}</textarea>
+      <textarea data-bucket-ideas="${state.bucketStep}" style="min-height:150px;" placeholder="Add one idea per line…">${safeText((bucket.ideas||[]).join('\n'))}</textarea>
     </div>
 
     <div class="row" style="justify-content:space-between;">
@@ -2962,7 +2974,8 @@ function renderBuckets() {
     persistBuckets(); renderBucketSummary(); renderComposerBuckets(); renderBuckets();
   });
   wrap.querySelector('[data-bucket-ideas]').addEventListener('input', e => {
-    state.contentBuckets[+e.target.dataset.bucketIdeas].ideas = e.target.value.split('\n').map(x=>x.trim()).filter(Boolean);
+    state.contentBuckets[+e.target.dataset.bucketIdeas].ideas = e.target.value.split('
+').map(x=>x.trim()).filter(Boolean);
     persistBuckets(); renderBucketSummary(); renderComposerBuckets();
   });
   wrap.querySelector('[data-bucket-send]').onclick = () => sendBucketsToComposer(state.contentBuckets[+wrap.querySelector('[data-bucket-send]').dataset.bucketSend].title);
@@ -2975,10 +2988,10 @@ My role: ${roleLabel}
 My audience: ${state.bucketAudience || 'General audience'}
 Bucket name: ${bucket.title}
 Current ideas:
-${(bucket.ideas||[]).map(x=>`- ${x}`).join('\\n')}
+${(bucket.ideas||[]).map(x=>`- ${x}`).join('\n')}
 
 Give me 15 more practical social post ideas for this bucket. Mix educational, story-driven, opinion-based, and proof-driven angles. Avoid generic advice.`;
-    navigator.clipboard.writeText(prompt); showToast('AI prompt copied', 'success');
+    safeWriteText(prompt); showToast('AI prompt copied', 'success');
   };
 
   const prevBtn = qs('bucketPrevBtn');
@@ -3031,10 +3044,10 @@ function resetBuckets() {
   showToast('Buckets reset');
 }
 function setBucketIntroSeen(seen) {
-  lsSet('postiq_bucket_intro_seen_v1', seen ? '1' : '0');
+  try { localStorage.setItem('postiq_bucket_intro_seen_v1', seen ? '1' : '0'); } catch {}
 }
 function hasSeenBucketIntro() {
-  return lsGet('postiq_bucket_intro_seen_v1') === '1';
+  try { return localStorage.getItem('postiq_bucket_intro_seen_v1') === '1'; } catch { return false; }
 }
 function revealBucketCore(markSeen = false) {
   const intro = qs('bucketIntroCard');
@@ -3505,7 +3518,7 @@ function renderAgenda() {
   days.forEach(key => {
     const data = map[key]; if (!data) return;
     const isToday = key === today;
-    const date = new Date(key + 'T00:00:00');
+    const date = parseLocalDateKey(key);
     const dayEl = document.createElement('div');
     dayEl.style.cssText = `border:1px solid ${isToday ? 'var(--brand)' : 'var(--border)'};border-radius:10px;padding:12px;margin-bottom:8px;background:var(--surface);cursor:pointer;`;
     const dateLabel = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
@@ -3578,7 +3591,7 @@ function renderSharedFromHash() {
 }
 
 function openSharedDay(key, data) {
-  qs('sharedDayTitle').textContent = new Date(key + 'T00:00:00').toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+  qs('sharedDayTitle').textContent = parseLocalDateKey(key).toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
   const body = qs('sharedDayBody');
   body.innerHTML = '';
   if (data.posts?.length) {
@@ -3603,17 +3616,26 @@ function editorToText(html) {
   const walk = node => {
     if (node.nodeType === Node.TEXT_NODE) return node.textContent;
     const tag = (node.tagName || '').toLowerCase();
-    if (tag === 'br') return '\n';
+    if (tag === 'br') return '
+';
     if (tag === 'strong' || tag === 'b') return `**${[...node.childNodes].map(walk).join('')}**`;
     if (tag === 'em' || tag === 'i') return `*${[...node.childNodes].map(walk).join('')}*`;
     if (tag === 'li') return [...node.childNodes].map(walk).join('');
-    if (tag === 'ul') return [...node.children].map(li => `• ${walk(li)}`).join('\n') + '\n';
-    if (tag === 'ol') return [...node.children].map((li, i) => `${i+1}. ${walk(li)}`).join('\n') + '\n';
+    if (tag === 'ul') return [...node.children].map(li => `• ${walk(li)}`).join('
+') + '
+';
+    if (tag === 'ol') return [...node.children].map((li, i) => `${i+1}. ${walk(li)}`).join('
+') + '
+';
     const inner = [...node.childNodes].map(walk).join('');
-    if (['p','div'].includes(tag)) return inner + '\n';
+    if (['p','div'].includes(tag)) return inner + '
+';
     return inner;
   };
-  return [...root.childNodes].map(walk).join('').replace(/\n{3,}/g, '\n\n').trim();
+  return [...root.childNodes].map(walk).join('').replace(/
+{3,}/g, '
+
+').trim();
 }
 
 function composerFormat(cmd) {
@@ -3935,7 +3957,7 @@ window.approvalGenerateLink = async function (safeId) {
 window.approvalCopyLink = function (safeId) {
   const draftId = getApprovalDraftId(safeId); const meta = getApprovalMeta(draftId);
   if (!meta?.approval_url) { showToast('No link available', 'error'); return; }
-  navigator.clipboard.writeText(meta.approval_url); showToast('Link copied!', 'success');
+  safeWriteText(meta.approval_url); showToast('Link copied!', 'success');
 };
 
 window.approvalRemove = function (safeId) {
@@ -4103,29 +4125,28 @@ function init() {
   initTemplateSelectors();
   renderTemplates();
   buildTimePickers();
-  qs('scheduleDate').value = new Date().toISOString().slice(0, 10);
-  qs('scheduleDate').min = new Date().toISOString().slice(0, 10);
+  setIfPresent('scheduleDate', el => { const today = new Date().toISOString().slice(0, 10); el.value = today; el.min = today; });
   renderCalendar();
   initTrending();
   window.__postiqTrendingInited = true;
   activateView('calendarView');
 
   // Token management
-  qs('manageTokenBtn').onclick = () => {
+  on('manageTokenBtn', 'click', () => {
     tokenPanelOpen = !tokenPanelOpen;
     qs('tokenPanel').style.display = tokenPanelOpen ? 'block' : 'none';
     qs('manageTokenBtn').textContent = tokenPanelOpen ? 'Done' : 'Manage token';
-  };
-  qs('revealTokenBtn').onclick = () => {
+  });
+  on('revealTokenBtn', 'click', () => {
     tokenPanelOpen = true; qs('tokenPanel').style.display = 'block';
     qs('manageTokenBtn').textContent = 'Done';
     const inp = qs('tokenInput'); inp.type = 'text'; inp.focus();
-  };
-  qs('saveTokenBtn').onclick = saveToken;
-  qs('clearTokenBtn').onclick = () => { qs('tokenInput').value = ''; saveToken(); };
+  });
+  on('saveTokenBtn', 'click', saveToken);
+  on('clearTokenBtn', 'click', () => { qs('tokenInput').value = ''; saveToken(); });
 
   // Sync
-  qs('syncBtn').onclick = () => syncBuffer({ force: true });
+  on('syncBtn', 'click', () => syncBuffer({ force: true }));
   if (bufferToken) syncBuffer();
 
   // Navigation
@@ -4139,29 +4160,29 @@ function init() {
   if (hasSeenBucketIntro()) revealBucketCore(false); else showBucketIntro();
   const bucketStartBtn = qs('bucketStartWalkthroughBtn'); if (bucketStartBtn) bucketStartBtn.onclick = () => revealBucketCore(true);
   const bucketSkipBtn = qs('bucketSkipIntroBtn'); if (bucketSkipBtn) bucketSkipBtn.onclick = () => revealBucketCore(true);
-  qs('bucketRoleSelect').onchange = e => { state.bucketRole = e.target.value; state.bucketStep = 0; state.contentBuckets = defaultBucketsForRole(state.bucketRole); persistBuckets(); renderBuckets(); renderBucketSummary(); renderComposerBuckets(); };
-  qs('bucketAudienceInput').addEventListener('input', e => { state.bucketAudience = e.target.value; persistBuckets(); });
-  qs('bucketComposeAllBtn').onclick = () => sendBucketsToComposer('all');
-  qs('bucketCopyPromptBtn').onclick = () => { navigator.clipboard.writeText(buildBucketPrompt()); showToast('AI prompt copied', 'success'); };
-  qs('contentBucketsResetBtn').onclick = resetBuckets;
+  on('bucketRoleSelect', 'change', e => { state.bucketRole = e.target.value; state.bucketStep = 0; state.contentBuckets = defaultBucketsForRole(state.bucketRole); persistBuckets(); renderBuckets(); renderBucketSummary(); renderComposerBuckets(); });
+  on('bucketAudienceInput', 'input', e => { state.bucketAudience = e.target.value; persistBuckets(); });
+  on('bucketComposeAllBtn', 'click', () => sendBucketsToComposer('all'));
+  on('bucketCopyPromptBtn', 'click', () => { safeWriteText(buildBucketPrompt()); showToast('AI prompt copied', 'success'); });
+  on('contentBucketsResetBtn', 'click', resetBuckets);
   const cbrm = qs('contentBucketsResetMob'); if (cbrm) cbrm.onclick = resetBuckets;
-  qs('composerOpenBucketsBtn').onclick = () => activateView('contentBucketsView');
-  qs('composerInsertBucketsBtn').onclick = () => sendBucketsToComposer('all');
-  qs('closeSharedDay').onclick = () => closeModal('sharedDayModal');
+  on('composerOpenBucketsBtn', 'click', () => activateView('contentBucketsView'));
+  on('composerInsertBucketsBtn', 'click', () => sendBucketsToComposer('all'));
+  on('closeSharedDay', 'click', () => closeModal('sharedDayModal'));
 
   // Calendar
-  qs('prevMonth').onclick = () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() - 1, 1); renderCalendar(); detectQueueGaps(); };
-  qs('nextMonth').onclick = () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() + 1, 1); renderCalendar(); detectQueueGaps(); };
-  qs('todayMonth').onclick = () => { state.month = new Date(); renderCalendar(); detectQueueGaps(); };
-  qs('closeNote').onclick = () => closeModal('noteModal');
-  qs('saveNoteBtn').onclick = saveNote;
-  qs('deleteNoteBtn').onclick = deleteNote;
-  qs('sendNoteToDraftBtn').onclick = sendNoteToDraft;
-  qs('shareMonthBtn').onclick = () => { shareSnapshot(); openModal('shareModal'); };
-  qs('closeShare').onclick = () => closeModal('shareModal');
-  qs('includeNotes').onchange = shareSnapshot;
-  qs('generateShare').onclick = shareSnapshot;
-  qs('copyShare').onclick = () => navigator.clipboard.writeText(qs('shareLink').value || '');
+  on('prevMonth', 'click', () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() - 1, 1); renderCalendar(); detectQueueGaps(); });
+  on('nextMonth', 'click', () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() + 1, 1); renderCalendar(); detectQueueGaps(); });
+  on('todayMonth', 'click', () => { state.month = new Date(); renderCalendar(); detectQueueGaps(); });
+  on('closeNote', 'click', () => closeModal('noteModal'));
+  on('saveNoteBtn', 'click', saveNote);
+  on('deleteNoteBtn', 'click', deleteNote);
+  on('sendNoteToDraftBtn', 'click', sendNoteToDraft);
+  on('shareMonthBtn', 'click', () => { shareSnapshot(); openModal('shareModal'); });
+  on('closeShare', 'click', () => closeModal('shareModal'));
+  on('includeNotes', 'change', shareSnapshot);
+  on('generateShare', 'click', shareSnapshot);
+  on('copyShare', 'click', () => safeWriteText(qs('shareLink').value || ''));
 
   // Composer
   const editor = qs('composerEditor');
@@ -4186,53 +4207,53 @@ function init() {
     const showClear = text.length > 0;
     const ccBtn = qs('composerClearBtn'); if (ccBtn) ccBtn.style.display = showClear ? 'inline-flex' : 'none';
   });
-  qs('charCount').textContent = '0 chars';
-  qs('composerChannel').addEventListener('change', updateComposerButtonStates);
+  setIfPresent('charCount', el => { el.textContent = '0 chars'; });
+  on('composerChannel', 'change', updateComposerButtonStates);
 
-  qs('composerClearBtn').onclick = () => {
+  on('composerClearBtn', 'click', () => {
     if (editorToText(editor.innerHTML) && !confirm('Clear composer?')) return;
     editor.innerHTML = ''; editor.dispatchEvent(new Event('input'));
     qs('composerStatus').textContent = ''; clearMedia();
-  };
+  });
 
   document.querySelectorAll('[data-cmd]').forEach(btn => btn.onclick = () => composerFormat(btn.dataset.cmd));
-  qs('composerDraft').onclick = () => composerSend('draft');
-  qs('composerQueue').onclick = () => composerSend('queue');
-  qs('composerScheduleSend').onclick = () => composerSend('schedule');
-  qs('composerScheduleToggle').onclick = () => {
+  on('composerDraft', 'click', () => composerSend('draft'));
+  on('composerQueue', 'click', () => composerSend('queue'));
+  on('composerScheduleSend', 'click', () => composerSend('schedule'));
+  on('composerScheduleToggle', 'click', () => {
     qs('schedulePanel').classList.add('open');
     qs('composerScheduleToggle').style.display = 'none';
-  };
-  qs('scheduleCancel').onclick = () => {
+  });
+  on('scheduleCancel', 'click', () => {
     qs('schedulePanel').classList.remove('open');
     qs('composerScheduleToggle').style.display = 'inline-flex';
-  };
+  });
   ['scheduleDate','scheduleHour','scheduleMin','scheduleAmpm'].forEach(id => qs(id).addEventListener('change', syncComposerWhen));
   syncComposerWhen();
   updateComposerButtonStates();
   window.addEventListener('postiq:synced', updateComposerButtonStates);
 
   // Template insert
-  qs('insertTemplateBtn').onclick = () => { renderTemplatePicker(); openModal('templatePickerModal'); };
-  qs('saveAsTemplateBtn').onclick = () => {
+  on('insertTemplateBtn', 'click', () => { renderTemplatePicker(); openModal('templatePickerModal'); });
+  on('saveAsTemplateBtn', 'click', () => {
     const sel = window.getSelection(); const text = (sel?.toString() || '').trim();
     if (!text) { showToast('Select text in the editor first', 'error'); return; }
     qs('templateBody').value = text; openTemplateModal();
-  };
+  });
 
   // Ref pin
-  qs('refPinDismiss').onclick = () => { qs('refPin').style.display = 'none'; };
+  on('refPinDismiss', 'click', () => { qs('refPin').style.display = 'none'; });
 
   // Media
-  qs('mediaToggleBtn').onclick = () => { qs('mediaPanel').classList.contains('open') ? closeMediaPanel() : openMediaPanel(); };
-  qs('mediaToggleOff').onclick = () => { qs('mediaPanel').classList.contains('open') ? closeMediaPanel() : openMediaPanel(); };
-  qs('mediaSummaryClear').onclick = () => { clearMedia(); showToast('Media removed'); };
+  on('mediaToggleBtn', 'click', () => { qs('mediaPanel').classList.contains('open') ? closeMediaPanel() : openMediaPanel(); });
+  on('mediaToggleOff', 'click', () => { qs('mediaPanel').classList.contains('open') ? closeMediaPanel() : openMediaPanel(); });
+  on('mediaSummaryClear', 'click', () => { clearMedia(); showToast('Media removed'); });
   document.querySelectorAll('.media-tab').forEach(t => t.onclick = () => switchMediaTab(t.dataset.mtab));
 
   // Upload
   const zone = qs('uploadZone'), fi = qs('uploadFileInput');
   zone.onclick = e => { if (!e.target.closest('#uploadBrowseBtn') && !e.target.closest('#uploadResult')) fi.click(); };
-  qs('uploadBrowseBtn').onclick = e => { e.stopPropagation(); fi.click(); };
+  on('uploadBrowseBtn', 'click', e => { e.stopPropagation(); fi.click(); });
   fi.onchange = () => { if (fi.files[0]) handleUploadFile(fi.files[0]); };
   zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = 'var(--brand)'; zone.style.background = 'var(--brand-dim)'; });
   zone.addEventListener('dragleave', e => { if (!zone.contains(e.relatedTarget)) { zone.style.borderColor = 'var(--border2)'; zone.style.background = ''; } });
@@ -4244,7 +4265,7 @@ function init() {
     const img = Array.from(e.clipboardData?.items || []).find(i => i.type.startsWith('image/'));
     if (img) handleUploadFile(img.getAsFile());
   });
-  qs('uploadReplaceBtn').onclick = e => { e.stopPropagation(); resetUploadTab(); fi.click(); };
+  on('uploadReplaceBtn', 'click', e => { e.stopPropagation(); resetUploadTab(); fi.click(); });
   qs('uploadClearBtn').onclick  = e => { e.stopPropagation(); resetUploadTab(); clearMedia(); showToast('Media removed'); };
 
   // URL media
@@ -4269,22 +4290,22 @@ function init() {
   if (vtu) vtu.addEventListener('input', () => { mediaState.videoThumbUrl = vtu.value.trim(); });
 
   // Unsplash
-  qs('unsplashSearchBtn').onclick = runUnsplashSearch;
-  qs('unsplashQuery').addEventListener('keydown', e => { if (e.key === 'Enter') runUnsplashSearch(); });
+  on('unsplashSearchBtn', 'click', runUnsplashSearch);
+  on('unsplashQuery', 'keydown', e => { if (e.key === 'Enter') runUnsplashSearch(); });
 
   // Templates
-  qs('newTemplateBtn').onclick = () => openTemplateModal();
-  qs('closeTemplateModal').onclick = () => closeModal('templateModal');
-  qs('cancelTemplateBtn').onclick = () => closeModal('templateModal');
-  qs('saveTemplateBtn').onclick = saveTemplate;
-  qs('closeTemplatePicker').onclick = () => closeModal('templatePickerModal');
-  qs('templateSearch').addEventListener('input', e => { state.templateSearch = e.target.value; renderTemplates(); });
-  qs('templatePlatformFilter').onchange = e => { state.templatePlatform = e.target.value; renderTemplates(); };
-  qs('pickerSearch').addEventListener('input', renderTemplatePicker);
-  qs('pickerType').onchange = renderTemplatePicker;
+  on('newTemplateBtn', 'click', () => openTemplateModal());
+  on('closeTemplateModal', 'click', () => closeModal('templateModal'));
+  on('cancelTemplateBtn', 'click', () => closeModal('templateModal'));
+  on('saveTemplateBtn', 'click', saveTemplate);
+  on('closeTemplatePicker', 'click', () => closeModal('templatePickerModal'));
+  on('templateSearch', 'input', e => { state.templateSearch = e.target.value; renderTemplates(); });
+  on('templatePlatformFilter', 'change', e => { state.templatePlatform = e.target.value; renderTemplates(); });
+  on('pickerSearch', 'input', renderTemplatePicker);
+  on('pickerType', 'change', renderTemplatePicker);
 
   // Approvals
-  qs('approvalsRefreshBtn').onclick = loadApprovals;
+  on('approvalsRefreshBtn', 'click', loadApprovals);
   document.querySelectorAll('[data-afilter]').forEach(pill => {
     pill.onclick = () => {
       document.querySelectorAll('[data-afilter]').forEach(p => p.classList.remove('active'));
@@ -4322,11 +4343,11 @@ function init() {
     qs('zenToggleBtn').title = 'Zen mode — distraction-free writing';
   }
 
-  qs('zenToggleBtn').onclick = () => zenActive ? exitZen() : enterZen();
-  qs('zenExit').onclick = exitZen;
+  on('zenToggleBtn', 'click', () => zenActive ? exitZen() : enterZen());
+  on('zenExit', 'click', exitZen);
 
   // Sync zen channel back to main when changed
-  qs('zenChannel').addEventListener('change', () => {
+  on('zenChannel', 'change', () => {
     qs('composerChannel').value = qs('zenChannel').value;
     updateComposerButtonStates();
   });
@@ -4334,11 +4355,11 @@ function init() {
   // Zen send buttons proxy to the real composer send
   qs('zenDraft').onclick    = () => composerSend('draft');
   qs('zenQueue').onclick    = () => composerSend('queue');
-  qs('zenSchedule').onclick = () => {
+  on('zenSchedule', 'click', () => {
     exitZen();
     qs('schedulePanel').classList.add('open');
     qs('composerScheduleToggle').style.display = 'none';
-  };
+  });
 
   // Escape key exits zen
   document.addEventListener('keydown', e => {
@@ -4349,8 +4370,8 @@ function init() {
   }, true); // capture phase so it fires before modal handler
 
   // Settings
-  qs('openSettings').onclick = () => openModal('settingsModal');
-  qs('closeSettings').onclick = () => closeModal('settingsModal');
+  on('openSettings', 'click', () => openModal('settingsModal'));
+  on('closeSettings', 'click', () => closeModal('settingsModal'));
   document.querySelectorAll('.settings-tab').forEach(tab => {
     tab.onclick = () => {
       document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
@@ -4387,27 +4408,27 @@ function init() {
     qs('mobBackdrop').classList.remove('open');
     document.body.style.overflow = '';
   }
-  qs('mobBackdrop').onclick = closeMobDrawer;
+  on('mobBackdrop', 'click', closeMobDrawer);
   // All three "…" menu buttons on mobile view headers open the drawer
   ['mobMenuBtn','mobMenuBtnDraft','mobMenuBtnApprovals'].forEach(id => {
     const btn = qs(id); if (btn) btn.onclick = openMobDrawer;
   });
-  qs('mobSyncBtn').onclick = () => { syncBuffer({ force: true }); closeMobDrawer(); };
+  on('mobSyncBtn', 'click', () => { syncBuffer({ force: true }); closeMobDrawer(); });
   let mobTokenOpen = false;
-  qs('mobManageTokenBtn').onclick = () => {
+  on('mobManageTokenBtn', 'click', () => {
     mobTokenOpen = !mobTokenOpen;
     qs('mobTokenPanel').style.display = mobTokenOpen ? 'block' : 'none';
     qs('mobManageTokenBtn').textContent = mobTokenOpen ? '🔑 Done' : '🔑 Manage Buffer token';
     if (mobTokenOpen && bufferToken) qs('mobTokenInput').value = bufferToken;
-  };
-  qs('mobSaveTokenBtn').onclick = () => {
+  });
+  on('mobSaveTokenBtn', 'click', () => {
     const t = qs('mobTokenInput').value.trim();
     const mode = [...document.querySelectorAll('input[name="mobTokenMode"]')].find(r => r.checked)?.value || 'session';
     const ok = setBufferToken(t, { mode, messageEl: qs('mobTokenMsg') });
     if (ok) { qs('tokenInput').value = t; syncBuffer({ force: true }); closeMobDrawer(); }
-  };
-  qs('mobClearTokenBtn').onclick = () => { qs('mobTokenInput').value = ''; setBufferToken('', { mode: 'session', messageEl: qs('mobTokenMsg') }); };
-  qs('mobOpenSettings').onclick = () => { closeMobDrawer(); openModal('settingsModal'); };
+  });
+  on('mobClearTokenBtn', 'click', () => { qs('mobTokenInput').value = ''; setBufferToken('', { mode: 'session', messageEl: qs('mobTokenMsg') }); });
+  on('mobOpenSettings', 'click', () => { closeMobDrawer(); openModal('settingsModal'); });
 
   // Mobile-only share button for calendar
   const smb = qs('shareMonthBtnMob'); if (smb) smb.onclick = () => { shareSnapshot(); openModal('shareModal'); };
@@ -4460,7 +4481,8 @@ function init() {
   function splitThreadText(text, max = 280) {
     const parts = []; let left = text.trim();
     while (left.length > max) {
-      let cut = left.lastIndexOf('\n', max);
+      let cut = left.lastIndexOf('
+', max);
       if (cut < 80) cut = left.lastIndexOf(' ', max);
       if (cut < 80) cut = max;
       parts.push(left.slice(0, cut).trim()); left = left.slice(cut).trim();
@@ -4497,7 +4519,7 @@ function init() {
           </div>
         </div>
         <textarea data-ti="${i}" style="min-height:80px;font-size:13px;">${p}</textarea>`;
-      div.querySelector('[data-pi]').onclick = () => { navigator.clipboard.writeText(full); showToast('Part copied'); };
+      div.querySelector('[data-pi]').onclick = () => { safeWriteText(full); showToast('Part copied'); };
       div.querySelector('[data-ti]').addEventListener('input', e => {
         threadParts[+e.target.dataset.ti] = e.target.value;
         const span = e.target.closest('.card').querySelector('span[style*="DM Mono"]');
@@ -4526,27 +4548,29 @@ function init() {
       }
     }
 
-    qs('splitBtn').onclick = () => {
+    on('splitBtn', 'click', () => {
       const text = qs('threadInput').value.trim();
       if (!text) { showToast('Add some text first', 'error'); return; }
       threadParts = splitThreadText(text);
       renderThreadParts();
       showToast(`${threadParts.length} thread parts`, 'success');
-    };
+    });
 
-    qs('splitSampleBtn').onclick = () => {
+    on('splitSampleBtn', 'click', () => {
       qs('threadInput').value = 'PostIQ helps Buffer users move faster. Start with one big idea, split it into clear thread parts, refine each part, and send a cleaner post flow to Buffer — drafts, queued, or scheduled. The whole thing in under two minutes.';
       qs('splitBtn').click();
-    };
+    });
 
     const toggle = qs('threadNumberToggle');
     if (toggle) toggle.onchange = e => { threadNumbered = e.target.checked; renderThreadParts(); };
 
-    qs('copyAllPartsBtn').onclick = () => {
+    on('copyAllPartsBtn', 'click', () => {
       if (!threadParts.length) return;
-      const text = threadParts.map((p,i) => threadNumbered ? `${i+1}/${threadParts.length} ${p}` : p).join('\n\n');
-      navigator.clipboard.writeText(text); showToast('All parts copied', 'success');
-    };
+      const text = threadParts.map((p,i) => threadNumbered ? `${i+1}/${threadParts.length} ${p}` : p).join('
+
+');
+      safeWriteText(text); showToast('All parts copied', 'success');
+    });
 
     async function sendThread(action) {
       if (!threadParts.length) { qs('threadStatus').textContent = 'Split content first.'; return; }
@@ -4579,7 +4603,7 @@ function init() {
 
     qs('draftThreadBtn').onclick    = () => sendThread('draft');
     qs('queueThreadBtn').onclick    = () => sendThread('queue');
-    qs('scheduleThreadBtn').onclick = () => { qs('threadWhenRow').style.display = 'block'; };
+    on('scheduleThreadBtn', 'click', () => { qs('threadWhenRow').style.display = 'block'; });
 
     window.addEventListener('postiq:synced', () => {
       // Re-populate channels after sync
@@ -4713,14 +4737,14 @@ function init() {
     });
 
     // Custom sub
-    qs('trendingGoSub').onclick = () => {
+    on('trendingGoSub', 'click', () => {
       const val = qs('trendingCustomSub').value.trim().replace(/^r\//,'');
       if (!val) return;
       if (!DEFAULT_SUBS.includes(val)) DEFAULT_SUBS.push(val);
       trendingState.sub = val; renderSubPills(); loadReddit();
       qs('trendingCustomSub').value = '';
-    };
-    qs('trendingCustomSub').addEventListener('keydown', e => { if (e.key==='Enter') qs('trendingGoSub').click(); });
+    });
+    on('trendingCustomSub', 'keydown', e => { if (e.key==='Enter') qs('trendingGoSub').click(); });
 
     // Refresh buttons
     ['trendingRefreshBtn','trendingRefreshMob','trendingRefreshReddit'].forEach(id => {
