@@ -3031,10 +3031,10 @@ function resetBuckets() {
   showToast('Buckets reset');
 }
 function setBucketIntroSeen(seen) {
-  try { localStorage.setItem('postiq_bucket_intro_seen_v1', seen ? '1' : '0'); } catch {}
+  lsSet('postiq_bucket_intro_seen_v1', seen ? '1' : '0');
 }
 function hasSeenBucketIntro() {
-  try { return localStorage.getItem('postiq_bucket_intro_seen_v1') === '1'; } catch { return false; }
+  return lsGet('postiq_bucket_intro_seen_v1') === '1';
 }
 function revealBucketCore(markSeen = false) {
   const intro = qs('bucketIntroCard');
@@ -4753,7 +4753,7 @@ function init() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => { try { init(); } catch (e) { console.error('[PostIQ] init() crashed:', e); const wrap=document.body; const note=document.createElement('div'); note.style.cssText='position:fixed;left:16px;right:16px;top:16px;z-index:9999;background:#fff4f4;border:1px solid #f1b5b5;color:#8a1f1f;padding:12px 14px;border-radius:10px;font:13px/1.5 system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.12)'; note.textContent='PostIQ hit a local preview/storage error before finishing setup. Try opening it in a browser tab or hosted preview.'; wrap.appendChild(note); } });
+document.addEventListener('DOMContentLoaded', () => { try { init(); } catch (e) { console.error('[PostIQ] init() crashed:', e); } });
 </script>
 
 </body>
