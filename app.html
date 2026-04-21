@@ -2378,21 +2378,12 @@
       <button class="btn sm ghost" id="closeShare">Close</button>
     </div>
     <div class="card mb8">
-      <div style="font-size:13px;color:var(--muted);">Month: <strong style="color:var(--text)" id="shareMonthName"></strong></div>
+      <div style="font-size:13px;color:var(--muted);">Week: <strong style="color:var(--text)" id="shareMonthName"></strong></div>
       <div style="font-size:13px;color:var(--muted);margin-top:6px;">Posts: <strong style="color:var(--text)" id="sharePostCount">0</strong></div>
       <label style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer;font-size:13px;color:var(--muted);">
         <input type="checkbox" id="includeNotes" checked /> Include planning notes
       </label>
-      <div class="field" style="margin-top:10px;margin-bottom:0;">
-        <label class="label">Theme</label>
-        <select id="shareTheme" class="input">
-          <option value="default">Default</option>
-          <option value="dark">Dark</option>
-          <option value="client">Client Ready</option>
-          <option value="playful">Playful</option>
-        </select>
-      </div>
-      <div style="font-size:12px;color:var(--subtle);margin-top:8px;line-height:1.55;">Shared snapshots now carry the full post text and full planning notes. Recipients can click a day to open the details.</div>
+      <div style="font-size:12px;color:var(--subtle);margin-top:8px;line-height:1.55;">Share a simple snapshot of this week's posts. Click More on any day to open the full copy.</div>
     </div>
     <div class="row mt8">
       <button class="btn primary" id="generateShare">Generate link</button>
@@ -2461,7 +2452,7 @@
   <div id="sharedBrand" style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;margin-bottom:20px;color:var(--ink);">PostIQ</div>
   <div id="sharedBanner" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;font-size:13px;color:var(--muted);margin-bottom:20px;"></div>
   <h2 id="sharedMonthTitle" style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:22px;margin-bottom:16px;"></h2>
-  <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">Read-only planning snapshot. Click any shared day to open the full post text and notes.</p>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">This week's posts. Click More on any day to view the full copy.</p>
   <div class="cal-dow">
     <div class="dow-cell">Sun</div><div class="dow-cell">Mon</div><div class="dow-cell">Tue</div>
     <div class="dow-cell">Wed</div><div class="dow-cell">Thu</div><div class="dow-cell">Fri</div><div class="dow-cell">Sat</div>
@@ -3534,20 +3525,33 @@ function renderAgenda() {
 // Calendar snapshot share
 function shareSnapshot() {
   const include = qs('includeNotes').checked;
-  const theme = qs('shareTheme')?.value || 'default';
-  const posts = state.scheduled.filter(p => { const d = new Date(p.dueAt); return d.getFullYear() === state.month.getFullYear() && d.getMonth() === state.month.getMonth(); });
+  const today = new Date();
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - today.getDay());
+  weekStart.setHours(0,0,0,0);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  weekEnd.setHours(23,59,59,999);
+  const posts = state.scheduled.filter(p => {
+    const d = new Date(p.dueAt);
+    return d >= weekStart && d <= weekEnd;
+  });
   const allNotes = getNotes();
-  const monthNotes = Object.entries(allNotes).filter(([k]) => { const d = new Date(k + 'T00:00:00'); return d.getFullYear() === state.month.getFullYear() && d.getMonth() === state.month.getMonth(); }).map(([date, val]) => ({ date, ...val }));
-  qs('shareMonthName').textContent = monthLabel(state.month);
+  const weekNotes = Object.entries(allNotes).filter(([k]) => {
+    const d = new Date(k + 'T00:00:00');
+    return d >= weekStart && d <= weekEnd;
+  }).map(([date, val]) => ({ date, ...val }));
+  const weekLabel = `${weekStart.toLocaleDateString(undefined,{month:'short',day:'numeric'})} – ${weekEnd.toLocaleDateString(undefined,{month:'short',day:'numeric'})}`;
+  qs('shareMonthName').textContent = weekLabel;
   qs('sharePostCount').textContent = posts.length;
   const payload = {
     snapshotId: makeSnapshotId(),
     createdAt: Date.now(),
-    theme,
-    month: monthLabel(state.month),
+    period: 'week',
+    label: weekLabel,
     includeNotes: include,
     posts: posts.map(p => ({ dueAt: p.dueAt, text: p.text, noteText: p.note || '', channelName: p.channelName || p.channel || '' })),
-    notes: include ? monthNotes : []
+    notes: include ? weekNotes : []
   };
   qs('shareLink').value = location.origin + location.pathname + '#share=' + btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
 }
@@ -3557,9 +3561,8 @@ function renderSharedFromHash() {
   try {
     const snap = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(7)))));
     qs('app').classList.add('hidden'); qs('sharedView').classList.remove('hidden');
-    qs('sharedMonthTitle').textContent = snap.month;
-    qs('sharedBanner').textContent = `Read-only snapshot · ${snap.posts.length} scheduled posts · Notes ${snap.includeNotes ? 'included' : 'excluded'} · Theme ${snap.theme || 'default'} · ID ${snap.snapshotId || 'snapshot'}`;
-    applySharedTheme(snap.theme || 'default');
+    qs('sharedMonthTitle').textContent = snap.label || snap.month || "This Week's Posts";
+    qs('sharedBanner').textContent = `This week's posts · ${snap.posts.length} scheduled post${snap.posts.length === 1 ? '' : 's'} · Click More to view inside.`;
     const closeBtn = qs('closeSharedDay'); if (closeBtn) closeBtn.onclick = () => closeModal('sharedDayModal');
     const grid = qs('sharedGrid'); grid.innerHTML = '';
     const map = {};
@@ -3568,12 +3571,12 @@ function renderSharedFromHash() {
     Object.keys(map).sort().forEach(k => {
       const d = document.createElement('div'); d.className = 'cal-day'; d.style.cursor = 'pointer';
       const data = map[k];
-      let html = `<div class="day-num">${k.slice(8)}</div>`;
+      let html = `<div class="day-num">${new Date(k + 'T00:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}</div>`;
       if (data.posts.length) html += `<div class="day-count">${data.posts.length}</div>`;
       data.posts.slice(0, 2).forEach(p => { html += `<div class="day-post-pill">${safeText(compact(p.text || p, 60))}</div>`; });
-      data.notes.slice(0, 1).forEach(n => { html += `<div class="day-note-pill ${n.tag || 'gold'}">${safeText(compact(n.text, 50))}</div>`; });
+      html += `<button class="btn sm" style="margin-top:8px;align-self:flex-start;">More</button>`;
       d.innerHTML = html;
-      d.onclick = () => openSharedDay(k, data);
+      d.onclick = (e) => { e.preventDefault(); openSharedDay(k, data); };
       grid.appendChild(d);
     });
     return true;
@@ -4066,6 +4069,14 @@ function activateView(viewId) {
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId));
   document.querySelectorAll('.mob-tab[data-view]').forEach(t => t.classList.toggle('active', t.dataset.view === viewId));
   if (viewId === 'approvalsView') loadApprovals();
+  if (viewId === 'trendingView') {
+    if (!window.__postiqTrendingInited) { window.__postiqTrendingInited = true; initTrending(); }
+  }
+  if (viewId === 'contentBucketsView') {
+    renderBuckets();
+    renderBucketSummary();
+    if (hasSeenBucketIntro()) revealBucketCore(false); else showBucketIntro();
+  }
 }
 
 // ── SCHEDULE PICKERS ──────────────────────────────────
@@ -4153,7 +4164,6 @@ function init() {
   qs('shareMonthBtn').onclick = () => { shareSnapshot(); openModal('shareModal'); };
   qs('closeShare').onclick = () => closeModal('shareModal');
   qs('includeNotes').onchange = shareSnapshot;
-  qs('shareTheme').onchange = shareSnapshot;
   qs('generateShare').onclick = shareSnapshot;
   qs('copyShare').onclick = () => navigator.clipboard.writeText(qs('shareLink').value || '');
 
@@ -4725,18 +4735,6 @@ function init() {
     // Load on first visit
     loadReddit();
   }
-
-  // Init trending when view activates (lazy)
-  let trendingInited = false;
-  const origActivateView = activateView;
-  window.activateView = function(viewId) {
-    origActivateView(viewId);
-    if (viewId === 'trendingView' && !trendingInited) { trendingInited = true; initTrending(); }
-    if (viewId === 'contentBucketsView') {
-      renderBuckets(); renderBucketSummary();
-      if (hasSeenBucketIntro()) revealBucketCore(false); else showBucketIntro();
-    }
-  };
 
   // Also update settings guide entry
   const guidePanel = qs('settingsPanelGuide');
