@@ -2062,9 +2062,11 @@
         <div class="page-hdr-left">
           <h1 class="page-title">Content Buckets</h1>
           <p class="page-desc">Find repeatable content lanes, save them locally, then pull ideas straight into Draft. This tool works without a Buffer key.</p>
+          <p style="font-size:12px;color:var(--subtle);margin-top:4px;">Work in progress — we’re actively simplifying this experience.</p>
         </div>
         <div class="page-actions">
           <span class="status-pill free">No key required</span>
+          <span class="chip" style="background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.22);color:var(--amber);">WIP</span>
           <button class="btn ghost" id="contentBucketsResetBtn">Reset</button>
         </div>
       </div>
@@ -2381,6 +2383,15 @@
       <label style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer;font-size:13px;color:var(--muted);">
         <input type="checkbox" id="includeNotes" checked /> Include planning notes
       </label>
+      <div class="field" style="margin-top:10px;margin-bottom:0;">
+        <label class="label">Theme</label>
+        <select id="shareTheme" class="input">
+          <option value="default">Default</option>
+          <option value="dark">Dark</option>
+          <option value="client">Client Ready</option>
+          <option value="playful">Playful</option>
+        </select>
+      </div>
       <div style="font-size:12px;color:var(--subtle);margin-top:8px;line-height:1.55;">Shared snapshots now carry the full post text and full planning notes. Recipients can click a day to open the details.</div>
     </div>
     <div class="row mt8">
@@ -2447,7 +2458,7 @@
 
 <!-- Shared view (read-only snapshot) -->
 <section id="sharedView" class="hidden" style="max-width:980px;margin:0 auto;padding:28px;">
-  <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;margin-bottom:20px;color:var(--ink);">PostIQ</div>
+  <div id="sharedBrand" style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;margin-bottom:20px;color:var(--ink);">PostIQ</div>
   <div id="sharedBanner" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;font-size:13px;color:var(--muted);margin-bottom:20px;"></div>
   <h2 id="sharedMonthTitle" style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:22px;margin-bottom:16px;"></h2>
   <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">Read-only planning snapshot. Click any shared day to open the full post text and notes.</p>
@@ -2555,6 +2566,42 @@ const monthLabel = d => d.toLocaleDateString(undefined, { month: 'long', year: '
 const monthStart = d => new Date(d.getFullYear(), d.getMonth(), 1);
 const safeText = v => String(v || '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
 const compact = (v, max = 80) => { const t = String(v || '').trim(); return t.length > max ? t.slice(0, max - 1) + '…' : t; };
+
+const SNAP_WORDS = ['amber','anchor','apricot','arrow','ash','aster','atlas','aurora','autumn','bamboo','bay','beacon','berry','birch','bloom','blue','blush','bolt','bonfire','breeze','brick','brook','brush','canyon','cedar','chalk','charm','citrus','clay','cliff','cloud','clover','coast','cobalt','comet','coral','copper','cosmic','cove','crimson','crown','daisy','dawn','delta','dune','echo','ember','fern','field','finch','flare','flora','fog','forest','frost','gale','garden','glimmer','glow','gold','granite','grove','harbor','hazel','hearth','hollow','honey','indigo','iris','ivory','jade','jasmine','jet','juniper','lagoon','lake','laurel','lava','leaf','lilac','linen','luna','marble','meadow','mercury','mesa','midnight','mist','moon','moss','nectar','nova','oak','oasis','olive','onyx','opal','orchid','paper','pearl','pepper','petal','pine','plum','poppy','prairie','quartz','rain','raven','reef','ridge','river','rose','ruby','sage','sand','satin','scarlet','sea','shadow','shore','silver','sky','slate','smoke','snow','solstice','sparrow','spruce','star','stone','storm','sun','sunset','surf','terra','thistle','timber','topaz','trail','twig','vale','velvet','vine','violet','wave','willow','wind','winter','wood','wren','zephyr',
+'acorn','alder','almond','amberly','amethyst','anthem','apple','ardent','aspen','azure','badger','ballad','basil','beetle','bell','blackbird','blaze','bliss','blossom','bluejay','bramble','branch','briar','brooklyn','butter','cabin','camp','canopy','caramel','cardinal','carnation','cascade','castle','cedarwood','cello','charcoal','chestnut','cinder','circle','cocoa','copperfield','cotton','cranberry','creek','cricket','crystal','cypress','denim','desert','drift','elm','evergreen','feather','festival','fig','firefly','flannel','flicker','flint','flower','fox','gardenia','ginger','glacier','grain','gravel','harvest','hawk','heather','heron','horizon','ice','ink','iron','island','ivy','kestrel','kindle','kite','lark','lemon','light','lotus','mallow','maple','marigold','marsh','merlot','meteor','mint','morning','mulberry','nectarine','needle','night','nutmeg','ocean','otter','palm','parchment','pebble','peony','phoenix','pigeon','pinecone','pond','primrose','ripple','robin','root','rosemary','sable','saffron','salt','samphire','sapphire','sepia','shell','signal','sienna','silk','sprout','starling','straw','summit','teal','tempest','thyme','tide','toast','truffle','tulip','umber','valley','vanilla','vista','walnut','water','wildflower','wolf','yarrow',
+'adobe','agate','alpine','anise','arc','arroyo','barley','basalt','beige','biscuit','bluet','bourbon','brass','buffalo','buttercup','caper','carmine','cashmere','celery','cerulean','chive','cindercone','cinnamon','citadel','coriander','cork','currant','daffodil','drizzle','earth','eclipse','fable','fawn','fennel','fiddle','fir','glade','granola','harvestmoon','hedge','hickory','hill','honeycomb','irisblue','jetty','joy','kelp','laguna','lantern','latte','legend','leopard','lichen','lime','lodge','lumen','magnolia','mallowroot','manor','melon','monarch','moonstruck','mulch','myrtle','navy','nickel','north','nutria','ochre','orbit','oxford','papaya','parsnip','pebblebrook','peppermint','persimmon','petunia','pico','pinot','pistachio','planet','plaza','poem','porch','port','rainier','ramble','redwood','relay','resin','ridgeway','roost','rust','sandal','seabird','seaglass','sequoia','shale','silverbell','song','soy','speck','spice','sprig','sugar','sundial','swallow','tangerine','tansy','thunder','toffee','torch','travertine','trellis','turnip','veranda','vermilion','voyage','warmth','whisper','wicker','wild','windswept','woodland','yonder','zenith'];
+function makeSnapshotId() {
+  const pick = () => SNAP_WORDS[Math.floor(Math.random() * SNAP_WORDS.length)];
+  const n = Math.floor(1000 + Math.random() * 9000);
+  return `${pick()}-${pick()}-${n}`;
+}
+function applySharedTheme(theme) {
+  const shared = qs('sharedView');
+  const brand = qs('sharedBrand');
+  const banner = qs('sharedBanner');
+  if (!shared || !brand || !banner) return;
+  const grid = qs('sharedGrid');
+  const title = qs('sharedMonthTitle');
+  const themes = {
+    default: { bg:'#f5f6fa', card:'#ffffff', border:'#e8eaf2', text:'#14162a', muted:'#5a6080', accent:'#3a3fff' },
+    dark:    { bg:'#10131d', card:'#181d2a', border:'#2a3144', text:'#eef2ff', muted:'#aab4d0', accent:'#7c8cff' },
+    client:  { bg:'#f7f4ee', card:'#fffdf8', border:'#e7ddcf', text:'#2a2620', muted:'#6d6256', accent:'#8b5cf6' },
+    playful: { bg:'#fff7fb', card:'#ffffff', border:'#f3d8e8', text:'#3a2840', muted:'#7d6283', accent:'#ff4f6a' }
+  };
+  const t = themes[theme] || themes.default;
+  document.body.style.background = t.bg;
+  shared.style.color = t.text;
+  brand.style.color = t.text;
+  title.style.color = t.text;
+  banner.style.background = t.card;
+  banner.style.borderColor = t.border;
+  banner.style.color = t.muted;
+  if (grid) grid.querySelectorAll('.cal-day').forEach(day => {
+    day.style.background = t.card;
+    day.style.borderColor = t.border;
+    day.style.color = t.text;
+  });
+}
 const normTags = v => Array.isArray(v) ? v.map(x => String(x).trim()).filter(Boolean) : String(v || '').split(',').map(x => x.trim()).filter(Boolean);
 const isVideo = url => /\.(mp4|mov|webm|avi|mkv|m4v)(\?|$)/i.test(String(url || ''));
 const maskToken = t => !t ? '—' : t.length <= 8 ? '••••' : `${t.slice(0,4)}••••${t.slice(-4)}`;
@@ -3487,12 +3534,21 @@ function renderAgenda() {
 // Calendar snapshot share
 function shareSnapshot() {
   const include = qs('includeNotes').checked;
+  const theme = qs('shareTheme')?.value || 'default';
   const posts = state.scheduled.filter(p => { const d = new Date(p.dueAt); return d.getFullYear() === state.month.getFullYear() && d.getMonth() === state.month.getMonth(); });
   const allNotes = getNotes();
   const monthNotes = Object.entries(allNotes).filter(([k]) => { const d = new Date(k + 'T00:00:00'); return d.getFullYear() === state.month.getFullYear() && d.getMonth() === state.month.getMonth(); }).map(([date, val]) => ({ date, ...val }));
   qs('shareMonthName').textContent = monthLabel(state.month);
   qs('sharePostCount').textContent = posts.length;
-  const payload = { month: monthLabel(state.month), includeNotes: include, posts: posts.map(p => ({ dueAt: p.dueAt, text: p.text, noteText: p.note || '', channelName: p.channelName || p.channel || '' })), notes: include ? monthNotes : [] };
+  const payload = {
+    snapshotId: makeSnapshotId(),
+    createdAt: Date.now(),
+    theme,
+    month: monthLabel(state.month),
+    includeNotes: include,
+    posts: posts.map(p => ({ dueAt: p.dueAt, text: p.text, noteText: p.note || '', channelName: p.channelName || p.channel || '' })),
+    notes: include ? monthNotes : []
+  };
   qs('shareLink').value = location.origin + location.pathname + '#share=' + btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
 }
 
@@ -3502,7 +3558,8 @@ function renderSharedFromHash() {
     const snap = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(7)))));
     qs('app').classList.add('hidden'); qs('sharedView').classList.remove('hidden');
     qs('sharedMonthTitle').textContent = snap.month;
-    qs('sharedBanner').textContent = `Read-only snapshot · ${snap.posts.length} scheduled posts · Notes ${snap.includeNotes ? 'included' : 'excluded'}`;
+    qs('sharedBanner').textContent = `Read-only snapshot · ${snap.posts.length} scheduled posts · Notes ${snap.includeNotes ? 'included' : 'excluded'} · Theme ${snap.theme || 'default'} · ID ${snap.snapshotId || 'snapshot'}`;
+    applySharedTheme(snap.theme || 'default');
     const closeBtn = qs('closeSharedDay'); if (closeBtn) closeBtn.onclick = () => closeModal('sharedDayModal');
     const grid = qs('sharedGrid'); grid.innerHTML = '';
     const map = {};
@@ -4096,6 +4153,7 @@ function init() {
   qs('shareMonthBtn').onclick = () => { shareSnapshot(); openModal('shareModal'); };
   qs('closeShare').onclick = () => closeModal('shareModal');
   qs('includeNotes').onchange = shareSnapshot;
+  qs('shareTheme').onchange = shareSnapshot;
   qs('generateShare').onclick = shareSnapshot;
   qs('copyShare').onclick = () => navigator.clipboard.writeText(qs('shareLink').value || '');
 
