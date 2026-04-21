@@ -710,20 +710,9 @@
        ════════════════════════════════════ */
     .composer-layout {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 240px;
-      gap: 16px;
+      grid-template-columns: 1fr 280px;
+      gap: 18px;
       align-items: start;
-    }
-
-    .composer-main {
-      min-width: 0;
-    }
-
-    .composer-support-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-top: 14px;
     }
 
     /* Editor */
@@ -800,9 +789,7 @@
     .composer-panel {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      position: sticky;
-      top: 18px;
+      gap: 14px;
     }
 
     .panel-card {
@@ -1307,7 +1294,6 @@
       .composer-panel  { padding: 14px 16px 0; display: flex; flex-direction: column; gap: 12px; }
       .send-actions    { display: flex; flex-direction: column; gap: 8px; }
       .send-actions .btn { height: 44px; font-size: 15px; justify-content: center; }
-      .composer-support-grid { grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
 
       /* ── Templates ── */
       .templates-layout { display: flex; flex-direction: column; gap: 0; }
@@ -1782,7 +1768,7 @@
         <div id="composeModePanel" style="display:contents;">
 
         <!-- Editor column -->
-        <div class="composer-main">
+        <div>
           <!-- Trending reference pin (hidden until pinned from Trending) -->
           <div id="refPin" style="display:none;background:var(--surface);border:1px solid var(--border2);border-left:3px solid var(--brand);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;position:relative;">
             <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--brand);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Writing from</div>
@@ -1903,9 +1889,6 @@
           </div>
 
           <div id="composerStatus" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;min-height:18px;"></div>
-
-          <div class="composer-support-grid">
-          </div>
         </div>
 
         <!-- Right panel -->
@@ -2087,6 +2070,23 @@
       </div>
       <div class="view-content">
         <div class="card" style="margin-bottom:16px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+            <div style="max-width:760px;">
+              <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:18px;color:var(--ink);margin-bottom:6px;">You probably have more to post about than you think.</div>
+              <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:10px;">Content Buckets help you build repeatable content lanes so you are not starting from zero every time you open Draft.</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <span class="chip">Teach</span>
+                <span class="chip">Share</span>
+                <span class="chip">Show</span>
+                <span class="chip">Tell</span>
+                <span class="chip">Prove</span>
+              </div>
+            </div>
+            <div class="status-pill free">No key required</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px;">
           <div class="cols2">
             <div class="field">
               <label class="label">Role / lens</label>
@@ -2097,17 +2097,27 @@
               <input id="bucketAudienceInput" class="input" placeholder="Who are you trying to help or reach?" />
             </div>
           </div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.65;">Start with five simple content types: <strong>Teach</strong>, <strong>Share</strong>, <strong>Show</strong>, <strong>Tell</strong>, and <strong>Prove</strong>. Use the examples below to name your own buckets and save starter ideas.</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.65;">Pick a role, then work through one bucket at a time. You can rename each lane and save starter ideas as you go.</div>
+          <div id="bucketStepper" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;"></div>
         </div>
 
-        <div id="bucketCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;"></div>
+        <div id="bucketStepMeta" style="font-size:11px;font-family:'DM Mono',monospace;color:var(--subtle);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;"></div>
+        <div id="bucketCards"></div>
+
+        <div class="row" style="margin-top:12px;justify-content:space-between;">
+          <button class="btn" id="bucketPrevBtn">← Previous</button>
+          <div class="row">
+            <button class="btn sm ghost" id="bucketCopyPromptBtn">Copy AI prompt</button>
+            <button class="btn sm" id="bucketComposeAllBtn">→ Send all to Draft</button>
+            <button class="btn primary" id="bucketNextBtn">Next →</button>
+          </div>
+        </div>
 
         <div class="card mt16">
           <div class="section-hdr">
-            <div class="section-title">Your saved lanes</div>
-            <div class="row">
-              <button class="btn sm" id="bucketComposeAllBtn">→ Send all to Draft</button>
-              <button class="btn sm ghost" id="bucketCopyPromptBtn">Copy AI prompt</button>
+            <div>
+              <div class="section-title">Your saved lanes</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:4px;">A lighter summary of what you have built so far.</div>
             </div>
           </div>
           <div id="bucketSavedSummary" style="display:flex;flex-direction:column;gap:8px;"></div>
@@ -2519,6 +2529,7 @@ const state = {
   bucketRole: 'creator',
   bucketAudience: '',
   contentBuckets: [],
+  bucketStep: 0,
 };
 
 const mediaState = { url: '', type: '', videoThumbUrl: '', source: '' };
@@ -2841,43 +2852,78 @@ function renderBuckets() {
   populateBucketRoleSelect();
   const wrap = qs('bucketCards'); if (!wrap) return;
   const guide = BUCKET_GUIDES[state.bucketRole] || BUCKET_GUIDES.creator;
+  const total = state.contentBuckets.length || BUCKET_TYPES.length;
+  if (state.bucketStep < 0) state.bucketStep = 0;
+  if (state.bucketStep > total - 1) state.bucketStep = total - 1;
+
+  const stepper = qs('bucketStepper');
+  if (stepper) {
+    stepper.innerHTML = '';
+    state.contentBuckets.forEach((bucket, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'btn sm' + (idx === state.bucketStep ? ' primary' : ' ghost');
+      btn.textContent = bucket.type;
+      btn.style.justifyContent = 'center';
+      btn.onclick = () => { state.bucketStep = idx; renderBuckets(); };
+      stepper.appendChild(btn);
+    });
+  }
+
+  const bucket = state.contentBuckets[state.bucketStep];
+  const meta = BUCKET_TYPES.find(t => t.key === bucket.type) || BUCKET_TYPES[state.bucketStep];
+  const examples = (guide.examples[bucket.type] || []).slice(0,5);
+  const stepMeta = qs('bucketStepMeta');
+  if (stepMeta) stepMeta.textContent = `Step ${state.bucketStep + 1} of ${total} · ${bucket.type}`;
+
   wrap.innerHTML = '';
-  state.contentBuckets.forEach((bucket, idx) => {
-    const meta = BUCKET_TYPES.find(t => t.key === bucket.type) || BUCKET_TYPES[idx];
-    const examples = (guide.examples[bucket.type] || []).slice(0,5);
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
-        <div>
-          <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px;color:var(--ink);">${safeText(bucket.type)}</div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.55;">${safeText(meta?.desc || '')}</div>
-        </div>
-        <span class="chip brand">Free</span>
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+      <div>
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:22px;color:var(--ink);margin-bottom:4px;">${safeText(bucket.type)}</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.65;max-width:60ch;">${safeText(meta?.desc || '')}</div>
       </div>
-      <div class="field" style="margin-bottom:10px;">
-        <label class="label">Your bucket name</label>
-        <input class="input" data-bucket-title="${idx}" value="${safeText(bucket.title)}" placeholder="Rename this lane…" />
-      </div>
+      <span class="chip brand">${safeText(guide.label)}</span>
+    </div>
+
+    <div style="padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);margin-bottom:14px;">
       <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Ask yourself</div>
-      <div style="font-size:12px;color:var(--text);line-height:1.6;margin-bottom:10px;">${safeText(meta?.prompt || '')}</div>
-      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Example ideas for ${safeText(guide.label)}</div>
-      <ul style="padding-left:18px;margin:0 0 10px;color:var(--muted);font-size:12px;line-height:1.65;">${examples.map(x=>`<li>${safeText(x)}</li>`).join('')}</ul>
-      <div class="field" style="margin-bottom:10px;">
-        <label class="label">Starter ideas</label>
-        <textarea data-bucket-ideas="${idx}" style="min-height:120px;">${safeText((bucket.ideas||[]).join('\n'))}</textarea>
-      </div>
-      <div class="row">
-        <button class="btn sm" data-bucket-send="${idx}">→ Draft</button>
-        <button class="btn sm ghost" data-bucket-copy="${idx}">Copy AI prompt</button>
-      </div>`;
-    wrap.appendChild(card);
+      <div style="font-size:14px;color:var(--text);line-height:1.65;">${safeText(meta?.prompt || '')}</div>
+    </div>
+
+    <div class="field" style="margin-bottom:12px;">
+      <label class="label">Your bucket name</label>
+      <input class="input" data-bucket-title="${state.bucketStep}" value="${safeText(bucket.title)}" placeholder="Rename this lane…" />
+    </div>
+
+    <details style="margin-bottom:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:12px 14px;">
+      <summary style="cursor:pointer;font-weight:600;color:var(--ink);">See example ideas for ${safeText(guide.label)}</summary>
+      <ul style="padding-left:18px;margin:10px 0 0;color:var(--muted);font-size:12px;line-height:1.7;">${examples.map(x=>`<li>${safeText(x)}</li>`).join('')}</ul>
+    </details>
+
+    <div class="field" style="margin-bottom:10px;">
+      <label class="label">Starter ideas</label>
+      <textarea data-bucket-ideas="${state.bucketStep}" style="min-height:150px;" placeholder="Add one idea per line…">${safeText((bucket.ideas||[]).join('\\n'))}</textarea>
+    </div>
+
+    <div class="row" style="justify-content:space-between;">
+      <button class="btn sm" data-bucket-send="${state.bucketStep}">→ Send this bucket to Draft</button>
+      <button class="btn sm ghost" data-bucket-copy="${state.bucketStep}">Copy AI prompt</button>
+    </div>`;
+  wrap.appendChild(card);
+
+  wrap.querySelector('[data-bucket-title]').addEventListener('input', e => {
+    state.contentBuckets[+e.target.dataset.bucketTitle].title = e.target.value;
+    persistBuckets(); renderBucketSummary(); renderComposerBuckets(); renderBuckets();
   });
-  wrap.querySelectorAll('[data-bucket-title]').forEach(inp => inp.addEventListener('input', e => { state.contentBuckets[+e.target.dataset.bucketTitle].title = e.target.value; persistBuckets(); renderBucketSummary(); renderComposerBuckets(); }));
-  wrap.querySelectorAll('[data-bucket-ideas]').forEach(inp => inp.addEventListener('input', e => { state.contentBuckets[+e.target.dataset.bucketIdeas].ideas = e.target.value.split('\n').map(x=>x.trim()).filter(Boolean); persistBuckets(); renderBucketSummary(); renderComposerBuckets(); }));
-  wrap.querySelectorAll('[data-bucket-send]').forEach(btn => btn.onclick = () => sendBucketsToComposer(state.contentBuckets[+btn.dataset.bucketSend].title));
-  wrap.querySelectorAll('[data-bucket-copy]').forEach(btn => btn.onclick = () => {
-    const bucket = state.contentBuckets[+btn.dataset.bucketCopy];
+  wrap.querySelector('[data-bucket-ideas]').addEventListener('input', e => {
+    state.contentBuckets[+e.target.dataset.bucketIdeas].ideas = e.target.value.split('\n').map(x=>x.trim()).filter(Boolean);
+    persistBuckets(); renderBucketSummary(); renderComposerBuckets();
+  });
+  wrap.querySelector('[data-bucket-send]').onclick = () => sendBucketsToComposer(state.contentBuckets[+wrap.querySelector('[data-bucket-send]').dataset.bucketSend].title);
+  wrap.querySelector('[data-bucket-copy]').onclick = () => {
+    const bucket = state.contentBuckets[+wrap.querySelector('[data-bucket-copy]').dataset.bucketCopy];
     const roleLabel = BUCKET_GUIDES[state.bucketRole]?.label || state.bucketRole;
     const prompt = `I'm building content around this bucket.
 
@@ -2885,11 +2931,27 @@ My role: ${roleLabel}
 My audience: ${state.bucketAudience || 'General audience'}
 Bucket name: ${bucket.title}
 Current ideas:
-${(bucket.ideas||[]).map(x=>`- ${x}`).join('\n')}
+${(bucket.ideas||[]).map(x=>`- ${x}`).join('\\n')}
 
 Give me 15 more practical social post ideas for this bucket. Mix educational, story-driven, opinion-based, and proof-driven angles. Avoid generic advice.`;
     navigator.clipboard.writeText(prompt); showToast('AI prompt copied', 'success');
-  });
+  };
+
+  const prevBtn = qs('bucketPrevBtn');
+  const nextBtn = qs('bucketNextBtn');
+  if (prevBtn) {
+    prevBtn.disabled = state.bucketStep === 0;
+    prevBtn.style.opacity = state.bucketStep === 0 ? '.45' : '1';
+    prevBtn.onclick = () => { if (state.bucketStep > 0) { state.bucketStep--; renderBuckets(); } };
+  }
+  if (nextBtn) {
+    const last = state.bucketStep === total - 1;
+    nextBtn.textContent = last ? 'Finish →' : 'Next →';
+    nextBtn.onclick = () => {
+      if (!last) { state.bucketStep++; renderBuckets(); }
+      else { showToast('Buckets ready for Draft', 'success'); qs('bucketSavedSummary')?.scrollIntoView({behavior:'smooth', block:'start'}); }
+    };
+  }
 }
 function renderBucketSummary() {
   const wrap = qs('bucketSavedSummary'); if (!wrap) return;
@@ -3016,9 +3078,6 @@ function updateNavTags() {
   const connected = !!bufferToken;
   ['calNavTag','appNavTag'].forEach(id => {
     const el = qs(id); if (!el) return;
-    el.style.display = connected ? 'none' : '';
-  });
-  document.querySelectorAll('.side-nav .nav-tag.free').forEach(el => {
     el.style.display = connected ? 'none' : '';
   });
   const calDesc = qs('calDesc');
@@ -3983,7 +4042,7 @@ function init() {
   renderBuckets();
   renderBucketSummary();
   renderComposerBuckets();
-  qs('bucketRoleSelect').onchange = e => { state.bucketRole = e.target.value; state.contentBuckets = defaultBucketsForRole(state.bucketRole); persistBuckets(); renderBuckets(); renderBucketSummary(); renderComposerBuckets(); };
+  qs('bucketRoleSelect').onchange = e => { state.bucketRole = e.target.value; state.bucketStep = 0; state.contentBuckets = defaultBucketsForRole(state.bucketRole); persistBuckets(); renderBuckets(); renderBucketSummary(); renderComposerBuckets(); };
   qs('bucketAudienceInput').addEventListener('input', e => { state.bucketAudience = e.target.value; persistBuckets(); });
   qs('bucketComposeAllBtn').onclick = () => sendBucketsToComposer('all');
   qs('bucketCopyPromptBtn').onclick = () => { navigator.clipboard.writeText(buildBucketPrompt()); showToast('AI prompt copied', 'success'); };
