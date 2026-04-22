@@ -608,58 +608,8 @@ function detectQueueGaps() {
     chip.textContent = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
     chip.onclick = () => openDayNote(d);
     list.appendChild(chip);
-
-    const fillBtn = document.createElement('button');
-    fillBtn.className = 'gap-chip';
-    fillBtn.style.cssText = 'background:var(--brand-dim,rgba(58,63,255,.08));border-color:var(--brand-glow,rgba(58,63,255,.2));color:var(--brand,#3a3fff);';
-    fillBtn.textContent = 'Pick a pillar';
-    fillBtn.onclick = (e) => {
-      e.stopPropagation();
-      openPillarPickerForDate(d);
-    };
-    list.appendChild(fillBtn);
   });
 
-}
-
-function openPillarPickerForDate(date) {
-  const data = window.ContentPillars ? window.ContentPillars.getData() : null;
-  if (!data || !data.buckets.length) {
-    openDayNote(date);
-    return;
-  }
-  openDayNote(date);
-  const body = document.getElementById('dayPostPreview');
-  if (!body) return;
-  const existing = body.querySelector('[data-pillars-picker="1"]');
-  if (existing) existing.remove();
-
-  const picker = document.createElement('div');
-  picker.dataset.pillarsPicker = '1';
-  picker.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin-bottom:12px;';
-  const label = document.createElement('div');
-  label.style.cssText = 'font-size:10px;font-family:monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--muted,#5a6080);margin-bottom:4px;';
-  label.textContent = 'Draft from a pillar';
-  picker.appendChild(label);
-  data.buckets.forEach(bucket => {
-    const seed = (bucket.seeds || []).find(s => String(s || '').trim()) || '';
-    const row = document.createElement('button');
-    row.className = 'btn sm';
-    row.style.cssText = 'justify-content:flex-start;text-align:left;width:100%;margin-bottom:0;';
-    row.innerHTML = '' + safeText(bucket.name) + '&nbsp;&nbsp;' + safeText(seed.slice(0, 60) || 'No seeds yet') + '';
-    row.onclick = () => {
-      if (seed) {
-        const dateStr = date.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
-        if (window.ContentPillars) {
-          window.ContentPillars.insertStarter(bucket, seed, dateStr);
-        }
-      }
-      closeModal('noteModal');
-      activateView('composerView');
-    };
-    picker.appendChild(row);
-  });
-  body.prepend(picker);
 }
 
 function openDayNote(date) {
