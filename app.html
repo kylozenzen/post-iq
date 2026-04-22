@@ -128,12 +128,12 @@
       <button class="nav-btn" data-view="trendingView">
         <span class="nav-icon"><svg><use href="#i-trending"/></svg></span>
         <span class="nav-text">Trending</span>
-        <span class="nav-tag free">Free</span>
+        <span class="nav-tag free nav-free-tag">Free</span>
       </button>
       <button class="nav-btn" data-view="templatesView">
         <span class="nav-icon"><svg><use href="#i-templates"/></svg></span>
         <span class="nav-text">Templates</span>
-        <span class="nav-tag free">Free</span>
+        <span class="nav-tag free nav-free-tag">Free</span>
       </button>
     </nav>
 
@@ -774,6 +774,10 @@
     <div class="card mb8">
       <div style="font-size:13px;color:var(--muted);">Month: <strong style="color:var(--text)" id="shareMonthName"></strong></div>
       <div style="font-size:13px;color:var(--muted);margin-top:6px;">Posts: <strong style="color:var(--text)" id="sharePostCount">0</strong></div>
+      <div class="field mt12" style="margin-bottom:0;">
+        <label class="label">Custom snapshot title</label>
+        <input id="shareCustomTitle" class="input" placeholder="Week social for Acme" maxlength="120" />
+      </div>
       <label style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer;font-size:13px;color:var(--muted);">
         <input type="checkbox" id="includeNotes" checked /> Include planning notes
       </label>
@@ -843,14 +847,24 @@
 <section id="sharedView" class="hidden" style="max-width:980px;margin:0 auto;padding:28px;">
   <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;margin-bottom:20px;color:var(--ink);">PostIQ</div>
   <div id="sharedBanner" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;font-size:13px;color:var(--muted);margin-bottom:20px;"></div>
-  <h2 id="sharedMonthTitle" style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:22px;margin-bottom:16px;"></h2>
-  <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">Read-only planning snapshot.</p>
+  <h2 id="sharedMonthTitle" style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:22px;margin-bottom:8px;"></h2>
+  <p id="sharedMeta" style="font-size:12px;color:var(--muted);margin-bottom:16px;">Read-only planning snapshot.</p>
   <div class="cal-dow">
     <div class="dow-cell">Sun</div><div class="dow-cell">Mon</div><div class="dow-cell">Tue</div>
     <div class="dow-cell">Wed</div><div class="dow-cell">Thu</div><div class="dow-cell">Fri</div><div class="dow-cell">Sat</div>
   </div>
   <div id="sharedGrid" class="cal-grid" style="margin-top:4px;"></div>
 </section>
+
+<div id="sharedDayModal" class="modal">
+  <div class="modal-card lg">
+    <div class="modal-hdr">
+      <span class="modal-title" id="sharedDayTitle">Snapshot details</span>
+      <button class="btn sm ghost" id="closeSharedDay">Close</button>
+    </div>
+    <div id="sharedDayBody"></div>
+  </div>
+</div>
 
 <!-- Reviewer page -->
 <div id="reviewerPage">
