@@ -135,6 +135,11 @@
         <span class="nav-text">Templates</span>
         <span class="nav-tag free nav-free-tag">Free</span>
       </button>
+      <button class="nav-btn" data-view="contentBucketsView">
+        <span class="nav-icon"><svg><use href="#i-templates"/></svg></span>
+        <span class="nav-text">Content Buckets</span>
+        <span class="nav-tag">Coming soon</span>
+      </button>
     </nav>
 
     <div class="side-bottom">
@@ -566,6 +571,42 @@
       </div><!-- /view-content -->
     </section>
 
+    <!-- ══════════ CONTENT BUCKETS (COMING SOON) ══════════ -->
+    <section id="contentBucketsView" class="view">
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">🔜 Content Buckets</span>
+        <div class="mob-view-actions">
+          <button class="btn sm ghost" id="mobMenuBtnBuckets">
+            <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Content Buckets</h1>
+          <p class="page-desc">An easier way to organize the areas of expertise, stories, and proof points you can consistently post about.</p>
+        </div>
+      </div>
+      <div class="view-content">
+        <div class="card" style="max-width:760px;">
+          <div class="row" style="justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+            <div>
+              <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:20px;color:var(--ink);margin-bottom:6px;">Coming soon 🔜</div>
+              <p style="font-size:14px;color:var(--muted);line-height:1.7;max-width:58ch;">Content Buckets will help you map out what you know, what you can teach, what you can show, and what you can prove — so drafting gets faster and your content stays more consistent.</p>
+            </div>
+            <span class="chip brand">WIP</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:16px 0;">
+            <div class="panel-card"><div class="panel-card-title">Teach</div><div style="font-size:13px;color:var(--muted);line-height:1.6;">What you know and can explain clearly.</div></div>
+            <div class="panel-card"><div class="panel-card-title">Share</div><div style="font-size:13px;color:var(--muted);line-height:1.6;">Beliefs, lessons, and opinions worth repeating.</div></div>
+            <div class="panel-card"><div class="panel-card-title">Show</div><div style="font-size:13px;color:var(--muted);line-height:1.6;">Processes, behind-the-scenes, and your actual work.</div></div>
+            <div class="panel-card"><div class="panel-card-title">Prove</div><div style="font-size:13px;color:var(--muted);line-height:1.6;">Results, wins, testimonials, and receipts.</div></div>
+          </div>
+          <div style="font-size:13px;color:var(--subtle);line-height:1.65;">We’re keeping this in place while the core app stays stable, then rebuilding it back in smaller, simpler steps.</div>
+        </div>
+      </div>
+    </section>
+
     <!-- ══════════ TRENDING ══════════ -->
     <section id="trendingView" class="view">
       <div class="mob-view-hdr">
@@ -636,6 +677,7 @@
     </div>
     <div class="settings-tabs">
       <button class="settings-tab active" data-stab="guide">Guide</button>
+      <button class="settings-tab" data-stab="calendar">Calendar</button>
       <button class="settings-tab" data-stab="about">About</button>
     </div>
     <div id="settingsPanelGuide" class="settings-panel active">
@@ -662,6 +704,26 @@
         </div>
       </div>
     </div>
+    <div id="settingsPanelCalendar" class="settings-panel">
+      <div class="card" style="margin-bottom:14px;">
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px;margin-bottom:6px;color:var(--ink);">Posting schedule</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:12px;">Tell PostIQ which days you normally post so gap warnings only appear when you actually expect content to be scheduled.</p>
+        <div id="postingScheduleChecks" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <label class="filter-pill" style="cursor:pointer;"><input type="checkbox" value="1" style="margin-right:6px;accent-color:var(--brand);" checked>Mon</label>
+          <label class="filter-pill" style="cursor:pointer;"><input type="checkbox" value="2" style="margin-right:6px;accent-color:var(--brand);" checked>Tue</label>
+          <label class="filter-pill" style="cursor:pointer;"><input type="checkbox" value="3" style="margin-right:6px;accent-color:var(--brand);" checked>Wed</label>
+          <label class="filter-pill" style="cursor:pointer;"><input type="checkbox" value="4" style="margin-right:6px;accent-color:var(--brand);" checked>Thu</label>
+          <label class="filter-pill" style="cursor:pointer;"><input type="checkbox" value="5" style="margin-right:6px;accent-color:var(--brand);" checked>Fri</label>
+          <label class="filter-pill" style="cursor:pointer;"><input type="checkbox" value="6" style="margin-right:6px;accent-color:var(--brand);">Sat</label>
+          <label class="filter-pill" style="cursor:pointer;"><input type="checkbox" value="0" style="margin-right:6px;accent-color:var(--brand);">Sun</label>
+        </div>
+        <div class="row">
+          <button class="btn primary" id="savePostingScheduleBtn">Save posting schedule</button>
+          <button class="btn ghost" id="resetPostingScheduleBtn">Reset to weekdays</button>
+        </div>
+        <div id="postingScheduleStatus" style="font-size:12px;color:var(--muted);margin-top:10px;font-family:'DM Mono',monospace;min-height:16px;"></div>
+      </div>
+    </div>
     <div id="settingsPanelAbout" class="settings-panel">
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;">
         <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px;margin-bottom:8px;color:var(--ink);">PostIQ — Buffer Companion</div>
@@ -681,7 +743,7 @@
 
 <!-- Day note modal -->
 <div id="noteModal" class="modal">
-  <div class="modal-card">
+  <div class="modal-card lg">
     <div class="modal-hdr">
       <span class="modal-title" id="noteDateLabel">—</span>
       <button class="btn sm ghost" id="closeNote">Close</button>
@@ -834,6 +896,7 @@
   <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">↗ Open Buffer</a>
   <button class="btn ghost" data-view="trendingView" id="mobDrawerTrendingBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">📈 Trending</button>
   <button class="btn ghost" data-view="templatesView" id="mobDrawerTemplatesBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">⚡ Templates</button>
+  <button class="btn ghost" data-view="contentBucketsView" id="mobDrawerBucketsBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">🔜 Content Buckets</button>
   <button class="btn ghost" id="mobOpenSettings" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">⚙ Settings &amp; Help</button>
 </div>
 

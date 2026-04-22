@@ -6,6 +6,7 @@ const NOTE_KEY        = 'postiq_calendar_notes_v2';
 const TEMPLATE_KEY    = 'postiq_templates_v1';
 const CACHE_KEY       = 'postiq_buffer_cache_v1';
 const APPROVAL_PREFIX = 'postiq_approval_';
+const POSTING_SCHEDULE_KEY = 'postiq_posting_schedule_v1';
 
 const IMGUR_KEY    = '546c25a59c58ad7';
 const UNSPLASH_KEY = 'tBuaYCO5p-pJPjgF29hR2yJGtlQaG4d5HqdVivV0lbQ';
@@ -564,13 +565,15 @@ function renderCalendar() {
     const dayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
     const note = notes[key];
     const isToday = key === today;
-    const hasGap = inMonth && !dayPosts.length && [1,2,3,4,5].includes(d.getDay()); // weekday gap indicator
+    const scheduledDay = isPostingDay(d);
+    const hasGap = inMonth && scheduledDay && !dayPosts.length;
 
     const day = document.createElement('div');
     let cls = 'cal-day';
     if (!inMonth) cls += ' other-month';
     if (isToday) cls += ' today';
     if (dayPosts.length) cls += ' has-posts';
+    if (hasGap) cls += ' has-gap';
     day.className = cls;
 
     let html = `<div class="day-num">${d.getDate()}</div>`;
@@ -578,7 +581,9 @@ function renderCalendar() {
     if (dayPosts[0]) html += `<div class="day-post-pill">${safeText(compact(dayPosts[0].text, 60))}</div>`;
     if (dayPosts[1]) html += `<div class="day-post-pill">${safeText(compact(dayPosts[1].text, 60))}</div>`;
     if (dayPosts.length > 2) html += `<div class="more-indicator">+${dayPosts.length - 2} more</div>`;
+    if (dayPosts[0]) { const meta = getChannelMeta(dayPosts[0]); if (meta.platform || meta.channelName) html += `<div class="more-indicator">${safeText([meta.platform, meta.channelName].filter(Boolean).join(' · '))}</div>`; }
     if (note) html += `<div class="day-note-pill ${note.tag || 'gold'}">${safeText(compact(note.text, 50))}</div>`;
+    if (hasGap) html += `<div class="day-gap-indicator">Missing scheduled content</div>`;
     day.innerHTML = html;
     day.onclick = () => openDayNote(d);
     grid.appendChild(day);
@@ -590,10 +595,11 @@ function detectQueueGaps() {
   const panel = qs('gapsPanel'); const list = qs('gapsList');
   if (!panel || !list || !bufferToken) { if (panel) panel.style.display = 'none'; return; }
   const today = new Date(); today.setHours(0,0,0,0);
+  const schedule = getPostingSchedule();
   const gaps = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(today); d.setDate(today.getDate() + i);
-    if ([0,6].includes(d.getDay())) continue; // skip weekends
+    if (!schedule.includes(d.getDay())) continue;
     const key = fmtDate(d);
     const hasPosts = state.scheduled.some(p => fmtDate(new Date(p.dueAt)) === key);
     if (!hasPosts) gaps.push(d);
@@ -618,9 +624,7 @@ function openDayNote(date) {
   qs('noteText').value = note.text || '';
   qs('noteTag').value = `${note.tag || 'gold'}|${note.label || 'Idea'}`;
   const dayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
-  qs('dayPostPreview').innerHTML = dayPosts.length
-    ? `<div style="font-size:11px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;">${dayPosts.length} scheduled post${dayPosts.length > 1 ? 's' : ''}</div>${dayPosts.map(p => `<div style="font-size:12px;padding:6px 8px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:5px;color:var(--brand);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${safeText(p.text || '(no text)')}</div>`).join('')}`
-    : `<div style="font-size:12px;color:var(--subtle);margin-bottom:8px;">No posts scheduled on this day.</div>`;
+  renderCalendarDetail(date, dayPosts, note);
   qs('noteStatus').textContent = '';
   openModal('noteModal');
 }
@@ -680,7 +684,7 @@ function renderAgenda() {
     dayEl.style.cssText = `border:1px solid ${isToday ? 'var(--brand)' : 'var(--border)'};border-radius:10px;padding:12px;margin-bottom:8px;background:var(--surface);cursor:pointer;`;
     const dateLabel = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
     let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:${isToday ? 'var(--brand)' : 'var(--muted)'};">${dateLabel}</span>${data.posts.length ? `<span style="font-size:9px;font-family:'DM Mono',monospace;background:var(--brand-dim);color:var(--brand);border:1px solid var(--brand-glow);padding:1px 5px;border-radius:3px;">${data.posts.length} post${data.posts.length > 1 ? 's' : ''}</span>` : ''}</div>`;
-    data.posts.slice(0, 2).forEach(p => { html += `<div style="font-size:12px;padding:6px 8px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:5px;color:var(--brand);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${safeText(compact(p.text, 80))}</div>`; });
+    data.posts.slice(0, 2).forEach(p => { const meta = getChannelMeta(p); html += `<div style="font-size:12px;padding:6px 8px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:5px;color:var(--brand);margin-bottom:4px;overflow:hidden;"><div style="font-size:10px;font-family:'DM Mono',monospace;opacity:.8;margin-bottom:2px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;">${safeText([meta.platform, meta.channelName].filter(Boolean).join(' · ') || 'Scheduled post')}</div><div style="white-space:nowrap;text-overflow:ellipsis;overflow:hidden;">${safeText(compact(p.text, 80))}</div></div>`; });
     if (data.posts.length > 2) html += `<div style="font-size:10px;color:var(--subtle);margin-bottom:4px;">+${data.posts.length - 2} more</div>`;
     if (data.note) html += `<div class="day-note-pill ${data.note.tag || 'gold'}" style="display:block;border-radius:5px;margin-top:4px;">${safeText(compact(data.note.text, 60))}</div>`;
     dayEl.innerHTML = html; dayEl.onclick = () => openDayNote(date);
@@ -723,7 +727,8 @@ function shareSnapshot() {
       text: p.text || '',
       channelName: p.channelName || p.channel || '',
       platform: p.service || p.platform || '',
-      channelId: p.channelId || ''
+      channelId: p.channelId || '',
+      label: [getChannelMeta(p).platform, getChannelMeta(p).channelName].filter(Boolean).join(' · ')
     })),
     notes: include ? monthNotes : []
   };
@@ -832,7 +837,7 @@ function renderSharedFromHash() {
       let html = `<div class="day-num">${d.getDate()}</div>`;
       if (data.posts.length) html += `<div class="day-count">${data.posts.length}</div>`;
       data.posts.slice(0, 2).forEach(p => {
-        const label = p.channelName || p.platform || 'Scheduled post';
+        const label = p.label || p.channelName || p.platform || 'Scheduled post';
         html += `<div class="day-post-pill" title="${safeText(label)}">${safeText(compact(p.text || '(no copy)', 60))}</div>`;
       });
       if (data.posts.length > 2) html += `<div class="more-indicator">+${data.posts.length - 2} more</div>`;
@@ -849,6 +854,36 @@ function renderSharedFromHash() {
     console.error('Failed to render shared snapshot', err);
     return false;
   }
+}
+
+function renderPostingScheduleSettings() {
+  const wrap = qs('postingScheduleChecks');
+  if (!wrap) return;
+  const selected = new Set(getPostingSchedule());
+  wrap.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.checked = selected.has(Number(cb.value));
+  });
+}
+
+function savePostingScheduleFromUI() {
+  const wrap = qs('postingScheduleChecks');
+  if (!wrap) return;
+  const days = [...wrap.querySelectorAll('input[type="checkbox"]:checked')].map(cb => Number(cb.value));
+  setPostingSchedule(days.length ? days : defaultPostingSchedule());
+  const status = qs('postingScheduleStatus');
+  if (status) status.textContent = 'Posting schedule saved.';
+  renderCalendar();
+  detectQueueGaps();
+  showToast('Posting schedule saved', 'success');
+}
+
+function resetPostingScheduleUI() {
+  setPostingSchedule(defaultPostingSchedule());
+  renderPostingScheduleSettings();
+  const status = qs('postingScheduleStatus');
+  if (status) status.textContent = 'Reset to weekdays.';
+  renderCalendar();
+  detectQueueGaps();
 }
 
 // ── COMPOSER ──────────────────────────────────────
@@ -1344,6 +1379,7 @@ function init() {
 
   loadStoredToken();
   loadTemplates();
+  renderPostingScheduleSettings();
   initTemplateSelectors();
   renderTemplates();
   buildTimePickers();
@@ -1575,8 +1611,10 @@ function init() {
   }, true); // capture phase so it fires before modal handler
 
   // Settings
-  qs('openSettings').onclick = () => openModal('settingsModal');
+  qs('openSettings').onclick = () => { renderPostingScheduleSettings(); openModal('settingsModal'); };
   qs('closeSettings').onclick = () => closeModal('settingsModal');
+  const saveScheduleBtn = qs('savePostingScheduleBtn'); if (saveScheduleBtn) saveScheduleBtn.onclick = savePostingScheduleFromUI;
+  const resetScheduleBtn = qs('resetPostingScheduleBtn'); if (resetScheduleBtn) resetScheduleBtn.onclick = resetPostingScheduleUI;
   document.querySelectorAll('.settings-tab').forEach(tab => {
     tab.onclick = () => {
       document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
@@ -1615,7 +1653,7 @@ function init() {
   }
   qs('mobBackdrop').onclick = closeMobDrawer;
   // All three "…" menu buttons on mobile view headers open the drawer
-  ['mobMenuBtn','mobMenuBtnDraft','mobMenuBtnApprovals'].forEach(id => {
+  ['mobMenuBtn','mobMenuBtnDraft','mobMenuBtnApprovals','mobMenuBtnBuckets'].forEach(id => {
     const btn = qs(id); if (btn) btn.onclick = openMobDrawer;
   });
   qs('mobSyncBtn').onclick = () => { syncBuffer({ force: true }); closeMobDrawer(); };
