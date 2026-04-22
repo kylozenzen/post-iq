@@ -1990,125 +1990,349 @@ function init() {
 
 // ── CONTENT PILLARS (SAFE PREVIEW) ───────────────────
 window.ContentPillars = (() => {
+  const CP_STORAGE_KEY = 'postiq_pillars_onboarding_v1';
+  const PILLARS = [
+    { key: 'teach', name: 'Teach', helper: 'what you know' },
+    { key: 'share', name: 'Share', helper: 'what you experience' },
+    { key: 'believe', name: 'Believe', helper: 'what you stand for' },
+    { key: 'offer', name: 'Offer', helper: 'what you sell' }
+  ];
+
   const PERSONA_DATA = {
     saas_founder: {
-      identity: "I am a senior dev and creative technologist building minimalist, local-first tools for creators who value privacy and speed. My tone is industrial, direct, and slightly rebellious.",
-      pillars: [
-        { name: "The Teacher (Expertise)", seeds: ["Why LocalStorage beats Cloud for data privacy.", "Building 'no-login' apps in a world of subscriptions."] },
-        { name: "The Human (Relatability)", seeds: ["Late night bug fixing on PostIQ.", "The reality of building a SaaS solo."] },
-        { name: "The Believer (Values)", seeds: ["Software should be a utility, not a data-trap.", "Minimalist design is actually a productivity hack."] },
-        { name: "The Open Sign (Sales)", seeds: ["New Pillar feature live on PostIQ GitHub.", "Try the Thread Splitter for free."] }
-      ]
+      identity: 'I am a senior dev and creative technologist building minimalist, local-first tools for creators who value privacy and speed. My tone is direct, practical, and calm.',
+      pillars: {
+        teach: [
+          { topic: 'Why local-first apps reduce privacy risk', angle: 'Explain simply for non-technical founders', starter: "Most founders overcomplicate privacy. Here's the simple version..." },
+          { topic: 'How to ship tiny features weekly', angle: 'Share a repeatable process', starter: 'If you can only do one thing this week, do this first...' }
+        ],
+        share: [
+          { topic: 'A real bug I fixed this week', angle: 'Tell the lesson behind the fix', starter: "I lost an hour to one bug today, and it taught me something useful..." },
+          { topic: 'What solo building looks like on hard days', angle: 'Be honest without complaining', starter: 'Solo work is rewarding, but this part is harder than people think...' }
+        ],
+        believe: [
+          { topic: 'Software should feel like a tool, not a trap', angle: 'State your values clearly', starter: 'I believe software should help people leave with their data, not lock them in...' },
+          { topic: 'Simple design is a performance feature', angle: 'Connect aesthetics to user outcomes', starter: "Good design isn't decoration. It removes friction in moments that matter..." }
+        ],
+        offer: [
+          { topic: 'New PostIQ pillar builder preview', angle: 'Invite builders to try it', starter: "I just shipped a simpler way to plan content ideas inside PostIQ..." },
+          { topic: 'Thread splitter in Draft mode', angle: 'Show one practical use case', starter: "If you write long notes, here's how to turn them into a post thread quickly..." }
+        ]
+      }
     },
     nurse: {
-      identity: "I am a compassionate registered nurse focused on debunking medical myths and sharing the human side of the frontlines. My tone is warm, authoritative, and honest.",
-      pillars: [
-        { name: "The Teacher (Expertise)", seeds: ["How to prepare your kids for a checkup.", "3 signs you're actually burnt out."] },
-        { name: "The Human (Relatability)", seeds: ["The first 10 minutes after a 12-hour shift.", "The patient story that changed me."] },
-        { name: "The Believer (Values)", seeds: ["Advocacy matters more than charts.", "Compassion is a clinical skill."] },
-        { name: "The Open Sign (Sales)", seeds: ["New wellness guide available now.", "Join my health webinar this Friday."] }
-      ]
+      identity: 'I am a compassionate registered nurse focused on debunking myths and sharing the human side of care. My tone is warm, clear, and grounded.',
+      pillars: {
+        teach: [
+          { topic: 'How to prep kids for a checkup', angle: 'Give a parent-friendly checklist', starter: "Quick tip for parents: checkups go smoother when you do these three things..." },
+          { topic: 'Signs burnout is building', angle: 'Name early warning signs kindly', starter: "Burnout rarely appears overnight. It usually starts with small signals like..." }
+        ],
+        share: [
+          { topic: 'What a 12-hour shift actually feels like', angle: 'Share one moment from your day', starter: 'A lot happens in one shift, but this moment stayed with me...' },
+          { topic: 'A patient interaction I will remember', angle: 'Protect privacy while sharing insight', starter: 'Today reminded me why compassionate communication matters so much...' }
+        ],
+        believe: [
+          { topic: 'Compassion is a clinical skill', angle: 'Defend empathy with confidence', starter: 'Compassion is not extra in healthcare. It is part of good care...' },
+          { topic: 'Advocacy belongs in everyday practice', angle: 'Call peers into action', starter: 'We often think advocacy is big and dramatic, but it can start with...' }
+        ],
+        offer: [
+          { topic: 'Free wellness check guide', angle: 'Invite with a clear benefit', starter: "If you'd like a simple guide for this week's wellness reset, I made one for you..." },
+          { topic: 'Live Q&A for patient education', angle: 'Position as practical support', starter: 'I am hosting a short live Q&A to answer common patient education questions...' }
+        ]
+      }
     },
     teacher: {
-      identity: "I am an educator dedicated to modern classroom hacks and student-first advocacy. My tone is encouraging, witty, and practical.",
-      pillars: [
-        { name: "The Teacher (Expertise)", seeds: ["Gamifying math for 3rd graders.", "The best books for reluctant readers."] },
-        { name: "The Human (Relatability)", seeds: ["Funny things students said this week.", "Sunday night lesson planning reality."] },
-        { name: "The Believer (Values)", seeds: ["Standardized testing isn't the whole story.", "Every child needs a safe adult."] },
-        { name: "The Open Sign (Sales)", seeds: ["Download my classroom templates.", "Join the Teacher-Prep Masterclass."] }
-      ]
+      identity: 'I am an educator who shares practical classroom strategies and student-first advocacy. My tone is encouraging, practical, and optimistic.',
+      pillars: {
+        teach: [
+          { topic: 'A low-prep classroom routine that works', angle: 'Break the routine into steps', starter: 'Need a routine that is simple and repeatable? Start here...' },
+          { topic: 'Helping reluctant readers engage', angle: 'Offer one easy strategy', starter: 'Reluctant readers are not broken. Try this small shift first...' }
+        ],
+        share: [
+          { topic: 'One real classroom win this week', angle: 'Show the small moment that mattered', starter: 'This week, one student moment reminded me why progress is rarely loud...' },
+          { topic: 'Sunday planning reality check', angle: 'Normalize the behind-the-scenes work', starter: 'If Sunday planning feels heavy, you are not alone. Here is what helped me...' }
+        ],
+        believe: [
+          { topic: 'Every child needs a safe adult', angle: 'State your stance with care', starter: 'Before any test score, this matters most: every child deserves one safe adult...' },
+          { topic: 'Student confidence is worth measuring too', angle: 'Challenge narrow success metrics', starter: 'We measure a lot in schools, but confidence should count more than it does...' }
+        ],
+        offer: [
+          { topic: 'Classroom template pack', angle: 'Show what problem it solves', starter: 'I put together ready-to-use classroom templates to save your planning time...' },
+          { topic: 'Teacher prep session invite', angle: 'Invite peers into a clear next step', starter: 'I am opening spots for a short teacher prep session this week...' }
+        ]
+      }
     },
     restaurant: {
-      identity: "I am a scratch-kitchen owner in San Antonio sharing the art of local food and community. My tone is rustic, passionate, and hospitable.",
-      pillars: [
-        { name: "The Teacher (Expertise)", seeds: ["The secret to our sourdough crust.", "How to source local ingredients on a budget."] },
-        { name: "The Human (Relatability)", seeds: ["Meet our prep team who makes it happen.", "The chaos of a Saturday night rush."] },
-        { name: "The Believer (Values)", seeds: ["Why we never use frozen ingredients.", "Support local or lose local."] },
-        { name: "The Open Sign (Sales)", seeds: ["New seasonal menu drops tonight.", "Book our patio for your next event."] }
-      ]
+      identity: 'I own a scratch kitchen restaurant and share practical food stories rooted in local community. My tone is warm, confident, and welcoming.',
+      pillars: {
+        teach: [
+          { topic: 'How we build flavor without shortcuts', angle: 'Explain your process simply', starter: 'People ask how we build bold flavor from scratch. It starts with...' },
+          { topic: 'Sourcing local ingredients on a budget', angle: 'Give practical owner advice', starter: 'Buying local does not have to break your budget. Here is our approach...' }
+        ],
+        share: [
+          { topic: 'What prep hour looks like at our kitchen', angle: 'Take people behind the scenes', starter: 'Before service, our kitchen has one quiet hour that sets the whole night...' },
+          { topic: 'A Saturday rush story', angle: 'Highlight your team', starter: 'Saturday rush can feel wild, but this is where our team shines...' }
+        ],
+        believe: [
+          { topic: 'Why local food businesses matter', angle: 'Connect values to community impact', starter: 'Supporting local food is about more than taste. It keeps neighborhoods alive...' },
+          { topic: 'Quality over convenience in menu choices', angle: 'Defend your standards', starter: 'We turn down certain shortcuts on purpose, and here is why...' }
+        ],
+        offer: [
+          { topic: 'Seasonal menu launch', angle: 'Invite with urgency and warmth', starter: 'Our seasonal menu is live this week, and we built it around local ingredients...' },
+          { topic: 'Patio booking for events', angle: 'Show who it is perfect for', starter: 'Planning a small gathering? Our patio setup is ideal for...' }
+        ]
+      }
     }
   };
 
-  const qsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+  const cpState = {
+    mode: null,
+    persona: 'saas_founder'
+  };
 
-  function setActivePersonaButton(key) {
-    qsa('[data-persona]').forEach((btn) => {
+  const cpQsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+
+  function cpReadMode() {
+    try {
+      const raw = localStorage.getItem(CP_STORAGE_KEY);
+      return raw === 'beginner' || raw === 'experienced' ? raw : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function cpWriteMode(mode) {
+    try {
+      localStorage.setItem(CP_STORAGE_KEY, mode);
+    } catch {}
+  }
+
+  function cpSetStage(mode) {
+    cpState.mode = mode;
+    const choice = qs('pillarsChoiceStage');
+    const beginner = qs('pillarsBeginnerStage');
+    const builder = qs('pillarsBuilderStage');
+    if (choice) choice.style.display = mode ? 'none' : 'block';
+    if (beginner) beginner.style.display = mode === 'beginner' ? 'block' : 'none';
+    if (builder) builder.style.display = mode === 'builder' ? 'block' : 'none';
+  }
+
+  function cpSetActivePersonaButton(key) {
+    cpQsa('[data-persona]').forEach((btn) => {
       btn.classList.toggle('is-active', btn.dataset.persona === key);
     });
   }
 
-  function toggleMode() {
-    const toggle = qs('pillar-mode-toggle');
-    const picker = qs('persona-picker');
-    if (!toggle || !picker) return;
-    picker.style.display = toggle.checked ? 'none' : 'flex';
+  function cpComposePrompt(pillarName, helper, seedObj) {
+    const topic = seedObj?.topic || '';
+    const angle = seedObj?.angle || helper || '';
+    const starter = seedObj?.starter || "Here's something worth sharing today...";
+    return `Pillar: ${pillarName}
+Topic: ${topic}
+Angle: ${angle}
+Draft starter: ${starter}`;
   }
 
-  function renderPillars(pillars) {
+  function cpWritePromptToComposer(promptText) {
+    const composerView = qs('composerView');
+    if (composerView && typeof window.activateView === 'function') window.activateView('composerView');
+
+    const textarea = composerView?.querySelector('textarea[data-composer-editor], textarea#composerEditor, textarea.composer-editor, textarea');
+    const richEditor = qs('composerEditor');
+
+    if (textarea && textarea.tagName === 'TEXTAREA') {
+      textarea.value = promptText;
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      textarea.focus();
+      return true;
+    }
+
+    if (richEditor && richEditor.getAttribute('contenteditable') === 'true') {
+      richEditor.textContent = promptText;
+      richEditor.dispatchEvent(new Event('input', { bubbles: true }));
+      richEditor.focus();
+      return true;
+    }
+
+    return false;
+  }
+
+  async function cpCopyText(text) {
+    try {
+      await safeWriteText(text);
+      return true;
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', 'readonly');
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      ta.remove();
+      return !!ok;
+    }
+  }
+
+  function cpRenderPillars(pillarMap) {
     const container = qs('bucket-container');
     if (!container) return;
     container.innerHTML = '';
-    pillars.forEach((pillar) => {
-      const card = document.createElement('div');
+
+    PILLARS.forEach((meta) => {
+      const seeds = Array.isArray(pillarMap?.[meta.key]) ? pillarMap[meta.key] : [];
+      const card = document.createElement('article');
       card.className = 'bucket-card';
+
       const title = document.createElement('h3');
-      title.textContent = pillar.name;
+      title.textContent = meta.name;
+      const helper = document.createElement('span');
+      helper.className = 'pillar-helper';
+      helper.textContent = meta.helper;
       card.appendChild(title);
-      pillar.seeds.forEach((seed) => {
+      card.appendChild(helper);
+
+      seeds.forEach((seedObj) => {
         const row = document.createElement('div');
         row.className = 'seed-item';
+
         const text = document.createElement('span');
         text.className = 'seed-text';
-        text.textContent = seed;
-        const btn = document.createElement('button');
-        btn.className = 'btn-copy-prompt';
-        btn.type = 'button';
-        btn.textContent = 'Prompt';
-        btn.addEventListener('click', () => copyPrompt(pillar.name, seed));
+        text.textContent = seedObj.topic;
+
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.gap = '6px';
+
+        const promptBtn = document.createElement('button');
+        promptBtn.className = 'btn-copy-prompt';
+        promptBtn.type = 'button';
+        promptBtn.dataset.cpAction = 'prompt';
+        promptBtn.dataset.cpPillar = meta.name;
+        promptBtn.dataset.cpHelper = seedObj.angle || meta.helper;
+        promptBtn.dataset.cpTopic = seedObj.topic || '';
+        promptBtn.dataset.cpStarter = seedObj.starter || '';
+        promptBtn.textContent = 'Prompt';
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'btn-copy-prompt';
+        copyBtn.type = 'button';
+        copyBtn.dataset.cpAction = 'copy';
+        copyBtn.dataset.cpPillar = meta.name;
+        copyBtn.dataset.cpHelper = seedObj.angle || meta.helper;
+        copyBtn.dataset.cpTopic = seedObj.topic || '';
+        copyBtn.dataset.cpStarter = seedObj.starter || '';
+        copyBtn.textContent = 'Copy';
+
+        actions.appendChild(promptBtn);
+        actions.appendChild(copyBtn);
         row.appendChild(text);
-        row.appendChild(btn);
+        row.appendChild(actions);
         card.appendChild(row);
       });
+
       container.appendChild(card);
     });
   }
 
-  function applyPersona(key) {
+  function cpApplyPersona(key) {
     const data = PERSONA_DATA[key];
     const identityEl = qs('global-identity');
     if (!data || !identityEl) return;
+    cpState.persona = key;
     identityEl.value = data.identity;
-    renderPillars(data.pillars);
-    setActivePersonaButton(key);
+    cpRenderPillars(data.pillars);
+    cpSetActivePersonaButton(key);
   }
 
-  function copyPrompt(pillarName, seed) {
-    const identity = qs('global-identity')?.value?.trim() || '';
-    const prompt =
-      `Act as: ${identity}
-` +
-      `Category/Pillar: ${pillarName}
-` +
-      `Topic: ${seed}
+  async function cpHandleCardAction(btn) {
+    const action = btn?.dataset?.cpAction;
+    if (!action) return;
+    const pillarName = btn.dataset.cpPillar || 'Teach';
+    const helper = btn.dataset.cpHelper || '';
+    const seedObj = {
+      topic: btn.dataset.cpTopic || '',
+      angle: btn.dataset.cpHelper || helper,
+      starter: btn.dataset.cpStarter || ''
+    };
 
-` +
-      `Task: Write a punchy, high-engagement social media post based on this topic. Keep it authentic and avoid corporate jargon.`;
-    safeWriteText(prompt)
-      .then(() => showToast('Pillar prompt copied.', 'success'))
-      .catch(() => showToast('Could not copy prompt.', 'error'));
+    const text = cpComposePrompt(pillarName, helper, seedObj);
+
+    if (action === 'prompt') {
+      const wrote = cpWritePromptToComposer(text);
+      if (wrote) showToast('Prompt added to Draft.', 'success');
+      else showToast('Could not open Draft editor.', 'error');
+      return;
+    }
+
+    const copied = await cpCopyText(text);
+    showToast(copied ? 'Prompt copied.' : 'Could not copy prompt.', copied ? 'success' : 'error');
+  }
+
+  function cpHandleChoice(mode) {
+    if (mode !== 'beginner' && mode !== 'experienced') return;
+    cpWriteMode(mode);
+    if (mode === 'experienced') {
+      cpSetStage('builder');
+      cpApplyPersona(cpState.persona);
+    } else {
+      cpSetStage('beginner');
+    }
+  }
+
+  function cpResetOnboarding() {
+    try { localStorage.removeItem(CP_STORAGE_KEY); } catch {}
+    cpSetStage(null);
   }
 
   function init() {
-    if (!qs('pillars-section') || !qs('bucket-container')) return;
-    qs('pillar-mode-toggle')?.addEventListener('change', toggleMode);
-    qsa('[data-persona]').forEach((btn) => {
-      btn.addEventListener('click', () => applyPersona(btn.dataset.persona));
+    const root = qs('pillars-section');
+    const container = qs('bucket-container');
+    if (!root || !container) return;
+
+    root.addEventListener('click', (event) => {
+      const choiceBtn = event.target.closest('[data-pillars-choice]');
+      if (choiceBtn) {
+        cpHandleChoice(choiceBtn.dataset.pillarsChoice);
+        return;
+      }
+
+      const actionBtn = event.target.closest('[data-cp-action]');
+      if (actionBtn) {
+        cpHandleCardAction(actionBtn);
+      }
     });
-    toggleMode();
-    applyPersona('saas_founder');
+
+    const buildBtn = qs('pillarsBuildBtn');
+    if (buildBtn) {
+      buildBtn.addEventListener('click', () => {
+        cpSetStage('builder');
+        cpApplyPersona(cpState.persona);
+      });
+    }
+
+    const resetBtn = qs('pillarsResetBtn');
+    if (resetBtn) resetBtn.addEventListener('click', cpResetOnboarding);
+
+    cpQsa('[data-persona]').forEach((btn) => {
+      btn.addEventListener('click', () => cpApplyPersona(btn.dataset.persona));
+    });
+
+    const mode = cpReadMode();
+    if (!mode) {
+      cpSetStage(null);
+      return;
+    }
+    if (mode === 'experienced') {
+      cpSetStage('builder');
+      cpApplyPersona(cpState.persona);
+      return;
+    }
+    cpSetStage('beginner');
   }
 
-  return { init, applyPersona, toggleMode };
+  return { init };
 })();
 
 document.addEventListener('DOMContentLoaded', () => {

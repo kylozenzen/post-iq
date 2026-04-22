@@ -580,47 +580,68 @@
       <div class="page-hdr">
         <div class="page-hdr-left">
           <h1 class="page-title">Content Pillars</h1>
-          <p class="page-desc">An easier way to organize the areas of expertise, experience, and perspective you can consistently post about.</p>
+          <p class="page-desc">Plan what to post with four simple pillar types: Teach, Share, Believe, and Offer.</p>
         </div>
         <div class="page-actions">
           <span class="status-pill free">Preview</span>
         </div>
       </div>
       <div class="view-content">
-        <div class="card" style="margin-bottom:16px;background:var(--surface2);">
-          <div class="section-hdr" style="margin-bottom:8px;">
-            <div class="section-title">A guided starting point for your recurring topics</div>
-            <span class="chip brand">WIP</span>
-          </div>
-          <p class="page-desc" style="margin:0;max-width:72ch;">Pick a persona to see example pillars, tweak your global identity, and copy LLM-ready prompts for faster idea generation. This keeps the feature useful now while we build the deeper version carefully.</p>
-        </div>
-
         <section id="pillars-section" class="content-pillars-section">
           <div class="content-pillars-header">
-            <h2 class="content-pillars-title">Content Pillars</h2>
-            <div class="content-pillars-toggle-wrap">
-              <span>Guided</span>
-              <label class="switch">
-                <input type="checkbox" id="pillar-mode-toggle">
-                <span class="slider"></span>
-              </label>
-              <span>Custom</span>
+            <div>
+              <h2 class="content-pillars-title">Pillar Builder</h2>
+              <p class="content-pillars-subtitle">A lightweight way to build balanced topics and jump straight into Draft.</p>
+            </div>
+            <div class="content-pillars-header-actions">
+              <span class="chip">WIP</span>
+              <button class="btn sm ghost" type="button" id="pillarsResetBtn">Retake onboarding</button>
             </div>
           </div>
 
-          <div class="card content-pillars-identity-card">
-            <label class="content-pillars-label" for="global-identity">Global Identity (Your “Brand Soul”)</label>
-            <textarea id="global-identity" class="content-pillars-textarea" placeholder="e.g. A senior dev building minimalist, local-first tools for creators..."></textarea>
+          <div class="card content-pillars-stage" id="pillarsChoiceStage">
+            <h3 class="content-pillars-stage-title">Before we start, pick your path</h3>
+            <p class="content-pillars-stage-copy">Choose how you'd like PostIQ to guide you. You can always switch later.</p>
+            <div class="content-pillars-choice-actions">
+              <button class="btn primary" type="button" data-pillars-choice="beginner">I'm new to content pillars</button>
+              <button class="btn" type="button" data-pillars-choice="experienced">I already know how this works</button>
+            </div>
           </div>
 
-          <div id="persona-picker" class="content-pillars-persona-picker">
-            <button class="btn-preset" type="button" data-persona="saas_founder">🛠️ SaaS Founder</button>
-            <button class="btn-preset" type="button" data-persona="nurse">🩺 Nurse</button>
-            <button class="btn-preset" type="button" data-persona="teacher">🍎 Teacher</button>
-            <button class="btn-preset" type="button" data-persona="restaurant">🍳 Restaurant Owner</button>
+          <div class="card content-pillars-stage" id="pillarsBeginnerStage" style="display:none;">
+            <h3 class="content-pillars-stage-title">Think of pillars like tools in your kitchen</h3>
+            <ul class="content-pillars-bullets">
+              <li>Content pillars are like the main tools in your kitchen.</li>
+              <li>You do not make every meal with the same tool.</li>
+              <li>Some tools help you prep, some help you cook, some help you serve.</li>
+              <li>Content works the same way: different kinds of posts do different jobs.</li>
+            </ul>
+            <p class="content-pillars-stage-copy">Pillars help because they stop you from guessing what to post, help you create faster, and build a balanced content mix over time.</p>
+            <div class="content-pillars-mini-grid">
+              <div class="content-pillars-mini-card"><strong>Teach</strong><span>what you know</span></div>
+              <div class="content-pillars-mini-card"><strong>Share</strong><span>what you experience</span></div>
+              <div class="content-pillars-mini-card"><strong>Believe</strong><span>what you stand for</span></div>
+              <div class="content-pillars-mini-card"><strong>Offer</strong><span>what you sell</span></div>
+            </div>
+            <button class="btn primary" type="button" id="pillarsBuildBtn">Build my pillars</button>
           </div>
 
-          <div id="bucket-container" class="content-pillars-grid"></div>
+          <div class="content-pillars-builder" id="pillarsBuilderStage" style="display:none;">
+            <div class="card content-pillars-identity-card">
+              <label class="content-pillars-label" for="global-identity">Your voice and point of view</label>
+              <p class="content-pillars-help">Describe who you are, what you do, and how you like to sound when you write.</p>
+              <textarea id="global-identity" class="content-pillars-textarea" placeholder="e.g. I build local-first software for creators. My tone is clear, practical, and honest."></textarea>
+            </div>
+
+            <div id="persona-picker" class="content-pillars-persona-picker">
+              <button class="btn-preset" type="button" data-persona="saas_founder">🛠️ SaaS Founder</button>
+              <button class="btn-preset" type="button" data-persona="nurse">🩺 Nurse</button>
+              <button class="btn-preset" type="button" data-persona="teacher">🍎 Teacher</button>
+              <button class="btn-preset" type="button" data-persona="restaurant">🍳 Restaurant Owner</button>
+            </div>
+
+            <div id="bucket-container" class="content-pillars-grid"></div>
+          </div>
         </section>
       </div>
     </section>
