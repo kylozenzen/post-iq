@@ -1,25 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>PostIQ — Buffer Companion</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>PostIQ — Stop Guessing What To Post</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Lato:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-<!-- GA4 -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@700;800&family=Lato:wght@400;600&display=swap" rel="stylesheet">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-5RV57M7J0K"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){ dataLayer.push(arguments); }
-  gtag('js', new Date());
-  gtag('config', 'G-5RV57M7J0K');
-</script>
-
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-5RV57M7J0K');</script>
 <style>
-/* ═══════════════════════════════════════════
-   DESIGN TOKENS — mirror app.html exactly
-   ═══════════════════════════════════════════ */
 :root {
   --bg:        #f5f6fa;
   --surface:   #ffffff;
@@ -33,802 +22,710 @@
   --ink:       #2c3050;
   --brand:     #3a3fff;
   --brand-dim: rgba(58,63,255,.08);
-  --brand-glow:rgba(58,63,255,.2);
+  --brand-glow:rgba(58,63,255,.18);
   --accent:    #ff4f6a;
   --green:     #0fa672;
   --green-dim: rgba(15,166,114,.09);
   --amber:     #f59e0b;
   --r:  12px;
   --r2:  8px;
-  --shadow-sm: 0 1px 3px rgba(20,22,42,.06), 0 1px 2px rgba(20,22,42,.04);
-  --shadow:    0 4px 16px rgba(20,22,42,.08), 0 1px 4px rgba(20,22,42,.04);
-  --shadow-lg: 0 12px 40px rgba(20,22,42,.12), 0 4px 12px rgba(20,22,42,.06);
-  --max: 1100px;
+  --max: 1080px;
+  --shadow-sm: 0 1px 3px rgba(20,22,42,.06),0 1px 2px rgba(20,22,42,.04);
+  --shadow:    0 4px 16px rgba(20,22,42,.08),0 1px 4px rgba(20,22,42,.04);
+  --shadow-lg: 0 12px 40px rgba(20,22,42,.12),0 4px 12px rgba(20,22,42,.06);
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;}
 
-body {
-  font-family: 'Lato', system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 15px;
-  line-height: 1.55;
-  min-height: 100vh;
-  overflow-x: hidden;
+body{
+  font-family:'Lato',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  font-size:15px;
+  line-height:1.55;
+  min-height:100vh;
+  overflow-x:hidden;
 }
 
-/* ── WRAP ── */
-.wrap {
-  width: min(calc(100% - 32px), var(--max));
-  margin: 0 auto;
+/* Grid texture overlay */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:
+    linear-gradient(var(--border) 1px,transparent 1px),
+    linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:52px 52px;
+  opacity:.35;
+  pointer-events:none;
+  z-index:0;
+}
+
+.wrap{
+  width:min(calc(100% - 40px),var(--max));
+  margin:0 auto;
+  position:relative;
+  z-index:1;
 }
 
 /* ── TOPBAR ── */
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 0;
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background: rgba(245,246,250,.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border);
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  padding:16px 0;
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:rgba(245,246,250,.88);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-weight: 800;
-  font-size: 18px;
-  letter-spacing: -.3px;
-  color: var(--ink);
-  text-decoration: none;
+.brand{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-weight:800;
+  font-size:18px;
+  letter-spacing:-.3px;
+  color:var(--ink);
+  text-decoration:none;
 }
 
-.brand-beta {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  padding: 3px 7px;
-  border-radius: 4px;
-  background: var(--brand);
-  color: #fff;
+.brand-beta{
+  font-family:'DM Mono',monospace;
+  font-size:10px;
+  font-weight:500;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  padding:3px 7px;
+  border-radius:4px;
+  background:var(--brand);
+  color:#fff;
 }
 
-.top-actions { display: flex; gap: 10px; align-items: center; }
+.top-actions{display:flex;gap:10px;align-items:center;}
 
 /* ── BUTTONS ── */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 0 18px;
-  height: 38px;
-  border-radius: var(--r2);
-  border: 1px solid var(--border2);
-  background: var(--surface);
-  color: var(--text);
-  font-family: 'Lato', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: all .14s;
-  box-shadow: var(--shadow-sm);
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:0 18px;
+  height:38px;
+  border-radius:var(--r2);
+  border:1px solid var(--border2);
+  background:var(--surface);
+  color:var(--text);
+  font-family:'Lato',sans-serif;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  text-decoration:none;
+  white-space:nowrap;
+  transition:all .14s;
+  box-shadow:var(--shadow-sm);
 }
-.btn:hover { border-color: var(--brand-glow); color: var(--brand); background: var(--brand-dim); }
-.btn.primary {
-  background: var(--ink);
-  color: #fff;
-  border-color: transparent;
-  box-shadow: 0 2px 10px rgba(20,22,42,.2);
+.btn:hover{border-color:var(--brand-glow);color:var(--brand);background:var(--brand-dim);}
+.btn.primary{
+  background:var(--brand);
+  color:#fff;
+  border-color:transparent;
+  box-shadow:0 2px 10px rgba(58,63,255,.28);
 }
-.btn.primary:hover {
-  background: var(--brand);
-  color: #fff;
-  box-shadow: 0 4px 18px rgba(58,63,255,.3);
-  transform: translateY(-1px);
-}
-.btn.ghost {
-  background: transparent;
-  border-color: var(--brand-glow);
-  color: var(--brand);
-}
-.btn.ghost:hover { background: var(--brand-dim); }
-.btn.lg { height: 46px; padding: 0 24px; font-size: 15px; border-radius: var(--r); }
-.btn:active { transform: scale(.97) !important; }
+.btn.primary:hover{background:#2a2fff;box-shadow:0 4px 20px rgba(58,63,255,.38);transform:translateY(-1px);color:#fff;}
+.btn.ghost{background:transparent;border-color:var(--brand-glow);color:var(--brand);}
+.btn.ghost:hover{background:var(--brand-dim);}
+.btn.lg{height:46px;padding:0 26px;font-size:15px;border-radius:var(--r);}
+.btn:active{transform:scale(.97)!important;}
 
 /* ── HERO ── */
-.hero {
-  padding: 64px 0 40px;
-  position: relative;
-  overflow: hidden;
+.hero{
+  padding:72px 0 56px;
+  position:relative;
 }
 
-/* Grid texture */
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(var(--border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border) 1px, transparent 1px);
-  background-size: 48px 48px;
-  opacity: .5;
-  pointer-events: none;
+.hero-inner{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:48px;
+  align-items:center;
 }
 
-/* Brand glow blob */
-.hero::after {
-  content: '';
-  position: absolute;
-  top: -80px; left: 50%;
-  transform: translateX(-50%);
-  width: 800px; height: 400px;
-  background: radial-gradient(ellipse at center top, rgba(58,63,255,.1), transparent 65%);
-  pointer-events: none;
+.hero-copy{padding:8px 0;}
+
+.eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-family:'DM Mono',monospace;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.14em;
+  color:var(--brand);
+  margin-bottom:20px;
+  opacity:0;
+  animation:fadeUp .5s .1s ease forwards;
+}
+.eyebrow-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--brand);
+  animation:blink 2.4s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.7);}}
+
+h1{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-weight:800;
+  font-size:clamp(2.8rem,5.5vw,4.2rem);
+  line-height:1.0;
+  letter-spacing:-.05em;
+  color:var(--ink);
+  margin-bottom:10px;
+  opacity:0;
+  animation:fadeUp .5s .2s ease forwards;
+}
+h1 em{font-style:normal;color:var(--brand);}
+
+.hero-sub{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-weight:700;
+  font-size:clamp(1.1rem,2vw,1.4rem);
+  color:var(--muted);
+  letter-spacing:-.02em;
+  margin-bottom:18px;
+  line-height:1.3;
+  opacity:0;
+  animation:fadeUp .5s .28s ease forwards;
 }
 
-.hero-inner {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  align-items: center;
-  position: relative;
-  z-index: 1;
+.hero-desc{
+  font-size:15px;
+  color:var(--muted);
+  line-height:1.75;
+  max-width:44ch;
+  margin-bottom:28px;
+  opacity:0;
+  animation:fadeUp .5s .36s ease forwards;
 }
 
-.hero-copy { padding: 8px 0; }
-
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: .14em;
-  color: var(--brand);
-  margin-bottom: 18px;
-}
-.eyebrow-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--brand);
-  animation: blink 2.4s ease-in-out infinite;
-}
-@keyframes blink {
-  0%,100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: .4; transform: scale(.7); }
+.hero-ctas{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:28px;
+  opacity:0;
+  animation:fadeUp .5s .44s ease forwards;
 }
 
-h1 {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-weight: 800;
-  font-size: clamp(2.6rem, 5vw, 4rem);
-  line-height: 1.0;
-  letter-spacing: -.04em;
-  color: var(--ink);
-  margin-bottom: 18px;
+.trust-strip{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  opacity:0;
+  animation:fadeUp .5s .52s ease forwards;
 }
-h1 em { font-style: normal; color: var(--brand); }
+.trust-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:4px 11px;
+  border:1px solid var(--border2);
+  border-radius:999px;
+  background:var(--surface);
+  font-family:'DM Mono',monospace;
+  font-size:10px;
+  color:var(--subtle);
+  box-shadow:var(--shadow-sm);
+}
+.trust-pill::before{content:'✓';color:var(--green);font-size:10px;font-weight:700;}
 
-.hero-desc {
-  font-size: 16px;
-  color: var(--muted);
-  line-height: 1.7;
-  max-width: 46ch;
-  margin-bottom: 28px;
-}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
 
-.hero-ctas {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
-}
-
-.trust-strip {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.trust-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
-  border: 1px solid var(--border2);
-  border-radius: 999px;
-  background: var(--surface);
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  color: var(--subtle);
-  box-shadow: var(--shadow-sm);
-}
-.trust-pill::before {
-  content: '✓';
-  color: var(--green);
-  font-size: 10px;
-  font-weight: 700;
+/* ── HERO VISUAL ── */
+.hero-visual{
+  position:relative;
+  opacity:0;
+  animation:fadeUp .6s .3s ease forwards;
 }
 
-/* ── HERO DEMO PANEL ── */
-.hero-demo { position: relative; z-index: 1; }
-
-.demo-panel {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: var(--r);
-  box-shadow: var(--shadow-lg);
-  overflow: hidden;
+/* Stacked UI panels */
+.ui-stack{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:0;
 }
 
-.demo-panel-bar {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface2);
-}
-.dot { width: 8px; height: 8px; border-radius: 50%; }
-.dot-r { background: #ffb3b3; }
-.dot-y { background: #ffd88a; }
-.dot-g { background: #a5f3d0; }
-.demo-panel-label {
-  margin-left: 4px;
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  color: var(--subtle);
-  letter-spacing: .04em;
+.ui-panel{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:var(--r);
+  overflow:hidden;
+  box-shadow:var(--shadow);
 }
 
-.demo-body { padding: 16px; }
-
-.demo-textarea {
-  width: 100%;
-  min-height: 110px;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: var(--r2);
-  color: var(--text);
-  padding: 12px 14px;
-  resize: none;
-  font-family: 'Lato', sans-serif;
-  font-size: 14px;
-  line-height: 1.65;
-  outline: none;
-  transition: border-color .14s, box-shadow .14s;
+.ui-panel-bar{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:9px 12px;
+  border-bottom:1px solid var(--border);
+  background:var(--surface2);
 }
-.demo-textarea:focus {
-  border-color: var(--brand);
-  box-shadow: 0 0 0 3px var(--brand-dim);
+.ui-dot{width:7px;height:7px;border-radius:50%;}
+.ui-dot-r{background:#fbb;}.ui-dot-y{background:#fdc;}.ui-dot-g{background:#aee;}
+.ui-panel-label{
+  font-family:'DM Mono',monospace;
+  font-size:10px;
+  color:var(--subtle);
+  margin-left:4px;
+  letter-spacing:.04em;
 }
 
-.demo-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 10px;
-  gap: 10px;
-  flex-wrap: wrap;
+.ui-panel-body{padding:14px;}
+
+/* Mini calendar mock */
+.mini-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.mini-cal-dow{
+  font-family:'DM Mono',monospace;font-size:8px;color:var(--subtle);
+  text-align:center;padding:2px 0 4px;text-transform:uppercase;letter-spacing:.06em;
 }
-.demo-hint {
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  color: var(--subtle);
+.mini-cal-day{
+  aspect-ratio:1;border-radius:5px;border:1px solid var(--border);
+  background:var(--surface2);display:flex;align-items:flex-start;
+  justify-content:flex-start;padding:3px;
+  font-family:'DM Mono',monospace;font-size:7px;color:var(--subtle);
+  position:relative;overflow:hidden;
+}
+.mini-cal-day.has{border-color:var(--brand-glow);background:var(--brand-dim);}
+.mini-cal-day.today{border-color:var(--brand);background:var(--brand-dim);}
+.mini-cal-day.today span{color:var(--brand);font-weight:700;}
+.mini-cal-day.note{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.06);}
+.mini-cal-day.gap{border:1px dashed var(--border2);}
+.mini-cal-bar{
+  position:absolute;bottom:2px;left:2px;right:2px;
+  height:3px;border-radius:2px;background:var(--brand);opacity:.6;
+}
+.mini-cal-note-bar{
+  position:absolute;bottom:2px;left:2px;right:2px;
+  height:3px;border-radius:2px;background:var(--amber);opacity:.7;
 }
 
-.demo-output {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 240px;
-  overflow-y: auto;
-  padding-right: 2px;
+/* Pillar chips mock */
+.pillar-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px;}
+.pillar-chip{
+  padding:5px 10px;border-radius:6px;font-size:11px;
+  font-family:'DM Mono',monospace;border:1px solid var(--border2);
+  background:var(--surface2);color:var(--muted);
 }
-.demo-output::-webkit-scrollbar { width: 4px; }
-.demo-output::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.pillar-chip.active{background:var(--brand-dim);border-color:var(--brand-glow);color:var(--brand);}
+.pillar-chip.green{background:var(--green-dim);border-color:rgba(15,166,114,.2);color:var(--green);}
+.pillar-chip.amber{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2);color:#92600a;}
 
-.demo-post-card {
-  border: 1px solid var(--border2);
-  border-left: 3px solid var(--brand);
-  border-radius: var(--r2);
-  background: var(--surface2);
-  padding: 10px 12px;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--text);
-  animation: cardIn .2s ease both;
+/* Thread mock */
+.thread-part{
+  border:1px solid var(--border2);border-left:3px solid var(--brand);
+  border-radius:var(--r2);padding:8px 10px;font-size:11px;
+  line-height:1.55;color:var(--text);background:var(--surface2);
+  margin-bottom:6px;
 }
-@keyframes cardIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:none; } }
-
-.demo-post-meta {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 6px;
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  color: var(--brand);
+.thread-part:last-child{margin-bottom:0;}
+.thread-part-meta{
+  display:flex;justify-content:space-between;
+  font-family:'DM Mono',monospace;font-size:9px;
+  color:var(--brand);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;
 }
 
-.demo-empty {
-  border: 1px dashed var(--border2);
-  border-radius: var(--r2);
-  padding: 20px 14px;
-  text-align: center;
-  font-family: 'DM Mono', monospace;
-  font-size: 12px;
-  color: var(--subtle);
-  line-height: 1.6;
+/* Floating badge */
+.float-badge{
+  position:absolute;
+  top:-12px;right:-14px;
+  background:var(--green);
+  color:#fff;
+  font-family:'DM Mono',monospace;
+  font-size:10px;
+  font-weight:500;
+  padding:5px 10px;
+  border-radius:20px;
+  box-shadow:0 4px 12px rgba(15,166,114,.3);
+  white-space:nowrap;
+  animation:floatBadge 3s ease-in-out infinite;
 }
+@keyframes floatBadge{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
 
-/* ── PROOF LINE ── */
-.proof-line {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-top: 20px;
-  padding: 14px 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  box-shadow: var(--shadow-sm);
-  max-width: 480px;
+.connector-line{
+  width:2px;height:14px;
+  background:linear-gradient(var(--brand-glow),transparent);
+  margin:0 auto;
 }
-.proof-avatar {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--brand), #1a22cc);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-weight: 800;
-  font-size: 12px;
-  color: #fff;
-  flex-shrink: 0;
-}
-.proof-text { font-size: 13px; color: var(--muted); line-height: 1.55; }
-.proof-text strong { color: var(--ink); font-weight: 600; }
 
 /* ── SECTION ── */
-section { padding: 64px 0 16px; }
+section{padding:72px 0 0;position:relative;z-index:1;}
 
-.section-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: .14em;
-  color: var(--brand);
+.section-eyebrow{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:12px;
+  font-family:'DM Mono',monospace;font-size:11px;
+  text-transform:uppercase;letter-spacing:.14em;color:var(--brand);
 }
-.section-eyebrow::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
+.section-eyebrow::after{content:'';flex:1;height:1px;background:var(--border);}
 
-h2 {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-weight: 800;
-  font-size: clamp(1.9rem, 4vw, 2.8rem);
-  line-height: 1.05;
-  letter-spacing: -.04em;
-  color: var(--ink);
+h2{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-weight:800;
+  font-size:clamp(1.9rem,3.8vw,2.8rem);
+  line-height:1.05;
+  letter-spacing:-.04em;
+  color:var(--ink);
 }
-h2 em { font-style: normal; color: var(--brand); }
+h2 em{font-style:normal;color:var(--brand);}
 
-.section-desc {
-  font-size: 15px;
-  color: var(--muted);
-  line-height: 1.7;
-  max-width: 60ch;
-  margin: 12px 0 32px;
+.section-desc{
+  font-size:15px;color:var(--muted);line-height:1.75;
+  max-width:58ch;margin:12px 0 36px;
 }
 
-/* ── THREE-ACT WORKFLOW ── */
-.workflow-grid {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr;
-  gap: 14px;
+/* ── TOOLS GRID ── */
+.tools-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+  margin-bottom:12px;
+}
+.tools-grid-wide{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
 }
 
-.workflow-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 24px;
-  box-shadow: var(--shadow-sm);
-  position: relative;
-  overflow: hidden;
-  transition: border-color .15s, box-shadow .15s, transform .15s;
+.tool-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:22px;
+  box-shadow:var(--shadow-sm);
+  position:relative;
+  overflow:hidden;
+  transition:border-color .15s,box-shadow .15s,transform .15s;
 }
-.workflow-card::after {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-  background: var(--brand);
-  opacity: 0;
-  transition: opacity .15s;
+.tool-card::before{
+  content:'';
+  position:absolute;left:0;top:0;bottom:0;
+  width:3px;background:var(--brand);
+  opacity:0;transition:opacity .15s;
 }
-.workflow-card:hover {
-  border-color: var(--brand-glow);
-  box-shadow: var(--shadow);
-  transform: translateY(-2px);
+.tool-card:hover{
+  border-color:var(--brand-glow);
+  box-shadow:var(--shadow);
+  transform:translateY(-2px);
 }
-.workflow-card:hover::after { opacity: 1; }
+.tool-card:hover::before{opacity:1;}
+.tool-card.featured{
+  border-color:var(--brand-glow);
+  background:linear-gradient(135deg,var(--brand-dim) 0%,var(--surface) 60%);
+}
+.tool-card.featured::before{opacity:1;}
 
-.workflow-step-num {
-  font-family: 'DM Mono', monospace;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  color: var(--brand);
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.tool-tag{
+  display:inline-flex;align-items:center;
+  height:20px;padding:0 8px;border-radius:4px;
+  font-family:'DM Mono',monospace;font-size:9px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;
+  border:1px solid var(--border2);color:var(--subtle);
+  margin-bottom:14px;
 }
-.workflow-step-icon { font-size: 20px; margin-bottom: 10px; display: block; }
+.tool-tag.free{background:var(--green-dim);border-color:rgba(15,166,114,.2);color:var(--green);}
+.tool-tag.key{background:var(--brand-dim);border-color:var(--brand-glow);color:var(--brand);}
 
-.workflow-card h3 {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  color: var(--ink);
-  margin-bottom: 8px;
-  letter-spacing: -.02em;
+.tool-icon{font-size:22px;margin-bottom:10px;display:block;}
+.tool-num{
+  font-family:'DM Mono',monospace;font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.1em;color:var(--brand);
+  margin-bottom:10px;
 }
-.workflow-card p {
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.65;
+.tool-card h3{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-weight:700;font-size:17px;color:var(--ink);
+  margin-bottom:8px;letter-spacing:-.02em;line-height:1.25;
 }
+.tool-card p{font-size:13px;color:var(--muted);line-height:1.65;}
 
-/* Sub-features on the Plan card */
-.workflow-subfeatures {
-  margin-top: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.tool-features{margin-top:14px;display:flex;flex-direction:column;gap:5px;}
+.tool-feat{
+  display:flex;align-items:flex-start;gap:7px;
+  font-size:12px;color:var(--muted);line-height:1.5;
 }
-.workflow-subfeat {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.5;
-}
-.workflow-subfeat::before {
-  content: '→';
-  color: var(--brand);
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  flex-shrink: 0;
-  margin-top: 1px;
+.tool-feat::before{
+  content:'→';color:var(--brand);
+  font-family:'DM Mono',monospace;font-size:11px;
+  flex-shrink:0;margin-top:1px;
 }
 
-/* Status tag */
-.status-tag {
-  display: inline-flex;
-  align-items: center;
-  height: 20px;
-  padding: 0 8px;
-  border-radius: 4px;
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  border: 1px solid var(--border2);
-  color: var(--subtle);
-  margin-bottom: 14px;
+/* ── SPLIT DEMO ── */
+.demo-section{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:var(--r);
+  overflow:hidden;
+  box-shadow:var(--shadow);
+  margin-top:36px;
 }
-.status-tag.free  { background: var(--green-dim); border-color: rgba(15,166,114,.2); color: var(--green); }
-.status-tag.needs { background: var(--brand-dim); border-color: var(--brand-glow); color: var(--brand); }
+.demo-section-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;
+  border-bottom:1px solid var(--border);
+  background:var(--surface2);
+  flex-wrap:wrap;gap:10px;
+}
+.demo-section-title{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-weight:700;font-size:16px;color:var(--ink);
+}
+.demo-section-sub{font-size:12px;color:var(--subtle);}
 
-/* Templates card at bottom */
-.templates-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 24px;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  gap: 24px;
-  align-items: flex-start;
-  margin-top: 14px;
-  transition: border-color .15s, box-shadow .15s;
+.demo-body{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:0;
 }
-.templates-card:hover { border-color: var(--brand-glow); box-shadow: var(--shadow); }
-.templates-card-copy { flex: 1; min-width: 0; }
-.templates-examples {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 14px;
-}
-.template-chip {
-  padding: 5px 10px;
-  border: 1px solid var(--border2);
-  border-radius: 6px;
-  background: var(--surface2);
-  font-size: 12px;
-  color: var(--muted);
-  font-family: 'DM Mono', monospace;
-  cursor: default;
-  transition: border-color .12s, color .12s;
-}
-.template-chip:hover { border-color: var(--brand-glow); color: var(--brand); }
+.demo-col{padding:18px 20px;}
+.demo-col:first-child{border-right:1px solid var(--border);}
 
-/* ── TOKEN EXPLAINER ── */
-.token-steps {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-top: 32px;
+.demo-col-label{
+  font-family:'DM Mono',monospace;font-size:10px;
+  text-transform:uppercase;letter-spacing:.08em;color:var(--subtle);
+  margin-bottom:10px;font-weight:500;
 }
-.token-step {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 22px;
-  box-shadow: var(--shadow-sm);
-  position: relative;
-  overflow: hidden;
-  transition: border-color .15s, transform .15s;
+
+.demo-textarea{
+  width:100%;min-height:130px;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:var(--r2);
+  color:var(--text);padding:11px 13px;
+  resize:none;font-family:'Lato',sans-serif;
+  font-size:13px;line-height:1.65;outline:none;
+  transition:border-color .14s,box-shadow .14s;
 }
-.token-step:hover { border-color: var(--brand-glow); transform: translateY(-2px); }
-.token-step-num {
-  position: absolute;
-  top: 14px; right: 16px;
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-weight: 800;
-  font-size: 3.5rem;
-  line-height: 1;
-  color: rgba(58,63,255,.07);
-  pointer-events: none;
+.demo-textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-dim);}
+
+.demo-btns{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+.demo-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:5px;padding:0 14px;height:32px;
+  border-radius:var(--r2);border:1px solid var(--border2);
+  background:var(--surface);color:var(--text);
+  font-size:12px;font-weight:600;font-family:'Lato',sans-serif;
+  cursor:pointer;transition:all .12s;box-shadow:var(--shadow-sm);
 }
-.token-step h4 {
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  color: var(--ink);
-  margin-bottom: 10px;
-  font-weight: 700;
+.demo-btn:hover{border-color:var(--brand-glow);color:var(--brand);background:var(--brand-dim);}
+.demo-btn.primary{background:var(--brand);color:#fff;border-color:transparent;}
+.demo-btn.primary:hover{background:#2a2fff;color:#fff;}
+
+.demo-output{display:flex;flex-direction:column;gap:7px;min-height:130px;}
+.demo-post-card{
+  border:1px solid var(--border2);
+  border-left:3px solid var(--brand);
+  border-radius:var(--r2);
+  background:var(--surface2);
+  padding:9px 11px;
+  font-size:12px;line-height:1.6;color:var(--text);
+  animation:cardIn .2s ease both;
 }
-.token-step p { font-size: 13px; color: var(--muted); line-height: 1.65; }
+@keyframes cardIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+.demo-post-meta{
+  display:flex;justify-content:space-between;
+  margin-bottom:5px;
+  font-family:'DM Mono',monospace;font-size:9px;
+  text-transform:uppercase;letter-spacing:.06em;color:var(--brand);
+}
+.demo-empty{
+  display:flex;align-items:center;justify-content:center;
+  min-height:130px;border:1px dashed var(--border2);
+  border-radius:var(--r2);
+  font-family:'DM Mono',monospace;font-size:11px;
+  color:var(--subtle);text-align:center;line-height:1.6;
+  padding:20px;
+}
+
+/* ── HOW IT ENDS ── */
+.buffer-bridge{
+  display:flex;align-items:center;gap:16px;
+  padding:20px 24px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  box-shadow:var(--shadow-sm);
+  margin-top:36px;
+}
+.bridge-icon{
+  width:40px;height:40px;border-radius:var(--r2);
+  background:var(--brand-dim);border:1px solid var(--brand-glow);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.bridge-copy{flex:1;min-width:0;}
+.bridge-copy strong{
+  display:block;font-size:14px;font-weight:600;
+  color:var(--ink);margin-bottom:3px;
+}
+.bridge-copy span{font-size:13px;color:var(--muted);line-height:1.5;}
+.bridge-actions{display:flex;gap:8px;flex-shrink:0;}
+
+/* ── TOKEN SECTION ── */
+.token-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:12px;margin-top:32px;
+}
+.token-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:22px;
+  box-shadow:var(--shadow-sm);position:relative;overflow:hidden;
+  transition:border-color .15s,transform .15s;
+}
+.token-card:hover{border-color:var(--brand-glow);transform:translateY(-2px);}
+.token-bg-num{
+  position:absolute;top:12px;right:14px;
+  font-family:'Bricolage Grotesque',sans-serif;font-weight:800;
+  font-size:3.8rem;line-height:1;color:rgba(58,63,255,.06);
+  pointer-events:none;
+}
+.token-card h4{
+  font-family:'DM Mono',monospace;font-size:11px;
+  text-transform:uppercase;letter-spacing:.08em;
+  color:var(--ink);margin-bottom:10px;font-weight:500;
+}
+.token-card p{font-size:13px;color:var(--muted);line-height:1.65;}
 
 /* ── FAQ ── */
-.faq-wrap {
-  margin-top: 32px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 24px;
-  box-shadow: var(--shadow-sm);
+.faq-wrap{
+  margin-top:32px;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r);
+  padding:22px;box-shadow:var(--shadow-sm);
 }
-.faq-list { display: flex; flex-direction: column; gap: 8px; }
-.faq-item {
-  border: 1px solid var(--border);
-  border-radius: var(--r2);
-  overflow: hidden;
-  transition: border-color .14s;
+.faq-list{display:flex;flex-direction:column;gap:7px;}
+.faq-item{border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;transition:border-color .14s;}
+.faq-item.open{border-color:var(--brand-glow);}
+.faq-q{
+  width:100%;display:flex;align-items:center;justify-content:space-between;
+  gap:14px;padding:13px 15px;background:transparent;border:none;
+  color:var(--ink);font-family:'Lato',sans-serif;font-size:14px;
+  font-weight:600;cursor:pointer;text-align:left;transition:background .12s;
 }
-.faq-item.open { border-color: var(--brand-glow); }
-.faq-q {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 14px 16px;
-  background: transparent;
-  border: none;
-  color: var(--ink);
-  font-family: 'Lato', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: left;
-  transition: background .12s;
-}
-.faq-q:hover { background: var(--surface2); }
-.faq-icon {
-  font-family: 'DM Mono', monospace;
-  font-size: 18px;
-  color: var(--brand);
-  flex-shrink: 0;
-  transition: transform .2s;
-  line-height: 1;
-}
-.faq-item.open .faq-icon { transform: rotate(45deg); }
-.faq-a {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height .25s ease, padding .25s ease;
-  padding: 0 16px;
-  font-size: 14px;
-  color: var(--muted);
-  line-height: 1.7;
-}
-.faq-item.open .faq-a { max-height: 180px; padding: 0 16px 16px; }
+.faq-q:hover{background:var(--surface2);}
+.faq-icon{font-family:'DM Mono',monospace;font-size:18px;color:var(--brand);flex-shrink:0;transition:transform .2s;line-height:1;}
+.faq-item.open .faq-icon{transform:rotate(45deg);}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .25s ease,padding .25s ease;padding:0 15px;font-size:13px;color:var(--muted);line-height:1.7;}
+.faq-item.open .faq-a{max-height:200px;padding:0 15px 14px;}
 
-/* ── FINAL CTA ── */
-.cta-section { padding: 64px 0 96px; }
-.cta-card {
-  max-width: 720px;
-  margin: 0 auto;
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: 20px;
-  padding: 48px 40px;
-  text-align: center;
-  box-shadow: var(--shadow-lg);
-  position: relative;
-  overflow: hidden;
+/* ── STORY ── */
+.story-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-sm);
+  position:relative;
 }
-.cta-card::before {
-  content: '';
-  position: absolute;
-  bottom: -60px; left: 50%;
-  transform: translateX(-50%);
-  width: 500px; height: 200px;
-  background: radial-gradient(ellipse, rgba(58,63,255,.08), transparent 70%);
-  pointer-events: none;
+.story-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--brand),rgba(58,63,255,.1));
 }
-.cta-card > * { position: relative; z-index: 1; }
-.cta-card h2 { font-size: clamp(1.8rem, 3.5vw, 2.4rem); margin-bottom: 10px; }
-.cta-card p { font-size: 15px; color: var(--muted); margin: 0 auto 28px; max-width: 42ch; line-height: 1.65; }
-.cta-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.story-teaser{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;padding:18px 22px;flex-wrap:wrap;
+}
+.story-teaser-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0;}
+.avatar{
+  width:38px;height:38px;border-radius:50%;
+  background:linear-gradient(135deg,var(--brand),#1a22cc);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bricolage Grotesque',sans-serif;font-weight:800;
+  font-size:12px;color:#fff;flex-shrink:0;
+}
+.story-toggle{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:var(--r2);
+  border:1px solid var(--brand-glow);background:var(--brand-dim);
+  color:var(--brand);font-family:'Lato',sans-serif;font-size:13px;
+  font-weight:600;cursor:pointer;transition:all .14s;white-space:nowrap;flex-shrink:0;
+}
+.story-toggle:hover{background:rgba(58,63,255,.14);}
+.story-arrow{transition:transform .25s ease;display:inline-block;}
+.story-card.open .story-arrow{transform:rotate(180deg);}
+.story-body{max-height:0;overflow:hidden;transition:max-height .38s cubic-bezier(.4,0,.2,1);border-top:0px solid var(--border);}
+.story-card.open .story-body{max-height:500px;border-top-width:1px;}
+.story-inner{padding:26px 26px 22px;max-width:660px;}
+.story-inner p{font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:13px;}
+.story-sig{display:flex;align-items:center;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
 
-/* ── MOBILE DEMO (shown when hero demo hidden) ── */
-.mobile-demo-section { display: none; }
-
-/* ── RESPONSIVE ── */
-@media (max-width: 960px) {
-  .hero-inner { grid-template-columns: 1fr; }
-  .hero-demo { display: none; }
-  .mobile-demo-section { display: block; }
-  .workflow-grid { grid-template-columns: 1fr; }
-  .token-steps { grid-template-columns: 1fr; }
+/* ── CTA ── */
+.cta-section{padding:72px 0 96px;position:relative;z-index:1;}
+.cta-card{
+  max-width:700px;margin:0 auto;
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:20px;padding:52px 44px;text-align:center;
+  box-shadow:var(--shadow-lg);position:relative;overflow:hidden;
 }
-
-@media (max-width: 640px) {
-  .wrap { width: min(calc(100% - 24px), var(--max)); }
-  h1 { font-size: clamp(2.2rem, 9vw, 3rem); }
-  .hero { padding: 40px 0 28px; }
-  .hero-ctas { flex-direction: column; }
-  .hero-ctas .btn { justify-content: center; }
-  .top-actions .btn:first-child { display: none; }
-  .cta-card { padding: 32px 20px; }
-  .templates-card { flex-direction: column; }
-  section { padding: 48px 0 16px; }
+.cta-card::before{
+  content:'';position:absolute;bottom:-50px;left:50%;
+  transform:translateX(-50%);width:500px;height:200px;
+  background:radial-gradient(ellipse,rgba(58,63,255,.07),transparent 70%);
+  pointer-events:none;
 }
+.cta-card > *{position:relative;z-index:1;}
+.cta-card h2{font-size:clamp(1.8rem,3.5vw,2.4rem);margin-bottom:12px;}
+.cta-card p{font-size:15px;color:var(--muted);margin:0 auto 28px;max-width:44ch;line-height:1.7;}
+.cta-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+
+/* ── PROOF LINE ── */
+.proof-line{
+  display:flex;align-items:flex-start;gap:12px;
+  margin-top:22px;padding:13px 15px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);box-shadow:var(--shadow-sm);max-width:460px;
+}
+.proof-text{font-size:13px;color:var(--muted);line-height:1.55;}
+.proof-text strong{color:var(--ink);font-weight:600;}
 
 /* ── SCROLL REVEAL ── */
-.reveal { opacity: 0; transform: translateY(14px); transition: opacity .4s ease, transform .4s ease; }
-.reveal.visible { opacity: 1; transform: none; }
-.reveal-group .reveal { transition-delay: 0s; }
-.reveal-group .reveal:nth-child(2) { transition-delay: .06s; }
-.reveal-group .reveal:nth-child(3) { transition-delay: .12s; }
-.reveal-group .reveal:nth-child(4) { transition-delay: .18s; }
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .4s ease,transform .4s ease;}
+.reveal.visible{opacity:1;transform:none;}
+.reveal-group .reveal{transition-delay:0s;}
+.reveal-group .reveal:nth-child(2){transition-delay:.06s;}
+.reveal-group .reveal:nth-child(3){transition-delay:.12s;}
+.reveal-group .reveal:nth-child(4){transition-delay:.18s;}
+.reveal-group .reveal:nth-child(5){transition-delay:.22s;}
+.reveal-group .reveal:nth-child(6){transition-delay:.26s;}
 
-/* ── ORIGIN STORY — COLLAPSIBLE ── */
-.story-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  position: relative;
+/* ── RESPONSIVE ── */
+@media(max-width:960px){
+  .hero-inner{grid-template-columns:1fr;gap:32px;}
+  .hero-visual{order:-1;}
+  .tools-grid{grid-template-columns:1fr;}
+  .tools-grid-wide{grid-template-columns:1fr 1fr;}
+  .demo-body{grid-template-columns:1fr;gap:0;}
+  .demo-col:first-child{border-right:none;border-bottom:1px solid var(--border);}
+  .token-grid{grid-template-columns:1fr;}
 }
-.story-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--brand), rgba(58,63,255,.1));
-}
-.story-teaser {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 18px 24px;
-  flex-wrap: wrap;
-}
-.story-teaser-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  min-width: 0;
-}
-.story-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: var(--r2);
-  border: 1px solid var(--brand-glow);
-  background: var(--brand-dim);
-  color: var(--brand);
-  font-family: 'Lato', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .14s;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.story-toggle:hover { background: rgba(58,63,255,.14); }
-.story-toggle-arrow { transition: transform .25s ease; display: inline-block; }
-.story-card.open .story-toggle-arrow { transform: rotate(180deg); }
-.story-body {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height .38s cubic-bezier(.4,0,.2,1);
-  border-top: 0px solid var(--border);
-}
-.story-card.open .story-body {
-  max-height: 600px;
-  border-top-width: 1px;
-}
-.story-body-inner {
-  padding: 28px 28px 24px;
-  max-width: 680px;
-}
-.story-sig {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 22px;
-  padding-top: 18px;
-  border-top: 1px solid var(--border);
-}
-@media (max-width: 600px) {
-  .story-teaser { padding: 14px 16px; flex-direction: column; align-items: flex-start; }
-  .story-toggle { width: 100%; justify-content: center; }
-  .story-body-inner { padding: 20px 16px; }
-}
-.btn.sample {
-  background: var(--surface2);
-  border-color: var(--border2);
-  color: var(--muted);
-  font-size: 13px;
-}
-.btn.sample:hover { border-color: var(--brand-glow); color: var(--brand); background: var(--brand-dim); }
-
-@media (max-width: 860px) {
-  .story-inner { grid-template-columns: 1fr; gap: 28px; }
-  .story-stat-stack { flex-direction: row; flex-wrap: wrap; gap: 20px; }
-  .story-stat { min-width: 120px; }
-  .story-card { padding: 28px 20px; }
+@media(max-width:640px){
+  .wrap{width:min(calc(100% - 28px),var(--max));}
+  h1{font-size:clamp(2.4rem,9vw,3rem);}
+  .hero{padding:44px 0 36px;}
+  .hero-ctas{flex-direction:column;}
+  .hero-ctas .btn{justify-content:center;}
+  .top-actions .btn:first-child{display:none;}
+  .cta-card{padding:32px 20px;}
+  .tools-grid-wide{grid-template-columns:1fr;}
+  .buffer-bridge{flex-direction:column;align-items:flex-start;}
+  .bridge-actions{width:100%;}
+  .bridge-actions .btn{flex:1;justify-content:center;}
+  section{padding:52px 0 0;}
+  .story-teaser{flex-direction:column;align-items:flex-start;}
+  .story-toggle{width:100%;justify-content:center;}
 }
 </style>
 </head>
@@ -836,370 +733,437 @@ h2 em { font-style: normal; color: var(--brand); }
 
 <div class="wrap">
 
-  <!-- ── TOPBAR ── -->
-  <header class="topbar">
-    <a href="/" class="brand">PostIQ <span class="brand-beta">Beta</span></a>
-    <nav class="top-actions">
-      <a href="app.html" class="btn ghost">Open PostIQ</a>
-      <a href="app.html" class="btn primary">Get started free</a>
-    </nav>
-  </header>
+<!-- TOPBAR -->
+<header class="topbar">
+  <a href="/" class="brand">PostIQ <span class="brand-beta">Beta</span></a>
+  <nav class="top-actions">
+    <a href="app.html" class="btn ghost">Open app</a>
+    <a href="app.html" class="btn primary">Try free →</a>
+  </nav>
+</header>
 
-  <!-- ── HERO ── -->
-  <section class="hero">
-    <div class="hero-inner">
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
 
-      <!-- Copy -->
-      <div class="hero-copy">
-        <div class="eyebrow"><span class="eyebrow-dot"></span>A Buffer companion app</div>
-        <h1>More out of<br>every post you<br><em>schedule.</em></h1>
-        <p class="hero-desc">PostIQ was built to sit alongside Buffer — adding a planning layer, a focused composer, and a client approval flow that makes the whole publishing cycle feel complete.</p>
-        <div class="hero-ctas">
-          <a href="app.html" class="btn primary lg">Open PostIQ →</a>
-          <a href="#workflow" class="btn lg">See how it works</a>
-        </div>
-        <div class="trust-strip">
-          <span class="trust-pill">No login needed</span>
-          <span class="trust-pill">Token stays in your browser</span>
-          <span class="trust-pill">Free to start</span>
-        </div>
-        <div class="proof-line">
-          <div class="proof-avatar">BC</div>
-          <div class="proof-text"><strong>Built by a practitioner.</strong> I've managed social for large brands, run content operations for agencies, and built PostIQ because no existing tool fit the whole workflow.</div>
-        </div>
+    <div class="hero-copy">
+      <div class="eyebrow"><span class="eyebrow-dot"></span>Buffer companion · content workflow</div>
+      <h1>Stop Guessing<br>What To <em>Post.</em></h1>
+      <p class="hero-sub">Plan your strategy. Draft with purpose.<br>Ship to Buffer when you're ready.</p>
+      <p class="hero-desc">PostIQ gives Buffer users a planning and drafting layer that turns "what do I even post today?" into a system — content pillars, a visual calendar, a focused composer, and a thread splitter. All free to start. Connect Buffer when you want to schedule.</p>
+      <div class="hero-ctas">
+        <a href="app.html" class="btn primary lg">Start free — no login →</a>
+        <a href="#tools" class="btn lg">See the tools</a>
       </div>
+      <div class="trust-strip">
+        <span class="trust-pill">No login needed</span>
+        <span class="trust-pill">Pillars and Trending are free</span>
+        <span class="trust-pill">Token stays in your browser</span>
+        <span class="trust-pill">Works offline for planning</span>
+      </div>
+      <div class="proof-line">
+        <div class="avatar">BC</div>
+        <div class="proof-text"><strong>Built by a practitioner.</strong> I grew a social account to 6M+ followers and built PostIQ because the gap between "content strategy" and "Buffer queue" had no good tool. This is it.</div>
+      </div>
+    </div>
 
-      <!-- Live demo -->
-      <div class="hero-demo">
-        <div class="demo-panel">
-          <div class="demo-panel-bar">
-            <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
-            <span class="demo-panel-label">Split View — try it now</span>
+    <!-- Hero visual -->
+    <div class="hero-visual">
+      <div class="ui-stack">
+        <div class="ui-panel" style="position:relative;">
+          <div class="float-badge">✓ Sent to Buffer</div>
+          <div class="ui-panel-bar">
+            <span class="ui-dot ui-dot-r"></span><span class="ui-dot ui-dot-y"></span><span class="ui-dot ui-dot-g"></span>
+            <span class="ui-panel-label">Plan — April 2025</span>
           </div>
-          <div class="demo-body">
-            <textarea class="demo-textarea" id="demoInputHero" placeholder="Paste a blog intro, newsletter section, or idea dump — or hit the button below to try sample text."></textarea>
-            <div class="demo-actions">
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="btn primary" id="splitBtnHero">Split into posts</button>
-                <button class="btn" id="sampleBtnHero">Try sample text ✦</button>
-              </div>
-              <span class="demo-hint">No Buffer key needed</span>
+          <div class="ui-panel-body">
+            <div class="mini-cal">
+              <div class="mini-cal-dow">S</div><div class="mini-cal-dow">M</div><div class="mini-cal-dow">T</div><div class="mini-cal-dow">W</div><div class="mini-cal-dow">T</div><div class="mini-cal-dow">F</div><div class="mini-cal-dow">S</div>
+              <div class="mini-cal-day gap"><span>1</span></div>
+              <div class="mini-cal-day has"><span>2</span><div class="mini-cal-bar"></div></div>
+              <div class="mini-cal-day has"><span>3</span><div class="mini-cal-bar"></div></div>
+              <div class="mini-cal-day gap"><span>4</span></div>
+              <div class="mini-cal-day note"><span>5</span><div class="mini-cal-note-bar"></div></div>
+              <div class="mini-cal-day has"><span>6</span><div class="mini-cal-bar"></div></div>
+              <div class="mini-cal-day gap"><span>7</span></div>
+              <div class="mini-cal-day gap"><span>8</span></div>
+              <div class="mini-cal-day today"><span style="color:var(--brand);font-weight:700;">9</span><div class="mini-cal-bar"></div></div>
+              <div class="mini-cal-day has"><span>10</span><div class="mini-cal-bar"></div></div>
+              <div class="mini-cal-day has"><span>11</span><div class="mini-cal-bar"></div></div>
+              <div class="mini-cal-day note"><span>12</span><div class="mini-cal-note-bar"></div></div>
+              <div class="mini-cal-day gap"><span>13</span></div>
+              <div class="mini-cal-day gap"><span>14</span></div>
             </div>
           </div>
         </div>
-        <div class="demo-panel" style="margin-top:10px;">
-          <div class="demo-panel-bar">
-            <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
-            <span class="demo-panel-label">Output</span>
+
+        <div class="connector-line"></div>
+
+        <div class="ui-panel">
+          <div class="ui-panel-bar">
+            <span class="ui-dot ui-dot-r"></span><span class="ui-dot ui-dot-y"></span><span class="ui-dot ui-dot-g"></span>
+            <span class="ui-panel-label">Content Pillars</span>
           </div>
-          <div class="demo-body">
-            <div id="demoOutputHero" class="demo-output">
-              <div class="demo-empty">Paste text above to see post-ready drafts appear here.</div>
+          <div class="ui-panel-body">
+            <div style="font-size:10px;color:var(--subtle);font-family:'DM Mono',monospace;margin-bottom:7px;">Pick your angle for today</div>
+            <div class="pillar-row">
+              <div class="pillar-chip active">Teach</div>
+              <div class="pillar-chip green">Share</div>
+              <div class="pillar-chip">Believe</div>
+              <div class="pillar-chip amber">Offer</div>
+            </div>
+            <div style="margin-top:10px;padding:8px 10px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:var(--r2);font-size:11px;color:var(--brand);line-height:1.5;">
+              <span style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px;">Starter · Practical</span>
+              Why local-first apps reduce your privacy risk — and what to do about it.
+            </div>
+          </div>
+        </div>
+
+        <div class="connector-line"></div>
+
+        <div class="ui-panel">
+          <div class="ui-panel-bar">
+            <span class="ui-dot ui-dot-r"></span><span class="ui-dot ui-dot-y"></span><span class="ui-dot ui-dot-g"></span>
+            <span class="ui-panel-label">Draft — thread</span>
+          </div>
+          <div class="ui-panel-body">
+            <div class="thread-part">
+              <div class="thread-part-meta"><span>Part 1</span><span>142 / 280</span></div>
+              Most apps store your data on their servers by default. That's not a bug — it's the business model.
+            </div>
+            <div class="thread-part">
+              <div class="thread-part-meta"><span>Part 2</span><span>198 / 280</span></div>
+              Local-first apps keep your data on your device. You own it. No subscription required to access your own files.
             </div>
           </div>
         </div>
       </div>
-
     </div>
-  </section>
 
-  <!-- ── MOBILE DEMO ── -->
-  <section id="try" class="mobile-demo-section">
-    <div class="section-eyebrow reveal">Try Split View</div>
-    <h2 class="reveal">Turn long copy into<br><em>ready-to-post drafts.</em></h2>
-    <p class="section-desc reveal">Paste any long-form text and Split View breaks it into clean, character-counted posts. No Buffer key needed to try it.</p>
-    <div class="demo-panel reveal">
-      <div class="demo-panel-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="demo-panel-label">Split View</span></div>
-      <div class="demo-body">
-        <textarea class="demo-textarea" id="demoInputMob" placeholder="Paste long-form content, or hit the sample button…"></textarea>
-        <div class="demo-actions">
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn primary" id="splitBtnMob">Split into posts</button>
-            <button class="btn" id="sampleBtnMob">Try sample ✦</button>
-          </div>
-          <span class="demo-hint">No Buffer key needed</span>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section id="tools">
+  <div class="section-eyebrow reveal">Your tools</div>
+  <h2 class="reveal">Everything between<br><em>blank page and Buffer queue.</em></h2>
+  <p class="section-desc reveal">Six tools that work together. Some need your Buffer token. Most are free the moment you open the app.</p>
+
+  <div class="tools-grid reveal-group">
+
+    <div class="tool-card featured reveal">
+      <div class="tool-tag key">Needs Buffer token</div>
+      <span class="tool-icon">📅</span>
+      <div class="tool-num">01 — Plan</div>
+      <h3>See your whole month.<br>Fill the gaps.</h3>
+      <p>Your Buffer schedule lives in a monthly calendar. Add color-coded planning notes to any day. Queue gaps surface automatically so you draft with intention — not guesswork.</p>
+      <div class="tool-features">
+        <div class="tool-feat">Gap detection flags empty weekdays in the next 7 days</div>
+        <div class="tool-feat">Color-tagged notes: Idea, Draft, Campaign, Priority</div>
+        <div class="tool-feat">Pick a content pillar directly from any gap</div>
+        <div class="tool-feat">Share a read-only snapshot with your team or client</div>
+      </div>
+    </div>
+
+    <div class="tool-card featured reveal">
+      <div class="tool-tag free">Free — no token needed</div>
+      <span class="tool-icon">🧠</span>
+      <div class="tool-num">02 — Content Pillars</div>
+      <h3>Know what to post<br>before you open Draft.</h3>
+      <p>Define your content strategy with four pillar types — Teach, Share, Believe, and Offer. Add seed ideas, pick a tone angle, and drop a ready-to-write starter directly into the composer.</p>
+      <div class="tool-features">
+        <div class="tool-feat">Beginner and experienced onboarding paths</div>
+        <div class="tool-feat">Tone angle per seed: Practical, Story, Contrarian, Question</div>
+        <div class="tool-feat">Usage tracking shows which pillars need more posts</div>
+        <div class="tool-feat">Starters insert directly into Draft</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tools-grid-wide reveal-group" style="margin-top:12px;">
+
+    <div class="tool-card reveal">
+      <div class="tool-tag key">Needs Buffer token</div>
+      <span class="tool-icon">✍️</span>
+      <div class="tool-num">03 — Draft</div>
+      <h3>Write it here.<br>Send to Buffer.</h3>
+      <p>Rich text composer with templates, media attachment via upload, URL, or Unsplash, and a Trending story pin. When you're done — draft, queue, or schedule it to Buffer in one click.</p>
+    </div>
+
+    <div class="tool-card reveal">
+      <div class="tool-tag free">Free — no token needed</div>
+      <span class="tool-icon">✂️</span>
+      <div class="tool-num">04 — Thread Splitter</div>
+      <h3>Long copy.<br>Thread-ready parts.</h3>
+      <p>Paste any long-form content and PostIQ breaks it into 280-character parts. Edit each one, then queue the whole thread to Buffer natively. Try it right now — no account needed.</p>
+    </div>
+
+    <div class="tool-card reveal">
+      <div class="tool-tag free">Free — no token needed</div>
+      <span class="tool-icon">📈</span>
+      <div class="tool-num">05 — Trending</div>
+      <h3>Find ideas.<br>Write your take.</h3>
+      <p>Browse hot Reddit posts by subreddit or Hacker News top stories. Click "Draft from this" and the headline pins above your composer as a reference — so you write your angle, not a summary.</p>
+    </div>
+
+  </div>
+
+  <div class="tools-grid reveal-group" style="margin-top:12px;">
+
+    <div class="tool-card reveal">
+      <div class="tool-tag free">Free — no token needed</div>
+      <span class="tool-icon">⚡</span>
+      <div class="tool-num">06 — Templates</div>
+      <h3>Reusable starters<br>for every post type.</h3>
+      <p>Save hooks, CTAs, announcements, and engagement questions as templates. Insert any of them into the Draft editor with one click. Select text in the editor to save it as a new template instantly.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:12px;">
+        <span style="padding:4px 9px;border:1px solid var(--border2);border-radius:5px;background:var(--surface2);font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">Product hook</span>
+        <span style="padding:4px 9px;border:1px solid var(--border2);border-radius:5px;background:var(--surface2);font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">Stat callout</span>
+        <span style="padding:4px 9px;border:1px solid var(--border2);border-radius:5px;background:var(--surface2);font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">CTA block</span>
+        <span style="padding:4px 9px;border:1px solid var(--border2);border-radius:5px;background:var(--surface2);font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">Thread opener</span>
+      </div>
+    </div>
+
+    <div class="tool-card reveal">
+      <div class="tool-tag key">Needs Buffer token</div>
+      <span class="tool-icon">✅</span>
+      <div class="tool-num">07 — Approve</div>
+      <h3>Sign-off before<br>it goes live.</h3>
+      <p>Generate a shareable reviewer link for any draft. Your client or teammate reads the post, leaves feedback, and approves or requests changes. You publish once it's cleared — no Buffer access needed on their end.</p>
+    </div>
+
+  </div>
+
+  <!-- Thread Splitter live demo -->
+  <div class="demo-section reveal">
+    <div class="demo-section-hdr">
+      <div>
+        <div class="demo-section-title">Try the thread splitter</div>
+        <div class="demo-section-sub">No account needed — paste anything and see it split instantly</div>
+      </div>
+      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:.06em;">Free tool · 280 char limit</span>
+    </div>
+    <div class="demo-body">
+      <div class="demo-col">
+        <div class="demo-col-label">Source text</div>
+        <textarea class="demo-textarea" id="demoInput" placeholder="Paste a blog intro, newsletter section, or rough idea dump here…"></textarea>
+        <div class="demo-btns">
+          <button class="demo-btn primary" id="splitBtn">Split into thread</button>
+          <button class="demo-btn" id="sampleBtn">Load sample ✦</button>
+        </div>
+      </div>
+      <div class="demo-col">
+        <div class="demo-col-label">Thread parts</div>
+        <div id="demoOutput" class="demo-output">
+          <div class="demo-empty">Thread parts appear here.<br>Paste text and hit split.</div>
         </div>
       </div>
     </div>
-    <div class="demo-panel reveal" style="margin-top:10px;">
-      <div class="demo-panel-bar"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span><span class="demo-panel-label">Output</span></div>
-      <div class="demo-body">
-        <div id="demoOutputMob" class="demo-output"><div class="demo-empty">Paste text above to get your drafts.</div></div>
+  </div>
+
+  <!-- Buffer bridge -->
+  <div class="buffer-bridge reveal">
+    <div class="bridge-icon">⚡</div>
+    <div class="bridge-copy">
+      <strong>Finish inside Buffer — or stay in PostIQ.</strong>
+      <span>Draft, queue, or schedule directly from PostIQ. Or use it purely for planning and copy everything to Buffer manually. Either way works.</span>
+    </div>
+    <div class="bridge-actions">
+      <a href="app.html" class="btn primary">Open PostIQ →</a>
+      <a href="https://publish.buffer.com/" target="_blank" rel="noopener" class="btn">Open Buffer ↗</a>
+    </div>
+  </div>
+
+</section>
+
+<!-- TRUST / TOKEN -->
+<section>
+  <div class="section-eyebrow reveal">Trust and setup</div>
+  <h2 class="reveal">Your Buffer token —<br><em>plain and simple.</em></h2>
+  <p class="section-desc reveal">PostIQ uses your Buffer API token to read your schedule and send posts when you ask. Here's exactly how it works.</p>
+
+  <div class="token-grid reveal-group">
+    <div class="token-card reveal">
+      <div class="token-bg-num">01</div>
+      <h4>What it is</h4>
+      <p>A private code from Buffer that connects PostIQ to your account. Get it from buffer.com/developers in under a minute. You paste it once — PostIQ remembers it for the session or saves it locally, your choice.</p>
+    </div>
+    <div class="token-card reveal">
+      <div class="token-bg-num">02</div>
+      <h4>What PostIQ does with it</h4>
+      <p>Reads your channels and scheduled posts. Sends drafts, queues posts, or schedules them — only when you explicitly click a button. Nothing happens in the background. Nothing is stored on our servers.</p>
+    </div>
+    <div class="token-card reveal">
+      <div class="token-bg-num">03</div>
+      <h4>Where it lives</h4>
+      <p>In your browser only. Session storage (clears when you close the tab) or local storage (persists between visits) — you choose. PostIQ never transmits your token anywhere except directly to Buffer.</p>
+    </div>
+  </div>
+
+  <div class="faq-wrap reveal">
+    <div class="faq-list">
+      <div class="faq-item open">
+        <button class="faq-q"><span>Do I need a Buffer token to use Content Pillars or Trending?</span><span class="faq-icon">+</span></button>
+        <div class="faq-a">No. Both are fully offline features — no Buffer connection required. Content Pillars saves your strategy locally in your browser. Trending pulls public data from Reddit and Hacker News. You can build your whole content strategy before connecting Buffer.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><span>Can someone else use my token?</span><span class="faq-icon">+</span></button>
+        <div class="faq-a">Only if you share it. Treat it like a password — don't paste it somewhere public. You can revoke it anytime from Buffer settings and it stops working immediately.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><span>Does PostIQ post anything automatically?</span><span class="faq-icon">+</span></button>
+        <div class="faq-a">No. PostIQ only acts when you explicitly click Save draft, Add to queue, or Schedule. Nothing happens in the background. You're always in control of what goes to Buffer.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><span>Who is the Approve feature for?</span><span class="faq-icon">+</span></button>
+        <div class="faq-a">Anyone who has a post that needs a second pair of eyes before it goes live — a client, a manager, a collaborator. Generate a shareable link, they review and comment, you publish when it's approved. The reviewer never needs access to your Buffer account.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><span>Will this work with my Buffer plan?</span><span class="faq-icon">+</span></button>
+        <div class="faq-a">PostIQ works with standard Buffer API access. Connect your token and test the sync — if your plan supports API access you'll be up and running in seconds.</div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ── WORKFLOW ── -->
-  <section id="workflow">
-    <div class="section-eyebrow reveal">How it works</div>
-    <h2 class="reveal">Three tools.<br><em>One tighter workflow.</em></h2>
-    <p class="section-desc reveal">PostIQ adds planning, drafting, and approval layers that work with Buffer — so your content moves from idea to published with less back-and-forth.</p>
-
-    <div class="workflow-grid reveal-group">
-
-      <!-- Plan -->
-      <div class="workflow-card reveal">
-        <div class="status-tag needs">Needs Buffer key</div>
-        <span class="workflow-step-icon">📅</span>
-        <div class="workflow-step-num">01 — Plan</div>
-        <h3>Your queue,<br>at a glance.</h3>
-        <p>See your Buffer schedule in a monthly calendar view. Add color-tagged planning notes to any day. Queue gaps surface automatically so you can draft with intention, not guesswork.</p>
-        <div class="workflow-subfeatures">
-          <div class="workflow-subfeat">Gap detection highlights empty weekdays in your next 7 days</div>
-          <div class="workflow-subfeat">Color-coded planning notes — Idea, Draft, Campaign, Priority</div>
-          <div class="workflow-subfeat">Share a read-only snapshot with your team or client</div>
+<!-- ORIGIN -->
+<section>
+  <div class="story-card reveal">
+    <div class="story-teaser">
+      <div class="story-teaser-left">
+        <div class="avatar">BC</div>
+        <div>
+          <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:2px;">Ben Campbell</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.5;">I built PostIQ for myself. Opened it because more people needed it.</div>
         </div>
       </div>
-
-      <!-- Draft -->
-      <div class="workflow-card reveal">
-        <div class="status-tag needs">Needs Buffer key</div>
-        <span class="workflow-step-icon">✍️</span>
-        <div class="workflow-step-num">02 — Draft</div>
-        <h3>Write it here.<br>Send to Buffer.</h3>
-        <p>A focused composer with formatting, templates, and media. When you're done, send it to Buffer as a draft, add it to your queue, or schedule it for a specific time — one click.</p>
-      </div>
-
-      <!-- Approve -->
-      <div class="workflow-card reveal">
-        <div class="status-tag needs">Needs Buffer key</div>
-        <span class="workflow-step-icon">✅</span>
-        <div class="workflow-step-num">03 — Approve</div>
-        <h3>Sign-off before<br>it goes live.</h3>
-        <p>Generate a shareable reviewer link for any draft. Your client or teammate reads the post, leaves a comment, and approves or requests changes. You publish once it's cleared.</p>
-      </div>
-
+      <button class="story-toggle" id="storyToggle" aria-expanded="false">
+        Read the story <span class="story-arrow">↓</span>
+      </button>
     </div>
-
-    <!-- Templates -->
-    <div class="templates-card reveal">
-      <div class="templates-card-copy">
-        <div class="status-tag free">Free — no key needed</div>
-        <h3 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:18px;color:var(--ink);margin-bottom:8px;letter-spacing:-.02em;">⚡ Templates</h3>
-        <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:0;">Save reusable draft starters — hooks, CTAs, announcements, engagement questions. Insert any template into the Draft editor with one click. Select text in the editor and save it as a template instantly.</p>
-        <div class="templates-examples">
-          <span class="template-chip">Product launch hook</span>
-          <span class="template-chip">Engagement question</span>
-          <span class="template-chip">Stat callout</span>
-          <span class="template-chip">CTA block</span>
-          <span class="template-chip">Thread opener</span>
-          <span class="template-chip">Newsletter tease</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── ORIGIN STORY ── -->
-  <section>
-    <div class="story-card reveal">
-      <!-- Always-visible teaser -->
-      <div class="story-teaser" id="storyTeaser">
-        <div class="story-teaser-left">
-          <div class="proof-avatar" style="width:40px;height:40px;font-size:13px;flex-shrink:0;">BC</div>
+    <div class="story-body" id="storyBody">
+      <div class="story-inner">
+        <p>When Buffer opened their API beta, I was already deep in the weeds managing social for accounts that had grown to millions of followers. I kept a separate notes doc for planning. I reviewed content over email. I manually tracked what was approved and what wasn't.</p>
+        <p>The API changed that. Suddenly I could build the exact layer I was missing — a planning calendar that showed my whole month, a composer that sent directly to my queue, a content pillar system so I always knew what to write, and an approval flow that kept clients in the loop without giving them my Buffer login.</p>
+        <p>I built it for myself first. Then I thought about how many creators and social managers were running the same patched-together workflow. So I cleaned it up, kept it free, and put it out there.</p>
+        <p style="margin-bottom:0;">PostIQ isn't trying to replace Buffer. It's the planning and strategy layer that makes Buffer feel complete.</p>
+        <div class="story-sig">
+          <div class="avatar" style="width:34px;height:34px;font-size:11px;">BC</div>
           <div>
-            <div style="font-weight:700;font-size:14px;color:var(--ink);margin-bottom:2px;">Ben Campbell</div>
-            <div style="font-size:13px;color:var(--muted);line-height:1.5;">I built PostIQ because I needed it — and no existing tool fit the whole workflow. Here's the honest version of why.</div>
-          </div>
-        </div>
-        <button class="story-toggle" id="storyToggle" aria-expanded="false">
-          Read the story <span class="story-toggle-arrow">↓</span>
-        </button>
-      </div>
-
-      <!-- Collapsible body -->
-      <div class="story-body" id="storyBody">
-        <div class="story-body-inner">
-          <div class="section-eyebrow" style="margin-bottom:14px;">The story</div>
-          <h2 style="font-size:clamp(1.5rem,2.8vw,2rem);margin-bottom:16px;">Built for me.<br><em>Opened for everyone.</em></h2>
-          <p style="font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:14px;">When Buffer launched its API beta, I got early access. I was already deep into managing social — growing large audiences for brands and organizations — and the API opened up possibilities the UI just didn't expose.</p>
-          <p style="font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:14px;">So I built PostIQ for myself. A planning calendar that showed my whole month at a glance. A composer that sent posts straight to my Buffer queue without switching tabs. An approval flow so clients could review content before it went live — without needing access to my account.</p>
-          <p style="font-size:14px;color:var(--muted);line-height:1.75;">It made my workflow noticeably cleaner. So I cleaned it up, opened it to the community, and kept building.</p>
-          <div class="story-sig">
-            <div class="proof-avatar" style="width:36px;height:36px;font-size:12px;">BC</div>
-            <div>
-              <div style="font-weight:700;font-size:14px;color:var(--ink);">Ben Campbell</div>
-              <div style="font-size:12px;color:var(--subtle);">Social strategist · Builder · San Antonio, TX</div>
-            </div>
+            <div style="font-weight:600;font-size:14px;color:var(--ink);">Ben Campbell</div>
+            <div style="font-size:12px;color:var(--subtle);">Social strategist · Builder · San Antonio, TX</div>
           </div>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ── TOKEN EXPLAINER ── -->
-  <section>
-    <div class="section-eyebrow reveal">Trust &amp; setup</div>
-    <h2 class="reveal">Your Buffer token —<br><em>plain and simple.</em></h2>
-    <p class="section-desc reveal">PostIQ uses your Buffer API token to read your schedule and send drafts when you ask it to. Here's exactly how it works.</p>
+</div>
 
-    <div class="token-steps reveal-group">
-      <div class="token-step reveal">
-        <div class="token-step-num">01</div>
-        <h4>What it is</h4>
-        <p>A private code from Buffer that connects PostIQ to your account. Get it from buffer.com/developers in under a minute.</p>
-      </div>
-      <div class="token-step reveal">
-        <div class="token-step-num">02</div>
-        <h4>What PostIQ does with it</h4>
-        <p>Reads your channels and scheduled posts. Sends drafts, queues posts, or schedules them — only when you explicitly click a button.</p>
-      </div>
-      <div class="token-step reveal">
-        <div class="token-step-num">03</div>
-        <h4>Where it lives</h4>
-        <p>In your browser only — session storage or local storage, your choice. PostIQ never stores or transmits your token to any server.</p>
-      </div>
-    </div>
-
-    <div class="faq-wrap reveal">
-      <div class="faq-list">
-        <div class="faq-item open">
-          <button class="faq-q"><span>Can someone else use my token?</span><span class="faq-icon">+</span></button>
-          <div class="faq-a">Only if you share it. Treat it like a password — don't paste it somewhere public. You can revoke it anytime from Buffer settings.</div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q"><span>Does PostIQ post anything automatically?</span><span class="faq-icon">+</span></button>
-          <div class="faq-a">No. PostIQ only acts when you explicitly click Save draft, Add to queue, or Schedule. Nothing happens in the background.</div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q"><span>How do I revoke access?</span><span class="faq-icon">+</span></button>
-          <div class="faq-a">Generate a new token in Buffer settings. The old one stops working immediately. You can also clear it from PostIQ's sidebar at any time.</div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q"><span>Will this work with my Buffer plan?</span><span class="faq-icon">+</span></button>
-          <div class="faq-a">PostIQ works with standard Buffer API access. Connect your token and test the sync in seconds — no commitment required.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-</div><!-- /wrap -->
-
-<!-- ── FINAL CTA ── -->
+<!-- CTA -->
 <div class="cta-section">
   <div class="wrap">
     <div class="cta-card reveal">
-      <div class="eyebrow" style="justify-content:center;margin-bottom:14px;"><span class="eyebrow-dot"></span>Ready when you are</div>
-      <h2>Start using PostIQ<br><em>right now.</em></h2>
-      <p>Templates and Split View work immediately — no key needed. Connect Buffer when you're ready to plan, queue, and approve.</p>
+      <div class="eyebrow" style="justify-content:center;margin-bottom:16px;opacity:1;animation:none;"><span class="eyebrow-dot"></span>Ready when you are</div>
+      <h2>Stop guessing.<br><em>Start posting.</em></h2>
+      <p>Content Pillars, Trending, Templates, and Thread Splitter all work without a Buffer token. Connect Buffer when you're ready to plan your queue, draft posts, and get sign-off before publishing.</p>
       <div class="cta-actions">
-        <a href="app.html" class="btn primary lg">Open PostIQ →</a>
-        <a href="app.html" class="btn lg">Try Split View free</a>
+        <a href="app.html" class="btn primary lg" onclick="gtag('event','landing_cta_click',{location:'final_cta'});">Open PostIQ — it's free →</a>
+        <a href="app.html" class="btn lg">Try Thread Splitter</a>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-// ── STORY TOGGLE ─────────────────────────────────
-const storyToggle = document.getElementById('storyToggle');
-const storyCard = storyToggle?.closest('.story-card');
-storyToggle?.addEventListener('click', () => {
-  const open = storyCard.classList.toggle('open');
-  storyToggle.setAttribute('aria-expanded', open);
-  storyToggle.querySelector('.story-toggle-arrow').textContent = open ? '↑' : '↓';
-});
-
-// ── SPLIT DEMO ──────────────────────────────────
-function splitText(text, max = 280) {
-  const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
-  const posts = [];
-  let current = '';
-  for (const s of sentences) {
-    const t = s.trim(); if (!t) continue;
-    if ((current + ' ' + t).trim().length <= max) {
-      current = (current + ' ' + t).trim();
-    } else {
-      if (current) posts.push(current);
-      if (t.length > max) {
-        const words = t.split(' '); let chunk = '';
-        for (const w of words) {
-          if ((chunk + ' ' + w).trim().length <= max) { chunk = (chunk + ' ' + w).trim(); }
-          else { if (chunk) posts.push(chunk); chunk = w; }
-        }
-        current = chunk;
-      } else { current = t; }
-    }
+// Split algo — matches app exactly
+function splitText(text, max) {
+  max = max || 280;
+  var parts = [], left = text.trim();
+  while (left.length > max) {
+    var cut = left.lastIndexOf('\n', max);
+    if (cut < 80) cut = left.lastIndexOf(' ', max);
+    if (cut < 80) cut = max;
+    parts.push(left.slice(0, cut).trim());
+    left = left.slice(cut).trim();
   }
-  if (current) posts.push(current);
-  return posts;
+  if (left) parts.push(left);
+  return parts;
 }
 
-function renderOutput(el, posts) {
-  el.innerHTML = '';
-  if (!posts.length) {
-    el.innerHTML = '<div class="demo-empty">Paste text above to see post-ready drafts appear here.</div>';
+var SAMPLE = 'PostIQ gives Buffer users what they have always needed: a system. Not just a scheduler — a full content workflow. You start by defining your content pillars so you always know what kind of post to write next. Then you check your calendar to see where the gaps are. You pick a seed idea, choose your tone angle, and the starter lands right in your composer. Write your post. Attach media if you need it. Send it to Buffer as a draft, add it to your queue, or schedule it for a specific time. The whole thing without switching tabs or guessing what to write.';
+
+function renderOutput(parts) {
+  var el = document.getElementById('demoOutput');
+  if (!parts.length) {
+    el.innerHTML = '<div class="demo-empty">Thread parts appear here.<br>Paste text and hit split.</div>';
     return;
   }
-  posts.forEach((post, i) => {
-    const card = document.createElement('div');
+  el.innerHTML = '';
+  parts.forEach(function(p, i) {
+    var card = document.createElement('div');
     card.className = 'demo-post-card';
     card.style.animationDelay = (i * 0.05) + 's';
-    card.innerHTML = `<div class="demo-post-meta"><span>Draft ${i + 1} of ${posts.length}</span><span>${post.length} / 280</span></div><div>${post}</div>`;
+    card.innerHTML = '<div class="demo-post-meta"><span>Part ' + (i+1) + ' of ' + parts.length + '</span><span>' + p.length + ' / 280</span></div><div>' + p + '</div>';
     el.appendChild(card);
   });
 }
 
-function bindSplitter(inputId, btnId, outputId) {
-  const inp = document.getElementById(inputId);
-  const btn = document.getElementById(btnId);
-  const out = document.getElementById(outputId);
-  if (!inp || !btn || !out) return;
-  btn.addEventListener('click', () => {
-    const text = inp.value.trim();
-    if (!text) { out.innerHTML = '<div class="demo-empty">Nothing to split — paste some text first.</div>'; return; }
-    renderOutput(out, splitText(text));
-    track('demo_split_used', { source: inputId });
-  });
-}
+document.getElementById('splitBtn').addEventListener('click', function() {
+  var text = document.getElementById('demoInput').value.trim();
+  if (!text) { document.getElementById('demoOutput').innerHTML = '<div class="demo-empty">Add some text first.</div>'; return; }
+  renderOutput(splitText(text));
+  gtag('event','demo_split_used');
+});
 
-// ── SAMPLE TEXT ──────────────────────────────────
-const SAMPLE_TEXT = `When Buffer opened up their API beta, I was already deep in the weeds managing social for accounts that had grown to millions of followers. I kept a separate notes doc for planning. I reviewed content over email. I manually tracked what was approved and what wasn't. It worked, but it was held together with digital duct tape.
+document.getElementById('sampleBtn').addEventListener('click', function() {
+  document.getElementById('demoInput').value = SAMPLE;
+  renderOutput(splitText(SAMPLE));
+  gtag('event','demo_sample_used');
+});
 
-The API changed that. Suddenly I could build the exact layer I was missing — a planning calendar that showed my whole month, a composer that sent directly to my queue, and an approval flow that kept clients in the loop without giving them access to my Buffer account.
+// Story toggle
+var storyToggle = document.getElementById('storyToggle');
+var storyCard = storyToggle.closest('.story-card');
+storyToggle.addEventListener('click', function() {
+  var open = storyCard.classList.toggle('open');
+  storyToggle.setAttribute('aria-expanded', open);
+  storyToggle.querySelector('.story-arrow').textContent = open ? '↑' : '↓';
+});
 
-I built it for myself first. Then I thought about how many other creators and social managers were running the same patched-together workflow. So I cleaned it up, kept it free, and put it out there.
-
-PostIQ isn't trying to replace Buffer. It's the planning and sign-off layer that makes Buffer feel complete.`;
-
-function fillSample(inputId, outputId) {
-  const inp = document.getElementById(inputId);
-  const out = document.getElementById(outputId);
-  if (!inp || !out) return;
-  inp.value = SAMPLE_TEXT;
-  renderOutput(out, splitText(SAMPLE_TEXT));
-  track('demo_sample_used', { source: inputId });
-}
-
-document.getElementById('sampleBtnHero')?.addEventListener('click', () => fillSample('demoInputHero', 'demoOutputHero'));
-document.getElementById('sampleBtnMob')?.addEventListener('click',  () => fillSample('demoInputMob',  'demoOutputMob'));
-
-bindSplitter('demoInputHero', 'splitBtnHero', 'demoOutputHero');
-bindSplitter('demoInputMob',  'splitBtnMob',  'demoOutputMob');
-
-// ── FAQ ──────────────────────────────────────────
-document.querySelectorAll('.faq-q').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const item = btn.closest('.faq-item');
-    const wasOpen = item.classList.contains('open');
-    document.querySelectorAll('.faq-item').forEach(el => el.classList.remove('open'));
+// FAQ
+document.querySelectorAll('.faq-q').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var item = btn.closest('.faq-item');
+    var wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(function(el) { el.classList.remove('open'); });
     if (!wasOpen) item.classList.add('open');
   });
 });
 
-// ── SCROLL REVEAL ────────────────────────────────
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+// Scroll reveal
+var observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(e) {
+    if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+  });
 }, { threshold: 0.08 });
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+document.querySelectorAll('.reveal').forEach(function(el) { observer.observe(el); });
 
-// ── ANALYTICS ────────────────────────────────────
-function track(name, params = {}) {
-  if (typeof gtag === 'function') gtag('event', name, params);
+// Pillar GA event
+var pillarsCard = document.querySelector('[data-track-pillars]');
+if (pillarsCard) {
+  new IntersectionObserver(function(entries) {
+    if (entries[0].isIntersecting) { gtag('event','landing_pillars_section_view'); }
+  }, { threshold: 0.3 }).observe(pillarsCard);
 }
 
-document.querySelectorAll('a[href="app.html"]').forEach(link => {
-  link.addEventListener('click', () => {
-    track('landing_cta_click', { location: link.closest('.topbar') ? 'topbar' : link.closest('.cta-card') ? 'final_cta' : 'hero' });
+// CTA tracking
+document.querySelectorAll('a[href="app.html"]').forEach(function(link) {
+  link.addEventListener('click', function() {
+    var loc = link.closest('.topbar') ? 'topbar' : link.closest('.cta-card') ? 'final_cta' : 'hero';
+    gtag('event','landing_cta_click', { location: loc });
   });
 });
 </script>
