@@ -589,7 +589,7 @@ function renderCalendar() {
 
 function detectQueueGaps() {
   const panel = qs('gapsPanel'); const list = qs('gapsList');
-  if (!panel || !list || !bufferToken) { if (panel) panel.style.display = 'none'; return; }
+  if (!panel || !list || !bufferToken) { if (panel) panel.style.display = 'none'; renderPillarBalance(); return; }
   const today = new Date(); today.setHours(0,0,0,0);
   const gaps = [];
   for (let i = 0; i < 7; i++) {
@@ -599,7 +599,7 @@ function detectQueueGaps() {
     const hasPosts = state.scheduled.some(p => fmtDate(new Date(p.dueAt)) === key);
     if (!hasPosts) gaps.push(d);
   }
-  if (!gaps.length) { panel.style.display = 'none'; return; }
+  if (!gaps.length) { panel.style.display = 'none'; renderPillarBalance(); return; }
   panel.style.display = 'block';
   list.innerHTML = '';
   gaps.forEach(d => {
@@ -608,7 +608,101 @@ function detectQueueGaps() {
     chip.textContent = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
     chip.onclick = () => openDayNote(d);
     list.appendChild(chip);
+
+    const fillBtn = document.createElement('button');
+    fillBtn.className = 'gap-chip';
+    fillBtn.style.cssText = 'background:var(--brand-dim,rgba(58,63,255,.08));border-color:var(--brand-glow,rgba(58,63,255,.2));color:var(--brand,#3a3fff);';
+    fillBtn.textContent = 'Pick a pillar';
+    fillBtn.onclick = (e) => {
+      e.stopPropagation();
+      openPillarPickerForDate(d);
+    };
+    list.appendChild(fillBtn);
   });
+
+  renderPillarBalance();
+}
+
+function openPillarPickerForDate(date) {
+  const data = window.ContentPillars ? window.ContentPillars.getData() : null;
+  if (!data || !data.buckets.length) {
+    openDayNote(date);
+    return;
+  }
+  openDayNote(date);
+  const body = document.getElementById('dayPostPreview');
+  if (!body) return;
+  const existing = body.querySelector('[data-pillars-picker="1"]');
+  if (existing) existing.remove();
+
+  const picker = document.createElement('div');
+  picker.dataset.pillarsPicker = '1';
+  picker.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin-bottom:12px;';
+  const label = document.createElement('div');
+  label.style.cssText = 'font-size:10px;font-family:monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--muted,#5a6080);margin-bottom:4px;';
+  label.textContent = 'Draft from a pillar';
+  picker.appendChild(label);
+  data.buckets.forEach(bucket => {
+    const seed = (bucket.seeds || []).find(s => String(s || '').trim()) || '';
+    const row = document.createElement('button');
+    row.className = 'btn sm';
+    row.style.cssText = 'justify-content:flex-start;text-align:left;width:100%;margin-bottom:0;';
+    row.innerHTML = '' + safeText(bucket.name) + '&nbsp;&nbsp;' + safeText(seed.slice(0, 60) || 'No seeds yet') + '';
+    row.onclick = () => {
+      if (seed) {
+        const dateStr = date.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
+        if (window.ContentPillars) {
+          window.ContentPillars.insertStarter(bucket, seed, dateStr);
+        }
+      }
+      closeModal('noteModal');
+      activateView('composerView');
+    };
+    picker.appendChild(row);
+  });
+  body.prepend(picker);
+}
+
+function renderPillarBalance() {
+  const el = document.getElementById('pillarBalanceBar');
+  if (!el) return;
+  const data = window.ContentPillars ? window.ContentPillars.getData() : null;
+  if (!data || !data.buckets.length) { el.style.display = 'none'; return; }
+  let usage = {};
+  try { usage = JSON.parse(localStorage.getItem('postiq_pillars_usage_v1') || '{}'); } catch {}
+  const total = Object.values(usage).reduce((a, b) => a + b, 0);
+  if (total === 0) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  el.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'background:var(--surface,#fff);border:1px solid var(--border,#e8eaf2);border-radius:var(--r,12px);padding:14px 16px;margin-bottom:16px;';
+  const heading = document.createElement('div');
+  heading.style.cssText = 'font-size:10px;font-family:monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--subtle,#9298b0);margin-bottom:10px;';
+  heading.textContent = 'Pillar balance — last ' + total + ' draft' + (total === 1 ? '' : 's');
+  wrap.appendChild(heading);
+  const colors = ['#3a3fff','#0fa672','#f59e0b','#ff4f6a','#7c3aed','#0ea5e9'];
+  data.buckets.forEach((bucket, i) => {
+    const count = usage[bucket.id] || 0;
+    const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:6px;';
+    const nameEl = document.createElement('div');
+    nameEl.style.cssText = 'font-size:11px;font-family:monospace;color:var(--muted,#5a6080);min-width:64px;';
+    nameEl.textContent = bucket.name;
+    const track = document.createElement('div');
+    track.style.cssText = 'flex:1;height:6px;background:var(--surface3,#f0f2f8);border-radius:3px;overflow:hidden;';
+    const fill = document.createElement('div');
+    fill.style.cssText = 'height:100%;border-radius:3px;background:' + (colors[i % colors.length]) + ';width:' + pct + '%;transition:width .4s ease;';
+    track.appendChild(fill);
+    const pctEl = document.createElement('div');
+    pctEl.style.cssText = 'font-size:11px;font-family:monospace;color:var(--subtle,#9298b0);min-width:32px;text-align:right;';
+    pctEl.textContent = pct + '%';
+    row.appendChild(nameEl);
+    row.appendChild(track);
+    row.appendChild(pctEl);
+    wrap.appendChild(row);
+  });
+  el.appendChild(wrap);
 }
 
 function openDayNote(date) {
@@ -1318,6 +1412,7 @@ function activateView(viewId) {
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId));
   document.querySelectorAll('.mob-tab[data-view]').forEach(t => t.classList.toggle('active', t.dataset.view === viewId));
   if (viewId === 'approvalsView') loadApprovals();
+  if (viewId === 'calendarView') renderPillarBalance();
 }
 window.activateView = activateView;
 
@@ -2003,6 +2098,7 @@ function init() {
 window.ContentPillars = (() => {
   const CP_MODE_KEY = 'postiq_pillars_onboarding_v1';
   const CP_DATA_KEY = 'postiq_pillars_builder_v2';
+  const CP_USAGE_KEY = 'postiq_pillars_usage_v1';
 
   const DEFAULT_BUCKETS = [
     { id: 'teach', name: 'Teach', helper: 'what you know', seeds: ['Why local-first apps reduce privacy risk', 'How to explain your process without jargon'] },
@@ -2054,7 +2150,8 @@ window.ContentPillars = (() => {
     mode: null,
     persona: 'saas_founder',
     identity: '',
-    buckets: []
+    buckets: [],
+    seedTones: {}
   };
 
   const cpQsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
@@ -2085,6 +2182,25 @@ window.ContentPillars = (() => {
 
   function cpWriteMode(mode) { try { localStorage.setItem(CP_MODE_KEY, mode); } catch {} }
 
+  function cpGetUsage() {
+    try { return JSON.parse(localStorage.getItem(CP_USAGE_KEY) || '{}'); } catch { return {}; }
+  }
+
+  function cpIncrementUsage(bucketId) {
+    const usage = cpGetUsage();
+    usage[bucketId] = (usage[bucketId] || 0) + 1;
+    try { localStorage.setItem(CP_USAGE_KEY, JSON.stringify(usage)); } catch {}
+  }
+
+  function cpHasOnlyDefaultBuckets() {
+    const ids = DEFAULT_BUCKETS.map((b) => b.id);
+    return !cpState.buckets.length || cpState.buckets.every((b) => ids.includes(b.id));
+  }
+
+  function cpAutoLoadStarterPersona() {
+    if (cpHasOnlyDefaultBuckets()) cpLoadExample('saas_founder');
+  }
+
   function cpReadData() {
     try {
       const raw = localStorage.getItem(CP_DATA_KEY);
@@ -2092,7 +2208,8 @@ window.ContentPillars = (() => {
       const parsed = JSON.parse(raw);
       return {
         identity: String(parsed?.identity || ''),
-        buckets: cpNormalizeBuckets(parsed?.buckets)
+        buckets: cpNormalizeBuckets(parsed?.buckets),
+        seedTones: parsed?.seedTones && typeof parsed.seedTones === 'object' ? parsed.seedTones : {}
       };
     } catch { return null; }
   }
@@ -2101,7 +2218,8 @@ window.ContentPillars = (() => {
     try {
       localStorage.setItem(CP_DATA_KEY, JSON.stringify({
         identity: cpState.identity,
-        buckets: cpNormalizeBuckets(cpState.buckets)
+        buckets: cpNormalizeBuckets(cpState.buckets),
+        seedTones: cpState.seedTones || {}
       }));
     } catch {}
     cpRenderDraftCompact();
@@ -2121,11 +2239,14 @@ window.ContentPillars = (() => {
     cpQsa('[data-persona]').forEach((btn) => btn.classList.toggle('is-active', btn.dataset.persona === key));
   }
 
-  function cpComposeStarter(pillarName, helper, topic) {
-    return `Pillar: ${pillarName}
-Topic: ${topic}
-Angle: ${helper || 'Explain this clearly and simply without jargon'}
-Draft starter: Here's something more creators and builders should think about...`;
+  function cpComposeStarter(pillarName, helper, topic, tone) {
+    const identity = (cpState.identity || '').trim();
+    const voiceLine = identity ? 'Voice: ' + identity + '\n\n' : '';
+    let starterLine = 'Here is the clearest way I can explain this:';
+    if (tone === 'Story') starterLine = 'Here is a moment that changed how I think about this:';
+    if (tone === 'Contrarian') starterLine = 'Unpopular take:';
+    if (tone === 'Question') starterLine = 'Quick question for you:';
+    return voiceLine + 'Pillar: ' + pillarName + ' — ' + (helper || 'explain this clearly') + '\nTopic: ' + topic + '\n\nDraft starter: ' + starterLine;
   }
 
   function cpComposeAiPrompt(pillarName, helper, topic) {
@@ -2139,25 +2260,13 @@ Task: Write a punchy, authentic social post from this angle. Avoid corporate jar
 
   function cpInsertIntoComposer(text) {
     if (typeof window.activateView === 'function') window.activateView('composerView');
-    const composerView = qs('composerView');
-    const textarea = composerView?.querySelector('textarea[data-composer-editor], textarea#composerEditor, textarea.composer-editor, textarea');
-    const rich = qs('composerEditor');
-
-    if (textarea && textarea.tagName === 'TEXTAREA') {
-      textarea.value = text;
-      textarea.dispatchEvent(new Event('input', { bubbles: true }));
-      textarea.focus();
-      return true;
-    }
-
-    if (rich && rich.getAttribute('contenteditable') === 'true') {
-      rich.textContent = text;
-      rich.dispatchEvent(new Event('input', { bubbles: true }));
-      rich.focus();
-      return true;
-    }
-
-    return false;
+    const rich = document.getElementById('composerEditor');
+    if (!rich || rich.getAttribute('contenteditable') !== 'true') return false;
+    rich.focus();
+    document.execCommand('selectAll', false, null);
+    document.execCommand('insertText', false, text);
+    rich.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
+    return true;
   }
 
   async function cpCopyText(text) {
@@ -2188,11 +2297,15 @@ Task: Write a punchy, authentic social post from this angle. Avoid corporate jar
     }
 
     wrap.innerHTML = '';
+    const usage = cpGetUsage();
     buckets.slice(0, 4).forEach((bucket) => {
       const card = document.createElement('div');
       card.className = 'composer-pillar-mini';
+      card.style.cursor = 'pointer';
       const seed = bucket.seeds.find(Boolean) || '';
-      card.innerHTML = `<h4>${safeText(bucket.name)}</h4><small>${safeText(bucket.helper || '')}</small>`;
+      const count = usage[bucket.id] || 0;
+      const badge = count === 0 ? '<span style="font-size:10px;font-family:monospace;color:var(--color-text-secondary,#9298b0);border:1px solid var(--color-border-secondary,#d8dce8);padding:1px 6px;border-radius:999px;margin-left:6px;">unused</span>' : '';
+      card.innerHTML = `<h4>${safeText(bucket.name)}${badge}</h4><small>${safeText(bucket.helper || '')}</small>`;
       if (seed) {
         const row = document.createElement('div');
         row.className = 'composer-pillar-mini-row';
@@ -2201,13 +2314,25 @@ Task: Write a punchy, authentic social post from this angle. Avoid corporate jar
         btn.className = 'btn-copy-prompt';
         btn.type = 'button';
         btn.textContent = 'Start';
-        btn.addEventListener('click', () => {
-          const wrote = cpInsertIntoComposer(cpComposeStarter(bucket.name, bucket.helper, seed));
+        const startDraft = () => {
+          const wrote = cpInsertIntoComposer(cpComposeStarter(bucket.name, bucket.helper, seed, 'Practical'));
+          if (wrote) cpIncrementUsage(bucket.id);
+          cpRenderDraftCompact();
+          if (typeof window.renderPillarBalance === 'function') window.renderPillarBalance();
           showToast(wrote ? 'Starter added to Draft.' : 'Could not open Draft editor.', wrote ? 'success' : 'error');
+        };
+        btn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          startDraft();
         });
+        card.addEventListener('click', () => startDraft());
         row.appendChild(btn);
         card.appendChild(row);
       }
+      const usageLine = document.createElement('div');
+      usageLine.style.cssText = 'font-size:11px;color:var(--color-text-secondary,#9298b0);font-family:monospace;margin-top:4px;';
+      usageLine.textContent = count > 0 ? count + ' post' + (count === 1 ? '' : 's') + ' drafted from this pillar' : 'Not used yet';
+      card.appendChild(usageLine);
       wrap.appendChild(card);
     });
   }
@@ -2240,6 +2365,18 @@ Task: Write a punchy, authentic social post from this angle. Avoid corporate jar
             <button class="btn-copy-prompt remove" type="button" data-cp-action="remove-seed">Remove</button>
           </div>
         `;
+        const toneKey = bucket.id + ':' + idx;
+        const toneSelect = document.createElement('select');
+        toneSelect.dataset.cpField = 'tone';
+        toneSelect.dataset.toneKey = toneKey;
+        toneSelect.style.cssText = 'font-size:11px;padding:3px 6px;border-radius:6px;border:0.5px solid var(--color-border-secondary,#d8dce8);background:var(--color-background-secondary,#f9fafc);color:var(--color-text-secondary,#5a6080);cursor:pointer;margin-top:4px;width:100%;';
+        ['Practical','Story','Contrarian','Question'].forEach(t => {
+          const o = document.createElement('option');
+          o.value = t; o.textContent = t;
+          if ((cpState.seedTones[toneKey] || 'Practical') === t) o.selected = true;
+          toneSelect.appendChild(o);
+        });
+        row.appendChild(toneSelect);
         card.appendChild(row);
       });
 
@@ -2264,6 +2401,7 @@ Task: Write a punchy, authentic social post from this angle. Avoid corporate jar
     cpState.persona = key;
     cpState.identity = data.identity;
     cpState.buckets = data.buckets.map((bucket) => ({ id: cpUid(), name: bucket.name, helper: bucket.helper, seeds: [...bucket.seeds] }));
+    cpState.seedTones = {};
     const identityEl = qs('global-identity');
     if (identityEl) identityEl.value = cpState.identity;
     cpSetActivePersonaButton(key);
@@ -2308,7 +2446,11 @@ Task: Write a punchy, authentic social post from this angle. Avoid corporate jar
     }
 
     if (action === 'start') {
-      const wrote = cpInsertIntoComposer(cpComposeStarter(pillar, helper, topic));
+      const tone = cpState.seedTones[bucketId + ':' + seedIndex] || 'Practical';
+      const wrote = cpInsertIntoComposer(cpComposeStarter(pillar, helper, topic, tone));
+      if (wrote) cpIncrementUsage(bucketId);
+      cpRenderDraftCompact();
+      if (typeof window.renderPillarBalance === 'function') window.renderPillarBalance();
       showToast(wrote ? 'Starter added to Draft.' : 'Could not open Draft editor.', wrote ? 'success' : 'error');
       return;
     }
@@ -2324,6 +2466,7 @@ Task: Write a punchy, authentic social post from this angle. Avoid corporate jar
     cpWriteMode(mode);
     if (mode === 'experienced') {
       cpSetStage('builder');
+      cpAutoLoadStarterPersona();
       cpRenderBuilder();
     } else {
       cpSetStage('beginner');
@@ -2347,6 +2490,7 @@ Task: Write a punchy, authentic social post from this angle. Avoid corporate jar
       const data = cpReadData();
       cpState.identity = data?.identity || '';
       cpState.buckets = cpNormalizeBuckets(data?.buckets);
+      cpState.seedTones = data?.seedTones || {};
       cpRenderDraftCompact();
       return;
     }
@@ -2354,6 +2498,7 @@ Task: Write a punchy, authentic social post from this angle. Avoid corporate jar
     const persisted = cpReadData();
     cpState.identity = persisted?.identity || '';
     cpState.buckets = cpNormalizeBuckets(persisted?.buckets);
+    cpState.seedTones = persisted?.seedTones || {};
 
     const identityEl = qs('global-identity');
     if (identityEl) {
@@ -2395,6 +2540,10 @@ Task: Write a punchy, authentic social post from this angle. Avoid corporate jar
         const idx = row ? Number(row.dataset.seedIndex) : -1;
         if (idx >= 0) bucket.seeds[idx] = event.target.value;
       }
+      if (field === 'tone') {
+        const toneKey = event.target.dataset.toneKey;
+        if (toneKey) cpState.seedTones[toneKey] = event.target.value || 'Practical';
+      }
       cpPersistData();
     });
 
@@ -2409,7 +2558,7 @@ Task: Write a punchy, authentic social post from this angle. Avoid corporate jar
     if (resetDefaultsBtn) resetDefaultsBtn.addEventListener('click', cpResetDefaults);
 
     const buildBtn = qs('pillarsBuildBtn');
-    if (buildBtn) buildBtn.addEventListener('click', () => { cpSetStage('builder'); cpRenderBuilder(); });
+    if (buildBtn) buildBtn.addEventListener('click', () => { cpSetStage('builder'); cpAutoLoadStarterPersona(); cpRenderBuilder(); });
 
     const resetBtn = qs('pillarsResetBtn');
     if (resetBtn) resetBtn.addEventListener('click', cpResetOnboarding);
@@ -2437,7 +2586,19 @@ Task: Write a punchy, authentic social post from this angle. Avoid corporate jar
 
   return {
     init,
-    getData: () => ({ identity: cpState.identity, buckets: cpNormalizeBuckets(cpState.buckets) }),
+    getData: () => ({ identity: cpState.identity, buckets: cpNormalizeBuckets(cpState.buckets), seedTones: { ...cpState.seedTones } }),
+    insertStarter: (bucket, seed, dateLabel) => {
+      const name = String(bucket?.name || 'Pillar');
+      const helper = String(bucket?.helper || 'explain this clearly');
+      const topic = String(seed || '').trim();
+      if (!topic) return false;
+      const starter = `Date: ${dateLabel}\n` + cpComposeStarter(name, helper, topic, 'Practical');
+      const wrote = cpInsertIntoComposer(starter);
+      if (wrote && bucket?.id) cpIncrementUsage(bucket.id);
+      cpRenderDraftCompact();
+      if (typeof window.renderPillarBalance === 'function') window.renderPillarBalance();
+      return wrote;
+    },
     renderDraftCompact: cpRenderDraftCompact
   };
 })();
