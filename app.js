@@ -620,7 +620,7 @@ function openDayNote(date) {
   qs('noteTag').value = `${note.tag || 'gold'}|${note.label || 'Idea'}`;
   const dayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
   qs('dayPostPreview').innerHTML = dayPosts.length
-    ? `<div style="font-size:11px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;">${dayPosts.length} scheduled post${dayPosts.length > 1 ? 's' : ''}</div>${dayPosts.map(p => `<div style="font-size:12px;padding:6px 8px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:5px;color:var(--brand);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${safeText(p.text || '(no text)')}</div>`).join('')}`
+    ? `<div style="font-size:11px;font-family:\'DM Mono\',monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;">${dayPosts.length} scheduled post${dayPosts.length > 1 ? 's' : ''}</div>${dayPosts.map(p => `<div style="font-size:12px;padding:6px 8px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:5px;color:var(--brand);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${safeText(p.text || '(no text)')}</div>`).join('')}`
     : `<div style="font-size:12px;color:var(--subtle);margin-bottom:8px;">No posts scheduled on this day.</div>`;
   qs('noteStatus').textContent = '';
   openModal('noteModal');
@@ -680,7 +680,7 @@ function renderAgenda() {
     const dayEl = document.createElement('div');
     dayEl.style.cssText = `border:1px solid ${isToday ? 'var(--brand)' : 'var(--border)'};border-radius:10px;padding:12px;margin-bottom:8px;background:var(--surface);cursor:pointer;`;
     const dateLabel = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-    let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:${isToday ? 'var(--brand)' : 'var(--muted)'};">${dateLabel}</span>${data.posts.length ? `<span style="font-size:9px;font-family:'DM Mono',monospace;background:var(--brand-dim);color:var(--brand);border:1px solid var(--brand-glow);padding:1px 5px;border-radius:3px;">${data.posts.length} post${data.posts.length > 1 ? 's' : ''}</span>` : ''}</div>`;
+    let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-family:\'DM Mono\',monospace;font-size:11px;font-weight:600;color:${isToday ? 'var(--brand)' : 'var(--muted)'};">${dateLabel}</span>${data.posts.length ? `<span style="font-size:9px;font-family:\'DM Mono\',monospace;background:var(--brand-dim);color:var(--brand);border:1px solid var(--brand-glow);padding:1px 5px;border-radius:3px;">${data.posts.length} post${data.posts.length > 1 ? 's' : ''}</span>` : ''}</div>`;
     data.posts.slice(0, 2).forEach(p => { html += `<div style="font-size:12px;padding:6px 8px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:5px;color:var(--brand);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${safeText(compact(p.text, 80))}</div>`; });
     if (data.posts.length > 2) html += `<div style="font-size:10px;color:var(--subtle);margin-bottom:4px;">+${data.posts.length - 2} more</div>`;
     if (data.note) html += `<div class="day-note-pill ${data.note.tag || 'gold'}" style="display:block;border-radius:5px;margin-top:4px;">${safeText(compact(data.note.text, 60))}</div>`;
@@ -746,7 +746,7 @@ function openSharedDayDetails(key, data) {
               ${p.platform ? `<span class="chip">${safeText(p.platform)}</span>` : ''}
               ${p.channelName ? `<span class="chip">${safeText(p.channelName)}</span>` : ''}
             </div>
-            <span style="font-size:11px;color:var(--subtle);font-family:'DM Mono',monospace;">${safeText(formatDateTime(p.dueAt))}</span>
+            <span style="font-size:11px;color:var(--subtle);font-family:\'DM Mono\',monospace;">${safeText(formatDateTime(p.dueAt))}</span>
           </div>
           <div style="font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:break-word;color:var(--text);">${safeText(p.text || '(no copy)')}</div>
         </div>
@@ -758,7 +758,7 @@ function openSharedDayDetails(key, data) {
         <div class="card" style="padding:14px;">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
             <span class="chip ${n.tag === 'green' ? 'green' : 'brand'}">Planning note</span>
-            ${n.tag ? `<span style="font-size:11px;color:var(--subtle);font-family:'DM Mono',monospace;text-transform:uppercase;">${safeText(n.tag)}</span>` : ''}
+            ${n.tag ? `<span style="font-size:11px;color:var(--subtle);font-family:\'DM Mono\',monospace;text-transform:uppercase;">${safeText(n.tag)}</span>` : ''}
           </div>
           <div style="font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:break-word;color:var(--text);">${safeText(n.text || '(empty note)')}</div>
         </div>
@@ -768,11 +768,11 @@ function openSharedDayDetails(key, data) {
   bodyEl.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:16px;">
       <div>
-        <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;">Scheduled posts</div>
+        <div style="font-family:\'DM Mono\',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;">Scheduled posts</div>
         ${postsHtml}
       </div>
       <div>
-        <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;">Planning notes</div>
+        <div style="font-family:\'DM Mono\',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;">Planning notes</div>
         ${notesHtml}
       </div>
     </div>`;
@@ -1093,7 +1093,7 @@ function renderApprovalCard(meta) {
       <div class="approval-card-meta">
         <span class="approval-status-badge ${statusClass}">${statusLabel}</span>
         ${platformBadge}
-        <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">${meta.created_at ? new Date(meta.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : ''}</span>
+        <span style="font-size:10px;font-family:\'DM Mono\',monospace;color:var(--subtle);">${meta.created_at ? new Date(meta.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : ''}</span>
       </div>
       <button class="btn sm ghost" onclick="approvalRemove('${safeId}')">✕ Remove</button>
     </div>
@@ -1102,7 +1102,7 @@ function renderApprovalCard(meta) {
       <div class="approval-content-text">${safeText(meta.content || '')}</div>
       ${meta.comments?.length ? `
         <div class="approval-comments">
-          <div style="font-size:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;">Reviewer feedback</div>
+          <div style="font-size:10px;font-family:\'DM Mono\',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;">Reviewer feedback</div>
           ${meta.comments.map(c => `
             <div class="approval-comment">
               <div class="approval-comment-meta">
@@ -1131,7 +1131,7 @@ function renderApprovalCard(meta) {
           </div>
         </div>
         <div style="${pubDisabled ? 'opacity:.45;pointer-events:none;' : ''}">
-          ${pubDisabled ? `<div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--subtle);margin-bottom:10px;">Publishing unlocks once reviewer responds.</div>` : ''}
+          ${pubDisabled ? `<div style="font-size:11px;font-family:\'DM Mono\',monospace;color:var(--subtle);margin-bottom:10px;">Publishing unlocks once reviewer responds.</div>` : ''}
           <div class="label mb8">Publish to</div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
             <select id="approval-ch-${safeId}" class="input" style="flex:1;min-width:160px;font-size:13px;"></select>
@@ -1148,7 +1148,7 @@ function renderApprovalCard(meta) {
             </div>
           </div>
         </div>`}
-      <div id="approval-status-${safeId}" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;min-height:16px;"></div>
+      <div id="approval-status-${safeId}" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:\'DM Mono\',monospace;min-height:16px;"></div>
     </div>`;
 
   setTimeout(() => {
@@ -1258,13 +1258,13 @@ async function renderReviewerPage(uuid) {
     const comments = record.comments || [];
     content.innerHTML = `
       <div class="reviewer-card">
-        ${platform ? `<div style="font-size:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border:1px solid var(--border2);border-radius:4px;color:var(--subtle);display:inline-flex;margin-bottom:16px;">${safeText(platform)}</div>` : ''}
+        ${platform ? `<div style="font-size:10px;font-family:\'DM Mono\',monospace;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border:1px solid var(--border2);border-radius:4px;color:var(--subtle);display:inline-flex;margin-bottom:16px;">${safeText(platform)}</div>` : ''}
         <div style="font-size:15px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word;">${safeText(postContent || '')}</div>
         ${imageUrl ? `<img src="${safeText(imageUrl)}" style="width:100%;max-height:360px;object-fit:cover;border-radius:10px;border:1px solid var(--border);margin-top:16px;" />` : ''}
       </div>
       ${comments.length ? `
         <div class="reviewer-card">
-          <div style="font-size:11px;font-weight:600;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:14px;">Previous comments</div>
+          <div style="font-size:11px;font-weight:600;font-family:\'DM Mono\',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:14px;">Previous comments</div>
           ${comments.map(c => `<div style="padding:12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;"><div style="font-weight:600;font-size:13px;margin-bottom:2px;">${safeText(c.author || 'Anonymous')}</div><div style="font-size:14px;color:var(--muted);line-height:1.55;">${safeText(c.text || '')}</div></div>`).join('')}
         </div>` : ''}
       <div class="reviewer-card">
@@ -1504,6 +1504,7 @@ function init() {
 
   // Templates
   qs('newTemplateBtn').onclick = () => openTemplateModal();
+  const manageTplBtn = qs('composerManageTemplatesBtn'); if (manageTplBtn) manageTplBtn.onclick = () => activateView('templatesView');
   qs('closeTemplateModal').onclick = () => closeModal('templateModal');
   qs('cancelTemplateBtn').onclick = () => closeModal('templateModal');
   qs('saveTemplateBtn').onclick = saveTemplate;
@@ -1536,12 +1537,16 @@ function init() {
     zenActive = true;
     document.body.classList.add('zen-active');
     activateView('composerView');
-    // Sync the zen channel select with the main one
-    const mainSel = qs('composerChannel');
-    const zenSel = qs('zenChannel');
-    zenSel.innerHTML = mainSel.innerHTML;
-    zenSel.value = mainSel.value;
-    qs('composerEditor').focus();
+    const composePanel = qs('composeModePanel');
+    const splitPanel = qs('splitModePanel');
+    if (composePanel) composePanel.style.display = 'contents';
+    if (splitPanel) splitPanel.style.display = 'none';
+    document.querySelectorAll('.composer-mode-tab').forEach(t => {
+      const active = t.dataset.cmode === 'compose';
+      t.style.color = active ? 'var(--brand)' : 'var(--muted)';
+      t.style.borderBottomColor = active ? 'var(--brand)' : 'transparent';
+    });
+    qs('composerEditor')?.focus();
     qs('zenToggleBtn').title = 'Exit zen mode';
   }
 
@@ -1554,19 +1559,23 @@ function init() {
   qs('zenToggleBtn').onclick = () => zenActive ? exitZen() : enterZen();
   qs('zenExit').onclick = exitZen;
 
-  // Sync zen channel back to main when changed
-  qs('zenChannel').addEventListener('change', () => {
-    qs('composerChannel').value = qs('zenChannel').value;
-    updateComposerButtonStates();
-  });
+  const zenChannel = qs('zenChannel');
+  if (zenChannel) {
+    zenChannel.addEventListener('change', () => {
+      const main = qs('composerChannel');
+      if (main) main.value = zenChannel.value;
+      updateComposerButtonStates();
+    });
+  }
 
-  // Zen send buttons proxy to the real composer send
-  qs('zenDraft').onclick    = () => composerSend('draft');
-  qs('zenQueue').onclick    = () => composerSend('queue');
-  qs('zenSchedule').onclick = () => {
+  const zenDraft = qs('zenDraft'); if (zenDraft) zenDraft.onclick = () => composerSend('draft');
+  const zenQueue = qs('zenQueue'); if (zenQueue) zenQueue.onclick = () => composerSend('queue');
+  const zenSchedule = qs('zenSchedule');
+  if (zenSchedule) zenSchedule.onclick = () => {
     exitZen();
-    qs('schedulePanel').classList.add('open');
-    qs('composerScheduleToggle').style.display = 'none';
+    qs('schedulePanel')?.classList.add('open');
+    const tgl = qs('composerScheduleToggle');
+    if (tgl) tgl.style.display = 'none';
   };
 
   // Escape key exits zen
@@ -1675,6 +1684,8 @@ function init() {
     });
     qs('composeModePanel').style.display = mode === 'compose' ? 'contents' : 'none';
     qs('splitModePanel').style.display  = mode === 'split'   ? 'block'    : 'none';
+    const support = qs('composerSupportSection');
+    if (support) support.style.display = mode === 'compose' ? 'grid' : 'none';
     if (mode === 'split') initSplitMode();
   }
   document.querySelectorAll('.composer-mode-tab').forEach(t => {
@@ -1719,9 +1730,9 @@ function init() {
       div.style.cssText = 'padding:12px;margin-bottom:0;';
       div.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--brand);background:var(--brand-dim);border:1px solid var(--brand-glow);padding:2px 7px;border-radius:4px;">Part ${i+1}</span>
+          <span style="font-size:11px;font-family:\'DM Mono\',monospace;color:var(--brand);background:var(--brand-dim);border:1px solid var(--brand-glow);padding:2px 7px;border-radius:4px;">Part ${i+1}</span>
           <div style="display:flex;gap:6px;align-items:center;">
-            <span style="font-size:11px;font-family:'DM Mono',monospace;color:${over?'var(--red)':'var(--subtle)'};">${full.length}/280</span>
+            <span style="font-size:11px;font-family:\'DM Mono\',monospace;color:${over?'var(--red)':'var(--subtle)'};">${full.length}/280</span>
             <button class="btn sm ghost" data-pi="${i}">Copy</button>
           </div>
         </div>
@@ -1829,7 +1840,7 @@ function init() {
     wrap.innerHTML = '';
     DEFAULT_SUBS.forEach(sub => {
       const btn = document.createElement('button');
-      btn.style.cssText = `padding:5px 12px;border-radius:20px;border:1px solid var(--border2);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;transition:all .12s;background:${trendingState.sub===sub?'var(--brand-dim)':'var(--surface)'};color:${trendingState.sub===sub?'var(--brand)':'var(--muted)'};border-color:${trendingState.sub===sub?'var(--brand-glow)':'var(--border2)'};`;
+      btn.style.cssText = `padding:5px 12px;border-radius:20px;border:1px solid var(--border2);font-size:12px;font-family:\'DM Mono\',monospace;cursor:pointer;transition:all .12s;background:${trendingState.sub===sub?'var(--brand-dim)':'var(--surface)'};color:${trendingState.sub===sub?'var(--brand)':'var(--muted)'};border-color:${trendingState.sub===sub?'var(--brand-glow)':'var(--border2)'};`;
       btn.textContent = 'r/' + sub;
       btn.onclick = () => { trendingState.sub = sub; renderSubPills(); loadReddit(); };
       wrap.appendChild(btn);
@@ -1850,14 +1861,14 @@ function init() {
       const el = document.createElement('div');
       el.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;transition:border-color .12s;';
       el.innerHTML = `
-        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--subtle);width:22px;flex-shrink:0;padding-top:2px;font-weight:600;">${i+1}</div>
+        <div style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--subtle);width:22px;flex-shrink:0;padding-top:2px;font-weight:600;">${i+1}</div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:5px;">${safeText(item.title)}</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--amber);font-weight:700;">▲ ${(item.score||0).toLocaleString()}</span>
-            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">💬 ${item.comments||0}</span>
-            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--brand);">${safeText(item.sub||'')}</span>
-            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">${item.age||''}</span>
+            <span style="font-size:10px;font-family:\'DM Mono\',monospace;color:var(--amber);font-weight:700;">▲ ${(item.score||0).toLocaleString()}</span>
+            <span style="font-size:10px;font-family:\'DM Mono\',monospace;color:var(--subtle);">💬 ${item.comments||0}</span>
+            <span style="font-size:10px;font-family:\'DM Mono\',monospace;color:var(--brand);">${safeText(item.sub||'')}</span>
+            <span style="font-size:10px;font-family:\'DM Mono\',monospace;color:var(--subtle);">${item.age||''}</span>
           </div>
           <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
             <button class="btn sm" style="font-size:11px;" data-inspire="${i}">→ Draft from this</button>
@@ -1990,125 +2001,445 @@ function init() {
 
 // ── CONTENT PILLARS (SAFE PREVIEW) ───────────────────
 window.ContentPillars = (() => {
-  const PERSONA_DATA = {
+  const CP_MODE_KEY = 'postiq_pillars_onboarding_v1';
+  const CP_DATA_KEY = 'postiq_pillars_builder_v2';
+
+  const DEFAULT_BUCKETS = [
+    { id: 'teach', name: 'Teach', helper: 'what you know', seeds: ['Why local-first apps reduce privacy risk', 'How to explain your process without jargon'] },
+    { id: 'share', name: 'Share', helper: 'what you experience', seeds: ['A real lesson from this week', 'A behind-the-scenes moment your audience can relate to'] },
+    { id: 'believe', name: 'Believe', helper: 'what you stand for', seeds: ['A belief that guides your work', 'What you wish more people understood'] },
+    { id: 'offer', name: 'Offer', helper: 'what you sell', seeds: ['Who your offer helps and why', 'A practical invitation to work with you'] }
+  ];
+
+  const EXAMPLE_SETS = {
     saas_founder: {
-      identity: "I am a senior dev and creative technologist building minimalist, local-first tools for creators who value privacy and speed. My tone is industrial, direct, and slightly rebellious.",
-      pillars: [
-        { name: "The Teacher (Expertise)", seeds: ["Why LocalStorage beats Cloud for data privacy.", "Building 'no-login' apps in a world of subscriptions."] },
-        { name: "The Human (Relatability)", seeds: ["Late night bug fixing on PostIQ.", "The reality of building a SaaS solo."] },
-        { name: "The Believer (Values)", seeds: ["Software should be a utility, not a data-trap.", "Minimalist design is actually a productivity hack."] },
-        { name: "The Open Sign (Sales)", seeds: ["New Pillar feature live on PostIQ GitHub.", "Try the Thread Splitter for free."] }
+      identity: 'I am a senior dev building minimalist, local-first tools for creators. My tone is clear, practical, and calm.',
+      buckets: [
+        { name: 'Teach', helper: 'what you know', seeds: ['Why local-first apps reduce privacy risk', 'How tiny weekly releases beat big quarterly launches'] },
+        { name: 'Share', helper: 'what you experience', seeds: ['A bug that taught me a better system', 'What solo building looked like this week'] },
+        { name: 'Believe', helper: 'what you stand for', seeds: ['Software should feel like a tool, not a trap', 'Simple UX is a performance feature'] },
+        { name: 'Offer', helper: 'what you sell', seeds: ['Who PostIQ is best for', 'What the new pillars flow helps you do faster'] }
       ]
     },
     nurse: {
-      identity: "I am a compassionate registered nurse focused on debunking medical myths and sharing the human side of the frontlines. My tone is warm, authoritative, and honest.",
-      pillars: [
-        { name: "The Teacher (Expertise)", seeds: ["How to prepare your kids for a checkup.", "3 signs you're actually burnt out."] },
-        { name: "The Human (Relatability)", seeds: ["The first 10 minutes after a 12-hour shift.", "The patient story that changed me."] },
-        { name: "The Believer (Values)", seeds: ["Advocacy matters more than charts.", "Compassion is a clinical skill."] },
-        { name: "The Open Sign (Sales)", seeds: ["New wellness guide available now.", "Join my health webinar this Friday."] }
+      identity: 'I am a compassionate nurse focused on practical education and myth-busting. My tone is warm, direct, and encouraging.',
+      buckets: [
+        { name: 'Teach', helper: 'what you know', seeds: ['How to prep kids for a checkup', 'Early signs burnout is building'] },
+        { name: 'Share', helper: 'what you experience', seeds: ['What a long shift taught me today', 'A patient-safe story that changed my approach'] },
+        { name: 'Believe', helper: 'what you stand for', seeds: ['Compassion is a clinical skill', 'Advocacy belongs in everyday care'] },
+        { name: 'Offer', helper: 'what you sell', seeds: ['My wellness checklist for busy families', 'How to join my next health Q&A'] }
       ]
     },
     teacher: {
-      identity: "I am an educator dedicated to modern classroom hacks and student-first advocacy. My tone is encouraging, witty, and practical.",
-      pillars: [
-        { name: "The Teacher (Expertise)", seeds: ["Gamifying math for 3rd graders.", "The best books for reluctant readers."] },
-        { name: "The Human (Relatability)", seeds: ["Funny things students said this week.", "Sunday night lesson planning reality."] },
-        { name: "The Believer (Values)", seeds: ["Standardized testing isn't the whole story.", "Every child needs a safe adult."] },
-        { name: "The Open Sign (Sales)", seeds: ["Download my classroom templates.", "Join the Teacher-Prep Masterclass."] }
+      identity: 'I am an educator sharing practical classroom strategies and student-first advocacy. My tone is optimistic and practical.',
+      buckets: [
+        { name: 'Teach', helper: 'what you know', seeds: ['A low-prep classroom routine that works', 'One strategy for reluctant readers'] },
+        { name: 'Share', helper: 'what you experience', seeds: ['A classroom win from this week', 'The real Sunday planning routine'] },
+        { name: 'Believe', helper: 'what you stand for', seeds: ['Every student needs a safe adult', 'Confidence should count as progress too'] },
+        { name: 'Offer', helper: 'what you sell', seeds: ['What is inside my classroom templates', 'How to join my teacher prep session'] }
       ]
     },
     restaurant: {
-      identity: "I am a scratch-kitchen owner in San Antonio sharing the art of local food and community. My tone is rustic, passionate, and hospitable.",
-      pillars: [
-        { name: "The Teacher (Expertise)", seeds: ["The secret to our sourdough crust.", "How to source local ingredients on a budget."] },
-        { name: "The Human (Relatability)", seeds: ["Meet our prep team who makes it happen.", "The chaos of a Saturday night rush."] },
-        { name: "The Believer (Values)", seeds: ["Why we never use frozen ingredients.", "Support local or lose local."] },
-        { name: "The Open Sign (Sales)", seeds: ["New seasonal menu drops tonight.", "Book our patio for your next event."] }
+      identity: 'I run a scratch kitchen and share practical food stories rooted in local community. My tone is warm and welcoming.',
+      buckets: [
+        { name: 'Teach', helper: 'what you know', seeds: ['How we build flavor from scratch', 'How we source local ingredients on a budget'] },
+        { name: 'Share', helper: 'what you experience', seeds: ['What prep hour looks like before service', 'A Saturday rush story from our team'] },
+        { name: 'Believe', helper: 'what you stand for', seeds: ['Why local food businesses matter', 'Why we choose quality over shortcuts'] },
+        { name: 'Offer', helper: 'what you sell', seeds: ['Who our seasonal menu is for', 'How to book our patio for events'] }
       ]
     }
   };
 
-  const qsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+  const cpState = {
+    mode: null,
+    persona: 'saas_founder',
+    identity: '',
+    buckets: []
+  };
 
-  function setActivePersonaButton(key) {
-    qsa('[data-persona]').forEach((btn) => {
-      btn.classList.toggle('is-active', btn.dataset.persona === key);
-    });
+  const cpQsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+  const cpUid = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+
+  function cpCloneDefaultBuckets() {
+    return DEFAULT_BUCKETS.map((bucket) => ({ ...bucket, id: cpUid(), seeds: [...bucket.seeds] }));
   }
 
-  function toggleMode() {
-    const toggle = qs('pillar-mode-toggle');
-    const picker = qs('persona-picker');
-    if (!toggle || !picker) return;
-    picker.style.display = toggle.checked ? 'none' : 'flex';
+  function cpNormalizeBuckets(buckets) {
+    if (!Array.isArray(buckets) || !buckets.length) return cpCloneDefaultBuckets();
+    return buckets.map((bucket) => ({
+      id: bucket?.id || cpUid(),
+      name: String(bucket?.name || 'Untitled').trim() || 'Untitled',
+      helper: String(bucket?.helper || '').trim(),
+      seeds: Array.isArray(bucket?.seeds) && bucket.seeds.length
+        ? bucket.seeds.map((seed) => String(seed ?? ''))
+        : ['']
+    }));
   }
 
-  function renderPillars(pillars) {
-    const container = qs('bucket-container');
-    if (!container) return;
-    container.innerHTML = '';
-    pillars.forEach((pillar) => {
+  function cpReadMode() {
+    try {
+      const raw = localStorage.getItem(CP_MODE_KEY);
+      return raw === 'beginner' || raw === 'experienced' ? raw : null;
+    } catch { return null; }
+  }
+
+  function cpWriteMode(mode) { try { localStorage.setItem(CP_MODE_KEY, mode); } catch {} }
+
+  function cpReadData() {
+    try {
+      const raw = localStorage.getItem(CP_DATA_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return {
+        identity: String(parsed?.identity || ''),
+        buckets: cpNormalizeBuckets(parsed?.buckets)
+      };
+    } catch { return null; }
+  }
+
+  function cpPersistData() {
+    try {
+      localStorage.setItem(CP_DATA_KEY, JSON.stringify({
+        identity: cpState.identity,
+        buckets: cpNormalizeBuckets(cpState.buckets)
+      }));
+    } catch {}
+    cpRenderDraftCompact();
+  }
+
+  function cpSetStage(mode) {
+    cpState.mode = mode;
+    const choice = qs('pillarsChoiceStage');
+    const beginner = qs('pillarsBeginnerStage');
+    const builder = qs('pillarsBuilderStage');
+    if (choice) choice.style.display = mode ? 'none' : 'block';
+    if (beginner) beginner.style.display = mode === 'beginner' ? 'block' : 'none';
+    if (builder) builder.style.display = mode === 'builder' ? 'block' : 'none';
+  }
+
+  function cpSetActivePersonaButton(key) {
+    cpQsa('[data-persona]').forEach((btn) => btn.classList.toggle('is-active', btn.dataset.persona === key));
+  }
+
+  function cpComposeStarter(pillarName, helper, topic) {
+    return `Pillar: ${pillarName}
+Topic: ${topic}
+Angle: ${helper || 'Explain this clearly and simply without jargon'}
+Draft starter: Here's something more creators and builders should think about...`;
+  }
+
+  function cpComposeAiPrompt(pillarName, helper, topic) {
+    const identity = (cpState.identity || '').trim() || 'A practical creator with a clear point of view';
+    return `Voice and point of view: ${identity}
+Pillar: ${pillarName}
+Helper framing: ${helper || 'Explain this clearly and simply'}
+Topic: ${topic}
+Task: Write a punchy, authentic social post from this angle. Avoid corporate jargon.`;
+  }
+
+  function cpInsertIntoComposer(text) {
+    if (typeof window.activateView === 'function') window.activateView('composerView');
+    const composerView = qs('composerView');
+    const textarea = composerView?.querySelector('textarea[data-composer-editor], textarea#composerEditor, textarea.composer-editor, textarea');
+    const rich = qs('composerEditor');
+
+    if (textarea && textarea.tagName === 'TEXTAREA') {
+      textarea.value = text;
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      textarea.focus();
+      return true;
+    }
+
+    if (rich && rich.getAttribute('contenteditable') === 'true') {
+      rich.textContent = text;
+      rich.dispatchEvent(new Event('input', { bubbles: true }));
+      rich.focus();
+      return true;
+    }
+
+    return false;
+  }
+
+  async function cpCopyText(text) {
+    try {
+      await safeWriteText(text);
+      return true;
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', 'readonly');
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      ta.remove();
+      return !!ok;
+    }
+  }
+
+  function cpRenderDraftCompact() {
+    const wrap = qs('composerPillarsCompact');
+    if (!wrap) return;
+    const buckets = cpNormalizeBuckets(cpState.buckets);
+    if (!buckets.length) {
+      wrap.innerHTML = '<div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:\'DM Mono\',monospace;">Build your pillars to see quick starters here.</div>';
+      return;
+    }
+
+    wrap.innerHTML = '';
+    buckets.slice(0, 4).forEach((bucket) => {
       const card = document.createElement('div');
-      card.className = 'bucket-card';
-      const title = document.createElement('h3');
-      title.textContent = pillar.name;
-      card.appendChild(title);
-      pillar.seeds.forEach((seed) => {
+      card.className = 'composer-pillar-mini';
+      const seed = bucket.seeds.find(Boolean) || '';
+      card.innerHTML = `<h4>${safeText(bucket.name)}</h4><small>${safeText(bucket.helper || '')}</small>`;
+      if (seed) {
         const row = document.createElement('div');
-        row.className = 'seed-item';
-        const text = document.createElement('span');
-        text.className = 'seed-text';
-        text.textContent = seed;
+        row.className = 'composer-pillar-mini-row';
+        row.innerHTML = `<span class="seed-grow" style="font-size:12px;color:var(--muted);">${safeText(seed)}</span>`;
         const btn = document.createElement('button');
         btn.className = 'btn-copy-prompt';
         btn.type = 'button';
-        btn.textContent = 'Prompt';
-        btn.addEventListener('click', () => copyPrompt(pillar.name, seed));
-        row.appendChild(text);
+        btn.textContent = 'Start';
+        btn.addEventListener('click', () => {
+          const wrote = cpInsertIntoComposer(cpComposeStarter(bucket.name, bucket.helper, seed));
+          showToast(wrote ? 'Starter added to Draft.' : 'Could not open Draft editor.', wrote ? 'success' : 'error');
+        });
         row.appendChild(btn);
         card.appendChild(row);
+      }
+      wrap.appendChild(card);
+    });
+  }
+
+  function cpRenderBuilder() {
+    const container = qs('bucket-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    cpNormalizeBuckets(cpState.buckets).forEach((bucket) => {
+      const card = document.createElement('article');
+      card.className = 'bucket-card';
+      card.dataset.bucketId = bucket.id;
+      card.innerHTML = `
+        <div class="bucket-head">
+          <input class="bucket-input" data-cp-field="name" type="text" value="${safeText(bucket.name)}" aria-label="Bucket title" />
+          <input class="bucket-input" data-cp-field="helper" type="text" value="${safeText(bucket.helper)}" aria-label="Bucket helper" />
+        </div>
+      `;
+
+      bucket.seeds.forEach((seed, idx) => {
+        const row = document.createElement('div');
+        row.className = 'seed-item';
+        row.dataset.seedIndex = String(idx);
+        row.innerHTML = `
+          <input class="seed-input" data-cp-field="seed" type="text" value="${safeText(seed)}" aria-label="Seed idea" />
+          <div class="seed-actions">
+            <button class="btn-copy-prompt start" type="button" data-cp-action="start">Start</button>
+            <button class="btn-copy-prompt copy" type="button" data-cp-action="copy">Copy</button>
+            <button class="btn-copy-prompt remove" type="button" data-cp-action="remove-seed">Remove</button>
+          </div>
+        `;
+        card.appendChild(row);
       });
+
+      const footer = document.createElement('div');
+      footer.className = 'bucket-actions';
+      footer.innerHTML = `
+        <button class="btn sm cp-add-seed" type="button" data-cp-action="add-seed">+ Add seed idea</button>
+        <button class="btn sm ghost" type="button" data-cp-action="remove-bucket">Remove bucket</button>
+      `;
+      card.appendChild(footer);
       container.appendChild(card);
     });
   }
 
-  function applyPersona(key) {
-    const data = PERSONA_DATA[key];
-    const identityEl = qs('global-identity');
-    if (!data || !identityEl) return;
-    identityEl.value = data.identity;
-    renderPillars(data.pillars);
-    setActivePersonaButton(key);
+  function cpFindBucket(bucketId) {
+    return cpState.buckets.find((bucket) => bucket.id === bucketId);
   }
 
-  function copyPrompt(pillarName, seed) {
-    const identity = qs('global-identity')?.value?.trim() || '';
-    const prompt =
-      `Act as: ${identity}
-` +
-      `Category/Pillar: ${pillarName}
-` +
-      `Topic: ${seed}
+  function cpLoadExample(key) {
+    const data = EXAMPLE_SETS[key];
+    if (!data) return;
+    cpState.persona = key;
+    cpState.identity = data.identity;
+    cpState.buckets = data.buckets.map((bucket) => ({ id: cpUid(), name: bucket.name, helper: bucket.helper, seeds: [...bucket.seeds] }));
+    const identityEl = qs('global-identity');
+    if (identityEl) identityEl.value = cpState.identity;
+    cpSetActivePersonaButton(key);
+    cpRenderBuilder();
+    cpPersistData();
+  }
 
-` +
-      `Task: Write a punchy, high-engagement social media post based on this topic. Keep it authentic and avoid corporate jargon.`;
-    safeWriteText(prompt)
-      .then(() => showToast('Pillar prompt copied.', 'success'))
-      .catch(() => showToast('Could not copy prompt.', 'error'));
+  async function cpHandleBuilderAction(action, bucketId, seedIndex) {
+    const bucket = cpFindBucket(bucketId);
+    if (!bucket) return;
+
+    if (action === 'add-seed') {
+      bucket.seeds.push('');
+      cpRenderBuilder();
+      cpPersistData();
+      return;
+    }
+
+    if (action === 'remove-bucket') {
+      cpState.buckets = cpState.buckets.filter((b) => b.id !== bucketId);
+      cpRenderBuilder();
+      cpPersistData();
+      return;
+    }
+
+    if (typeof seedIndex !== 'number' || seedIndex < 0) return;
+    const topic = String(bucket.seeds[seedIndex] || '').trim();
+    const pillar = String(bucket.name || 'Pillar').trim() || 'Pillar';
+    const helper = String(bucket.helper || '').trim();
+
+    if (action === 'remove-seed') {
+      bucket.seeds.splice(seedIndex, 1);
+      if (!bucket.seeds.length) bucket.seeds.push('');
+      cpRenderBuilder();
+      cpPersistData();
+      return;
+    }
+
+    if (!topic) {
+      showToast('Add a seed idea first.', 'error');
+      return;
+    }
+
+    if (action === 'start') {
+      const wrote = cpInsertIntoComposer(cpComposeStarter(pillar, helper, topic));
+      showToast(wrote ? 'Starter added to Draft.' : 'Could not open Draft editor.', wrote ? 'success' : 'error');
+      return;
+    }
+
+    if (action === 'copy') {
+      const copied = await cpCopyText(cpComposeAiPrompt(pillar, helper, topic));
+      showToast(copied ? 'Prompt copied.' : 'Could not copy prompt.', copied ? 'success' : 'error');
+    }
+  }
+
+  function cpHandleChoice(mode) {
+    if (mode !== 'beginner' && mode !== 'experienced') return;
+    cpWriteMode(mode);
+    if (mode === 'experienced') {
+      cpSetStage('builder');
+      cpRenderBuilder();
+    } else {
+      cpSetStage('beginner');
+    }
+  }
+
+  function cpResetOnboarding() {
+    try { localStorage.removeItem(CP_MODE_KEY); } catch {}
+    cpSetStage(null);
+  }
+
+  function cpResetDefaults() {
+    cpState.buckets = cpCloneDefaultBuckets();
+    cpRenderBuilder();
+    cpPersistData();
   }
 
   function init() {
-    if (!qs('pillars-section') || !qs('bucket-container')) return;
-    qs('pillar-mode-toggle')?.addEventListener('change', toggleMode);
-    qsa('[data-persona]').forEach((btn) => {
-      btn.addEventListener('click', () => applyPersona(btn.dataset.persona));
+    const root = qs('pillars-section');
+    if (!root) {
+      const data = cpReadData();
+      cpState.identity = data?.identity || '';
+      cpState.buckets = cpNormalizeBuckets(data?.buckets);
+      cpRenderDraftCompact();
+      return;
+    }
+
+    const persisted = cpReadData();
+    cpState.identity = persisted?.identity || '';
+    cpState.buckets = cpNormalizeBuckets(persisted?.buckets);
+
+    const identityEl = qs('global-identity');
+    if (identityEl) {
+      identityEl.value = cpState.identity;
+      identityEl.addEventListener('input', (e) => {
+        cpState.identity = e.target.value;
+        cpPersistData();
+      });
+    }
+
+    root.addEventListener('click', (event) => {
+      const choiceBtn = event.target.closest('[data-pillars-choice]');
+      if (choiceBtn) {
+        cpHandleChoice(choiceBtn.dataset.pillarsChoice);
+        return;
+      }
+
+      const actionBtn = event.target.closest('[data-cp-action]');
+      if (actionBtn) {
+        const card = actionBtn.closest('[data-bucket-id]');
+        const row = actionBtn.closest('[data-seed-index]');
+        const bucketId = card?.dataset.bucketId;
+        const seedIndex = row ? Number(row.dataset.seedIndex) : null;
+        cpHandleBuilderAction(actionBtn.dataset.cpAction, bucketId, seedIndex);
+      }
     });
-    toggleMode();
-    applyPersona('saas_founder');
+
+    root.addEventListener('input', (event) => {
+      const field = event.target.dataset.cpField;
+      if (!field) return;
+      const card = event.target.closest('[data-bucket-id]');
+      const bucket = cpFindBucket(card?.dataset.bucketId);
+      if (!bucket) return;
+
+      if (field === 'name') bucket.name = event.target.value;
+      if (field === 'helper') bucket.helper = event.target.value;
+      if (field === 'seed') {
+        const row = event.target.closest('[data-seed-index]');
+        const idx = row ? Number(row.dataset.seedIndex) : -1;
+        if (idx >= 0) bucket.seeds[idx] = event.target.value;
+      }
+      cpPersistData();
+    });
+
+    const addBucketBtn = qs('pillarsAddBucketBtn');
+    if (addBucketBtn) addBucketBtn.addEventListener('click', () => {
+      cpState.buckets.push({ id: cpUid(), name: 'New bucket', helper: 'what this pillar is for', seeds: [''] });
+      cpRenderBuilder();
+      cpPersistData();
+    });
+
+    const resetDefaultsBtn = qs('pillarsResetDefaultsBtn');
+    if (resetDefaultsBtn) resetDefaultsBtn.addEventListener('click', cpResetDefaults);
+
+    const buildBtn = qs('pillarsBuildBtn');
+    if (buildBtn) buildBtn.addEventListener('click', () => { cpSetStage('builder'); cpRenderBuilder(); });
+
+    const resetBtn = qs('pillarsResetBtn');
+    if (resetBtn) resetBtn.addEventListener('click', cpResetOnboarding);
+
+    const loadExamplesBtn = qs('pillarsLoadExamplesBtn');
+    const picker = qs('persona-picker');
+    if (loadExamplesBtn && picker) {
+      loadExamplesBtn.addEventListener('click', () => {
+        const open = picker.style.display !== 'none';
+        picker.style.display = open ? 'none' : 'flex';
+      });
+    }
+
+    cpQsa('[data-persona]').forEach((btn) => {
+      btn.addEventListener('click', () => cpLoadExample(btn.dataset.persona));
+    });
+
+    const mode = cpReadMode();
+    if (!mode) cpSetStage(null);
+    else if (mode === 'experienced') { cpSetStage('builder'); cpRenderBuilder(); }
+    else cpSetStage('beginner');
+
+    cpRenderDraftCompact();
   }
 
-  return { init, applyPersona, toggleMode };
+  return {
+    init,
+    getData: () => ({ identity: cpState.identity, buckets: cpNormalizeBuckets(cpState.buckets) }),
+    renderDraftCompact: cpRenderDraftCompact
+  };
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
