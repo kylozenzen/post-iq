@@ -135,6 +135,11 @@
         <span class="nav-text">Templates</span>
         <span class="nav-tag free nav-free-tag">Free</span>
       </button>
+      <button class="nav-btn" data-view="pillarsView">
+        <span class="nav-icon"><svg><use href="#i-templates"/></svg></span>
+        <span class="nav-text">Content Pillars</span>
+        <span class="nav-tag free nav-free-tag">Preview</span>
+      </button>
     </nav>
 
     <div class="side-bottom">
@@ -566,6 +571,60 @@
       </div><!-- /view-content -->
     </section>
 
+
+    <!-- ══════════ CONTENT PILLARS ══════════ -->
+    <section id="pillarsView" class="view">
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">🧠 Content Pillars</span>
+      </div>
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Content Pillars</h1>
+          <p class="page-desc">An easier way to organize the areas of expertise, experience, and perspective you can consistently post about.</p>
+        </div>
+        <div class="page-actions">
+          <span class="status-pill free">Preview</span>
+        </div>
+      </div>
+      <div class="view-content">
+        <div class="card" style="margin-bottom:16px;background:var(--surface2);">
+          <div class="section-hdr" style="margin-bottom:8px;">
+            <div class="section-title">A guided starting point for your recurring topics</div>
+            <span class="chip brand">WIP</span>
+          </div>
+          <p class="page-desc" style="margin:0;max-width:72ch;">Pick a persona to see example pillars, tweak your global identity, and copy LLM-ready prompts for faster idea generation. This keeps the feature useful now while we build the deeper version carefully.</p>
+        </div>
+
+        <section id="pillars-section" class="content-pillars-section">
+          <div class="content-pillars-header">
+            <h2 class="content-pillars-title">Content Pillars</h2>
+            <div class="content-pillars-toggle-wrap">
+              <span>Guided</span>
+              <label class="switch">
+                <input type="checkbox" id="pillar-mode-toggle">
+                <span class="slider"></span>
+              </label>
+              <span>Custom</span>
+            </div>
+          </div>
+
+          <div class="card content-pillars-identity-card">
+            <label class="content-pillars-label" for="global-identity">Global Identity (Your “Brand Soul”)</label>
+            <textarea id="global-identity" class="content-pillars-textarea" placeholder="e.g. A senior dev building minimalist, local-first tools for creators..."></textarea>
+          </div>
+
+          <div id="persona-picker" class="content-pillars-persona-picker">
+            <button class="btn-preset" type="button" data-persona="saas_founder">🛠️ SaaS Founder</button>
+            <button class="btn-preset" type="button" data-persona="nurse">🩺 Nurse</button>
+            <button class="btn-preset" type="button" data-persona="teacher">🍎 Teacher</button>
+            <button class="btn-preset" type="button" data-persona="restaurant">🍳 Restaurant Owner</button>
+          </div>
+
+          <div id="bucket-container" class="content-pillars-grid"></div>
+        </section>
+      </div>
+    </section>
+
     <!-- ══════════ TRENDING ══════════ -->
     <section id="trendingView" class="view">
       <div class="mob-view-hdr">
@@ -834,6 +893,7 @@
   <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">↗ Open Buffer</a>
   <button class="btn ghost" data-view="trendingView" id="mobDrawerTrendingBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">📈 Trending</button>
   <button class="btn ghost" data-view="templatesView" id="mobDrawerTemplatesBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">⚡ Templates</button>
+  <button class="btn ghost" data-view="pillarsView" id="mobDrawerPillarsBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">🧠 Content Pillars</button>
   <button class="btn ghost" id="mobOpenSettings" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">⚙ Settings &amp; Help</button>
 </div>
 

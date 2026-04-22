@@ -1348,6 +1348,7 @@ function init() {
   loadTemplates();
   initTemplateSelectors();
   renderTemplates();
+  if (window.ContentPillars?.init) window.ContentPillars.init();
   buildTimePickers();
   qs('scheduleDate').value = new Date().toISOString().slice(0, 10);
   qs('scheduleDate').min = new Date().toISOString().slice(0, 10);
@@ -1984,6 +1985,131 @@ function init() {
     navigator.serviceWorker.register('/sw.js').catch(e => console.warn('SW:', e));
   }
 }
+
+
+
+// ── CONTENT PILLARS (SAFE PREVIEW) ───────────────────
+window.ContentPillars = (() => {
+  const PERSONA_DATA = {
+    saas_founder: {
+      identity: "I am a senior dev and creative technologist building minimalist, local-first tools for creators who value privacy and speed. My tone is industrial, direct, and slightly rebellious.",
+      pillars: [
+        { name: "The Teacher (Expertise)", seeds: ["Why LocalStorage beats Cloud for data privacy.", "Building 'no-login' apps in a world of subscriptions."] },
+        { name: "The Human (Relatability)", seeds: ["Late night bug fixing on PostIQ.", "The reality of building a SaaS solo."] },
+        { name: "The Believer (Values)", seeds: ["Software should be a utility, not a data-trap.", "Minimalist design is actually a productivity hack."] },
+        { name: "The Open Sign (Sales)", seeds: ["New Pillar feature live on PostIQ GitHub.", "Try the Thread Splitter for free."] }
+      ]
+    },
+    nurse: {
+      identity: "I am a compassionate registered nurse focused on debunking medical myths and sharing the human side of the frontlines. My tone is warm, authoritative, and honest.",
+      pillars: [
+        { name: "The Teacher (Expertise)", seeds: ["How to prepare your kids for a checkup.", "3 signs you're actually burnt out."] },
+        { name: "The Human (Relatability)", seeds: ["The first 10 minutes after a 12-hour shift.", "The patient story that changed me."] },
+        { name: "The Believer (Values)", seeds: ["Advocacy matters more than charts.", "Compassion is a clinical skill."] },
+        { name: "The Open Sign (Sales)", seeds: ["New wellness guide available now.", "Join my health webinar this Friday."] }
+      ]
+    },
+    teacher: {
+      identity: "I am an educator dedicated to modern classroom hacks and student-first advocacy. My tone is encouraging, witty, and practical.",
+      pillars: [
+        { name: "The Teacher (Expertise)", seeds: ["Gamifying math for 3rd graders.", "The best books for reluctant readers."] },
+        { name: "The Human (Relatability)", seeds: ["Funny things students said this week.", "Sunday night lesson planning reality."] },
+        { name: "The Believer (Values)", seeds: ["Standardized testing isn't the whole story.", "Every child needs a safe adult."] },
+        { name: "The Open Sign (Sales)", seeds: ["Download my classroom templates.", "Join the Teacher-Prep Masterclass."] }
+      ]
+    },
+    restaurant: {
+      identity: "I am a scratch-kitchen owner in San Antonio sharing the art of local food and community. My tone is rustic, passionate, and hospitable.",
+      pillars: [
+        { name: "The Teacher (Expertise)", seeds: ["The secret to our sourdough crust.", "How to source local ingredients on a budget."] },
+        { name: "The Human (Relatability)", seeds: ["Meet our prep team who makes it happen.", "The chaos of a Saturday night rush."] },
+        { name: "The Believer (Values)", seeds: ["Why we never use frozen ingredients.", "Support local or lose local."] },
+        { name: "The Open Sign (Sales)", seeds: ["New seasonal menu drops tonight.", "Book our patio for your next event."] }
+      ]
+    }
+  };
+
+  const qsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+
+  function setActivePersonaButton(key) {
+    qsa('[data-persona]').forEach((btn) => {
+      btn.classList.toggle('is-active', btn.dataset.persona === key);
+    });
+  }
+
+  function toggleMode() {
+    const toggle = qs('pillar-mode-toggle');
+    const picker = qs('persona-picker');
+    if (!toggle || !picker) return;
+    picker.style.display = toggle.checked ? 'none' : 'flex';
+  }
+
+  function renderPillars(pillars) {
+    const container = qs('bucket-container');
+    if (!container) return;
+    container.innerHTML = '';
+    pillars.forEach((pillar) => {
+      const card = document.createElement('div');
+      card.className = 'bucket-card';
+      const title = document.createElement('h3');
+      title.textContent = pillar.name;
+      card.appendChild(title);
+      pillar.seeds.forEach((seed) => {
+        const row = document.createElement('div');
+        row.className = 'seed-item';
+        const text = document.createElement('span');
+        text.className = 'seed-text';
+        text.textContent = seed;
+        const btn = document.createElement('button');
+        btn.className = 'btn-copy-prompt';
+        btn.type = 'button';
+        btn.textContent = 'Prompt';
+        btn.addEventListener('click', () => copyPrompt(pillar.name, seed));
+        row.appendChild(text);
+        row.appendChild(btn);
+        card.appendChild(row);
+      });
+      container.appendChild(card);
+    });
+  }
+
+  function applyPersona(key) {
+    const data = PERSONA_DATA[key];
+    const identityEl = qs('global-identity');
+    if (!data || !identityEl) return;
+    identityEl.value = data.identity;
+    renderPillars(data.pillars);
+    setActivePersonaButton(key);
+  }
+
+  function copyPrompt(pillarName, seed) {
+    const identity = qs('global-identity')?.value?.trim() || '';
+    const prompt =
+      `Act as: ${identity}
+` +
+      `Category/Pillar: ${pillarName}
+` +
+      `Topic: ${seed}
+
+` +
+      `Task: Write a punchy, high-engagement social media post based on this topic. Keep it authentic and avoid corporate jargon.`;
+    safeWriteText(prompt)
+      .then(() => showToast('Pillar prompt copied.', 'success'))
+      .catch(() => showToast('Could not copy prompt.', 'error'));
+  }
+
+  function init() {
+    if (!qs('pillars-section') || !qs('bucket-container')) return;
+    qs('pillar-mode-toggle')?.addEventListener('change', toggleMode);
+    qsa('[data-persona]').forEach((btn) => {
+      btn.addEventListener('click', () => applyPersona(btn.dataset.persona));
+    });
+    toggleMode();
+    applyPersona('saas_founder');
+  }
+
+  return { init, applyPersona, toggleMode };
+})();
 
 document.addEventListener('DOMContentLoaded', () => {
   // Keep view switching alive even if a later init block crashes.
