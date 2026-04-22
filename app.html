@@ -15,1524 +15,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Lato:wght@400;500&display=swap" rel="stylesheet">
 
-  <style>
-    /* ═══════════════════════════════════════════
-       DESIGN TOKENS
-       ═══════════════════════════════════════════ */
-    :root {
-      --bg:        #f5f6fa;
-      --surface:   #ffffff;
-      --surface2:  #f9fafc;
-      --surface3:  #f0f2f8;
-      --border:    #e8eaf2;
-      --border2:   #d8dce8;
-      --text:      #14162a;
-      --muted:     #5a6080;
-      --subtle:    #9298b0;
-      --ink:       #2c3050;
+    <link rel="stylesheet" href="./app.css" />
 
-      /* Brand — deep indigo + coral accent */
-      --brand:     #3a3fff;
-      --brand-dim: rgba(58,63,255,.08);
-      --brand-glow:rgba(58,63,255,.2);
-      --accent:    #ff4f6a;
-      --accent-dim:rgba(255,79,106,.08);
-      --green:     #0fa672;
-      --green-dim: rgba(15,166,114,.09);
-      --amber:     #f59e0b;
-      --red:       #e04040;
-
-      --r:   12px;
-      --r2:  8px;
-      --sidebar: 248px;
-
-      --shadow-sm: 0 1px 3px rgba(20,22,42,.06), 0 1px 2px rgba(20,22,42,.04);
-      --shadow:    0 4px 16px rgba(20,22,42,.08), 0 1px 4px rgba(20,22,42,.04);
-      --shadow-lg: 0 12px 40px rgba(20,22,42,.12), 0 4px 12px rgba(20,22,42,.06);
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html { -webkit-text-size-adjust: 100%; }
-
-    body {
-      font-family: 'Lato', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      font-size: 14px;
-      line-height: 1.5;
-      min-height: 100vh;
-    }
-
-    /* ── LAYOUT ── */
-    .app { display: grid; grid-template-columns: var(--sidebar) 1fr; min-height: 100vh; }
-    .main { overflow: auto; min-width: 0; }
-    .view { display: none; padding: 28px 32px 40px; max-width: 1080px; }
-    /* Views using view-content: reset outer padding and use view-content */
-    #calendarView, #approvalsView, #templatesView { padding: 28px 0 40px; }
-    #calendarView .page-hdr, #approvalsView .page-hdr, #templatesView .page-hdr { margin-left: 32px; margin-right: 32px; }
-    .view.active { display: block; animation: vEnter .18s ease; }
-    @keyframes vEnter { from { opacity:.5; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
-
-    /* ── SIDEBAR ── */
-    .side {
-      background: var(--text);
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      position: sticky;
-      top: 0;
-      overflow: hidden;
-    }
-
-    .side-logo {
-      padding: 20px 18px 16px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .logo-mark {
-      font-family: 'Bricolage Grotesque', sans-serif;
-      font-weight: 800;
-      font-size: 17px;
-      color: #fff;
-      letter-spacing: -.3px;
-      display: flex;
-      align-items: center;
-      gap: 9px;
-    }
-
-    .logo-beta {
-      font-family: 'DM Mono', monospace;
-      font-size: 9px;
-      font-weight: 500;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      background: var(--brand);
-      color: #fff;
-      padding: 3px 7px;
-      border-radius: 4px;
-    }
-
-    /* Connection status */
-    .side-connection {
-      padding: 12px 16px;
-      border-bottom: 1px solid rgba(255,255,255,.07);
-    }
-
-    .conn-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-
-    .conn-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: rgba(255,255,255,.2);
-      flex-shrink: 0;
-      transition: background .3s;
-    }
-    .conn-dot.on {
-      background: var(--green);
-      box-shadow: 0 0 0 3px rgba(15,166,114,.25);
-      animation: dotPulse 3s ease-in-out infinite;
-    }
-    @keyframes dotPulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(15,166,114,.4); }
-      50%      { box-shadow: 0 0 0 5px rgba(15,166,114,0); }
-    }
-
-    .conn-label {
-      font-size: 11px;
-      font-family: 'DM Mono', monospace;
-      color: rgba(255,255,255,.45);
-      letter-spacing: .04em;
-    }
-
-    .conn-token-preview {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      color: rgba(255,255,255,.3);
-      margin-bottom: 8px;
-    }
-
-    .conn-actions { display: flex; gap: 6px; }
-
-    /* Sync row */
-    .side-sync {
-      padding: 10px 16px 12px;
-      border-bottom: 1px solid rgba(255,255,255,.07);
-    }
-
-    #syncBtn {
-      width: 100%;
-      justify-content: center;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.12);
-      color: rgba(255,255,255,.7);
-      font-size: 12px;
-    }
-    #syncBtn:hover { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.2); }
-
-    .sync-meta {
-      margin-top: 6px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .sync-meta span {
-      font-size: 10px;
-      font-family: 'DM Mono', monospace;
-      color: rgba(255,255,255,.28);
-      line-height: 1.4;
-    }
-
-    /* Nav */
-    .side-nav {
-      flex: 1;
-      padding: 16px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      overflow-y: auto;
-    }
-
-    .nav-section-label {
-      font-size: 9px;
-      font-family: 'DM Mono', monospace;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,.22);
-      padding: 0 8px;
-      margin: 10px 0 5px;
-    }
-    .nav-section-label:first-child { margin-top: 0; }
-
-    .nav-btn {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 10px;
-      border-radius: 8px;
-      border: none;
-      background: transparent;
-      color: rgba(255,255,255,.45);
-      font-size: 13px;
-      font-family: 'Lato', sans-serif;
-      font-weight: 500;
-      cursor: pointer;
-      width: 100%;
-      text-align: left;
-      transition: background .12s, color .12s;
-      position: relative;
-    }
-    .nav-btn:hover { background: rgba(255,255,255,.07); color: rgba(255,255,255,.8); }
-    .nav-btn.active {
-      background: rgba(58,63,255,.2);
-      color: #fff;
-      border: 1px solid rgba(58,63,255,.35);
-    }
-    .nav-btn.active .nav-icon { color: var(--brand); opacity: 1; }
-
-    .nav-icon {
-      width: 16px; height: 16px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      opacity: .6;
-      flex-shrink: 0;
-    }
-    .nav-icon svg {
-      width: 100%; height: 100%;
-      stroke: currentColor; fill: none;
-      stroke-width: 1.8;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .nav-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    .nav-tag {
-      font-size: 9px;
-      font-family: 'DM Mono', monospace;
-      padding: 2px 6px;
-      border-radius: 3px;
-      letter-spacing: .04em;
-      flex-shrink: 0;
-    }
-    .nav-tag.needs { background: rgba(255,79,106,.15); color: var(--accent); }
-    .nav-tag.free { background: rgba(15,166,114,.15); color: var(--green); }
-
-    /* Bottom of sidebar */
-    .side-bottom {
-      padding: 10px 10px 14px;
-      border-top: 1px solid rgba(255,255,255,.07);
-    }
-    .side-bottom .nav-btn { font-size: 12px; color: rgba(255,255,255,.3); }
-    .side-bottom .nav-btn:hover { color: rgba(255,255,255,.6); }
-
-    /* ════════════════════════════════════
-       SHARED COMPONENTS
-       ════════════════════════════════════ */
-
-    /* Buttons */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 0 14px;
-      height: 34px;
-      border-radius: var(--r2);
-      border: 1px solid var(--border2);
-      background: var(--surface);
-      color: var(--text);
-      font-size: 13px;
-      font-weight: 500;
-      font-family: 'Lato', sans-serif;
-      cursor: pointer;
-      text-decoration: none;
-      white-space: nowrap;
-      transition: all .12s;
-      box-shadow: var(--shadow-sm);
-    }
-    .btn:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-dim); }
-    .btn.primary {
-      background: var(--brand);
-      color: #fff;
-      border-color: transparent;
-      box-shadow: 0 2px 8px rgba(58,63,255,.25);
-      font-weight: 600;
-    }
-    .btn.primary:hover { background: #2a2fff; box-shadow: 0 4px 16px rgba(58,63,255,.35); color: #fff; }
-    .btn.danger { background: var(--red); color: #fff; border-color: transparent; }
-    .btn.success { background: var(--green); color: #fff; border-color: transparent; font-weight: 600; }
-    .btn.success:hover { background: #0b8f62; color: #fff; }
-    .btn.ghost { background: transparent; border-color: transparent; box-shadow: none; color: var(--muted); }
-    .btn.ghost:hover { background: var(--surface3); color: var(--text); border-color: transparent; }
-    .btn.sm { height: 28px; padding: 0 10px; font-size: 12px; border-radius: 6px; }
-    .btn.lg { height: 40px; padding: 0 20px; font-size: 14px; font-weight: 600; }
-    .btn:active { transform: scale(.97); }
-    .btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
-
-    /* Inputs */
-    .input, textarea, select {
-      width: 100%;
-      background: var(--surface);
-      color: var(--text);
-      border: 1px solid var(--border2);
-      border-radius: var(--r2);
-      padding: 8px 12px;
-      font-family: 'Lato', sans-serif;
-      font-size: 13px;
-      line-height: 1.5;
-      transition: border-color .12s, box-shadow .12s;
-    }
-    .input:focus, textarea:focus, select:focus {
-      outline: none;
-      border-color: var(--brand);
-      box-shadow: 0 0 0 3px var(--brand-dim);
-    }
-    textarea { resize: vertical; min-height: 120px; line-height: 1.65; }
-    select {
-      cursor: pointer;
-      -webkit-appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239298b0'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      padding-right: 30px;
-    }
-
-    /* Cards */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 18px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    /* Page headers */
-    .page-hdr {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 24px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid var(--border);
-    }
-    .page-hdr-left { display: flex; flex-direction: column; gap: 4px; }
-    .page-title {
-      font-family: 'Bricolage Grotesque', sans-serif;
-      font-weight: 700;
-      font-size: 22px;
-      letter-spacing: -.3px;
-      color: var(--ink);
-    }
-    .page-desc { font-size: 13px; color: var(--muted); line-height: 1.55; margin-top: 2px; }
-    .page-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
-
-    /* Status pill */
-    .status-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 10px;
-      font-family: 'DM Mono', monospace;
-      font-weight: 500;
-      letter-spacing: .04em;
-      text-transform: uppercase;
-      padding: 3px 8px;
-      border-radius: 4px;
-      border: 1px solid var(--border2);
-      color: var(--subtle);
-    }
-    .status-pill::before {
-      content: '';
-      width: 5px; height: 5px;
-      border-radius: 50%;
-      background: currentColor;
-      flex-shrink: 0;
-    }
-    .status-pill.connected { color: var(--green); background: var(--green-dim); border-color: rgba(15,166,114,.2); }
-    .status-pill.needs { color: var(--accent); background: var(--accent-dim); border-color: rgba(255,79,106,.2); }
-    .status-pill.free { color: var(--brand); background: var(--brand-dim); border-color: var(--brand-glow); }
-
-    /* Section header */
-    .section-hdr {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-    .section-title {
-      font-family: 'Bricolage Grotesque', sans-serif;
-      font-weight: 700;
-      font-size: 15px;
-      color: var(--ink);
-    }
-
-    /* Chips */
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      height: 20px;
-      padding: 0 7px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 600;
-      font-family: 'DM Mono', monospace;
-      letter-spacing: .03em;
-      text-transform: uppercase;
-      border: 1px solid var(--border2);
-      color: var(--subtle);
-    }
-    .chip.brand { background: var(--brand-dim); border-color: var(--brand-glow); color: var(--brand); }
-    .chip.green { background: var(--green-dim); border-color: rgba(15,166,114,.2); color: var(--green); }
-
-    /* Empty state */
-    .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      padding: 32px 20px;
-      border: 1px dashed var(--border2);
-      border-radius: var(--r);
-      text-align: center;
-    }
-    .empty-icon { font-size: 28px; opacity: .5; }
-    .empty-title { font-weight: 600; font-size: 14px; color: var(--ink); }
-    .empty-desc { font-size: 12px; color: var(--muted); line-height: 1.6; max-width: 50ch; }
-
-    /* Toast */
-    .toast-wrap {
-      position: fixed; right: 16px; bottom: 16px;
-      display: flex; flex-direction: column; gap: 6px;
-      z-index: 80; pointer-events: none;
-    }
-    .toast {
-      background: var(--ink);
-      color: #fff;
-      border-radius: 8px;
-      padding: 10px 16px;
-      font-size: 13px;
-      font-weight: 500;
-      box-shadow: var(--shadow-lg);
-      animation: toastIn .2s ease;
-      max-width: 320px;
-      line-height: 1.4;
-      border-left: 3px solid var(--brand);
-    }
-    .toast.success { border-left-color: var(--green); }
-    .toast.error   { border-left-color: var(--red); }
-    .toast.out { animation: toastOut .2s ease forwards; }
-    @keyframes toastIn  { from { opacity:0; transform:translateX(10px); } to { opacity:1; transform:none; } }
-    @keyframes toastOut { to   { opacity:0; transform:translateX(10px); } }
-
-    /* Modal */
-    .modal {
-      position: fixed; inset: 0;
-      background: rgba(20,22,42,.55);
-      backdrop-filter: blur(4px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      z-index: 50;
-    }
-    .modal.open { display: flex; }
-    .modal-card {
-      max-width: 520px; width: 100%;
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-radius: 16px;
-      padding: 22px;
-      max-height: 88vh;
-      overflow-y: auto;
-      box-shadow: var(--shadow-lg);
-      animation: mIn .2s cubic-bezier(.34,1.2,.64,1);
-    }
-    .modal-card.lg { max-width: 660px; }
-    @keyframes mIn { from { opacity:0; transform:scale(.95) translateY(8px); } to { opacity:1; transform:none; } }
-    .modal-hdr {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 18px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid var(--border);
-    }
-    .modal-title {
-      font-family: 'Bricolage Grotesque', sans-serif;
-      font-weight: 700;
-      font-size: 16px;
-      color: var(--ink);
-    }
-
-    /* Field label */
-    .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
-    .label {
-      font-size: 11px;
-      font-weight: 600;
-      font-family: 'DM Mono', monospace;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      color: var(--muted);
-    }
-
-    /* Divider */
-    .divider { height: 1px; background: var(--border); margin: 14px 0; }
-
-    /* Utility */
-    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .mt8 { margin-top: 8px; }
-    .mt12 { margin-top: 12px; }
-    .mt16 { margin-top: 16px; }
-    .mb8 { margin-bottom: 8px; }
-    .hidden { display: none !important; }
-    .grow { flex: 1; min-width: 0; }
-    .mono { font-family: 'DM Mono', monospace; }
-
-    /* Scrollbars */
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-    ::-selection { background: var(--brand-dim); }
-
-    /* Desktop view content padding */
-    .view-content { padding: 0 32px 40px; }
-    /* Composer layout not wrapped in view-content on desktop */
-    #composerView .composer-layout { padding: 0; }
-
-    /* ════════════════════════════════════
-       VIEW: CALENDAR (Plan)
-       ════════════════════════════════════ */
-    .cal-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-    .cal-month-label {
-      font-family: 'Bricolage Grotesque', sans-serif;
-      font-weight: 700;
-      font-size: 20px;
-      letter-spacing: -.3px;
-      color: var(--ink);
-      flex: 1;
-    }
-
-    .cal-dow {
-      display: grid;
-      grid-template-columns: repeat(7,1fr);
-      gap: 4px;
-      margin-bottom: 4px;
-    }
-    .dow-cell {
-      text-align: center;
-      font-size: 10px;
-      font-family: 'DM Mono', monospace;
-      font-weight: 600;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      color: var(--subtle);
-      padding: 4px 0 6px;
-    }
-
-    .cal-grid {
-      display: grid;
-      grid-template-columns: repeat(7,1fr);
-      gap: 4px;
-    }
-
-    .cal-day {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px;
-      min-height: 92px;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      transition: border-color .12s, background .12s;
-      position: relative;
-      overflow: hidden;
-    }
-    .cal-day:hover { border-color: var(--brand-glow); background: #fdfdff; }
-    .cal-day.today { border-color: var(--brand); background: #fdfdff; }
-    .cal-day.today .day-num { color: var(--brand); font-weight: 700; }
-    .cal-day.other-month { opacity: .32; }
-    .cal-day.has-posts { border-color: var(--border2); }
-    .cal-day.has-gap { border-color: rgba(245,158,11,.4); background: rgba(245,158,11,.03); }
-
-    .day-num {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      color: var(--subtle);
-      flex-shrink: 0;
-    }
-    .day-count {
-      position: absolute;
-      top: 7px; right: 7px;
-      font-size: 9px;
-      font-family: 'DM Mono', monospace;
-      background: var(--brand-dim);
-      color: var(--brand);
-      border: 1px solid var(--brand-glow);
-      padding: 1px 5px;
-      border-radius: 3px;
-    }
-    .day-post-pill {
-      font-size: 10px;
-      line-height: 1.35;
-      padding: 2px 5px;
-      border-radius: 4px;
-      background: var(--brand-dim);
-      border: 1px solid var(--brand-glow);
-      color: var(--brand);
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
-    .day-note-pill {
-      font-size: 10px;
-      line-height: 1.35;
-      padding: 2px 5px;
-      border-radius: 4px;
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
-    .day-note-pill.gold   { background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.2); color: #92600a; }
-    .day-note-pill.blue   { background: var(--brand-dim); border: 1px solid var(--brand-glow); color: var(--brand); }
-    .day-note-pill.green  { background: var(--green-dim); border: 1px solid rgba(15,166,114,.2); color: var(--green); }
-    .day-note-pill.violet { background: rgba(124,58,237,.08); border: 1px solid rgba(124,58,237,.18); color: #7c3aed; }
-
-    .day-gap-indicator {
-      font-size: 9px;
-      font-family: 'DM Mono', monospace;
-      color: var(--amber);
-      margin-top: auto;
-    }
-    .more-indicator { font-size: 9px; color: var(--subtle); font-family: 'DM Mono', monospace; margin-top: auto; }
-
-    /* Queue gaps panel */
-    .gaps-panel {
-      background: linear-gradient(135deg, rgba(245,158,11,.06), rgba(245,158,11,.02));
-      border: 1px solid rgba(245,158,11,.2);
-      border-radius: var(--r);
-      padding: 16px;
-      margin-bottom: 20px;
-    }
-    .gaps-panel-hdr {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .gaps-title {
-      font-family: 'Bricolage Grotesque', sans-serif;
-      font-weight: 700;
-      font-size: 14px;
-      color: var(--amber);
-    }
-    .gaps-list {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .gap-chip {
-      padding: 5px 10px;
-      border-radius: 6px;
-      border: 1px solid rgba(245,158,11,.25);
-      background: rgba(245,158,11,.08);
-      font-size: 11px;
-      font-family: 'DM Mono', monospace;
-      color: #92600a;
-      cursor: pointer;
-      transition: all .12s;
-    }
-    .gap-chip:hover { background: rgba(245,158,11,.15); border-color: rgba(245,158,11,.4); }
-
-    /* ════════════════════════════════════
-       VIEW: COMPOSER (Draft)
-       ════════════════════════════════════ */
-    .composer-layout {
-      display: grid;
-      grid-template-columns: 1fr 280px;
-      gap: 18px;
-      align-items: start;
-    }
-
-    /* Editor */
-    .editor-wrap {
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-radius: var(--r);
-      overflow: hidden;
-      box-shadow: var(--shadow-sm);
-    }
-    .editor-toolbar {
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      padding: 8px 10px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface2);
-      flex-wrap: wrap;
-    }
-    .tb-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px; height: 28px;
-      border-radius: 5px;
-      border: none;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 12px;
-      font-family: 'DM Mono', monospace;
-      transition: all .1s;
-    }
-    .tb-btn:hover { background: var(--surface3); color: var(--text); }
-    .tb-sep { width: 1px; height: 16px; background: var(--border2); margin: 0 4px; flex-shrink: 0; }
-
-    .rich-editor {
-      min-height: 220px;
-      padding: 16px;
-      outline: none;
-      font-size: 14px;
-      line-height: 1.7;
-      color: var(--text);
-      caret-color: var(--brand);
-      font-family: 'Lato', sans-serif;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-    .rich-editor:empty::before {
-      content: attr(data-placeholder);
-      color: var(--subtle);
-      font-style: italic;
-      pointer-events: none;
-    }
-
-    .editor-footer {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      border-top: 1px solid var(--border);
-      background: var(--surface2);
-      flex-wrap: wrap;
-    }
-    .char-count {
-      font-size: 11px;
-      font-family: 'DM Mono', monospace;
-      color: var(--subtle);
-      margin-left: auto;
-      transition: color .2s;
-    }
-    .char-count.warn { color: var(--amber); }
-    .char-count.over { color: var(--red); font-weight: 600; }
-
-    /* Composer sidebar panel */
-    .composer-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .panel-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 16px;
-      box-shadow: var(--shadow-sm);
-    }
-    .panel-card-title {
-      font-size: 11px;
-      font-family: 'DM Mono', monospace;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      color: var(--muted);
-      margin-bottom: 12px;
-    }
-
-    /* Send actions */
-    .send-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .send-actions .btn { width: 100%; justify-content: center; }
-
-    /* Schedule row */
-    .schedule-row {
-      display: none;
-      flex-direction: column;
-      gap: 6px;
-      padding: 10px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: var(--r2);
-      margin-top: 6px;
-    }
-    .schedule-row.open { display: flex; }
-
-    /* Approval checkbox */
-    .approval-check-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: var(--r2);
-      cursor: pointer;
-      transition: border-color .12s;
-    }
-    .approval-check-row:hover { border-color: var(--brand-glow); }
-    .approval-check-row input[type="checkbox"] {
-      accent-color: var(--brand);
-      width: 14px; height: 14px;
-      flex-shrink: 0;
-    }
-    .approval-check-label {
-      font-size: 12px;
-      color: var(--muted);
-      cursor: pointer;
-      user-select: none;
-      line-height: 1.35;
-    }
-
-    /* Media toggle */
-    .media-toggle-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 10px;
-      border-radius: var(--r2);
-      border: 1px solid var(--border2);
-      background: transparent;
-      color: var(--muted);
-      font-size: 12px;
-      font-family: 'Lato', sans-serif;
-      cursor: pointer;
-      transition: all .12s;
-      width: 100%;
-    }
-    .media-toggle-btn:hover { border-color: var(--brand-glow); color: var(--brand); background: var(--brand-dim); }
-    .media-toggle-btn.has-media { border-color: var(--brand-glow); color: var(--brand); background: var(--brand-dim); }
-
-    /* Media panel */
-    .media-panel { display: none; margin-top: 8px; }
-    .media-panel.open { display: block; }
-    .media-tabs {
-      display: flex;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 12px;
-    }
-    .media-tab {
-      padding: 7px 12px;
-      border: none;
-      background: transparent;
-      color: var(--muted);
-      font-size: 12px;
-      font-family: 'Lato', sans-serif;
-      font-weight: 500;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-      transition: all .12s;
-    }
-    .media-tab:hover { color: var(--text); }
-    .media-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
-    .media-tab-panel { display: none; }
-    .media-tab-panel.active { display: block; }
-
-    /* Templates panel */
-    .template-list {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      max-height: 280px;
-      overflow-y: auto;
-    }
-    .template-item {
-      padding: 8px 10px;
-      border: 1px solid var(--border);
-      border-radius: var(--r2);
-      cursor: pointer;
-      transition: all .1s;
-      background: var(--surface);
-    }
-    .template-item:hover { border-color: var(--brand-glow); background: var(--brand-dim); }
-    .template-item-title {
-      font-weight: 600;
-      font-size: 12px;
-      color: var(--ink);
-      margin-bottom: 2px;
-    }
-    .template-item-preview {
-      font-size: 11px;
-      color: var(--muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* ════════════════════════════════════
-       VIEW: APPROVALS (Approve)
-       ════════════════════════════════════ */
-    .approvals-filter-row {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
-      align-items: center;
-    }
-    .filter-label {
-      font-size: 10px;
-      font-family: 'DM Mono', monospace;
-      color: var(--subtle);
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      margin-right: 2px;
-    }
-    .filter-pill {
-      padding: 4px 10px;
-      border-radius: 20px;
-      border: 1px solid var(--border2);
-      background: var(--surface);
-      color: var(--muted);
-      font-size: 12px;
-      font-family: 'DM Mono', monospace;
-      cursor: pointer;
-      transition: all .12s;
-      box-shadow: var(--shadow-sm);
-    }
-    .filter-pill:hover { border-color: var(--brand-glow); color: var(--brand); }
-    .filter-pill.active { background: var(--brand-dim); border-color: var(--brand-glow); color: var(--brand); font-weight: 600; }
-
-    /* Approval card */
-    .approval-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      margin-bottom: 14px;
-      overflow: hidden;
-      box-shadow: var(--shadow-sm);
-      transition: box-shadow .15s;
-    }
-    .approval-card:hover { box-shadow: var(--shadow); }
-    .approval-card-status-bar {
-      height: 3px;
-      background: var(--border);
-    }
-    .approval-card-status-bar.pending   { background: var(--amber); }
-    .approval-card-status-bar.approved  { background: var(--green); }
-    .approval-card-status-bar.changes   { background: var(--accent); }
-
-    .approval-card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface2);
-    }
-    .approval-card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .approval-status-badge {
-      display: inline-flex;
-      align-items: center;
-      height: 22px;
-      padding: 0 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 700;
-      font-family: 'DM Mono', monospace;
-      letter-spacing: .04em;
-      text-transform: uppercase;
-    }
-    .approval-status-badge.pending  { background: rgba(245,158,11,.12); color: var(--amber); }
-    .approval-status-badge.approved { background: var(--green-dim); color: var(--green); }
-    .approval-status-badge.changes  { background: var(--accent-dim); color: var(--accent); }
-
-    .approval-card-body { padding: 16px; }
-    .approval-content-text {
-      font-size: 14px;
-      line-height: 1.7;
-      color: var(--text);
-      white-space: pre-wrap;
-      word-break: break-word;
-      padding: 12px 14px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: var(--r2);
-      margin-bottom: 12px;
-    }
-
-    .approval-link-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      border-radius: var(--r2);
-      margin-bottom: 10px;
-    }
-    .approval-link-url {
-      flex: 1;
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      color: var(--brand);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .approval-comments { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
-    .approval-comment {
-      padding: 10px 12px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: var(--r2);
-      margin-bottom: 6px;
-    }
-    .approval-comment-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
-    .approval-comment-author { font-weight: 600; font-size: 12px; }
-    .approval-comment-time { font-size: 10px; color: var(--subtle); font-family: 'DM Mono', monospace; }
-    .approval-comment-action { font-size: 10px; font-weight: 700; font-family: 'DM Mono', monospace; padding: 1px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: .04em; }
-    .approval-comment-action.approved { background: var(--green-dim); color: var(--green); }
-    .approval-comment-action.changes  { background: var(--accent-dim); color: var(--accent); }
-    .approval-comment-text { font-size: 13px; color: var(--text); line-height: 1.5; }
-
-    .approval-footer {
-      padding: 14px 16px;
-      border-top: 1px solid var(--border);
-      background: var(--surface2);
-    }
-
-    /* Reviewer page */
-    #reviewerPage { display: none; min-height: 100vh; background: var(--bg); }
-    #reviewerPage.active { display: block; }
-    .reviewer-wrap { max-width: 620px; margin: 0 auto; padding: 40px 20px 80px; }
-    .reviewer-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 32px;
-      font-family: 'Bricolage Grotesque', sans-serif;
-      font-weight: 800;
-      font-size: 20px;
-      color: var(--ink);
-    }
-    .reviewer-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 16px;
-      box-shadow: var(--shadow);
-    }
-    .reviewer-form-label {
-      display: block;
-      font-size: 11px;
-      font-weight: 600;
-      font-family: 'DM Mono', monospace;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-    .reviewer-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-    .reviewer-btn {
-      flex: 1;
-      min-width: 130px;
-      padding: 13px 20px;
-      border-radius: 10px;
-      border: none;
-      font-family: 'Lato', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all .15s;
-    }
-    .reviewer-btn.approve { background: var(--green); color: #fff; }
-    .reviewer-btn.approve:hover { background: #0b8f62; transform: translateY(-1px); }
-    .reviewer-btn.changes { background: var(--surface); border: 1.5px solid var(--border2); color: var(--text); }
-    .reviewer-btn.changes:hover { border-color: var(--accent); color: var(--accent); }
-    .reviewer-btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
-
-    /* Templates view */
-    .templates-layout {
-      display: grid;
-      grid-template-columns: 180px 1fr;
-      gap: 18px;
-      align-items: start;
-    }
-    .templates-sidebar {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 10px;
-      position: sticky;
-      top: 0;
-      box-shadow: var(--shadow-sm);
-    }
-    .type-filter-btn {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      text-align: left;
-      padding: 7px 10px;
-      border-radius: 6px;
-      border: none;
-      background: transparent;
-      color: var(--muted);
-      font-size: 12px;
-      font-family: 'Lato', sans-serif;
-      cursor: pointer;
-      transition: all .1s;
-    }
-    .type-filter-btn:hover { background: var(--surface2); color: var(--text); }
-    .type-filter-btn.active { background: var(--brand-dim); color: var(--brand); font-weight: 600; }
-    .type-filter-count { font-size: 10px; font-family: 'DM Mono', monospace; opacity: .55; }
-
-    .templates-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px,1fr));
-      gap: 10px;
-    }
-    .template-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      box-shadow: var(--shadow-sm);
-      transition: border-color .12s, box-shadow .12s, transform .1s;
-    }
-    .template-card:hover { border-color: var(--brand-glow); box-shadow: var(--shadow); transform: translateY(-1px); }
-    .template-card-hdr { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-    .template-card-title { font-weight: 700; font-size: 13px; color: var(--ink); line-height: 1.3; }
-    .template-card-body { font-size: 12px; color: var(--muted); line-height: 1.6; white-space: pre-wrap; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
-    .template-card-tags { font-size: 10px; color: var(--subtle); font-family: 'DM Mono', monospace; }
-    .template-card-actions { display: flex; gap: 5px; padding-top: 6px; border-top: 1px solid var(--border); }
-
-    /* Settings modal tabs */
-    .settings-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
-    .settings-tab {
-      padding: 8px 14px;
-      border: none;
-      background: transparent;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 500;
-      font-family: 'Lato', sans-serif;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-      transition: all .12s;
-    }
-    .settings-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
-    .settings-panel { display: none; }
-    .settings-panel.active { display: block; }
-
-    /* Mobile bottom nav */
-    .mobile-tabs { display: none; }
-
-    /* Mobile view header (replaces page-hdr on small screens) */
-    .mob-view-hdr { display: none; }
-
-    /* Mobile drawer */
-    .mob-backdrop { position: fixed; inset: 0; background: rgba(20,22,42,.5); z-index: 98; display: none; }
-    .mob-backdrop.open { display: block; }
-    .mob-drawer {
-      position: fixed;
-      bottom: 60px; left: 0; right: 0;
-      max-height: 80vh;
-      overflow-y: auto;
-      background: var(--surface);
-      border-top: 1px solid var(--border2);
-      border-radius: 20px 20px 0 0;
-      z-index: 99;
-      padding: 8px 18px 24px;
-      box-shadow: 0 -12px 40px rgba(20,22,42,.18);
-      display: none;
-    }
-    .mob-drawer.open { display: block; animation: drawerUp .25s cubic-bezier(.34,1.1,.64,1); }
-    @keyframes drawerUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    .mob-drawer-handle {
-      width: 36px; height: 4px;
-      background: var(--border2);
-      border-radius: 2px;
-      margin: 10px auto 18px;
-    }
-    .mob-drawer-title {
-      font-family: 'Bricolage Grotesque', sans-serif;
-      font-weight: 700;
-      font-size: 17px;
-      color: var(--ink);
-      margin-bottom: 14px;
-    }
-
-    /* ── MOBILE ── */
-    @media (max-width: 768px) {
-
-      /* ── Core layout ── */
-      .side { display: none; }
-      .app { grid-template-columns: 1fr; }
-      .view { padding: 0 0 72px; max-width: 100%; }
-      .page-hdr { display: none !important; }
-
-      /* ── Mobile view header ── */
-      .mob-view-hdr {
-        display: flex !important;
-        align-items: center;
-        justify-content: space-between;
-        padding: 14px 16px 12px;
-        border-bottom: 1px solid var(--border);
-        background: var(--surface);
-        position: sticky;
-        top: 0;
-        z-index: 5;
-        margin-bottom: 0;
-      }
-      .mob-view-title {
-        font-family: 'Bricolage Grotesque', sans-serif;
-        font-weight: 700;
-        font-size: 19px;
-        color: var(--ink);
-        letter-spacing: -.2px;
-      }
-      .mob-view-actions { display: flex; gap: 6px; align-items: center; }
-
-      /* ── View content areas ── */
-      .view-content { padding: 14px 16px; }
-      .cal-header { padding: 0; }
-      .gaps-panel { margin-bottom: 14px; }
-
-      /* ── Calendar ── */
-      .cal-grid { display: none; }
-      .cal-dow  { display: none; }
-      .cal-agenda { display: block !important; }
-
-      /* ── Composer ── */
-      #composerView { padding: 0 0 72px !important; max-width: 100%; }
-      .composer-layout { display: flex; flex-direction: column; gap: 0; }
-      /* Editor full-width, no side padding */
-      .editor-wrap { border-radius: 0; border-left: none; border-right: none; }
-      .rich-editor { min-height: 160px; font-size: 15px; padding: 14px 16px; }
-      .editor-toolbar { padding: 8px 10px; gap: 3px; flex-wrap: wrap; }
-      .editor-footer { padding: 8px 14px; flex-wrap: wrap; gap: 6px; }
-      /* Media controls — padded since they sit below full-width editor */
-      .media-toggle-btn, #mediaToggleOff {
-        margin: 8px 16px 0;
-        width: calc(100% - 32px) !important;
-      }
-      #mediaSummary    { margin: 8px 16px 0; }
-      #composerStatus  { padding: 0 16px; font-size: 12px; }
-      #refPin          { margin: 0 16px 14px; }
-      /* Right-panel card becomes a section below the editor */
-      .composer-panel  { padding: 14px 16px 0; display: flex; flex-direction: column; gap: 12px; }
-      .send-actions    { display: flex; flex-direction: column; gap: 8px; }
-      .send-actions .btn { height: 44px; font-size: 15px; justify-content: center; }
-
-      /* ── Templates ── */
-      .templates-layout { display: flex; flex-direction: column; gap: 0; }
-      .templates-sidebar {
-        position: static;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-        padding: 0 0 12px;
-        background: transparent;
-        border: none;
-        border-radius: 0;
-        border-bottom: 1px solid var(--border);
-        margin-bottom: 12px;
-        box-shadow: none;
-      }
-      .type-filter-btn {
-        width: auto;
-        padding: 5px 12px;
-        border-radius: 20px;
-        border: 1px solid var(--border2);
-        background: var(--surface);
-        font-size: 12px;
-        justify-content: center;
-      }
-      .type-filter-btn .type-filter-count { display: none; }
-      .templates-grid { grid-template-columns: 1fr; }
-
-      /* ── Approvals ── */
-      .approval-card {
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
-        margin-bottom: 8px;
-      }
-
-      /* ── Misc ── */
-      .cols2 { grid-template-columns: 1fr; }
-
-      /* ── Bottom nav ── */
-      .mobile-tabs {
-        display: flex;
-        position: fixed;
-        bottom: 0; left: 0; right: 0;
-        height: 60px;
-        background: var(--surface);
-        border-top: 1px solid var(--border);
-        z-index: 100;
-        align-items: stretch;
-        padding-bottom: env(safe-area-inset-bottom);
-        box-shadow: 0 -2px 12px rgba(20,22,42,.06);
-      }
-      .mob-tab {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 3px;
-        background: transparent;
-        border: none;
-        color: var(--subtle);
-        font-size: 10px;
-        font-family: 'DM Mono', monospace;
-        cursor: pointer;
-        letter-spacing: .04em;
-        text-transform: uppercase;
-        transition: color .12s;
-        -webkit-tap-highlight-color: transparent;
-        position: relative;
-      }
-      .mob-tab.active { color: var(--brand); }
-      .mob-tab.active::before {
-        content: '';
-        position: absolute;
-        top: 5px; left: 50%;
-        transform: translateX(-50%);
-        width: 4px; height: 4px;
-        border-radius: 50%;
-        background: var(--brand);
-      }
-      .mob-tab svg {
-        width: 18px; height: 18px;
-        stroke: currentColor; fill: none;
-        stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
-      }
-
-      /* ── Modals sheet up ── */
-      .modal { align-items: flex-end; padding: 0; }
-      .modal-card {
-        max-width: 100%; width: 100%;
-        border-radius: 20px 20px 0 0;
-        max-height: 88vh;
-        padding: 20px 16px 40px;
-        animation: sheetUp .28s cubic-bezier(.34,1.1,.64,1);
-      }
-      @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-      /* Prevent iOS zoom */
-      input, select, textarea { font-size: 16px !important; }
-      
-      #splitGrid { grid-template-columns: 1fr; }
-    }
-
-    @media (max-width: 960px) {
-      :root { --sidebar: 220px; }
-      .composer-layout { grid-template-columns: 1fr; }
-    }
-
-    /* ══════════════════════════════════════
-       ZEN MODE
-       ══════════════════════════════════════ */
-    .zen-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px; height: 28px;
-      border-radius: 5px;
-      border: none;
-      background: transparent;
-      color: var(--subtle);
-      cursor: pointer;
-      font-size: 13px;
-      transition: all .12s;
-      margin-left: auto;
-    }
-    .zen-btn:hover { background: var(--surface3); color: var(--brand); }
-    .zen-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-
-    /* Zen overlay */
-    body.zen-active {
-      background: radial-gradient(circle at top, rgba(58,63,255,.08), transparent 35%), #0f0f12;
-    }
-    body.zen-active .side,
-    body.zen-active .mobile-tabs,
-    body.zen-active #composerModeTabs,
-    body.zen-active #splitModePanel,
-    body.zen-active .page-hdr,
-    body.zen-active .mob-view-hdr,
-    body.zen-active .composer-panel,
-    body.zen-active #refPin,
-    body.zen-active .media-toggle-btn,
-    body.zen-active #mediaToggleOff,
-    body.zen-active #mediaSummary,
-    body.zen-active #composerStatus,
-    body.zen-active .editor-toolbar { opacity: 0; pointer-events: none; transition: opacity .3s ease; }
-
-    body.zen-active .app { grid-template-columns: 1fr; }
-    body.zen-active .main { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-    body.zen-active #composerView {
-      width: min(760px, 92vw);
-      padding: 0 0 40px !important;
-      margin: 0 auto;
-    }
-    body.zen-active .editor-wrap {
-      border: none;
-      border-radius: 0;
-      background: transparent;
-      box-shadow: none;
-    }
-    body.zen-active .rich-editor {
-      min-height: 55vh;
-      background: transparent;
-      color: #e8e6e0;
-      caret-color: var(--brand);
-      font-size: 18px;
-      line-height: 1.85;
-      padding: 32px 0;
-      font-family: 'Lato', sans-serif;
-      letter-spacing: .01em;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-    body.zen-active .rich-editor:empty::before { color: rgba(255,255,255,.18); font-style: italic; }
-    body.zen-active .editor-footer {
-      background: transparent;
-      border-top: 1px solid rgba(255,255,255,.06);
-      padding: 10px 0;
-    }
-    body.zen-active .editor-footer select,
-    body.zen-active .editor-footer #composerNoChannels { display: none; }
-    body.zen-active .char-count { color: rgba(255,255,255,.22); }
-    body.zen-active .char-count.warn { color: rgba(245,158,11,.6); }
-    body.zen-active .char-count.over { color: rgba(224,64,64,.8); }
-
-    /* Zen exit button — floats bottom-right */
-    #zenExit {
-      position: fixed;
-      bottom: 28px; right: 28px;
-      z-index: 200;
-      display: none;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 14px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,.1);
-      background: rgba(255,255,255,.06);
-      color: rgba(255,255,255,.35);
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all .2s;
-      backdrop-filter: blur(8px);
-    }
-    #zenExit:hover { color: rgba(255,255,255,.7); background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.2); }
-    body.zen-active #zenExit { display: flex; }
-
-    /* Zen send actions — appear inline below editor on zen mode */
-    #zenActions {
-      display: none;
-      gap: 8px;
-      flex-wrap: wrap;
-      padding: 12px 0 0;
-    }
-    body.zen-active #zenActions { display: flex; }
-    #zenActions .btn { height: 36px; font-size: 13px; }
-    #zenActions .btn.primary { background: var(--brand); color: #fff; border-color: transparent; }
-    #zenActions select {
-      height: 36px;
-      padding: 0 28px 0 10px;
-      font-size: 13px;
-      background: rgba(255,255,255,.07);
-      border: 1px solid rgba(255,255,255,.12);
-      color: rgba(255,255,255,.6);
-      border-radius: var(--r2);
-    }
-
-    @media (max-width: 768px) {
-      #zenExit { bottom: 72px; right: 16px; }
-    }
-  </style>
 </head>
 
 <body>
 
+<!-- SVG icons -->
 <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
   <defs>
     <symbol id="i-cal" viewBox="0 0 24 24"><path d="M8 2v4M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/></symbol>
@@ -1549,6 +38,7 @@
   </defs>
 </svg>
 
+<!-- ── MOBILE TABS ── -->
 <nav class="mobile-tabs" id="mobileTabs">
   <button class="mob-tab active" data-view="calendarView">
     <svg><use href="#i-cal"/></svg>Plan
@@ -1556,8 +46,8 @@
   <button class="mob-tab" data-view="composerView">
     <svg><use href="#i-compose"/></svg>Draft
   </button>
-  <button class="mob-tab" data-view="contentBucketsView">
-    <svg><use href="#i-templates"/></svg>Buckets
+  <button class="mob-tab" data-view="trendingView">
+    <svg><use href="#i-trending"/></svg>Inspire
   </button>
   <button class="mob-tab" data-view="approvalsView">
     <svg><use href="#i-check"/></svg>Approve
@@ -1568,8 +58,10 @@
   </button>
 </nav>
 
+<!-- ── APP SHELL ── -->
 <section id="app" class="app">
 
+  <!-- SIDEBAR -->
   <aside class="side">
     <div class="side-logo">
       <div class="logo-mark">
@@ -1577,6 +69,7 @@
       </div>
     </div>
 
+    <!-- Connection -->
     <div class="side-connection">
       <div class="conn-row">
         <div class="conn-dot" id="connDot"></div>
@@ -1587,6 +80,7 @@
         <button class="btn sm" id="manageTokenBtn">Manage token</button>
         <button class="btn sm ghost" id="revealTokenBtn">Reveal</button>
       </div>
+      <!-- Token panel (toggles open) -->
       <div id="tokenPanel" style="display:none; margin-top:10px;">
         <div class="field">
           <label class="label">Buffer API token</label>
@@ -1604,6 +98,7 @@
       </div>
     </div>
 
+    <!-- Sync -->
     <div class="side-sync">
       <button class="btn" id="syncBtn">↻ Load from Buffer</button>
       <div class="sync-meta">
@@ -1612,6 +107,7 @@
       </div>
     </div>
 
+    <!-- Nav -->
     <nav class="side-nav">
       <div class="nav-section-label">Workflow</div>
       <button class="nav-btn active" data-view="calendarView">
@@ -1629,20 +125,15 @@
         <span class="nav-tag needs" id="appNavTag">Needs key</span>
       </button>
       <div class="nav-section-label">Tools</div>
-      <button class="nav-btn" data-view="contentBucketsView">
-        <span class="nav-icon"><svg><use href="#i-templates"/></svg></span>
-        <span class="nav-text">Content Buckets</span>
-        <span class="nav-tag free nav-free-tag">Free</span>
-      </button>
       <button class="nav-btn" data-view="trendingView">
         <span class="nav-icon"><svg><use href="#i-trending"/></svg></span>
         <span class="nav-text">Trending</span>
-        <span class="nav-tag free nav-free-tag">Free</span>
+        <span class="nav-tag free">Free</span>
       </button>
       <button class="nav-btn" data-view="templatesView">
         <span class="nav-icon"><svg><use href="#i-templates"/></svg></span>
         <span class="nav-text">Templates</span>
-        <span class="nav-tag free nav-free-tag">Free</span>
+        <span class="nav-tag free">Free</span>
       </button>
     </nav>
 
@@ -1658,9 +149,12 @@
     </div>
   </aside>
 
+  <!-- MAIN CONTENT -->
   <main class="main">
 
+    <!-- ══════════ PLAN (Calendar) ══════════ -->
     <section id="calendarView" class="view active">
+      <!-- Mobile header -->
       <div class="mob-view-hdr">
         <span class="mob-view-title">📅 Plan</span>
         <div class="mob-view-actions">
@@ -1671,6 +165,7 @@
         </div>
       </div>
 
+      <!-- Desktop header -->
       <div class="page-hdr">
         <div class="page-hdr-left">
           <h1 class="page-title">Plan</h1>
@@ -1684,6 +179,7 @@
 
       <div class="view-content">
 
+      <!-- Queue gaps (shown when connected + gaps found) -->
       <div class="gaps-panel" id="gapsPanel" style="display:none;">
         <div class="gaps-panel-hdr">
           <span style="font-size:16px;">⚠️</span>
@@ -1693,6 +189,7 @@
         <div class="gaps-list" id="gapsList"></div>
       </div>
 
+      <!-- Calendar header -->
       <div class="cal-header">
         <button class="btn sm ghost" id="prevMonth">‹</button>
         <div class="cal-month-label" id="monthLabel"></div>
@@ -1700,6 +197,7 @@
         <button class="btn sm ghost" id="todayMonth">Today</button>
       </div>
 
+      <!-- Day-of-week labels -->
       <div class="cal-dow">
         <div class="dow-cell">Sun</div><div class="dow-cell">Mon</div>
         <div class="dow-cell">Tue</div><div class="dow-cell">Wed</div>
@@ -1707,8 +205,10 @@
         <div class="dow-cell">Sat</div>
       </div>
 
+      <!-- Calendar grid (desktop) -->
       <div class="cal-grid" id="calGrid"></div>
 
+      <!-- Agenda view (mobile) -->
       <div class="cal-agenda" id="calAgenda" style="display:none;"></div>
 
       <div id="calEmptyHint" class="mt16" style="display:none;">
@@ -1718,9 +218,12 @@
           <div class="empty-desc">Connect your Buffer token and click "Load from Buffer" to see your queue in this calendar.</div>
         </div>
       </div>
-      </div></section>
+      </div><!-- /view-content -->
+    </section>
 
+    <!-- ══════════ DRAFT (Composer) ══════════ -->
     <section id="composerView" class="view">
+      <!-- Mobile header -->
       <div class="mob-view-hdr">
         <span class="mob-view-title">✍️ Draft</span>
         <div class="mob-view-actions">
@@ -1730,10 +233,11 @@
           </button>
         </div>
       </div>
+      <!-- Desktop header -->
       <div class="page-hdr">
         <div class="page-hdr-left">
           <h1 class="page-title">Draft</h1>
-          <p class="page-desc" id="composerDesc">Write, organize bucket ideas, attach media, then send to Buffer as a draft, queued post, or scheduled post.</p>
+          <p class="page-desc" id="composerDesc">Write your post, attach media, then send to Buffer as a draft, queued post, or scheduled post.</p>
         </div>
         <div class="page-actions">
           <button class="btn ghost" id="composerClearBtn" style="display:none;">Clear ✕</button>
@@ -1743,14 +247,18 @@
 
       <div class="composer-layout">
 
+        <!-- Mode tabs: Compose / Split -->
         <div id="composerModeTabs" style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;grid-column:1/-1;">
           <button class="composer-mode-tab active" data-cmode="compose" style="padding:9px 20px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Compose</button>
           <button class="composer-mode-tab" data-cmode="split" style="padding:9px 20px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Split into thread</button>
         </div>
 
+        <!-- ── COMPOSE MODE ── -->
         <div id="composeModePanel" style="display:contents;">
 
+        <!-- Editor column -->
         <div>
+          <!-- Trending reference pin (hidden until pinned from Trending) -->
           <div id="refPin" style="display:none;background:var(--surface);border:1px solid var(--border2);border-left:3px solid var(--brand);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;position:relative;">
             <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--brand);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Writing from</div>
             <div id="refPinTitle" style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px;"></div>
@@ -1782,6 +290,7 @@
             </div>
           </div>
 
+          <!-- Zen inline send actions (only visible in zen mode) -->
           <div id="zenActions">
             <select id="zenChannel" class="input"></select>
             <button class="btn" id="zenDraft">Save draft</button>
@@ -1789,6 +298,7 @@
             <button class="btn primary" id="zenSchedule">📅 Schedule…</button>
           </div>
 
+          <!-- Media toggle -->
           <div class="mt8">
             <button class="media-toggle-btn" id="mediaToggleBtn">
               <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-img"/></svg>
@@ -1807,6 +317,7 @@
                   <button class="media-tab" data-mtab="unsplash">Unsplash</button>
                 </div>
 
+                <!-- Upload tab -->
                 <div class="media-tab-panel active" data-mtabpanel="upload">
                   <input type="file" id="uploadFileInput" accept="image/*,video/*" style="display:none;"/>
                   <div id="uploadZone" style="border:2px dashed var(--border2);border-radius:8px;padding:24px 16px;text-align:center;cursor:pointer;transition:all .2s;">
@@ -1828,6 +339,7 @@
                   <div id="uploadStatus" style="font-size:11px;color:var(--muted);margin-top:6px;font-family:'DM Mono',monospace;"></div>
                 </div>
 
+                <!-- URL tab -->
                 <div class="media-tab-panel" data-mtabpanel="url">
                   <div class="row mt8">
                     <input id="mediaUrlInput" class="input grow" placeholder="https://… (image or video URL)" />
@@ -1843,6 +355,7 @@
                   </div>
                 </div>
 
+                <!-- Unsplash tab -->
                 <div class="media-tab-panel" data-mtabpanel="unsplash">
                   <div class="row mt8">
                     <input id="unsplashQuery" class="input grow" placeholder="Search free photos…" />
@@ -1867,7 +380,9 @@
           <div id="composerStatus" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;min-height:18px;"></div>
         </div>
 
+        <!-- Right panel -->
         <div class="composer-panel">
+          <!-- Send to Buffer -->
           <div class="panel-card">
             <div class="panel-card-title">Send to Buffer</div>
             <div class="send-actions">
@@ -1899,6 +414,7 @@
             <input type="hidden" id="composerWhen" />
           </div>
 
+          <!-- Needs approval -->
           <div class="panel-card" id="approvalCheckPanel">
             <div class="panel-card-title">Sign-off</div>
             <label class="approval-check-row">
@@ -1908,17 +424,7 @@
             <div style="font-size:11px;color:var(--subtle);margin-top:8px;line-height:1.55;">Save as draft first — then generate an approval link from the Approve tab.</div>
           </div>
 
-          <div class="panel-card">
-            <div class="panel-card-title" style="margin-bottom:8px;">Content buckets</div>
-            <div id="composerBucketsList" style="display:flex;flex-direction:column;gap:6px;">
-              <div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;">Build your first buckets in the Tools section.</div>
-            </div>
-            <div class="row" style="margin-top:8px;">
-              <button class="btn sm" style="flex:1;justify-content:center;" id="composerOpenBucketsBtn">Open builder</button>
-              <button class="btn sm ghost" style="flex:1;justify-content:center;" id="composerInsertBucketsBtn">→ Draft ideas</button>
-            </div>
-          </div>
-
+          <!-- Templates quick-pick -->
           <div class="panel-card">
             <div class="panel-card-title" style="margin-bottom:8px;">Templates</div>
             <div class="template-list" id="composerTemplateList">
@@ -1928,8 +434,12 @@
           </div>
         </div>
 
-        </div><div id="splitModePanel" style="display:none;grid-column:1/-1;">
+        </div><!-- /composeModePanel -->
+
+        <!-- ── SPLIT MODE (Thread Splitter) ── -->
+        <div id="splitModePanel" style="display:none;grid-column:1/-1;">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" id="splitGrid">
+            <!-- Source -->
             <div>
               <div class="card">
                 <div style="font-size:11px;font-family:'DM Mono',monospace;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px;">Source text</div>
@@ -1943,6 +453,7 @@
                 </div>
               </div>
             </div>
+            <!-- Output -->
             <div>
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
                 <div style="font-size:11px;font-family:'DM Mono',monospace;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);">Thread parts</div>
@@ -1957,7 +468,7 @@
                 <div class="empty-desc">Paste content on the left and hit Split thread.</div>
               </div>
               <div id="threadOut" style="display:flex;flex-direction:column;gap:8px;"></div>
-              <div id="threadActions" style="margin-top:10px;display:none;gap:6px;flex-wrap:wrap;">
+              <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;" id="threadActions" style="display:none;">
                 <button class="btn" id="draftThreadBtn">Save draft</button>
                 <button class="btn success" id="queueThreadBtn">Add to queue</button>
                 <button class="btn primary" id="scheduleThreadBtn">📅 Schedule…</button>
@@ -1968,11 +479,16 @@
               <div id="threadStatus" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;min-height:16px;"></div>
             </div>
           </div>
+          <!-- Mobile: stacked -->
+          <style>@media(max-width:768px){#splitGrid{grid-template-columns:1fr;}}</style>
         </div>
 
-      </div></section>
+      </div><!-- /composer-layout -->
+    </section>
 
+    <!-- ══════════ APPROVE (Approvals) ══════════ -->
     <section id="approvalsView" class="view">
+      <!-- Mobile header -->
       <div class="mob-view-hdr">
         <span class="mob-view-title">✅ Approve</span>
         <div class="mob-view-actions">
@@ -1982,6 +498,7 @@
           </button>
         </div>
       </div>
+      <!-- Desktop header -->
       <div class="page-hdr">
         <div class="page-hdr-left">
           <h1 class="page-title">Approve</h1>
@@ -2007,97 +524,19 @@
         <div class="empty-desc">Save a draft with "Needs approval" checked in the Draft tab, then come here to generate a reviewer link.</div>
       </div>
       <div id="approvalsList"></div>
-      </div></section>
-
-    <section id="contentBucketsView" class="view">
-      <div class="mob-view-hdr">
-        <span class="mob-view-title">🧠 Content Buckets</span>
-        <div class="mob-view-actions">
-          <button class="btn sm ghost" id="contentBucketsResetMob">Reset</button>
-        </div>
-      </div>
-      <div class="page-hdr">
-        <div class="page-hdr-left">
-          <h1 class="page-title">Content Buckets</h1>
-          <p class="page-desc">Find repeatable content lanes, save them locally, then pull ideas straight into Draft. This tool works without a Buffer key.</p>
-          <p style="font-size:12px;color:var(--subtle);margin-top:4px;">Work in progress — we’re actively simplifying this experience.</p>
-        </div>
-        <div class="page-actions">
-          <span class="status-pill free">No key required</span>
-          <span class="chip" style="background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.22);color:var(--amber);">WIP</span>
-          <button class="btn ghost" id="contentBucketsResetBtn">Reset</button>
-        </div>
-      </div>
-      <div class="view-content">
-        <div class="card" id="bucketIntroCard" style="margin-bottom:16px;">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;">
-            <div style="max-width:760px;">
-              <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:18px;color:var(--ink);margin-bottom:6px;">Not sure what to post about consistently?</div>
-              <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:10px;">Content Buckets help you turn what you know, notice, do, and believe into repeatable content lanes. The goal is not more noise. It is a clearer starting point every time you open Draft.</div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
-                <span class="chip">Teach</span>
-                <span class="chip">Share</span>
-                <span class="chip">Show</span>
-                <span class="chip">Tell</span>
-                <span class="chip">Prove</span>
-              </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="btn primary" id="bucketStartWalkthroughBtn">Get started</button>
-                <button class="btn ghost" id="bucketSkipIntroBtn">I understand content buckets</button>
-              </div>
-            </div>
-            <div class="status-pill free">No key required</div>
-          </div>
-        </div>
-
-        <div id="bucketCoreExperience" style="display:none;">
-          <div class="card" style="margin-bottom:16px;">
-            <div class="cols2">
-              <div class="field">
-                <label class="label">Role / lens</label>
-                <select id="bucketRoleSelect" class="input"></select>
-              </div>
-              <div class="field">
-                <label class="label">Audience</label>
-                <input id="bucketAudienceInput" class="input" placeholder="Who are you trying to help or reach?" />
-              </div>
-            </div>
-            <div style="font-size:12px;color:var(--muted);line-height:1.65;">Pick a role, then work through one bucket at a time. You can rename each lane and save starter ideas as you go.</div>
-            <div id="bucketStepper" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;"></div>
-          </div>
-
-          <div id="bucketStepMeta" style="font-size:11px;font-family:'DM Mono',monospace;color:var(--subtle);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;"></div>
-          <div id="bucketCards"></div>
-
-          <div class="row" style="margin-top:12px;justify-content:space-between;">
-          <button class="btn" id="bucketPrevBtn">← Previous</button>
-          <div class="row">
-            <button class="btn sm ghost" id="bucketCopyPromptBtn">Copy AI prompt</button>
-            <button class="btn sm" id="bucketComposeAllBtn">→ Send all to Draft</button>
-            <button class="btn primary" id="bucketNextBtn">Next →</button>
-          </div>
-        </div>
-        </div>
-
-        <div class="card mt16">
-          <div class="section-hdr">
-            <div>
-              <div class="section-title">Your saved lanes</div>
-              <div style="font-size:12px;color:var(--muted);margin-top:4px;">A lighter summary of what you have built so far.</div>
-            </div>
-          </div>
-          <div id="bucketSavedSummary" style="display:flex;flex-direction:column;gap:8px;"></div>
-        </div>
-      </div>
+      </div><!-- /view-content -->
     </section>
 
+    <!-- ══════════ TEMPLATES ══════════ -->
     <section id="templatesView" class="view">
+      <!-- Mobile header -->
       <div class="mob-view-hdr">
         <span class="mob-view-title">⚡ Templates</span>
         <div class="mob-view-actions">
           <button class="btn sm primary" id="newTemplateBtnMob">+ New</button>
         </div>
       </div>
+      <!-- Desktop header -->
       <div class="page-hdr">
         <div class="page-hdr-left">
           <h1 class="page-title">Templates</h1>
@@ -2124,8 +563,10 @@
           <div class="templates-grid" id="templatesGrid"></div>
         </div>
       </div>
-      </div></section>
+      </div><!-- /view-content -->
+    </section>
 
+    <!-- ══════════ TRENDING ══════════ -->
     <section id="trendingView" class="view">
       <div class="mob-view-hdr">
         <span class="mob-view-title">📈 Trending</span>
@@ -2144,11 +585,13 @@
       </div>
       <div class="view-content">
 
+        <!-- Source tabs -->
         <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;">
           <button class="trending-src-tab active" data-tsrc="reddit" style="padding:8px 18px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Reddit</button>
           <button class="trending-src-tab" data-tsrc="hn" style="padding:8px 18px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Hacker News</button>
         </div>
 
+        <!-- Reddit panel -->
         <div id="trendingRedditPanel">
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
             <div id="trendingSubPills" style="display:flex;gap:5px;flex-wrap:wrap;flex:1;"></div>
@@ -2162,6 +605,7 @@
           <div id="trendingRedditList" style="display:flex;flex-direction:column;gap:6px;"></div>
         </div>
 
+        <!-- HN panel -->
         <div id="trendingHNPanel" style="display:none;">
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
             <div style="display:flex;gap:5px;">
@@ -2175,11 +619,15 @@
           <div id="trendingHNList" style="display:flex;flex-direction:column;gap:6px;"></div>
         </div>
 
-      </div></section>
+      </div><!-- /view-content -->
+    </section>
 
   </main>
 </section>
 
+<!-- ── MODALS ── -->
+
+<!-- Settings modal -->
 <div id="settingsModal" class="modal">
   <div class="modal-card" style="max-width:580px;">
     <div class="modal-hdr">
@@ -2231,6 +679,7 @@
   </div>
 </div>
 
+<!-- Day note modal -->
 <div id="noteModal" class="modal">
   <div class="modal-card">
     <div class="modal-hdr">
@@ -2260,6 +709,7 @@
   </div>
 </div>
 
+<!-- Template modal -->
 <div id="templateModal" class="modal">
   <div class="modal-card lg">
     <div class="modal-hdr">
@@ -2295,6 +745,7 @@
   </div>
 </div>
 
+<!-- Template picker modal -->
 <div id="templatePickerModal" class="modal">
   <div class="modal-card lg">
     <div class="modal-hdr">
@@ -2313,6 +764,7 @@
   </div>
 </div>
 
+<!-- Share modal -->
 <div id="shareModal" class="modal">
   <div class="modal-card">
     <div class="modal-hdr">
@@ -2320,12 +772,11 @@
       <button class="btn sm ghost" id="closeShare">Close</button>
     </div>
     <div class="card mb8">
-      <div style="font-size:13px;color:var(--muted);">Week: <strong style="color:var(--text)" id="shareMonthName"></strong></div>
+      <div style="font-size:13px;color:var(--muted);">Month: <strong style="color:var(--text)" id="shareMonthName"></strong></div>
       <div style="font-size:13px;color:var(--muted);margin-top:6px;">Posts: <strong style="color:var(--text)" id="sharePostCount">0</strong></div>
       <label style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer;font-size:13px;color:var(--muted);">
         <input type="checkbox" id="includeNotes" checked /> Include planning notes
       </label>
-      <div style="font-size:12px;color:var(--subtle);margin-top:8px;line-height:1.55;">Share a simple snapshot of this week's posts. Click More on any day to open the full copy.</div>
     </div>
     <div class="row mt8">
       <button class="btn primary" id="generateShare">Generate link</button>
@@ -2335,21 +786,25 @@
   </div>
 </div>
 
+<!-- ── MOBILE DRAWER (token + sync) ── -->
 <div class="mob-backdrop" id="mobBackdrop"></div>
 <div class="mob-drawer" id="mobDrawer">
   <div class="mob-drawer-handle"></div>
   <div class="mob-drawer-title">PostIQ <span class="logo-beta">Beta</span></div>
 
+  <!-- Connection status -->
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
     <div class="conn-dot" id="mobConnDot"></div>
     <span style="font-size:13px;color:var(--muted);font-family:'DM Mono',monospace;" id="mobConnLabel">Not connected</span>
   </div>
 
+  <!-- Sync button -->
   <button class="btn" id="mobSyncBtn" style="width:100%;justify-content:center;margin-bottom:6px;">↻ Load from Buffer</button>
   <div id="mobSyncStatus" style="font-size:11px;color:var(--subtle);font-family:'DM Mono',monospace;margin-bottom:14px;min-height:14px;"></div>
 
   <div style="height:1px;background:var(--border);margin-bottom:14px;"></div>
 
+  <!-- Token management -->
   <div style="margin-bottom:4px;">
     <button class="btn ghost" id="mobManageTokenBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">🔑 Manage Buffer token</button>
   </div>
@@ -2371,22 +826,25 @@
 
   <div style="height:1px;background:var(--border);margin:14px 0;"></div>
 
+  <!-- Quick links -->
   <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">↗ Open Buffer</a>
-  <button class="btn ghost" data-view="contentBucketsView" id="mobDrawerBucketsBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">🧠 Content Buckets</button>
   <button class="btn ghost" data-view="trendingView" id="mobDrawerTrendingBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">📈 Trending</button>
   <button class="btn ghost" data-view="templatesView" id="mobDrawerTemplatesBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">⚡ Templates</button>
   <button class="btn ghost" id="mobOpenSettings" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">⚙ Settings &amp; Help</button>
 </div>
 
+<!-- Zen exit button (floats bottom-right when zen is active) -->
 <button id="zenExit">Esc · Exit zen</button>
 
+<!-- Toast container -->
 <div id="toastWrap" class="toast-wrap" aria-live="polite"></div>
 
+<!-- Shared view (read-only snapshot) -->
 <section id="sharedView" class="hidden" style="max-width:980px;margin:0 auto;padding:28px;">
-  <div id="sharedBrand" style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;margin-bottom:20px;color:var(--ink);">PostIQ</div>
-  <div id="sharedBanner" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;font-size:13px;color:var(--muted);margin-bottom:20px;"></div>
+  <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;margin-bottom:20px;color:var(--ink);">PostIQ</div>
+  <div id="sharedBanner" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;font-size:13px;color:var(--muted);margin-bottom:20px;"></div>
   <h2 id="sharedMonthTitle" style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:22px;margin-bottom:16px;"></h2>
-  <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">This week's posts. Click More on any day to view the full copy.</p>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">Read-only planning snapshot.</p>
   <div class="cal-dow">
     <div class="dow-cell">Sun</div><div class="dow-cell">Mon</div><div class="dow-cell">Tue</div>
     <div class="dow-cell">Wed</div><div class="dow-cell">Thu</div><div class="dow-cell">Fri</div><div class="dow-cell">Sat</div>
@@ -2394,16 +852,7 @@
   <div id="sharedGrid" class="cal-grid" style="margin-top:4px;"></div>
 </section>
 
-<div id="sharedDayModal" class="modal">
-  <div class="modal-card lg">
-    <div class="modal-hdr">
-      <span class="modal-title" id="sharedDayTitle">Snapshot details</span>
-      <button class="btn sm ghost" id="closeSharedDay">Close</button>
-    </div>
-    <div id="sharedDayBody" style="display:flex;flex-direction:column;gap:10px;"></div>
-  </div>
-</div>
-
+<!-- Reviewer page -->
 <div id="reviewerPage">
   <div class="reviewer-wrap">
     <div class="reviewer-brand">
@@ -2429,1178 +878,11 @@
   </div>
 </div>
 
-<script>
-'use strict';
+<!-- ══════════════════════════════════
+     JAVASCRIPT
+     ══════════════════════════════════ -->
+  <script src="./app.js" defer></script>
 
-// ── CONSTANTS ──────────────────────────────────────
-const STORE_KEY       = 'postiq_buffer_token';
-const NOTE_KEY        = 'postiq_calendar_notes_v2';
-const TEMPLATE_KEY    = 'postiq_templates_v1';
-const BUCKET_KEY      = 'postiq_content_buckets_v1';
-const CACHE_KEY       = 'postiq_buffer_cache_v1';
-const APPROVAL_PREFIX = 'postiq_approval_';
 
-const IMGUR_KEY    = '546c25a59c58ad7';
-const UNSPLASH_KEY = 'tBuaYCO5p-pJPjgF29hR2yJGtlQaG4d5HqdVivV0lbQ';
-
-const TEMPLATE_TYPES     = ['All','Hooks','CTAs','Announcements','Engagement','Hashtag Sets'];
-const TEMPLATE_PLATFORMS = ['All Platforms','LinkedIn','X','Threads','Instagram','Universal'];
-
-// ── STATE ──────────────────────────────────────────
-let bufferToken = '';
-let currentViewId = 'calendarView';
-let tokenPanelOpen = false;
-let modalCount = 0;
-
-const state = {
-  channels: [],
-  scheduled: [],
-  month: new Date(),
-  selectedDate: null,
-  syncState: 'idle',
-  templates: [],
-  templateType: 'All',
-  templatePlatform: 'All Platforms',
-  templateSearch: '',
-  editingTemplateId: null,
-  organizationId: null,
-  bucketRole: 'creator',
-  bucketAudience: '',
-  contentBuckets: [],
-  bucketStep: 0,
-};
-
-const mediaState = { url: '', type: '', videoThumbUrl: '', source: '' };
-
-// Cache layer
-const cache = {
-  orgId:     { value: null, ts: 0 },
-  channels:  { value: [], ts: 0 },
-  scheduled: { value: [], ts: 0 },
-};
-const CACHE_TTL = { orgId: 86400000, channels: 86400000, scheduled: 600000 };
-
-// ── UTILITIES ──────────────────────────────────────
-const qs = id => document.getElementById(id);
-const on = (id, evt, handler, opts) => { const el = qs(id); if (el) el.addEventListener(evt, handler, opts); return el; };
-const setIfPresent = (id, fn) => { const el = qs(id); if (el) fn(el); return el; };
-function parseLocalDateKey(key) { const [y,m,d] = String(key||'').split('-').map(Number); return new Date(y||0, (m||1)-1, d||1); }
-
-async function safeWriteText(text) {
-  try {
-    if (navigator.clipboard && window.isSecureContext) { 
-      await navigator.clipboard.writeText(text); 
-      return true; 
-    } 
-  } catch {}
-  try { 
-    const ta = document.createElement('textarea'); 
-    ta.value = String(text ?? ''); 
-    ta.setAttribute('readonly', ''); 
-    ta.style.position='fixed'; 
-    ta.style.opacity='0'; 
-    ta.style.pointerEvents='none'; 
-    document.body.appendChild(ta); 
-    ta.focus(); ta.select(); 
-    const ok = document.execCommand('copy'); 
-    ta.remove(); 
-    return !!ok; 
-  } catch { 
-    return false; 
-  }
-}
-
-const fmtDate = d => d.toISOString().slice(0, 10);
-const monthLabel = d => d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-const monthStart = d => new Date(d.getFullYear(), d.getMonth(), 1);
-const safeText = v => String(v || '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
-const compact = (v, max = 80) => { const t = String(v || '').trim(); return t.length > max ? t.slice(0, max - 1) + '…' : t; };
-
-const SNAP_WORDS = ['amber','anchor','apricot','arrow','ash','aster','atlas','aurora','autumn','bamboo','bay','beacon','berry','birch','bloom','blue','blush','bolt','bonfire','breeze','brick','brook','brush','canyon','cedar','chalk','charm','citrus','clay','cliff','cloud','clover','coast','cobalt','comet','coral','copper','cosmic','cove','crimson','crown','daisy','dawn','delta','dune','echo','ember','fern','field','finch','flare','flora','fog','forest','frost','gale','garden','glimmer','glow','gold','granite','grove','harbor','hazel','hearth','hollow','honey','indigo','iris','ivory','jade','jasmine','jet','juniper','lagoon','lake','laurel','lava','leaf','lilac','linen','luna','marble','meadow','mercury','mesa','midnight','mist','moon','moss','nectar','nova','oak','oasis','olive','onyx','opal','orchid','paper','pearl','pepper','petal','pine','plum','poppy','prairie','quartz','rain','raven','reef','ridge','river','rose','ruby','sage','sand','satin','scarlet','sea','shadow','shore','silver','sky','slate','smoke','snow','solstice','sparrow','spruce','star','stone','storm','sun','sunset','surf','terra','thistle','timber','topaz','trail','twig','vale','velvet','vine','violet','wave','willow','wind','winter','wood','wren','zephyr',
-'acorn','alder','almond','amberly','amethyst','anthem','apple','ardent','aspen','azure','badger','ballad','basil','beetle','bell','blackbird','blaze','bliss','blossom','bluejay','bramble','branch','briar','brooklyn','butter','cabin','camp','canopy','caramel','cardinal','carnation','cascade','castle','cedarwood','cello','charcoal','chestnut','cinder','circle','cocoa','copperfield','cotton','cranberry','creek','cricket','crystal','cypress','denim','desert','drift','elm','evergreen','feather','festival','fig','firefly','flannel','flicker','flint','flower','fox','gardenia','ginger','glacier','grain','gravel','harvest','hawk','heather','heron','horizon','ice','ink','iron','island','ivy','kestrel','kindle','kite','lark','lemon','light','lotus','mallow','maple','marigold','marsh','merlot','meteor','mint','morning','mulberry','nectarine','needle','night','nutmeg','ocean','otter','palm','parchment','pebble','peony','phoenix','pigeon','pinecone','pond','primrose','ripple','robin','root','rosemary','sable','saffron','salt','samphire','sapphire','sepia','shell','signal','sienna','silk','sprout','starling','straw','summit','teal','tempest','thyme','tide','toast','truffle','tulip','umber','valley','vanilla','vista','walnut','water','wildflower','wolf','yarrow',
-'adobe','agate','alpine','anise','arc','arroyo','barley','basalt','beige','biscuit','bluet','bourbon','brass','buffalo','buttercup','caper','carmine','cashmere','celery','cerulean','chive','cindercone','cinnamon','citadel','coriander','cork','currant','daffodil','drizzle','earth','eclipse','fable','fawn','fennel','fiddle','fir','glade','granola','harvestmoon','hedge','hickory','hill','honeycomb','irisblue','jetty','joy','kelp','laguna','lantern','latte','legend','leopard','lichen','lime','lodge','lumen','magnolia','mallowroot','manor','melon','monarch','moonstruck','mulch','myrtle','navy','nickel','north','nutria','ochre','orbit','oxford','papaya','parsnip','pebblebrook','peppermint','persimmon','petunia','pico','pinot','pistachio','planet','plaza','poem','porch','port','rainier','ramble','redwood','relay','resin','ridgeway','roost','rust','sandal','seabird','seaglass','sequoia','shale','silverbell','song','soy','speck','spice','sprig','sugar','sundial','swallow','tangerine','tansy','thunder','toffee','torch','travertine','trellis','turnip','veranda','vermilion','voyage','warmth','whisper','wicker','wild','windswept','woodland','yonder','zenith'];
-function makeSnapshotId() {
-  const pick = () => SNAP_WORDS[Math.floor(Math.random() * SNAP_WORDS.length)];
-  const n = Math.floor(1000 + Math.random() * 9000);
-  return `${pick()}-${pick()}-${n}`;
-}
-function applySharedTheme(theme) {
-  const shared = qs('sharedView');
-  const brand = qs('sharedBrand');
-  const banner = qs('sharedBanner');
-  if (!shared || !brand || !banner) return;
-  const grid = qs('sharedGrid');
-  const title = qs('sharedMonthTitle');
-  const themes = {
-    default: { bg:'#f5f6fa', card:'#ffffff', border:'#e8eaf2', text:'#14162a', muted:'#5a6080', accent:'#3a3fff' },
-    dark:    { bg:'#10131d', card:'#181d2a', border:'#2a3144', text:'#eef2ff', muted:'#aab4d0', accent:'#7c8cff' },
-    client:  { bg:'#f7f4ee', card:'#fffdf8', border:'#e7ddcf', text:'#2a2620', muted:'#6d6256', accent:'#8b5cf6' },
-    playful: { bg:'#fff7fb', card:'#ffffff', border:'#f3d8e8', text:'#3a2840', muted:'#7d6283', accent:'#ff4f6a' }
-  };
-  const t = themes[theme] || themes.default;
-  document.body.style.background = t.bg;
-  shared.style.color = t.text;
-  brand.style.color = t.text;
-  title.style.color = t.text;
-  banner.style.background = t.card;
-  banner.style.borderColor = t.border;
-  banner.style.color = t.muted;
-  if (grid) grid.querySelectorAll('.cal-day').forEach(day => {
-    day.style.background = t.card;
-    day.style.borderColor = t.border;
-    day.style.color = t.text;
-  });
-}
-const normTags = v => Array.isArray(v) ? v.map(x => String(x).trim()).filter(Boolean) : String(v || '').split(',').map(x => x.trim()).filter(Boolean);
-const isVideo = url => /\.(mp4|mov|webm|avi|mkv|m4v)(\?|$)/i.test(String(url || ''));
-const maskToken = t => !t ? '—' : t.length <= 8 ? '••••' : `${t.slice(0,4)}••••${t.slice(-4)}`;
-
-function safeGetStorage(kind) {
-  try { return kind === 'session' ? window.sessionStorage : window.localStorage; }
-  catch { return null; }
-}
-function lsGet(key){ const s=safeGetStorage('local'); try { return s ? s.getItem(key) : null; } catch { return null; } }
-function lsSet(key,val){ const s=safeGetStorage('local'); try { if (s) s.setItem(key,val); } catch {} }
-function lsRemove(key){ const s=safeGetStorage('local'); try { if (s) s.removeItem(key); } catch {} }
-function lsKey(i){ const s=safeGetStorage('local'); try { return s ? s.key(i) : null; } catch { return null; } }
-function lsLength(){ const s=safeGetStorage('local'); try { return s ? s.length : 0; } catch { return 0; } }
-function ssGet(key){ const s=safeGetStorage('session'); try { return s ? s.getItem(key) : null; } catch { return null; } }
-function ssSet(key,val){ const s=safeGetStorage('session'); try { if (s) s.setItem(key,val); } catch {} }
-function ssRemove(key){ const s=safeGetStorage('session'); try { if (s) s.removeItem(key); } catch {} }
-
-function showToast(msg, type = '') {
-  const wrap = qs('toastWrap'); if (!wrap) return;
-  const t = document.createElement('div');
-  t.className = 'toast' + (type ? ' ' + type : '');
-  t.textContent = msg;
-  wrap.appendChild(t);
-  const delay = msg.length > 40 ? 3800 : 2600;
-  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 250); }, delay);
-}
-
-function openModal(id) {
-  const el = qs(id); if (!el || el.classList.contains('open')) return;
-  el.classList.add('open'); modalCount++;
-  if (modalCount > 0) document.body.style.overflow = 'hidden';
-}
-function closeModal(id) {
-  const el = qs(id); if (!el || !el.classList.contains('open')) return;
-  el.classList.remove('open'); modalCount = Math.max(0, modalCount - 1);
-  if (modalCount === 0) document.body.style.overflow = '';
-}
-
-// ── APPROVAL METADATA (localStorage) ──────────────
-function getApprovalMeta(draftId) {
-  try { const r = lsGet(APPROVAL_PREFIX + draftId); return r ? JSON.parse(r) : null; } catch { return null; }
-}
-function setApprovalMeta(draftId, data) { try { lsSet(APPROVAL_PREFIX + draftId, JSON.stringify(data)); } catch {} }
-function clearApprovalMeta(draftId) { try { lsRemove(APPROVAL_PREFIX + draftId); } catch {} }
-function getAllApprovalMetas() {
-  const result = [];
-  try {
-    for (let i = 0; i < lsLength(); i++) {
-      const key = lsKey(i);
-      if (key && key.startsWith(APPROVAL_PREFIX)) {
-        const draftId = key.slice(APPROVAL_PREFIX.length);
-        const meta = getApprovalMeta(draftId);
-        if (meta && meta.needs_approval) result.push({ draftId, ...meta });
-      }
-    }
-  } catch {}
-  return result;
-}
-
-// ── TEMPLATES ──────────────────────────────────────
-function loadTemplates() {
-  try {
-    const raw = lsGet(TEMPLATE_KEY);
-    if (!raw) { state.templates = []; return; }
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) { state.templates = []; return; }
-    state.templates = parsed.map((s, i) => ({
-      id: String(s.id || `${Date.now()}-${i}`),
-      title: String(s.title || 'Untitled'),
-      type: TEMPLATE_TYPES.includes(s.type) ? s.type : 'Hooks',
-      platform: TEMPLATE_PLATFORMS.includes(s.platform) ? s.platform : 'Universal',
-      tags: normTags(s.tags),
-      body: String(s.body || ''),
-      createdAt: String(s.createdAt || new Date().toISOString()),
-      updatedAt: String(s.updatedAt || new Date().toISOString()),
-    }));
-  } catch { state.templates = []; }
-}
-function persistTemplates() { try { lsSet(TEMPLATE_KEY, JSON.stringify(state.templates)); } catch {} }
-
-function filteredTemplates(search = state.templateSearch, type = state.templateType, platform = state.templatePlatform) {
-  const q = search.trim().toLowerCase();
-  return state.templates.filter(s => {
-    const typeOk = type === 'All' || s.type === type;
-    const platOk = platform === 'All Platforms' || s.platform === platform;
-    const txt = `${s.title} ${s.body} ${(s.tags || []).join(' ')}`.toLowerCase();
-    return typeOk && platOk && (!q || txt.includes(q));
-  });
-}
-
-function renderTemplateTypeFilters() {
-  const rail = qs('templateTypeFilters'); rail.innerHTML = '';
-  TEMPLATE_TYPES.forEach(type => {
-    const count = type === 'All' ? state.templates.length : state.templates.filter(s => s.type === type).length;
-    const b = document.createElement('button');
-    b.className = `type-filter-btn ${state.templateType === type ? 'active' : ''}`;
-    b.innerHTML = `<span>${type}</span><span class="type-filter-count">${count || ''}</span>`;
-    b.onclick = () => { state.templateType = type; renderTemplates(); };
-    rail.appendChild(b);
-  });
-}
-
-function renderTemplates() {
-  renderTemplateTypeFilters();
-  const list = filteredTemplates();
-  const grid = qs('templatesGrid');
-  qs('templatesEmpty').style.display = list.length ? 'none' : 'flex';
-  grid.innerHTML = '';
-  list.forEach(s => {
-    const card = document.createElement('div');
-    card.className = 'template-card';
-    card.innerHTML = `
-      <div class="template-card-hdr">
-        <div class="template-card-title">${safeText(s.title)}</div>
-        <div style="display:flex;gap:3px;flex-shrink:0;">
-          <span class="chip">${safeText(s.type)}</span>
-          <span class="chip">${safeText(s.platform)}</span>
-        </div>
-      </div>
-      <div class="template-card-body">${safeText(s.body)}</div>
-      ${s.tags?.length ? `<div class="template-card-tags">${safeText(s.tags.join(' · '))}</div>` : ''}
-      <div class="template-card-actions">
-        <button class="btn sm" data-act="copy">Copy</button>
-        <button class="btn sm primary" data-act="use">→ Draft</button>
-        <button class="btn sm ghost" data-act="edit" style="margin-left:auto;">✏️</button>
-        <button class="btn sm ghost" data-act="del">🗑</button>
-      </div>`;
-    card.querySelector('[data-act="copy"]').onclick = () => { safeWriteText(s.body || ''); showToast('Copied'); };
-    card.querySelector('[data-act="use"]').onclick  = () => { activateView('composerView'); useTemplateInEditor(s); };
-    card.querySelector('[data-act="edit"]').onclick = () => openTemplateModal(s.id);
-    card.querySelector('[data-act="del"]').onclick  = () => deleteTemplate(s.id);
-    grid.appendChild(card);
-  });
-  renderComposerTemplateSidebar();
-}
-
-function renderComposerTemplateSidebar() {
-  const list = qs('composerTemplateList'); if (!list) return;
-  const items = state.templates.slice(0, 8);
-  if (!items.length) { list.innerHTML = '<div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:\'DM Mono\',monospace;">No templates yet.</div>'; return; }
-  list.innerHTML = '';
-  items.forEach(s => {
-    const el = document.createElement('div');
-    el.className = 'template-item';
-    el.innerHTML = `<div class="template-item-title">${safeText(s.title)}</div><div class="template-item-preview">${safeText(compact(s.body, 70))}</div>`;
-    el.onclick = () => useTemplateInEditor(s);
-    list.appendChild(el);
-  });
-}
-
-function useTemplateInEditor(template) {
-  const editor = qs('composerEditor'); if (!editor) return;
-  const body = template.body || '';
-  try {
-    const sel = window.getSelection();
-    if (sel && sel.rangeCount && editor.contains(sel.anchorNode)) {
-      sel.deleteFromDocument();
-      sel.getRangeAt(0).insertNode(document.createTextNode(body));
-    } else {
-      editor.innerText = editor.innerText ? `${editor.innerText}\n\n${body}` : body;
-    }
-  } catch { editor.innerText = editor.innerText ? `${editor.innerText}\n\n${body}` : body; }
-  editor.dispatchEvent(new Event('input'));
-  editor.focus();
-  showToast('Template inserted', 'success');
-}
-
-const BUCKET_GUIDES = {
-  creator: {
-    label: 'Creator',
-    examples: {
-      Teach: ['How you approach content planning without burning out','Mistakes creators make when they only chase trends','Simple ways to turn one idea into a week of posts'],
-      Share: ['Platform shifts you are noticing','What content is getting ignored that deserves more love','Resources or tools you actually use'],
-      Show: ['How you capture ideas before they disappear','Your rough drafting workflow','Behind the scenes of building content'],
-      Tell: ['A lesson you learned from a post that flopped','Why you create in the first place','A hot take about creator culture'],
-      Prove: ['A win you are proud of','Feedback from a client or community member','Numbers or outcomes that show your work matters']
-    }
-  },
-  founder: {
-    label: 'Founder',
-    examples: {
-      Teach: ['What customers misunderstand about your product category','Lessons from building in public','How you make decisions with limited time'],
-      Share: ['Patterns you are seeing in your market','Useful resources for early builders','What people should know before buying'],
-      Show: ['What shipping a feature actually looks like','Your weekly planning process','How you capture customer feedback'],
-      Tell: ['Why you started the company','A mistake that changed your thinking','What building while uncertain feels like'],
-      Prove: ['Customer wins','Product traction moments','Testimonials, screenshots, or milestones']
-    }
-  },
-  small_business_owner: {
-    label: 'Small Business Owner',
-    examples: {
-      Teach: ['What customers should know before hiring you','Common mistakes in your industry','Small tips that save people time or money'],
-      Share: ['Seasonal reminders','Helpful local info','What customers often overlook'],
-      Show: ['Behind the scenes of a normal workday','What goes into your service','Prep, tools, and routines'],
-      Tell: ['Why you started the business','What quality means to you','A memorable customer story'],
-      Prove: ['Reviews and testimonials','Before-and-after stories','Wins you are proud of']
-    }
-  },
-  freelancer: {
-    label: 'Freelancer / Consultant',
-    examples: {
-      Teach: ['Mistakes clients make before hiring help','How good strategy actually works','What you wish more people knew before a project starts'],
-      Share: ['Trends in your niche','Helpful tools and frameworks','Questions clients should ask sooner'],
-      Show: ['Your workflow from kickoff to delivery','How you organize projects','What your week actually looks like'],
-      Tell: ['Why you chose freelance life','Lessons learned the hard way','A project that changed how you work'],
-      Prove: ['Case-study style results','Client praise','Repeat business and outcomes']
-    }
-  },
-  nurse: {
-    label: 'Nurse',
-    examples: {
-      Teach: ['What patients should know before appointments','Common health myths','Questions people should ask more often'],
-      Share: ['Helpful resources families miss','What people misunderstand about healthcare','Trends you notice in patient care'],
-      Show: ['What a shift really looks like','Tools and routines that keep you organized','What people never see behind the scenes'],
-      Tell: ['Why you became a nurse','A lesson the job taught you','A moment that changed your perspective'],
-      Prove: ['Skills and certifications','Positive feedback','Moments where your care made a difference']
-    }
-  }
-};
-const BUCKET_TYPES = [
-  { key:'Teach', desc:'What can you help people understand or do better?', prompt:'What do people ask you about all the time?' },
-  { key:'Share', desc:'What should people know, notice, or pay attention to?', prompt:'What trends, resources, or reminders do you keep coming back to?' },
-  { key:'Show', desc:'What does your work or process actually look like?', prompt:'What does your behind-the-scenes reality look like?' },
-  { key:'Tell', desc:'What stories, opinions, or lessons can you share?', prompt:'What experience shaped how you do things now?' },
-  { key:'Prove', desc:'What builds trust and shows your work matters?', prompt:'What results, reviews, or wins can you point to?' }
-];
-
-function loadBuckets() {
-  try {
-    const raw = lsGet(BUCKET_KEY);
-    if (!raw) return;
-    const parsed = JSON.parse(raw);
-    if (parsed?.role) state.bucketRole = parsed.role;
-    if (parsed?.audience) state.bucketAudience = parsed.audience;
-    if (Array.isArray(parsed?.buckets)) state.contentBuckets = parsed.buckets;
-  } catch {}
-}
-function persistBuckets() {
-  try { lsSet(BUCKET_KEY, JSON.stringify({ role: state.bucketRole, audience: state.bucketAudience, buckets: state.contentBuckets })); } catch {}
-}
-function defaultBucketsForRole(role) {
-  const guide = BUCKET_GUIDES[role] || BUCKET_GUIDES.creator;
-  return BUCKET_TYPES.map(t => ({
-    type: t.key,
-    title: t.key,
-    ideas: (guide.examples[t.key] || []).slice(0,3),
-    notes: ''
-  }));
-}
-function ensureBuckets() {
-  if (!state.contentBuckets.length) state.contentBuckets = defaultBucketsForRole(state.bucketRole);
-}
-function populateBucketRoleSelect() {
-  const sel = qs('bucketRoleSelect'); if (!sel) return;
-  sel.innerHTML = '';
-  Object.entries(BUCKET_GUIDES).forEach(([key,val]) => {
-    const o=document.createElement('option'); o.value=key; o.textContent=val.label; if (state.bucketRole===key) o.selected=true; sel.appendChild(o);
-  });
-  const aud = qs('bucketAudienceInput'); if (aud) aud.value = state.bucketAudience || '';
-}
-function buildBucketPrompt() {
-  ensureBuckets();
-  const roleLabel = BUCKET_GUIDES[state.bucketRole]?.label || state.bucketRole;
-  return `I'm building content buckets for my brand.
-
-My role: ${roleLabel}
-My audience: ${state.bucketAudience || 'General audience'}
-
-Here are my current buckets:
-${state.contentBuckets.map(b => `- ${b.title}: ${(b.ideas||[]).join('; ') || 'No starter ideas yet'}`).join('\n')}
-
-Using the five content types Teach, Share, Show, Tell, and Prove, help me refine these into stronger repeatable content lanes. Give me 5 fresh ideas per bucket. Keep them specific, practical, and not overly corporate.`;
-}
-function bucketIdeasToText(bucket) {
-  return `${bucket.title}\n${(bucket.ideas||[]).map((idea,i)=>`${i+1}. ${idea}`).join('\n')}`;
-}
-function sendBucketsToComposer(which='all') {
-  ensureBuckets();
-  const editor = qs('composerEditor'); if (!editor) return;
-  const buckets = which==='all' ? state.contentBuckets : state.contentBuckets.filter(b => b.type===which || b.title===which);
-  const block = buckets.map(bucketIdeasToText).join('\n\n');
-  if (!block.trim()) { showToast('No bucket ideas yet', 'error'); return; }
-  const existing = editorToText(editor.innerHTML);
-  editor.innerText = existing ? `${existing}\n\n${block}` : block;
-  editor.dispatchEvent(new Event('input'));
-  activateView('composerView');
-  showToast(which==='all' ? 'Buckets sent to Draft' : 'Bucket sent to Draft', 'success');
-}
-function renderBuckets() {
-  ensureBuckets();
-  populateBucketRoleSelect();
-  const wrap = qs('bucketCards'); if (!wrap) return;
-  const guide = BUCKET_GUIDES[state.bucketRole] || BUCKET_GUIDES.creator;
-  const total = state.contentBuckets.length || BUCKET_TYPES.length;
-  if (state.bucketStep < 0) state.bucketStep = 0;
-  if (state.bucketStep > total - 1) state.bucketStep = total - 1;
-
-  const stepper = qs('bucketStepper');
-  if (stepper) {
-    stepper.innerHTML = '';
-    state.contentBuckets.forEach((bucket, idx) => {
-      const btn = document.createElement('button');
-      btn.className = 'btn sm' + (idx === state.bucketStep ? ' primary' : ' ghost');
-      btn.textContent = bucket.type;
-      btn.style.justifyContent = 'center';
-      btn.onclick = () => { state.bucketStep = idx; renderBuckets(); };
-      stepper.appendChild(btn);
-    });
-  }
-
-  const bucket = state.contentBuckets[state.bucketStep];
-  const meta = BUCKET_TYPES.find(t => t.key === bucket.type) || BUCKET_TYPES[state.bucketStep];
-  const examples = (guide.examples[bucket.type] || []).slice(0,5);
-  const stepMeta = qs('bucketStepMeta');
-  if (stepMeta) stepMeta.textContent = `Step ${state.bucketStep + 1} of ${total} · ${bucket.type}`;
-
-  wrap.innerHTML = '';
-  const card = document.createElement('div');
-  card.className = 'card';
-  card.innerHTML = `
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-      <div>
-        <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:22px;color:var(--ink);margin-bottom:4px;">${safeText(bucket.type)}</div>
-        <div style="font-size:13px;color:var(--muted);line-height:1.65;max-width:60ch;">${safeText(meta?.desc || '')}</div>
-      </div>
-      <span class="chip brand">${safeText(guide.label)}</span>
-    </div>
-
-    <div style="padding:12px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);margin-bottom:14px;">
-      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Ask yourself</div>
-      <div style="font-size:14px;color:var(--text);line-height:1.65;">${safeText(meta?.prompt || '')}</div>
-    </div>
-
-    <div class="field" style="margin-bottom:12px;">
-      <label class="label">Your bucket name</label>
-      <input class="input" data-bucket-title="${state.bucketStep}" value="${safeText(bucket.title)}" placeholder="Rename this lane…" />
-    </div>
-
-    <details style="margin-bottom:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:12px 14px;">
-      <summary style="cursor:pointer;font-weight:600;color:var(--ink);">See example ideas for ${safeText(guide.label)}</summary>
-      <ul style="padding-left:18px;margin:10px 0 0;color:var(--muted);font-size:12px;line-height:1.7;">${examples.map(x=>`<li>${safeText(x)}</li>`).join('')}</ul>
-    </details>
-
-    <div class="field" style="margin-bottom:10px;">
-      <label class="label">Starter ideas</label>
-      <textarea data-bucket-ideas="${state.bucketStep}" style="min-height:150px;" placeholder="Add one idea per line…">${safeText((bucket.ideas||[]).join('\n'))}</textarea>
-    </div>
-
-    <div class="row" style="justify-content:space-between;">
-      <button class="btn sm" data-bucket-send="${state.bucketStep}">→ Send this bucket to Draft</button>
-      <button class="btn sm ghost" data-bucket-copy="${state.bucketStep}">Copy AI prompt</button>
-    </div>`;
-  wrap.appendChild(card);
-
-  wrap.querySelector('[data-bucket-title]').addEventListener('input', e => {
-    state.contentBuckets[+e.target.dataset.bucketTitle].title = e.target.value;
-    persistBuckets(); renderBucketSummary(); renderComposerBuckets(); renderBuckets();
-  });
-  wrap.querySelector('[data-bucket-ideas]').addEventListener('input', e => {
-    state.contentBuckets[+e.target.dataset.bucketIdeas].ideas = e.target.value.split('\n').map(x=>x.trim()).filter(Boolean);
-    persistBuckets(); renderBucketSummary(); renderComposerBuckets();
-  });
-  wrap.querySelector('[data-bucket-send]').onclick = () => sendBucketsToComposer(state.contentBuckets[+wrap.querySelector('[data-bucket-send]').dataset.bucketSend].title);
-  wrap.querySelector('[data-bucket-copy]').onclick = () => {
-    const bucket = state.contentBuckets[+wrap.querySelector('[data-bucket-copy]').dataset.bucketCopy];
-    const roleLabel = BUCKET_GUIDES[state.bucketRole]?.label || state.bucketRole;
-    const prompt = `I'm building content around this bucket.
-
-My role: ${roleLabel}
-My audience: ${state.bucketAudience || 'General audience'}
-Bucket name: ${bucket.title}
-Current ideas:
-${(bucket.ideas||[]).map(x=>`- ${x}`).join('\n')}
-
-Give me 15 more practical social post ideas for this bucket. Mix educational, story-driven, opinion-based, and proof-driven angles. Avoid generic advice.`;
-    safeWriteText(prompt); showToast('AI prompt copied', 'success');
-  };
-
-  const prevBtn = qs('bucketPrevBtn');
-  const nextBtn = qs('bucketNextBtn');
-  if (prevBtn) {
-    prevBtn.disabled = state.bucketStep === 0;
-    prevBtn.style.opacity = state.bucketStep === 0 ? '.45' : '1';
-    prevBtn.onclick = () => { if (state.bucketStep > 0) { state.bucketStep--; renderBuckets(); } };
-  }
-  if (nextBtn) {
-    const last = state.bucketStep === total - 1;
-    nextBtn.textContent = last ? 'Finish →' : 'Next →';
-    nextBtn.onclick = () => {
-      if (!last) { state.bucketStep++; renderBuckets(); }
-      else { showToast('Buckets ready for Draft', 'success'); qs('bucketSavedSummary')?.scrollIntoView({behavior:'smooth', block:'start'}); }
-    };
-  }
-}
-function renderBucketSummary() {
-  const wrap = qs('bucketSavedSummary'); if (!wrap) return;
-  ensureBuckets();
-  wrap.innerHTML = '';
-  state.contentBuckets.forEach(bucket => {
-    const row = document.createElement('div');
-    row.style.cssText='padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);';
-    row.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;"><strong style="font-size:13px;color:var(--ink);">${safeText(bucket.title)}</strong><button class="btn sm ghost" data-saved-send="${safeText(bucket.title)}">→ Draft</button></div><div style="font-size:12px;color:var(--muted);line-height:1.6;">${safeText(compact((bucket.ideas||[]).join(' • '), 180) || 'No starter ideas yet.')}</div>`;
-    wrap.appendChild(row);
-  });
-  wrap.querySelectorAll('[data-saved-send]').forEach(btn => btn.onclick = () => sendBucketsToComposer(btn.dataset.savedSend));
-}
-function renderComposerBuckets() {
-  const wrap = qs('composerBucketsList'); if (!wrap) return;
-  ensureBuckets();
-  wrap.innerHTML = '';
-  state.contentBuckets.slice(0,4).forEach(bucket => {
-    const item = document.createElement('div');
-    item.className = 'template-item';
-    item.innerHTML = `<div class="template-item-title">${safeText(bucket.title)}</div><div class="template-item-preview">${safeText(compact((bucket.ideas||[]).join(' • '), 110) || 'No ideas yet.')}</div>`;
-    item.onclick = () => sendBucketsToComposer(bucket.title);
-    wrap.appendChild(item);
-  });
-  if (!state.contentBuckets.length) wrap.innerHTML = `<div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;">Build your first buckets in the Tools section.</div>`;
-}
-function resetBuckets() {
-  state.contentBuckets = defaultBucketsForRole(state.bucketRole);
-  persistBuckets();
-  renderBuckets();
-  renderBucketSummary();
-  renderComposerBuckets();
-  showToast('Buckets reset');
-}
-function setBucketIntroSeen(seen) {
-  try { localStorage.setItem('postiq_bucket_intro_seen_v1', seen ? '1' : '0'); } catch {}
-}
-function hasSeenBucketIntro() {
-  try { return localStorage.getItem('postiq_bucket_intro_seen_v1') === '1'; } catch { return false; }
-}
-function revealBucketCore(markSeen = false) {
-  const intro = qs('bucketIntroCard');
-  const core = qs('bucketCoreExperience');
-  if (intro) intro.style.display = 'none';
-  if (core) core.style.display = 'block';
-  if (markSeen) setBucketIntroSeen(true);
-}
-function showBucketIntro() {
-  const intro = qs('bucketIntroCard');
-  const core = qs('bucketCoreExperience');
-  if (intro) intro.style.display = '';
-  if (core) core.style.display = 'none';
-}
-function openTemplateModal(id = null) {
-  state.editingTemplateId = id;
-  const s = id ? state.templates.find(x => x.id === id) : null;
-  qs('templateModalTitle').textContent = s ? 'Edit Template' : 'New Template';
-  qs('templateTitle').value = s?.title || '';
-  qs('templateType').value = s?.type || 'Hooks';
-  qs('templatePlatform').value = s?.platform || 'Universal';
-  qs('templateTags').value = (s?.tags || []).join(', ');
-  qs('templateBody').value = s?.body || '';
-  openModal('templateModal');
-}
-
-function saveTemplate() {
-  const title = qs('templateTitle').value.trim();
-  const body  = qs('templateBody').value.trim();
-  if (!title || !body) { showToast('Title and body required', 'error'); return; }
-  const now = new Date().toISOString();
-  const payload = {
-    id: state.editingTemplateId || `${Date.now()}-${Math.random().toString(16).slice(2, 7)}`,
-    title, type: qs('templateType').value, platform: qs('templatePlatform').value,
-    tags: normTags(qs('templateTags').value), body, createdAt: now, updatedAt: now,
-  };
-  if (state.editingTemplateId) {
-    const prev = state.templates.find(s => s.id === state.editingTemplateId);
-    payload.createdAt = prev?.createdAt || now;
-    state.templates = state.templates.map(s => s.id === state.editingTemplateId ? payload : s);
-  } else {
-    state.templates = [payload, ...state.templates];
-  }
-  persistTemplates(); closeModal('templateModal'); renderTemplates(); showToast('Template saved', 'success');
-}
-
-function deleteTemplate(id) {
-  if (!confirm('Delete this template?')) return;
-  state.templates = state.templates.filter(s => s.id !== id);
-  persistTemplates(); renderTemplates(); showToast('Deleted');
-}
-
-function renderTemplatePicker() {
-  const list = qs('pickerList');
-  const items = filteredTemplates(qs('pickerSearch').value, qs('pickerType').value, 'All Platforms');
-  qs('pickerEmpty').style.display = items.length ? 'none' : 'flex';
-  list.innerHTML = '';
-  items.forEach(s => {
-    const el = document.createElement('div');
-    el.style.cssText = 'padding:10px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:var(--surface);transition:all .1s;';
-    el.innerHTML = `<strong style="font-size:13px;">${safeText(s.title)}</strong><div style="font-size:12px;color:var(--muted);margin-top:3px;">${safeText(compact(s.body, 150))}</div>`;
-    el.onmouseenter = () => { el.style.borderColor = 'var(--brand-glow)'; el.style.background = 'var(--brand-dim)'; };
-    el.onmouseleave = () => { el.style.borderColor = 'var(--border)'; el.style.background = 'var(--surface)'; };
-    el.onclick = () => { useTemplateInEditor(s); closeModal('templatePickerModal'); };
-    list.appendChild(el);
-  });
-}
-
-function initTemplateSelectors() {
-  ['templatePlatform', 'templatePlatformFilter'].forEach(id => {
-    const sel = qs(id); if (!sel) return;
-    sel.innerHTML = '';
-    TEMPLATE_PLATFORMS.forEach((p, i) => {
-      if (id === 'templatePlatformFilter' && i === 0) return; // skip "All" for modal selector
-      const o = document.createElement('option'); o.value = p; o.textContent = p; sel.appendChild(o);
-    });
-    if (id === 'templatePlatformFilter') {
-      const allOpt = document.createElement('option'); allOpt.value = 'All Platforms'; allOpt.textContent = 'All Platforms';
-      sel.prepend(allOpt); sel.value = 'All Platforms';
-    }
-  });
-  ['templateType', 'pickerType'].forEach(id => {
-    const sel = qs(id); if (!sel) return;
-    sel.innerHTML = '';
-    TEMPLATE_TYPES.forEach((t, i) => {
-      if (id === 'templateType' && i === 0) return;
-      const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o);
-    });
-  });
-}
-
-// ── TOKEN ──────────────────────────────────────────
-function maskPreview(t) { return t ? maskToken(t) : 'Not connected'; }
-
-function refreshTokenUI() {
-  const connected = !!bufferToken;
-  qs('connDot').classList.toggle('on', connected);
-  qs('connLabel').textContent = connected ? 'Connected' : 'Not connected';
-  qs('connTokenPreview').textContent = maskPreview(bufferToken);
-  updateNavTags();
-}
-
-function updateNavTags() {
-  const connected = !!bufferToken;
-  ['calNavTag','appNavTag'].forEach(id => {
-    const el = qs(id); if (!el) return;
-    el.style.display = connected ? 'none' : '';
-  });
-  document.querySelectorAll('.nav-free-tag').forEach(el => {
-    el.style.display = connected ? 'none' : '';
-  });
-  const calDesc = qs('calDesc');
-  if (calDesc) calDesc.textContent = connected
-    ? 'Your Buffer queue in a monthly view. Spot gaps and add planning notes before you draft.'
-    : 'Connect your Buffer token to load your scheduled posts and spot queue gaps.';
-  const composerDesc = qs('composerDesc');
-  if (composerDesc) composerDesc.textContent = connected
-    ? 'Write your post, attach media, then send to Buffer as a draft, queued post, or scheduled post.'
-    : 'Write here now — connect Buffer to unlock drafting, queueing, and scheduling.';
-  updateComposerButtonStates();
-  qs('calEmptyHint').style.display = connected ? 'none' : 'block';
-}
-
-function updateComposerButtonStates() {
-  const connected = !!bufferToken;
-  const hasChannel = !!qs('composerChannel')?.value;
-  const ready = connected && hasChannel;
-  ['composerDraft','composerQueue','composerScheduleToggle'].forEach(id => {
-    const btn = qs(id); if (!btn) return;
-    btn.disabled = !ready;
-    btn.style.opacity = ready ? '1' : '.45';
-    btn.style.cursor = ready ? 'pointer' : 'not-allowed';
-    btn.title = !connected ? 'Add your Buffer token first' : !hasChannel ? 'Load channels from Buffer first' : '';
-  });
-}
-
-function setBufferToken(token, { mode = 'session', messageEl = null } = {}) {
-  lsRemove(STORE_KEY);
-  ssRemove(STORE_KEY);
-  const clean = String(token || '').trim();
-  if (!clean) {
-    bufferToken = '';
-    clearSyncedData();
-    if (messageEl) messageEl.textContent = 'Token removed.';
-    refreshTokenUI();
-    showToast('Token removed');
-    return false;
-  }
-  if (mode === 'local') lsSet(STORE_KEY, clean);
-  else ssSet(STORE_KEY, clean);
-  bufferToken = clean;
-  if (messageEl) messageEl.textContent = mode === 'local' ? 'Saved locally.' : 'Saved for session.';
-  refreshTokenUI();
-  showToast('Token saved', 'success');
-  return true;
-}
-
-function loadStoredToken() {
-  bufferToken = ssGet(STORE_KEY) || lsGet(STORE_KEY) || '';
-  if (bufferToken) {
-    const inp = qs('tokenInput'); if (inp) inp.value = bufferToken;
-    loadCacheState();
-    hydrateFromCache();
-  }
-  refreshTokenUI();
-}
-
-function saveToken() {
-  const token = qs('tokenInput').value.trim();
-  const mode = [...document.querySelectorAll('input[name="tokenMode"]')].find(r => r.checked)?.value || 'session';
-  const ok = setBufferToken(token, { mode, messageEl: qs('tokenMsg') });
-  if (ok) syncBuffer({ force: true });
-}
-
-// ── CACHE ──────────────────────────────────────────
-function loadCacheState() {
-  try {
-    const raw = lsGet(CACHE_KEY); if (!raw) return;
-    const parsed = JSON.parse(raw);
-    Object.keys(cache).forEach(key => {
-      if (parsed[key]?.ts) cache[key] = { value: parsed[key].value, ts: parsed[key].ts };
-    });
-  } catch {}
-}
-function saveCacheState() { try { lsSet(CACHE_KEY, JSON.stringify(cache)); } catch {} }
-function isCacheFresh(key) { return !!cache[key]?.ts && (Date.now() - cache[key].ts) < CACHE_TTL[key]; }
-function hydrateFromCache() {
-  if (cache.orgId.value) state.organizationId = cache.orgId.value;
-  if (Array.isArray(cache.channels.value) && cache.channels.value.length) state.channels = cache.channels.value;
-  if (Array.isArray(cache.scheduled.value) && cache.scheduled.value.length) state.scheduled = cache.scheduled.value;
-}
-function clearSyncedData() {
-  state.channels = []; state.scheduled = []; state.organizationId = null;
-  Object.keys(cache).forEach(k => { cache[k] = { value: Array.isArray(cache[k]?.value) ? [] : null, ts: 0 }; });
-  try { lsRemove(CACHE_KEY); } catch {}
-  renderChannelSelects(); renderCalendar();
-}
-
-// ── BUFFER API ──────────────────────────────────────
-async function callBuffer(query, variables = {}) {
-  if (!bufferToken) throw Object.assign(new Error('No Buffer token'), { code: 'MISSING_TOKEN' });
-  let res;
-  try { res = await fetch('/.netlify/functions/buffer-proxy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: bufferToken, query, variables }) }); }
-  catch (err) { throw Object.assign(new Error('Network error'), { code: 'PROXY_NETWORK_ERROR', retryable: true, cause: err }); }
-  let data;
-  try { data = await res.json(); } catch { throw Object.assign(new Error('Invalid proxy response'), { code: 'PROXY_BAD_RESPONSE' }); }
-  if (data.errors?.length && !data.data) {
-    const first = data.errors[0] || {};
-    throw Object.assign(new Error(first.message || 'Buffer request failed'), { code: first.code || 'BUFFER_ERROR', status: first.status, retryable: !!first.retryable, retryAfter: first.retryAfter });
-  }
-  return data;
-}
-
-function getErrorMessage(err, fallback = 'Request failed. Please try again.') {
-  const code = String(err?.code || '').toUpperCase();
-  const msg  = String(err?.message || '');
-  if (code === 'MISSING_TOKEN') return 'Add your Buffer token first.';
-  if (code === 'RATE_LIMIT' || err?.status === 429) return `Buffer rate limit hit.${err?.retryAfter ? ` Retry in ${err.retryAfter}s.` : ''}`;
-  if (code === 'AUTH_ERROR' || /unauthorized|invalid|forbidden|expired/i.test(msg)) return 'Token appears invalid or expired. Reconnect Buffer.';
-  if (code === 'PROXY_NETWORK_ERROR') return 'Network issue reaching Buffer. Check connection and retry.';
-  return msg || fallback;
-}
-
-function isAuthError(err) {
-  return ['AUTH_ERROR'].includes(String(err?.code || '').toUpperCase())
-    || err?.status === 401 || err?.status === 403
-    || /unauthorized|invalid token|forbidden|expired/i.test(String(err?.message || ''));
-}
-
-function handleAuthFailure(msg) {
-  bufferToken = '';
-  lsRemove(STORE_KEY); ssRemove(STORE_KEY);
-  clearSyncedData(); refreshTokenUI();
-  setSyncStatus('failed', msg);
-}
-
-// ── SYNC ──────────────────────────────────────────
-function setSyncStatus(state_, msg) {
-  state.syncState = state_;
-  const el = qs('syncStatus'); if (!el) return;
-  el.textContent = msg;
-  const lastEl = qs('lastSynced');
-  if (state_ === 'success' && lastEl) lastEl.textContent = `Synced at ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
-}
-
-async function getOrgId({ force = false } = {}) {
-  if (!force && state.organizationId && isCacheFresh('orgId')) return state.organizationId;
-  const acc = await callBuffer('query { account { organizations { id name } } }');
-  const orgId = acc?.data?.account?.organizations?.[0]?.id || null;
-  if (orgId) { state.organizationId = orgId; cache.orgId = { value: orgId, ts: Date.now() }; }
-  return orgId;
-}
-
-async function getChannels({ force = false } = {}) {
-  if (!force && state.channels.length && isCacheFresh('channels')) return state.channels;
-  const orgId = await getOrgId({ force });
-  if (!orgId) return [];
-  const q = 'query C($organizationId: OrganizationId!) { channels(input:{organizationId:$organizationId}){ id displayName name service } }';
-  const ch = await callBuffer(q, { organizationId: orgId });
-  state.channels = ch?.data?.channels || [];
-  cache.channels = { value: state.channels, ts: Date.now() };
-  return state.channels;
-}
-
-async function getScheduledPosts({ force = false } = {}) {
-  if (!force && state.scheduled.length && isCacheFresh('scheduled')) return state.scheduled;
-  const orgId = await getOrgId({ force });
-  if (!orgId) return [];
-  const bounds = getScheduledBounds();
-  let all = [], after = null, hasNext = true, fetched = 0;
-  const seen = new Set();
-  const q = 'query P($organizationId: OrganizationId!, $after: String, $first: Int!) { posts(first:$first,after:$after,input:{organizationId:$organizationId,filter:{status:[scheduled]}}){edges{node{id text dueAt channelId}} pageInfo{hasNextPage endCursor} } }';
-  while (hasNext && fetched < 200 && all.length < 200) {
-    const page = await callBuffer(q, { organizationId: orgId, after, first: 50 });
-    const block = page?.data?.posts;
-    (block?.edges || []).forEach(e => {
-      const post = e?.node;
-      if (!post?.id || seen.has(post.id)) return;
-      const due = new Date(post.dueAt);
-      if (due >= bounds.start && due <= bounds.end) { seen.add(post.id); all.push(post); }
-    });
-    hasNext = !!block?.pageInfo?.hasNextPage; after = block?.pageInfo?.endCursor || null; fetched += (block?.edges || []).length;
-    if (!block?.pageInfo) break;
-  }
-  all.sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt));
-  state.scheduled = all;
-  cache.scheduled = { value: all, ts: Date.now() };
-  saveCacheState();
-  return all;
-}
-
-function getScheduledBounds() {
-  const m = state.month;
-  const start = new Date(m.getFullYear(), m.getMonth(), 1); start.setDate(start.getDate() - 7);
-  const end = new Date(m.getFullYear(), m.getMonth() + 1, 0); end.setDate(end.getDate() + 60);
-  return { start, end };
-}
-
-async function syncBuffer({ force = false } = {}) {
-  if (!bufferToken) { setSyncStatus('failed', 'Add your Buffer token first.'); return; }
-  setSyncStatus('syncing', 'Syncing…');
-  const btn = qs('syncBtn'); const orig = btn.innerHTML;
-  btn.innerHTML = '↻ Syncing…'; btn.disabled = true;
-  try {
-    const orgId = await getOrgId({ force });
-    if (!orgId) { clearSyncedData(); setSyncStatus('failed', 'No organization found.'); return; }
-    await getChannels({ force });
-    const posts = await getScheduledPosts({ force });
-    renderChannelSelects();
-    renderCalendar();
-    detectQueueGaps();
-    setSyncStatus('success', `${posts.length} scheduled posts loaded.`);
-    showToast(`Loaded ${posts.length} posts`, 'success');
-    window.dispatchEvent(new Event('postiq:synced'));
-  } catch (e) {
-    const msg = getErrorMessage(e, 'Sync failed.');
-    if (isAuthError(e)) handleAuthFailure(msg);
-    else setSyncStatus('failed', msg);
-    showToast(msg, 'error');
-  } finally { btn.innerHTML = orig; btn.disabled = false; }
-}
-
-// ── CHANNEL SELECTS ──────────────────────────────────
-function renderChannelSelects() {
-  const sel = qs('composerChannel'); if (!sel) return;
-  sel.innerHTML = '';
-  if (state.channels.length) {
-    state.channels.forEach(c => {
-      const o = document.createElement('option');
-      o.value = c.id; o.textContent = `${c.displayName || c.name} (${c.service})`; sel.appendChild(o);
-    });
-    qs('composerNoChannels').style.display = 'none'; sel.style.display = '';
-  } else {
-    qs('composerNoChannels').style.display = 'block'; sel.style.display = 'none';
-  }
-  updateComposerButtonStates();
-}
-
-// ── CALENDAR ──────────────────────────────────────
-function getNotes() { try { return JSON.parse(lsGet(NOTE_KEY) || '{}'); } catch { return {}; } }
-function setNotes(v) { lsSet(NOTE_KEY, JSON.stringify(v)); }
-
-function renderCalendar() {
-  qs('monthLabel').textContent = monthLabel(state.month);
-  const grid = qs('calGrid'); grid.innerHTML = '';
-  const first = monthStart(state.month);
-  const start = new Date(first); start.setDate(1 - first.getDay());
-  const notes = getNotes();
-  const today = fmtDate(new Date());
-  for (let i = 0; i < 42; i++) {
-    const d = new Date(start); d.setDate(start.getDate() + i);
-    const key = fmtDate(d);
-    const inMonth = d.getMonth() === state.month.getMonth();
-    const dayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
-    const note = notes[key];
-    const isToday = key === today;
-    const hasGap = inMonth && !dayPosts.length && [1,2,3,4,5].includes(d.getDay()); // weekday gap indicator
-
-    const day = document.createElement('div');
-    let cls = 'cal-day';
-    if (!inMonth) cls += ' other-month';
-    if (isToday) cls += ' today';
-    if (dayPosts.length) cls += ' has-posts';
-    day.className = cls;
-
-    let html = `<div class="day-num">${d.getDate()}</div>`;
-    if (dayPosts.length) html += `<div class="day-count">${dayPosts.length}</div>`;
-    if (dayPosts[0]) html += `<div class="day-post-pill">${safeText(compact(dayPosts[0].text, 60))}</div>`;
-    if (dayPosts[1]) html += `<div class="day-post-pill">${safeText(compact(dayPosts[1].text, 60))}</div>`;
-    if (dayPosts.length > 2) html += `<div class="more-indicator">+${dayPosts.length - 2} more</div>`;
-    if (note) html += `<div class="day-note-pill ${note.tag || 'gold'}">${safeText(compact(note.text, 50))}</div>`;
-    day.innerHTML = html;
-    day.onclick = () => openDayNote(d);
-    grid.appendChild(day);
-  }
-  renderAgenda();
-}
-
-function detectQueueGaps() {
-  const panel = qs('gapsPanel'); const list = qs('gapsList');
-  if (!panel || !list || !bufferToken) { if (panel) panel.style.display = 'none'; return; }
-  const today = new Date(); today.setHours(0,0,0,0);
-  const gaps = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(today); d.setDate(today.getDate() + i);
-    if ([0,6].includes(d.getDay())) continue; // skip weekends
-    const key = fmtDate(d);
-    const hasPosts = state.scheduled.some(p => fmtDate(new Date(p.dueAt)) === key);
-    if (!hasPosts) gaps.push(d);
-  }
-  if (!gaps.length) { panel.style.display = 'none'; return; }
-  panel.style.display = 'block';
-  list.innerHTML = '';
-  gaps.forEach(d => {
-    const chip = document.createElement('button');
-    chip.className = 'gap-chip';
-    chip.textContent = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-    chip.onclick = () => openDayNote(d);
-    list.appendChild(chip);
-  });
-}
-
-function openDayNote(date) {
-  state.selectedDate = date;
-  const key = fmtDate(date);
-  const note = getNotes()[key] || { text: '', tag: 'gold', label: 'Idea' };
-  qs('noteDateLabel').textContent = date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
-  qs('noteText').value = note.text || '';
-  qs('noteTag').value = `${note.tag || 'gold'}|${note.label || 'Idea'}`;
-  const dayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
-  qs('dayPostPreview').innerHTML = dayPosts.length
-    ? `<div style="font-size:11px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;">${dayPosts.length} scheduled post${dayPosts.length > 1 ? 's' : ''}</div>${dayPosts.map(p => `<div style="font-size:12px;padding:6px 8px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:5px;color:var(--brand);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${safeText(p.text || '(no text)')}</div>`).join('')}`
-    : `<div style="font-size:12px;color:var(--subtle);margin-bottom:8px;">No posts scheduled on this day.</div>`;
-  qs('noteStatus').textContent = '';
-  openModal('noteModal');
-}
-
-function saveNote() {
-  if (!state.selectedDate) return;
-  const key = fmtDate(state.selectedDate);
-  const text = qs('noteText').value.trim();
-  const [tag, label] = qs('noteTag').value.split('|');
-  const notes = getNotes();
-  if (!text) { delete notes[key]; setNotes(notes); qs('noteStatus').textContent = 'Note removed.'; renderCalendar(); return; }
-  notes[key] = { text, tag, label };
-  setNotes(notes); qs('noteStatus').textContent = 'Saved.'; renderCalendar();
-  showToast('Note saved', 'success');
-}
-
-function deleteNote() {
-  if (!state.selectedDate) return;
-  const notes = getNotes(); delete notes[fmtDate(state.selectedDate)];
-  setNotes(notes); qs('noteText').value = ''; qs('noteStatus').textContent = 'Deleted.'; renderCalendar();
-  showToast('Note deleted');
-}
-
-function sendNoteToDraft() {
-  if (!state.selectedDate) return;
-  const text = qs('noteText').value.trim();
-  if (!text) { qs('noteStatus').textContent = 'Add a note first.'; return; }
-  const [, label] = qs('noteTag').value.split('|');
-  const editor = qs('composerEditor');
-  const payload = `[${label}] ${fmtDate(state.selectedDate)}\n${text}`;
-  editor.innerText = editor.innerText ? `${editor.innerText}\n\n${payload}` : payload;
-  editor.dispatchEvent(new Event('input'));
-  closeModal('noteModal'); activateView('composerView');
-  showToast('Note sent to Draft');
-}
-
-function renderAgenda() {
-  const agenda = qs('calAgenda'); if (!agenda) return;
-  const notes = getNotes(); const today = fmtDate(new Date());
-  agenda.innerHTML = '';
-  const nav = document.createElement('div'); nav.className = 'cal-header';
-  nav.innerHTML = `<div class="cal-month-label" style="font-size:18px;">${monthLabel(state.month)}</div>`;
-  agenda.appendChild(nav);
-  const map = {};
-  state.scheduled.forEach(p => { const k = fmtDate(new Date(p.dueAt)); if (!map[k]) map[k] = { posts: [], note: null }; map[k].posts.push(p); });
-  Object.entries(notes).forEach(([k, n]) => {
-    if (!map[k]) map[k] = { posts: [], note: null }; map[k].note = n;
-  });
-  const days = [];
-  const ms = monthStart(state.month);
-  for (let i = 0; i < 35; i++) { const d = new Date(ms.getFullYear(), ms.getMonth(), i + 1); if (d.getMonth() !== ms.getMonth()) break; days.push(fmtDate(d)); }
-  days.forEach(key => {
-    const data = map[key]; if (!data) return;
-    const isToday = key === today;
-    const date = parseLocalDateKey(key);
-    const dayEl = document.createElement('div');
-    dayEl.style.cssText = `border:1px solid ${isToday ? 'var(--brand)' : 'var(--border)'};border-radius:10px;padding:12px;margin-bottom:8px;background:var(--surface);cursor:pointer;`;
-    const dateLabel = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-    let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:${isToday ? 'var(--brand)' : 'var(--muted)'};">${dateLabel}</span>${data.posts.length ? `<span style="font-size:9px;font-family:'DM Mono',monospace;background:var(--brand-dim);color:var(--brand);border:1px solid var(--brand-glow);padding:1px 5px;border-radius:3px;">${data.posts.length} post${data.posts.length > 1 ? 's' : ''}</span>` : ''}</div>`;
-    data.posts.slice(0, 2).forEach(p => { html += `<div style="font-size:12px;padding:6px 8px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:5px;color:var(--brand);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${safeText(compact(p.text, 80))}</div>`; });
-    if (data.posts.length > 2) html += `<div style="font-size:10px;color:var(--subtle);margin-bottom:4px;">+${data.posts.length - 2} more</div>`;
-    if (data.note) html += `<div class="day-note-pill ${data.note.tag || 'gold'}" style="display:block;border-radius:5px;margin-top:4px;">${safeText(compact(data.note.text, 60))}</div>`;
-    dayEl.innerHTML = html; dayEl.onclick = () => openDayNote(date);
-    agenda.appendChild(dayEl);
-  });
-  if (!Object.keys(map).length) {
-    const empty = document.createElement('div'); empty.className = 'empty-state'; empty.innerHTML = '<div class="empty-icon">📅</div><div class="empty-title">Nothing scheduled</div><div class="empty-desc">Connect Buffer and sync to load your upcoming posts.</div>';
-    agenda.appendChild(empty);
-  }
-}
-
-// Calendar snapshot share
-function shareSnapshot() {
-  const include = qs('includeNotes').checked;
-  const posts = state.scheduled.filter(p => {
-    const d = new Date(p.dueAt);
-    return d.getFullYear() === state.month.getFullYear() && d.getMonth() === state.month.getMonth();
-  });
-  const allNotes = getNotes();
-  const monthNotes = Object.entries(allNotes).filter(([k]) => {
-    const d = new Date(k + 'T00:00:00');
-    return d.getFullYear() === state.month.getFullYear() && d.getMonth() === state.month.getMonth();
-  }).map(([date, val]) => ({ date, ...val }));
-  const label = monthLabel(state.month);
-  qs('shareMonthName').textContent = label;
-  qs('sharePostCount').textContent = posts.length;
-  const payload = {
-    snapshotId: makeSnapshotId(),
-    createdAt: Date.now(),
-    period: 'month',
-    label,
-    includeNotes: include,
-    posts: posts.map(p => ({ dueAt: p.dueAt, text: p.text, noteText: p.note || '', channelName: p.channelName || p.channel || '' })),
-    notes: include ? monthNotes : []
-  };
-  qs('shareLink').value = location.origin + location.pathname + '#share=' + btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-}
-
-function renderSharedFromHash() {
-  if (!location.hash.startsWith('#share=')) return false;
-  try {
-    const snap = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(7)))));
-    qs('app').classList.add('hidden'); qs('sharedView').classList.remove('hidden');
-    qs('sharedMonthTitle').textContent = snap.label || snap.month || monthLabel(new Date());
-    qs('sharedBanner').textContent = ''; qs('sharedBanner').style.display = 'none';
-    const closeBtn = qs('closeSharedDay'); if (closeBtn) closeBtn.onclick = () => closeModal('sharedDayModal');
-    const grid = qs('sharedGrid'); grid.innerHTML = '';
-    const map = {};
-    snap.posts.forEach(p => { const k = p.dueAt.slice(0, 10); if (!map[k]) map[k] = { posts: [], notes: [] }; map[k].posts.push(p); });
-    (snap.notes || []).forEach(n => { if (!map[n.date]) map[n.date] = { posts: [], notes: [] }; map[n.date].notes.push(n); });
-    Object.keys(map).sort().forEach(k => {
-      const d = document.createElement('div'); d.className = 'cal-day'; d.style.cursor = 'pointer';
-      const data = map[k];
-      let html = `<div class="day-num">${k.slice(8)}</div>`;
-      if (data.posts.length) html += `<div class="day-count">${data.posts.length}</div>`;
-      data.posts.slice(0, 2).forEach(p => { html += `<div class="day-post-pill">${safeText(compact(p.text || p, 60))}</div>`; });
-      if (data.posts.length > 2) html += `<div class="more-indicator">+${data.posts.length - 2} more</div>`;
-      data.notes.slice(0, 1).forEach(n => { html += `<div class="day-note-pill ${n.tag || 'gold'}">${safeText(compact(n.text, 50))}</div>`; });
-      d.innerHTML = html;
-      d.onclick = () => openSharedDay(k, data);
-      grid.appendChild(d);
-    });
-    return true;
-  } catch { return false; }
-}
-
-function openSharedDay(key, data) {
-  qs('sharedDayTitle').textContent = parseLocalDateKey(key).toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
-  const body = qs('sharedDayBody');
-  body.innerHTML = '';
-  if (data.posts?.length) {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `<div style="font-size:11px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px;">Scheduled posts</div>` + data.posts.map((p, i) => `<div style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);margin-bottom:8px;"><div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--brand);margin-bottom:6px;">Post ${i+1}${p.channelName ? ' · ' + safeText(p.channelName) : ''}</div><div style="white-space:pre-wrap;font-size:13px;line-height:1.65;color:var(--text);">${safeText(p.text || p)}</div>${p.noteText ? `<div style="margin-top:8px;font-size:12px;color:var(--muted);white-space:pre-wrap;">Notes: ${safeText(p.noteText)}</div>` : ''}</div>`).join('');
-    body.appendChild(card);
-  }
-  if (data.notes?.length) {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `<div style="font-size:11px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px;">Planning notes</div>` + data.notes.map(n => `<div class="day-note-pill ${n.tag || 'gold'}" style="display:block;margin-bottom:8px;padding:10px 12px;border-radius:8px;white-space:pre-wrap;">${safeText(n.text)}</div>`).join('');
-    body.appendChild(card);
-  }
-  const closeBtn = qs('closeSharedDay'); if (closeBtn) closeBtn.onclick = () => closeModal('sharedDayModal');
-  openModal('sharedDayModal');
-}
-
-// ── COMPOSER ──────────────────────────────────────
-function editorToText(html) {
-  const root = document.createElement('div'); root.innerHTML = html;
-  const walk = node => {
-    if (node.nodeType === Node.TEXT_NODE) return node.textContent;
-    const tag = (node.tagName || '').toLowerCase();
-    if (tag === 'br') return '\n';
-    if (tag === 'strong' || tag === 'b') return `**${[...node.childNodes].map(walk).join('')}**`;
-    if (tag === 'em' || tag === 'i') return `*${[...node.childNodes].map(walk).join('')}*`;
-    if (tag === 'li') return [...node.childNodes].map(walk).join('');
-    if (tag === 'ul') return [...node.children].map(li => `• ${walk(li)}`).join('\n') + '\n';
-    if (tag === 'ol') return [...node.children].map((li, i) => `${i+1}. ${walk(li)}`).join('\n') + '\n';
-    const inner = [...node.childNodes].map(walk).join('');
-    if (['p','div'].includes(tag)) return inner + '\n';
-    return inner;
-  };
-  return [...root.childNodes].map(walk).join('').replace(/\n{3,}/g, '\n\n').trim();
-}
-
-function composerFormat(cmd) {
-  const sel = window.getSelection(); if (!sel?.rangeCount) return;
-  if (cmd === 'bold' || cmd === 'italic') document.execCommand(cmd, false, null);
-  else if (cmd === 'ul') document.execCommand('insertUnorderedList', false, null);
-  else if (cmd === 'ol') document.execCommand('insertOrderedList', false, null);
-  else if (cmd === 'clear') document.execCommand('removeFormat', false, null);
-}
-
-// ── MEDIA ──────────────────────────────────────────
-function applyMedia(url, source, thumbUrl = '') {
-  const type = isVideo(url) ? 'video' : 'image';
-  mediaState.url = url; mediaState.type = type; mediaState.source = source; mediaState.videoThumbUrl = thumbUrl;
-  const ton = qs('mediaToggleBtn'), toff = qs('mediaToggleOff'), tthumb = qs('mediaThumbPreview'), tlabel = qs('mediaToggleLabel');
-  if (url) {
-    ton.style.display = 'none'; toff.style.display = 'flex';
-    tlabel.textContent = type === 'video' ? '🎬 Video attached' : '🖼 Image attached';
-    if (tthumb) { tthumb.src = type === 'image' ? url : ''; tthumb.style.display = type === 'image' ? 'inline' : 'none'; }
-    const ms = qs('mediaSummary'); if (ms) ms.style.display = 'flex';
-    const mst = qs('mediaSummaryThumb'); if (mst) { mst.src = type === 'image' ? url : ''; mst.style.display = type === 'image' ? 'block' : 'none'; }
-    const mstype = qs('mediaSummaryType'); if (mstype) mstype.textContent = type === 'video' ? '🎬 Video' : '🖼 Image';
-    const msurl = qs('mediaSummaryUrl'); if (msurl) msurl.textContent = url;
-  } else { clearMedia(); }
-}
-
-function clearMedia() {
-  mediaState.url = ''; mediaState.type = ''; mediaState.source = ''; mediaState.videoThumbUrl = '';
-  qs('mediaToggleBtn').style.display = 'flex'; qs('mediaToggleOff').style.display = 'none';
-  const ms = qs('mediaSummary'); if (ms) ms.style.display = 'none';
-  const inp = qs('mediaUrlInput'); if (inp) inp.value = '';
-  resetUploadTab();
-}
-
-function resetUploadTab() {
-  qs('uploadZone').style.display = 'block'; qs('uploadResult').style.display = 'none';
-  const fi = qs('uploadFileInput'); if (fi) fi.value = '';
-  const st = qs('uploadStatus'); if (st) { st.textContent = ''; }
-}
-
-async function imgurUpload(file) {
-  const fd = new FormData(); fd.append('image', file);
-  const res = await fetch('https://api.imgur.com/3/image', { method: 'POST', headers: { Authorization: `Client-ID ${IMGUR_KEY}` }, body: fd });
-  const data = await res.json();
-  if (!data.success) throw new Error(data.data?.error || '
+</body>
+</html>
