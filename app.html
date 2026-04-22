@@ -429,17 +429,31 @@
             <div style="font-size:11px;color:var(--subtle);margin-top:8px;line-height:1.55;">Save as draft first — then generate an approval link from the Approve tab.</div>
           </div>
 
-          <!-- Templates quick-pick -->
-          <div class="panel-card">
-            <div class="panel-card-title" style="margin-bottom:8px;">Templates</div>
-            <div class="template-list" id="composerTemplateList">
-              <div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;">No templates yet.</div>
-            </div>
-            <button class="btn sm ghost" style="width:100%;margin-top:8px;justify-content:center;" onclick="activateView('templatesView')">Manage templates →</button>
-          </div>
         </div>
 
         </div><!-- /composeModePanel -->
+
+        <section id="composerSupportSection" class="composer-support" aria-label="Draft support tools">
+          <article class="panel-card composer-support-card">
+            <div class="composer-support-hdr">
+              <div class="panel-card-title" style="margin-bottom:0;">Templates</div>
+              <button class="btn sm ghost" type="button" id="composerManageTemplatesBtn">Manage templates →</button>
+            </div>
+            <div class="template-list" id="composerTemplateList">
+              <div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;">No templates yet.</div>
+            </div>
+          </article>
+
+          <article class="panel-card composer-support-card">
+            <div class="composer-support-hdr">
+              <div class="panel-card-title" style="margin-bottom:0;">Pillars</div>
+              <button class="btn sm ghost" type="button" data-view="pillarsView">Open builder →</button>
+            </div>
+            <div id="composerPillarsCompact" class="composer-pillars-compact">
+              <div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;">Build your pillars to see quick starters here.</div>
+            </div>
+          </article>
+        </section>
 
         <!-- ── SPLIT MODE (Thread Splitter) ── -->
         <div id="splitModePanel" style="display:none;grid-column:1/-1;">
@@ -591,7 +605,7 @@
           <div class="content-pillars-header">
             <div>
               <h2 class="content-pillars-title">Pillar Builder</h2>
-              <p class="content-pillars-subtitle">A lightweight way to build balanced topics and jump straight into Draft.</p>
+              <p class="content-pillars-subtitle">Create and edit your own pillars, then jump directly into Draft from any seed.</p>
             </div>
             <div class="content-pillars-header-actions">
               <span class="chip">WIP</span>
@@ -601,7 +615,7 @@
 
           <div class="card content-pillars-stage" id="pillarsChoiceStage">
             <h3 class="content-pillars-stage-title">Before we start, pick your path</h3>
-            <p class="content-pillars-stage-copy">Choose how you'd like PostIQ to guide you. You can always switch later.</p>
+            <p class="content-pillars-stage-copy">Choose how you want PostIQ to guide you.</p>
             <div class="content-pillars-choice-actions">
               <button class="btn primary" type="button" data-pillars-choice="beginner">I'm new to content pillars</button>
               <button class="btn" type="button" data-pillars-choice="experienced">I already know how this works</button>
@@ -616,13 +630,7 @@
               <li>Some tools help you prep, some help you cook, some help you serve.</li>
               <li>Content works the same way: different kinds of posts do different jobs.</li>
             </ul>
-            <p class="content-pillars-stage-copy">Pillars help because they stop you from guessing what to post, help you create faster, and build a balanced content mix over time.</p>
-            <div class="content-pillars-mini-grid">
-              <div class="content-pillars-mini-card"><strong>Teach</strong><span>what you know</span></div>
-              <div class="content-pillars-mini-card"><strong>Share</strong><span>what you experience</span></div>
-              <div class="content-pillars-mini-card"><strong>Believe</strong><span>what you stand for</span></div>
-              <div class="content-pillars-mini-card"><strong>Offer</strong><span>what you sell</span></div>
-            </div>
+            <p class="content-pillars-stage-copy">Pillars help because they stop you from guessing what to post, help you create faster, and keep your content mix balanced over time.</p>
             <button class="btn primary" type="button" id="pillarsBuildBtn">Build my pillars</button>
           </div>
 
@@ -633,11 +641,22 @@
               <textarea id="global-identity" class="content-pillars-textarea" placeholder="e.g. I build local-first software for creators. My tone is clear, practical, and honest."></textarea>
             </div>
 
-            <div id="persona-picker" class="content-pillars-persona-picker">
-              <button class="btn-preset" type="button" data-persona="saas_founder">🛠️ SaaS Founder</button>
-              <button class="btn-preset" type="button" data-persona="nurse">🩺 Nurse</button>
-              <button class="btn-preset" type="button" data-persona="teacher">🍎 Teacher</button>
-              <button class="btn-preset" type="button" data-persona="restaurant">🍳 Restaurant Owner</button>
+            <div class="content-pillars-examples card">
+              <div class="composer-support-hdr" style="margin-bottom:8px;">
+                <div class="panel-card-title" style="margin-bottom:0;">Optional inspiration</div>
+                <button class="btn sm" type="button" id="pillarsLoadExamplesBtn">Use job examples</button>
+              </div>
+              <div id="persona-picker" class="content-pillars-persona-picker" style="display:none;">
+                <button class="btn-preset" type="button" data-persona="saas_founder">🛠️ SaaS Founder</button>
+                <button class="btn-preset" type="button" data-persona="nurse">🩺 Nurse</button>
+                <button class="btn-preset" type="button" data-persona="teacher">🍎 Teacher</button>
+                <button class="btn-preset" type="button" data-persona="restaurant">🍳 Restaurant Owner</button>
+              </div>
+            </div>
+
+            <div class="content-pillars-builder-actions">
+              <button class="btn" type="button" id="pillarsAddBucketBtn">+ Add bucket</button>
+              <button class="btn ghost" type="button" id="pillarsResetDefaultsBtn">Reset starter buckets</button>
             </div>
 
             <div id="bucket-container" class="content-pillars-grid"></div>

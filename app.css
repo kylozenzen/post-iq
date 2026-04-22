@@ -692,7 +692,7 @@
        ════════════════════════════════════ */
     .composer-layout {
       display: grid;
-      grid-template-columns: 1fr 280px;
+      grid-template-columns: 1fr 260px;
       gap: 18px;
       align-items: start;
     }
@@ -772,6 +772,55 @@
       display: flex;
       flex-direction: column;
       gap: 14px;
+    }
+
+    .composer-support {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 2px;
+    }
+    .composer-support-card { padding: 14px; }
+    .composer-support-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .composer-pillars-compact {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+    .composer-pillar-mini {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      background: var(--surface2);
+    }
+    .composer-pillar-mini h4 {
+      font-size: 13px;
+      margin-bottom: 4px;
+      color: var(--ink);
+    }
+    .composer-pillar-mini small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+    .composer-pillar-mini-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border-top: 1px solid var(--border);
+      padding-top: 8px;
+      margin-top: 8px;
     }
 
     .panel-card {
@@ -1420,6 +1469,44 @@
   }
 }
 
+
+.content-pillars-builder-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.bucket-head {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  gap: 6px;
+}
+.bucket-input,
+.seed-input {
+  width: 100%;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 7px 9px;
+  font-size: 13px;
+  background: var(--surface);
+}
+.seed-input { font-size: 12px; }
+.seed-actions { display:flex; gap:6px; flex-shrink:0; }
+.seed-item { align-items: center; }
+.seed-grow { flex:1; min-width:0; }
+.bucket-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--border);
+}
+.content-pillars-examples { padding: 12px 14px; }
+.content-pillars-examples .content-pillars-persona-picker { padding-bottom: 0; }
+.btn-copy-prompt.secondary {
+  background: transparent;
+}
 .switch { position: relative; display: inline-block; width: 34px; height: 18px; }
 .switch input { opacity: 0; width: 0; height: 0; }
 .slider {
@@ -1503,6 +1590,7 @@
       #refPin          { margin: 0 16px 14px; }
       /* Right-panel card becomes a section below the editor */
       .composer-panel  { padding: 14px 16px 0; display: flex; flex-direction: column; gap: 12px; }
+      .composer-support { grid-template-columns: 1fr; gap: 10px; padding: 0 16px; margin-top: 10px; }
       .send-actions    { display: flex; flex-direction: column; gap: 8px; }
       .send-actions .btn { height: 44px; font-size: 15px; justify-content: center; }
 
@@ -1646,7 +1734,11 @@
     body.zen-active #mediaToggleOff,
     body.zen-active #mediaSummary,
     body.zen-active #composerStatus,
-    body.zen-active .editor-toolbar { opacity: 0; pointer-events: none; transition: opacity .3s ease; }
+    body.zen-active .editor-toolbar,
+body.zen-active #composerModeTabs,
+body.zen-active #splitModePanel,
+body.zen-active #composerSupportSection,
+body.zen-active #zenActions { opacity: 0; pointer-events: none; transition: opacity .3s ease; }
 
     body.zen-active .app { grid-template-columns: 1fr; }
     body.zen-active .main { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
@@ -1715,7 +1807,7 @@
       flex-wrap: wrap;
       padding: 12px 0 0;
     }
-    body.zen-active #zenActions { display: flex; }
+    body.zen-active #zenActions { display: none !important; }
     #zenActions .btn { height: 36px; font-size: 13px; }
     #zenActions .btn.primary { background: var(--brand); color: #fff; border-color: transparent; }
     #zenActions select {
