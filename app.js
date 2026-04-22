@@ -2071,7 +2071,7 @@ window.ContentPillars = (() => {
       name: String(bucket?.name || 'Untitled').trim() || 'Untitled',
       helper: String(bucket?.helper || '').trim(),
       seeds: Array.isArray(bucket?.seeds) && bucket.seeds.length
-        ? bucket.seeds.map((seed) => String(seed || '').trim()).filter(Boolean)
+        ? bucket.seeds.map((seed) => String(seed ?? ''))
         : ['']
     }));
   }
@@ -2200,7 +2200,7 @@ Task: Write a punchy, authentic social post from this angle. Avoid corporate jar
         const btn = document.createElement('button');
         btn.className = 'btn-copy-prompt';
         btn.type = 'button';
-        btn.textContent = 'Start in Draft';
+        btn.textContent = 'Start';
         btn.addEventListener('click', () => {
           const wrote = cpInsertIntoComposer(cpComposeStarter(bucket.name, bucket.helper, seed));
           showToast(wrote ? 'Starter added to Draft.' : 'Could not open Draft editor.', wrote ? 'success' : 'error');
@@ -2233,11 +2233,11 @@ Task: Write a punchy, authentic social post from this angle. Avoid corporate jar
         row.className = 'seed-item';
         row.dataset.seedIndex = String(idx);
         row.innerHTML = `
-          <input class="seed-input seed-grow" data-cp-field="seed" type="text" value="${safeText(seed)}" aria-label="Seed idea" />
+          <input class="seed-input" data-cp-field="seed" type="text" value="${safeText(seed)}" aria-label="Seed idea" />
           <div class="seed-actions">
-            <button class="btn-copy-prompt" type="button" data-cp-action="start">Start in Draft</button>
-            <button class="btn-copy-prompt secondary" type="button" data-cp-action="copy">Copy for AI</button>
-            <button class="btn-copy-prompt secondary" type="button" data-cp-action="remove-seed">Remove</button>
+            <button class="btn-copy-prompt start" type="button" data-cp-action="start">Start</button>
+            <button class="btn-copy-prompt copy" type="button" data-cp-action="copy">Copy</button>
+            <button class="btn-copy-prompt remove" type="button" data-cp-action="remove-seed">Remove</button>
           </div>
         `;
         card.appendChild(row);
@@ -2246,7 +2246,7 @@ Task: Write a punchy, authentic social post from this angle. Avoid corporate jar
       const footer = document.createElement('div');
       footer.className = 'bucket-actions';
       footer.innerHTML = `
-        <button class="btn sm" type="button" data-cp-action="add-seed">+ Add seed idea</button>
+        <button class="btn sm cp-add-seed" type="button" data-cp-action="add-seed">+ Add seed idea</button>
         <button class="btn sm ghost" type="button" data-cp-action="remove-bucket">Remove bucket</button>
       `;
       card.appendChild(footer);
@@ -2315,7 +2315,7 @@ Task: Write a punchy, authentic social post from this angle. Avoid corporate jar
 
     if (action === 'copy') {
       const copied = await cpCopyText(cpComposeAiPrompt(pillar, helper, topic));
-      showToast(copied ? 'Prompt copied for AI.' : 'Could not copy prompt.', copied ? 'success' : 'error');
+      showToast(copied ? 'Prompt copied.' : 'Could not copy prompt.', copied ? 'success' : 'error');
     }
   }
 
