@@ -16,6 +16,7 @@ const TEMPLATE_PLATFORMS = ['All Platforms','LinkedIn','X','Threads','Instagram'
 // ── STATE ──────────────────────────────────────────
 let bufferToken = '';
 let currentViewId = 'calendarView';
+let currentIdeasTab = 'pillars';
 let tokenPanelOpen = false;
 let modalCount = 0;
 
@@ -81,6 +82,30 @@ function showToast(msg, type = '') {
   wrap.appendChild(t);
   const delay = msg.length > 40 ? 3800 : 2600;
   setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 250); }, delay);
+}
+
+async function copyTextSafe(text) {
+  const value = String(text || '');
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(value);
+      return true;
+    }
+  } catch {}
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = value;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return !!ok;
+  } catch {
+    return false;
+  }
 }
 
 function openModal(id) {
@@ -183,7 +208,10 @@ function renderTemplates() {
         <button class="btn sm ghost" data-act="edit" style="margin-left:auto;">✏️</button>
         <button class="btn sm ghost" data-act="del">🗑</button>
       </div>`;
-    card.querySelector('[data-act="copy"]').onclick = () => { navigator.clipboard.writeText(s.body || ''); showToast('Copied'); };
+    card.querySelector('[data-act="copy"]').onclick = async () => {
+      const ok = await copyTextSafe(s.body || '');
+      showToast(ok ? 'Copied' : 'Copy failed', ok ? 'success' : 'error');
+    };
     card.querySelector('[data-act="use"]').onclick  = () => { activateView('composerView'); useTemplateInEditor(s); };
     card.querySelector('[data-act="edit"]').onclick = () => openTemplateModal(s.id);
     card.querySelector('[data-act="del"]').onclick  = () => deleteTemplate(s.id);
@@ -1318,9 +1346,21 @@ function activateView(viewId) {
   document.querySelectorAll('[data-view]').forEach(x => x.classList.toggle('active', x.dataset.view === viewId));
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId));
   document.querySelectorAll('.mob-tab[data-view]').forEach(t => t.classList.toggle('active', t.dataset.view === viewId));
+  if (viewId === 'ideasView') setIdeasTab('pillars');
   if (viewId === 'approvalsView') loadApprovals();
 }
 window.activateView = activateView;
+
+function setIdeasTab(tabId = 'pillars') {
+  const tab = ['pillars', 'templates', 'trending'].includes(tabId) ? tabId : 'pillars';
+  currentIdeasTab = tab;
+  document.querySelectorAll('.ideas-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.ideasTab === tab);
+  });
+  document.querySelectorAll('[data-ideas-panel]').forEach(panel => {
+    panel.classList.toggle('active', panel.dataset.ideasPanel === tab);
+  });
+}
 
 // ── SCHEDULE PICKERS ──────────────────────────────────
 function buildTimePickers() {
@@ -1376,7 +1416,13 @@ function init() {
 
   // Navigation
   document.querySelectorAll('[data-view]').forEach(b => {
-    b.onclick = () => activateView(b.dataset.view);
+    b.onclick = () => {
+      activateView(b.dataset.view);
+      if (b.dataset.view === 'ideasView' && b.dataset.ideasTab) setIdeasTab(b.dataset.ideasTab);
+    };
+  });
+  document.querySelectorAll('.ideas-tab').forEach(tabBtn => {
+    tabBtn.onclick = () => setIdeasTab(tabBtn.dataset.ideasTab);
   });
 
   // Calendar
@@ -1505,7 +1551,7 @@ function init() {
 
   // Templates
   qs('newTemplateBtn').onclick = () => openTemplateModal();
-  const manageTplBtn = qs('composerManageTemplatesBtn'); if (manageTplBtn) manageTplBtn.onclick = () => activateView('templatesView');
+  const manageTplBtn = qs('composerManageTemplatesBtn'); if (manageTplBtn) manageTplBtn.onclick = () => { activateView('ideasView'); setIdeasTab('templates'); };
   qs('closeTemplateModal').onclick = () => closeModal('templateModal');
   qs('cancelTemplateBtn').onclick = () => closeModal('templateModal');
   qs('saveTemplateBtn').onclick = saveTemplate;
@@ -1977,7 +2023,13 @@ function init() {
   const origActivateView = activateView;
   window.activateView = function(viewId) {
     origActivateView(viewId);
-    if (viewId === 'trendingView' && !trendingInited) { trendingInited = true; initTrending(); }
+    if (viewId === 'ideasView' && currentIdeasTab === 'trending' && !trendingInited) { trendingInited = true; initTrending(); }
+  };
+
+  const origSetIdeasTab = setIdeasTab;
+  setIdeasTab = function(tabId) {
+    origSetIdeasTab(tabId);
+    if (currentIdeasTab === 'trending' && !trendingInited) { trendingInited = true; initTrending(); }
   };
 
   // Also update settings guide entry
@@ -2514,6 +2566,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (trigger.tagName === 'A' && trigger.hasAttribute('href')) return;
     e.preventDefault();
     if (typeof window.activateView === 'function') window.activateView(trigger.dataset.view);
+    if (trigger.dataset.view === 'ideasView' && typeof setIdeasTab === 'function' && trigger.dataset.ideasTab) {
+      setIdeasTab(trigger.dataset.ideasTab);
+    }
   });
 
   try { init(); } catch (e) { console.error('[PostIQ] init() crashed:', e); }
