@@ -51,8 +51,8 @@
     .main { overflow: auto; min-width: 0; }
     .view { display: none; padding: 28px 32px 40px; max-width: 1080px; }
     /* Views using view-content: reset outer padding and use view-content */
-    #calendarView, #approvalsView, #templatesView { padding: 28px 0 40px; }
-    #calendarView .page-hdr, #approvalsView .page-hdr, #templatesView .page-hdr { margin-left: 32px; margin-right: 32px; }
+    #calendarView, #approvalsView, #ideasView { padding: 28px 0 40px; }
+    #calendarView .page-hdr, #approvalsView .page-hdr, #ideasView .page-hdr { margin-left: 32px; margin-right: 32px; }
     .view.active { display: block; animation: vEnter .18s ease; }
     @keyframes vEnter { from { opacity:.5; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
 
@@ -1207,6 +1207,42 @@
     .template-card-tags { font-size: 10px; color: var(--subtle); font-family: 'DM Mono', monospace; }
     .template-card-actions { display: flex; gap: 5px; padding-top: 6px; border-top: 1px solid var(--border); }
 
+    .ideas-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .ideas-tab {
+      border: 1px solid var(--border2);
+      background: var(--surface);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      cursor: pointer;
+      transition: all .12s;
+    }
+    .ideas-tab.active {
+      color: var(--brand);
+      border-color: var(--brand-glow);
+      background: var(--brand-dim);
+    }
+    .ideas-panel { display: none; }
+    .ideas-panel.active { display: block; }
+    .ideas-panel-hdr {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .ideas-panel-copy { color: var(--muted); font-size: 13px; line-height: 1.6; max-width: 700px; }
+    .ideas-mobile-only { display: none; }
+    .ideas-desktop-only { display: inline-flex; }
+
     /* Settings modal tabs */
     .settings-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
     .settings-tab {
@@ -1672,6 +1708,19 @@
       }
       .type-filter-btn .type-filter-count { display: none; }
       .templates-grid { grid-template-columns: 1fr; }
+      .ideas-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: thin;
+      }
+      .ideas-tab { flex: 0 0 auto; }
+      .ideas-panel-hdr {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .ideas-panel-hdr .page-actions { display: flex; justify-content: flex-start; }
+      .ideas-mobile-only { display: inline-flex; }
+      .ideas-desktop-only { display: none; }
 
       /* ── Approvals ── */
       .approval-card {
