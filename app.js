@@ -2052,509 +2052,347 @@ function init() {
 
 
 
-// ── CONTENT PILLARS (SAFE PREVIEW) ───────────────────
+// ── CONTENT PILLARS v2 ────────────────────────────────────
 window.ContentPillars = (() => {
-  const CP_MODE_KEY = 'postiq_pillars_onboarding_v1';
-  const CP_DATA_KEY = 'postiq_pillars_builder_v2';
-  const CP_USAGE_KEY = 'postiq_pillars_usage_v1';
-
-  const DEFAULT_BUCKETS = [
-    { id: 'teach', name: 'Teach', helper: 'what you know', seeds: ['Why local-first apps reduce privacy risk', 'How to explain your process without jargon'] },
-    { id: 'share', name: 'Share', helper: 'what you experience', seeds: ['A real lesson from this week', 'A behind-the-scenes moment your audience can relate to'] },
-    { id: 'believe', name: 'Believe', helper: 'what you stand for', seeds: ['A belief that guides your work', 'What you wish more people understood'] },
-    { id: 'offer', name: 'Offer', helper: 'what you sell', seeds: ['Who your offer helps and why', 'A practical invitation to work with you'] }
-  ];
-
-  const EXAMPLE_SETS = {
-    saas_founder: {
-      identity: 'I am a senior dev building minimalist, local-first tools for creators. My tone is clear, practical, and calm.',
-      buckets: [
-        { name: 'Teach', helper: 'what you know', seeds: ['Why local-first apps reduce privacy risk', 'How tiny weekly releases beat big quarterly launches'] },
-        { name: 'Share', helper: 'what you experience', seeds: ['A bug that taught me a better system', 'What solo building looked like this week'] },
-        { name: 'Believe', helper: 'what you stand for', seeds: ['Software should feel like a tool, not a trap', 'Simple UX is a performance feature'] },
-        { name: 'Offer', helper: 'what you sell', seeds: ['Who PostIQ is best for', 'What the new pillars flow helps you do faster'] }
-      ]
-    },
-    nurse: {
-      identity: 'I am a compassionate nurse focused on practical education and myth-busting. My tone is warm, direct, and encouraging.',
-      buckets: [
-        { name: 'Teach', helper: 'what you know', seeds: ['How to prep kids for a checkup', 'Early signs burnout is building'] },
-        { name: 'Share', helper: 'what you experience', seeds: ['What a long shift taught me today', 'A patient-safe story that changed my approach'] },
-        { name: 'Believe', helper: 'what you stand for', seeds: ['Compassion is a clinical skill', 'Advocacy belongs in everyday care'] },
-        { name: 'Offer', helper: 'what you sell', seeds: ['My wellness checklist for busy families', 'How to join my next health Q&A'] }
-      ]
-    },
-    teacher: {
-      identity: 'I am an educator sharing practical classroom strategies and student-first advocacy. My tone is optimistic and practical.',
-      buckets: [
-        { name: 'Teach', helper: 'what you know', seeds: ['A low-prep classroom routine that works', 'One strategy for reluctant readers'] },
-        { name: 'Share', helper: 'what you experience', seeds: ['A classroom win from this week', 'The real Sunday planning routine'] },
-        { name: 'Believe', helper: 'what you stand for', seeds: ['Every student needs a safe adult', 'Confidence should count as progress too'] },
-        { name: 'Offer', helper: 'what you sell', seeds: ['What is inside my classroom templates', 'How to join my teacher prep session'] }
-      ]
-    },
-    restaurant: {
-      identity: 'I run a scratch kitchen and share practical food stories rooted in local community. My tone is warm and welcoming.',
-      buckets: [
-        { name: 'Teach', helper: 'what you know', seeds: ['How we build flavor from scratch', 'How we source local ingredients on a budget'] },
-        { name: 'Share', helper: 'what you experience', seeds: ['What prep hour looks like before service', 'A Saturday rush story from our team'] },
-        { name: 'Believe', helper: 'what you stand for', seeds: ['Why local food businesses matter', 'Why we choose quality over shortcuts'] },
-        { name: 'Offer', helper: 'what you sell', seeds: ['Who our seasonal menu is for', 'How to book our patio for events'] }
-      ]
-    }
-  };
+  const CP_KEY = 'postiq_pillars_v3';
+  const USAGE_KEY = 'postiq_pillars_usage_v1';
+  const TONES = ['Practical', 'Story', 'Contrarian', 'Question'];
+  const COLORS = ['#3a3fff', '#0fa672', '#f59e0b', '#ff4f6a', '#7c3aed', '#9298b0'];
 
   const cpState = {
-    mode: null,
-    persona: 'saas_founder',
+    journeyStep: 0,
+    audience: { who: '', struggles: [], custom: '' },
+    quickSeeds: '',
     identity: '',
-    buckets: [],
-    seedTones: {}
+    pillars: [],
+    _previewPillars: null,
   };
 
-  const cpQsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
-  const cpUid = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+  const cpQs = id => document.getElementById(id);
+  const cpUid = () => Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+  const cpEsc = s => String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+  const pillarColor = i => COLORS[i % COLORS.length];
 
-  function cpCloneDefaultBuckets() {
-    return DEFAULT_BUCKETS.map((bucket) => ({ ...bucket, id: cpUid(), seeds: [...bucket.seeds] }));
+  function cpGetUsage() { try { return JSON.parse(localStorage.getItem(USAGE_KEY) || '{}'); } catch { return {}; } }
+  function cpBumpUsage(pid) { const u = cpGetUsage(); u[pid] = (u[pid] || 0) + 1; try { localStorage.setItem(USAGE_KEY, JSON.stringify(u)); } catch {} }
+  function cpTotalUsage() { return Object.values(cpGetUsage()).reduce((a, b) => a + Number(b || 0), 0); }
+  function cpUsageFor(pid) { return cpGetUsage()[pid] || 0; }
+
+  function cpNormalizePillar(p, i = 0) {
+    return {
+      id: String(p?.id || cpUid()),
+      name: String(p?.name || p?.helper || `Pillar ${i + 1}`),
+      promise: String(p?.promise || p?.helper || 'The recurring promise this pillar makes to your audience'),
+      layer: ['awareness', 'credibility', 'action'].includes(p?.layer) ? p.layer : '',
+      seeds: Array.isArray(p?.seeds) && p.seeds.length ? p.seeds.map(s => String(s || '')) : [''],
+      tones: p?.tones && typeof p.tones === 'object' ? p.tones : {},
+    };
   }
 
-  function cpNormalizeBuckets(buckets) {
-    if (!Array.isArray(buckets) || !buckets.length) return cpCloneDefaultBuckets();
-    return buckets.map((bucket) => ({
-      id: bucket?.id || cpUid(),
-      name: String(bucket?.name || 'Untitled').trim() || 'Untitled',
-      helper: String(bucket?.helper || '').trim(),
-      seeds: Array.isArray(bucket?.seeds) && bucket.seeds.length
-        ? bucket.seeds.map((seed) => String(seed ?? ''))
-        : ['']
-    }));
+  function cpPersist() {
+    try { localStorage.setItem(CP_KEY, JSON.stringify({ identity: cpState.identity, pillars: cpState.pillars })); } catch {}
+    cpRenderCompact();
   }
 
-  function cpReadMode() {
+  function cpLoad() {
     try {
-      const raw = localStorage.getItem(CP_MODE_KEY);
-      return raw === 'beginner' || raw === 'experienced' ? raw : null;
-    } catch { return null; }
-  }
-
-  function cpWriteMode(mode) { try { localStorage.setItem(CP_MODE_KEY, mode); } catch {} }
-
-  function cpGetUsage() {
-    try { return JSON.parse(localStorage.getItem(CP_USAGE_KEY) || '{}'); } catch { return {}; }
-  }
-
-  function cpIncrementUsage(bucketId) {
-    const usage = cpGetUsage();
-    usage[bucketId] = (usage[bucketId] || 0) + 1;
-    try { localStorage.setItem(CP_USAGE_KEY, JSON.stringify(usage)); } catch {}
-  }
-
-  function cpHasOnlyDefaultBuckets() {
-    const ids = DEFAULT_BUCKETS.map((b) => b.id);
-    return !cpState.buckets.length || cpState.buckets.every((b) => ids.includes(b.id));
-  }
-
-  function cpAutoLoadStarterPersona() {
-    if (cpHasOnlyDefaultBuckets()) cpLoadExample('saas_founder');
-  }
-
-  function cpReadData() {
-    try {
-      const raw = localStorage.getItem(CP_DATA_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      return {
-        identity: String(parsed?.identity || ''),
-        buckets: cpNormalizeBuckets(parsed?.buckets),
-        seedTones: parsed?.seedTones && typeof parsed.seedTones === 'object' ? parsed.seedTones : {}
-      };
-    } catch { return null; }
-  }
-
-  function cpPersistData() {
-    try {
-      localStorage.setItem(CP_DATA_KEY, JSON.stringify({
-        identity: cpState.identity,
-        buckets: cpNormalizeBuckets(cpState.buckets),
-        seedTones: cpState.seedTones || {}
-      }));
+      const d = JSON.parse(localStorage.getItem(CP_KEY) || 'null');
+      if (d?.pillars?.length) {
+        cpState.identity = d.identity || '';
+        cpState.pillars = d.pillars.map(cpNormalizePillar);
+        return true;
+      }
     } catch {}
-    cpRenderDraftCompact();
+    return false;
   }
 
-  function cpSetStage(mode) {
-    cpState.mode = mode;
-    const choice = qs('pillarsChoiceStage');
-    const beginner = qs('pillarsBeginnerStage');
-    const builder = qs('pillarsBuilderStage');
-    if (choice) choice.style.display = mode ? 'none' : 'block';
-    if (beginner) beginner.style.display = mode === 'beginner' ? 'block' : 'none';
-    if (builder) builder.style.display = mode === 'builder' ? 'block' : 'none';
+  function cpShowStage(id) {
+    document.querySelectorAll('.cp-stage').forEach(el => el.classList.remove('active'));
+    const el = cpQs(id);
+    if (el) el.classList.add('active');
   }
 
-  function cpSetActivePersonaButton(key) {
-    cpQsa('[data-persona]').forEach((btn) => btn.classList.toggle('is-active', btn.dataset.persona === key));
+  function cpShowStep(n) {
+    cpState.journeyStep = n;
+    document.querySelectorAll('.cp-journey-step').forEach(el => el.classList.remove('active'));
+    const el = document.querySelector(`.cp-journey-step[data-jstep="${n}"]`);
+    if (el) el.classList.add('active');
+    document.querySelectorAll('.cp-prog-step').forEach((step, i) => {
+      step.classList.toggle('active', i === n);
+      step.classList.toggle('done', i < n);
+    });
+    if (n === 4) cpBuildPreview();
   }
 
-  function cpComposeStarter(pillarName, helper, topic, tone) {
-    const identity = (cpState.identity || '').trim();
-    const voiceLine = identity ? 'Voice: ' + identity + '\n\n' : '';
-    let starterLine = 'Here is the clearest way I can explain this:';
-    if (tone === 'Story') starterLine = 'Here is a moment that changed how I think about this:';
-    if (tone === 'Contrarian') starterLine = 'Unpopular take:';
-    if (tone === 'Question') starterLine = 'Quick question for you:';
-    return voiceLine + 'Pillar: ' + pillarName + ' — ' + (helper || 'explain this clearly') + '\nTopic: ' + topic + '\n\nDraft starter: ' + starterLine;
+  function cpDefaultPillars(who = '') {
+    const audience = who || 'your audience';
+    return [
+      { id: cpUid(), name: 'What I Know', promise: `Teaching ${audience} the things that took me years to learn`, layer: 'credibility', seeds: ['The question I get asked every single week', 'Something obvious to me that surprises most people', 'What I wish someone had told me when I started'], tones: {} },
+      { id: cpUid(), name: 'Real Talk', promise: 'Honest takes and the reality behind the polished version', layer: 'awareness', seeds: ['A mistake I made and what it taught me', 'What actually happened vs. what I posted about it', 'The version of success nobody talks about'], tones: {} },
+      { id: cpUid(), name: 'My Beliefs', promise: 'Opinions worth holding — things I know to be true', layer: 'awareness', seeds: ["A belief I held 2 years ago that I've changed", 'The thing I will not stop saying', 'An unpopular opinion in my industry'], tones: {} },
+      { id: cpUid(), name: 'How I Can Help', promise: "What I offer, who it's for, and what changes", layer: 'action', seeds: ['Who gets the most from what I do', 'The moment someone realizes they need this', 'What looks different after working with me'], tones: {} },
+    ];
   }
 
-  function cpComposeAiPrompt(pillarName, helper, topic) {
-    const identity = (cpState.identity || '').trim() || 'A practical creator with a clear point of view';
-    return `Voice and point of view: ${identity}
-Pillar: ${pillarName}
-Helper framing: ${helper || 'Explain this clearly and simply'}
-Topic: ${topic}
-Task: Write a punchy, authentic social post from this angle. Avoid corporate jargon.`;
+  function cpPillarsFromJourney() {
+    const who = cpQs('cpAudienceWho')?.value?.trim() || '';
+    const seedsRaw = cpQs('cpQuickSeeds')?.value?.trim() || '';
+    const seeds = seedsRaw.split('\n').map(s => s.replace(/^\d+[.)]?\s*/, '').trim()).filter(Boolean);
+    return [
+      { id: cpUid(), name: 'What I Know', promise: `Teaching ${who || 'your audience'} the things that took me years to learn`, layer: 'credibility', seeds: [seeds[0] || 'The question I get asked every single week', 'Something obvious to me that surprises most people', 'What I wish someone had told me when I started'], tones: {} },
+      { id: cpUid(), name: 'Real Talk', promise: 'Honest takes and the reality behind the polished version', layer: 'awareness', seeds: [seeds[1] || 'A mistake I made and what it taught me', 'What actually happened vs. what I posted', 'The version of success nobody talks about'], tones: {} },
+      { id: cpUid(), name: 'My Beliefs', promise: 'Opinions worth holding — things I know to be true', layer: 'awareness', seeds: [seeds[2] || "A belief I held 2 years ago that I've changed", 'The thing I will not stop saying', 'An unpopular opinion in my industry'], tones: {} },
+      { id: cpUid(), name: 'How I Can Help', promise: "What I offer, who it's for, and what changes", layer: 'action', seeds: ['Who gets the most from what I do', 'The moment someone realizes they need this', 'What looks different after working with me'], tones: {} },
+    ];
   }
 
-  function cpInsertIntoComposer(text) {
-    if (typeof window.activateView === 'function') window.activateView('composerView');
-    const rich = document.getElementById('composerEditor');
-    if (!rich || rich.getAttribute('contenteditable') !== 'true') return false;
-    rich.focus();
-    document.execCommand('selectAll', false, null);
-    document.execCommand('insertText', false, text);
-    rich.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
-    return true;
-  }
-
-  async function cpCopyText(text) {
-    try {
-      await safeWriteText(text);
-      return true;
-    } catch {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.setAttribute('readonly', 'readonly');
-      ta.style.position = 'fixed';
-      ta.style.left = '-9999px';
-      document.body.appendChild(ta);
-      ta.select();
-      const ok = document.execCommand('copy');
-      ta.remove();
-      return !!ok;
-    }
-  }
-
-  function cpRenderDraftCompact() {
-    const wrap = qs('composerPillarsCompact');
+  function cpBuildPreview() {
+    const pills = cpPillarsFromJourney();
+    cpState._previewPillars = pills;
+    const wrap = cpQs('cpPreviewPillars');
     if (!wrap) return;
-    const buckets = cpNormalizeBuckets(cpState.buckets);
-    if (!buckets.length) {
-      wrap.innerHTML = '<div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:\'DM Mono\',monospace;">Build your pillars to see quick starters here.</div>';
+    const layerLabels = { credibility: '🎓 Credibility', awareness: '👁 Awareness', action: '🛒 Action' };
+    wrap.innerHTML = '';
+    pills.forEach((p, i) => {
+      const el = document.createElement('div');
+      el.style.cssText = `background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;box-shadow:var(--shadow-sm);margin-bottom:8px;border-left:4px solid ${pillarColor(i)};`;
+      el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;"><span style="font-family:Bricolage Grotesque,sans-serif;font-weight:700;font-size:14px;color:var(--ink);">${cpEsc(p.name)}</span><span style="font-family:DM Mono,monospace;font-size:9px;padding:2px 7px;border-radius:3px;background:var(--brand-dim);border:1px solid var(--brand-glow);color:var(--brand);">${layerLabels[p.layer] || ''}</span></div><div style="font-size:12px;color:var(--muted);margin-bottom:8px;">${cpEsc(p.promise)}</div><div style="display:flex;flex-wrap:wrap;gap:5px;">${p.seeds.map(s => `<span style="font-size:11px;padding:3px 8px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);">${cpEsc(s)}</span>`).join('')}</div>`;
+      wrap.appendChild(el);
+    });
+  }
+
+  function cpRenderPillars() {
+    const list = cpQs('cpPillarsList');
+    if (!list) return;
+    cpState.pillars = cpState.pillars.map(cpNormalizePillar);
+    list.innerHTML = '';
+    cpState.pillars.forEach((pillar, pi) => {
+      const card = document.createElement('div');
+      card.className = 'cp-pillar-card';
+      card.dataset.pid = pillar.id;
+      const usage = cpUsageFor(pillar.id);
+      card.innerHTML = `<div class="cp-pillar-head"><div class="cp-pillar-tab" style="background:${pillarColor(pi)};"></div><div class="cp-pillar-head-inner"><div class="cp-pillar-inputs"><input class="cp-pillar-name" data-field="name" value="${cpEsc(pillar.name)}" placeholder="Pillar name" /><input class="cp-pillar-promise" data-field="promise" value="${cpEsc(pillar.promise)}" placeholder="The recurring promise this pillar makes to your audience…" /></div></div><div class="cp-pillar-head-right"><select class="cp-layer-select" data-field="layer"><option value="" ${pillar.layer ? '' : 'selected'}>Tag layer…</option><option value="awareness" ${pillar.layer === 'awareness' ? 'selected' : ''}>👁 Awareness</option><option value="credibility" ${pillar.layer === 'credibility' ? 'selected' : ''}>🎓 Credibility</option><option value="action" ${pillar.layer === 'action' ? 'selected' : ''}>🛒 Action</option></select><span class="cp-usage-badge ${usage > 0 ? 'used' : ''}">${usage > 0 ? `${usage} drafted` : 'unused'}</span></div></div><div class="cp-seeds" data-seeds-for="${pillar.id}">${pillar.seeds.map((seed, si) => cpSeedRowHtml(pillar, si, seed)).join('')}</div><div class="cp-pillar-footer"><button class="btn sm ghost" data-action="add-seed" type="button" style="font-size:11px;height:26px;padding:0 10px;">+ Add seed idea</button><button class="btn sm ghost" data-action="remove-pillar" type="button" style="font-size:11px;height:26px;padding:0 8px;color:var(--subtle);">Remove pillar</button></div>`;
+      card.querySelectorAll('[data-field="name"],[data-field="promise"]').forEach(inp => {
+        inp.addEventListener('input', () => { pillar[inp.dataset.field] = inp.value; cpPersist(); cpUpdateHealth(); });
+      });
+      card.querySelector('[data-field="layer"]').addEventListener('change', e => { pillar.layer = e.target.value; cpPersist(); cpUpdateLayerCheck(); });
+      card.querySelector('[data-action="add-seed"]').addEventListener('click', () => { pillar.seeds.push(''); cpRenderPillars(); cpPersist(); });
+      card.querySelector('[data-action="remove-pillar"]').addEventListener('click', () => {
+        if (!confirm('Remove this pillar?')) return;
+        cpState.pillars = cpState.pillars.filter(p => p.id !== pillar.id);
+        cpRenderPillars(); cpPersist(); cpUpdateHealth();
+        if (typeof showToast === 'function') showToast('Pillar removed');
+      });
+      cpBindSeeds(card, pillar);
+      list.appendChild(card);
+    });
+    cpUpdateHealth();
+    cpUpdateLayerCheck();
+  }
+
+  function cpSeedRowHtml(pillar, si, seed) {
+    const tone = (pillar.tones && pillar.tones[si]) || 'Practical';
+    return `<div class="cp-seed-row" data-si="${si}"><div class="cp-seed-idx">${si + 1}</div><div class="cp-seed-body"><input class="cp-seed-input" value="${cpEsc(seed)}" placeholder="A specific, real idea you could write about…" /><select class="cp-tone-select" data-tone="${si}">${TONES.map(t => `<option value="${t}" ${t === tone ? 'selected' : ''}>${t}</option>`).join('')}</select></div><div class="cp-seed-actions"><button class="cp-seed-btn go" data-action="start" type="button">Start</button><button class="cp-seed-btn del" data-action="del" type="button" title="Remove">×</button></div></div>`;
+  }
+
+  function cpBindSeeds(card, pillar) {
+    const wrap = card.querySelector('[data-seeds-for]');
+    wrap.querySelectorAll('.cp-seed-input').forEach((inp, si) => {
+      inp.addEventListener('input', () => { pillar.seeds[si] = inp.value; cpPersist(); cpUpdateHealth(); });
+    });
+    wrap.querySelectorAll('[data-tone]').forEach(sel => {
+      sel.addEventListener('change', e => {
+        if (!pillar.tones) pillar.tones = {};
+        pillar.tones[+e.target.dataset.tone] = e.target.value;
+        cpPersist();
+      });
+    });
+    wrap.querySelectorAll('[data-action="start"]').forEach((btn, si) => {
+      btn.addEventListener('click', () => {
+        const seed = (pillar.seeds[si] || '').trim();
+        if (!seed) { if (typeof showToast === 'function') showToast('Add a seed idea first', 'error'); return; }
+        const tone = (pillar.tones && pillar.tones[si]) || 'Practical';
+        cpSendToComposer(cpBuildStarter(pillar, seed, tone));
+        cpBumpUsage(pillar.id);
+        cpRenderPillars();
+        if (typeof showToast === 'function') showToast('Starter sent to Draft', 'success');
+      });
+    });
+    wrap.querySelectorAll('[data-action="del"]').forEach((btn, si) => {
+      btn.addEventListener('click', () => {
+        if (pillar.seeds.length <= 1) pillar.seeds = [''];
+        else pillar.seeds.splice(si, 1);
+        cpRenderPillars(); cpPersist();
+      });
+    });
+  }
+
+  function cpBuildStarter(pillar, seed, tone) {
+    const identity = (cpState.identity || '').trim();
+    const voiceLine = identity ? `Voice: ${identity}\n\n` : '';
+    const openers = {
+      Practical: "Here's the clearest way I can explain this:",
+      Story: "Here's a moment that changed how I think about this:",
+      Contrarian: 'Unpopular take:',
+      Question: 'Quick question for you:',
+    };
+    return `${voiceLine}Pillar: ${pillar.name} — ${pillar.promise}\nTopic: ${seed}\n\nDraft starter: ${openers[tone] || openers.Practical}`;
+  }
+
+  function cpSendToComposer(text) {
+    const editor = document.getElementById('composerEditor');
+    if (editor) {
+      const existing = editor.innerText.trim();
+      editor.innerText = existing ? `${existing}\n\n${text}` : text;
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
+      if (typeof window.activateView === 'function') window.activateView('composerView');
+      editor.focus();
+      return true;
+    }
+    return false;
+  }
+
+  function cpUpdateHealth() {
+    const total = cpState.pillars.length;
+    const seeds = cpState.pillars.reduce((a, p) => a + p.seeds.filter(s => String(s || '').trim()).length, 0);
+    const used = cpTotalUsage();
+    const hP = cpQs('cpHealthPillars'), hS = cpQs('cpHealthSeeds'), hU = cpQs('cpHealthUsage');
+    if (hP) hP.textContent = total;
+    if (hS) hS.textContent = seeds;
+    if (hU) hU.textContent = used;
+    const score = Math.min(100, (Math.min(total, 5) / 5) * 40 + (Math.min(seeds, 15) / 15) * 40 + (Math.min(used, 5) / 5) * 20);
+    const bar = cpQs('cpHealthBar');
+    if (bar) { bar.style.width = `${score}%`; bar.className = `cp-health-fill${score >= 70 ? ' good' : score >= 40 ? ' warn' : ''}`; }
+    const msgs = [[90, 'Pillar system firing on all cylinders.'], [70, 'Strong foundation. Keep drafting.'], [50, 'Looking solid. Start drafting from seeds.'], [20, 'Good start — add more seed ideas.'], [0, 'Add your pillars to start.']];
+    const msg = msgs.find(m => score >= m[0]);
+    const el = cpQs('cpHealthMsg'); if (el) el.textContent = (msg || msgs[msgs.length - 1])[1];
+  }
+
+  function cpUpdateLayerCheck() {
+    const has = l => cpState.pillars.some(p => p.layer === l);
+    const fmt = l => has(l) ? '<span style="color:var(--green);font-weight:700;">✓</span>' : '<span style="color:var(--border2);">—</span>';
+    const a = cpQs('cpLayerA'), c = cpQs('cpLayerC'), x = cpQs('cpLayerX');
+    if (a) a.innerHTML = fmt('awareness');
+    if (c) c.innerHTML = fmt('credibility');
+    if (x) x.innerHTML = fmt('action');
+  }
+
+  function cpRenderCompact() {
+    const wrap = document.getElementById('composerPillarsCompact');
+    if (!wrap) return;
+    const pillars = cpState.pillars.slice(0, 4);
+    if (!pillars.length) {
+      wrap.innerHTML = '<div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:\'DM Mono\',monospace;">Build your pillars in the Ideas tab to see quick starters here.</div>';
       return;
     }
-
     wrap.innerHTML = '';
     const usage = cpGetUsage();
-    buckets.slice(0, 4).forEach((bucket) => {
+    pillars.forEach(pillar => {
       const card = document.createElement('div');
-      card.className = 'composer-pillar-mini';
-      card.style.cursor = 'pointer';
-      const seed = bucket.seeds.find(Boolean) || '';
-      const count = usage[bucket.id] || 0;
-      const badge = count === 0 ? '<span style="font-size:10px;font-family:monospace;color:var(--color-text-secondary,#9298b0);border:1px solid var(--color-border-secondary,#d8dce8);padding:1px 6px;border-radius:999px;margin-left:6px;">unused</span>' : '';
-      card.innerHTML = `<h4>${safeText(bucket.name)}${badge}</h4><small>${safeText(bucket.helper || '')}</small>`;
-      if (seed) {
-        const row = document.createElement('div');
-        row.className = 'composer-pillar-mini-row';
-        row.innerHTML = `<span class="seed-grow" style="font-size:12px;color:var(--muted);">${safeText(seed)}</span>`;
-        const btn = document.createElement('button');
-        btn.className = 'btn-copy-prompt';
-        btn.type = 'button';
-        btn.textContent = 'Start';
-        const startDraft = () => {
-          const wrote = cpInsertIntoComposer(cpComposeStarter(bucket.name, bucket.helper, seed, 'Practical'));
-          if (wrote) cpIncrementUsage(bucket.id);
-          cpRenderDraftCompact();
-          showToast(wrote ? 'Starter added to Draft.' : 'Could not open Draft editor.', wrote ? 'success' : 'error');
-        };
-        btn.addEventListener('click', (event) => {
-          event.stopPropagation();
-          startDraft();
-        });
-        card.addEventListener('click', () => startDraft());
-        row.appendChild(btn);
-        card.appendChild(row);
-      }
-      const usageLine = document.createElement('div');
-      usageLine.style.cssText = 'font-size:11px;color:var(--color-text-secondary,#9298b0);font-family:monospace;margin-top:4px;';
-      usageLine.textContent = count > 0 ? count + ' post' + (count === 1 ? '' : 's') + ' drafted from this pillar' : 'Not used yet';
-      card.appendChild(usageLine);
+      card.className = 'cp-compact-card';
+      const seed = pillar.seeds.find(s => String(s || '').trim()) || '';
+      const count = usage[pillar.id] || 0;
+      card.innerHTML = `<div class="cp-compact-name">${cpEsc(pillar.name)}${count === 0 ? '<span style="font-size:10px;font-family:DM Mono,monospace;color:var(--subtle);border:1px solid var(--border);padding:1px 6px;border-radius:999px;margin-left:6px;">unused</span>' : ''}</div>${seed ? `<div class="cp-compact-seed">${cpEsc(seed)}</div><div class="cp-compact-row"><span style="font-size:10px;font-family:DM Mono,monospace;color:var(--subtle);">${count > 0 ? `${count} post${count > 1 ? 's' : ''} drafted` : 'Not used yet'}</span><button class="btn sm primary" type="button" style="height:24px;font-size:11px;padding:0 8px;" data-start="${cpEsc(pillar.id)}">Start</button></div>` : ''}`;
+      const btn = card.querySelector('[data-start]');
+      if (btn) btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const p = cpState.pillars.find(item => item.id === pillar.id);
+        if (p) { cpSendToComposer(cpBuildStarter(p, seed, 'Practical')); cpBumpUsage(p.id); cpRenderCompact(); if (typeof showToast === 'function') showToast('Starter sent to Draft', 'success'); }
+      });
       wrap.appendChild(card);
     });
   }
 
-  function cpRenderBuilder() {
-    const container = qs('bucket-container');
-    if (!container) return;
-    container.innerHTML = '';
-
-    cpNormalizeBuckets(cpState.buckets).forEach((bucket) => {
-      const card = document.createElement('article');
-      card.className = 'bucket-card';
-      card.dataset.bucketId = bucket.id;
-      card.innerHTML = `
-        <div class="bucket-head">
-          <input class="bucket-input" data-cp-field="name" type="text" value="${safeText(bucket.name)}" aria-label="Bucket title" />
-          <input class="bucket-input" data-cp-field="helper" type="text" value="${safeText(bucket.helper)}" aria-label="Bucket helper" />
-        </div>
-      `;
-
-      bucket.seeds.forEach((seed, idx) => {
-        const row = document.createElement('div');
-        row.className = 'seed-item';
-        row.dataset.seedIndex = String(idx);
-        row.innerHTML = `
-          <input class="seed-input" data-cp-field="seed" type="text" value="${safeText(seed)}" aria-label="Seed idea" />
-          <div class="seed-actions">
-            <button class="btn-copy-prompt start" type="button" data-cp-action="start">Start</button>
-            <button class="btn-copy-prompt copy" type="button" data-cp-action="copy">Copy</button>
-            <button class="btn-copy-prompt remove" type="button" data-cp-action="remove-seed">Remove</button>
-          </div>
-        `;
-        const toneKey = bucket.id + ':' + idx;
-        const toneSelect = document.createElement('select');
-        toneSelect.dataset.cpField = 'tone';
-        toneSelect.dataset.toneKey = toneKey;
-        toneSelect.style.cssText = 'font-size:11px;padding:3px 6px;border-radius:6px;border:0.5px solid var(--color-border-secondary,#d8dce8);background:var(--color-background-secondary,#f9fafc);color:var(--color-text-secondary,#5a6080);cursor:pointer;margin-top:4px;width:100%;';
-        ['Practical','Story','Contrarian','Question'].forEach(t => {
-          const o = document.createElement('option');
-          o.value = t; o.textContent = t;
-          if ((cpState.seedTones[toneKey] || 'Practical') === t) o.selected = true;
-          toneSelect.appendChild(o);
-        });
-        row.appendChild(toneSelect);
-        card.appendChild(row);
-      });
-
-      const footer = document.createElement('div');
-      footer.className = 'bucket-actions';
-      footer.innerHTML = `
-        <button class="btn sm cp-add-seed" type="button" data-cp-action="add-seed">+ Add seed idea</button>
-        <button class="btn sm ghost" type="button" data-cp-action="remove-bucket">Remove bucket</button>
-      `;
-      card.appendChild(footer);
-      container.appendChild(card);
-    });
-  }
-
-  function cpFindBucket(bucketId) {
-    return cpState.buckets.find((bucket) => bucket.id === bucketId);
-  }
-
-  function cpLoadExample(key) {
-    const data = EXAMPLE_SETS[key];
-    if (!data) return;
-    cpState.persona = key;
-    cpState.identity = data.identity;
-    cpState.buckets = data.buckets.map((bucket) => ({ id: cpUid(), name: bucket.name, helper: bucket.helper, seeds: [...bucket.seeds] }));
-    cpState.seedTones = {};
-    const identityEl = qs('global-identity');
-    if (identityEl) identityEl.value = cpState.identity;
-    cpSetActivePersonaButton(key);
-    cpRenderBuilder();
-    cpPersistData();
-  }
-
-  async function cpHandleBuilderAction(action, bucketId, seedIndex) {
-    const bucket = cpFindBucket(bucketId);
-    if (!bucket) return;
-
-    if (action === 'add-seed') {
-      bucket.seeds.push('');
-      cpRenderBuilder();
-      cpPersistData();
-      return;
-    }
-
-    if (action === 'remove-bucket') {
-      cpState.buckets = cpState.buckets.filter((b) => b.id !== bucketId);
-      cpRenderBuilder();
-      cpPersistData();
-      return;
-    }
-
-    if (typeof seedIndex !== 'number' || seedIndex < 0) return;
-    const topic = String(bucket.seeds[seedIndex] || '').trim();
-    const pillar = String(bucket.name || 'Pillar').trim() || 'Pillar';
-    const helper = String(bucket.helper || '').trim();
-
-    if (action === 'remove-seed') {
-      bucket.seeds.splice(seedIndex, 1);
-      if (!bucket.seeds.length) bucket.seeds.push('');
-      cpRenderBuilder();
-      cpPersistData();
-      return;
-    }
-
-    if (!topic) {
-      showToast('Add a seed idea first.', 'error');
-      return;
-    }
-
-    if (action === 'start') {
-      const tone = cpState.seedTones[bucketId + ':' + seedIndex] || 'Practical';
-      const wrote = cpInsertIntoComposer(cpComposeStarter(pillar, helper, topic, tone));
-      if (wrote) cpIncrementUsage(bucketId);
-      cpRenderDraftCompact();
-      showToast(wrote ? 'Starter added to Draft.' : 'Could not open Draft editor.', wrote ? 'success' : 'error');
-      return;
-    }
-
-    if (action === 'copy') {
-      const copied = await cpCopyText(cpComposeAiPrompt(pillar, helper, topic));
-      showToast(copied ? 'Prompt copied.' : 'Could not copy prompt.', copied ? 'success' : 'error');
-    }
-  }
-
-  function cpHandleChoice(mode) {
-    if (mode !== 'beginner' && mode !== 'experienced') return;
-    cpWriteMode(mode);
-    if (mode === 'experienced') {
-      cpSetStage('builder');
-      cpAutoLoadStarterPersona();
-      cpRenderBuilder();
-    } else {
-      cpSetStage('beginner');
-    }
-  }
-
-  function cpResetOnboarding() {
-    try { localStorage.removeItem(CP_MODE_KEY); } catch {}
-    cpSetStage(null);
-  }
-
-  function cpResetDefaults() {
-    cpState.buckets = cpCloneDefaultBuckets();
-    cpRenderBuilder();
-    cpPersistData();
-  }
-
   function init() {
-    const root = qs('pillars-section');
-    if (!root) {
-      const data = cpReadData();
-      cpState.identity = data?.identity || '';
-      cpState.buckets = cpNormalizeBuckets(data?.buckets);
-      cpState.seedTones = data?.seedTones || {};
-      cpRenderDraftCompact();
-      return;
-    }
+    const hasData = cpLoad();
+    const gN = cpQs('cpGateNew'), gE = cpQs('cpGateExperienced');
+    if (gN) gN.addEventListener('click', () => { cpShowStage('cpStageJourney'); cpShowStep(0); });
+    if (gE) gE.addEventListener('click', () => {
+      if (!cpState.pillars.length) cpState.pillars = cpDefaultPillars('');
+      cpShowStage('cpStageBuilder');
+      const bi = cpQs('cpBuilderIdentity'); if (bi) bi.value = cpState.identity || '';
+      cpRenderPillars(); cpPersist();
+    });
 
-    const persisted = cpReadData();
-    cpState.identity = persisted?.identity || '';
-    cpState.buckets = cpNormalizeBuckets(persisted?.buckets);
-    cpState.seedTones = persisted?.seedTones || {};
+    const j0n = cpQs('cpJ0Next'); if (j0n) j0n.addEventListener('click', () => cpShowStep(1));
+    const j1b = cpQs('cpJ1Back'); if (j1b) j1b.addEventListener('click', () => cpShowStep(0));
+    const j1n = cpQs('cpJ1Next'); if (j1n) j1n.addEventListener('click', () => { cpState.audience.who = (cpQs('cpAudienceWho')?.value || '').trim(); cpState.audience.custom = (cpQs('cpStruggleCustom')?.value || '').trim(); cpShowStep(2); });
+    const j2b = cpQs('cpJ2Back'); if (j2b) j2b.addEventListener('click', () => cpShowStep(1));
+    const j2n = cpQs('cpJ2Next'); if (j2n) j2n.addEventListener('click', () => cpShowStep(3));
+    const j3b = cpQs('cpJ3Back'); if (j3b) j3b.addEventListener('click', () => cpShowStep(2));
+    const j3n = cpQs('cpJ3Next'); if (j3n) j3n.addEventListener('click', () => { cpState.quickSeeds = (cpQs('cpQuickSeeds')?.value || ''); cpShowStep(4); });
+    const j4b = cpQs('cpJ4Back'); if (j4b) j4b.addEventListener('click', () => cpShowStep(3));
+    const j4f = cpQs('cpJ4Finish'); if (j4f) j4f.addEventListener('click', () => {
+      cpState.pillars = cpState._previewPillars || cpDefaultPillars(cpState.audience.who);
+      const who = (cpQs('cpAudienceWho')?.value || '').trim();
+      cpState.identity = who ? `I create content for ${who}${cpState.audience.custom ? ` — ${cpState.audience.custom}` : ''}` : '';
+      cpPersist(); cpShowStage('cpStageBuilder');
+      const bi = cpQs('cpBuilderIdentity'); if (bi) bi.value = cpState.identity;
+      cpRenderPillars();
+    });
 
-    const identityEl = qs('global-identity');
-    if (identityEl) {
-      identityEl.value = cpState.identity;
-      identityEl.addEventListener('input', (e) => {
-        cpState.identity = e.target.value;
-        cpPersistData();
+    const struggles = cpQs('cpStruggles');
+    if (struggles) struggles.querySelectorAll('.cp-tag-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        pill.classList.toggle('selected');
+        const val = pill.dataset.val;
+        if (pill.classList.contains('selected')) { if (!cpState.audience.struggles.includes(val)) cpState.audience.struggles.push(val); }
+        else cpState.audience.struggles = cpState.audience.struggles.filter(s => s !== val);
       });
-    }
-
-    root.addEventListener('click', (event) => {
-      const choiceBtn = event.target.closest('[data-pillars-choice]');
-      if (choiceBtn) {
-        cpHandleChoice(choiceBtn.dataset.pillarsChoice);
-        return;
-      }
-
-      const actionBtn = event.target.closest('[data-cp-action]');
-      if (actionBtn) {
-        const card = actionBtn.closest('[data-bucket-id]');
-        const row = actionBtn.closest('[data-seed-index]');
-        const bucketId = card?.dataset.bucketId;
-        const seedIndex = row ? Number(row.dataset.seedIndex) : null;
-        cpHandleBuilderAction(actionBtn.dataset.cpAction, bucketId, seedIndex);
-      }
     });
 
-    root.addEventListener('input', (event) => {
-      const field = event.target.dataset.cpField;
-      if (!field) return;
-      const card = event.target.closest('[data-bucket-id]');
-      const bucket = cpFindBucket(card?.dataset.bucketId);
-      if (!bucket) return;
+    const bi = cpQs('cpBuilderIdentity');
+    if (bi) bi.addEventListener('input', e => { cpState.identity = e.target.value; cpPersist(); });
 
-      if (field === 'name') bucket.name = event.target.value;
-      if (field === 'helper') bucket.helper = event.target.value;
-      if (field === 'seed') {
-        const row = event.target.closest('[data-seed-index]');
-        const idx = row ? Number(row.dataset.seedIndex) : -1;
-        if (idx >= 0) bucket.seeds[idx] = event.target.value;
-      }
-      if (field === 'tone') {
-        const toneKey = event.target.dataset.toneKey;
-        if (toneKey) cpState.seedTones[toneKey] = event.target.value || 'Practical';
-      }
-      cpPersistData();
+    const ap = cpQs('cpAddPillarBtn');
+    if (ap) ap.addEventListener('click', () => {
+      cpState.pillars.push({ id: cpUid(), name: 'New Pillar', promise: 'The recurring promise this pillar makes…', layer: '', seeds: [''], tones: {} });
+      cpRenderPillars(); cpPersist(); if (typeof showToast === 'function') showToast('Pillar added');
     });
 
-    const addBucketBtn = qs('pillarsAddBucketBtn');
-    if (addBucketBtn) addBucketBtn.addEventListener('click', () => {
-      cpState.buckets.push({ id: cpUid(), name: 'New bucket', helper: 'what this pillar is for', seeds: [''] });
-      cpRenderBuilder();
-      cpPersistData();
+    const rb = cpQs('cpRestartBtn');
+    if (rb) rb.addEventListener('click', () => {
+      if (!confirm('Start over? Your current pillars will be cleared.')) return;
+      cpState.pillars = []; cpState.identity = ''; cpPersist(); cpShowStage('cpStageGate'); cpRenderCompact();
     });
 
-    const resetDefaultsBtn = qs('pillarsResetDefaultsBtn');
-    if (resetDefaultsBtn) resetDefaultsBtn.addEventListener('click', cpResetDefaults);
-
-    const buildBtn = qs('pillarsBuildBtn');
-    if (buildBtn) buildBtn.addEventListener('click', () => { cpSetStage('builder'); cpAutoLoadStarterPersona(); cpRenderBuilder(); });
-
-    const resetBtn = qs('pillarsResetBtn');
-    if (resetBtn) resetBtn.addEventListener('click', cpResetOnboarding);
-
-    const loadExamplesBtn = qs('pillarsLoadExamplesBtn');
-    const picker = qs('persona-picker');
-    if (loadExamplesBtn && picker) {
-      loadExamplesBtn.addEventListener('click', () => {
-        const open = picker.style.display !== 'none';
-        picker.style.display = open ? 'none' : 'flex';
+    const eb = cpQs('cpExportBtn');
+    if (eb) eb.addEventListener('click', () => {
+      const lines = ['# My Content Pillars\n', `Voice: ${cpState.identity || '(not set)'}\n`];
+      cpState.pillars.forEach(p => {
+        lines.push(`\n## ${p.name}`, `Promise: ${p.promise}`, `Layer: ${p.layer || 'untagged'}`);
+        p.seeds.filter(s => String(s || '').trim()).forEach((s, i) => lines.push(`${i + 1}. ${s}`));
       });
-    }
-
-    cpQsa('[data-persona]').forEach((btn) => {
-      btn.addEventListener('click', () => cpLoadExample(btn.dataset.persona));
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/plain' }));
+      a.download = 'content-pillars.txt'; a.click();
+      URL.revokeObjectURL(a.href);
+      if (typeof showToast === 'function') showToast('Exported', 'success');
     });
 
-    const mode = cpReadMode();
-    if (!mode) cpSetStage(null);
-    else if (mode === 'experienced') { cpSetStage('builder'); cpRenderBuilder(); }
-    else cpSetStage('beginner');
-
-    cpRenderDraftCompact();
+    if (hasData) {
+      cpShowStage('cpStageBuilder');
+      const bi2 = cpQs('cpBuilderIdentity'); if (bi2) bi2.value = cpState.identity || '';
+      cpRenderPillars();
+    }
+    cpRenderCompact();
   }
 
   return {
     init,
-    getData: () => ({ identity: cpState.identity, buckets: cpNormalizeBuckets(cpState.buckets), seedTones: { ...cpState.seedTones } }),
-    insertStarter: (bucket, seed, dateLabel) => {
-      const name = String(bucket?.name || 'Pillar');
-      const helper = String(bucket?.helper || 'explain this clearly');
+    renderCompact: cpRenderCompact,
+    renderDraftCompact: cpRenderCompact,
+    getData: () => ({ identity: cpState.identity, pillars: cpState.pillars }),
+    insertStarter: (pillar, seed, dateLabel) => {
+      const normalized = cpNormalizePillar(pillar || { name: 'Pillar', promise: 'Draft starter' });
       const topic = String(seed || '').trim();
       if (!topic) return false;
-      const starter = `Date: ${dateLabel}\n` + cpComposeStarter(name, helper, topic, 'Practical');
-      const wrote = cpInsertIntoComposer(starter);
-      if (wrote && bucket?.id) cpIncrementUsage(bucket.id);
-      cpRenderDraftCompact();
+      const starter = `${dateLabel ? `Date: ${dateLabel}\n` : ''}${cpBuildStarter(normalized, topic, 'Practical')}`;
+      const wrote = cpSendToComposer(starter);
+      if (wrote && normalized.id) cpBumpUsage(normalized.id);
+      cpRenderCompact();
       return wrote;
     },
-    renderDraftCompact: cpRenderDraftCompact
   };
 })();
 

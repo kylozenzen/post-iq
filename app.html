@@ -554,66 +554,197 @@
 
         <section class="ideas-panel active" id="ideasPillarsPanel" data-ideas-panel="pillars">
           <section id="pillars-section" class="content-pillars-section">
-          <div class="content-pillars-header">
-            <div>
-              <h2 class="content-pillars-title">Pillar Builder</h2>
-              <p class="content-pillars-subtitle">Create and edit your own pillars, then jump directly into Draft from any seed.</p>
-            </div>
-            <div class="content-pillars-header-actions">
-              <span class="chip">WIP</span>
-              <button class="btn sm ghost" type="button" id="pillarsResetBtn">Retake onboarding</button>
-            </div>
-          </div>
-
-          <div class="card content-pillars-stage" id="pillarsChoiceStage">
-            <h3 class="content-pillars-stage-title">Before we start, pick your path</h3>
-            <p class="content-pillars-stage-copy">Choose how you want PostIQ to guide you.</p>
-            <div class="content-pillars-choice-actions">
-              <button class="btn primary" type="button" data-pillars-choice="beginner">I'm new to content pillars</button>
-              <button class="btn" type="button" data-pillars-choice="experienced">I already know how this works</button>
-            </div>
-          </div>
-
-          <div class="card content-pillars-stage" id="pillarsBeginnerStage" style="display:none;">
-            <h3 class="content-pillars-stage-title">Think of pillars like tools in your kitchen</h3>
-            <ul class="content-pillars-bullets">
-              <li>Content pillars are like the main tools in your kitchen.</li>
-              <li>You do not make every meal with the same tool.</li>
-              <li>Some tools help you prep, some help you cook, some help you serve.</li>
-              <li>Content works the same way: different kinds of posts do different jobs.</li>
-            </ul>
-            <p class="content-pillars-stage-copy">Pillars help because they stop you from guessing what to post, help you create faster, and keep your content mix balanced over time.</p>
-            <button class="btn primary" type="button" id="pillarsBuildBtn">Build my pillars</button>
-          </div>
-
-          <div class="content-pillars-builder" id="pillarsBuilderStage" style="display:none;">
-            <div class="card content-pillars-identity-card">
-              <label class="content-pillars-label" for="global-identity">Your voice and point of view</label>
-              <p class="content-pillars-help">Describe who you are, what you do, and how you like to sound when you write.</p>
-              <textarea id="global-identity" class="content-pillars-textarea" placeholder="e.g. I build local-first software for creators. My tone is clear, practical, and honest."></textarea>
-            </div>
-
-            <div class="content-pillars-examples card">
-              <div class="composer-support-hdr" style="margin-bottom:8px;">
-                <div class="panel-card-title" style="margin-bottom:0;">Optional inspiration</div>
-                <button class="btn sm" type="button" id="pillarsLoadExamplesBtn">Use job examples</button>
+            <div class="content-pillars-header">
+              <div>
+                <h2 class="content-pillars-title">Content Pillars</h2>
+                <p class="content-pillars-subtitle">Build a focused content system, map it across trust layers, and turn seed ideas into Buffer-ready draft starters.</p>
               </div>
-              <div id="persona-picker" class="content-pillars-persona-picker" style="display:none;">
-                <button class="btn-preset" type="button" data-persona="saas_founder">🛠️ SaaS Founder</button>
-                <button class="btn-preset" type="button" data-persona="nurse">🩺 Nurse</button>
-                <button class="btn-preset" type="button" data-persona="teacher">🍎 Teacher</button>
-                <button class="btn-preset" type="button" data-persona="restaurant">🍳 Restaurant Owner</button>
+              <div class="content-pillars-header-actions">
+                <span class="chip brand">v2</span>
               </div>
             </div>
 
-            <div class="content-pillars-builder-actions">
-              <button class="btn" type="button" id="pillarsAddBucketBtn">+ Add bucket</button>
-              <button class="btn ghost" type="button" id="pillarsResetDefaultsBtn">Reset starter buckets</button>
+            <!-- STAGE 0: Gate -->
+            <div class="cp-stage active" id="cpStageGate">
+              <div style="margin-bottom:16px;">
+                <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--brand);margin-bottom:12px;">Where are you starting from?</div>
+              </div>
+              <div class="cp-gate-grid">
+                <button type="button" class="cp-gate-card" id="cpGateNew">
+                  <span class="cp-gate-icon">🧭</span>
+                  <span class="cp-gate-title">I'm new to content pillars</span>
+                  <span class="cp-gate-desc">Walk me through what pillars actually are, why they work, and how to build mine from scratch. Takes about 5 minutes.</span>
+                  <span class="cp-gate-cta">Start the guided path →</span>
+                </button>
+                <button type="button" class="cp-gate-card" id="cpGateExperienced">
+                  <span class="cp-gate-icon">⚡</span>
+                  <span class="cp-gate-title">I know my pillars — let me build</span>
+                  <span class="cp-gate-desc">Skip the explanation. Take me straight to the builder so I can set up pillars and seed ideas.</span>
+                  <span class="cp-gate-cta">Jump to builder →</span>
+                </button>
+              </div>
             </div>
 
-            <div id="bucket-container" class="content-pillars-grid"></div>
-          </div>
-        </section>
+            <!-- STAGE 1: Guided journey -->
+            <div class="cp-stage" id="cpStageJourney">
+              <div class="cp-progress" id="cpProgress">
+                <div class="cp-prog-step active" data-jstep="0"><div class="cp-prog-dot">1</div><div class="cp-prog-label">What</div></div>
+                <div class="cp-prog-step" data-jstep="1"><div class="cp-prog-dot">2</div><div class="cp-prog-label">Who</div></div>
+                <div class="cp-prog-step" data-jstep="2"><div class="cp-prog-dot">3</div><div class="cp-prog-label">Trust</div></div>
+                <div class="cp-prog-step" data-jstep="3"><div class="cp-prog-dot">4</div><div class="cp-prog-label">Seeds</div></div>
+                <div class="cp-prog-step" data-jstep="4"><div class="cp-prog-dot">5</div><div class="cp-prog-label">Build</div></div>
+              </div>
+
+              <div class="cp-journey-step active" data-jstep="0">
+                <div class="cp-lesson">
+                  <div class="cp-lesson-eyebrow">Lesson 1 of 4</div>
+                  <div class="cp-lesson-title">Content pillars are a promise, not a category.</div>
+                  <div class="cp-lesson-body">Most people think of pillars as content buckets — "I'll post about marketing on Mondays." That's just a schedule, not a strategy.<br><br>A real content pillar is a <strong>recurring promise to your audience</strong>. It's the thing they can rely on you for. When someone follows you, they follow you because they expect a specific kind of value — and pillars make sure you deliver that consistently.<br><br>The best content accounts in any niche have 3–5 pillars. Not 10. Not 2. Enough variety to stay interesting, narrow enough to stay recognizable.</div>
+                  <div class="cp-examples">
+                    <div class="cp-example-tile"><div class="cp-example-tile-label">❌ Category</div><div class="cp-example-tile-text">"Marketing tips every Tuesday"</div></div>
+                    <div class="cp-example-tile"><div class="cp-example-tile-label">✓ Pillar</div><div class="cp-example-tile-text">"Real lessons from campaigns that ran — including the ones that flopped"</div></div>
+                    <div class="cp-example-tile"><div class="cp-example-tile-label">Why it matters</div><div class="cp-example-tile-text">The second one gives your audience a reason to keep coming back. The first one doesn't.</div></div>
+                  </div>
+                </div>
+                <div class="cp-journey-nav">
+                  <button class="btn primary" id="cpJ0Next" type="button">That makes sense — next →</button>
+                </div>
+              </div>
+
+              <div class="cp-journey-step" data-jstep="1">
+                <div class="cp-lesson">
+                  <div class="cp-lesson-eyebrow">Before we build your pillars</div>
+                  <div class="cp-lesson-title">Your pillars exist to serve a specific person.</div>
+                  <div class="cp-lesson-body">The fastest way to build a pillar that doesn't work is to design it around what <em>you</em> want to say instead of what <em>they</em> need to hear. Good pillars start with the audience.<br><br>Answer two quick questions. Don't overthink it.</div>
+                </div>
+                <div class="card" style="max-width:660px;margin-bottom:12px;">
+                  <div style="margin-bottom:16px;">
+                    <label class="cp-prompt-label" for="cpAudienceWho">Who do you create content for?</label>
+                    <input type="text" class="input" id="cpAudienceWho" placeholder="e.g. early-stage founders, burnt-out nurses, parents homeschooling for the first time" />
+                    <div class="cp-prompt-hint">Be specific. "Business owners" is too broad. "Freelance designers who want to raise their rates" is a person.</div>
+                  </div>
+                  <div>
+                    <label class="cp-prompt-label">What do they actually struggle with?</label>
+                    <div class="cp-prompt-hint" style="margin-bottom:8px;">Pick the ones that resonate.</div>
+                    <div class="cp-tag-picker" id="cpStruggles">
+                      <button type="button" class="cp-tag-pill" data-val="knowing what to say">Knowing what to say</button>
+                      <button type="button" class="cp-tag-pill" data-val="staying consistent">Staying consistent</button>
+                      <button type="button" class="cp-tag-pill" data-val="being seen as credible">Being seen as credible</button>
+                      <button type="button" class="cp-tag-pill" data-val="finding time">Finding time</button>
+                      <button type="button" class="cp-tag-pill" data-val="getting results">Getting results</button>
+                      <button type="button" class="cp-tag-pill" data-val="understanding the landscape">Understanding the landscape</button>
+                      <button type="button" class="cp-tag-pill" data-val="making decisions">Making decisions</button>
+                      <button type="button" class="cp-tag-pill" data-val="learning new skills">Learning new skills</button>
+                    </div>
+                    <input type="text" class="input" id="cpStruggleCustom" placeholder="Or describe it in your own words…" style="margin-top:8px;" />
+                  </div>
+                </div>
+                <div class="cp-journey-nav">
+                  <button class="cp-back-btn" id="cpJ1Back" type="button">← Back</button>
+                  <button class="btn primary" id="cpJ1Next" type="button">Got it — next →</button>
+                </div>
+              </div>
+
+              <div class="cp-journey-step" data-jstep="2">
+                <div class="cp-lesson">
+                  <div class="cp-lesson-eyebrow">Lesson 2 of 4</div>
+                  <div class="cp-lesson-title">Every content strategy needs three kinds of posts.</div>
+                  <div class="cp-lesson-body">Before we name your pillars, you need to understand <strong>why people follow you</strong>. It's never just one reason. There are always three layers of trust being built at once — and your pillars should cover all three.</div>
+                  <div class="cp-trust-layers">
+                    <div class="cp-trust-layer"><div class="cp-trust-num">1</div><div><div class="cp-trust-title">Awareness trust — "You understand me"</div><div class="cp-trust-desc">Posts that show you know what your audience goes through. Problems named, frustrations validated, experiences reflected back.</div></div></div>
+                    <div class="cp-trust-layer"><div class="cp-trust-num">2</div><div><div class="cp-trust-title">Credibility trust — "You know what you're talking about"</div><div class="cp-trust-desc">Posts that demonstrate your expertise without bragging. Teaching, sharing real experience, showing your process.</div></div></div>
+                    <div class="cp-trust-layer"><div class="cp-trust-num">3</div><div><div class="cp-trust-title">Action trust — "You can help me"</div><div class="cp-trust-desc">Posts that make it easy to take the next step. What you offer, why it exists, who it's for, and what they should do next.</div></div></div>
+                  </div>
+                  <div class="cp-lesson-body cp-callout">A common mistake is building 4 pillars that are all credibility content and wondering why nothing converts. Your pillars should map across all three layers.</div>
+                </div>
+                <div class="cp-journey-nav">
+                  <button class="cp-back-btn" id="cpJ2Back" type="button">← Back</button>
+                  <button class="btn primary" id="cpJ2Next" type="button">Understood — next →</button>
+                </div>
+              </div>
+
+              <div class="cp-journey-step" data-jstep="3">
+                <div class="cp-lesson">
+                  <div class="cp-lesson-eyebrow">Lesson 3 of 4</div>
+                  <div class="cp-lesson-title">Seed ideas are not brainstormed. They're collected.</div>
+                  <div class="cp-lesson-body">The best content doesn't come from staring at a blank page. It comes from paying attention to what already happens in your work and life.<br><br>Inside each pillar, you'll add <strong>seed ideas</strong> — specific, real things you could actually write about. Not vague topics. Real sparks.</div>
+                  <div class="cp-examples">
+                    <div class="cp-example-tile"><div class="cp-example-tile-label">❌ Too vague</div><div class="cp-example-tile-text">"Write about productivity tips"</div></div>
+                    <div class="cp-example-tile"><div class="cp-example-tile-label">✓ Good seed</div><div class="cp-example-tile-text">"The morning I deleted my to-do app and what I used instead"</div></div>
+                    <div class="cp-example-tile"><div class="cp-example-tile-label">✓ Good seed</div><div class="cp-example-tile-text">"Why every productivity system eventually breaks — and what that actually means"</div></div>
+                  </div>
+                  <div class="cp-lesson-body" style="margin-bottom:0;"><strong>Three questions that surface good seeds:</strong><br>What question did someone ask you this week that you answered automatically? What's obvious to you but surprises most people in your industry? What's a belief you held 2 years ago that you've since changed?</div>
+                </div>
+                <div class="card" style="max-width:660px;margin-bottom:12px;">
+                  <label class="cp-prompt-label" for="cpQuickSeeds">Write down 3 seed ideas right now. Don't filter them.</label>
+                  <div class="cp-prompt-hint" style="margin-bottom:8px;">Real things you know about that your audience doesn't.</div>
+                  <textarea class="input" id="cpQuickSeeds" style="min-height:100px;" placeholder="1. The question I get asked every single week is…&#10;2. Most people in my industry believe X, but I've found…&#10;3. A mistake I see constantly that's costing people…"></textarea>
+                </div>
+                <div class="cp-journey-nav">
+                  <button class="cp-back-btn" id="cpJ3Back" type="button">← Back</button>
+                  <button class="btn primary" id="cpJ3Next" type="button">Build my pillars →</button>
+                </div>
+              </div>
+
+              <div class="cp-journey-step" data-jstep="4">
+                <div class="cp-lesson">
+                  <div class="cp-lesson-eyebrow">You're ready</div>
+                  <div class="cp-lesson-title">Here's what PostIQ built from your answers.</div>
+                  <div class="cp-lesson-body">We've set up your first four pillars based on what you told us — built around the three trust layers and seeded with real starting ideas.<br><br><strong>These are not permanent.</strong> Rename anything. Add seeds. Delete what doesn't fit. The goal right now is to start — not to get it perfect.</div>
+                </div>
+                <div id="cpPreviewPillars" style="max-width:660px;margin-bottom:14px;"></div>
+                <div class="cp-journey-nav">
+                  <button class="cp-back-btn" id="cpJ4Back" type="button">← Back</button>
+                  <button class="btn primary" id="cpJ4Finish" type="button">Open builder and edit →</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- STAGE 2: Builder -->
+            <div class="cp-stage" id="cpStageBuilder">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <button class="btn sm ghost" id="cpRestartBtn" type="button">← Start over</button>
+                  <button class="btn sm" id="cpExportBtn" type="button">Export starters</button>
+                </div>
+              </div>
+              <div class="cp-builder-layout">
+                <div>
+                  <div class="cp-identity-card">
+                    <div class="cp-identity-label">Your voice and point of view</div>
+                    <div class="cp-identity-sub">Describe who you are, who you help, and how you sound when you write. This shapes every post starter you generate.</div>
+                    <textarea class="input" id="cpBuilderIdentity" style="min-height:60px;" placeholder="e.g. I'm a social media strategist who grew accounts to 6M+ followers. I write for early-stage founders who want to build a real presence without outsourcing it. My tone is direct, practical, and a little blunt."></textarea>
+                  </div>
+                  <div class="cp-pillars-list" id="cpPillarsList"></div>
+                  <button class="cp-add-pillar" id="cpAddPillarBtn" type="button"><span>+</span> Add a pillar</button>
+                </div>
+                <div class="cp-sidebar">
+                  <div class="cp-sidebar-card">
+                    <div class="cp-sidebar-title">Pillar health</div>
+                    <div class="cp-stat-row"><span class="cp-stat-label">Pillars defined</span><span class="cp-stat-val brand" id="cpHealthPillars">0</span></div>
+                    <div class="cp-stat-row"><span class="cp-stat-label">Seeds total</span><span class="cp-stat-val" id="cpHealthSeeds">0</span></div>
+                    <div class="cp-stat-row"><span class="cp-stat-label">Posts drafted</span><span class="cp-stat-val green" id="cpHealthUsage">0</span></div>
+                    <div class="cp-health-bar"><div class="cp-health-fill" id="cpHealthBar" style="width:0%;"></div></div>
+                    <div class="cp-health-msg" id="cpHealthMsg">Add your pillars to start.</div>
+                  </div>
+                  <div class="cp-sidebar-card">
+                    <div class="cp-sidebar-title">Three layers check</div>
+                    <div class="cp-stat-row" style="margin-bottom:4px;"><span class="cp-stat-label" style="font-size:11px;">👁 Awareness (they see themselves)</span><span id="cpLayerA" style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">—</span></div>
+                    <div class="cp-stat-row" style="margin-bottom:4px;"><span class="cp-stat-label" style="font-size:11px;">🎓 Credibility (they trust you)</span><span id="cpLayerC" style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">—</span></div>
+                    <div class="cp-stat-row"><span class="cp-stat-label" style="font-size:11px;">🛒 Action (they hire or buy)</span><span id="cpLayerX" style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">—</span></div>
+                    <div style="font-size:11px;color:var(--subtle);margin-top:8px;line-height:1.55;font-family:'DM Mono',monospace;">Tag each pillar to see your balance.</div>
+                  </div>
+                  <div class="cp-sidebar-card">
+                    <div class="cp-sidebar-title">Quick reminders</div>
+                    <div class="cp-tip"><div class="cp-tip-icon">🎯</div><div class="cp-tip-text"><strong>3–5 pillars</strong> is the sweet spot. More than that and you lose focus.</div></div>
+                    <div class="cp-tip"><div class="cp-tip-icon">💡</div><div class="cp-tip-text"><strong>Seed ideas</strong> come from real life — questions you get asked, things that frustrated you, wins you've had.</div></div>
+                    <div class="cp-tip"><div class="cp-tip-icon">⚡</div><div class="cp-tip-text">Hit <strong>Start</strong> on any seed to drop a draft starter straight into Composer.</div></div>
+                    <div class="cp-tip"><div class="cp-tip-icon">📐</div><div class="cp-tip-text">The <strong>tone angle</strong> changes how the draft opens — Practical, Story, Contrarian, or Question.</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
         </section>
 
         <section class="ideas-panel" id="ideasTemplatesPanel" data-ideas-panel="templates">
