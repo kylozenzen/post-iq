@@ -724,161 +724,126 @@ function renderAgenda() {
 
 // Calendar snapshot share
 function shareSnapshot() {
-  const include = qs('includeNotes').checked;
-  const customTitle = qs('shareCustomTitle')?.value.trim() || '';
+  const include     = qs('includeNotes').checked;
+  const customTitle = (qs('shareCustomTitle')?.value || '').trim();
   const posts = state.scheduled.filter(p => {
     const d = new Date(p.dueAt);
     return d.getFullYear() === state.month.getFullYear() && d.getMonth() === state.month.getMonth();
   });
-  const allNotes = getNotes();
+  const allNotes   = getNotes();
   const monthNotes = Object.entries(allNotes)
-    .filter(([k]) => {
-      const d = new Date(k + 'T00:00:00');
-      return d.getFullYear() === state.month.getFullYear() && d.getMonth() === state.month.getMonth();
-    })
+    .filter(([k]) => { const d = new Date(k + 'T00:00:00'); return d.getFullYear() === state.month.getFullYear() && d.getMonth() === state.month.getMonth(); })
     .map(([date, val]) => ({ date, ...val }));
-  const label = monthLabel(state.month);
+  const label      = monthLabel(state.month);
   const snapshotId = generateSnapshotId();
+  const title      = customTitle || label + ' content plan';
   qs('shareMonthName').textContent = label;
   qs('sharePostCount').textContent = posts.length;
   const payload = {
-    snapshotId,
-    createdAt: Date.now(),
-    period: 'month',
-    month: label,
-    customTitle,
+    snapshotId, createdAt: Date.now(), period: 'month', month: label, title, customTitle,
     includeNotes: include,
-    posts: posts.map(p => ({
-      dueAt: p.dueAt,
-      text: p.text || '',
-      channelName: p.channelName || p.channel || '',
-      platform: p.service || p.platform || '',
-      channelId: p.channelId || ''
-    })),
+    posts: posts.map(p => ({ dueAt: p.dueAt, text: p.text || '', channelName: p.channelName || p.channel || '', platform: p.service || p.platform || '', channelId: p.channelId || '' })),
     notes: include ? monthNotes : []
   };
   const encoded = toBase64Url(JSON.stringify(payload));
-  qs('shareLink').value = `${location.origin}${location.pathname}#share=${snapshotId}.${encoded}`;
+  qs('shareLink').value = location.origin + location.pathname + '#share=' + snapshotId + '.' + encoded;
+  const meta = qs('shareLinkMeta'); if (meta) meta.style.display = 'block';
 }
 
 function openSharedDayDetails(key, data) {
   const titleEl = qs('sharedDayTitle');
-  const bodyEl = qs('sharedDayBody');
+  const bodyEl  = qs('sharedDayBody');
   if (!titleEl || !bodyEl) return;
   titleEl.textContent = formatDateOnly(key);
-  const postsHtml = data.posts.length
-    ? `<div style="display:flex;flex-direction:column;gap:12px;">${data.posts.map((p, idx) => `
-        <div class="card" style="padding:14px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
-            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-              <span class="chip brand">Post ${idx + 1}</span>
-              ${p.platform ? `<span class="chip">${safeText(p.platform)}</span>` : ''}
-              ${p.channelName ? `<span class="chip">${safeText(p.channelName)}</span>` : ''}
-            </div>
-            <span style="font-size:11px;color:var(--subtle);font-family:\'DM Mono\',monospace;">${safeText(formatDateTime(p.dueAt))}</span>
+  const sections = [];
+  if (data.posts && data.posts.length) {
+    const postsHtml = data.posts.map((p, idx) => {
+      const platform = p.platform || p.channelName || '';
+      return `<div class="snap-modal-post">
+        <div class="snap-modal-post-hdr">
+          <div class="snap-modal-post-meta">
+            <span class="snap-post-num">Post ${idx + 1}</span>
+            ${platform ? '<span class="snap-platform-badge">' + safeText(platform) + '</span>' : ''}
           </div>
-          <div style="font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:break-word;color:var(--text);">${safeText(p.text || '(no copy)')}</div>
+          <span class="snap-scheduled-time">${safeText(formatDateTime(p.dueAt))}</span>
         </div>
-      `).join('')}</div>`
-    : `<div class="empty-state" style="padding:20px 16px;"><div class="empty-title">No post scheduled</div><div class="empty-desc">This day does not have a scheduled post in the shared snapshot.</div></div>`;
-
-  const notesHtml = data.notes.length
-    ? `<div style="display:flex;flex-direction:column;gap:10px;">${data.notes.map(n => `
-        <div class="card" style="padding:14px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
-            <span class="chip ${n.tag === 'green' ? 'green' : 'brand'}">Planning note</span>
-            ${n.tag ? `<span style="font-size:11px;color:var(--subtle);font-family:\'DM Mono\',monospace;text-transform:uppercase;">${safeText(n.tag)}</span>` : ''}
-          </div>
-          <div style="font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:break-word;color:var(--text);">${safeText(n.text || '(empty note)')}</div>
+        <div class="snap-modal-post-body">${safeText(p.text || '(no copy)')}</div>
+        <div class="snap-modal-post-copy">
+          <button class="btn sm ghost" data-copy="${safeText(p.text || '')}">Copy post</button>
         </div>
-      `).join('')}</div>`
-    : `<div class="empty-state" style="padding:20px 16px;"><div class="empty-title">No planning notes</div><div class="empty-desc">Nothing was added for this day.</div></div>`;
-
-  bodyEl.innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:16px;">
-      <div>
-        <div style="font-family:\'DM Mono\',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;">Scheduled posts</div>
-        ${postsHtml}
-      </div>
-      <div>
-        <div style="font-family:\'DM Mono\',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;">Planning notes</div>
-        ${notesHtml}
-      </div>
-    </div>`;
+      </div>`;
+    }).join('');
+    sections.push(`<div style="margin-bottom:16px;"><div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">${data.posts.length} Scheduled post${data.posts.length > 1 ? 's' : ''}</div>${postsHtml}</div>`);
+  } else {
+    sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No post scheduled</div><div class="empty-desc">This day doesn't have a scheduled post in the shared snapshot.</div></div>');
+  }
+  if (data.notes && data.notes.length) {
+    const notesHtml = data.notes.map(n => `<div class="snap-modal-note"><div class="snap-modal-note-label">${safeText(n.label || n.tag || 'Note')}</div><div class="snap-modal-note-text">${safeText(n.text || '')}</div></div>`).join('');
+    sections.push(`<div><div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">Planning notes</div>${notesHtml}</div>`);
+  }
+  bodyEl.innerHTML = sections.join('');
+  bodyEl.querySelectorAll('[data-copy]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const ok = await copyTextSafe(btn.dataset.copy);
+      if (ok) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy post'; }, 1800); }
+      else showToast('Could not copy', 'error');
+    });
+  });
   openModal('sharedDayModal');
 }
 
 function renderSharedFromHash() {
   if (!location.hash.startsWith('#share=')) return false;
   try {
-    const raw = location.hash.slice(7);
-    const dot = raw.indexOf('.');
+    const raw     = location.hash.slice(7);
+    const dot     = raw.indexOf('.');
     const encoded = dot >= 0 ? raw.slice(dot + 1) : raw;
-    const snap = JSON.parse(fromBase64Url(encoded));
+    const snap    = JSON.parse(fromBase64Url(encoded));
     qs('app').classList.add('hidden');
     qs('sharedView').classList.remove('hidden');
-    qs('sharedMonthTitle').textContent = snap.customTitle || snap.month || 'Shared snapshot';
-    const meta = [];
-    if (snap.month) meta.push(snap.month);
-    meta.push(`${snap.posts.length} scheduled post${snap.posts.length === 1 ? '' : 's'}`);
-    meta.push(`Notes ${snap.includeNotes ? 'included' : 'excluded'}`);
-    const sharedMeta = qs('sharedMeta');
-    if (sharedMeta) sharedMeta.textContent = meta.join(' · ');
-    const sharedBanner = qs('sharedBanner');
-    if (sharedBanner) sharedBanner.textContent = `Read-only snapshot · ${snap.snapshotId || 'shared-view'}`;
-    const closeBtn = qs('closeSharedDay');
-    if (closeBtn) closeBtn.onclick = () => closeModal('sharedDayModal');
-
-    const grid = qs('sharedGrid');
-    grid.innerHTML = '';
+    const titleEl = qs('sharedTitle');
+    if (titleEl) titleEl.textContent = snap.title || snap.customTitle || snap.month || 'Content Plan';
+    const countEl = qs('sharedPostCount'); if (countEl) countEl.textContent = snap.posts.length;
+    const periodEl = qs('sharedPeriodStat'); if (periodEl && snap.month) periodEl.innerHTML = '<strong>' + safeText(snap.month) + '</strong>';
+    if (snap.includeNotes && snap.notes?.length) {
+      const dot  = qs('sharedNotesDot');  if (dot)  dot.style.display  = 'block';
+      const stat = qs('sharedNotesStat'); if (stat) { stat.style.display = 'flex'; stat.innerHTML = '<strong>' + snap.notes.length + '</strong>&nbsp;planning note' + (snap.notes.length > 1 ? 's' : ''); }
+    }
+    const calLabel = qs('sharedCalLabel');
+    if (calLabel) calLabel.textContent = snap.posts.length > 0 ? 'Click any highlighted day to read the full post' : 'No posts in this snapshot';
+    const closeBtn = qs('closeSharedDay'); if (closeBtn) closeBtn.onclick = () => closeModal('sharedDayModal');
     const map = {};
-    snap.posts.forEach(p => {
-      const k = String(p.dueAt || '').slice(0, 10);
-      if (!map[k]) map[k] = { posts: [], notes: [] };
-      map[k].posts.push(p);
-    });
-    (snap.notes || []).forEach(n => {
-      if (!map[n.date]) map[n.date] = { posts: [], notes: [] };
-      map[n.date].notes.push(n);
-    });
-
+    snap.posts.forEach(p => { const k = String(p.dueAt || '').slice(0,10); if (!map[k]) map[k]={posts:[],notes:[]}; map[k].posts.push(p); });
+    (snap.notes || []).forEach(n => { if (!map[n.date]) map[n.date]={posts:[],notes:[]}; map[n.date].notes.push(n); });
+    const grid = qs('sharedGrid'); grid.innerHTML = '';
     let baseDate = new Date();
-    if (snap.posts[0]?.dueAt) baseDate = new Date(snap.posts[0].dueAt);
+    if (snap.posts[0]?.dueAt)      baseDate = new Date(snap.posts[0].dueAt);
     else if (snap.notes?.[0]?.date) baseDate = new Date(snap.notes[0].date + 'T00:00:00');
     const first = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
-    const start = new Date(first);
-    start.setDate(1 - first.getDay());
-
+    const start = new Date(first); start.setDate(1 - first.getDay());
     for (let i = 0; i < 42; i++) {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
+      const d   = new Date(start); d.setDate(start.getDate() + i);
       const key = fmtDate(d);
       const data = map[key] || { posts: [], notes: [] };
-      const inMonth = d.getMonth() === baseDate.getMonth();
+      const inMonth    = d.getMonth() === baseDate.getMonth();
+      const hasContent = data.posts.length > 0 || data.notes.length > 0;
       const day = document.createElement('div');
-      day.className = 'cal-day' + (inMonth ? '' : ' other-month');
-      day.style.cursor = 'pointer';
-      if (!data.posts.length && !data.notes.length) day.style.opacity = inMonth ? '0.9' : '0.35';
-      let html = `<div class="day-num">${d.getDate()}</div>`;
-      if (data.posts.length) html += `<div class="day-count">${data.posts.length}</div>`;
-      data.posts.slice(0, 2).forEach(p => {
-        const label = p.channelName || p.platform || 'Scheduled post';
-        html += `<div class="day-post-pill" title="${safeText(label)}">${safeText(compact(p.text || '(no copy)', 60))}</div>`;
-      });
-      if (data.posts.length > 2) html += `<div class="more-indicator">+${data.posts.length - 2} more</div>`;
-      data.notes.slice(0, 1).forEach(n => {
-        html += `<div class="day-note-pill ${n.tag || 'gold'}">${safeText(compact(n.text || '', 50))}</div>`;
-      });
-      if (!data.posts.length && !data.notes.length && inMonth) html += `<div class="more-indicator">No plans</div>`;
-      day.innerHTML = html;
-      day.onclick = () => openSharedDayDetails(key, data);
+      day.className = 'cal-day' + (!inMonth ? ' other-month' : '') + (hasContent ? ' has-content' : ' empty-day');
+      let inner = '<div class="day-num">' + d.getDate() + '</div>';
+      if (data.posts.length) {
+        inner += '<div class="day-count">' + data.posts.length + '</div>';
+        data.posts.slice(0,2).forEach(p => { inner += '<div class="day-post-pill">' + safeText((p.text||'').slice(0,60)) + '</div>'; });
+        if (data.posts.length > 2) inner += '<div class="more-indicator">+' + (data.posts.length - 2) + ' more</div>';
+      }
+      if (data.notes.length && snap.includeNotes) {
+        data.notes.slice(0,1).forEach(n => { inner += '<div class="day-note-pill ' + (n.tag||'gold') + '">' + safeText((n.text||'').slice(0,50)) + '</div>'; });
+      }
+      day.innerHTML = inner;
+      if (hasContent) day.onclick = () => openSharedDayDetails(key, data);
       grid.appendChild(day);
     }
     return true;
-  } catch (err) {
-    console.error('Failed to render shared snapshot', err);
-    return false;
-  }
+  } catch(err) { console.error('Failed to render shared snapshot', err); return false; }
 }
 
 // ── COMPOSER ──────────────────────────────────────
@@ -1437,8 +1402,8 @@ function init() {
   qs('closeShare').onclick = () => closeModal('shareModal');
   qs('includeNotes').onchange = shareSnapshot;
   const shareTitleInput = qs('shareCustomTitle'); if (shareTitleInput) shareTitleInput.oninput = shareSnapshot;
-  qs('generateShare').onclick = shareSnapshot;
-  qs('copyShare').onclick = () => navigator.clipboard.writeText(qs('shareLink').value || '');
+  qs('generateShare').onclick = () => { shareSnapshot(); qs('generateShare').textContent = '✓ Link ready'; setTimeout(() => { qs('generateShare').textContent = 'Generate link'; }, 2500); };
+  qs('copyShare').onclick = async () => { const ok = await copyTextSafe(qs('shareLink').value || ''); if (ok) { qs('copyShare').textContent = 'Copied!'; setTimeout(() => { qs('copyShare').textContent = 'Copy'; }, 1800); } else showToast('Could not copy', 'error'); };
 
   // Composer
   const editor = qs('composerEditor');
