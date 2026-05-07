@@ -223,7 +223,7 @@ function renderTemplates() {
 function renderComposerTemplateSidebar() {
   const list = qs('composerTemplateList'); if (!list) return;
   const items = state.templates.slice(0, 8);
-  if (!items.length) { list.innerHTML = '<div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;">No templates yet.</div>'; return; }
+  if (!items.length) { list.innerHTML = '<div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'Mono',monospace;">No templates yet.</div>'; return; }
   list.innerHTML = '';
   items.forEach(s => {
     const el = document.createElement('div');
