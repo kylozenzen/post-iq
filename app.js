@@ -223,7 +223,7 @@ function renderTemplates() {
 function renderComposerTemplateSidebar() {
   const list = qs('composerTemplateList'); if (!list) return;
   const items = state.templates.slice(0, 8);
-  if (!items.length) { list.innerHTML = '<div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'Mono',monospace;">No templates yet.</div>'; return; }
+  if (!items.length) { list.innerHTML = "<div style=\"font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;\">No templates yet.</div>"; return; }
   list.innerHTML = '';
   items.forEach(s => {
     const el = document.createElement('div');
@@ -310,7 +310,7 @@ function initTemplateSelectors() {
     const sel = qs(id); if (!sel) return;
     sel.innerHTML = '';
     TEMPLATE_PLATFORMS.forEach((p, i) => {
-      if (id === 'templatePlatformFilter' && i === 0) return; // skip "All" for modal selector
+      if (id === 'templatePlatformFilter' && i === 0) return;
       const o = document.createElement('option'); o.value = p; o.textContent = p; sel.appendChild(o);
     });
     if (id === 'templatePlatformFilter') {
@@ -593,7 +593,6 @@ function renderCalendar() {
     const dayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
     const note = notes[key];
     const isToday = key === today;
-    const hasGap = inMonth && !dayPosts.length && [1,2,3,4,5].includes(d.getDay()); // weekday gap indicator
 
     const day = document.createElement('div');
     let cls = 'cal-day';
@@ -622,7 +621,7 @@ function detectQueueGaps() {
   const gaps = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(today); d.setDate(today.getDate() + i);
-    if ([0,6].includes(d.getDay())) continue; // skip weekends
+    if ([0,6].includes(d.getDay())) continue;
     const key = fmtDate(d);
     const hasPosts = state.scheduled.some(p => fmtDate(new Date(p.dueAt)) === key);
     if (!hasPosts) gaps.push(d);
@@ -637,7 +636,6 @@ function detectQueueGaps() {
     chip.onclick = () => openDayNote(d);
     list.appendChild(chip);
   });
-
 }
 
 function openDayNote(date) {
@@ -648,8 +646,9 @@ function openDayNote(date) {
   qs('noteText').value = note.text || '';
   qs('noteTag').value = `${note.tag || 'gold'}|${note.label || 'Idea'}`;
   const dayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
+  const dmMono = 'DM Mono';
   qs('dayPostPreview').innerHTML = dayPosts.length
-    ? `<div style="font-size:11px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;">${dayPosts.length} scheduled post${dayPosts.length > 1 ? 's' : ''}</div>${dayPosts.map(p => `<div style="font-size:12px;padding:6px 8px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:5px;color:var(--brand);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${safeText(p.text || '(no text)')}</div>`).join('')}`
+    ? `<div style="font-size:11px;font-family:'${dmMono}',monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;">${dayPosts.length} scheduled post${dayPosts.length > 1 ? 's' : ''}</div>${dayPosts.map(p => `<div style="font-size:12px;padding:6px 8px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:5px;color:var(--brand);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${safeText(p.text || '(no text)')}</div>`).join('')}`
     : `<div style="font-size:12px;color:var(--subtle);margin-bottom:8px;">No posts scheduled on this day.</div>`;
   qs('noteStatus').textContent = '';
   openModal('noteModal');
@@ -702,6 +701,8 @@ function renderAgenda() {
   const days = [];
   const ms = monthStart(state.month);
   for (let i = 0; i < 35; i++) { const d = new Date(ms.getFullYear(), ms.getMonth(), i + 1); if (d.getMonth() !== ms.getMonth()) break; days.push(fmtDate(d)); }
+  const dmMono = 'DM Mono';
+  const bricolage = 'Bricolage Grotesque';
   days.forEach(key => {
     const data = map[key]; if (!data) return;
     const isToday = key === today;
@@ -709,7 +710,7 @@ function renderAgenda() {
     const dayEl = document.createElement('div');
     dayEl.style.cssText = `border:1px solid ${isToday ? 'var(--brand)' : 'var(--border)'};border-radius:10px;padding:12px;margin-bottom:8px;background:var(--surface);cursor:pointer;`;
     const dateLabel = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-    let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:${isToday ? 'var(--brand)' : 'var(--muted)'};">${dateLabel}</span>${data.posts.length ? `<span style="font-size:9px;font-family:'DM Mono',monospace;background:var(--brand-dim);color:var(--brand);border:1px solid var(--brand-glow);padding:1px 5px;border-radius:3px;">${data.posts.length} post${data.posts.length > 1 ? 's' : ''}</span>` : ''}</div>`;
+    let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-family:'${dmMono}',monospace;font-size:11px;font-weight:600;color:${isToday ? 'var(--brand)' : 'var(--muted)'};">${dateLabel}</span>${data.posts.length ? `<span style="font-size:9px;font-family:'${dmMono}',monospace;background:var(--brand-dim);color:var(--brand);border:1px solid var(--brand-glow);padding:1px 5px;border-radius:3px;">${data.posts.length} post${data.posts.length > 1 ? 's' : ''}</span>` : ''}</div>`;
     data.posts.slice(0, 2).forEach(p => { html += `<div style="font-size:12px;padding:6px 8px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:5px;color:var(--brand);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${safeText(compact(p.text, 80))}</div>`; });
     if (data.posts.length > 2) html += `<div style="font-size:10px;color:var(--subtle);margin-bottom:4px;">+${data.posts.length - 2} more</div>`;
     if (data.note) html += `<div class="day-note-pill ${data.note.tag || 'gold'}" style="display:block;border-radius:5px;margin-top:4px;">${safeText(compact(data.note.text, 60))}</div>`;
@@ -757,6 +758,7 @@ function openSharedDayDetails(key, data) {
   titleEl.textContent = formatDateOnly(key);
   const sections = [];
   if (data.posts && data.posts.length) {
+    const dmMono = 'DM Mono';
     const postsHtml = data.posts.map((p, idx) => {
       const platform = p.platform || p.channelName || '';
       return `<div class="snap-modal-post">
@@ -775,7 +777,7 @@ function openSharedDayDetails(key, data) {
     }).join('');
     sections.push(`<div style="margin-bottom:16px;"><div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">${data.posts.length} Scheduled post${data.posts.length > 1 ? 's' : ''}</div>${postsHtml}</div>`);
   } else {
-    sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No post scheduled</div><div class="empty-desc">This day doesn't have a scheduled post in the shared snapshot.</div></div>');
+    sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No post scheduled</div><div class="empty-desc">This day does not have a scheduled post in the shared snapshot.</div></div>');
   }
   if (data.notes && data.notes.length) {
     const notesHtml = data.notes.map(n => `<div class="snap-modal-note"><div class="snap-modal-note-label">${safeText(n.label || n.tag || 'Note')}</div><div class="snap-modal-note-text">${safeText(n.text || '')}</div></div>`).join('');
@@ -806,7 +808,7 @@ function renderSharedFromHash() {
     const countEl = qs('sharedPostCount'); if (countEl) countEl.textContent = snap.posts.length;
     const periodEl = qs('sharedPeriodStat'); if (periodEl && snap.month) periodEl.innerHTML = '<strong>' + safeText(snap.month) + '</strong>';
     if (snap.includeNotes && snap.notes?.length) {
-      const dot  = qs('sharedNotesDot');  if (dot)  dot.style.display  = 'block';
+      const dot2  = qs('sharedNotesDot');  if (dot2)  dot2.style.display  = 'block';
       const stat = qs('sharedNotesStat'); if (stat) { stat.style.display = 'flex'; stat.innerHTML = '<strong>' + snap.notes.length + '</strong>&nbsp;planning note' + (snap.notes.length > 1 ? 's' : ''); }
     }
     const calLabel = qs('sharedCalLabel');
@@ -995,7 +997,6 @@ async function composerSend(action) {
     if (!when) { qs('composerStatus').textContent = 'Pick a date/time first.'; return; }
     input.mode = 'customScheduled'; input.dueAt = when;
   }
-  // Attach media
   const imgUrl = mediaState.url || '';
   if (imgUrl) {
     if (isVideo(imgUrl)) {
@@ -1020,7 +1021,6 @@ async function composerSend(action) {
     const msg = action === 'draft' ? 'Draft saved.' : action === 'queue' ? 'Added to queue.' : 'Scheduled.';
     qs('composerStatus').textContent = msg; showToast(msg, 'success');
     if (created?.post?.dueAt) { appendScheduled(created.post); renderCalendar(); }
-    // Clear
     qs('composerEditor').innerHTML = '';
     qs('composerEditor').dispatchEvent(new Event('input'));
     qs('composerWhen').value = '';
@@ -1073,13 +1073,12 @@ function renderApprovalCard(meta) {
   const statusLabel = meta.status === 'approved' ? 'Approved' : meta.status === 'changes_requested' ? 'Changes Requested' : 'Pending';
   const platformBadge = meta.platform ? `<span class="chip">${safeText(meta.platform)}</span>` : '';
   const pubDisabled = meta.status === 'pending' && meta.link_generated;
+  const dmMono = 'DM Mono';
 
   const card = document.createElement('div');
   card.className = 'approval-card';
   card.dataset.draftId = meta.draftId;
   card.dataset.safeId = safeId;
-
-  const borderColor = meta.status === 'approved' ? 'var(--green)' : meta.status === 'changes_requested' ? 'var(--accent)' : 'var(--amber)';
 
   card.innerHTML = `
     <div class="approval-card-status-bar ${statusClass}"></div>
@@ -1087,7 +1086,7 @@ function renderApprovalCard(meta) {
       <div class="approval-card-meta">
         <span class="approval-status-badge ${statusClass}">${statusLabel}</span>
         ${platformBadge}
-        <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">${meta.created_at ? new Date(meta.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : ''}</span>
+        <span style="font-size:10px;font-family:'${dmMono}',monospace;color:var(--subtle);">${meta.created_at ? new Date(meta.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : ''}</span>
       </div>
       <button class="btn sm ghost" onclick="approvalRemove('${safeId}')">✕ Remove</button>
     </div>
@@ -1096,7 +1095,7 @@ function renderApprovalCard(meta) {
       <div class="approval-content-text">${safeText(meta.content || '')}</div>
       ${meta.comments?.length ? `
         <div class="approval-comments">
-          <div style="font-size:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;">Reviewer feedback</div>
+          <div style="font-size:10px;font-family:'${dmMono}',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;">Reviewer feedback</div>
           ${meta.comments.map(c => `
             <div class="approval-comment">
               <div class="approval-comment-meta">
@@ -1125,7 +1124,7 @@ function renderApprovalCard(meta) {
           </div>
         </div>
         <div style="${pubDisabled ? 'opacity:.45;pointer-events:none;' : ''}">
-          ${pubDisabled ? `<div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--subtle);margin-bottom:10px;">Publishing unlocks once reviewer responds.</div>` : ''}
+          ${pubDisabled ? `<div style="font-size:11px;font-family:'${dmMono}',monospace;color:var(--subtle);margin-bottom:10px;">Publishing unlocks once reviewer responds.</div>` : ''}
           <div class="label mb8">Publish to</div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
             <select id="approval-ch-${safeId}" class="input" style="flex:1;min-width:160px;font-size:13px;"></select>
@@ -1142,7 +1141,7 @@ function renderApprovalCard(meta) {
             </div>
           </div>
         </div>`}
-      <div id="approval-status-${safeId}" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;min-height:16px;"></div>
+      <div id="approval-status-${safeId}" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'${dmMono}',monospace;min-height:16px;"></div>
     </div>`;
 
   setTimeout(() => {
@@ -1250,15 +1249,16 @@ async function renderReviewerPage(uuid) {
     content.style.display = 'block';
     const { platform, content: postContent, image_url: imageUrl } = record.post || {};
     const comments = record.comments || [];
+    const dmMono = 'DM Mono';
     content.innerHTML = `
       <div class="reviewer-card">
-        ${platform ? `<div style="font-size:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border:1px solid var(--border2);border-radius:4px;color:var(--subtle);display:inline-flex;margin-bottom:16px;">${safeText(platform)}</div>` : ''}
+        ${platform ? `<div style="font-size:10px;font-family:'${dmMono}',monospace;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border:1px solid var(--border2);border-radius:4px;color:var(--subtle);display:inline-flex;margin-bottom:16px;">${safeText(platform)}</div>` : ''}
         <div style="font-size:15px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word;">${safeText(postContent || '')}</div>
         ${imageUrl ? `<img src="${safeText(imageUrl)}" style="width:100%;max-height:360px;object-fit:cover;border-radius:10px;border:1px solid var(--border);margin-top:16px;" />` : ''}
       </div>
       ${comments.length ? `
         <div class="reviewer-card">
-          <div style="font-size:11px;font-weight:600;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:14px;">Previous comments</div>
+          <div style="font-size:11px;font-weight:600;font-family:'${dmMono}',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:14px;">Previous comments</div>
           ${comments.map(c => `<div style="padding:12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;"><div style="font-weight:600;font-size:13px;margin-bottom:2px;">${safeText(c.author || 'Anonymous')}</div><div style="font-size:14px;color:var(--muted);line-height:1.55;">${safeText(c.text || '')}</div></div>`).join('')}
         </div>` : ''}
       <div class="reviewer-card">
@@ -1345,7 +1345,6 @@ function syncComposerWhen() {
 
 // ── INIT ──────────────────────────────────────────────
 function init() {
-  // Reviewer page check
   const approveParam = new URLSearchParams(location.search).get('approve');
   if (approveParam) { renderReviewerPage(approveParam); return; }
   if (renderSharedFromHash()) return;
@@ -1361,7 +1360,6 @@ function init() {
   renderCalendar();
   activateView('calendarView');
 
-  // Token management
   qs('manageTokenBtn').onclick = () => {
     tokenPanelOpen = !tokenPanelOpen;
     qs('tokenPanel').style.display = tokenPanelOpen ? 'block' : 'none';
@@ -1375,11 +1373,9 @@ function init() {
   qs('saveTokenBtn').onclick = saveToken;
   qs('clearTokenBtn').onclick = () => { qs('tokenInput').value = ''; saveToken(); };
 
-  // Sync
   qs('syncBtn').onclick = () => syncBuffer({ force: true });
   if (bufferToken) syncBuffer();
 
-  // Navigation
   document.querySelectorAll('[data-view]').forEach(b => {
     b.onclick = () => {
       activateView(b.dataset.view);
@@ -1390,7 +1386,6 @@ function init() {
     tabBtn.onclick = () => setIdeasTab(tabBtn.dataset.ideasTab);
   });
 
-  // Calendar
   qs('prevMonth').onclick = () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() - 1, 1); renderCalendar(); detectQueueGaps(); };
   qs('nextMonth').onclick = () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() + 1, 1); renderCalendar(); detectQueueGaps(); };
   qs('todayMonth').onclick = () => { state.month = new Date(); renderCalendar(); detectQueueGaps(); };
@@ -1405,7 +1400,6 @@ function init() {
   qs('generateShare').onclick = () => { shareSnapshot(); qs('generateShare').textContent = '✓ Link ready'; setTimeout(() => { qs('generateShare').textContent = 'Generate link'; }, 2500); };
   qs('copyShare').onclick = async () => { const ok = await copyTextSafe(qs('shareLink').value || ''); if (ok) { qs('copyShare').textContent = 'Copied!'; setTimeout(() => { qs('copyShare').textContent = 'Copy'; }, 1800); } else showToast('Could not copy', 'error'); };
 
-  // Composer
   const editor = qs('composerEditor');
   editor.addEventListener('input', () => {
     const text = editorToText(editor.innerHTML);
@@ -1454,7 +1448,6 @@ function init() {
   updateComposerButtonStates();
   window.addEventListener('postiq:synced', updateComposerButtonStates);
 
-  // Template insert
   qs('insertTemplateBtn').onclick = () => { renderTemplatePicker(); openModal('templatePickerModal'); };
   qs('saveAsTemplateBtn').onclick = () => {
     const sel = window.getSelection(); const text = (sel?.toString() || '').trim();
@@ -1462,16 +1455,13 @@ function init() {
     qs('templateBody').value = text; openTemplateModal();
   };
 
-  // Ref pin
   qs('refPinDismiss').onclick = () => { qs('refPin').style.display = 'none'; };
 
-  // Media
   qs('mediaToggleBtn').onclick = () => { qs('mediaPanel').classList.contains('open') ? closeMediaPanel() : openMediaPanel(); };
   qs('mediaToggleOff').onclick = () => { qs('mediaPanel').classList.contains('open') ? closeMediaPanel() : openMediaPanel(); };
   qs('mediaSummaryClear').onclick = () => { clearMedia(); showToast('Media removed'); };
   document.querySelectorAll('.media-tab').forEach(t => t.onclick = () => switchMediaTab(t.dataset.mtab));
 
-  // Upload
   const zone = qs('uploadZone'), fi = qs('uploadFileInput');
   zone.onclick = e => { if (!e.target.closest('#uploadBrowseBtn') && !e.target.closest('#uploadResult')) fi.click(); };
   qs('uploadBrowseBtn').onclick = e => { e.stopPropagation(); fi.click(); };
@@ -1489,7 +1479,6 @@ function init() {
   qs('uploadReplaceBtn').onclick = e => { e.stopPropagation(); resetUploadTab(); fi.click(); };
   qs('uploadClearBtn').onclick  = e => { e.stopPropagation(); resetUploadTab(); clearMedia(); showToast('Media removed'); };
 
-  // URL media
   const urlInp = qs('mediaUrlInput'); const urlClear = qs('mediaUrlClear');
   urlInp.addEventListener('input', () => {
     const url = urlInp.value.trim();
@@ -1510,11 +1499,9 @@ function init() {
   const vtu = qs('videoThumbUrl');
   if (vtu) vtu.addEventListener('input', () => { mediaState.videoThumbUrl = vtu.value.trim(); });
 
-  // Unsplash
   qs('unsplashSearchBtn').onclick = runUnsplashSearch;
   qs('unsplashQuery').addEventListener('keydown', e => { if (e.key === 'Enter') runUnsplashSearch(); });
 
-  // Templates
   qs('newTemplateBtn').onclick = () => openTemplateModal();
   const manageTplBtn = qs('composerManageTemplatesBtn'); if (manageTplBtn) manageTplBtn.onclick = () => { activateView('ideasView'); setIdeasTab('templates'); };
   qs('closeTemplateModal').onclick = () => closeModal('templateModal');
@@ -1526,7 +1513,6 @@ function init() {
   qs('pickerSearch').addEventListener('input', renderTemplatePicker);
   qs('pickerType').onchange = renderTemplatePicker;
 
-  // Approvals
   qs('approvalsRefreshBtn').onclick = loadApprovals;
   document.querySelectorAll('[data-afilter]').forEach(pill => {
     pill.onclick = () => {
@@ -1542,7 +1528,7 @@ function init() {
     };
   });
 
-  // ── ZEN MODE ──────────────────────────────────
+  // ── ZEN MODE ──
   let zenActive = false;
 
   function enterZen() {
@@ -1590,15 +1576,12 @@ function init() {
     if (tgl) tgl.style.display = 'none';
   };
 
-  // Escape key exits zen
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && zenActive) {
-      // Only exit zen if no modals are open
       if (!document.querySelector('.modal.open')) { exitZen(); return; }
     }
-  }, true); // capture phase so it fires before modal handler
+  }, true);
 
-  // Settings
   qs('openSettings').onclick = () => openModal('settingsModal');
   qs('closeSettings').onclick = () => closeModal('settingsModal');
   document.querySelectorAll('.settings-tab').forEach(tab => {
@@ -1610,7 +1593,6 @@ function init() {
     };
   });
 
-  // Modal overlay close
   document.querySelectorAll('.modal').forEach(modal => {
     modal.addEventListener('click', e => { if (e.target === modal) closeModal(modal.id); });
   });
@@ -1620,9 +1602,7 @@ function init() {
     if (open.length) closeModal(open[open.length - 1].id);
   });
 
-  // Mobile drawer
   function openMobDrawer() {
-    // Sync status before opening
     const syncEl = qs('syncStatus');
     const ms = qs('mobSyncStatus'); if (ms && syncEl) ms.textContent = syncEl.textContent;
     const connected = !!bufferToken;
@@ -1638,7 +1618,6 @@ function init() {
     document.body.style.overflow = '';
   }
   qs('mobBackdrop').onclick = closeMobDrawer;
-  // All three "…" menu buttons on mobile view headers open the drawer
   ['mobMenuBtn','mobMenuBtnDraft','mobMenuBtnApprovals'].forEach(id => {
     const btn = qs(id); if (btn) btn.onclick = openMobDrawer;
   });
@@ -1659,10 +1638,8 @@ function init() {
   qs('mobClearTokenBtn').onclick = () => { qs('mobTokenInput').value = ''; setBufferToken('', { mode: 'session', messageEl: qs('mobTokenMsg') }); };
   qs('mobOpenSettings').onclick = () => { closeMobDrawer(); openModal('settingsModal'); };
 
-  // Mobile-only share button for calendar
   const smb = qs('shareMonthBtnMob'); if (smb) smb.onclick = () => { const t = qs('shareCustomTitle'); if (t && !t.value.trim()) t.value = `${monthLabel(state.month)} snapshot`; shareSnapshot(); openModal('shareModal'); };
 
-  // Mobile clear button for composer
   const ccbm = qs('composerClearBtnMob');
   if (ccbm) {
     ccbm.onclick = () => {
@@ -1672,22 +1649,18 @@ function init() {
     };
   }
 
-  // Keep mob clear button visibility in sync
   editor.addEventListener('input', () => {
     const hasText = !!editorToText(editor.innerHTML);
     const ccbmBtn = qs('composerClearBtnMob'); if (ccbmBtn) ccbmBtn.style.display = hasText ? 'inline-flex' : 'none';
   });
 
-  // Mobile approvals refresh
   const arbm = qs('approvalsRefreshBtnMob'); if (arbm) arbm.onclick = loadApprovals;
-  // Mobile new template
   const ntbm = qs('newTemplateBtnMob'); if (ntbm) ntbm.onclick = () => openTemplateModal();
 
-  // Mobile More button — opens drawer
   const mobMoreBtn = qs('mobMoreBtn');
   if (mobMoreBtn) mobMoreBtn.onclick = openMobDrawer;
 
-  // ── COMPOSER MODE TABS (Compose / Split) ──────────────
+  // ── COMPOSER MODE TABS ──
   function setComposerMode(mode) {
     document.querySelectorAll('.composer-mode-tab').forEach(t => {
       const isActive = t.dataset.cmode === mode;
@@ -1704,7 +1677,7 @@ function init() {
     t.onclick = () => setComposerMode(t.dataset.cmode);
   });
 
-  // ── THREAD SPLITTER ────────────────────────────────────
+  // ── THREAD SPLITTER ──
   let threadParts = [];
   let threadNumbered = false;
   let splitInited = false;
@@ -1764,7 +1737,6 @@ function init() {
   function initSplitMode() {
     if (splitInited) return; splitInited = true;
 
-    // Populate channel selector
     const tch = qs('threadChannel');
     if (tch) {
       tch.innerHTML = '';
@@ -1834,16 +1806,15 @@ function init() {
     qs('scheduleThreadBtn').onclick = () => { qs('threadWhenRow').style.display = 'block'; };
 
     window.addEventListener('postiq:synced', () => {
-      // Re-populate channels after sync
-      const tch = qs('threadChannel'); if (!tch) return;
-      tch.innerHTML = '';
+      const tch2 = qs('threadChannel'); if (!tch2) return;
+      tch2.innerHTML = '';
       const xChs = state.channels.filter(c => { const s=(c.service||'').toLowerCase(); return s.includes('twitter')||s.includes('thread')||s.includes('x-'); });
       const pool = xChs.length ? xChs : state.channels;
-      pool.forEach(c => { const o=document.createElement('option'); o.value=c.id; o.textContent=`${c.displayName||c.name} (${c.service})`; tch.appendChild(o); });
+      pool.forEach(c => { const o=document.createElement('option'); o.value=c.id; o.textContent=`${c.displayName||c.name} (${c.service})`; tch2.appendChild(o); });
     });
   }
 
-  // ── TRENDING ──────────────────────────────────────────
+  // ── TRENDING ──
   const trendingState = { src: 'reddit', sub: 'socialmedia', hn: 'topstories' };
   const DEFAULT_SUBS = ['socialmedia','entrepreneur','marketing','business'];
 
@@ -1890,7 +1861,6 @@ function init() {
       el.onmouseenter = () => { el.style.borderColor = 'var(--border2)'; };
       el.onmouseleave = () => { el.style.borderColor = 'var(--border)'; };
       el.querySelector('[data-inspire]').onclick = () => {
-        // Pin as reference in composer
         qs('refPinTitle').textContent = item.title;
         qs('refPinBody').textContent = item.body ? item.body.slice(0,200) : '';
         qs('refPin').style.display = 'block';
@@ -1911,7 +1881,7 @@ function init() {
       const data = await res.json();
       const posts = (data?.data?.children||[]).filter(p => !p.data.stickied);
       statusEl.textContent = `${posts.length} posts from r/${trendingState.sub}`;
-      renderTrendingItems('trendingRedditList', posts.map((p,i) => ({
+      renderTrendingItems('trendingRedditList', posts.map((p) => ({
         title: p.data.title, score: p.data.score, comments: p.data.num_comments,
         sub: `r/${p.data.subreddit}`, url: `https://reddit.com${p.data.permalink}`,
         body: p.data.selftext, age: timeAgo(p.data.created_utc * 1000),
@@ -1927,7 +1897,7 @@ function init() {
       const ids = await fetch(`https://hacker-news.firebaseio.com/v0/${trendingState.hn}.json`).then(r=>r.json());
       const stories = await Promise.all(ids.slice(0,20).map(id => fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(r=>r.json())));
       statusEl.textContent = `${stories.length} stories from Hacker News`;
-      renderTrendingItems('trendingHNList', stories.filter(s=>s?.title).map((s,i) => ({
+      renderTrendingItems('trendingHNList', stories.filter(s=>s?.title).map((s) => ({
         title: s.title, score: s.score, comments: s.descendants||0,
         sub: s.by ? `by ${s.by}` : 'HN', url: s.url || `https://news.ycombinator.com/item?id=${s.id}`,
         age: timeAgo(s.time * 1000),
@@ -1938,7 +1908,6 @@ function init() {
   function initTrending() {
     renderSubPills();
 
-    // Source tabs
     document.querySelectorAll('.trending-src-tab').forEach(tab => {
       tab.onclick = () => {
         document.querySelectorAll('.trending-src-tab').forEach(t => {
@@ -1952,7 +1921,6 @@ function init() {
       };
     });
 
-    // HN sub tabs
     document.querySelectorAll('.trending-hn-tab').forEach(tab => {
       tab.onclick = () => {
         document.querySelectorAll('.trending-hn-tab').forEach(t => {
@@ -1963,7 +1931,6 @@ function init() {
       };
     });
 
-    // Custom sub
     qs('trendingGoSub').onclick = () => {
       const val = qs('trendingCustomSub').value.trim().replace(/^r\//,'');
       if (!val) return;
@@ -1973,17 +1940,14 @@ function init() {
     };
     qs('trendingCustomSub').addEventListener('keydown', e => { if (e.key==='Enter') qs('trendingGoSub').click(); });
 
-    // Refresh buttons
     ['trendingRefreshBtn','trendingRefreshMob','trendingRefreshReddit'].forEach(id => {
       const btn = qs(id); if (btn) btn.onclick = () => { if (trendingState.src==='reddit') loadReddit(); else loadHN(); };
     });
     const hnRefBtn = qs('trendingRefreshHN'); if (hnRefBtn) hnRefBtn.onclick = loadHN;
 
-    // Load on first visit
     loadReddit();
   }
 
-  // Init trending when view activates (lazy)
   let trendingInited = false;
   const origActivateView = activateView;
   window.activateView = function(viewId) {
@@ -1997,7 +1961,6 @@ function init() {
     if (currentIdeasTab === 'trending' && !trendingInited) { trendingInited = true; initTrending(); }
   };
 
-  // Also update settings guide entry
   const guidePanel = qs('settingsPanelGuide');
   if (guidePanel && !guidePanel.querySelector('[data-guide-trending]')) {
     const trendingEntry = document.createElement('div');
@@ -2009,7 +1972,6 @@ function init() {
     guidePanel.querySelector('div').appendChild(threadEntry);
   }
 
-  // Service worker
   if ('serviceWorker' in navigator && location.hostname !== 'localhost' && !location.hostname.includes('claudeusercontent')) {
     navigator.serviceWorker.register('/sw.js').catch(e => console.warn('SW:', e));
   }
@@ -2121,7 +2083,7 @@ window.ContentPillars = (() => {
     pills.forEach((p, i) => {
       const el = document.createElement('div');
       el.style.cssText = `background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;box-shadow:var(--shadow-sm);margin-bottom:8px;border-left:4px solid ${pillarColor(i)};`;
-      el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;"><span style="font-family:Bricolage Grotesque,sans-serif;font-weight:700;font-size:14px;color:var(--ink);">${cpEsc(p.name)}</span><span style="font-family:DM Mono,monospace;font-size:9px;padding:2px 7px;border-radius:3px;background:var(--brand-dim);border:1px solid var(--brand-glow);color:var(--brand);">${layerLabels[p.layer] || ''}</span></div><div style="font-size:12px;color:var(--muted);margin-bottom:8px;">${cpEsc(p.promise)}</div><div style="display:flex;flex-wrap:wrap;gap:5px;">${p.seeds.map(s => `<span style="font-size:11px;padding:3px 8px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);">${cpEsc(s)}</span>`).join('')}</div>`;
+      el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;color:var(--ink);">${cpEsc(p.name)}</span><span style="font-family:'DM Mono',monospace;font-size:9px;padding:2px 7px;border-radius:3px;background:var(--brand-dim);border:1px solid var(--brand-glow);color:var(--brand);">${layerLabels[p.layer] || ''}</span></div><div style="font-size:12px;color:var(--muted);margin-bottom:8px;">${cpEsc(p.promise)}</div><div style="display:flex;flex-wrap:wrap;gap:5px;">${p.seeds.map(s => `<span style="font-size:11px;padding:3px 8px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);">${cpEsc(s)}</span>`).join('')}</div>`;
       wrap.appendChild(el);
     });
   }
@@ -2247,7 +2209,7 @@ window.ContentPillars = (() => {
     if (!wrap) return;
     const pillars = cpState.pillars.slice(0, 4);
     if (!pillars.length) {
-      wrap.innerHTML = '<div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;">Build your pillars in the Ideas tab to see quick starters here.</div>';
+      wrap.innerHTML = "<div style=\"font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;\">Build your pillars in the Ideas tab to see quick starters here.</div>";
       return;
     }
     wrap.innerHTML = '';
@@ -2257,7 +2219,10 @@ window.ContentPillars = (() => {
       card.className = 'cp-compact-card';
       const seed = pillar.seeds.find(s => String(s || '').trim()) || '';
       const count = usage[pillar.id] || 0;
-      card.innerHTML = `<div class="cp-compact-name">${cpEsc(pillar.name)}${count === 0 ? '<span style="font-size:10px;font-family:DM Mono,monospace;color:var(--subtle);border:1px solid var(--border);padding:1px 6px;border-radius:999px;margin-left:6px;">unused</span>' : ''}</div>${seed ? `<div class="cp-compact-seed">${cpEsc(seed)}</div><div class="cp-compact-row"><span style="font-size:10px;font-family:DM Mono,monospace;color:var(--subtle);">${count > 0 ? `${count} post${count > 1 ? 's' : ''} drafted` : 'Not used yet'}</span><button class="btn sm primary" type="button" style="height:24px;font-size:11px;padding:0 8px;" data-start="${cpEsc(pillar.id)}">Start</button></div>` : ''}`;
+      const unusedBadge = count === 0 ? `<span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);border:1px solid var(--border);padding:1px 6px;border-radius:999px;margin-left:6px;">unused</span>` : '';
+      const draftedLabel = count > 0 ? `${count} post${count > 1 ? 's' : ''} drafted` : 'Not used yet';
+      const seedHtml = seed ? `<div class="cp-compact-seed">${cpEsc(seed)}</div><div class="cp-compact-row"><span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">${draftedLabel}</span><button class="btn sm primary" type="button" style="height:24px;font-size:11px;padding:0 8px;" data-start="${cpEsc(pillar.id)}">Start</button></div>` : '';
+      card.innerHTML = `<div class="cp-compact-name">${cpEsc(pillar.name)}${unusedBadge}</div>${seedHtml}`;
       const btn = card.querySelector('[data-start]');
       if (btn) btn.addEventListener('click', e => {
         e.stopPropagation();
@@ -2362,7 +2327,6 @@ window.ContentPillars = (() => {
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Keep view switching alive even if a later init block crashes.
   document.addEventListener('click', (e) => {
     const trigger = e.target.closest('[data-view]');
     if (!trigger || !trigger.dataset.view) return;
