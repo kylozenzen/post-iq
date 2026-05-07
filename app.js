@@ -223,7 +223,7 @@ function renderTemplates() {
 function renderComposerTemplateSidebar() {
   const list = qs('composerTemplateList'); if (!list) return;
   const items = state.templates.slice(0, 8);
-  if (!items.length) { list.innerHTML = '<div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:\'DM Mono\',monospace;">No templates yet.</div>'; return; }
+  if (!items.length) { list.innerHTML = '<div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;">No templates yet.</div>'; return; }
   list.innerHTML = '';
   items.forEach(s => {
     const el = document.createElement('div');
@@ -649,7 +649,7 @@ function openDayNote(date) {
   qs('noteTag').value = `${note.tag || 'gold'}|${note.label || 'Idea'}`;
   const dayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
   qs('dayPostPreview').innerHTML = dayPosts.length
-    ? `<div style="font-size:11px;font-family:\'DM Mono\',monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;">${dayPosts.length} scheduled post${dayPosts.length > 1 ? 's' : ''}</div>${dayPosts.map(p => `<div style="font-size:12px;padding:6px 8px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:5px;color:var(--brand);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${safeText(p.text || '(no text)')}</div>`).join('')}`
+    ? `<div style="font-size:11px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;">${dayPosts.length} scheduled post${dayPosts.length > 1 ? 's' : ''}</div>${dayPosts.map(p => `<div style="font-size:12px;padding:6px 8px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:5px;color:var(--brand);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${safeText(p.text || '(no text)')}</div>`).join('')}`
     : `<div style="font-size:12px;color:var(--subtle);margin-bottom:8px;">No posts scheduled on this day.</div>`;
   qs('noteStatus').textContent = '';
   openModal('noteModal');
@@ -709,7 +709,7 @@ function renderAgenda() {
     const dayEl = document.createElement('div');
     dayEl.style.cssText = `border:1px solid ${isToday ? 'var(--brand)' : 'var(--border)'};border-radius:10px;padding:12px;margin-bottom:8px;background:var(--surface);cursor:pointer;`;
     const dateLabel = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-    let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-family:\'DM Mono\',monospace;font-size:11px;font-weight:600;color:${isToday ? 'var(--brand)' : 'var(--muted)'};">${dateLabel}</span>${data.posts.length ? `<span style="font-size:9px;font-family:\'DM Mono\',monospace;background:var(--brand-dim);color:var(--brand);border:1px solid var(--brand-glow);padding:1px 5px;border-radius:3px;">${data.posts.length} post${data.posts.length > 1 ? 's' : ''}</span>` : ''}</div>`;
+    let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:${isToday ? 'var(--brand)' : 'var(--muted)'};">${dateLabel}</span>${data.posts.length ? `<span style="font-size:9px;font-family:'DM Mono',monospace;background:var(--brand-dim);color:var(--brand);border:1px solid var(--brand-glow);padding:1px 5px;border-radius:3px;">${data.posts.length} post${data.posts.length > 1 ? 's' : ''}</span>` : ''}</div>`;
     data.posts.slice(0, 2).forEach(p => { html += `<div style="font-size:12px;padding:6px 8px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:5px;color:var(--brand);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${safeText(compact(p.text, 80))}</div>`; });
     if (data.posts.length > 2) html += `<div style="font-size:10px;color:var(--subtle);margin-bottom:4px;">+${data.posts.length - 2} more</div>`;
     if (data.note) html += `<div class="day-note-pill ${data.note.tag || 'gold'}" style="display:block;border-radius:5px;margin-top:4px;">${safeText(compact(data.note.text, 60))}</div>`;
@@ -1087,7 +1087,7 @@ function renderApprovalCard(meta) {
       <div class="approval-card-meta">
         <span class="approval-status-badge ${statusClass}">${statusLabel}</span>
         ${platformBadge}
-        <span style="font-size:10px;font-family:\'DM Mono\',monospace;color:var(--subtle);">${meta.created_at ? new Date(meta.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : ''}</span>
+        <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">${meta.created_at ? new Date(meta.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : ''}</span>
       </div>
       <button class="btn sm ghost" onclick="approvalRemove('${safeId}')">✕ Remove</button>
     </div>
@@ -1096,7 +1096,7 @@ function renderApprovalCard(meta) {
       <div class="approval-content-text">${safeText(meta.content || '')}</div>
       ${meta.comments?.length ? `
         <div class="approval-comments">
-          <div style="font-size:10px;font-family:\'DM Mono\',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;">Reviewer feedback</div>
+          <div style="font-size:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;">Reviewer feedback</div>
           ${meta.comments.map(c => `
             <div class="approval-comment">
               <div class="approval-comment-meta">
@@ -1125,7 +1125,7 @@ function renderApprovalCard(meta) {
           </div>
         </div>
         <div style="${pubDisabled ? 'opacity:.45;pointer-events:none;' : ''}">
-          ${pubDisabled ? `<div style="font-size:11px;font-family:\'DM Mono\',monospace;color:var(--subtle);margin-bottom:10px;">Publishing unlocks once reviewer responds.</div>` : ''}
+          ${pubDisabled ? `<div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--subtle);margin-bottom:10px;">Publishing unlocks once reviewer responds.</div>` : ''}
           <div class="label mb8">Publish to</div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
             <select id="approval-ch-${safeId}" class="input" style="flex:1;min-width:160px;font-size:13px;"></select>
@@ -1142,7 +1142,7 @@ function renderApprovalCard(meta) {
             </div>
           </div>
         </div>`}
-      <div id="approval-status-${safeId}" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:\'DM Mono\',monospace;min-height:16px;"></div>
+      <div id="approval-status-${safeId}" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;min-height:16px;"></div>
     </div>`;
 
   setTimeout(() => {
@@ -1252,13 +1252,13 @@ async function renderReviewerPage(uuid) {
     const comments = record.comments || [];
     content.innerHTML = `
       <div class="reviewer-card">
-        ${platform ? `<div style="font-size:10px;font-family:\'DM Mono\',monospace;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border:1px solid var(--border2);border-radius:4px;color:var(--subtle);display:inline-flex;margin-bottom:16px;">${safeText(platform)}</div>` : ''}
+        ${platform ? `<div style="font-size:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border:1px solid var(--border2);border-radius:4px;color:var(--subtle);display:inline-flex;margin-bottom:16px;">${safeText(platform)}</div>` : ''}
         <div style="font-size:15px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word;">${safeText(postContent || '')}</div>
         ${imageUrl ? `<img src="${safeText(imageUrl)}" style="width:100%;max-height:360px;object-fit:cover;border-radius:10px;border:1px solid var(--border);margin-top:16px;" />` : ''}
       </div>
       ${comments.length ? `
         <div class="reviewer-card">
-          <div style="font-size:11px;font-weight:600;font-family:\'DM Mono\',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:14px;">Previous comments</div>
+          <div style="font-size:11px;font-weight:600;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:14px;">Previous comments</div>
           ${comments.map(c => `<div style="padding:12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;"><div style="font-weight:600;font-size:13px;margin-bottom:2px;">${safeText(c.author || 'Anonymous')}</div><div style="font-size:14px;color:var(--muted);line-height:1.55;">${safeText(c.text || '')}</div></div>`).join('')}
         </div>` : ''}
       <div class="reviewer-card">
@@ -1742,9 +1742,9 @@ function init() {
       div.style.cssText = 'padding:12px;margin-bottom:0;';
       div.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <span style="font-size:11px;font-family:\'DM Mono\',monospace;color:var(--brand);background:var(--brand-dim);border:1px solid var(--brand-glow);padding:2px 7px;border-radius:4px;">Part ${i+1}</span>
+          <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--brand);background:var(--brand-dim);border:1px solid var(--brand-glow);padding:2px 7px;border-radius:4px;">Part ${i+1}</span>
           <div style="display:flex;gap:6px;align-items:center;">
-            <span style="font-size:11px;font-family:\'DM Mono\',monospace;color:${over?'var(--red)':'var(--subtle)'};">${full.length}/280</span>
+            <span style="font-size:11px;font-family:'DM Mono',monospace;color:${over?'var(--red)':'var(--subtle)'};">${full.length}/280</span>
             <button class="btn sm ghost" data-pi="${i}">Copy</button>
           </div>
         </div>
@@ -1852,7 +1852,7 @@ function init() {
     wrap.innerHTML = '';
     DEFAULT_SUBS.forEach(sub => {
       const btn = document.createElement('button');
-      btn.style.cssText = `padding:5px 12px;border-radius:20px;border:1px solid var(--border2);font-size:12px;font-family:\'DM Mono\',monospace;cursor:pointer;transition:all .12s;background:${trendingState.sub===sub?'var(--brand-dim)':'var(--surface)'};color:${trendingState.sub===sub?'var(--brand)':'var(--muted)'};border-color:${trendingState.sub===sub?'var(--brand-glow)':'var(--border2)'};`;
+      btn.style.cssText = `padding:5px 12px;border-radius:20px;border:1px solid var(--border2);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;transition:all .12s;background:${trendingState.sub===sub?'var(--brand-dim)':'var(--surface)'};color:${trendingState.sub===sub?'var(--brand)':'var(--muted)'};border-color:${trendingState.sub===sub?'var(--brand-glow)':'var(--border2)'};`;
       btn.textContent = 'r/' + sub;
       btn.onclick = () => { trendingState.sub = sub; renderSubPills(); loadReddit(); };
       wrap.appendChild(btn);
@@ -1873,14 +1873,14 @@ function init() {
       const el = document.createElement('div');
       el.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;transition:border-color .12s;';
       el.innerHTML = `
-        <div style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--subtle);width:22px;flex-shrink:0;padding-top:2px;font-weight:600;">${i+1}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--subtle);width:22px;flex-shrink:0;padding-top:2px;font-weight:600;">${i+1}</div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:5px;">${safeText(item.title)}</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-            <span style="font-size:10px;font-family:\'DM Mono\',monospace;color:var(--amber);font-weight:700;">▲ ${(item.score||0).toLocaleString()}</span>
-            <span style="font-size:10px;font-family:\'DM Mono\',monospace;color:var(--subtle);">💬 ${item.comments||0}</span>
-            <span style="font-size:10px;font-family:\'DM Mono\',monospace;color:var(--brand);">${safeText(item.sub||'')}</span>
-            <span style="font-size:10px;font-family:\'DM Mono\',monospace;color:var(--subtle);">${item.age||''}</span>
+            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--amber);font-weight:700;">▲ ${(item.score||0).toLocaleString()}</span>
+            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">💬 ${item.comments||0}</span>
+            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--brand);">${safeText(item.sub||'')}</span>
+            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">${item.age||''}</span>
           </div>
           <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
             <button class="btn sm" style="font-size:11px;" data-inspire="${i}">→ Draft from this</button>
@@ -2247,7 +2247,7 @@ window.ContentPillars = (() => {
     if (!wrap) return;
     const pillars = cpState.pillars.slice(0, 4);
     if (!pillars.length) {
-      wrap.innerHTML = '<div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:\'DM Mono\',monospace;">Build your pillars in the Ideas tab to see quick starters here.</div>';
+      wrap.innerHTML = '<div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;">Build your pillars in the Ideas tab to see quick starters here.</div>';
       return;
     }
     wrap.innerHTML = '';
