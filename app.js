@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════
 // STRATEGY SNACK MACHINE × POSTIQ INTEGRATION
 // Drop this entire block into app.js, replacing the existing
-// ContentPillars IIFE. Then update the cpGateNew handler below.
+// ContentPillars IIFE. Then update the cpGateNew handler below. 
 //
 // CHANGES TO EXISTING HTML (app.html):
 //   1. Replace cpGateNew card inner HTML (see GATE CARD HTML section)
