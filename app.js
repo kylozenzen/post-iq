@@ -1,2003 +1,134 @@
-'use strict';
-
-// ── CONSTANTS ──────────────────────────────────────
-const STORE_KEY       = 'postiq_buffer_token';
-const NOTE_KEY        = 'postiq_calendar_notes_v2';
-const TEMPLATE_KEY    = 'postiq_templates_v1';
-const CACHE_KEY       = 'postiq_buffer_cache_v1';
-const APPROVAL_PREFIX = 'postiq_approval_';
-
-const IMGUR_KEY    = '546c25a59c58ad7';
-const UNSPLASH_KEY = 'tBuaYCO5p-pJPjgF29hR2yJGtlQaG4d5HqdVivV0lbQ';
-
-const TEMPLATE_TYPES     = ['All','Hooks','CTAs','Announcements','Engagement','Hashtag Sets'];
-const TEMPLATE_PLATFORMS = ['All Platforms','LinkedIn','X','Threads','Instagram','Universal'];
-
-// ── STATE ──────────────────────────────────────────
-let bufferToken = '';
-let currentViewId = 'calendarView';
-let currentIdeasTab = 'pillars';
-let tokenPanelOpen = false;
-let modalCount = 0;
-
-const state = {
-  channels: [],
-  scheduled: [],
-  month: new Date(),
-  selectedDate: null,
-  syncState: 'idle',
-  templates: [],
-  templateType: 'All',
-  templatePlatform: 'All Platforms',
-  templateSearch: '',
-  editingTemplateId: null,
-  organizationId: null,
-};
-
-const mediaState = { url: '', type: '', videoThumbUrl: '', source: '' };
-
-// Cache layer
-const cache = {
-  orgId:     { value: null, ts: 0 },
-  channels:  { value: [], ts: 0 },
-  scheduled: { value: [], ts: 0 },
-};
-const CACHE_TTL = { orgId: 86400000, channels: 86400000, scheduled: 600000 };
-
-// ── UTILITIES ──────────────────────────────────────
-const qs = id => document.getElementById(id);
-const on = (id, evt, handler, opts) => { const el = qs(id); if (!el) return null; el.addEventListener(evt, handler, opts); return el; };
-const fmtDate = d => d.toISOString().slice(0, 10);
-const monthLabel = d => d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-const monthStart = d => new Date(d.getFullYear(), d.getMonth(), 1);
-const safeText = v => String(v || '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
-const compact = (v, max = 80) => { const t = String(v || '').trim(); return t.length > max ? t.slice(0, max - 1) + '…' : t; };
-
-const SNAP_ADJECTIVES = ['amber','brisk','cobalt','clever','cosmic','crisp','electric','golden','lively','lunar','mint','neon','quiet','rapid','silver','sunny','tidy','vivid'];
-const SNAP_NOUNS = ['atlas','beacon','canvas','comet','draft','ember','grove','harbor','kite','lane','maple','orbit','pencil','quill','signal','spark','studio','thread'];
-const pick = arr => arr[Math.floor(Math.random() * arr.length)];
-const toBase64Url = str => btoa(unescape(encodeURIComponent(str))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-const fromBase64Url = str => decodeURIComponent(escape(atob(str.replace(/-/g, '+').replace(/_/g, '/'))));
-function generateSnapshotId() { return `${pick(SNAP_ADJECTIVES)}-${pick(SNAP_NOUNS)}-${Math.random().toString(36).slice(2, 6)}`; }
-function formatDateTime(value) {
-  if (!value) return 'Unscheduled';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return String(value);
-  return d.toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-}
-function formatDateOnly(value) {
-  const d = new Date(value + 'T00:00:00');
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
-}
-const normTags = v => Array.isArray(v) ? v.map(x => String(x).trim()).filter(Boolean) : String(v || '').split(',').map(x => x.trim()).filter(Boolean);
-const isVideo = url => /\.(mp4|mov|webm|avi|mkv|m4v)(\?|$)/i.test(String(url || ''));
-const maskToken = t => !t ? '—' : t.length <= 8 ? '••••' : `${t.slice(0,4)}••••${t.slice(-4)}`;
-
-function showToast(msg, type = '') {
-  const wrap = qs('toastWrap'); if (!wrap) return;
-  const t = document.createElement('div');
-  t.className = 'toast' + (type ? ' ' + type : '');
-  t.textContent = msg;
-  wrap.appendChild(t);
-  const delay = msg.length > 40 ? 3800 : 2600;
-  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 250); }, delay);
-}
-
-async function copyTextSafe(text) {
-  const value = String(text || '');
-  try {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(value);
-      return true;
-    }
-  } catch {}
-  try {
-    const ta = document.createElement('textarea');
-    ta.value = value;
-    ta.setAttribute('readonly', '');
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    const ok = document.execCommand('copy');
-    document.body.removeChild(ta);
-    return !!ok;
-  } catch {
-    return false;
-  }
-}
-
-function openModal(id) {
-  const el = qs(id); if (!el || el.classList.contains('open')) return;
-  el.classList.add('open'); modalCount++;
-  if (modalCount > 0) document.body.style.overflow = 'hidden';
-}
-function closeModal(id) {
-  const el = qs(id); if (!el || !el.classList.contains('open')) return;
-  el.classList.remove('open'); modalCount = Math.max(0, modalCount - 1);
-  if (modalCount === 0) document.body.style.overflow = '';
-}
-
-// ── APPROVAL METADATA (localStorage) ──────────────
-function getApprovalMeta(draftId) {
-  try { const r = localStorage.getItem(APPROVAL_PREFIX + draftId); return r ? JSON.parse(r) : null; } catch { return null; }
-}
-function setApprovalMeta(draftId, data) { try { localStorage.setItem(APPROVAL_PREFIX + draftId, JSON.stringify(data)); } catch {} }
-function clearApprovalMeta(draftId) { try { localStorage.removeItem(APPROVAL_PREFIX + draftId); } catch {} }
-function getAllApprovalMetas() {
-  const result = [];
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith(APPROVAL_PREFIX)) {
-        const draftId = key.slice(APPROVAL_PREFIX.length);
-        const meta = getApprovalMeta(draftId);
-        if (meta && meta.needs_approval) result.push({ draftId, ...meta });
-      }
-    }
-  } catch {}
-  return result;
-}
-
-// ── TEMPLATES ──────────────────────────────────────
-function loadTemplates() {
-  try {
-    const raw = localStorage.getItem(TEMPLATE_KEY);
-    if (!raw) { state.templates = []; return; }
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) { state.templates = []; return; }
-    state.templates = parsed.map((s, i) => ({
-      id: String(s.id || `${Date.now()}-${i}`),
-      title: String(s.title || 'Untitled'),
-      type: TEMPLATE_TYPES.includes(s.type) ? s.type : 'Hooks',
-      platform: TEMPLATE_PLATFORMS.includes(s.platform) ? s.platform : 'Universal',
-      tags: normTags(s.tags),
-      body: String(s.body || ''),
-      createdAt: String(s.createdAt || new Date().toISOString()),
-      updatedAt: String(s.updatedAt || new Date().toISOString()),
-    }));
-  } catch { state.templates = []; }
-}
-function persistTemplates() { try { localStorage.setItem(TEMPLATE_KEY, JSON.stringify(state.templates)); } catch {} }
-
-function filteredTemplates(search = state.templateSearch, type = state.templateType, platform = state.templatePlatform) {
-  const q = search.trim().toLowerCase();
-  return state.templates.filter(s => {
-    const typeOk = type === 'All' || s.type === type;
-    const platOk = platform === 'All Platforms' || s.platform === platform;
-    const txt = `${s.title} ${s.body} ${(s.tags || []).join(' ')}`.toLowerCase();
-    return typeOk && platOk && (!q || txt.includes(q));
-  });
-}
-
-function renderTemplateTypeFilters() {
-  const rail = qs('templateTypeFilters'); rail.innerHTML = '';
-  TEMPLATE_TYPES.forEach(type => {
-    const count = type === 'All' ? state.templates.length : state.templates.filter(s => s.type === type).length;
-    const b = document.createElement('button');
-    b.className = `type-filter-btn ${state.templateType === type ? 'active' : ''}`;
-    b.innerHTML = `<span>${type}</span><span class="type-filter-count">${count || ''}</span>`;
-    b.onclick = () => { state.templateType = type; renderTemplates(); };
-    rail.appendChild(b);
-  });
-}
-
-function renderTemplates() {
-  renderTemplateTypeFilters();
-  const list = filteredTemplates();
-  const grid = qs('templatesGrid');
-  qs('templatesEmpty').style.display = list.length ? 'none' : 'flex';
-  grid.innerHTML = '';
-  list.forEach(s => {
-    const card = document.createElement('div');
-    card.className = 'template-card';
-    card.innerHTML = `
-      <div class="template-card-hdr">
-        <div class="template-card-title">${safeText(s.title)}</div>
-        <div style="display:flex;gap:3px;flex-shrink:0;">
-          <span class="chip">${safeText(s.type)}</span>
-          <span class="chip">${safeText(s.platform)}</span>
-        </div>
-      </div>
-      <div class="template-card-body">${safeText(s.body)}</div>
-      ${s.tags?.length ? `<div class="template-card-tags">${safeText(s.tags.join(' · '))}</div>` : ''}
-      <div class="template-card-actions">
-        <button class="btn sm" data-act="copy">Copy</button>
-        <button class="btn sm primary" data-act="use">→ Draft</button>
-        <button class="btn sm ghost" data-act="edit" style="margin-left:auto;">✏️</button>
-        <button class="btn sm ghost" data-act="del">🗑</button>
-      </div>`;
-    card.querySelector('[data-act="copy"]').onclick = async () => {
-      const ok = await copyTextSafe(s.body || '');
-      showToast(ok ? 'Copied' : 'Copy failed', ok ? 'success' : 'error');
-    };
-    card.querySelector('[data-act="use"]').onclick  = () => { activateView('composerView'); useTemplateInEditor(s); };
-    card.querySelector('[data-act="edit"]').onclick = () => openTemplateModal(s.id);
-    card.querySelector('[data-act="del"]').onclick  = () => deleteTemplate(s.id);
-    grid.appendChild(card);
-  });
-  renderComposerTemplateSidebar();
-}
-
-function renderComposerTemplateSidebar() {
-  const list = qs('composerTemplateList'); if (!list) return;
-  const items = state.templates.slice(0, 8);
-  if (!items.length) { list.innerHTML = "<div style=\"font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;\">No templates yet.</div>"; return; }
-  list.innerHTML = '';
-  items.forEach(s => {
-    const el = document.createElement('div');
-    el.className = 'template-item';
-    el.innerHTML = `<div class="template-item-title">${safeText(s.title)}</div><div class="template-item-preview">${safeText(compact(s.body, 70))}</div>`;
-    el.onclick = () => useTemplateInEditor(s);
-    list.appendChild(el);
-  });
-}
-
-function useTemplateInEditor(template) {
-  const editor = qs('composerEditor'); if (!editor) return;
-  const body = template.body || '';
-  try {
-    const sel = window.getSelection();
-    if (sel && sel.rangeCount && editor.contains(sel.anchorNode)) {
-      sel.deleteFromDocument();
-      sel.getRangeAt(0).insertNode(document.createTextNode(body));
-    } else {
-      editor.innerText = editor.innerText ? `${editor.innerText}\n\n${body}` : body;
-    }
-  } catch { editor.innerText = editor.innerText ? `${editor.innerText}\n\n${body}` : body; }
-  editor.dispatchEvent(new Event('input'));
-  editor.focus();
-  showToast('Template inserted', 'success');
-}
-
-function openTemplateModal(id = null) {
-  state.editingTemplateId = id;
-  const s = id ? state.templates.find(x => x.id === id) : null;
-  qs('templateModalTitle').textContent = s ? 'Edit Template' : 'New Template';
-  qs('templateTitle').value = s?.title || '';
-  qs('templateType').value = s?.type || 'Hooks';
-  qs('templatePlatform').value = s?.platform || 'Universal';
-  qs('templateTags').value = (s?.tags || []).join(', ');
-  qs('templateBody').value = s?.body || '';
-  openModal('templateModal');
-}
-
-function saveTemplate() {
-  const title = qs('templateTitle').value.trim();
-  const body  = qs('templateBody').value.trim();
-  if (!title || !body) { showToast('Title and body required', 'error'); return; }
-  const now = new Date().toISOString();
-  const payload = {
-    id: state.editingTemplateId || `${Date.now()}-${Math.random().toString(16).slice(2, 7)}`,
-    title, type: qs('templateType').value, platform: qs('templatePlatform').value,
-    tags: normTags(qs('templateTags').value), body, createdAt: now, updatedAt: now,
-  };
-  if (state.editingTemplateId) {
-    const prev = state.templates.find(s => s.id === state.editingTemplateId);
-    payload.createdAt = prev?.createdAt || now;
-    state.templates = state.templates.map(s => s.id === state.editingTemplateId ? payload : s);
-  } else {
-    state.templates = [payload, ...state.templates];
-  }
-  persistTemplates(); closeModal('templateModal'); renderTemplates(); showToast('Template saved', 'success');
-}
-
-function deleteTemplate(id) {
-  if (!confirm('Delete this template?')) return;
-  state.templates = state.templates.filter(s => s.id !== id);
-  persistTemplates(); renderTemplates(); showToast('Deleted');
-}
-
-function renderTemplatePicker() {
-  const list = qs('pickerList');
-  const items = filteredTemplates(qs('pickerSearch').value, qs('pickerType').value, 'All Platforms');
-  qs('pickerEmpty').style.display = items.length ? 'none' : 'flex';
-  list.innerHTML = '';
-  items.forEach(s => {
-    const el = document.createElement('div');
-    el.style.cssText = 'padding:10px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:var(--surface);transition:all .1s;';
-    el.innerHTML = `<strong style="font-size:13px;">${safeText(s.title)}</strong><div style="font-size:12px;color:var(--muted);margin-top:3px;">${safeText(compact(s.body, 150))}</div>`;
-    el.onmouseenter = () => { el.style.borderColor = 'var(--brand-glow)'; el.style.background = 'var(--brand-dim)'; };
-    el.onmouseleave = () => { el.style.borderColor = 'var(--border)'; el.style.background = 'var(--surface)'; };
-    el.onclick = () => { useTemplateInEditor(s); closeModal('templatePickerModal'); };
-    list.appendChild(el);
-  });
-}
-
-function initTemplateSelectors() {
-  ['templatePlatform', 'templatePlatformFilter'].forEach(id => {
-    const sel = qs(id); if (!sel) return;
-    sel.innerHTML = '';
-    TEMPLATE_PLATFORMS.forEach((p, i) => {
-      if (id === 'templatePlatformFilter' && i === 0) return;
-      const o = document.createElement('option'); o.value = p; o.textContent = p; sel.appendChild(o);
-    });
-    if (id === 'templatePlatformFilter') {
-      const allOpt = document.createElement('option'); allOpt.value = 'All Platforms'; allOpt.textContent = 'All Platforms';
-      sel.prepend(allOpt); sel.value = 'All Platforms';
-    }
-  });
-  ['templateType', 'pickerType'].forEach(id => {
-    const sel = qs(id); if (!sel) return;
-    sel.innerHTML = '';
-    TEMPLATE_TYPES.forEach((t, i) => {
-      if (id === 'templateType' && i === 0) return;
-      const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o);
-    });
-  });
-}
-
-// ── TOKEN ──────────────────────────────────────────
-function maskPreview(t) { return t ? maskToken(t) : 'Not connected'; }
-
-function refreshTokenUI() {
-  const connected = !!bufferToken;
-  qs('connDot').classList.toggle('on', connected);
-  qs('connLabel').textContent = connected ? 'Connected' : 'Not connected';
-  qs('connTokenPreview').textContent = maskPreview(bufferToken);
-  updateNavTags();
-}
-
-function updateNavTags() {
-  const connected = !!bufferToken;
-  ['calNavTag','appNavTag'].forEach(id => {
-    const el = qs(id); if (!el) return;
-    el.style.display = connected ? 'none' : '';
-  });
-  document.querySelectorAll('.nav-free-tag').forEach(el => {
-    el.style.display = connected ? 'none' : '';
-  });
-  const calDesc = qs('calDesc');
-  if (calDesc) calDesc.textContent = connected
-    ? 'Your Buffer queue in a monthly view. Spot gaps and add planning notes before you draft.'
-    : 'Connect your Buffer token to load your scheduled posts and spot queue gaps.';
-  const composerDesc = qs('composerDesc');
-  if (composerDesc) composerDesc.textContent = connected
-    ? 'Write your post, attach media, then send to Buffer as a draft, queued post, or scheduled post.'
-    : 'Write here now — connect Buffer to unlock drafting, queueing, and scheduling.';
-  updateComposerButtonStates();
-  qs('calEmptyHint').style.display = connected ? 'none' : 'block';
-}
-
-function updateComposerButtonStates() {
-  const connected = !!bufferToken;
-  const hasChannel = !!qs('composerChannel')?.value;
-  const ready = connected && hasChannel;
-  ['composerDraft','composerQueue','composerScheduleToggle'].forEach(id => {
-    const btn = qs(id); if (!btn) return;
-    btn.disabled = !ready;
-    btn.style.opacity = ready ? '1' : '.45';
-    btn.style.cursor = ready ? 'pointer' : 'not-allowed';
-    btn.title = !connected ? 'Add your Buffer token first' : !hasChannel ? 'Load channels from Buffer first' : '';
-  });
-}
-
-function setBufferToken(token, { mode = 'session', messageEl = null } = {}) {
-  localStorage.removeItem(STORE_KEY);
-  sessionStorage.removeItem(STORE_KEY);
-  const clean = String(token || '').trim();
-  if (!clean) {
-    bufferToken = '';
-    clearSyncedData();
-    if (messageEl) messageEl.textContent = 'Token removed.';
-    refreshTokenUI();
-    showToast('Token removed');
-    return false;
-  }
-  if (mode === 'local') localStorage.setItem(STORE_KEY, clean);
-  else sessionStorage.setItem(STORE_KEY, clean);
-  bufferToken = clean;
-  if (messageEl) messageEl.textContent = mode === 'local' ? 'Saved locally.' : 'Saved for session.';
-  refreshTokenUI();
-  showToast('Token saved', 'success');
-  return true;
-}
-
-function loadStoredToken() {
-  bufferToken = sessionStorage.getItem(STORE_KEY) || localStorage.getItem(STORE_KEY) || '';
-  if (bufferToken) {
-    const inp = qs('tokenInput'); if (inp) inp.value = bufferToken;
-    loadCacheState();
-    hydrateFromCache();
-  }
-  refreshTokenUI();
-}
-
-function saveToken() {
-  const token = qs('tokenInput').value.trim();
-  const mode = [...document.querySelectorAll('input[name="tokenMode"]')].find(r => r.checked)?.value || 'session';
-  const ok = setBufferToken(token, { mode, messageEl: qs('tokenMsg') });
-  if (ok) syncBuffer({ force: true });
-}
-
-// ── CACHE ──────────────────────────────────────────
-function loadCacheState() {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY); if (!raw) return;
-    const parsed = JSON.parse(raw);
-    Object.keys(cache).forEach(key => {
-      if (parsed[key]?.ts) cache[key] = { value: parsed[key].value, ts: parsed[key].ts };
-    });
-  } catch {}
-}
-function saveCacheState() { try { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch {} }
-function isCacheFresh(key) { return !!cache[key]?.ts && (Date.now() - cache[key].ts) < CACHE_TTL[key]; }
-function hydrateFromCache() {
-  if (cache.orgId.value) state.organizationId = cache.orgId.value;
-  if (Array.isArray(cache.channels.value) && cache.channels.value.length) state.channels = cache.channels.value;
-  if (Array.isArray(cache.scheduled.value) && cache.scheduled.value.length) state.scheduled = cache.scheduled.value;
-}
-function clearSyncedData() {
-  state.channels = []; state.scheduled = []; state.organizationId = null;
-  Object.keys(cache).forEach(k => { cache[k] = { value: Array.isArray(cache[k]?.value) ? [] : null, ts: 0 }; });
-  try { localStorage.removeItem(CACHE_KEY); } catch {}
-  renderChannelSelects(); renderCalendar();
-}
-
-// ── BUFFER API ──────────────────────────────────────
-async function callBuffer(query, variables = {}) {
-  if (!bufferToken) throw Object.assign(new Error('No Buffer token'), { code: 'MISSING_TOKEN' });
-  let res;
-  try { res = await fetch('/.netlify/functions/buffer-proxy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: bufferToken, query, variables }) }); }
-  catch (err) { throw Object.assign(new Error('Network error'), { code: 'PROXY_NETWORK_ERROR', retryable: true, cause: err }); }
-  let data;
-  try { data = await res.json(); } catch { throw Object.assign(new Error('Invalid proxy response'), { code: 'PROXY_BAD_RESPONSE' }); }
-  if (data.errors?.length && !data.data) {
-    const first = data.errors[0] || {};
-    throw Object.assign(new Error(first.message || 'Buffer request failed'), { code: first.code || 'BUFFER_ERROR', status: first.status, retryable: !!first.retryable, retryAfter: first.retryAfter });
-  }
-  return data;
-}
-
-function getErrorMessage(err, fallback = 'Request failed. Please try again.') {
-  const code = String(err?.code || '').toUpperCase();
-  const msg  = String(err?.message || '');
-  if (code === 'MISSING_TOKEN') return 'Add your Buffer token first.';
-  if (code === 'RATE_LIMIT' || err?.status === 429) return `Buffer rate limit hit.${err?.retryAfter ? ` Retry in ${err.retryAfter}s.` : ''}`;
-  if (code === 'AUTH_ERROR' || /unauthorized|invalid|forbidden|expired/i.test(msg)) return 'Token appears invalid or expired. Reconnect Buffer.';
-  if (code === 'PROXY_NETWORK_ERROR') return 'Network issue reaching Buffer. Check connection and retry.';
-  return msg || fallback;
-}
-
-function isAuthError(err) {
-  return ['AUTH_ERROR'].includes(String(err?.code || '').toUpperCase())
-    || err?.status === 401 || err?.status === 403
-    || /unauthorized|invalid token|forbidden|expired/i.test(String(err?.message || ''));
-}
-
-function handleAuthFailure(msg) {
-  bufferToken = '';
-  localStorage.removeItem(STORE_KEY); sessionStorage.removeItem(STORE_KEY);
-  clearSyncedData(); refreshTokenUI();
-  setSyncStatus('failed', msg);
-}
-
-// ── SYNC ──────────────────────────────────────────
-function setSyncStatus(state_, msg) {
-  state.syncState = state_;
-  const el = qs('syncStatus'); if (!el) return;
-  el.textContent = msg;
-  const lastEl = qs('lastSynced');
-  if (state_ === 'success' && lastEl) lastEl.textContent = `Synced at ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
-}
-
-async function getOrgId({ force = false } = {}) {
-  if (!force && state.organizationId && isCacheFresh('orgId')) return state.organizationId;
-  const acc = await callBuffer('query { account { organizations { id name } } }');
-  const orgId = acc?.data?.account?.organizations?.[0]?.id || null;
-  if (orgId) { state.organizationId = orgId; cache.orgId = { value: orgId, ts: Date.now() }; }
-  return orgId;
-}
-
-async function getChannels({ force = false } = {}) {
-  if (!force && state.channels.length && isCacheFresh('channels')) return state.channels;
-  const orgId = await getOrgId({ force });
-  if (!orgId) return [];
-  const q = 'query C($organizationId: OrganizationId!) { channels(input:{organizationId:$organizationId}){ id displayName name service } }';
-  const ch = await callBuffer(q, { organizationId: orgId });
-  state.channels = ch?.data?.channels || [];
-  cache.channels = { value: state.channels, ts: Date.now() };
-  return state.channels;
-}
-
-async function getScheduledPosts({ force = false } = {}) {
-  if (!force && state.scheduled.length && isCacheFresh('scheduled')) return state.scheduled;
-  const orgId = await getOrgId({ force });
-  if (!orgId) return [];
-  const bounds = getScheduledBounds();
-  let all = [], after = null, hasNext = true, fetched = 0;
-  const seen = new Set();
-  const q = 'query P($organizationId: OrganizationId!, $after: String, $first: Int!) { posts(first:$first,after:$after,input:{organizationId:$organizationId,filter:{status:[scheduled]}}){edges{node{id text dueAt channelId}} pageInfo{hasNextPage endCursor} } }';
-  while (hasNext && fetched < 200 && all.length < 200) {
-    const page = await callBuffer(q, { organizationId: orgId, after, first: 50 });
-    const block = page?.data?.posts;
-    (block?.edges || []).forEach(e => {
-      const post = e?.node;
-      if (!post?.id || seen.has(post.id)) return;
-      const due = new Date(post.dueAt);
-      if (due >= bounds.start && due <= bounds.end) { seen.add(post.id); all.push(post); }
-    });
-    hasNext = !!block?.pageInfo?.hasNextPage; after = block?.pageInfo?.endCursor || null; fetched += (block?.edges || []).length;
-    if (!block?.pageInfo) break;
-  }
-  all.sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt));
-  state.scheduled = all;
-  cache.scheduled = { value: all, ts: Date.now() };
-  saveCacheState();
-  return all;
-}
-
-function getScheduledBounds() {
-  const m = state.month;
-  const start = new Date(m.getFullYear(), m.getMonth(), 1); start.setDate(start.getDate() - 7);
-  const end = new Date(m.getFullYear(), m.getMonth() + 1, 0); end.setDate(end.getDate() + 60);
-  return { start, end };
-}
-
-async function syncBuffer({ force = false } = {}) {
-  if (!bufferToken) { setSyncStatus('failed', 'Add your Buffer token first.'); return; }
-  setSyncStatus('syncing', 'Syncing…');
-  const btn = qs('syncBtn'); const orig = btn.innerHTML;
-  btn.innerHTML = '↻ Syncing…'; btn.disabled = true;
-  try {
-    const orgId = await getOrgId({ force });
-    if (!orgId) { clearSyncedData(); setSyncStatus('failed', 'No organization found.'); return; }
-    await getChannels({ force });
-    const posts = await getScheduledPosts({ force });
-    renderChannelSelects();
-    renderCalendar();
-    detectQueueGaps();
-    setSyncStatus('success', `${posts.length} scheduled posts loaded.`);
-    showToast(`Loaded ${posts.length} posts`, 'success');
-    window.dispatchEvent(new Event('postiq:synced'));
-  } catch (e) {
-    const msg = getErrorMessage(e, 'Sync failed.');
-    if (isAuthError(e)) handleAuthFailure(msg);
-    else setSyncStatus('failed', msg);
-    showToast(msg, 'error');
-  } finally { btn.innerHTML = orig; btn.disabled = false; }
-}
-
-// ── CHANNEL SELECTS ──────────────────────────────────
-function renderChannelSelects() {
-  const sel = qs('composerChannel'); if (!sel) return;
-  sel.innerHTML = '';
-  if (state.channels.length) {
-    state.channels.forEach(c => {
-      const o = document.createElement('option');
-      o.value = c.id; o.textContent = `${c.displayName || c.name} (${c.service})`; sel.appendChild(o);
-    });
-    qs('composerNoChannels').style.display = 'none'; sel.style.display = '';
-  } else {
-    qs('composerNoChannels').style.display = 'block'; sel.style.display = 'none';
-  }
-  updateComposerButtonStates();
-}
-
-// ── CALENDAR ──────────────────────────────────────
-function getNotes() { try { return JSON.parse(localStorage.getItem(NOTE_KEY) || '{}'); } catch { return {}; } }
-function setNotes(v) { localStorage.setItem(NOTE_KEY, JSON.stringify(v)); }
-
-function renderCalendar() {
-  qs('monthLabel').textContent = monthLabel(state.month);
-  const grid = qs('calGrid'); grid.innerHTML = '';
-  const first = monthStart(state.month);
-  const start = new Date(first); start.setDate(1 - first.getDay());
-  const notes = getNotes();
-  const today = fmtDate(new Date());
-  for (let i = 0; i < 42; i++) {
-    const d = new Date(start); d.setDate(start.getDate() + i);
-    const key = fmtDate(d);
-    const inMonth = d.getMonth() === state.month.getMonth();
-    const dayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
-    const note = notes[key];
-    const isToday = key === today;
-
-    const day = document.createElement('div');
-    let cls = 'cal-day';
-    if (!inMonth) cls += ' other-month';
-    if (isToday) cls += ' today';
-    if (dayPosts.length) cls += ' has-posts';
-    day.className = cls;
-
-    let html = `<div class="day-num">${d.getDate()}</div>`;
-    if (dayPosts.length) html += `<div class="day-count">${dayPosts.length}</div>`;
-    if (dayPosts[0]) html += `<div class="day-post-pill">${safeText(compact(dayPosts[0].text, 60))}</div>`;
-    if (dayPosts[1]) html += `<div class="day-post-pill">${safeText(compact(dayPosts[1].text, 60))}</div>`;
-    if (dayPosts.length > 2) html += `<div class="more-indicator">+${dayPosts.length - 2} more</div>`;
-    if (note) html += `<div class="day-note-pill ${note.tag || 'gold'}">${safeText(compact(note.text, 50))}</div>`;
-    day.innerHTML = html;
-    day.onclick = () => openDayNote(d);
-    grid.appendChild(day);
-  }
-  renderAgenda();
-}
-
-function detectQueueGaps() {
-  const panel = qs('gapsPanel'); const list = qs('gapsList');
-  if (!panel || !list || !bufferToken) { if (panel) panel.style.display = 'none'; return; }
-  const today = new Date(); today.setHours(0,0,0,0);
-  const gaps = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(today); d.setDate(today.getDate() + i);
-    if ([0,6].includes(d.getDay())) continue;
-    const key = fmtDate(d);
-    const hasPosts = state.scheduled.some(p => fmtDate(new Date(p.dueAt)) === key);
-    if (!hasPosts) gaps.push(d);
-  }
-  if (!gaps.length) { panel.style.display = 'none'; return; }
-  panel.style.display = 'block';
-  list.innerHTML = '';
-  gaps.forEach(d => {
-    const chip = document.createElement('button');
-    chip.className = 'gap-chip';
-    chip.textContent = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-    chip.onclick = () => openDayNote(d);
-    list.appendChild(chip);
-  });
-}
-
-function openDayNote(date) {
-  state.selectedDate = date;
-  const key = fmtDate(date);
-  const note = getNotes()[key] || { text: '', tag: 'gold', label: 'Idea' };
-  qs('noteDateLabel').textContent = date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
-  qs('noteText').value = note.text || '';
-  qs('noteTag').value = `${note.tag || 'gold'}|${note.label || 'Idea'}`;
-  const dayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
-  const dmMono = 'DM Mono';
-  qs('dayPostPreview').innerHTML = dayPosts.length
-    ? `<div style="font-size:11px;font-family:'${dmMono}',monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;">${dayPosts.length} scheduled post${dayPosts.length > 1 ? 's' : ''}</div>${dayPosts.map(p => `<div style="font-size:12px;padding:6px 8px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:5px;color:var(--brand);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${safeText(p.text || '(no text)')}</div>`).join('')}`
-    : `<div style="font-size:12px;color:var(--subtle);margin-bottom:8px;">No posts scheduled on this day.</div>`;
-  qs('noteStatus').textContent = '';
-  openModal('noteModal');
-}
-
-function saveNote() {
-  if (!state.selectedDate) return;
-  const key = fmtDate(state.selectedDate);
-  const text = qs('noteText').value.trim();
-  const [tag, label] = qs('noteTag').value.split('|');
-  const notes = getNotes();
-  if (!text) { delete notes[key]; setNotes(notes); qs('noteStatus').textContent = 'Note removed.'; renderCalendar(); return; }
-  notes[key] = { text, tag, label };
-  setNotes(notes); qs('noteStatus').textContent = 'Saved.'; renderCalendar();
-  showToast('Note saved', 'success');
-}
-
-function deleteNote() {
-  if (!state.selectedDate) return;
-  const notes = getNotes(); delete notes[fmtDate(state.selectedDate)];
-  setNotes(notes); qs('noteText').value = ''; qs('noteStatus').textContent = 'Deleted.'; renderCalendar();
-  showToast('Note deleted');
-}
-
-function sendNoteToDraft() {
-  if (!state.selectedDate) return;
-  const text = qs('noteText').value.trim();
-  if (!text) { qs('noteStatus').textContent = 'Add a note first.'; return; }
-  const [, label] = qs('noteTag').value.split('|');
-  const editor = qs('composerEditor');
-  const payload = `[${label}] ${fmtDate(state.selectedDate)}\n${text}`;
-  editor.innerText = editor.innerText ? `${editor.innerText}\n\n${payload}` : payload;
-  editor.dispatchEvent(new Event('input'));
-  closeModal('noteModal'); activateView('composerView');
-  showToast('Note sent to Draft');
-}
-
-function renderAgenda() {
-  const agenda = qs('calAgenda'); if (!agenda) return;
-  const notes = getNotes(); const today = fmtDate(new Date());
-  agenda.innerHTML = '';
-  const nav = document.createElement('div'); nav.className = 'cal-header';
-  nav.innerHTML = `<div class="cal-month-label" style="font-size:18px;">${monthLabel(state.month)}</div>`;
-  agenda.appendChild(nav);
-  const map = {};
-  state.scheduled.forEach(p => { const k = fmtDate(new Date(p.dueAt)); if (!map[k]) map[k] = { posts: [], note: null }; map[k].posts.push(p); });
-  Object.entries(notes).forEach(([k, n]) => {
-    if (!map[k]) map[k] = { posts: [], note: null }; map[k].note = n;
-  });
-  const days = [];
-  const ms = monthStart(state.month);
-  for (let i = 0; i < 35; i++) { const d = new Date(ms.getFullYear(), ms.getMonth(), i + 1); if (d.getMonth() !== ms.getMonth()) break; days.push(fmtDate(d)); }
-  const dmMono = 'DM Mono';
-  const bricolage = 'Bricolage Grotesque';
-  days.forEach(key => {
-    const data = map[key]; if (!data) return;
-    const isToday = key === today;
-    const date = new Date(key + 'T00:00:00');
-    const dayEl = document.createElement('div');
-    dayEl.style.cssText = `border:1px solid ${isToday ? 'var(--brand)' : 'var(--border)'};border-radius:10px;padding:12px;margin-bottom:8px;background:var(--surface);cursor:pointer;`;
-    const dateLabel = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-    let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-family:'${dmMono}',monospace;font-size:11px;font-weight:600;color:${isToday ? 'var(--brand)' : 'var(--muted)'};">${dateLabel}</span>${data.posts.length ? `<span style="font-size:9px;font-family:'${dmMono}',monospace;background:var(--brand-dim);color:var(--brand);border:1px solid var(--brand-glow);padding:1px 5px;border-radius:3px;">${data.posts.length} post${data.posts.length > 1 ? 's' : ''}</span>` : ''}</div>`;
-    data.posts.slice(0, 2).forEach(p => { html += `<div style="font-size:12px;padding:6px 8px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:5px;color:var(--brand);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${safeText(compact(p.text, 80))}</div>`; });
-    if (data.posts.length > 2) html += `<div style="font-size:10px;color:var(--subtle);margin-bottom:4px;">+${data.posts.length - 2} more</div>`;
-    if (data.note) html += `<div class="day-note-pill ${data.note.tag || 'gold'}" style="display:block;border-radius:5px;margin-top:4px;">${safeText(compact(data.note.text, 60))}</div>`;
-    dayEl.innerHTML = html; dayEl.onclick = () => openDayNote(date);
-    agenda.appendChild(dayEl);
-  });
-  if (!Object.keys(map).length) {
-    const empty = document.createElement('div'); empty.className = 'empty-state'; empty.innerHTML = '<div class="empty-icon">📅</div><div class="empty-title">Nothing scheduled</div><div class="empty-desc">Connect Buffer and sync to load your upcoming posts.</div>';
-    agenda.appendChild(empty);
-  }
-}
-
-// Calendar snapshot share
-function shareSnapshot() {
-  const include     = qs('includeNotes').checked;
-  const customTitle = (qs('shareCustomTitle')?.value || '').trim();
-  const posts = state.scheduled.filter(p => {
-    const d = new Date(p.dueAt);
-    return d.getFullYear() === state.month.getFullYear() && d.getMonth() === state.month.getMonth();
-  });
-  const allNotes   = getNotes();
-  const monthNotes = Object.entries(allNotes)
-    .filter(([k]) => { const d = new Date(k + 'T00:00:00'); return d.getFullYear() === state.month.getFullYear() && d.getMonth() === state.month.getMonth(); })
-    .map(([date, val]) => ({ date, ...val }));
-  const label      = monthLabel(state.month);
-  const snapshotId = generateSnapshotId();
-  const title      = customTitle || label + ' content plan';
-  qs('shareMonthName').textContent = label;
-  qs('sharePostCount').textContent = posts.length;
-  const payload = {
-    snapshotId, createdAt: Date.now(), period: 'month', month: label, title, customTitle,
-    includeNotes: include,
-    posts: posts.map(p => ({ dueAt: p.dueAt, text: p.text || '', channelName: p.channelName || p.channel || '', platform: p.service || p.platform || '', channelId: p.channelId || '' })),
-    notes: include ? monthNotes : []
-  };
-  const encoded = toBase64Url(JSON.stringify(payload));
-  qs('shareLink').value = location.origin + location.pathname + '#share=' + snapshotId + '.' + encoded;
-  const meta = qs('shareLinkMeta'); if (meta) meta.style.display = 'block';
-}
-
-function openSharedDayDetails(key, data) {
-  const titleEl = qs('sharedDayTitle');
-  const bodyEl  = qs('sharedDayBody');
-  if (!titleEl || !bodyEl) return;
-  titleEl.textContent = formatDateOnly(key);
-  const sections = [];
-  if (data.posts && data.posts.length) {
-    const dmMono = 'DM Mono';
-    const postsHtml = data.posts.map((p, idx) => {
-      const platform = p.platform || p.channelName || '';
-      return `<div class="snap-modal-post">
-        <div class="snap-modal-post-hdr">
-          <div class="snap-modal-post-meta">
-            <span class="snap-post-num">Post ${idx + 1}</span>
-            ${platform ? '<span class="snap-platform-badge">' + safeText(platform) + '</span>' : ''}
-          </div>
-          <span class="snap-scheduled-time">${safeText(formatDateTime(p.dueAt))}</span>
-        </div>
-        <div class="snap-modal-post-body">${safeText(p.text || '(no copy)')}</div>
-        <div class="snap-modal-post-copy">
-          <button class="btn sm ghost" data-copy="${safeText(p.text || '')}">Copy post</button>
-        </div>
-      </div>`;
-    }).join('');
-    sections.push(`<div style="margin-bottom:16px;"><div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">${data.posts.length} Scheduled post${data.posts.length > 1 ? 's' : ''}</div>${postsHtml}</div>`);
-  } else {
-    sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No post scheduled</div><div class="empty-desc">This day does not have a scheduled post in the shared snapshot.</div></div>');
-  }
-  if (data.notes && data.notes.length) {
-    const notesHtml = data.notes.map(n => `<div class="snap-modal-note"><div class="snap-modal-note-label">${safeText(n.label || n.tag || 'Note')}</div><div class="snap-modal-note-text">${safeText(n.text || '')}</div></div>`).join('');
-    sections.push(`<div><div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">Planning notes</div>${notesHtml}</div>`);
-  }
-  bodyEl.innerHTML = sections.join('');
-  bodyEl.querySelectorAll('[data-copy]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const ok = await copyTextSafe(btn.dataset.copy);
-      if (ok) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy post'; }, 1800); }
-      else showToast('Could not copy', 'error');
-    });
-  });
-  openModal('sharedDayModal');
-}
-
-function renderSharedFromHash() {
-  if (!location.hash.startsWith('#share=')) return false;
-  try {
-    const raw     = location.hash.slice(7);
-    const dot     = raw.indexOf('.');
-    const encoded = dot >= 0 ? raw.slice(dot + 1) : raw;
-    const snap    = JSON.parse(fromBase64Url(encoded));
-    qs('app').classList.add('hidden');
-    qs('sharedView').classList.remove('hidden');
-    const titleEl = qs('sharedTitle');
-    if (titleEl) titleEl.textContent = snap.title || snap.customTitle || snap.month || 'Content Plan';
-    const countEl = qs('sharedPostCount'); if (countEl) countEl.textContent = snap.posts.length;
-    const periodEl = qs('sharedPeriodStat'); if (periodEl && snap.month) periodEl.innerHTML = '<strong>' + safeText(snap.month) + '</strong>';
-    if (snap.includeNotes && snap.notes?.length) {
-      const dot2  = qs('sharedNotesDot');  if (dot2)  dot2.style.display  = 'block';
-      const stat = qs('sharedNotesStat'); if (stat) { stat.style.display = 'flex'; stat.innerHTML = '<strong>' + snap.notes.length + '</strong>&nbsp;planning note' + (snap.notes.length > 1 ? 's' : ''); }
-    }
-    const calLabel = qs('sharedCalLabel');
-    if (calLabel) calLabel.textContent = snap.posts.length > 0 ? 'Click any highlighted day to read the full post' : 'No posts in this snapshot';
-    const closeBtn = qs('closeSharedDay'); if (closeBtn) closeBtn.onclick = () => closeModal('sharedDayModal');
-    const map = {};
-    snap.posts.forEach(p => { const k = String(p.dueAt || '').slice(0,10); if (!map[k]) map[k]={posts:[],notes:[]}; map[k].posts.push(p); });
-    (snap.notes || []).forEach(n => { if (!map[n.date]) map[n.date]={posts:[],notes:[]}; map[n.date].notes.push(n); });
-    const grid = qs('sharedGrid'); grid.innerHTML = '';
-    let baseDate = new Date();
-    if (snap.posts[0]?.dueAt)      baseDate = new Date(snap.posts[0].dueAt);
-    else if (snap.notes?.[0]?.date) baseDate = new Date(snap.notes[0].date + 'T00:00:00');
-    const first = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
-    const start = new Date(first); start.setDate(1 - first.getDay());
-    for (let i = 0; i < 42; i++) {
-      const d   = new Date(start); d.setDate(start.getDate() + i);
-      const key = fmtDate(d);
-      const data = map[key] || { posts: [], notes: [] };
-      const inMonth    = d.getMonth() === baseDate.getMonth();
-      const hasContent = data.posts.length > 0 || data.notes.length > 0;
-      const day = document.createElement('div');
-      day.className = 'cal-day' + (!inMonth ? ' other-month' : '') + (hasContent ? ' has-content' : ' empty-day');
-      let inner = '<div class="day-num">' + d.getDate() + '</div>';
-      if (data.posts.length) {
-        inner += '<div class="day-count">' + data.posts.length + '</div>';
-        data.posts.slice(0,2).forEach(p => { inner += '<div class="day-post-pill">' + safeText((p.text||'').slice(0,60)) + '</div>'; });
-        if (data.posts.length > 2) inner += '<div class="more-indicator">+' + (data.posts.length - 2) + ' more</div>';
-      }
-      if (data.notes.length && snap.includeNotes) {
-        data.notes.slice(0,1).forEach(n => { inner += '<div class="day-note-pill ' + (n.tag||'gold') + '">' + safeText((n.text||'').slice(0,50)) + '</div>'; });
-      }
-      day.innerHTML = inner;
-      if (hasContent) day.onclick = () => openSharedDayDetails(key, data);
-      grid.appendChild(day);
-    }
-    return true;
-  } catch(err) { console.error('Failed to render shared snapshot', err); return false; }
-}
-
-// ── COMPOSER ──────────────────────────────────────
-function editorToText(html) {
-  const root = document.createElement('div'); root.innerHTML = html;
-  const walk = node => {
-    if (node.nodeType === Node.TEXT_NODE) return node.textContent;
-    const tag = (node.tagName || '').toLowerCase();
-    if (tag === 'br') return '\n';
-    if (tag === 'strong' || tag === 'b') return `**${[...node.childNodes].map(walk).join('')}**`;
-    if (tag === 'em' || tag === 'i') return `*${[...node.childNodes].map(walk).join('')}*`;
-    if (tag === 'li') return [...node.childNodes].map(walk).join('');
-    if (tag === 'ul') return [...node.children].map(li => `• ${walk(li)}`).join('\n') + '\n';
-    if (tag === 'ol') return [...node.children].map((li, i) => `${i+1}. ${walk(li)}`).join('\n') + '\n';
-    const inner = [...node.childNodes].map(walk).join('');
-    if (['p','div'].includes(tag)) return inner + '\n';
-    return inner;
-  };
-  return [...root.childNodes].map(walk).join('').replace(/\n{3,}/g, '\n\n').trim();
-}
-
-function composerFormat(cmd) {
-  const sel = window.getSelection(); if (!sel?.rangeCount) return;
-  if (cmd === 'bold' || cmd === 'italic') document.execCommand(cmd, false, null);
-  else if (cmd === 'ul') document.execCommand('insertUnorderedList', false, null);
-  else if (cmd === 'ol') document.execCommand('insertOrderedList', false, null);
-  else if (cmd === 'clear') document.execCommand('removeFormat', false, null);
-}
-
-// ── MEDIA ──────────────────────────────────────────
-function applyMedia(url, source, thumbUrl = '') {
-  const type = isVideo(url) ? 'video' : 'image';
-  mediaState.url = url; mediaState.type = type; mediaState.source = source; mediaState.videoThumbUrl = thumbUrl;
-  const ton = qs('mediaToggleBtn'), toff = qs('mediaToggleOff'), tthumb = qs('mediaThumbPreview'), tlabel = qs('mediaToggleLabel');
-  if (url) {
-    ton.style.display = 'none'; toff.style.display = 'flex';
-    tlabel.textContent = type === 'video' ? '🎬 Video attached' : '🖼 Image attached';
-    if (tthumb) { tthumb.src = type === 'image' ? url : ''; tthumb.style.display = type === 'image' ? 'inline' : 'none'; }
-    const ms = qs('mediaSummary'); if (ms) ms.style.display = 'flex';
-    const mst = qs('mediaSummaryThumb'); if (mst) { mst.src = type === 'image' ? url : ''; mst.style.display = type === 'image' ? 'block' : 'none'; }
-    const mstype = qs('mediaSummaryType'); if (mstype) mstype.textContent = type === 'video' ? '🎬 Video' : '🖼 Image';
-    const msurl = qs('mediaSummaryUrl'); if (msurl) msurl.textContent = url;
-  } else { clearMedia(); }
-}
-
-function clearMedia() {
-  mediaState.url = ''; mediaState.type = ''; mediaState.source = ''; mediaState.videoThumbUrl = '';
-  qs('mediaToggleBtn').style.display = 'flex'; qs('mediaToggleOff').style.display = 'none';
-  const ms = qs('mediaSummary'); if (ms) ms.style.display = 'none';
-  const inp = qs('mediaUrlInput'); if (inp) inp.value = '';
-  resetUploadTab();
-}
-
-function resetUploadTab() {
-  qs('uploadZone').style.display = 'block'; qs('uploadResult').style.display = 'none';
-  const fi = qs('uploadFileInput'); if (fi) fi.value = '';
-  const st = qs('uploadStatus'); if (st) { st.textContent = ''; }
-}
-
-async function imgurUpload(file) {
-  const fd = new FormData(); fd.append('image', file);
-  const res = await fetch('https://api.imgur.com/3/image', { method: 'POST', headers: { Authorization: `Client-ID ${IMGUR_KEY}` }, body: fd });
-  const data = await res.json();
-  if (!data.success) throw new Error(data.data?.error || 'Upload failed');
-  return data.data.link;
-}
-
-async function handleUploadFile(file) {
-  const st = qs('uploadStatus');
-  if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) { st.textContent = 'Unsupported type.'; return; }
-  if (file.type.startsWith('video/')) {
-    st.textContent = 'For video, use the URL tab with a hosted video link.';
-    switchMediaTab('url'); return;
-  }
-  qs('uploadZone').style.display = 'none'; st.textContent = 'Uploading…';
-  try {
-    const url = await imgurUpload(file);
-    qs('uploadResult').style.display = 'flex';
-    qs('uploadThumb').src = url; qs('uploadResultName').textContent = file.name || 'uploaded image'; qs('uploadResultUrl').textContent = url;
-    st.textContent = ''; applyMedia(url, 'upload'); showToast('Image uploaded', 'success');
-  } catch (err) {
-    qs('uploadZone').style.display = 'block'; st.textContent = 'Upload failed: ' + err.message;
-  }
-}
-
-function switchMediaTab(id) {
-  document.querySelectorAll('.media-tab').forEach(t => t.classList.toggle('active', t.dataset.mtab === id));
-  document.querySelectorAll('.media-tab-panel').forEach(p => p.classList.toggle('active', p.dataset.mtabpanel === id));
-}
-
-let _unsplashLast = '';
-async function runUnsplashSearch() {
-  const q = qs('unsplashQuery').value.trim(); if (!q) return;
-  if (q === _unsplashLast) return; _unsplashLast = q;
-  const grid = qs('unsplashGrid'), status = qs('unsplashStatus');
-  status.textContent = 'Searching…'; grid.innerHTML = '';
-  try {
-    const res = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&per_page=9&orientation=landscape`, { headers: { Authorization: `Client-ID ${UNSPLASH_KEY}` } });
-    if (!res.ok) throw new Error(res.status === 403 ? 'Rate limit' : `HTTP ${res.status}`);
-    const data = await res.json();
-    if (!data.results?.length) { status.textContent = `No results for "${q}".`; return; }
-    status.textContent = `${data.total.toLocaleString()} results`;
-    data.results.forEach(photo => {
-      const item = document.createElement('div');
-      item.style.cssText = 'position:relative;border-radius:6px;overflow:hidden;border:2px solid transparent;cursor:pointer;aspect-ratio:4/3;background:var(--surface2);transition:border-color .12s;';
-      item.innerHTML = `<img src="${photo.urls.small}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy"/>`;
-      item.title = `Photo by ${photo.user.name}`;
-      item.onmouseenter = () => { item.style.borderColor = 'var(--brand)'; };
-      item.onmouseleave = () => { item.style.borderColor = 'transparent'; };
-      item.onclick = () => { applyMedia(photo.urls.regular, 'unsplash'); closeMediaPanel(); showToast(`Photo by ${photo.user.name} added`, 'success'); };
-      grid.appendChild(item);
-    });
-  } catch (err) { status.textContent = 'Search failed: ' + err.message; }
-}
-
-function openMediaPanel() { qs('mediaPanel').classList.add('open'); }
-function closeMediaPanel() { qs('mediaPanel').classList.remove('open'); }
-
-// ── POST CREATION ──────────────────────────────────
-async function createPost(input) {
-  const mutation = `mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename ... on PostActionSuccess{post{id dueAt text channelId}} ... on MutationError{message}}}`;
-  const res = await callBuffer(mutation, { input });
-  const result = res?.data?.createPost;
-  if (!result) throw new Error('Empty mutation response.');
-  if (result.__typename === 'MutationError') throw new Error(result.message || 'Buffer rejected this post.');
-  if (result.__typename !== 'PostActionSuccess') throw Object.assign(new Error(result.message || `Unexpected result: ${result.__typename}`), { code: 'MUTATION_ERROR' });
-  return result;
-}
-
-function appendScheduled(post) {
-  const id = post?.id; if (!id) return;
-  if (state.scheduled.some(p => p.id === id)) return;
-  state.scheduled = [...state.scheduled, { id, text: post.text || '', dueAt: post.dueAt, channelId: post.channelId }];
-  cache.scheduled = { value: state.scheduled, ts: Date.now() }; saveCacheState();
-}
-
-async function composerSend(action) {
-  const text = editorToText(qs('composerEditor').innerHTML);
-  if (!text) { showToast('Write something first', 'error'); return; }
-  if (!bufferToken) { showToast('Connect Buffer first', 'error'); return; }
-  const channelId = qs('composerChannel').value;
-  if (!channelId) { showToast('Load channels first', 'error'); return; }
-  const needsApproval = qs('needsApprovalCheck')?.checked || false;
-  const when = qs('composerWhen').value;
-  const input = { channelId, text, schedulingType: 'automatic' };
-  if (action === 'draft') { input.mode = 'addToQueue'; input.saveToDraft = true; }
-  if (action === 'queue') { input.mode = 'addToQueue'; }
-  if (action === 'schedule') {
-    if (!when) { qs('composerStatus').textContent = 'Pick a date/time first.'; return; }
-    input.mode = 'customScheduled'; input.dueAt = when;
-  }
-  const imgUrl = mediaState.url || '';
-  if (imgUrl) {
-    if (isVideo(imgUrl)) {
-      const entry = { url: imgUrl };
-      if (mediaState.videoThumbUrl) entry.thumbnailUrl = mediaState.videoThumbUrl;
-      input.assets = { videos: [entry] };
-    } else {
-      input.assets = { images: [{ url: imgUrl }] };
-    }
-  }
-  qs('composerStatus').textContent = 'Sending…';
-  try {
-    const created = await createPost(input);
-    const draftId = created?.post?.id;
-    if (action === 'draft' && needsApproval && draftId) {
-      const ch = state.channels.find(c => c.id === channelId);
-      setApprovalMeta(draftId, {
-        needs_approval: true, status: 'pending', comments: [], link_generated: false, locked: false,
-        content: text, platform: ch?.service || null, image_url: imgUrl || null, channel_id: channelId, created_at: Date.now(),
-      });
-    }
-    const msg = action === 'draft' ? 'Draft saved.' : action === 'queue' ? 'Added to queue.' : 'Scheduled.';
-    qs('composerStatus').textContent = msg; showToast(msg, 'success');
-    if (created?.post?.dueAt) { appendScheduled(created.post); renderCalendar(); }
-    qs('composerEditor').innerHTML = '';
-    qs('composerEditor').dispatchEvent(new Event('input'));
-    qs('composerWhen').value = '';
-    if (qs('needsApprovalCheck')) qs('needsApprovalCheck').checked = false;
-    clearMedia(); closeMediaPanel();
-    qs('schedulePanel').classList.remove('open');
-    qs('composerScheduleToggle').style.display = 'inline-flex';
-  } catch (e) {
-    const msg = getErrorMessage(e, 'Failed to send.');
-    if (isAuthError(e)) handleAuthFailure(msg);
-    qs('composerStatus').textContent = `Failed: ${msg}`;
-    showToast('Failed: ' + msg, 'error');
-  }
-}
-
-// ── APPROVALS ──────────────────────────────────────
-const appState = { loading: false };
-
-async function loadApprovals() {
-  if (appState.loading) return; appState.loading = true;
-  const listEl = qs('approvalsList'), emptyEl = qs('approvalsEmpty');
-  if (!listEl) { appState.loading = false; return; }
-  listEl.innerHTML = '';
-  emptyEl.style.display = 'none';
-  try {
-    const metas = getAllApprovalMetas();
-    if (!metas.length) { emptyEl.style.display = 'flex'; appState.loading = false; return; }
-    for (const meta of metas) {
-      if (meta.link_generated && meta.approval_uuid) {
-        try {
-          const r = await fetch('/.netlify/functions/approval', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'get', id: meta.approval_uuid }) });
-          const d = await r.json();
-          if (!d.error) {
-            const updated = { ...meta, status: d.status || meta.status, comments: d.comments || meta.comments };
-            if (d.status === 'changes_requested') { updated.link_generated = false; updated.locked = false; }
-            setApprovalMeta(meta.draftId, updated); Object.assign(meta, updated);
-          }
-        } catch {}
-      }
-    }
-    metas.forEach(meta => renderApprovalCard(meta));
-  } catch (e) { console.error('[PostIQ] loadApprovals:', e); }
-  finally { appState.loading = false; }
-}
-
-function renderApprovalCard(meta) {
-  const listEl = qs('approvalsList');
-  const safeId = meta.draftId.replace(/[^a-zA-Z0-9_-]/g, '_');
-  const statusClass = meta.status === 'approved' ? 'approved' : meta.status === 'changes_requested' ? 'changes' : 'pending';
-  const statusLabel = meta.status === 'approved' ? 'Approved' : meta.status === 'changes_requested' ? 'Changes Requested' : 'Pending';
-  const platformBadge = meta.platform ? `<span class="chip">${safeText(meta.platform)}</span>` : '';
-  const pubDisabled = meta.status === 'pending' && meta.link_generated;
-  const dmMono = 'DM Mono';
-
-  const card = document.createElement('div');
-  card.className = 'approval-card';
-  card.dataset.draftId = meta.draftId;
-  card.dataset.safeId = safeId;
-
-  card.innerHTML = `
-    <div class="approval-card-status-bar ${statusClass}"></div>
-    <div class="approval-card-header">
-      <div class="approval-card-meta">
-        <span class="approval-status-badge ${statusClass}">${statusLabel}</span>
-        ${platformBadge}
-        <span style="font-size:10px;font-family:'${dmMono}',monospace;color:var(--subtle);">${meta.created_at ? new Date(meta.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : ''}</span>
-      </div>
-      <button class="btn sm ghost" onclick="approvalRemove('${safeId}')">✕ Remove</button>
+// ═══════════════════════════════════════════════════════════════
+// STRATEGY SNACK MACHINE × POSTIQ INTEGRATION
+// Drop this entire block into app.js, replacing the existing
+// ContentPillars IIFE. Then update the cpGateNew handler below.
+//
+// CHANGES TO EXISTING HTML (app.html):
+//   1. Replace cpGateNew card inner HTML (see GATE CARD HTML section)
+//   2. Add SSM form HTML (see SSM FORM HTML section)
+//   Both are drop-in replacements — no structural changes needed.
+// ═══════════════════════════════════════════════════════════════
+
+// ── SSM GATE CARD HTML (replace cpGateNew button contents) ──────
+// Paste this as the innerHTML of the existing #cpGateNew button:
+/*
+<span class="cp-gate-icon">⚡</span>
+<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-family:'DM Mono',monospace;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--brand-dim);border:1px solid var(--brand-glow);color:var(--brand);padding:2px 8px;border-radius:4px;margin-bottom:8px;">Strategy Snack Machine</span>
+<span class="cp-gate-title">Generate my content strategy</span>
+<span class="cp-gate-desc">Answer 6 quick questions. Get 5 content pillars, 25 post ideas, hooks, CTAs, recurring series ideas, and one post you can publish today.</span>
+<span class="cp-gate-cta">Feed the machine →</span>
+*/
+
+// ── SSM FORM HTML (insert inside #cpStageJourney, replace all inner content) ──
+/*
+Replace everything inside <div class="cp-stage" id="cpStageJourney"> with:
+
+<div style="max-width:660px;">
+  <!-- Loading screen (hidden until generate()) -->
+  <div id="ssmLoading" style="display:none;text-align:center;padding:40px 20px;">
+    <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:12px;" id="ssmLoadStep">Analyzing your brand...</div>
+    <div style="border:1px solid var(--border2);height:14px;max-width:280px;margin:0 auto 16px;overflow:hidden;border-radius:2px;"><div style="height:100%;background:var(--brand);width:0%;transition:width .1s linear;" id="ssmLoadBar"></div></div>
+    <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;color:var(--ink);letter-spacing:-.02em;">Building your strategy<span id="ssmDots">...</span></div>
+  </div>
+
+  <!-- Form (shown by default) -->
+  <div id="ssmForm">
+    <div style="margin-bottom:20px;">
+      <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--brand);margin-bottom:8px;">Strategy Snack Machine</div>
+      <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:18px;color:var(--ink);margin-bottom:4px;">Feed the machine. Get a strategy.</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6;">6 quick fields. Deterministic output — same engine that powers the standalone Strategy Snack Machine tool.</div>
     </div>
-    <div class="approval-card-body">
-      ${meta.image_url ? `<img src="${safeText(meta.image_url)}" alt="Media" style="width:100%;max-height:240px;object-fit:cover;border-radius:8px;border:1px solid var(--border);margin-bottom:12px;display:block;" />` : ''}
-      <div class="approval-content-text">${safeText(meta.content || '')}</div>
-      ${meta.comments?.length ? `
-        <div class="approval-comments">
-          <div style="font-size:10px;font-family:'${dmMono}',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;">Reviewer feedback</div>
-          ${meta.comments.map(c => `
-            <div class="approval-comment">
-              <div class="approval-comment-meta">
-                <span class="approval-comment-author">${safeText(c.author || 'Anonymous')}</span>
-                <span class="approval-comment-time">${c.timestamp ? new Date(c.timestamp).toLocaleDateString(undefined,{month:'short',day:'numeric'}) : ''}</span>
-                ${c.action ? `<span class="approval-comment-action ${c.action === 'approved' ? 'approved' : 'changes'}">${c.action === 'approved' ? 'Approved' : 'Changes'}</span>` : ''}
-              </div>
-              <div class="approval-comment-text">${safeText(c.text || '')}</div>
-            </div>`).join('')}
-        </div>` : ''}
-    </div>
-    <div class="approval-footer">
-      ${!meta.link_generated ? `
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-          <div>
-            <div style="font-size:12px;font-weight:600;margin-bottom:2px;">Share for approval</div>
-            <div style="font-size:11px;color:var(--muted);">Generate a link to send to your reviewer.</div>
-          </div>
-          <button class="btn primary" id="approval-gen-${safeId}" onclick="approvalGenerateLink('${safeId}')">🔗 Generate Link</button>
-        </div>` : `
-        <div style="margin-bottom:12px;">
-          <div class="label mb8">Approval link</div>
-          <div class="approval-link-row">
-            <span class="approval-link-url">${safeText(meta.approval_url || '')}</span>
-            <button class="btn sm" onclick="approvalCopyLink('${safeId}')">Copy</button>
-          </div>
-        </div>
-        <div style="${pubDisabled ? 'opacity:.45;pointer-events:none;' : ''}">
-          ${pubDisabled ? `<div style="font-size:11px;font-family:'${dmMono}',monospace;color:var(--subtle);margin-bottom:10px;">Publishing unlocks once reviewer responds.</div>` : ''}
-          <div class="label mb8">Publish to</div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <select id="approval-ch-${safeId}" class="input" style="flex:1;min-width:160px;font-size:13px;"></select>
-            <button class="btn sm" onclick="approvalPublish('${safeId}','draft')">Draft</button>
-            <button class="btn sm success" onclick="approvalPublish('${safeId}','queue')">Queue</button>
-            <button class="btn sm primary" onclick="approvalToggleSchedule('${safeId}')">📅 Schedule</button>
-          </div>
-          <div id="approval-sched-${safeId}" style="display:none;margin-top:8px;">
-            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-              <input type="date" id="approval-date-${safeId}" class="input" style="flex:1;" />
-              <input type="time" id="approval-time-${safeId}" class="input" style="max-width:120px;" value="09:00" />
-              <button class="btn sm primary" onclick="approvalPublish('${safeId}','schedule')">Send</button>
-              <button class="btn sm ghost" onclick="document.getElementById('approval-sched-${safeId}').style.display='none'">✕</button>
-            </div>
-          </div>
-        </div>`}
-      <div id="approval-status-${safeId}" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'${dmMono}',monospace;min-height:16px;"></div>
-    </div>`;
 
-  setTimeout(() => {
-    const sel = document.getElementById(`approval-ch-${safeId}`);
-    if (sel) {
-      sel.innerHTML = '';
-      if (state.channels.length) {
-        state.channels.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = `${c.displayName || c.name} (${c.service})`; if (c.id === meta.channel_id) o.selected = true; sel.appendChild(o); });
-      } else { const o = document.createElement('option'); o.value = ''; o.textContent = '↻ Load channels from Buffer first'; sel.appendChild(o); }
-    }
-    const di = document.getElementById(`approval-date-${safeId}`); if (di) di.value = new Date().toISOString().slice(0,10);
-  }, 0);
-
-  listEl.appendChild(card);
-}
-
-function getApprovalDraftId(safeId) {
-  const card = document.querySelector(`.approval-card[data-safe-id="${CSS.escape(safeId)}"]`);
-  return card?.dataset?.draftId || safeId;
-}
-
-window.approvalGenerateLink = async function (safeId) {
-  const draftId = getApprovalDraftId(safeId);
-  const meta = getApprovalMeta(draftId); if (!meta) { showToast('Record not found', 'error'); return; }
-  const btn = document.getElementById(`approval-gen-${safeId}`);
-  if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
-  try {
-    const res = await fetch('/.netlify/functions/approval', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'create', post: { content: meta.content || '', platform: meta.platform || null, image_url: meta.image_url || null } }) });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    setApprovalMeta(draftId, { ...meta, link_generated: true, locked: true, approval_uuid: data.id, approval_url: data.url });
-    showToast('Approval link generated!', 'success'); loadApprovals();
-  } catch (e) {
-    showToast('Failed: ' + e.message, 'error');
-    if (btn) { btn.disabled = false; btn.textContent = '🔗 Generate Link'; }
-  }
-};
-
-window.approvalCopyLink = function (safeId) {
-  const draftId = getApprovalDraftId(safeId); const meta = getApprovalMeta(draftId);
-  if (!meta?.approval_url) { showToast('No link available', 'error'); return; }
-  navigator.clipboard.writeText(meta.approval_url); showToast('Link copied!', 'success');
-};
-
-window.approvalRemove = function (safeId) {
-  const draftId = getApprovalDraftId(safeId);
-  if (!confirm('Remove this approval entry? The Buffer draft is not deleted.')) return;
-  clearApprovalMeta(draftId);
-  const card = document.querySelector(`[data-draft-id="${CSS.escape(draftId)}"]`);
-  if (card) card.remove(); else loadApprovals();
-  showToast('Removed');
-};
-
-window.approvalToggleSchedule = function (safeId) {
-  const panel = document.getElementById(`approval-sched-${safeId}`);
-  if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-};
-
-window.approvalPublish = async function (safeId, action) {
-  const draftId = getApprovalDraftId(safeId); const meta = getApprovalMeta(draftId);
-  if (!meta) { showToast('Record not found', 'error'); return; }
-  const channelId = document.getElementById(`approval-ch-${safeId}`)?.value;
-  if (!channelId) { showToast('Select a channel first', 'error'); return; }
-  const input = { channelId, text: meta.content || '', schedulingType: 'automatic' };
-  if (action === 'draft') { input.mode = 'addToQueue'; input.saveToDraft = true; }
-  if (action === 'queue') { input.mode = 'addToQueue'; }
-  if (action === 'schedule') {
-    const dv = document.getElementById(`approval-date-${safeId}`)?.value;
-    const tv = document.getElementById(`approval-time-${safeId}`)?.value || '09:00';
-    if (!dv) { showToast('Pick a date first', 'error'); return; }
-    input.mode = 'customScheduled'; input.dueAt = `${dv}T${tv}:00.000Z`;
-  }
-  if (meta.image_url) { if (isVideo(meta.image_url)) input.assets = { videos: [{ url: meta.image_url }] }; else input.assets = { images: [{ url: meta.image_url }] }; }
-  const statusEl = document.getElementById(`approval-status-${safeId}`);
-  if (statusEl) statusEl.textContent = 'Sending…';
-  try {
-    const created = await createPost(input);
-    clearApprovalMeta(draftId);
-    const msg = action === 'draft' ? 'Draft saved.' : action === 'queue' ? 'Added to queue.' : 'Scheduled.';
-    showToast(msg, 'success');
-    if (created?.post?.dueAt) { appendScheduled(created.post); renderCalendar(); }
-    const card = document.querySelector(`[data-draft-id="${CSS.escape(draftId)}"]`);
-    if (card) { card.style.opacity = '.4'; card.style.pointerEvents = 'none'; setTimeout(() => card.remove(), 600); }
-  } catch (e) {
-    const msg = getErrorMessage(e, 'Failed.');
-    if (isAuthError(e)) handleAuthFailure(msg);
-    if (statusEl) statusEl.textContent = `Failed: ${msg}`;
-    showToast('Failed: ' + msg, 'error');
-  }
-};
-
-// ── REVIEWER PAGE ──────────────────────────────────
-async function renderReviewerPage(uuid) {
-  document.getElementById('app')?.style.setProperty('display','none');
-  document.querySelector('.mobile-tabs')?.style.setProperty('display','none');
-  const page = qs('reviewerPage'); if (!page) return;
-  page.classList.add('active');
-  const loading = qs('reviewerLoading'), content = qs('reviewerContent'), confirmed = qs('reviewerConfirmed'), error = qs('reviewerError');
-  loading.style.display = 'block'; content.style.display = 'none'; confirmed.style.display = 'none'; error.style.display = 'none';
-  try {
-    const res = await fetch('/.netlify/functions/approval', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'get', id: uuid }) });
-    const record = await res.json();
-    loading.style.display = 'none';
-    if (record.error) { error.style.display = 'block'; qs('reviewerErrorMsg').textContent = 'This review link could not be found. It may have expired or been removed.'; return; }
-    content.style.display = 'block';
-    const { platform, content: postContent, image_url: imageUrl } = record.post || {};
-    const comments = record.comments || [];
-    const dmMono = 'DM Mono';
-    content.innerHTML = `
-      <div class="reviewer-card">
-        ${platform ? `<div style="font-size:10px;font-family:'${dmMono}',monospace;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border:1px solid var(--border2);border-radius:4px;color:var(--subtle);display:inline-flex;margin-bottom:16px;">${safeText(platform)}</div>` : ''}
-        <div style="font-size:15px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word;">${safeText(postContent || '')}</div>
-        ${imageUrl ? `<img src="${safeText(imageUrl)}" style="width:100%;max-height:360px;object-fit:cover;border-radius:10px;border:1px solid var(--border);margin-top:16px;" />` : ''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="field">
+        <label class="label">Brand / Creator Name</label>
+        <input type="text" class="input" id="ssm-brand" placeholder="e.g. Maria Chen, TechWave" />
       </div>
-      ${comments.length ? `
-        <div class="reviewer-card">
-          <div style="font-size:11px;font-weight:600;font-family:'${dmMono}',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:14px;">Previous comments</div>
-          ${comments.map(c => `<div style="padding:12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;"><div style="font-weight:600;font-size:13px;margin-bottom:2px;">${safeText(c.author || 'Anonymous')}</div><div style="font-size:14px;color:var(--muted);line-height:1.55;">${safeText(c.text || '')}</div></div>`).join('')}
-        </div>` : ''}
-      <div class="reviewer-card">
-        <div style="margin-bottom:18px;">
-          <label class="reviewer-form-label" for="reviewerAuthor">Your name</label>
-          <input id="reviewerAuthor" class="input" placeholder="Enter your name…" style="background:var(--surface2);border-color:var(--border2);" />
-        </div>
-        <div style="margin-bottom:22px;">
-          <label class="reviewer-form-label" for="reviewerComment">Notes (optional)</label>
-          <textarea id="reviewerComment" class="input" placeholder="Leave feedback or approval notes…" style="background:var(--surface2);border-color:var(--border2);min-height:90px;"></textarea>
-        </div>
-        <div class="reviewer-actions">
-          <button class="reviewer-btn approve" id="reviewerApproveBtn" onclick="submitReview('${safeText(uuid)}','approved')">✓ Approve</button>
-          <button class="reviewer-btn changes" id="reviewerChangesBtn" onclick="submitReview('${safeText(uuid)}','changes_requested')">✎ Request Changes</button>
-        </div>
-        <div id="reviewerStatus" style="font-size:13px;color:var(--muted);text-align:center;margin-top:12px;min-height:20px;"></div>
-      </div>`;
-  } catch (e) {
-    loading.style.display = 'none'; error.style.display = 'block';
-    qs('reviewerErrorMsg').textContent = 'Failed to load the review. Please try again.';
-  }
-}
+      <div class="field">
+        <label class="label">Industry Category</label>
+        <select class="input" id="ssm-industry">
+          <option value="">Select industry...</option>
+          <option value="fitness">Fitness & Wellness</option>
+          <option value="food">Food & Beverage</option>
+          <option value="saas">SaaS / Tech</option>
+          <option value="realestate">Real Estate</option>
+          <option value="creative">Creative Services</option>
+          <option value="ecommerce">E-Commerce / Product Brand</option>
+          <option value="coaching">Coaching & Consulting</option>
+          <option value="finance">Finance & Money</option>
+          <option value="education">Education & Courses</option>
+          <option value="nonprofit">Nonprofit / Mission-Driven</option>
+          <option value="entertainment">Entertainment / Media</option>
+          <option value="localbiz">Local Business</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="label">Target Audience</label>
+        <input type="text" class="input" id="ssm-audience" placeholder="e.g. early-stage founders, busy moms" />
+      </div>
+      <div class="field">
+        <label class="label">Product / Service / Offer</label>
+        <input type="text" class="input" id="ssm-offer" placeholder="e.g. 1:1 coaching, SaaS tool, meal kits" />
+      </div>
+      <div class="field">
+        <label class="label">Brand Tone</label>
+        <select class="input" id="ssm-tone">
+          <option value="">Select tone...</option>
+          <option value="bold">Bold & Direct</option>
+          <option value="playful">Playful & Fun</option>
+          <option value="expert">Expert & Authoritative</option>
+          <option value="warm">Warm & Relatable</option>
+          <option value="edgy">Edgy & Provocative</option>
+          <option value="professional">Professional & Polished</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="label">Main Goal</label>
+        <select class="input" id="ssm-goal">
+          <option value="">Select goal...</option>
+          <option value="grow">Grow Audience</option>
+          <option value="sales">Drive Sales</option>
+          <option value="trust">Build Trust</option>
+          <option value="educate">Educate</option>
+          <option value="hired">Get Hired</option>
+          <option value="launch">Launch Product</option>
+          <option value="event">Promote Event</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:4px;grid-column:1/-1;">
+      <label class="label">Anything else? (optional)</label>
+      <textarea class="input" id="ssm-notes" placeholder="Upcoming launches, topics to avoid, specific angles..." style="min-height:60px;"></textarea>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:16px;align-items:center;">
+      <button class="btn ghost" id="ssmBackBtn" type="button">← Back</button>
+      <button class="btn primary" id="ssmGenerateBtn" type="button">⚡ Feed the Machine →</button>
+    </div>
+  </div>
+</div>
+*/
+
+// ═══════════════════════════════════════════════════════════════
+// JAVASCRIPT — replaces window.ContentPillars IIFE in app.js
+// ═══════════════════════════════════════════════════════════════
 
-window.submitReview = async function (uuid, action) {
-  const author = (qs('reviewerAuthor')?.value || '').trim() || 'Anonymous';
-  const comment = (qs('reviewerComment')?.value || '').trim();
-  const approveBtn = qs('reviewerApproveBtn'), changesBtn = qs('reviewerChangesBtn'), statusEl = qs('reviewerStatus');
-  if (approveBtn) approveBtn.disabled = true; if (changesBtn) changesBtn.disabled = true;
-  if (statusEl) statusEl.textContent = 'Submitting…';
-  try {
-    const res = await fetch('/.netlify/functions/approval', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update', id: uuid, status: action, author, comment: comment || (action === 'approved' ? 'Approved.' : 'Changes requested.') }) });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    qs('reviewerContent').style.display = 'none'; qs('reviewerConfirmed').style.display = 'block';
-    const isApproved = action === 'approved';
-    qs('reviewerConfirmIcon').textContent = isApproved ? '✅' : '📝';
-    qs('reviewerConfirmTitle').textContent = isApproved ? 'Approved!' : 'Feedback Sent';
-    qs('reviewerConfirmDesc').textContent = isApproved
-      ? 'Approval recorded. The author can now publish.'
-      : 'Feedback sent. The author will make revisions and share a new link if needed.';
-  } catch (e) {
-    if (approveBtn) approveBtn.disabled = false; if (changesBtn) changesBtn.disabled = false;
-    if (statusEl) statusEl.textContent = 'Error: ' + e.message;
-  }
-};
-
-// ── VIEW NAVIGATION ──────────────────────────────────
-function activateView(viewId) {
-  currentViewId = viewId;
-  document.querySelectorAll('[data-view]').forEach(x => x.classList.toggle('active', x.dataset.view === viewId));
-  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId));
-  document.querySelectorAll('.mob-tab[data-view]').forEach(t => t.classList.toggle('active', t.dataset.view === viewId));
-  if (viewId === 'ideasView') setIdeasTab('pillars');
-  if (viewId === 'approvalsView') loadApprovals();
-}
-window.activateView = activateView;
-
-function setIdeasTab(tabId = 'pillars') {
-  const tab = ['pillars', 'templates', 'trending'].includes(tabId) ? tabId : 'pillars';
-  currentIdeasTab = tab;
-  document.querySelectorAll('.ideas-tab').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.ideasTab === tab);
-  });
-  document.querySelectorAll('[data-ideas-panel]').forEach(panel => {
-    panel.classList.toggle('active', panel.dataset.ideasPanel === tab);
-  });
-}
-
-// ── SCHEDULE PICKERS ──────────────────────────────────
-function buildTimePickers() {
-  const h = qs('scheduleHour'), m = qs('scheduleMin'), ap = qs('scheduleAmpm');
-  for (let i = 1; i <= 12; i++) { const o = document.createElement('option'); o.value = i; o.textContent = String(i).padStart(2, '0'); h.appendChild(o); }
-  for (let i = 0; i < 60; i += 5) { const o = document.createElement('option'); o.value = i; o.textContent = String(i).padStart(2, '0'); m.appendChild(o); }
-  ['AM','PM'].forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; ap.appendChild(o); });
-  const now = new Date(); h.value = (now.getHours() % 12) || 12; m.value = 0; ap.value = now.getHours() >= 12 ? 'PM' : 'AM';
-}
-
-function syncComposerWhen() {
-  const d = qs('scheduleDate').value; if (!d) { qs('composerWhen').value = ''; return; }
-  let h = parseInt(qs('scheduleHour').value); const m = parseInt(qs('scheduleMin').value); const ap = qs('scheduleAmpm').value;
-  if (ap === 'PM' && h !== 12) h += 12; if (ap === 'AM' && h === 12) h = 0;
-  qs('composerWhen').value = `${d}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00.000Z`;
-}
-
-// ── INIT ──────────────────────────────────────────────
-function init() {
-  const approveParam = new URLSearchParams(location.search).get('approve');
-  if (approveParam) { renderReviewerPage(approveParam); return; }
-  if (renderSharedFromHash()) return;
-
-  loadStoredToken();
-  loadTemplates();
-  initTemplateSelectors();
-  renderTemplates();
-  if (window.ContentPillars?.init) window.ContentPillars.init();
-  buildTimePickers();
-  qs('scheduleDate').value = new Date().toISOString().slice(0, 10);
-  qs('scheduleDate').min = new Date().toISOString().slice(0, 10);
-  renderCalendar();
-  activateView('calendarView');
-
-  qs('manageTokenBtn').onclick = () => {
-    tokenPanelOpen = !tokenPanelOpen;
-    qs('tokenPanel').style.display = tokenPanelOpen ? 'block' : 'none';
-    qs('manageTokenBtn').textContent = tokenPanelOpen ? 'Done' : 'Manage token';
-  };
-  qs('revealTokenBtn').onclick = () => {
-    tokenPanelOpen = true; qs('tokenPanel').style.display = 'block';
-    qs('manageTokenBtn').textContent = 'Done';
-    const inp = qs('tokenInput'); inp.type = 'text'; inp.focus();
-  };
-  qs('saveTokenBtn').onclick = saveToken;
-  qs('clearTokenBtn').onclick = () => { qs('tokenInput').value = ''; saveToken(); };
-
-  qs('syncBtn').onclick = () => syncBuffer({ force: true });
-  if (bufferToken) syncBuffer();
-
-  document.querySelectorAll('[data-view]').forEach(b => {
-    b.onclick = () => {
-      activateView(b.dataset.view);
-      if (b.dataset.view === 'ideasView' && b.dataset.ideasTab) setIdeasTab(b.dataset.ideasTab);
-    };
-  });
-  document.querySelectorAll('.ideas-tab').forEach(tabBtn => {
-    tabBtn.onclick = () => setIdeasTab(tabBtn.dataset.ideasTab);
-  });
-
-  qs('prevMonth').onclick = () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() - 1, 1); renderCalendar(); detectQueueGaps(); };
-  qs('nextMonth').onclick = () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() + 1, 1); renderCalendar(); detectQueueGaps(); };
-  qs('todayMonth').onclick = () => { state.month = new Date(); renderCalendar(); detectQueueGaps(); };
-  qs('closeNote').onclick = () => closeModal('noteModal');
-  qs('saveNoteBtn').onclick = saveNote;
-  qs('deleteNoteBtn').onclick = deleteNote;
-  qs('sendNoteToDraftBtn').onclick = sendNoteToDraft;
-  qs('shareMonthBtn').onclick = () => { const t = qs('shareCustomTitle'); if (t && !t.value.trim()) t.value = `${monthLabel(state.month)} snapshot`; shareSnapshot(); openModal('shareModal'); };
-  qs('closeShare').onclick = () => closeModal('shareModal');
-  qs('includeNotes').onchange = shareSnapshot;
-  const shareTitleInput = qs('shareCustomTitle'); if (shareTitleInput) shareTitleInput.oninput = shareSnapshot;
-  qs('generateShare').onclick = () => { shareSnapshot(); qs('generateShare').textContent = '✓ Link ready'; setTimeout(() => { qs('generateShare').textContent = 'Generate link'; }, 2500); };
-  qs('copyShare').onclick = async () => { const ok = await copyTextSafe(qs('shareLink').value || ''); if (ok) { qs('copyShare').textContent = 'Copied!'; setTimeout(() => { qs('copyShare').textContent = 'Copy'; }, 1800); } else showToast('Could not copy', 'error'); };
-
-  const editor = qs('composerEditor');
-  editor.addEventListener('input', () => {
-    const text = editorToText(editor.innerHTML);
-    const ch = state.channels.find(c => c.id === qs('composerChannel')?.value);
-    const svc = (ch?.service || '').toLowerCase();
-    let limit = null;
-    if (svc.includes('twitter') || svc.includes('x-')) limit = 280;
-    else if (svc.includes('thread')) limit = 500;
-    else if (svc.includes('linkedin')) limit = 3000;
-    else if (svc.includes('instagram')) limit = 2200;
-    const cc = qs('charCount');
-    if (limit) {
-      const rem = limit - text.length;
-      cc.textContent = `${text.length}/${limit}`;
-      cc.className = 'char-count' + (rem < 0 ? ' over' : rem < 50 ? ' warn' : '');
-    } else {
-      cc.textContent = `${text.length} chars`;
-      cc.className = 'char-count' + (text.length > 500 ? ' warn' : '');
-    }
-    const showClear = text.length > 0;
-    const ccBtn = qs('composerClearBtn'); if (ccBtn) ccBtn.style.display = showClear ? 'inline-flex' : 'none';
-  });
-  qs('charCount').textContent = '0 chars';
-  qs('composerChannel').addEventListener('change', updateComposerButtonStates);
-
-  qs('composerClearBtn').onclick = () => {
-    if (editorToText(editor.innerHTML) && !confirm('Clear composer?')) return;
-    editor.innerHTML = ''; editor.dispatchEvent(new Event('input'));
-    qs('composerStatus').textContent = ''; clearMedia();
-  };
-
-  document.querySelectorAll('[data-cmd]').forEach(btn => btn.onclick = () => composerFormat(btn.dataset.cmd));
-  qs('composerDraft').onclick = () => composerSend('draft');
-  qs('composerQueue').onclick = () => composerSend('queue');
-  qs('composerScheduleSend').onclick = () => composerSend('schedule');
-  qs('composerScheduleToggle').onclick = () => {
-    qs('schedulePanel').classList.add('open');
-    qs('composerScheduleToggle').style.display = 'none';
-  };
-  qs('scheduleCancel').onclick = () => {
-    qs('schedulePanel').classList.remove('open');
-    qs('composerScheduleToggle').style.display = 'inline-flex';
-  };
-  ['scheduleDate','scheduleHour','scheduleMin','scheduleAmpm'].forEach(id => qs(id).addEventListener('change', syncComposerWhen));
-  syncComposerWhen();
-  updateComposerButtonStates();
-  window.addEventListener('postiq:synced', updateComposerButtonStates);
-
-  qs('insertTemplateBtn').onclick = () => { renderTemplatePicker(); openModal('templatePickerModal'); };
-  qs('saveAsTemplateBtn').onclick = () => {
-    const sel = window.getSelection(); const text = (sel?.toString() || '').trim();
-    if (!text) { showToast('Select text in the editor first', 'error'); return; }
-    qs('templateBody').value = text; openTemplateModal();
-  };
-
-  qs('refPinDismiss').onclick = () => { qs('refPin').style.display = 'none'; };
-
-  qs('mediaToggleBtn').onclick = () => { qs('mediaPanel').classList.contains('open') ? closeMediaPanel() : openMediaPanel(); };
-  qs('mediaToggleOff').onclick = () => { qs('mediaPanel').classList.contains('open') ? closeMediaPanel() : openMediaPanel(); };
-  qs('mediaSummaryClear').onclick = () => { clearMedia(); showToast('Media removed'); };
-  document.querySelectorAll('.media-tab').forEach(t => t.onclick = () => switchMediaTab(t.dataset.mtab));
-
-  const zone = qs('uploadZone'), fi = qs('uploadFileInput');
-  zone.onclick = e => { if (!e.target.closest('#uploadBrowseBtn') && !e.target.closest('#uploadResult')) fi.click(); };
-  qs('uploadBrowseBtn').onclick = e => { e.stopPropagation(); fi.click(); };
-  fi.onchange = () => { if (fi.files[0]) handleUploadFile(fi.files[0]); };
-  zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = 'var(--brand)'; zone.style.background = 'var(--brand-dim)'; });
-  zone.addEventListener('dragleave', e => { if (!zone.contains(e.relatedTarget)) { zone.style.borderColor = 'var(--border2)'; zone.style.background = ''; } });
-  zone.addEventListener('drop', e => { e.preventDefault(); zone.style.borderColor = 'var(--border2)'; zone.style.background = ''; if (e.dataTransfer.files[0]) handleUploadFile(e.dataTransfer.files[0]); });
-  document.addEventListener('paste', e => {
-    if (!qs('mediaPanel').classList.contains('open')) return;
-    const active = document.querySelector('.media-tab.active')?.dataset?.mtab;
-    if (active !== 'upload') return;
-    const img = Array.from(e.clipboardData?.items || []).find(i => i.type.startsWith('image/'));
-    if (img) handleUploadFile(img.getAsFile());
-  });
-  qs('uploadReplaceBtn').onclick = e => { e.stopPropagation(); resetUploadTab(); fi.click(); };
-  qs('uploadClearBtn').onclick  = e => { e.stopPropagation(); resetUploadTab(); clearMedia(); showToast('Media removed'); };
-
-  const urlInp = qs('mediaUrlInput'); const urlClear = qs('mediaUrlClear');
-  urlInp.addEventListener('input', () => {
-    const url = urlInp.value.trim();
-    urlClear.style.display = url ? 'inline-flex' : 'none';
-    const vts = qs('videoThumbSection'), up = qs('urlPreview'), ui = qs('urlPreviewImg'), ut = qs('urlPreviewType');
-    if (url) {
-      if (isVideo(url)) {
-        ui.style.display = 'none'; vts.style.display = 'block';
-        ut.textContent = '🎬 Video URL'; up.style.display = 'flex';
-      } else {
-        ui.src = url; ui.style.display = 'block'; vts.style.display = 'none';
-        ut.textContent = 'Image URL'; up.style.display = 'flex';
-      }
-      applyMedia(url, 'url', qs('videoThumbUrl')?.value?.trim() || '');
-    } else { up.style.display = 'none'; clearMedia(); }
-  });
-  urlClear.onclick = () => { urlInp.value = ''; urlInp.dispatchEvent(new Event('input')); };
-  const vtu = qs('videoThumbUrl');
-  if (vtu) vtu.addEventListener('input', () => { mediaState.videoThumbUrl = vtu.value.trim(); });
-
-  qs('unsplashSearchBtn').onclick = runUnsplashSearch;
-  qs('unsplashQuery').addEventListener('keydown', e => { if (e.key === 'Enter') runUnsplashSearch(); });
-
-  qs('newTemplateBtn').onclick = () => openTemplateModal();
-  const manageTplBtn = qs('composerManageTemplatesBtn'); if (manageTplBtn) manageTplBtn.onclick = () => { activateView('ideasView'); setIdeasTab('templates'); };
-  qs('closeTemplateModal').onclick = () => closeModal('templateModal');
-  qs('cancelTemplateBtn').onclick = () => closeModal('templateModal');
-  qs('saveTemplateBtn').onclick = saveTemplate;
-  qs('closeTemplatePicker').onclick = () => closeModal('templatePickerModal');
-  qs('templateSearch').addEventListener('input', e => { state.templateSearch = e.target.value; renderTemplates(); });
-  qs('templatePlatformFilter').onchange = e => { state.templatePlatform = e.target.value; renderTemplates(); };
-  qs('pickerSearch').addEventListener('input', renderTemplatePicker);
-  qs('pickerType').onchange = renderTemplatePicker;
-
-  qs('approvalsRefreshBtn').onclick = loadApprovals;
-  document.querySelectorAll('[data-afilter]').forEach(pill => {
-    pill.onclick = () => {
-      document.querySelectorAll('[data-afilter]').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      const filter = pill.dataset.afilter;
-      document.querySelectorAll('#approvalsList .approval-card').forEach(card => {
-        const bar = card.querySelector('.approval-card-status-bar');
-        if (!bar) return;
-        const status = bar.classList.contains('approved') ? 'approved' : bar.classList.contains('changes') ? 'changes' : 'pending';
-        card.style.display = (filter === 'all' || status === filter) ? '' : 'none';
-      });
-    };
-  });
-
-  // ── ZEN MODE ──
-  let zenActive = false;
-
-  function enterZen() {
-    zenActive = true;
-    document.body.classList.add('zen-active');
-    activateView('composerView');
-    const composePanel = qs('composeModePanel');
-    const splitPanel = qs('splitModePanel');
-    if (composePanel) composePanel.style.display = 'contents';
-    if (splitPanel) splitPanel.style.display = 'none';
-    document.querySelectorAll('.composer-mode-tab').forEach(t => {
-      const active = t.dataset.cmode === 'compose';
-      t.style.color = active ? 'var(--brand)' : 'var(--muted)';
-      t.style.borderBottomColor = active ? 'var(--brand)' : 'transparent';
-    });
-    qs('composerEditor')?.focus();
-    qs('zenToggleBtn').title = 'Exit zen mode';
-  }
-
-  function exitZen() {
-    zenActive = false;
-    document.body.classList.remove('zen-active');
-    qs('zenToggleBtn').title = 'Zen mode — distraction-free writing';
-  }
-
-  qs('zenToggleBtn').onclick = () => zenActive ? exitZen() : enterZen();
-  qs('zenExit').onclick = exitZen;
-
-  const zenChannel = qs('zenChannel');
-  if (zenChannel) {
-    zenChannel.addEventListener('change', () => {
-      const main = qs('composerChannel');
-      if (main) main.value = zenChannel.value;
-      updateComposerButtonStates();
-    });
-  }
-
-  const zenDraft = qs('zenDraft'); if (zenDraft) zenDraft.onclick = () => composerSend('draft');
-  const zenQueue = qs('zenQueue'); if (zenQueue) zenQueue.onclick = () => composerSend('queue');
-  const zenSchedule = qs('zenSchedule');
-  if (zenSchedule) zenSchedule.onclick = () => {
-    exitZen();
-    qs('schedulePanel')?.classList.add('open');
-    const tgl = qs('composerScheduleToggle');
-    if (tgl) tgl.style.display = 'none';
-  };
-
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && zenActive) {
-      if (!document.querySelector('.modal.open')) { exitZen(); return; }
-    }
-  }, true);
-
-  qs('openSettings').onclick = () => openModal('settingsModal');
-  qs('closeSettings').onclick = () => closeModal('settingsModal');
-  document.querySelectorAll('.settings-tab').forEach(tab => {
-    tab.onclick = () => {
-      document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      const panel = 'settingsPanel' + tab.dataset.stab.charAt(0).toUpperCase() + tab.dataset.stab.slice(1);
-      document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.id === panel));
-    };
-  });
-
-  document.querySelectorAll('.modal').forEach(modal => {
-    modal.addEventListener('click', e => { if (e.target === modal) closeModal(modal.id); });
-  });
-  document.addEventListener('keydown', e => {
-    if (e.key !== 'Escape') return;
-    const open = [...document.querySelectorAll('.modal.open')];
-    if (open.length) closeModal(open[open.length - 1].id);
-  });
-
-  function openMobDrawer() {
-    const syncEl = qs('syncStatus');
-    const ms = qs('mobSyncStatus'); if (ms && syncEl) ms.textContent = syncEl.textContent;
-    const connected = !!bufferToken;
-    const md = qs('mobConnDot'); if (md) md.classList.toggle('on', connected);
-    const ml = qs('mobConnLabel'); if (ml) ml.textContent = connected ? 'Connected' : 'Not connected';
-    qs('mobDrawer').classList.add('open');
-    qs('mobBackdrop').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeMobDrawer() {
-    qs('mobDrawer').classList.remove('open');
-    qs('mobBackdrop').classList.remove('open');
-    document.body.style.overflow = '';
-  }
-  qs('mobBackdrop').onclick = closeMobDrawer;
-  ['mobMenuBtn','mobMenuBtnDraft','mobMenuBtnApprovals'].forEach(id => {
-    const btn = qs(id); if (btn) btn.onclick = openMobDrawer;
-  });
-  qs('mobSyncBtn').onclick = () => { syncBuffer({ force: true }); closeMobDrawer(); };
-  let mobTokenOpen = false;
-  qs('mobManageTokenBtn').onclick = () => {
-    mobTokenOpen = !mobTokenOpen;
-    qs('mobTokenPanel').style.display = mobTokenOpen ? 'block' : 'none';
-    qs('mobManageTokenBtn').textContent = mobTokenOpen ? '🔑 Done' : '🔑 Manage Buffer token';
-    if (mobTokenOpen && bufferToken) qs('mobTokenInput').value = bufferToken;
-  };
-  qs('mobSaveTokenBtn').onclick = () => {
-    const t = qs('mobTokenInput').value.trim();
-    const mode = [...document.querySelectorAll('input[name="mobTokenMode"]')].find(r => r.checked)?.value || 'session';
-    const ok = setBufferToken(t, { mode, messageEl: qs('mobTokenMsg') });
-    if (ok) { qs('tokenInput').value = t; syncBuffer({ force: true }); closeMobDrawer(); }
-  };
-  qs('mobClearTokenBtn').onclick = () => { qs('mobTokenInput').value = ''; setBufferToken('', { mode: 'session', messageEl: qs('mobTokenMsg') }); };
-  qs('mobOpenSettings').onclick = () => { closeMobDrawer(); openModal('settingsModal'); };
-
-  const smb = qs('shareMonthBtnMob'); if (smb) smb.onclick = () => { const t = qs('shareCustomTitle'); if (t && !t.value.trim()) t.value = `${monthLabel(state.month)} snapshot`; shareSnapshot(); openModal('shareModal'); };
-
-  const ccbm = qs('composerClearBtnMob');
-  if (ccbm) {
-    ccbm.onclick = () => {
-      if (editorToText(editor.innerHTML) && !confirm('Clear composer?')) return;
-      editor.innerHTML = ''; editor.dispatchEvent(new Event('input'));
-      qs('composerStatus').textContent = ''; clearMedia();
-    };
-  }
-
-  editor.addEventListener('input', () => {
-    const hasText = !!editorToText(editor.innerHTML);
-    const ccbmBtn = qs('composerClearBtnMob'); if (ccbmBtn) ccbmBtn.style.display = hasText ? 'inline-flex' : 'none';
-  });
-
-  const arbm = qs('approvalsRefreshBtnMob'); if (arbm) arbm.onclick = loadApprovals;
-  const ntbm = qs('newTemplateBtnMob'); if (ntbm) ntbm.onclick = () => openTemplateModal();
-
-  const mobMoreBtn = qs('mobMoreBtn');
-  if (mobMoreBtn) mobMoreBtn.onclick = openMobDrawer;
-
-  // ── COMPOSER MODE TABS ──
-  function setComposerMode(mode) {
-    document.querySelectorAll('.composer-mode-tab').forEach(t => {
-      const isActive = t.dataset.cmode === mode;
-      t.style.color = isActive ? 'var(--brand)' : 'var(--muted)';
-      t.style.borderBottomColor = isActive ? 'var(--brand)' : 'transparent';
-    });
-    qs('composeModePanel').style.display = mode === 'compose' ? 'contents' : 'none';
-    qs('splitModePanel').style.display  = mode === 'split'   ? 'block'    : 'none';
-    const support = qs('composerSupportSection');
-    if (support) support.style.display = mode === 'compose' ? 'grid' : 'none';
-    if (mode === 'split') initSplitMode();
-  }
-  document.querySelectorAll('.composer-mode-tab').forEach(t => {
-    t.onclick = () => setComposerMode(t.dataset.cmode);
-  });
-
-  // ── THREAD SPLITTER ──
-  let threadParts = [];
-  let threadNumbered = false;
-  let splitInited = false;
-
-  function splitThreadText(text, max = 280) {
-    const parts = []; let left = text.trim();
-    while (left.length > max) {
-      let cut = left.lastIndexOf('\n', max);
-      if (cut < 80) cut = left.lastIndexOf(' ', max);
-      if (cut < 80) cut = max;
-      parts.push(left.slice(0, cut).trim()); left = left.slice(cut).trim();
-    }
-    if (left) parts.push(left);
-    return parts;
-  }
-
-  function renderThreadParts() {
-    const out = qs('threadOut'); const empty = qs('threadEmpty');
-    const actions = qs('threadActions'); const whenRow = qs('threadWhenRow');
-    if (!threadParts.length) {
-      out.innerHTML = ''; empty.style.display = 'flex';
-      if (actions) actions.style.display = 'none';
-      if (whenRow) whenRow.style.display = 'none';
-      return;
-    }
-    empty.style.display = 'none';
-    if (actions) actions.style.display = 'flex';
-    out.innerHTML = '';
-    threadParts.forEach((p, i) => {
-      const label = threadNumbered ? `${i+1}/${threadParts.length} ` : '';
-      const full = label + p;
-      const over = full.length > 280;
-      const div = document.createElement('div');
-      div.className = 'card';
-      div.style.cssText = 'padding:12px;margin-bottom:0;';
-      div.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--brand);background:var(--brand-dim);border:1px solid var(--brand-glow);padding:2px 7px;border-radius:4px;">Part ${i+1}</span>
-          <div style="display:flex;gap:6px;align-items:center;">
-            <span style="font-size:11px;font-family:'DM Mono',monospace;color:${over?'var(--red)':'var(--subtle)'};">${full.length}/280</span>
-            <button class="btn sm ghost" data-pi="${i}">Copy</button>
-          </div>
-        </div>
-        <textarea data-ti="${i}" style="min-height:80px;font-size:13px;">${p}</textarea>`;
-      div.querySelector('[data-pi]').onclick = () => { navigator.clipboard.writeText(full); showToast('Part copied'); };
-      div.querySelector('[data-ti]').addEventListener('input', e => {
-        threadParts[+e.target.dataset.ti] = e.target.value;
-        const span = e.target.closest('.card').querySelector('span[style*="DM Mono"]');
-        const lbl = threadNumbered ? `${i+1}/${threadParts.length} ` : '';
-        const len = (lbl + e.target.value).length;
-        if (span) { span.textContent = `${len}/280`; span.style.color = len > 280 ? 'var(--red)' : 'var(--subtle)'; }
-      });
-      out.appendChild(div);
-    });
-  }
-
-  function initSplitMode() {
-    if (splitInited) return; splitInited = true;
-
-    const tch = qs('threadChannel');
-    if (tch) {
-      tch.innerHTML = '';
-      const xChs = state.channels.filter(c => { const s = (c.service||'').toLowerCase(); return s.includes('twitter')||s.includes('thread')||s.includes('x-'); });
-      if (xChs.length) {
-        xChs.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = `${c.displayName||c.name} (${c.service})`; tch.appendChild(o); });
-      } else if (state.channels.length) {
-        state.channels.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = `${c.displayName||c.name} (${c.service})`; tch.appendChild(o); });
-      } else {
-        const o = document.createElement('option'); o.value = ''; o.textContent = '↻ Load channels from Buffer'; tch.appendChild(o);
-      }
-    }
-
-    qs('splitBtn').onclick = () => {
-      const text = qs('threadInput').value.trim();
-      if (!text) { showToast('Add some text first', 'error'); return; }
-      threadParts = splitThreadText(text);
-      renderThreadParts();
-      showToast(`${threadParts.length} thread parts`, 'success');
-    };
-
-    qs('splitSampleBtn').onclick = () => {
-      qs('threadInput').value = 'PostIQ helps Buffer users move faster. Start with one big idea, split it into clear thread parts, refine each part, and send a cleaner post flow to Buffer — drafts, queued, or scheduled. The whole thing in under two minutes.';
-      qs('splitBtn').click();
-    };
-
-    const toggle = qs('threadNumberToggle');
-    if (toggle) toggle.onchange = e => { threadNumbered = e.target.checked; renderThreadParts(); };
-
-    qs('copyAllPartsBtn').onclick = () => {
-      if (!threadParts.length) return;
-      const text = threadParts.map((p,i) => threadNumbered ? `${i+1}/${threadParts.length} ${p}` : p).join('\n\n');
-      navigator.clipboard.writeText(text); showToast('All parts copied', 'success');
-    };
-
-    async function sendThread(action) {
-      if (!threadParts.length) { qs('threadStatus').textContent = 'Split content first.'; return; }
-      const channelId = qs('threadChannel')?.value;
-      if (!channelId) { qs('threadStatus').textContent = 'Select a channel first.'; return; }
-      const parts = threadParts.map((p,i) => threadNumbered ? `${i+1}/${threadParts.length} ${p}` : p);
-      const when = qs('threadWhen')?.value;
-      const ch = state.channels.find(c => c.id === channelId);
-      const svc = (ch?.service||'').toLowerCase();
-      const isThreads = svc.includes('thread');
-      const metadata = parts.length > 1 ? { metadata: { [isThreads?'threads':'twitter']: isThreads ? { type:'thread', thread: parts.slice(1).map(t=>({text:t})) } : { thread: parts.slice(1).map(t=>({text:t})) } } } : {};
-      const input = { channelId, text: parts[0], schedulingType: 'automatic', ...metadata };
-      if (action === 'draft')    { input.mode = 'addToQueue'; input.saveToDraft = true; }
-      if (action === 'queue')    { input.mode = 'addToQueue'; }
-      if (action === 'schedule') {
-        if (!when) { qs('threadStatus').textContent = 'Set a date/time first.'; qs('threadWhenRow').style.display = 'block'; return; }
-        input.mode = 'customScheduled'; input.dueAt = when;
-      }
-      qs('threadStatus').textContent = 'Sending…';
-      try {
-        await createPost(input);
-        const msg = action==='draft'?'Draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
-        qs('threadStatus').textContent = msg; showToast(msg, 'success');
-      } catch(e) {
-        const msg = getErrorMessage(e, 'Failed.');
-        if (isAuthError(e)) handleAuthFailure(msg);
-        qs('threadStatus').textContent = `Failed: ${msg}`;
-      }
-    }
-
-    qs('draftThreadBtn').onclick    = () => sendThread('draft');
-    qs('queueThreadBtn').onclick    = () => sendThread('queue');
-    qs('scheduleThreadBtn').onclick = () => { qs('threadWhenRow').style.display = 'block'; };
-
-    window.addEventListener('postiq:synced', () => {
-      const tch2 = qs('threadChannel'); if (!tch2) return;
-      tch2.innerHTML = '';
-      const xChs = state.channels.filter(c => { const s=(c.service||'').toLowerCase(); return s.includes('twitter')||s.includes('thread')||s.includes('x-'); });
-      const pool = xChs.length ? xChs : state.channels;
-      pool.forEach(c => { const o=document.createElement('option'); o.value=c.id; o.textContent=`${c.displayName||c.name} (${c.service})`; tch2.appendChild(o); });
-    });
-  }
-
-  // ── TRENDING ──
-  const trendingState = { src: 'reddit', sub: 'socialmedia', hn: 'topstories' };
-  const DEFAULT_SUBS = ['socialmedia','entrepreneur','marketing','business'];
-
-  function renderSubPills() {
-    const wrap = qs('trendingSubPills'); if (!wrap) return;
-    wrap.innerHTML = '';
-    DEFAULT_SUBS.forEach(sub => {
-      const btn = document.createElement('button');
-      btn.style.cssText = `padding:5px 12px;border-radius:20px;border:1px solid var(--border2);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;transition:all .12s;background:${trendingState.sub===sub?'var(--brand-dim)':'var(--surface)'};color:${trendingState.sub===sub?'var(--brand)':'var(--muted)'};border-color:${trendingState.sub===sub?'var(--brand-glow)':'var(--border2)'};`;
-      btn.textContent = 'r/' + sub;
-      btn.onclick = () => { trendingState.sub = sub; renderSubPills(); loadReddit(); };
-      wrap.appendChild(btn);
-    });
-  }
-
-  function timeAgo(ts) {
-    const d = (Date.now() - ts) / 1000;
-    if (d < 3600) return `${Math.floor(d/60)}m ago`;
-    if (d < 86400) return `${Math.floor(d/3600)}h ago`;
-    return `${Math.floor(d/86400)}d ago`;
-  }
-
-  function renderTrendingItems(containerId, items) {
-    const list = qs(containerId); list.innerHTML = '';
-    if (!items.length) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">📈</div><div class="empty-title">Nothing loaded</div><div class="empty-desc">Try refreshing or switching to a different source.</div></div>'; return; }
-    items.forEach((item, i) => {
-      const el = document.createElement('div');
-      el.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;transition:border-color .12s;';
-      el.innerHTML = `
-        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--subtle);width:22px;flex-shrink:0;padding-top:2px;font-weight:600;">${i+1}</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:5px;">${safeText(item.title)}</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--amber);font-weight:700;">▲ ${(item.score||0).toLocaleString()}</span>
-            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">💬 ${item.comments||0}</span>
-            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--brand);">${safeText(item.sub||'')}</span>
-            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">${item.age||''}</span>
-          </div>
-          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
-            <button class="btn sm" style="font-size:11px;" data-inspire="${i}">→ Draft from this</button>
-            <a class="btn sm ghost" href="${safeText(item.url)}" target="_blank" rel="noopener" style="font-size:11px;">↗ Source</a>
-          </div>
-        </div>`;
-      el.onmouseenter = () => { el.style.borderColor = 'var(--border2)'; };
-      el.onmouseleave = () => { el.style.borderColor = 'var(--border)'; };
-      el.querySelector('[data-inspire]').onclick = () => {
-        qs('refPinTitle').textContent = item.title;
-        qs('refPinBody').textContent = item.body ? item.body.slice(0,200) : '';
-        qs('refPin').style.display = 'block';
-        activateView('composerView');
-        showToast('Pinned as reference — write your take', 'info');
-      };
-      list.appendChild(el);
-    });
-  }
-
-  async function loadReddit() {
-    const statusEl = qs('trendingRedditStatus'); const listEl = qs('trendingRedditList');
-    if (!statusEl || !listEl) return;
-    statusEl.textContent = 'Loading…'; listEl.innerHTML = '';
-    try {
-      const res = await fetch(`https://www.reddit.com/r/${trendingState.sub}/hot.json?limit=25`, { headers: { Accept: 'application/json' } });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      const posts = (data?.data?.children||[]).filter(p => !p.data.stickied);
-      statusEl.textContent = `${posts.length} posts from r/${trendingState.sub}`;
-      renderTrendingItems('trendingRedditList', posts.map((p) => ({
-        title: p.data.title, score: p.data.score, comments: p.data.num_comments,
-        sub: `r/${p.data.subreddit}`, url: `https://reddit.com${p.data.permalink}`,
-        body: p.data.selftext, age: timeAgo(p.data.created_utc * 1000),
-      })));
-    } catch(e) { statusEl.textContent = 'Failed to load — Reddit may be blocking. Try again.'; }
-  }
-
-  async function loadHN() {
-    const statusEl = qs('trendingHNStatus'); const listEl = qs('trendingHNList');
-    if (!statusEl || !listEl) return;
-    statusEl.textContent = 'Loading…'; listEl.innerHTML = '';
-    try {
-      const ids = await fetch(`https://hacker-news.firebaseio.com/v0/${trendingState.hn}.json`).then(r=>r.json());
-      const stories = await Promise.all(ids.slice(0,20).map(id => fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(r=>r.json())));
-      statusEl.textContent = `${stories.length} stories from Hacker News`;
-      renderTrendingItems('trendingHNList', stories.filter(s=>s?.title).map((s) => ({
-        title: s.title, score: s.score, comments: s.descendants||0,
-        sub: s.by ? `by ${s.by}` : 'HN', url: s.url || `https://news.ycombinator.com/item?id=${s.id}`,
-        age: timeAgo(s.time * 1000),
-      })));
-    } catch(e) { statusEl.textContent = 'Failed to load Hacker News.'; }
-  }
-
-  function initTrending() {
-    renderSubPills();
-
-    document.querySelectorAll('.trending-src-tab').forEach(tab => {
-      tab.onclick = () => {
-        document.querySelectorAll('.trending-src-tab').forEach(t => {
-          t.style.color = 'var(--muted)'; t.style.borderBottomColor = 'transparent';
-        });
-        tab.style.color = 'var(--brand)'; tab.style.borderBottomColor = 'var(--brand)';
-        trendingState.src = tab.dataset.tsrc;
-        qs('trendingRedditPanel').style.display = trendingState.src==='reddit' ? 'block' : 'none';
-        qs('trendingHNPanel').style.display     = trendingState.src==='hn'     ? 'block' : 'none';
-        if (trendingState.src==='hn') loadHN();
-      };
-    });
-
-    document.querySelectorAll('.trending-hn-tab').forEach(tab => {
-      tab.onclick = () => {
-        document.querySelectorAll('.trending-hn-tab').forEach(t => {
-          t.style.background='var(--surface)'; t.style.color='var(--muted)'; t.style.borderColor='var(--border2)';
-        });
-        tab.style.background='var(--brand-dim)'; tab.style.color='var(--brand)'; tab.style.borderColor='var(--brand-glow)';
-        trendingState.hn = tab.dataset.hn; loadHN();
-      };
-    });
-
-    qs('trendingGoSub').onclick = () => {
-      const val = qs('trendingCustomSub').value.trim().replace(/^r\//,'');
-      if (!val) return;
-      if (!DEFAULT_SUBS.includes(val)) DEFAULT_SUBS.push(val);
-      trendingState.sub = val; renderSubPills(); loadReddit();
-      qs('trendingCustomSub').value = '';
-    };
-    qs('trendingCustomSub').addEventListener('keydown', e => { if (e.key==='Enter') qs('trendingGoSub').click(); });
-
-    ['trendingRefreshBtn','trendingRefreshMob','trendingRefreshReddit'].forEach(id => {
-      const btn = qs(id); if (btn) btn.onclick = () => { if (trendingState.src==='reddit') loadReddit(); else loadHN(); };
-    });
-    const hnRefBtn = qs('trendingRefreshHN'); if (hnRefBtn) hnRefBtn.onclick = loadHN;
-
-    loadReddit();
-  }
-
-  let trendingInited = false;
-  const origActivateView = activateView;
-  window.activateView = function(viewId) {
-    origActivateView(viewId);
-    if (viewId === 'ideasView' && currentIdeasTab === 'trending' && !trendingInited) { trendingInited = true; initTrending(); }
-  };
-
-  const origSetIdeasTab = setIdeasTab;
-  setIdeasTab = function(tabId) {
-    origSetIdeasTab(tabId);
-    if (currentIdeasTab === 'trending' && !trendingInited) { trendingInited = true; initTrending(); }
-  };
-
-  const guidePanel = qs('settingsPanelGuide');
-  if (guidePanel && !guidePanel.querySelector('[data-guide-trending]')) {
-    const trendingEntry = document.createElement('div');
-    trendingEntry.dataset.guideTrending = '1';
-    trendingEntry.innerHTML = `<div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">📈 Trending</div><p style="font-size:13px;color:var(--muted);line-height:1.65;">Browse hot Reddit posts by subreddit or Hacker News stories for post inspiration. Click "Draft from this" on any story to pin it as a reference above your Composer editor.</p>`;
-    const threadEntry = document.createElement('div');
-    threadEntry.innerHTML = `<div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">🧵 Split into thread</div><p style="font-size:13px;color:var(--muted);line-height:1.65;">Inside Draft, switch to the Split tab. Paste long-form content, hit Split Thread, and PostIQ breaks it into numbered parts. Edit each part, then queue or schedule the whole thread to Buffer natively.</p>`;
-    guidePanel.querySelector('div').appendChild(trendingEntry);
-    guidePanel.querySelector('div').appendChild(threadEntry);
-  }
-
-  if ('serviceWorker' in navigator && location.hostname !== 'localhost' && !location.hostname.includes('claudeusercontent')) {
-    navigator.serviceWorker.register('/sw.js').catch(e => console.warn('SW:', e));
-  }
-}
-
-
-
-// ── CONTENT PILLARS v2 ────────────────────────────────────
 window.ContentPillars = (() => {
-  const CP_KEY = 'postiq_pillars_v3';
+  const CP_KEY    = 'postiq_pillars_v3';
   const USAGE_KEY = 'postiq_pillars_usage_v1';
-  const TONES = ['Practical', 'Story', 'Contrarian', 'Question'];
-  const COLORS = ['#3a3fff', '#0fa672', '#f59e0b', '#ff4f6a', '#7c3aed', '#9298b0'];
+  const TONES     = ['Practical', 'Story', 'Contrarian', 'Question'];
+  const COLORS    = ['#3a3fff','#0fa672','#f59e0b','#ff4f6a','#7c3aed','#9298b0'];
 
   const cpState = {
-    journeyStep: 0,
-    audience: { who: '', struggles: [], custom: '' },
-    quickSeeds: '',
     identity: '',
     pillars: [],
-    _previewPillars: null,
+    _ssmInputs: null,
   };
 
-  const cpQs = id => document.getElementById(id);
-  const cpUid = () => Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
-  const cpEsc = s => String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+  const cpQs    = id => document.getElementById(id);
+  const cpUid   = () => Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+  const cpEsc   = s  => String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   const pillarColor = i => COLORS[i % COLORS.length];
 
   function cpGetUsage() { try { return JSON.parse(localStorage.getItem(USAGE_KEY) || '{}'); } catch { return {}; } }
@@ -2007,12 +138,14 @@ window.ContentPillars = (() => {
 
   function cpNormalizePillar(p, i = 0) {
     return {
-      id: String(p?.id || cpUid()),
-      name: String(p?.name || p?.helper || `Pillar ${i + 1}`),
-      promise: String(p?.promise || p?.helper || 'The recurring promise this pillar makes to your audience'),
-      layer: ['awareness', 'credibility', 'action'].includes(p?.layer) ? p.layer : '',
-      seeds: Array.isArray(p?.seeds) && p.seeds.length ? p.seeds.map(s => String(s || '')) : [''],
-      tones: p?.tones && typeof p.tones === 'object' ? p.tones : {},
+      id:      String(p?.id      || cpUid()),
+      name:    String(p?.name    || `Pillar ${i + 1}`),
+      promise: String(p?.promise || p?.desc || ''),
+      layer:   ['awareness','credibility','action'].includes(p?.layer) ? p.layer : '',
+      seeds:   Array.isArray(p?.seeds) && p.seeds.length ? p.seeds.map(s => String(s || '')) : (Array.isArray(p?.ideas) ? p.ideas.map(s => String(s || '')) : ['']),
+      tones:   p?.tones && typeof p.tones === 'object' ? p.tones : {},
+      hook:    String(p?.hook || ''),
+      cta:     String(p?.cta  || ''),
     };
   }
 
@@ -2026,7 +159,7 @@ window.ContentPillars = (() => {
       const d = JSON.parse(localStorage.getItem(CP_KEY) || 'null');
       if (d?.pillars?.length) {
         cpState.identity = d.identity || '';
-        cpState.pillars = d.pillars.map(cpNormalizePillar);
+        cpState.pillars  = d.pillars.map(cpNormalizePillar);
         return true;
       }
     } catch {}
@@ -2039,54 +172,293 @@ window.ContentPillars = (() => {
     if (el) el.classList.add('active');
   }
 
-  function cpShowStep(n) {
-    cpState.journeyStep = n;
-    document.querySelectorAll('.cp-journey-step').forEach(el => el.classList.remove('active'));
-    const el = document.querySelector(`.cp-journey-step[data-jstep="${n}"]`);
-    if (el) el.classList.add('active');
-    document.querySelectorAll('.cp-prog-step').forEach((step, i) => {
-      step.classList.toggle('active', i === n);
-      step.classList.toggle('done', i < n);
-    });
-    if (n === 4) cpBuildPreview();
+  // ── SSM ENGINE ─────────────────────────────────────────────────
+
+  // Pillar library (subset — grow/sales for most verticals)
+  // Full library inlined from SSM index.html
+  const LIBRARY = {
+    fitness_grow: [
+      { name:'Real Progress, No Filter', desc:'Show the actual journey — sweat, setbacks, and small wins.', ideas:['Week 3 and I almost quit — here\'s what kept me going','My workout looked nothing like the plan today. Here\'s why that\'s fine','The fitness advice that actually worked for me (vs what I tried first)','What nobody shows you about getting in shape after 30','Progress pic I almost didn\'t post — but here we are'], hook:'The fitness account you actually need isn\'t showing you the full picture.', cta:'Follow if you\'re tired of the highlight reel. Real progress lives here.' },
+      { name:'Workout How-Tos', desc:'Teach your audience a specific exercise, modification, or technique.', ideas:['How to do a proper Romanian deadlift if you\'ve never tried one','3 beginner-friendly swaps for exercises that hurt your knees','The form mistake everyone makes on bench press (and how to fix it)','5-minute morning mobility routine you can do in bed','How to build a full-body workout with just a resistance band'], hook:'You\'re working out consistently and still not seeing results. Here\'s why.', cta:'Save this one. Come back to it when you need a form check.' },
+      { name:'Myth Busting', desc:'Fitness is full of bad advice that won\'t die. Be the person who calls it out.', ideas:['No, you don\'t need to do cardio every day to lose fat','The \'no pain no gain\' mindset is actually keeping you injured','Spot reduction isn\'t real — here\'s what actually works','You don\'t need a gym membership to get strong','Why eating less is sometimes making your weight loss harder'], hook:'I\'ve been in fitness for years and the amount of bad advice out there is actually alarming.', cta:'Drop your biggest fitness myth in the comments. Let\'s debunk it.' },
+      { name:'Community & Motivation', desc:'Build belonging. People stay loyal to communities, not just content creators.', ideas:['If you worked out at all this week, this post is for you','Who else started their fitness journey after a doctor\'s visit?','The type of gym-goer I love to see (and it\'s not who you think)','Tag someone who needs to hear this today','What getting fit actually gave me that had nothing to do with my body'], hook:'Fitness changed my life. But not the way I expected.', cta:'Tell me where you\'re at in your journey. No judgment here.' },
+      { name:'Lifestyle & Nutrition', desc:'Show that fitness is a full-system game — sleep, food, stress, recovery all matter.', ideas:['What I eat in a day as someone who actually lifts','The sleep habit that improved my training more than any supplement','3 high-protein meals I make when I have no time','Why I stopped counting calories and what I do instead','Recovery isn\'t lazy. Here\'s how I structure my rest days'], hook:'Your workouts aren\'t the problem. Your recovery is.', cta:'Save this. Your future self will thank you.' },
+    ],
+    fitness_sales: [
+      { name:'Client Transformations', desc:'Document real outcomes from real clients — not just bodies, but confidence and consistency.', ideas:['Client went from skipping workouts to showing up 5x/week — here\'s what changed','Before & after: 90 days with a plan that actually fit her schedule','He told me he\'d "tried everything." 8 weeks later, this happened.','What my client learned in month one that she wishes she knew sooner','Real talk from a client: what coaching actually feels like from the inside'], hook:'I don\'t sell shortcuts. I sell systems that stick — and here\'s proof.', cta:'DM me READY to see if my coaching is the right fit for you.' },
+      { name:'What You Get', desc:'Break down your offer in concrete, specific terms.', ideas:['Here\'s exactly what happens in week 1 of working with me','What\'s included in my program (and why I built it that way)','The difference between my coaching and a generic app','How I build your program around your actual schedule, not an ideal one','FAQ: Is your program right for me? Honest answer.'], hook:'Most fitness programs fail because they weren\'t built for your life. Mine is.', cta:'See the full breakdown at the link in bio. Spots are limited.' },
+      { name:'Common Objections Answered', desc:'Meet your audience where their doubts live.', ideas:['"I don\'t have time to work out." Let me reframe that.','"I\'ve tried programs before and quit." Here\'s why this is different.','"I can just use YouTube." You can. Here\'s what you\'ll miss.','"I can\'t afford a coach right now." Let\'s talk about what\'s actually expensive.','"I\'m not in good enough shape to start." That\'s exactly why you should.'], hook:'You\'ve been telling yourself the same story for months. Let\'s challenge it.', cta:'Your questions are valid. Let\'s talk. DM me anytime.' },
+      { name:'Social Proof', desc:'Let your clients do the selling.', ideas:['What she told me at the end of our 12 weeks together','Client DM that made my morning — sharing with permission','From "I hate working out" to 4x a week. Her words, not mine.','Results that surprised even me (and I\'ve been coaching for years)','The review that reminded me why I do this'], hook:'I could tell you my program works. Or I could let my clients.', cta:'Ready to write your own story? DM me to get started.' },
+      { name:'Your Story & Method', desc:'Share why you do this and how your method is different.', ideas:['Why I became a fitness coach (it wasn\'t for the obvious reason)','The method I use that most trainers skip entirely','What I got wrong about fitness before I figured this out','My philosophy: I don\'t chase aesthetics, I chase ability','The moment I knew I had to start coaching other people'], hook:'There are thousands of fitness coaches. Here\'s why my clients choose me.', cta:'Follow for a different kind of fitness perspective. No fluff.' },
+    ],
+    saas_grow: [
+      { name:'Build In Public', desc:'Document what you\'re building, deciding, and learning.', ideas:['We shipped a feature we almost cut. Here\'s what convinced us.','The metric we watch instead of MRR (and why)','3 things our users told us that changed our roadmap','Why we chose to build in [tech stack] and what we\'d do differently','What our churn data taught us that our NPS score never could'], hook:'Most SaaS companies share the wins. We\'re going to share everything.', cta:'Follow if you want to see what building a software company actually looks like.' },
+      { name:'Hot Takes & Industry POV', desc:'Have real opinions about the tools, trends, and practices in your space.', ideas:['Unpopular opinion: your tech stack matters less than your distribution strategy','The SaaS metric everyone obsesses over that actually means nothing','Why most B2B software has a UX problem and nobody\'s talking about it','The "growth hack" that\'s actually just good product thinking','AI isn\'t replacing SaaS — but it\'s changing what SaaS has to be'], hook:'The SaaS advice that keeps getting recycled is keeping founders stuck.', cta:'Follow for takes on software, growth, and building products that last.' },
+      { name:'Founder & Team Stories', desc:'Put humans behind the logo.', ideas:['Why we turned down a partnership that looked perfect on paper','The hire that changed everything about how we build','A decision I made in year one that still haunts me (and what I fixed)','Our remote team has never met in person. Here\'s how we make it work.','The week we thought about shutting down — and what we learned'], hook:'Behind every SaaS is a team making hard calls with incomplete information.', cta:'Follow along as we build this thing in public — wins, mistakes, and all.' },
+      { name:'Use Case Education', desc:'Show your product solving real problems in specific industries.', ideas:['How a solo founder uses [product] to replace 3 different tools','[Industry] team saved 6 hours/week with this workflow in [product]','The exact setup a [role] uses in [product] to manage their pipeline','3 ways [product] handles [problem] that [competitor] can\'t','A day in the life of a power user — every tool, every trigger'], hook:'You\'ve heard about [product]. Here\'s what it actually looks like in the wild.', cta:'Try it free. Link in bio. No credit card required.' },
+      { name:'Market Commentary', desc:'React to industry news with genuine analysis.', ideas:['What [major company] shutting down [feature] means for everyone in [space]','This funding round tells us a lot about where the market is going','The trend I\'m watching in [category] that nobody\'s written about yet','Why the consolidation happening in [space] is actually good for smaller players','My take on the "AI-first" narrative and what it gets wrong'], hook:'The [industry] news cycle moves fast. Here\'s the take you actually need.', cta:'Follow for weekly signal vs noise analysis on [space].' },
+    ],
+    saas_sales: [
+      { name:'Problem-First Content', desc:'Name the exact friction your product removes.', ideas:['If your team is still doing [task] manually, here\'s what that\'s costing you','The reason [workflow] breaks down at scale (and what companies do about it)','Signs your current [tool category] is holding your team back','How much time does [problem] actually cost per week? (We did the math)','What happens when [process] doesn\'t have a system behind it'], hook:'The [problem] you\'ve been working around has a fix. You\'re just not using it.', cta:'See how [offer] handles this in 2 minutes — demo link in bio.' },
+      { name:'Feature Storytelling', desc:'Tell the story of the problem features solve.', ideas:['We built [feature] because a customer showed us something that broke our heart','How [feature] works and why we built it this way (not the obvious way)','The edge case that led to [feature] — and why it matters for your team','[Feature] in 60 seconds: here\'s what changes for your workflow','Before [feature] vs after [feature] — a real user workflow comparison'], hook:'Software features don\'t matter. The problems they solve do. Here\'s ours.', cta:'Activate [feature] in your account today.' },
+      { name:'ROI & Business Case', desc:'Help your buyers justify the purchase internally.', ideas:['How to calculate what [problem] is actually costing your company','The ROI calculation our customers use to justify [product] internally','What "saving time" actually means when 4 people use [product] every day','Our customers report [outcome] in the first 30 days — here\'s how','The business case for [product]: a template you can steal'], hook:'Your boss needs a number, not a feature list. Here\'s the number.', cta:'Need a custom ROI analysis? DM us your team size.' },
+      { name:'Customer Stories', desc:'Your customers are your best salespeople.', ideas:['[Customer type] reduced [metric] by [X]% using this workflow in [product]','From spreadsheet chaos to [outcome]: a [company type] story','How a [team size] team uses [product] to do what used to take twice as many people','The customer who said they\'d "never switch tools again" — and what changed their mind','Interview: how [customer type] went from [before] to [after] in 60 days'], hook:'Don\'t take our word for it. Here\'s what [industry] teams say after 90 days.', cta:'Book a 15-min call. We\'ll show you how this works for your team.' },
+      { name:'Comparison & Positioning', desc:'Help buyers understand why you\'re the right choice.', ideas:['[Product] vs [competitor]: what\'s actually different (honest breakdown)','Why [product] isn\'t for everyone — and who it\'s built for','The workflow [competitor] can\'t do that [product] was designed for','What to look for when evaluating [tool category] (regardless of who you choose)','The questions to ask any [tool category] vendor before you sign'], hook:'Every [tool category] looks the same on a comparison page. Here\'s what to actually look for.', cta:'See a side-by-side comparison. Link in bio.' },
+    ],
+    coaching_grow: [
+      { name:'Thought Leadership', desc:'Share your genuine perspective on the problems your clients face.', ideas:['The advice every [client type] keeps getting that\'s actually holding them back','What [goal] actually requires — and why nobody wants to hear it','The coaching industry problem I\'m not willing to ignore anymore','Why [popular approach] works for some people and fails for most','My most controversial belief about [your niche] — and why I stand by it'], hook:'Most coaches in [space] are teaching the same thing. Here\'s what they\'re missing.', cta:'Follow if you\'re tired of advice that sounds good but doesn\'t land.' },
+      { name:'Client Story Spotlights', desc:'Tell transformation stories with context, emotion, and specifics.', ideas:['She came to me believing [limiting belief]. Here\'s what shifted.','The client who had tried everything before working with me — and what finally worked','What 6 months of coaching looks like from the inside','A client win that had nothing to do with [obvious metric]','The moment a client said something that completely changed how I coach'], hook:'Transformation doesn\'t look the way you think it does. Let me show you.', cta:'Follow for real stories about what growth actually looks like.' },
+      { name:'Your Framework & Method', desc:'Give your audience a taste of how you think and how you work.', ideas:['The 3-part framework I use with every new client','How I diagnose what\'s really blocking [audience type] in the first session','The question I ask that unlocks everything else','My signature process, explained — step by step','Why most [audience type] are solving the wrong problem'], hook:'Most people in [niche] focus on the symptom. I work on the root.', cta:'Follow to learn the framework behind real results.' },
+      { name:'Behind The Coaching Business', desc:'Show what it\'s like to run a coaching practice.', ideas:['What a full coaching week actually looks like for me','How I structure my offers (and why I changed them twice)','The boundary I set that changed my business','What I charge and why (transparency post)','The tools I use to run my entire coaching practice'], hook:'Running a coaching business is nothing like what the gurus show you.', cta:'Follow for an honest look at what building a coaching practice actually takes.' },
+      { name:'Mindset & Growth Content', desc:'Speak to the internal game — beliefs, fears, and patterns.', ideas:['The belief that\'s costing [audience type] the most right now','Why [audience] keep starting over (and how to stop)','The fear I see in almost every new client — and how we move through it','What "not ready" really means (and what to do about it)','The mindset shift that changes everything for [audience type]'], hook:'Your [goal] isn\'t a strategy problem. It\'s a belief problem.', cta:'Follow if you\'re ready to work on the thing that\'s actually in the way.' },
+    ],
+    creative_grow: [
+      { name:'Process & Craft', desc:'Show your work in progress — not just the polished final product.', ideas:['Before and after: how this project evolved from brief to final delivery','The sketch that became the brand identity for [client type]','How I approach color when I have complete creative freedom','Why this logo went through 6 rounds — and what each version taught me','The creative decision I almost didn\'t make (and why I\'m glad I did)'], hook:'The final version never looks like the first one. Here\'s the full story.', cta:'Follow for a behind-the-scenes look at how creative work actually gets made.' },
+      { name:'Portfolio Storytelling', desc:'Tell the story behind the work — the brief, the challenge, the decision-making.', ideas:['The brief: [client] needed [goal]. Here\'s what we built and why.','This project had one constraint that made it better','The client who trusted us completely — and what that unlocked','A project I\'m proud of that almost nobody saw','What I would do differently on this project if I had another shot'], hook:'Great creative work doesn\'t happen in a vacuum. Here\'s the context behind this one.', cta:'See the full project breakdown at [link]. Follow for more.' },
+      { name:'Industry Takes', desc:'Have opinions about design, photography, video, or your craft.', ideas:['The design trend I\'m already tired of seeing everywhere','What makes [craft] actually hard — not just technically, but creatively','The client feedback that secretly made the project better','Why [popular style] is overused and what I\'d recommend instead','What AI is doing to [creative field] — my honest take'], hook:'Most designers/photographers/editors won\'t say this publicly. I will.', cta:'Follow for takes on [craft] that go beyond tutorials and aesthetics.' },
+      { name:'Creative Tips & Education', desc:'Teach your audience something real about your craft.', ideas:['The typography rule I apply to every project without fail','3 things I check before I call a design/photo/video done','How I approach creative briefs when clients don\'t know what they want','The free tool that changed how I present work to clients','What I wish I knew in year one of being a [role]'], hook:'I\'ve been doing [craft] for [X] years. Here\'s the shortcut I wish I had.', cta:'Save this. The tutorial version is coming next week.' },
+      { name:'Client Collaboration', desc:'Show what it\'s like to work with you.', ideas:['What my client onboarding actually looks like — step by step','The questions I ask before I touch any creative work','How I handle client feedback that misses the mark — honestly','What "unlimited revisions" really means and why I don\'t offer it','Why I show 1-2 concepts instead of 5 — and how clients feel about it afterwards'], hook:'Working with a creative shouldn\'t feel like a mystery. Here\'s how I make it easy.', cta:'Curious about working together? DM me. Let\'s see if it\'s a fit.' },
+    ],
+    ecommerce_grow: [
+      { name:'Product in the Wild', desc:'Show your product living in the world — styled, used, loved.', ideas:['How our customers are styling [product] this season','UGC of the week: [product] in a home we never expected','The way [product] actually gets used vs how we originally imagined','Our team\'s favorite way to use [product] (3 very different answers)','[Product] in a day: morning, afternoon, and night'], hook:'The best thing about [product] is how many different ways people use it.', cta:'Tag us in your [product] photos. We share every one.' },
+      { name:'Behind The Brand', desc:'Show your sourcing, your values, your process.', ideas:['Where [product] is made — and why we chose that factory/supplier/maker','The material we spent 6 months finding before we felt good about launching','Meet the person who [role] at [brand]','Why we made [brand decision] that other brands don\'t','The product we almost launched — and why we pulled it'], hook:'You can buy [product category] anywhere. Here\'s why people buy ours.', cta:'Follow [brand] to go behind the curtain on what we build and why.' },
+      { name:'Education & Use Cases', desc:'Teach your audience how to get more value out of what you sell.', ideas:['The [product] mistake most people make in the first week','How to get the most out of [product] — tips from our most loyal customers','[Product] 101: everything to know before your first order','The use case for [product] you probably haven\'t tried yet','How to pair [product] with [complementary thing] for [better outcome]'], hook:'Most people only use [product] one way. Here are four more.', cta:'Save this for when your order arrives.' },
+      { name:'Trend & Culture', desc:'Connect your product to what\'s culturally relevant right now.', ideas:['[Product] and the [trend] moment: why this is the year to care about [value]','How [cultural shift] is changing how people think about [product category]','The aesthetic moment [product] was made for — and why it\'s having a moment','What [pop culture thing] gets right about [product category]','Why [season/moment/year] is the perfect time for [product]'], hook:'[Product category] is having a moment. Here\'s where [brand] fits in.', cta:'Follow [brand] — we stay ahead of what\'s coming next.' },
+      { name:'Community & UGC', desc:'Turn your customers into content.', ideas:['Customer photo of the month — congrats to [handle]','The review that stopped us in our tracks — sharing it here','How our community is using [product] in ways we didn\'t expect','The [product] photo that outperformed every piece of branded content we\'ve made','Real customers, real homes, real [product]: this week\'s roundup'], hook:'Our best marketing doesn\'t come from us. It comes from people like you.', cta:'Order [product], take a photo, tag us. We\'ll feature you here.' },
+    ],
+    finance_grow: [
+      { name:'Personal Finance Education', desc:'Break down money concepts that feel intimidating into content that actually helps.', ideas:['What a Roth IRA actually is — explained like you\'re 25 and finally ready to care','The difference between good debt and bad debt (with real examples)','Why your budget keeps failing — and the simpler version that works','What [financial concept] means and why it matters for [audience]','The money move I wish I\'d made in my 20s (not clickbait)'], hook:'The financial system wasn\'t built to be understood. Let me fix that.', cta:'Follow for money content that makes you feel smarter, not worse.' },
+      { name:'Market & News Commentary', desc:'React to economic news and market events with genuine analysis.', ideas:['What today\'s [economic news] actually means for your accounts/savings/portfolio','The Fed rate decision explained in 3 sentences that actually make sense','Why I\'m not panicking about [market event] — here\'s how I\'m thinking about it','The economic news nobody\'s talking about — and why it matters','What this recession signal does and doesn\'t mean for your money'], hook:'Financial news is designed to be alarming. Let\'s look at it clearly instead.', cta:'Follow for weekly market context — no fear, no hype.' },
+      { name:'Budgeting & Spending Systems', desc:'Give your audience practical tools for managing money day-to-day.', ideas:['The budgeting method I\'ve seen work for people who hate budgets','How I allocate my income — the percentages and why','The subscription audit that saves people $100+ a month (do this today)','Why I stopped using a spending category called "miscellaneous"','How to pay yourself first when money is already tight'], hook:'Budgeting advice is everywhere. Here\'s what actually works in the real world.', cta:'Save this and actually do it this weekend. Your future self will be glad.' },
+      { name:'Building Wealth Basics', desc:'Demystify investing, saving, and building long-term wealth.', ideas:['What to do with $1,000 if you have no idea where to start','Index funds explained without the jargon — why I recommend them first','The wealth gap between people who invest and people who don\'t (the math is wild)','How compound interest works — visualized simply','3 investing mistakes I see over and over with first-timers'], hook:'Wealth building isn\'t complicated. It\'s just not taught anywhere.', cta:'Follow for the financial education system that failed you.' },
+      { name:'Financial Mindset', desc:'Address the emotional and psychological side of money.', ideas:['The money story from childhood that\'s affecting your finances right now','Why high earners still feel broke — the spending psychology behind it','The guilt I see around money that\'s keeping people from building wealth','What "good with money" actually means — it\'s not what you think','Financial anxiety is real. Here\'s how I talk to clients about it.'], hook:'Most money problems aren\'t math problems. They\'re psychology problems.', cta:'Follow if you want to fix your relationship with money — not just your budget.' },
+    ],
+    localbiz_grow: [
+      { name:'Local Expertise & Context', desc:'Be the most useful local expert in your space.', ideas:['The [neighborhood] spots we recommend to our own customers','What [local event/season] means for [your business category]','Why [city] customers are different from national trends — and what we do about it','The [local thing] that inspired something we do at [business]','Our take on what\'s happening in [local area] right now'], hook:'Nobody knows [city] like we do. Here\'s what we\'re seeing.', cta:'Follow [business] — we\'re as local as it gets.' },
+      { name:'Behind The Business', desc:'Show your team, your space, your process.', ideas:['Meet [team member] — what they do here and why they love it','A day in [business] before we open the doors','How we prep for [busy season] — the real version','What it actually took to open [business] in [city]','The decision we made about [business practice] that surprised people'], hook:'You\'ve probably walked past [business]. Here\'s who we actually are.', cta:'Come visit us at [address]. We\'re here [hours].' },
+      { name:'Customer Love', desc:'Celebrate your regulars, your reviews, and the community.', ideas:['Customer of the month: [name] has been coming since [year]','The review that made our whole team stop what they were doing','A thank-you post to our neighborhood for [milestone]','What a local regular means to a small business — honestly','The community event we hosted and what it meant to us'], hook:'Small businesses run on regulars. Here\'s a thank-you to ours.', cta:'Leave us a review if we\'ve earned it. It matters more than you know.' },
+      { name:'Educational & Service Content', desc:'Teach your audience something relevant to your category.', ideas:['What to look for when choosing a [business category] in [city]','The question you should always ask before hiring a [service type]','How to tell quality [product/service] from the generic version','Why [common misconception about your category] isn\'t quite right','What we\'ve learned after [X] years serving [city]'], hook:'We\'ve been in [business category] long enough to know what actually matters.', cta:'Questions about [service/product]? DM us or stop in anytime.' },
+      { name:'Events & Promotions', desc:'Drive foot traffic and community engagement.', ideas:['[Event] at [business] on [date] — here\'s what to expect','We\'re doing [special offer] this week only — here\'s the deal','Celebrating [local event] with [something special] at [business]','Why we [host/participate in] [local thing] every year','[Limited time thing] is back — and it won\'t last long'], hook:'Something\'s happening at [business] and you don\'t want to miss it.', cta:'See you at [location] on [date]. Bring a friend.' },
+    ],
+  };
+
+  // Inline the full fallback + series + hooks from SSM
+  const SERIES = {
+    grow:  [ { name:'Weekly Insight Drop', desc:'Every week, one specific insight from your world. Keep it concrete, keep it useful.' }, { name:'Myth vs. Reality', desc:'Monthly myth-busting post targeted at your audience\'s most common misconceptions.' }, { name:'Community Spotlight', desc:'Regular feature on a real person from your community — customer, follower, or collaborator.' } ],
+    sales: [ { name:'Client Story of the Month', desc:'Feature one real client outcome every month. The before, the work, the result.' }, { name:'Objection of the Week', desc:'Pick one real objection you hear and address it with care and specificity.' }, { name:'Value Stack Breakdown', desc:'Monthly breakdown of everything inside your offer. Reinforce perceived value without discounting.' } ],
+    trust: [ { name:'Learning in Public', desc:'Weekly update on something you\'re actively figuring out. Show the messy middle.' }, { name:'Process Deep Dive', desc:'Every two weeks, document the exact process behind something you do.' }, { name:'Transparency Report', desc:'Monthly real numbers post — what happened, what worked, what didn\'t.' } ],
+    educate: [ { name:'101 → 301 Series', desc:'Build a curriculum from beginner to advanced on your core topic.' }, { name:'Myth of the Month', desc:'Monthly explainer that kills one widely-held misconception in your space.' }, { name:'Tool Teardown', desc:'Biweekly breakdown of a relevant tool — what it does, who it\'s for, honest verdict.' } ],
+    hired: [ { name:'Work in Progress', desc:'Document a real project across multiple posts. Show your thinking, not just the output.' }, { name:'Skills Unlocked', desc:'Weekly post on one specific skill — what it is, how you apply it, proof it works.' }, { name:'Industry Read of the Week', desc:'Share and react to one article or trend each week.' } ],
+    launch: [ { name:'Build Log', desc:'Weekly documentation of building your product.' }, { name:'Founding Story Arc', desc:'Multi-part narrative from idea to launch.' }, { name:'Beta Diaries', desc:'Share early user stories as they come in.' } ],
+    event: [ { name:'Road to the Event', desc:'A short countdown series that reveals why the event matters.' }, { name:'Speaker / Feature Spotlight', desc:'Highlight one person, product, or reason to attend at a time.' }, { name:'Last Call Logistics', desc:'A practical series answering time, place, cost, schedule, and what-to-bring questions.' } ],
+  };
+
+  const HOOKS = {
+    bold: ['Stop doing this in {industry}. It\'s costing you.','The {industry} advice everyone repeats that is actually wrong.','Nobody in {industry} wants to say this out loud.','Here is the take that will get me unfollowed:','If you are doing {offer}, you need to hear this first.'],
+    playful: ['Okay but why does nobody talk about this in {industry}??','This is unhinged but hear me out...','POV: you finally figured out {industry}','Friendly reminder that this exists and it is completely free.','Hot take incoming and I am not sorry at all.'],
+    expert: ['After years working in {industry}, here is what I know with confidence:','The research on this is clearer than most people realize.','A framework I have used across dozens of {audience}: it works.','Here is what actually happens in {industry} — not what the courses say.','If you only take one thing from this:'],
+    warm: ['I have been wanting to share this for a while now.','Can we be honest for a second about {industry}?','Something I wish someone had told me earlier:','This community keeps teaching me things. Here is what I mean.','You are not behind. You are just human. Let me explain.'],
+    edgy: ['Everyone is wrong about this in {industry}. Here is proof.','I am about to upset some people and that is fine.','This is what {industry} does not want {audience} to know.','Hard truth: the popular {industry} advice is keeping {audience} stuck.','Controversial? Maybe. But someone had to say it.'],
+    professional: ['Sharing a framework that consistently drives results for {audience}:','Based on our experience across {industry}, here is what we have found:','A strategic insight for {audience} worth bookmarking:','The data does not lie: here is what matters in {industry}.','For {audience} making decisions in {industry}: this is worth your time.'],
+  };
+
+  const QUICK_WINS = {
+    fitness_grow:'Post a real photo from your last workout — no filter, no setup. Caption it with one honest sentence about where you\'re at in your fitness journey. Authenticity outperforms aesthetic every time.',
+    fitness_sales:'Share a 3-sentence client story: the problem they came to you with, what changed, and what they said to you after. End with "DM me READY if this sounds familiar."',
+    saas_grow:'Share one thing you learned from your last user interview or support ticket that changed how you think about your product. Be specific. Founders and operators love content that shows real product thinking.',
+    saas_sales:'Write a 3-line business case for your product: the problem, what it costs companies to ignore it, and what your product does about it. No features — just outcome language.',
+    coaching_grow:'Give away one piece of genuinely useful content from inside your coaching — a framework, a question you ask clients, a mindset shift. If it\'s useful enough to put in a program, it\'s useful enough to post.',
+    coaching_sales:'Describe your ideal client in 4 sentences: where they are, what they\'ve already tried, what\'s actually blocking them, and where they want to be. The right person will read it and DM you.',
+    creative_grow:'Show a before/after of a project you finished recently — the rough first version and the final delivery. Add 2 sentences about the key creative decision that changed everything.',
+    creative_sales:'Post a project spotlight: the brief you received, the challenge you faced, and the outcome you delivered. Use the client\'s industry so the right buyer sees themselves in the story.',
+    ecommerce_grow:'Post a real UGC photo from a customer — with permission — and in the caption, share what they said about the product. No polish. Real people, real products, real words.',
+    finance_grow:'Break down one financial concept that most of your audience is confused about — in plain language, no jargon. The simpler and more useful, the better the save rate.',
+    localbiz_grow:'Post a "day before we open" photo or video — your team getting ready, the space being prepped. Add one sentence about what you love about your neighborhood. Local and human always wins.',
+  };
+
+  // Trust layer mapping — maps SSM pillar order to PostIQ trust layers
+  const LAYER_MAP = ['awareness', 'credibility', 'awareness', 'action', 'credibility'];
+
+  function getFallback(industry, goal, inp) {
+    const byGoal = {
+      grow: [
+        { name:'Behind The Scenes', desc:`Pull the curtain back on how ${inp.brand} works.`, ideas:[`A day running ${inp.brand}`,`The decision behind ${inp.offer} that surprised us`,`What ${inp.brand} looks like before it's polished`,`The team/person behind ${inp.brand}`,`Why we do things differently in ${inp.industry}`], hook:`Most ${inp.industry} brands only show you the highlight reel.`, cta:`Follow ${inp.brand} for the real version.` },
+        { name:'Education & Value', desc:`Teach ${inp.audience} something genuinely useful every week.`, ideas:[`The ${inp.industry} mistake ${inp.audience} keep making`,`How to get more out of ${inp.offer}`,`What most people misunderstand about ${inp.industry}`,`3 things ${inp.audience} should know before ${inp.offer}`,`The question I get asked most — answered properly`], hook:`${inp.audience} deserve better information about ${inp.industry}.`, cta:`Follow for real, useful content — no fluff.` },
+        { name:'Hot Takes & POV', desc:`Say something real. Generic accounts are invisible.`, ideas:[`The ${inp.industry} advice I'm tired of seeing`,`Unpopular opinion about ${inp.offer}`,`What everyone gets wrong about ${inp.industry}`,`The trend in ${inp.industry} I think is overhyped`,`My honest take on where ${inp.industry} is headed`], hook:`Most ${inp.industry} content sounds the same. Here's a different take.`, cta:`Follow if you want ${inp.industry} content with an actual perspective.` },
+        { name:'Community & Stories', desc:`Build belonging. Feature your audience, celebrate wins.`, ideas:[`A win from someone in our community worth celebrating`,`The DM that made our week`,`Who our ${inp.audience} actually are — real stories`,`What ${inp.audience} have in common (it's not what you think)`,`Shoutout to every ${inp.audience} doing the work right now`], hook:`${inp.brand} isn't just content. It's a community.`, cta:`Tell us your story in the comments. We want to hear it.` },
+        { name:'Progress & Milestones', desc:`Document your journey — the wins, the setbacks, the lessons.`, ideas:[`What ${inp.brand} looked like 1 year ago vs today`,`A mistake we made and what it taught us`,`The milestone we just hit — and what it took`,`What we're working on right now (and why it's hard)`,`The decision that changed everything for ${inp.brand}`], hook:`The best brands show you where they started and how far they've come.`, cta:`Follow ${inp.brand} to see where we go next.` },
+      ],
+      sales: [
+        { name:'Problem Clarity', desc:`Name the exact pain ${inp.offer} solves.`, ideas:[`The real reason ${inp.audience} struggle with ${inp.industry}`,`What happens when ${inp.audience} keep doing ${inp.industry} without a system`,`Signs ${inp.audience} are ready for ${inp.offer}`,`The cost of not solving this problem`,`What ${inp.audience} tell us they tried before ${inp.offer}`], hook:`If you're ${inp.audience} dealing with [problem], this is for you.`, cta:`DM us or visit the link in bio to learn more.` },
+        { name:'Offer Breakdown', desc:`Explain ${inp.offer} with specificity.`, ideas:[`What's inside ${inp.offer} — the full breakdown`,`Who ${inp.offer} is built for (and who it's not)`,`How ${inp.offer} works from start to finish`,`The difference between ${inp.offer} and everything else in ${inp.industry}`,`FAQ about ${inp.offer} — the real questions answered`], hook:`Here's exactly what you get with ${inp.offer} — no surprises.`, cta:`Full details at the link in bio. Questions? DM us.` },
+        { name:'Social Proof', desc:`Let results, reviews, and real customers do the selling.`, ideas:[`A customer result we're proud of — with the full story`,`What ${inp.audience} say after 30 days with ${inp.offer}`,`The review that surprised even us`,`Before & after: how ${inp.offer} changed things for a real customer`,`X customers in — here's what we're hearing`], hook:`Don't take our word for it. Here's what ${inp.audience} say.`, cta:`Ready to add your name to this list? Link in bio.` },
+        { name:'Objection Handling', desc:`Meet your audience where their doubts live.`, ideas:[`"Is ${inp.offer} right for me?" — honest answer`,`The hesitation we hear most often (and why it makes sense)`,`What makes ${inp.offer} worth it, even if you've tried other things`,`For ${inp.audience} who aren't sure they're ready`,`Why now is actually a better time than waiting`], hook:`The reason you haven't bought yet is probably one of these things.`, cta:`Still have questions? DM us. We'll be straight with you.` },
+        { name:'Your Story & Credibility', desc:`Show who's behind ${inp.brand} and why they're qualified.`, ideas:[`Why we built ${inp.offer}`,`What qualifies us to help ${inp.audience} with ${inp.industry}`,`The mistake that led to building ${inp.brand}`,`What we've learned after serving ${inp.audience}`,`Our values — and how they show up in ${inp.offer}`], hook:`There are options in ${inp.industry}. Here's why ${inp.audience} choose us.`, cta:`Follow ${inp.brand} — and reach out when you're ready.` },
+      ],
+    };
+    return byGoal[goal] || byGoal.grow;
   }
 
-  function cpDefaultPillars(who = '') {
-    const audience = who || 'your audience';
-    return [
-      { id: cpUid(), name: 'What I Know', promise: `Teaching ${audience} the things that took me years to learn`, layer: 'credibility', seeds: ['The question I get asked every single week', 'Something obvious to me that surprises most people', 'What I wish someone had told me when I started'], tones: {} },
-      { id: cpUid(), name: 'Real Talk', promise: 'Honest takes and the reality behind the polished version', layer: 'awareness', seeds: ['A mistake I made and what it taught me', 'What actually happened vs. what I posted about it', 'The version of success nobody talks about'], tones: {} },
-      { id: cpUid(), name: 'My Beliefs', promise: 'Opinions worth holding — things I know to be true', layer: 'awareness', seeds: ["A belief I held 2 years ago that I've changed", 'The thing I will not stop saying', 'An unpopular opinion in my industry'], tones: {} },
-      { id: cpUid(), name: 'How I Can Help', promise: "What I offer, who it's for, and what changes", layer: 'action', seeds: ['Who gets the most from what I do', 'The moment someone realizes they need this', 'What looks different after working with me'], tones: {} },
-    ];
+  function fillHook(hook, inp) {
+    return hook.replace(/{industry}/g, inp.industry).replace(/{audience}/g, inp.audience).replace(/{offer}/g, inp.offer).replace(/{brand}/g, inp.brand);
   }
 
-  function cpPillarsFromJourney() {
-    const who = cpQs('cpAudienceWho')?.value?.trim() || '';
-    const seedsRaw = cpQs('cpQuickSeeds')?.value?.trim() || '';
-    const seeds = seedsRaw.split('\n').map(s => s.replace(/^\d+[.)]?\s*/, '').trim()).filter(Boolean);
-    return [
-      { id: cpUid(), name: 'What I Know', promise: `Teaching ${who || 'your audience'} the things that took me years to learn`, layer: 'credibility', seeds: [seeds[0] || 'The question I get asked every single week', 'Something obvious to me that surprises most people', 'What I wish someone had told me when I started'], tones: {} },
-      { id: cpUid(), name: 'Real Talk', promise: 'Honest takes and the reality behind the polished version', layer: 'awareness', seeds: [seeds[1] || 'A mistake I made and what it taught me', 'What actually happened vs. what I posted', 'The version of success nobody talks about'], tones: {} },
-      { id: cpUid(), name: 'My Beliefs', promise: 'Opinions worth holding — things I know to be true', layer: 'awareness', seeds: [seeds[2] || "A belief I held 2 years ago that I've changed", 'The thing I will not stop saying', 'An unpopular opinion in my industry'], tones: {} },
-      { id: cpUid(), name: 'How I Can Help', promise: "What I offer, who it's for, and what changes", layer: 'action', seeds: ['Who gets the most from what I do', 'The moment someone realizes they need this', 'What looks different after working with me'], tones: {} },
-    ];
+  function getQuickWin(industry, goal, inp) {
+    const key = `${industry}_${goal}`;
+    if (QUICK_WINS[key]) return QUICK_WINS[key];
+    const fallbacks = {
+      grow: `Post one honest, specific insight from your work in ${inp.industry} this week. Not a tip — a real observation. Something ${inp.audience} rarely hear from anyone in your space.`,
+      sales: `Write three sentences about ${inp.offer}: the problem it solves, who it's for, and one specific outcome a real customer got. Then add your contact or link.`,
+      trust: `Share something you got wrong recently in ${inp.industry} and specifically what you changed because of it. Honest, specific, and humble content is the fastest trust-builder there is.`,
+      educate: `Teach one small, specific, genuinely useful thing to ${inp.audience} about ${inp.industry}. Make it complete — not a teaser.`,
+      hired: `Post a breakdown of a recent project: the brief, your process, and the outcome. Show your actual thinking, not just the final product.`,
+      launch: `Share the "why" behind ${inp.offer} in 3-5 sentences. No features, no specs. Just the problem it solves, who it's for, and why you cared enough to build it.`,
+      event: `Post the clearest possible invite for ${inp.offer}: who should come, what they will get, when it happens, and why it is worth showing up.`,
+    };
+    return fallbacks[goal] || fallbacks.grow;
   }
 
-  function cpBuildPreview() {
-    const pills = cpPillarsFromJourney();
-    cpState._previewPillars = pills;
-    const wrap = cpQs('cpPreviewPillars');
-    if (!wrap) return;
-    const layerLabels = { credibility: '🎓 Credibility', awareness: '👁 Awareness', action: '🛒 Action' };
-    wrap.innerHTML = '';
-    pills.forEach((p, i) => {
-      const el = document.createElement('div');
-      el.style.cssText = `background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;box-shadow:var(--shadow-sm);margin-bottom:8px;border-left:4px solid ${pillarColor(i)};`;
-      el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;"><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;color:var(--ink);">${cpEsc(p.name)}</span><span style="font-family:'DM Mono',monospace;font-size:9px;padding:2px 7px;border-radius:3px;background:var(--brand-dim);border:1px solid var(--brand-glow);color:var(--brand);">${layerLabels[p.layer] || ''}</span></div><div style="font-size:12px;color:var(--muted);margin-bottom:8px;">${cpEsc(p.promise)}</div><div style="display:flex;flex-wrap:wrap;gap:5px;">${p.seeds.map(s => `<span style="font-size:11px;padding:3px 8px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);">${cpEsc(s)}</span>`).join('')}</div>`;
-      wrap.appendChild(el);
-    });
+  function ssmGetPillars(industry, goal) {
+    return LIBRARY[`${industry}_${goal}`] || null;
   }
+
+  function ssmBuildStrategy(inp) {
+    let rawPillars = ssmGetPillars(inp.industry, inp.goal);
+    if (!rawPillars) rawPillars = getFallback(inp.industry, inp.goal, inp);
+
+    const tonePool = HOOKS[inp.tone] || HOOKS.bold;
+    const series   = SERIES[inp.goal] || SERIES.grow;
+    const quickWin = getQuickWin(inp.industry, inp.goal, inp);
+
+    // Convert SSM pillars → PostIQ pillar format with trust layer tags
+    const pillars = rawPillars.map((p, i) => ({
+      id:      cpUid(),
+      name:    p.name,
+      promise: p.desc,
+      layer:   LAYER_MAP[i] || 'awareness',
+      seeds:   (p.ideas || []).slice(0, 5).map(s => String(s || '')),
+      tones:   {},
+      hook:    fillHook(tonePool[i] || tonePool[0], inp),
+      cta:     p.cta || '',
+    }));
+
+    return { pillars, series, quickWin, inp };
+  }
+
+  // ── SSM FORM LOGIC ─────────────────────────────────────────────
+
+  function ssmInit() {
+    const backBtn     = cpQs('ssmBackBtn');
+    const generateBtn = cpQs('ssmGenerateBtn');
+    if (!backBtn || !generateBtn) return;
+
+    backBtn.onclick     = () => cpShowStage('cpStageGate');
+    generateBtn.onclick = ssmRunGenerate;
+  }
+
+  function ssmRunGenerate() {
+    const brand    = (cpQs('ssm-brand')?.value    || '').trim() || 'Your Brand';
+    const industry = cpQs('ssm-industry')?.value  || '';
+    const audience = (cpQs('ssm-audience')?.value || '').trim() || 'your audience';
+    const offer    = (cpQs('ssm-offer')?.value    || '').trim() || 'your offer';
+    const tone     = cpQs('ssm-tone')?.value      || 'bold';
+    const goal     = cpQs('ssm-goal')?.value      || 'grow';
+
+    if (!industry) { if (typeof showToast === 'function') showToast('Select an industry first', 'error'); return; }
+    if (!goal)     { if (typeof showToast === 'function') showToast('Select a goal first', 'error'); return; }
+
+    const inp = { brand, industry, audience, offer, tone, goal };
+    cpState._ssmInputs = inp;
+
+    // Show loading screen
+    const form    = cpQs('ssmForm');
+    const loading = cpQs('ssmLoading');
+    if (form)    form.style.display    = 'none';
+    if (loading) loading.style.display = 'block';
+
+    const steps  = ['Detecting your industry...','Matching goal + industry combo...','Pulling pillar templates...','Generating hooks for your tone...','Finalizing your strategy...'];
+    const bar    = cpQs('ssmLoadBar');
+    const label  = cpQs('ssmLoadStep');
+    let i = 0;
+    const iv = setInterval(() => {
+      if (bar)   bar.style.width    = ((i + 1) * 20) + '%';
+      if (label) label.textContent  = steps[i] || 'Almost ready...';
+      i++;
+      if (i >= 5) {
+        clearInterval(iv);
+        setTimeout(() => ssmFinish(inp), 200);
+      }
+    }, 320);
+  }
+
+  function ssmFinish(inp) {
+    const result = ssmBuildStrategy(inp);
+
+    // Set identity from inputs
+    cpState.identity = `${inp.brand} — ${inp.audience} — ${inp.offer}`;
+    cpState.pillars  = result.pillars.map(cpNormalizePillar);
+    cpState._ssmInputs = inp;
+
+    cpPersist();
+
+    // Move to builder
+    cpShowStage('cpStageBuilder');
+
+    // Populate identity field
+    const bi = cpQs('cpBuilderIdentity');
+    if (bi) bi.value = cpState.identity;
+
+    // Render pillars in builder
+    cpRenderPillars();
+
+    // Send quick-win post to composer editor
+    ssmSendQuickWin(result.quickWin);
+
+    // Save recurring series as PostIQ templates
+    ssmSaveSeriesAsTemplates(result.series, inp);
+
+    if (typeof showToast === 'function') {
+      showToast('Strategy generated — pillars loaded, quick-win sent to Draft', 'success');
+    }
+
+    // Restore form for next time
+    const form    = cpQs('ssmForm');
+    const loading = cpQs('ssmLoading');
+    const bar     = cpQs('ssmLoadBar');
+    if (form)    form.style.display    = 'block';
+    if (loading) loading.style.display = 'none';
+    if (bar)     bar.style.width       = '0%';
+  }
+
+  function ssmSendQuickWin(text) {
+    const editor = document.getElementById('composerEditor');
+    if (!editor) return;
+    const existing = editor.innerText.trim();
+    editor.innerText = existing ? `${existing}\n\n${text}` : text;
+    editor.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
+  }
+
+  function ssmSaveSeriesAsTemplates(series, inp) {
+    if (!Array.isArray(series) || !series.length) return;
+    const now = new Date().toISOString();
+    const newTpls = series.map(s => ({
+      id:        cpUid(),
+      title:     s.name,
+      type:      'Hooks',
+      platform:  'Universal',
+      tags:      ['series', inp.industry, inp.goal].filter(Boolean),
+      body:      s.desc,
+      createdAt: now,
+      updatedAt: now,
+    }));
+    if (typeof state !== 'undefined' && Array.isArray(state.templates)) {
+      state.templates = [...newTpls, ...state.templates];
+      if (typeof persistTemplates === 'function') persistTemplates();
+      if (typeof renderTemplates   === 'function') renderTemplates();
+    }
+  }
+
+  // ── BUILDER RENDER ─────────────────────────────────────────────
 
   function cpRenderPillars() {
     const list = cpQs('cpPillarsList');
@@ -2094,11 +466,14 @@ window.ContentPillars = (() => {
     cpState.pillars = cpState.pillars.map(cpNormalizePillar);
     list.innerHTML = '';
     cpState.pillars.forEach((pillar, pi) => {
-      const card = document.createElement('div');
-      card.className = 'cp-pillar-card';
+      const card  = document.createElement('div');
+      card.className  = 'cp-pillar-card';
       card.dataset.pid = pillar.id;
       const usage = cpUsageFor(pillar.id);
-      card.innerHTML = `<div class="cp-pillar-head"><div class="cp-pillar-tab" style="background:${pillarColor(pi)};"></div><div class="cp-pillar-head-inner"><div class="cp-pillar-inputs"><input class="cp-pillar-name" data-field="name" value="${cpEsc(pillar.name)}" placeholder="Pillar name" /><input class="cp-pillar-promise" data-field="promise" value="${cpEsc(pillar.promise)}" placeholder="The recurring promise this pillar makes to your audience…" /></div></div><div class="cp-pillar-head-right"><select class="cp-layer-select" data-field="layer"><option value="" ${pillar.layer ? '' : 'selected'}>Tag layer…</option><option value="awareness" ${pillar.layer === 'awareness' ? 'selected' : ''}>👁 Awareness</option><option value="credibility" ${pillar.layer === 'credibility' ? 'selected' : ''}>🎓 Credibility</option><option value="action" ${pillar.layer === 'action' ? 'selected' : ''}>🛒 Action</option></select><span class="cp-usage-badge ${usage > 0 ? 'used' : ''}">${usage > 0 ? `${usage} drafted` : 'unused'}</span></div></div><div class="cp-seeds" data-seeds-for="${pillar.id}">${pillar.seeds.map((seed, si) => cpSeedRowHtml(pillar, si, seed)).join('')}</div><div class="cp-pillar-footer"><button class="btn sm ghost" data-action="add-seed" type="button" style="font-size:11px;height:26px;padding:0 10px;">+ Add seed idea</button><button class="btn sm ghost" data-action="remove-pillar" type="button" style="font-size:11px;height:26px;padding:0 8px;color:var(--subtle);">Remove pillar</button></div>`;
+      card.innerHTML = `<div class="cp-pillar-head"><div class="cp-pillar-tab" style="background:${pillarColor(pi)};"></div><div class="cp-pillar-head-inner"><div class="cp-pillar-inputs"><input class="cp-pillar-name" data-field="name" value="${cpEsc(pillar.name)}" placeholder="Pillar name" /><input class="cp-pillar-promise" data-field="promise" value="${cpEsc(pillar.promise)}" placeholder="The recurring promise this pillar makes…" /></div></div><div class="cp-pillar-head-right"><select class="cp-layer-select" data-field="layer"><option value="" ${pillar.layer ? '' : 'selected'}>Tag layer…</option><option value="awareness" ${pillar.layer==='awareness'?'selected':''}>👁 Awareness</option><option value="credibility" ${pillar.layer==='credibility'?'selected':''}>🎓 Credibility</option><option value="action" ${pillar.layer==='action'?'selected':''}>🛒 Action</option></select><span class="cp-usage-badge ${usage > 0 ? 'used' : ''}">${usage > 0 ? `${usage} drafted` : 'unused'}</span></div></div>` +
+        (pillar.hook ? `<div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--brand);background:var(--brand-dim);border-top:1px solid var(--brand-glow);padding:8px 13px;line-height:1.45;">Hook: "${cpEsc(pillar.hook)}"</div>` : '') +
+        `<div class="cp-seeds" data-seeds-for="${pillar.id}">${pillar.seeds.map((seed, si) => cpSeedRowHtml(pillar, si, seed)).join('')}</div><div class="cp-pillar-footer"><button class="btn sm ghost" data-action="add-seed" type="button" style="font-size:11px;height:26px;padding:0 10px;">+ Add seed idea</button><button class="btn sm ghost" data-action="remove-pillar" type="button" style="font-size:11px;height:26px;padding:0 8px;color:var(--subtle);">Remove pillar</button></div>`;
+
       card.querySelectorAll('[data-field="name"],[data-field="promise"]').forEach(inp => {
         inp.addEventListener('input', () => { pillar[inp.dataset.field] = inp.value; cpPersist(); cpUpdateHealth(); });
       });
@@ -2128,11 +503,7 @@ window.ContentPillars = (() => {
       inp.addEventListener('input', () => { pillar.seeds[si] = inp.value; cpPersist(); cpUpdateHealth(); });
     });
     wrap.querySelectorAll('[data-tone]').forEach(sel => {
-      sel.addEventListener('change', e => {
-        if (!pillar.tones) pillar.tones = {};
-        pillar.tones[+e.target.dataset.tone] = e.target.value;
-        cpPersist();
-      });
+      sel.addEventListener('change', e => { if (!pillar.tones) pillar.tones = {}; pillar.tones[+e.target.dataset.tone] = e.target.value; cpPersist(); });
     });
     wrap.querySelectorAll('[data-action="start"]').forEach((btn, si) => {
       btn.addEventListener('click', () => {
@@ -2155,15 +526,12 @@ window.ContentPillars = (() => {
   }
 
   function cpBuildStarter(pillar, seed, tone) {
-    const identity = (cpState.identity || '').trim();
+    const identity  = (cpState.identity || '').trim();
     const voiceLine = identity ? `Voice: ${identity}\n\n` : '';
-    const openers = {
-      Practical: "Here's the clearest way I can explain this:",
-      Story: "Here's a moment that changed how I think about this:",
-      Contrarian: 'Unpopular take:',
-      Question: 'Quick question for you:',
-    };
-    return `${voiceLine}Pillar: ${pillar.name} — ${pillar.promise}\nTopic: ${seed}\n\nDraft starter: ${openers[tone] || openers.Practical}`;
+    const openers   = { Practical:'Here\'s the clearest way I can explain this:', Story:'Here\'s a moment that changed how I think about this:', Contrarian:'Unpopular take:', Question:'Quick question for you:' };
+    const hookLine  = pillar.hook ? `\nHook: "${pillar.hook}"\n` : '';
+    const ctaLine   = pillar.cta  ? `\nCTA: ${pillar.cta}\n`    : '';
+    return `${voiceLine}Pillar: ${pillar.name} — ${pillar.promise}\nTopic: ${seed}${hookLine}${ctaLine}\nDraft starter: ${openers[tone] || openers.Practical}`;
   }
 
   function cpSendToComposer(text) {
@@ -2182,7 +550,7 @@ window.ContentPillars = (() => {
   function cpUpdateHealth() {
     const total = cpState.pillars.length;
     const seeds = cpState.pillars.reduce((a, p) => a + p.seeds.filter(s => String(s || '').trim()).length, 0);
-    const used = cpTotalUsage();
+    const used  = cpTotalUsage();
     const hP = cpQs('cpHealthPillars'), hS = cpQs('cpHealthSeeds'), hU = cpQs('cpHealthUsage');
     if (hP) hP.textContent = total;
     if (hS) hS.textContent = seeds;
@@ -2190,7 +558,7 @@ window.ContentPillars = (() => {
     const score = Math.min(100, (Math.min(total, 5) / 5) * 40 + (Math.min(seeds, 15) / 15) * 40 + (Math.min(used, 5) / 5) * 20);
     const bar = cpQs('cpHealthBar');
     if (bar) { bar.style.width = `${score}%`; bar.className = `cp-health-fill${score >= 70 ? ' good' : score >= 40 ? ' warn' : ''}`; }
-    const msgs = [[90, 'Pillar system firing on all cylinders.'], [70, 'Strong foundation. Keep drafting.'], [50, 'Looking solid. Start drafting from seeds.'], [20, 'Good start — add more seed ideas.'], [0, 'Add your pillars to start.']];
+    const msgs = [[90,'Pillar system firing on all cylinders.'],[70,'Strong foundation. Keep drafting.'],[50,'Looking solid. Start drafting from seeds.'],[20,'Good start — add more seed ideas.'],[0,'Add your pillars to start.']];
     const msg = msgs.find(m => score >= m[0]);
     const el = cpQs('cpHealthMsg'); if (el) el.textContent = (msg || msgs[msgs.length - 1])[1];
   }
@@ -2215,11 +583,11 @@ window.ContentPillars = (() => {
     wrap.innerHTML = '';
     const usage = cpGetUsage();
     pillars.forEach(pillar => {
-      const card = document.createElement('div');
+      const card  = document.createElement('div');
       card.className = 'cp-compact-card';
-      const seed = pillar.seeds.find(s => String(s || '').trim()) || '';
+      const seed  = pillar.seeds.find(s => String(s || '').trim()) || '';
       const count = usage[pillar.id] || 0;
-      const unusedBadge = count === 0 ? `<span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);border:1px solid var(--border);padding:1px 6px;border-radius:999px;margin-left:6px;">unused</span>` : '';
+      const unusedBadge  = count === 0 ? `<span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);border:1px solid var(--border);padding:1px 6px;border-radius:999px;margin-left:6px;">unused</span>` : '';
       const draftedLabel = count > 0 ? `${count} post${count > 1 ? 's' : ''} drafted` : 'Not used yet';
       const seedHtml = seed ? `<div class="cp-compact-seed">${cpEsc(seed)}</div><div class="cp-compact-row"><span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">${draftedLabel}</span><button class="btn sm primary" type="button" style="height:24px;font-size:11px;padding:0 8px;" data-start="${cpEsc(pillar.id)}">Start</button></div>` : '';
       card.innerHTML = `<div class="cp-compact-name">${cpEsc(pillar.name)}${unusedBadge}</div>${seedHtml}`;
@@ -2235,48 +603,32 @@ window.ContentPillars = (() => {
 
   function init() {
     const hasData = cpLoad();
-    const gN = cpQs('cpGateNew'), gE = cpQs('cpGateExperienced');
-    if (gN) gN.addEventListener('click', () => { cpShowStage('cpStageJourney'); cpShowStep(0); });
+
+    // Gate: SSM path
+    const gN = cpQs('cpGateNew');
+    if (gN) gN.addEventListener('click', () => { cpShowStage('cpStageJourney'); ssmInit(); });
+
+    // Gate: manual path
+    const gE = cpQs('cpGateExperienced');
     if (gE) gE.addEventListener('click', () => {
-      if (!cpState.pillars.length) cpState.pillars = cpDefaultPillars('');
+      if (!cpState.pillars.length) {
+        // Seed default pillars
+        cpState.pillars = ['Behind The Scenes','Education & Value','Hot Takes & POV','Community & Stories','Your Offer & Story'].map((name, i) => ({
+          id: cpUid(), name, promise: 'Define the recurring promise this pillar makes to your audience.', layer: LAYER_MAP[i] || 'awareness', seeds: [''], tones: {}, hook: '', cta: '',
+        }));
+      }
       cpShowStage('cpStageBuilder');
       const bi = cpQs('cpBuilderIdentity'); if (bi) bi.value = cpState.identity || '';
       cpRenderPillars(); cpPersist();
     });
 
-    const j0n = cpQs('cpJ0Next'); if (j0n) j0n.addEventListener('click', () => cpShowStep(1));
-    const j1b = cpQs('cpJ1Back'); if (j1b) j1b.addEventListener('click', () => cpShowStep(0));
-    const j1n = cpQs('cpJ1Next'); if (j1n) j1n.addEventListener('click', () => { cpState.audience.who = (cpQs('cpAudienceWho')?.value || '').trim(); cpState.audience.custom = (cpQs('cpStruggleCustom')?.value || '').trim(); cpShowStep(2); });
-    const j2b = cpQs('cpJ2Back'); if (j2b) j2b.addEventListener('click', () => cpShowStep(1));
-    const j2n = cpQs('cpJ2Next'); if (j2n) j2n.addEventListener('click', () => cpShowStep(3));
-    const j3b = cpQs('cpJ3Back'); if (j3b) j3b.addEventListener('click', () => cpShowStep(2));
-    const j3n = cpQs('cpJ3Next'); if (j3n) j3n.addEventListener('click', () => { cpState.quickSeeds = (cpQs('cpQuickSeeds')?.value || ''); cpShowStep(4); });
-    const j4b = cpQs('cpJ4Back'); if (j4b) j4b.addEventListener('click', () => cpShowStep(3));
-    const j4f = cpQs('cpJ4Finish'); if (j4f) j4f.addEventListener('click', () => {
-      cpState.pillars = cpState._previewPillars || cpDefaultPillars(cpState.audience.who);
-      const who = (cpQs('cpAudienceWho')?.value || '').trim();
-      cpState.identity = who ? `I create content for ${who}${cpState.audience.custom ? ` — ${cpState.audience.custom}` : ''}` : '';
-      cpPersist(); cpShowStage('cpStageBuilder');
-      const bi = cpQs('cpBuilderIdentity'); if (bi) bi.value = cpState.identity;
-      cpRenderPillars();
-    });
-
-    const struggles = cpQs('cpStruggles');
-    if (struggles) struggles.querySelectorAll('.cp-tag-pill').forEach(pill => {
-      pill.addEventListener('click', () => {
-        pill.classList.toggle('selected');
-        const val = pill.dataset.val;
-        if (pill.classList.contains('selected')) { if (!cpState.audience.struggles.includes(val)) cpState.audience.struggles.push(val); }
-        else cpState.audience.struggles = cpState.audience.struggles.filter(s => s !== val);
-      });
-    });
-
+    // Builder UI
     const bi = cpQs('cpBuilderIdentity');
     if (bi) bi.addEventListener('input', e => { cpState.identity = e.target.value; cpPersist(); });
 
     const ap = cpQs('cpAddPillarBtn');
     if (ap) ap.addEventListener('click', () => {
-      cpState.pillars.push({ id: cpUid(), name: 'New Pillar', promise: 'The recurring promise this pillar makes…', layer: '', seeds: [''], tones: {} });
+      cpState.pillars.push({ id: cpUid(), name: 'New Pillar', promise: 'The recurring promise this pillar makes…', layer: '', seeds: [''], tones: {}, hook: '', cta: '' });
       cpRenderPillars(); cpPersist(); if (typeof showToast === 'function') showToast('Pillar added');
     });
 
@@ -2290,12 +642,13 @@ window.ContentPillars = (() => {
     if (eb) eb.addEventListener('click', () => {
       const lines = ['# My Content Pillars\n', `Voice: ${cpState.identity || '(not set)'}\n`];
       cpState.pillars.forEach(p => {
-        lines.push(`\n## ${p.name}`, `Promise: ${p.promise}`, `Layer: ${p.layer || 'untagged'}`);
+        lines.push(`\n## ${p.name}`, `Promise: ${p.promise}`, `Layer: ${p.layer || 'untagged'}`, p.hook ? `Hook: "${p.hook}"` : '', p.cta ? `CTA: ${p.cta}` : '');
         p.seeds.filter(s => String(s || '').trim()).forEach((s, i) => lines.push(`${i + 1}. ${s}`));
       });
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/plain' }));
-      a.download = 'content-pillars.txt'; a.click();
+      a.href     = URL.createObjectURL(new Blob([lines.filter(Boolean).join('\n')], { type: 'text/plain' }));
+      a.download = 'content-pillars.txt';
+      a.click();
       URL.revokeObjectURL(a.href);
       if (typeof showToast === 'function') showToast('Exported', 'success');
     });
@@ -2315,7 +668,7 @@ window.ContentPillars = (() => {
     getData: () => ({ identity: cpState.identity, pillars: cpState.pillars }),
     insertStarter: (pillar, seed, dateLabel) => {
       const normalized = cpNormalizePillar(pillar || { name: 'Pillar', promise: 'Draft starter' });
-      const topic = String(seed || '').trim();
+      const topic      = String(seed || '').trim();
       if (!topic) return false;
       const starter = `${dateLabel ? `Date: ${dateLabel}\n` : ''}${cpBuildStarter(normalized, topic, 'Practical')}`;
       const wrote = cpSendToComposer(starter);
@@ -2325,18 +678,3 @@ window.ContentPillars = (() => {
     },
   };
 })();
-
-document.addEventListener('DOMContentLoaded', () => {
-  document.addEventListener('click', (e) => {
-    const trigger = e.target.closest('[data-view]');
-    if (!trigger || !trigger.dataset.view) return;
-    if (trigger.tagName === 'A' && trigger.hasAttribute('href')) return;
-    e.preventDefault();
-    if (typeof window.activateView === 'function') window.activateView(trigger.dataset.view);
-    if (trigger.dataset.view === 'ideasView' && typeof setIdeasTab === 'function' && trigger.dataset.ideasTab) {
-      setIdeasTab(trigger.dataset.ideasTab);
-    }
-  });
-
-  try { init(); } catch (e) { console.error('[PostIQ] init() crashed:', e); }
-});
