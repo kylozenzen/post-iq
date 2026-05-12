@@ -2525,6 +2525,110 @@ const normTags = v => Array.isArray(v) ? v.map(x => String(x).trim()).filter(Boo
 const isVideo = url => /\.(mp4|mov|webm|avi|mkv|m4v)(\?|$)/i.test(String(url || ''));
 const maskToken = t => !t ? '—' : t.length <= 8 ? '••••' : `${t.slice(0,4)}••••${t.slice(-4)}`;
 
+// ── BUFFER ASSET NORMALIZATION ─────────────────────
+function hasBufferAssetPayload(asset) {
+  return !!asset && typeof asset === 'object' && !Array.isArray(asset) && Object.keys(asset).length > 0;
+}
+
+function normalizeBufferAssets(input, options = {}) {
+  if (input === undefined || input === null) return undefined;
+  if (Array.isArray(input)) return input;
+  if (typeof input !== 'object') return undefined;
+
+  const normalized = [];
+  const pushAssetList = (items, type) => {
+    if (!Array.isArray(items)) return;
+    items.forEach(item => {
+      if (hasBufferAssetPayload(item)) normalized.push({ [type]: item });
+    });
+  };
+
+  pushAssetList(input.images, 'image');
+  pushAssetList(input.videos, 'video');
+  pushAssetList(input.documents, 'document');
+  if (hasBufferAssetPayload(input.link)) normalized.push({ link: input.link });
+
+  if (normalized.length) return normalized;
+  return options.emptyObjectAsEmptyArray ? [] : undefined;
+}
+
+function normalizeThreadAssets(threadItems) {
+  if (!Array.isArray(threadItems)) return threadItems;
+  return threadItems.map(item => {
+    if (!item || typeof item !== 'object' || !Object.prototype.hasOwnProperty.call(item, 'assets')) return item;
+    const normalizedAssets = normalizeBufferAssets(item.assets);
+    const next = { ...item };
+    if (normalizedAssets === undefined) delete next.assets;
+    else next.assets = normalizedAssets;
+    return next;
+  });
+}
+
+function normalizeThreadContainer(container) {
+  if (!container || typeof container !== 'object') return container;
+  let changed = false;
+  const next = { ...container };
+  if (Array.isArray(container.thread)) {
+    next.thread = normalizeThreadAssets(container.thread);
+    changed = next.thread !== container.thread;
+  }
+  return changed ? next : container;
+}
+
+function normalizeBufferThreadMetadata(input) {
+  if (!input || typeof input !== 'object') return input;
+  let nextInput = input;
+  const cloneInput = () => { if (nextInput === input) nextInput = { ...input }; return nextInput; };
+  const metadata = input.metadata;
+  if (metadata && typeof metadata === 'object') {
+    let nextMetadata = metadata;
+    const cloneMetadata = () => { if (nextMetadata === metadata) nextMetadata = { ...metadata }; return nextMetadata; };
+    ['twitter', 'threads', 'bluesky', 'mastodon'].forEach(platform => {
+      const current = metadata[platform];
+      const normalized = normalizeThreadContainer(current);
+      if (normalized !== current) cloneMetadata()[platform] = normalized;
+    });
+    if (Array.isArray(metadata.thread)) cloneMetadata().thread = normalizeThreadAssets(metadata.thread);
+    if (nextMetadata !== metadata) cloneInput().metadata = nextMetadata;
+  }
+  ['twitter', 'threads', 'bluesky', 'mastodon'].forEach(platform => {
+    const current = input[platform];
+    const normalized = normalizeThreadContainer(current);
+    if (normalized !== current) cloneInput()[platform] = normalized;
+  });
+  return nextInput;
+}
+
+function normalizeBufferPostInput(input, options = {}) {
+  if (!input || typeof input !== 'object') return input;
+  let next = normalizeBufferThreadMetadata(input);
+  const hasAssets = Object.prototype.hasOwnProperty.call(input, 'assets');
+  if (!hasAssets) return next;
+
+  const normalizedAssets = normalizeBufferAssets(input.assets, { emptyObjectAsEmptyArray: !!options.clearAssets });
+  if (next === input) next = { ...input };
+  if (normalizedAssets === undefined) delete next.assets;
+  else next.assets = normalizedAssets;
+  return next;
+}
+
+function getDeprecatedLegacyAssetWarnings(response) {
+  const warnings = response?.extensions?.warnings;
+  if (!Array.isArray(warnings)) return [];
+  return warnings.filter(warning => warning?.code === 'DEPRECATED_LEGACY_ASSETS_INPUT');
+}
+
+function handleBufferWarnings(response) {
+  const warnings = getDeprecatedLegacyAssetWarnings(response);
+  if (!warnings.length) return;
+  warnings.forEach(warning => {
+    const paths = Array.isArray(warning.paths) ? warning.paths : Array.isArray(warning.path) ? warning.path : [];
+    console.warn('Buffer deprecated legacy assets input warning', { warning, paths });
+  });
+  if (typeof showToast === 'function') showToast('Buffer accepted this request but reported deprecated legacy assets input. Check console paths.', '');
+}
+
+
 function showToast(msg, type = '') {
   const wrap = qs('toastWrap'); if (!wrap) return;
   const t = document.createElement('div');
@@ -3093,6 +3197,7 @@ async function callBuffer(query, variables = {}) {
     const first = data.errors[0] || {};
     throw Object.assign(new Error(first.message || 'Buffer request failed'), { code: first.code || 'BUFFER_ERROR', status: first.status, retryable: !!first.retryable, retryAfter: first.retryAfter });
   }
+  handleBufferWarnings(data);
   return data;
 }
 
@@ -3555,8 +3660,20 @@ function closeMediaPanel() { qs('mediaPanel').classList.remove('open'); }
 // ── POST CREATION ──────────────────────────────────
 async function createPost(input) {
   const mutation = `mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename ... on PostActionSuccess{post{id dueAt text channelId}} ... on MutationError{message}}}`;
-  const res = await callBuffer(mutation, { input });
+  const normalizedInput = normalizeBufferPostInput(input);
+  const res = await callBuffer(mutation, { input: normalizedInput });
   const result = res?.data?.createPost;
+  if (!result) throw new Error('Empty mutation response.');
+  if (result.__typename === 'MutationError') throw new Error(result.message || 'Buffer rejected this post.');
+  if (result.__typename !== 'PostActionSuccess') throw Object.assign(new Error(result.message || `Unexpected result: ${result.__typename}`), { code: 'MUTATION_ERROR' });
+  return result;
+}
+
+async function editPost(input, options = {}) {
+  const mutation = `mutation EditPost($input:EditPostInput!){editPost(input:$input){__typename ... on PostActionSuccess{post{id dueAt text channelId}} ... on MutationError{message}}}`;
+  const normalizedInput = normalizeBufferPostInput(input, { clearAssets: !!options.clearAssets });
+  const res = await callBuffer(mutation, { input: normalizedInput });
+  const result = res?.data?.editPost;
   if (!result) throw new Error('Empty mutation response.');
   if (result.__typename === 'MutationError') throw new Error(result.message || 'Buffer rejected this post.');
   if (result.__typename !== 'PostActionSuccess') throw Object.assign(new Error(result.message || `Unexpected result: ${result.__typename}`), { code: 'MUTATION_ERROR' });
@@ -3591,9 +3708,9 @@ async function composerSend(action) {
     if (isVideo(imgUrl)) {
       const entry = { url: imgUrl };
       if (mediaState.videoThumbUrl) entry.thumbnailUrl = mediaState.videoThumbUrl;
-      input.assets = { videos: [entry] };
+      input.assets = [{ video: entry }];
     } else {
-      input.assets = { images: [{ url: imgUrl }] };
+      input.assets = [{ image: { url: imgUrl } }];
     }
   }
   qs('composerStatus').textContent = 'Sending…';
@@ -3805,7 +3922,7 @@ window.approvalPublish = async function (safeId, action) {
     if (!dv) { showToast('Pick a date first', 'error'); return; }
     input.mode = 'customScheduled'; input.dueAt = `${dv}T${tv}:00.000Z`;
   }
-  if (meta.image_url) { if (isVideo(meta.image_url)) input.assets = { videos: [{ url: meta.image_url }] }; else input.assets = { images: [{ url: meta.image_url }] }; }
+  if (meta.image_url) { if (isVideo(meta.image_url)) input.assets = [{ video: { url: meta.image_url } }]; else input.assets = [{ image: { url: meta.image_url } }]; }
   const statusEl = document.getElementById(`approval-status-${safeId}`);
   if (statusEl) statusEl.textContent = 'Sending…';
   try {
