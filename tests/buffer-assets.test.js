@@ -24,11 +24,20 @@ const toPlain = value => JSON.parse(JSON.stringify(value));
 assert.equal(normalizeBufferAssets(undefined), undefined);
 
 const alreadyNew = [{ image: { url: 'a' } }];
-assert.equal(normalizeBufferAssets(alreadyNew), alreadyNew);
+assert.deepEqual(toPlain(normalizeBufferAssets(alreadyNew)), alreadyNew);
 assert.deepEqual(toPlain(normalizeBufferAssets({ images: [{ url: 'a' }] })), [{ image: { url: 'a' } }]);
 assert.deepEqual(toPlain(normalizeBufferAssets({ videos: [{ url: 'v' }] })), [{ video: { url: 'v' } }]);
 assert.deepEqual(toPlain(normalizeBufferAssets({ documents: [{ url: 'd' }] })), [{ document: { url: 'd' } }]);
 assert.deepEqual(toPlain(normalizeBufferAssets({ link: { url: 'l' } })), [{ link: { url: 'l' } }]);
+
+assert.deepEqual(
+  toPlain(normalizeBufferAssets([{ image: { url: 'a', alt: 'alt' }, video: { url: 'v' }, extra: true }])),
+  [{ image: { url: 'a', alt: 'alt' } }, { video: { url: 'v' } }]
+);
+assert.deepEqual(
+  toPlain(normalizeBufferAssets([{ image: { url: 'a' }, extra: true }, null, { caption: 'no asset' }])),
+  [{ image: { url: 'a' } }]
+);
 assert.deepEqual(
   toPlain(normalizeBufferAssets({
     videos: [{ url: 'v' }],

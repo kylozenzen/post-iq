@@ -80,9 +80,22 @@ function hasBufferAssetPayload(asset) {
   return !!asset && typeof asset === 'object' && !Array.isArray(asset) && Object.keys(asset).length > 0;
 }
 
+const BUFFER_ASSET_TYPES = ['image', 'video', 'document', 'link'];
+
+function normalizeBufferAssetItem(asset) {
+  if (!asset || typeof asset !== 'object' || Array.isArray(asset)) return [];
+  return BUFFER_ASSET_TYPES
+    .filter(type => hasBufferAssetPayload(asset[type]))
+    .map(type => ({ [type]: asset[type] }));
+}
+
 function normalizeBufferAssets(input, options = {}) {
   if (input === undefined || input === null) return undefined;
-  if (Array.isArray(input)) return input;
+  if (Array.isArray(input)) {
+    const normalizedArray = input.flatMap(normalizeBufferAssetItem);
+    if (normalizedArray.length) return normalizedArray;
+    return options.emptyObjectAsEmptyArray ? [] : undefined;
+  }
   if (typeof input !== 'object') return undefined;
 
   const normalized = [];
