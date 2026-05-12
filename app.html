@@ -151,7 +151,7 @@
       <div class="mob-view-hdr">
         <span class="mob-view-title">📅 Plan</span>
         <div class="mob-view-actions">
-          <button class="btn sm" id="shareMonthBtnMob">Share</button>
+          <button class="btn sm" id="shareMonthBtnMob">Create Snapshot</button>
           <button class="btn sm ghost" id="mobMenuBtn">
             <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
           </button>
@@ -165,7 +165,7 @@
           <p class="page-desc" id="calDesc">Your Buffer queue in a monthly view. Spot gaps and add planning notes before you draft.</p>
         </div>
         <div class="page-actions">
-          <button class="btn" id="shareMonthBtn">Share snapshot</button>
+          <button class="btn" id="shareMonthBtn">Create Snapshot</button>
           <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
         </div>
       </div>
@@ -181,12 +181,18 @@
         </div>
         <div class="gaps-list" id="gapsList"></div>
       </div>
-      <!-- Calendar header -->
-      <div class="cal-header">
-        <button class="btn sm ghost" id="prevMonth">‹</button>
-        <div class="cal-month-label" id="monthLabel"></div>
-        <button class="btn sm ghost" id="nextMonth">›</button>
-        <button class="btn sm ghost" id="todayMonth">Today</button>
+      <!-- Calendar command bar -->
+      <div class="cal-command-bar">
+        <div class="cal-header">
+          <button class="btn sm ghost" id="prevMonth">‹</button>
+          <div class="cal-month-label" id="monthLabel"></div>
+          <button class="btn sm ghost" id="nextMonth">›</button>
+          <button class="btn sm ghost" id="todayMonth">Today</button>
+        </div>
+        <div class="cal-view-toggle" role="group" aria-label="Calendar view">
+          <button class="cal-view-btn active" data-cal-view="month" id="calMonthToggle">Month</button>
+          <button class="cal-view-btn" data-cal-view="week" id="calWeekToggle">Week</button>
+        </div>
       </div>
 
       <!-- Day-of-week labels -->
@@ -199,6 +205,9 @@
 
       <!-- Calendar grid (desktop) -->
       <div class="cal-grid" id="calGrid"></div>
+
+      <!-- Week planning view -->
+      <div class="cal-week" id="calWeek" style="display:none;"></div>
 
       <!-- Agenda view (mobile) -->
       <div class="cal-agenda" id="calAgenda" style="display:none;"></div>
@@ -876,33 +885,38 @@
   </div>
 </div>
 
-<!-- Day note modal -->
-<div id="noteModal" class="modal">
-  <div class="modal-card">
+<!-- Day drawer -->
+<div id="noteModal" class="modal drawer-modal">
+  <div class="modal-card day-drawer-card">
     <div class="modal-hdr">
-      <span class="modal-title" id="noteDateLabel">—</span>
+      <div>
+        <span class="modal-title" id="noteDateLabel">—</span>
+        <div class="drawer-subtitle" id="dayDrawerSubtitle">Plan this day</div>
+      </div>
       <button class="btn sm ghost" id="closeNote">Close</button>
     </div>
-    <div id="dayPostPreview" class="mb8"></div>
-    <div class="field">
-      <label class="label">Planning note</label>
-      <textarea id="noteText" placeholder="What do you want to post on this day?" style="min-height:80px;"></textarea>
+    <div id="dayPostPreview" class="day-drawer-posts mb8"></div>
+    <div class="drawer-note-panel">
+      <div class="field">
+        <label class="label">Day-level note</label>
+        <textarea id="noteText" placeholder="What should happen on this day? Campaign context, reminders, or client notes…" style="min-height:110px;"></textarea>
+      </div>
+      <div class="field">
+        <label class="label">Tag</label>
+        <select id="noteTag" class="input">
+          <option value="gold|Idea">💛 Idea</option>
+          <option value="blue|Draft">💙 Draft</option>
+          <option value="green|Campaign">💚 Campaign</option>
+          <option value="violet|Priority">💜 Priority</option>
+        </select>
+      </div>
+      <div class="row">
+        <button class="btn primary" id="saveNoteBtn">Save note</button>
+        <button class="btn" id="sendNoteToDraftBtn">Use in Draft</button>
+        <button class="btn ghost" id="deleteNoteBtn">Delete</button>
+      </div>
+      <div id="noteStatus" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;min-height:16px;"></div>
     </div>
-    <div class="field">
-      <label class="label">Tag</label>
-      <select id="noteTag" class="input">
-        <option value="gold|Idea">💛 Idea</option>
-        <option value="blue|Draft">💙 Draft</option>
-        <option value="green|Campaign">💚 Campaign</option>
-        <option value="violet|Priority">💜 Priority</option>
-      </select>
-    </div>
-    <div class="row">
-      <button class="btn primary" id="saveNoteBtn">Save note</button>
-      <button class="btn" id="sendNoteToDraftBtn">Use in Draft</button>
-      <button class="btn ghost" id="deleteNoteBtn">Delete</button>
-    </div>
-    <div id="noteStatus" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;min-height:16px;"></div>
   </div>
 </div>
 
@@ -965,33 +979,42 @@
 <div id="shareModal" class="modal">
   <div class="modal-card">
     <div class="modal-hdr">
-      <span class="modal-title">Share calendar snapshot</span>
+      <span class="modal-title">Create Snapshot</span>
       <button class="btn sm ghost" id="closeShare">Close</button>
     </div>
-    <div class="card mb8" style="padding:14px;">
+    <div class="card mb8 snapshot-builder-card" style="padding:14px;">
       <div class="share-modal-stat">
-        <span class="share-modal-stat-label">Month</span>
+        <span class="share-modal-stat-label">Range</span>
         <span class="share-modal-stat-val" id="shareMonthName">—</span>
       </div>
       <div class="share-modal-stat">
         <span class="share-modal-stat-label">Scheduled posts</span>
         <span class="share-modal-stat-val" id="sharePostCount">0</span>
       </div>
-      <div class="field mt12" style="margin-bottom:0;">
-        <label class="label">Snapshot title</label>
-        <input id="shareCustomTitle" class="input" placeholder="e.g. April content plan — Acme Co." maxlength="120" />
-        <div style="font-size:11px;color:var(--subtle);margin-top:5px;line-height:1.5;">This appears as the headline on the shared page.</div>
+      <div class="field mt12">
+        <label class="label">Who is this for?</label>
+        <input id="snapshotRecipient" class="input" placeholder="James, client, team, etc." maxlength="80" />
       </div>
-      <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted);">
-        <input type="checkbox" id="includeNotes" checked style="accent-color:var(--brand);" /> Include planning notes
-      </label>
+      <div class="field">
+        <label class="label">Message at the top</label>
+        <textarea id="snapshotMessage" placeholder="Hey James — here’s our plan for this week." style="min-height:72px;"></textarea>
+      </div>
+      <div class="field">
+        <label class="label">Snapshot range</label>
+        <div class="snapshot-range-toggle">
+          <button class="cal-view-btn active" type="button" data-snapshot-range="week" id="snapshotWeekToggle">This Week</button>
+          <button class="cal-view-btn" type="button" data-snapshot-range="month" id="snapshotMonthToggle">This Month</button>
+        </div>
+      </div>
+      <label class="snapshot-check"><input type="checkbox" id="includeNotes" checked style="accent-color:var(--brand);" /> Include notes</label>
+      <label class="snapshot-check"><input type="checkbox" id="includeMedia" checked style="accent-color:var(--brand);" /> Include media previews when already available</label>
     </div>
     <div class="row mt8">
-      <button class="btn primary grow" id="generateShare" style="justify-content:center;">Generate link</button>
+      <button class="btn primary grow" id="generateShare" style="justify-content:center;">Generate Link</button>
       <button class="btn" id="copyShare">Copy</button>
     </div>
     <input id="shareLink" class="input mt8 mono" readonly placeholder="Link will appear here…" style="font-size:11px;" />
-    <div id="shareLinkMeta" style="font-size:11px;color:var(--subtle);margin-top:6px;line-height:1.5;display:none;">Anyone with this link can view the snapshot. No PostIQ account needed.</div>
+    <div id="shareLinkMeta" style="font-size:11px;color:var(--subtle);margin-top:6px;line-height:1.5;display:none;">Snapshots are static and render from saved data only — public links never call Buffer.</div>
   </div>
 </div>
 
@@ -1051,11 +1074,17 @@
 <section id="sharedView" class="hidden">
   <div class="snap-hero">
     <a href="/" class="snap-brand">PostIQ <span class="snap-brand-badge">Snapshot</span></a>
-    <div class="snap-title" id="sharedTitle">Content Plan</div>
+    <div class="snap-kicker" id="sharedForLabel"></div>
+    <div class="snap-title" id="sharedTitle">PostIQ Snapshot</div>
+    <div class="snap-message" id="sharedMessage" style="display:none;"></div>
     <div class="snap-stats">
       <div class="snap-stat"><strong id="sharedPostCount">0</strong> scheduled posts</div>
       <div class="snap-stat-dot"></div>
       <div class="snap-stat" id="sharedPeriodStat"></div>
+      <div class="snap-stat-dot"></div>
+      <div class="snap-stat" id="sharedChannelsStat"><strong>0</strong> channels</div>
+      <div class="snap-stat-dot"></div>
+      <div class="snap-stat" id="sharedDaysStat"><strong>0</strong> days with posts</div>
       <div class="snap-stat-dot" id="sharedNotesDot" style="display:none;"></div>
       <div class="snap-stat" id="sharedNotesStat" style="display:none;"></div>
     </div>
@@ -1066,7 +1095,7 @@
       <div class="dow-cell">Sun</div><div class="dow-cell">Mon</div><div class="dow-cell">Tue</div>
       <div class="dow-cell">Wed</div><div class="dow-cell">Thu</div><div class="dow-cell">Fri</div><div class="dow-cell">Sat</div>
     </div>
-    <div id="sharedGrid" class="cal-grid" style="margin-top:4px;"></div>
+    <div id="sharedGrid" class="cal-grid" style="margin-top:4px;"></div><div id="sharedWeek" class="cal-week" style="display:none;margin-top:4px;"></div>
   </div>
   <div class="snap-footer">
     <div class="snap-footer-copy"><strong>Built with PostIQ.</strong> The planning and drafting layer for Buffer — free to start, no login needed.</div>
