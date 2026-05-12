@@ -602,13 +602,16 @@ function renderCalendar() {
     day.className = cls;
 
     let html = `<div class="day-num">${d.getDate()}</div>`;
-    if (dayPosts.length) html += `<div class="day-count">${dayPosts.length}</div>`;
-    if (dayPosts[0]) html += `<div class="day-post-pill">${safeText(compact(dayPosts[0].text, 60))}</div>`;
-    if (dayPosts[1]) html += `<div class="day-post-pill">${safeText(compact(dayPosts[1].text, 60))}</div>`;
-    if (dayPosts.length > 2) html += `<div class="more-indicator">+${dayPosts.length - 2} more</div>`;
+    if (dayPosts.length) html += `<button type="button" class="day-count cal-post-trigger" aria-label="Open ${dayPosts.length} scheduled post${dayPosts.length > 1 ? 's' : ''} for ${safeText(formatDateOnly(key))}">${dayPosts.length}</button>`;
+    if (dayPosts[0]) html += `<button type="button" class="day-post-pill cal-post-trigger">${safeText(compact(dayPosts[0].text, 60))}</button>`;
+    if (dayPosts[1]) html += `<button type="button" class="day-post-pill cal-post-trigger">${safeText(compact(dayPosts[1].text, 60))}</button>`;
+    if (dayPosts.length > 2) html += `<button type="button" class="more-indicator cal-post-trigger">+${dayPosts.length - 2} more</button>`;
     if (note) html += `<div class="day-note-pill ${note.tag || 'gold'}">${safeText(compact(note.text, 50))}</div>`;
     day.innerHTML = html;
     day.onclick = () => openDayNote(d);
+    day.querySelectorAll('.cal-post-trigger').forEach(btn => {
+      btn.onclick = e => { e.stopPropagation(); openInAppDayDetails(key); };
+    });
     grid.appendChild(day);
   }
   renderAgenda();
@@ -743,7 +746,18 @@ function shareSnapshot() {
   const payload = {
     snapshotId, createdAt: Date.now(), period: 'month', month: label, title, customTitle,
     includeNotes: include,
-    posts: posts.map(p => ({ dueAt: p.dueAt, text: p.text || '', channelName: p.channelName || p.channel || '', platform: p.service || p.platform || '', channelId: p.channelId || '' })),
+    posts: posts.map(p => {
+      const normalized = normalizeCalendarPost(p);
+      return {
+        dueAt: normalized.dueAt,
+        text: normalized.text || '',
+        channelName: p.channelName || p.channel || '',
+        platform: normalized.platform || '',
+        channelId: p.channelId || '',
+        status: normalized.status || '',
+        media: normalized.media || null,
+      };
+    }),
     notes: include ? monthNotes : []
   };
   const encoded = toBase64Url(JSON.stringify(payload));
@@ -751,33 +765,101 @@ function shareSnapshot() {
   const meta = qs('shareLinkMeta'); if (meta) meta.style.display = 'block';
 }
 
-function openSharedDayDetails(key, data) {
+function getChannelLabel(post) {
+  if (!post) return '';
+  if (post.channelName || post.channel || post.platform || post.service) {
+    return post.channelName || post.channel || post.platform || post.service || '';
+  }
+  const channel = state.channels.find(c => c.id === post.channelId || c.id === post.channel_id);
+  if (!channel) return '';
+  return channel.displayName || channel.name || channel.service || '';
+}
+
+function getPostMedia(post) {
+  if (!post) return null;
+  const assetImage = post.assets?.images?.[0]?.url;
+  const assetVideo = post.assets?.videos?.[0];
+  const media = Array.isArray(post.media) ? post.media[0] : post.media;
+  const url = post.image_url || post.imageUrl || post.mediaUrl || post.media_url || post.thumbnailUrl || post.thumbnail ||
+    assetImage || assetVideo?.url || media?.url || media?.thumbnailUrl || media?.thumbnail || '';
+  const thumbUrl = post.thumbnailUrl || post.thumbnail || assetVideo?.thumbnailUrl || assetVideo?.thumbnail || media?.thumbnailUrl || media?.thumbnail || url;
+  if (!url && !thumbUrl) return null;
+  const declaredType = String(post.mediaType || post.media_type || media?.type || '').toLowerCase();
+  const type = declaredType.includes('video') || !!assetVideo?.url || isVideo(url) ? 'video' : 'image';
+  return { url: url || thumbUrl, thumbUrl: thumbUrl || url, type };
+}
+
+function normalizeCalendarPost(post) {
+  return {
+    ...post,
+    text: post?.text || post?.content || post?.body || '',
+    dueAt: post?.dueAt || post?.scheduledAt || post?.scheduled_at || post?.date || '',
+    platform: getChannelLabel(post),
+    status: post?.status || '',
+    notes: post?.notes || post?.note || '',
+    media: getPostMedia(post),
+  };
+}
+
+function openInAppDayDetails(key) {
+  const notes = getNotes();
+  const note = notes[key];
+  const posts = state.scheduled
+    .filter(p => fmtDate(new Date(p.dueAt)) === key)
+    .map(p => {
+      const normalized = normalizeCalendarPost(p);
+      return { ...normalized, status: normalized.status || 'scheduled' };
+    });
+  openCalendarDayDetails(key, {
+    posts,
+    notes: note ? [{ ...note, date: key }] : [],
+    emptyCopy: 'No posts scheduled on this day.',
+  });
+}
+
+function renderCalendarPostDetailCard(post, idx) {
+  const p = normalizeCalendarPost(post || {});
+  const platform = p.platform || p.channelName || '';
+  const status = p.status || '';
+  const notes = p.notes || '';
+  const media = p.media || getPostMedia(p);
+  const mediaHtml = media?.url
+    ? `<div class="snap-modal-media">${media.type === 'video'
+      ? `<div class="snap-modal-media-video"><span>Video media attached</span>${media.thumbUrl ? `<img src="${safeText(media.thumbUrl)}" alt="Video thumbnail" loading="lazy" />` : ''}</div>`
+      : `<img src="${safeText(media.url)}" alt="Post media" loading="lazy" />`}</div>`
+    : '';
+  const statusHtml = status ? '<span class="snap-platform-badge">' + safeText(status) + '</span>' : '';
+  const notesHtml = notes ? '<div class="snap-modal-post-notes"><span>Notes</span>' + safeText(notes) + '</div>' : '';
+  return `<div class="snap-modal-post">
+    <div class="snap-modal-post-hdr">
+      <div class="snap-modal-post-meta">
+        <span class="snap-post-num">Post ${idx + 1}</span>
+        ${platform ? '<span class="snap-platform-badge">' + safeText(platform) + '</span>' : ''}
+        ${statusHtml}
+      </div>
+      <span class="snap-scheduled-time">${safeText(formatDateTime(p.dueAt))}</span>
+    </div>
+    ${mediaHtml}
+    <div class="snap-modal-post-body">${safeText(p.text || '(no copy)')}</div>
+    ${notesHtml}
+    <div class="snap-modal-post-copy">
+      <button class="btn sm ghost" data-copy="${safeText(p.text || '')}">Copy post</button>
+    </div>
+  </div>`;
+}
+
+function openCalendarDayDetails(key, data = {}) {
   const titleEl = qs('sharedDayTitle');
   const bodyEl  = qs('sharedDayBody');
   if (!titleEl || !bodyEl) return;
   titleEl.textContent = formatDateOnly(key);
   const sections = [];
-  if (data.posts && data.posts.length) {
-    const dmMono = 'DM Mono';
-    const postsHtml = data.posts.map((p, idx) => {
-      const platform = p.platform || p.channelName || '';
-      return `<div class="snap-modal-post">
-        <div class="snap-modal-post-hdr">
-          <div class="snap-modal-post-meta">
-            <span class="snap-post-num">Post ${idx + 1}</span>
-            ${platform ? '<span class="snap-platform-badge">' + safeText(platform) + '</span>' : ''}
-          </div>
-          <span class="snap-scheduled-time">${safeText(formatDateTime(p.dueAt))}</span>
-        </div>
-        <div class="snap-modal-post-body">${safeText(p.text || '(no copy)')}</div>
-        <div class="snap-modal-post-copy">
-          <button class="btn sm ghost" data-copy="${safeText(p.text || '')}">Copy post</button>
-        </div>
-      </div>`;
-    }).join('');
-    sections.push(`<div style="margin-bottom:16px;"><div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">${data.posts.length} Scheduled post${data.posts.length > 1 ? 's' : ''}</div>${postsHtml}</div>`);
+  const posts = (data.posts || []).map(normalizeCalendarPost);
+  if (posts.length) {
+    const postsHtml = posts.map(renderCalendarPostDetailCard).join('');
+    sections.push(`<div style="margin-bottom:16px;"><div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">${posts.length} Scheduled post${posts.length > 1 ? 's' : ''}</div>${postsHtml}</div>`);
   } else {
-    sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No post scheduled</div><div class="empty-desc">This day does not have a scheduled post in the shared snapshot.</div></div>');
+    sections.push(`<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No post scheduled</div><div class="empty-desc">${safeText(data.emptyCopy || 'This day does not have a scheduled post in the shared snapshot.')}</div></div>`);
   }
   if (data.notes && data.notes.length) {
     const notesHtml = data.notes.map(n => `<div class="snap-modal-note"><div class="snap-modal-note-label">${safeText(n.label || n.tag || 'Note')}</div><div class="snap-modal-note-text">${safeText(n.text || '')}</div></div>`).join('');
@@ -792,6 +874,10 @@ function openSharedDayDetails(key, data) {
     });
   });
   openModal('sharedDayModal');
+}
+
+function openSharedDayDetails(key, data) {
+  openCalendarDayDetails(key, data);
 }
 
 function renderSharedFromHash() {
@@ -1390,6 +1476,7 @@ function init() {
   qs('nextMonth').onclick = () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() + 1, 1); renderCalendar(); detectQueueGaps(); };
   qs('todayMonth').onclick = () => { state.month = new Date(); renderCalendar(); detectQueueGaps(); };
   qs('closeNote').onclick = () => closeModal('noteModal');
+  qs('closeSharedDay').onclick = () => closeModal('sharedDayModal');
   qs('saveNoteBtn').onclick = saveNote;
   qs('deleteNoteBtn').onclick = deleteNote;
   qs('sendNoteToDraftBtn').onclick = sendNoteToDraft;
