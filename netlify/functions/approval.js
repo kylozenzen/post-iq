@@ -129,6 +129,96 @@ exports.handler = async function (event) {
       };
     }
 
+    // ── SNAPSHOT CREATE ─────────────────────────────────────────────────────
+    // Reuses the approval Redis connection for static Snapshot records. These
+    // records intentionally contain only prebuilt calendar data and never Buffer
+    // tokens, so public Snapshot links do not call Buffer.
+    if (action === "create_snapshot") {
+      const { snapshot } = payload;
+      if (!snapshot || !Array.isArray(snapshot.posts)) {
+        return {
+          statusCode: 200,
+          headers: corsHeaders,
+          body: JSON.stringify({ error: "snapshot.posts is required" }),
+        };
+      }
+
+      const uuid = generateUUID();
+      const record = {
+        id: uuid,
+        createdAt: String(snapshot.createdAt || new Date().toISOString()).slice(0, 80),
+        rangeType: snapshot.rangeType === "week" ? "week" : "month",
+        rangeStart: String(snapshot.rangeStart || "").slice(0, 20),
+        rangeEnd: String(snapshot.rangeEnd || "").slice(0, 20),
+        recipientName: snapshot.recipientName ? String(snapshot.recipientName).slice(0, 100) : "",
+        message: snapshot.message ? String(snapshot.message).slice(0, 1200) : "",
+        includeNotes: !!snapshot.includeNotes,
+        includeMedia: snapshot.includeMedia !== false,
+        posts: snapshot.posts.slice(0, 250).map((post) => ({
+          id: post.id ? String(post.id).slice(0, 120) : "",
+          text: post.text ? String(post.text).slice(0, 5000) : "",
+          scheduledAt: post.scheduledAt ? String(post.scheduledAt).slice(0, 80) : "",
+          dueAt: post.dueAt ? String(post.dueAt).slice(0, 80) : "",
+          channelLabel: post.channelLabel ? String(post.channelLabel).slice(0, 120) : "",
+          channelId: post.channelId ? String(post.channelId).slice(0, 120) : "",
+          status: post.status ? String(post.status).slice(0, 80) : "",
+          mediaThumbnailUrl: post.mediaThumbnailUrl ? String(post.mediaThumbnailUrl).slice(0, 2000) : "",
+          notes: snapshot.includeNotes && post.notes ? String(post.notes).slice(0, 2000) : "",
+        })),
+        dayNotes: snapshot.includeNotes && Array.isArray(snapshot.dayNotes)
+          ? snapshot.dayNotes.slice(0, 120).map((note) => ({
+              date: note.date ? String(note.date).slice(0, 20) : "",
+              text: note.text ? String(note.text).slice(0, 2000) : "",
+              tag: note.tag ? String(note.tag).slice(0, 30) : "gold",
+              label: note.label ? String(note.label).slice(0, 80) : "Note",
+            }))
+          : [],
+        summary: snapshot.summary || {},
+      };
+
+      await redisCmd(["SET", `snapshot:${uuid}`, JSON.stringify(record), "EX", TTL]);
+
+      const host =
+        process.env.URL ||
+        process.env.DEPLOY_URL ||
+        (event.headers && (event.headers["x-forwarded-host"] || event.headers["host"])) ||
+        "https://postiq.netlify.app";
+      const snapshotUrl = `${host.replace(/\/$/, "")}/?snapshot=${uuid}`;
+
+      return {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: JSON.stringify({ id: uuid, url: snapshotUrl }),
+      };
+    }
+
+    // ── SNAPSHOT GET ────────────────────────────────────────────────────────
+    if (action === "get_snapshot") {
+      const { id } = payload;
+      if (!id || !/^[0-9a-f-]{36}$/i.test(id)) {
+        return {
+          statusCode: 200,
+          headers: corsHeaders,
+          body: JSON.stringify({ error: "Invalid or missing id" }),
+        };
+      }
+
+      const result = await redisCmd(["GET", `snapshot:${id}`]);
+      if (!result.result) {
+        return {
+          statusCode: 200,
+          headers: corsHeaders,
+          body: JSON.stringify({ error: "Not found" }),
+        };
+      }
+
+      return {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: result.result,
+      };
+    }
+
     // ── UPDATE ──────────────────────────────────────────────────────────────
     if (action === "update") {
       const { id, status, author, comment } = payload;
