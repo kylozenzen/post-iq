@@ -865,6 +865,14 @@ function openDayNote(date) {
   openModal('noteModal');
 }
 
+function resetNoteForm() {
+  const textEl = qs('noteText'); if (textEl) textEl.value = '';
+  renderNoteTypeOptions('note');
+  const preview = qs('dayPostPreview'); if (preview) preview.innerHTML = '';
+  const status = qs('noteStatus'); if (status) status.textContent = '';
+  state.selectedDate = null;
+}
+
 function saveNote() {
   if (!state.selectedDate) return;
   const key = fmtDate(state.selectedDate);
@@ -872,9 +880,22 @@ function saveNote() {
   const typeId = qs('noteTag').value || 'note';
   const typeMeta = getNoteTypes().find(t => t.id === typeId) || DEFAULT_NOTE_TYPES[0];
   const notes = getNotes();
-  if (!text) { delete notes[key]; setNotes(notes); qs('noteStatus').textContent = 'Note removed.'; renderCalendar(); return; }
+  if (!text) {
+    delete notes[key];
+    setNotes(notes);
+    renderCalendar();
+    closeModal('noteModal');
+    resetNoteForm();
+    activateView('calendarView');
+    showToast('Note removed');
+    return;
+  }
   notes[key] = { text, typeId: typeMeta.id, label: typeMeta.label, color: typeMeta.color };
-  setNotes(notes); qs('noteStatus').textContent = 'Saved.'; renderCalendar();
+  setNotes(notes);
+  renderCalendar();
+  closeModal('noteModal');
+  resetNoteForm();
+  activateView('calendarView');
   showToast('Note saved', 'success');
 }
 
@@ -939,6 +960,20 @@ function renderAgenda() {
 }
 
 // Calendar snapshot share
+function resetShareForm({ resetRange = true } = {}) {
+  const title = qs('shareCustomTitle'); if (title) title.value = '';
+  const note = qs('shareNote'); if (note) note.value = '';
+  const link = qs('shareLink'); if (link) link.value = '';
+  const meta = qs('shareLinkMeta'); if (meta) meta.style.display = 'none';
+  const generate = qs('generateShare'); if (generate) generate.textContent = 'Generate link';
+  const range = qs('shareRange'); if (range && resetRange) range.value = 'month';
+}
+function openShareSnapshotModal() {
+  resetShareForm();
+  shareSnapshot();
+  openModal('shareModal');
+}
+
 function visibleWeekBounds() {
   const base = new Date(state.month);
   const today = new Date();
@@ -978,7 +1013,8 @@ function shareSnapshot() {
   qs('shareMonthName').textContent = label;
   qs('sharePostCount').textContent = posts.length;
   const payload = {
-    snapshotId, createdAt: Date.now(), period: range, month: range === 'month' ? monthLabel(state.month) : '', rangeLabel: label, title, customTitle, message,
+    snapshotId, createdAt: Date.now(), period: range, month: range === 'month' ? monthLabel(state.month) : '', rangeLabel: label,
+    rangeStart: range === 'week' ? fmtDate(bounds.start) : '', rangeEnd: range === 'week' ? fmtDate(bounds.end) : '', title, customTitle, message,
     includeNotes: include,
     noteTypes: getNoteTypes(),
     posts: posts.map(snapshotPostPayload),
@@ -1052,6 +1088,70 @@ function openSharedDayDetails(key, data, snap = {}) {
   openPostDetails(key, data, { title: formatDateOnly(key), noteTypes: snap.noteTypes || DEFAULT_NOTE_TYPES });
 }
 
+function getSnapshotRange(snap) {
+  return snap?.period || snap?.range || 'month';
+}
+function getSharedBaseDate(snap) {
+  if (snap.rangeStart) {
+    const d = new Date(snap.rangeStart + 'T00:00:00');
+    if (!Number.isNaN(d.getTime())) return d;
+  }
+  if (snap.posts?.[0]?.dueAt) {
+    const d = new Date(snap.posts[0].dueAt);
+    if (!Number.isNaN(d.getTime())) return d;
+  }
+  if (snap.notes?.[0]?.date) {
+    const d = new Date(snap.notes[0].date + 'T00:00:00');
+    if (!Number.isNaN(d.getTime())) return d;
+  }
+  if (snap.month) {
+    const d = new Date(snap.month + ' 1');
+    if (!Number.isNaN(d.getTime())) return d;
+  }
+  return new Date();
+}
+function renderSharedDayCell(grid, key, date, data, snap, { inMonth = true } = {}) {
+  const hasContent = data.posts.length > 0 || data.notes.length > 0;
+  const day = document.createElement('div');
+  day.className = 'cal-day' + (!inMonth ? ' other-month' : '') + (hasContent ? ' has-content' : ' empty-day');
+  let inner = '<div class="day-num">' + date.getDate() + '</div>';
+  if (data.posts.length) {
+    inner += '<div class="day-count">' + data.posts.length + '</div>';
+    data.posts.slice(0,2).forEach(post => { inner += '<div class="day-post-pill">' + safeText((post.text||'').slice(0,60)) + '</div>'; });
+    if (data.posts.length > 2) inner += '<div class="more-indicator">+' + (data.posts.length - 2) + ' more</div>';
+  }
+  if (data.notes.length && snap.includeNotes) {
+    data.notes.slice(0,1).forEach(n => { const meta = getNoteTypeMeta(n, snap.noteTypes || DEFAULT_NOTE_TYPES); inner += '<div class="day-note-pill" style="' + notePillStyle(meta) + '">' + safeText((n.text||'').slice(0,50)) + '</div>'; });
+  }
+  day.innerHTML = inner;
+  if (hasContent) day.onclick = () => openSharedDayDetails(key, data, snap);
+  grid.appendChild(day);
+}
+function renderSharedCalendarGrid(snap, map) {
+  const grid = qs('sharedGrid');
+  grid.innerHTML = '';
+  const range = getSnapshotRange(snap);
+  const baseDate = getSharedBaseDate(snap);
+  if (range === 'week') {
+    const start = new Date(baseDate);
+    start.setHours(0,0,0,0);
+    if (!snap.rangeStart) start.setDate(start.getDate() - start.getDay());
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(start); d.setDate(start.getDate() + i);
+      const key = fmtDate(d);
+      renderSharedDayCell(grid, key, d, map[key] || { posts: [], notes: [] }, snap, { inMonth: true });
+    }
+    return;
+  }
+  const first = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
+  const start = new Date(first); start.setDate(1 - first.getDay());
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    const key = fmtDate(d);
+    renderSharedDayCell(grid, key, d, map[key] || { posts: [], notes: [] }, snap, { inMonth: d.getMonth() === baseDate.getMonth() });
+  }
+}
+
 function renderSharedFromHash() {
   if (!location.hash.startsWith('#share=')) return false;
   try {
@@ -1076,34 +1176,7 @@ function renderSharedFromHash() {
     const map = {};
     (snap.posts || []).forEach(p => { const k = String(p.dueAt || '').slice(0,10); if (!map[k]) map[k]={posts:[],notes:[]}; map[k].posts.push(p); });
     (snap.notes || []).forEach(n => { if (!map[n.date]) map[n.date]={posts:[],notes:[]}; map[n.date].notes.push(n); });
-    const grid = qs('sharedGrid'); grid.innerHTML = '';
-    let baseDate = new Date();
-    if (snap.posts?.[0]?.dueAt)      baseDate = new Date(snap.posts[0].dueAt);
-    else if (snap.month) { const parsed = new Date(snap.month + ' 1'); if (!Number.isNaN(parsed.getTime())) baseDate = parsed; }
-    else if (snap.notes?.[0]?.date) baseDate = new Date(snap.notes[0].date + 'T00:00:00');
-    const first = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
-    const start = new Date(first); start.setDate(1 - first.getDay());
-    for (let i = 0; i < 42; i++) {
-      const d   = new Date(start); d.setDate(start.getDate() + i);
-      const key = fmtDate(d);
-      const data = map[key] || { posts: [], notes: [] };
-      const inMonth    = d.getMonth() === baseDate.getMonth();
-      const hasContent = data.posts.length > 0 || data.notes.length > 0;
-      const day = document.createElement('div');
-      day.className = 'cal-day' + (!inMonth ? ' other-month' : '') + (hasContent ? ' has-content' : ' empty-day');
-      let inner = '<div class="day-num">' + d.getDate() + '</div>';
-      if (data.posts.length) {
-        inner += '<div class="day-count">' + data.posts.length + '</div>';
-        data.posts.slice(0,2).forEach(p => { inner += '<div class="day-post-pill">' + safeText((p.text||'').slice(0,60)) + '</div>'; });
-        if (data.posts.length > 2) inner += '<div class="more-indicator">+' + (data.posts.length - 2) + ' more</div>';
-      }
-      if (data.notes.length && snap.includeNotes) {
-        data.notes.slice(0,1).forEach(n => { const meta = getNoteTypeMeta(n, snap.noteTypes || DEFAULT_NOTE_TYPES); inner += '<div class="day-note-pill" style="' + notePillStyle(meta) + '">' + safeText((n.text||'').slice(0,50)) + '</div>'; });
-      }
-      day.innerHTML = inner;
-      if (hasContent) day.onclick = () => openSharedDayDetails(key, data, snap);
-      grid.appendChild(day);
-    }
+    renderSharedCalendarGrid(snap, map);
     return true;
   } catch(err) { console.error('Failed to render shared snapshot', err); return false; }
 }
@@ -1727,7 +1800,7 @@ function init() {
   qs('saveNoteBtn').onclick = saveNote;
   qs('deleteNoteBtn').onclick = deleteNote;
   qs('sendNoteToDraftBtn').onclick = sendNoteToDraft;
-  qs('shareMonthBtn').onclick = () => { shareSnapshot(); openModal('shareModal'); };
+  qs('shareMonthBtn').onclick = openShareSnapshotModal;
   qs('closeShare').onclick = () => closeModal('shareModal');
   qs('includeNotes').onchange = shareSnapshot;
   const shareRangeInput = qs('shareRange'); if (shareRangeInput) shareRangeInput.onchange = shareSnapshot;
@@ -1981,7 +2054,7 @@ function init() {
   qs('mobClearTokenBtn').onclick = () => { qs('mobTokenInput').value = ''; setBufferToken('', { mode: 'session', messageEl: qs('mobTokenMsg') }); };
   qs('mobOpenSettings').onclick = () => { closeMobDrawer(); openModal('settingsModal'); };
 
-  const smb = qs('shareMonthBtnMob'); if (smb) smb.onclick = () => { shareSnapshot(); openModal('shareModal'); };
+  const smb = qs('shareMonthBtnMob'); if (smb) smb.onclick = openShareSnapshotModal;
 
   const ccbm = qs('composerClearBtnMob');
   if (ccbm) {
