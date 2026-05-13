@@ -833,6 +833,7 @@
     </div>
     <div class="settings-tabs">
       <button class="settings-tab active" data-stab="guide">Guide</button>
+      <button class="settings-tab" data-stab="planning">Planning</button>
       <button class="settings-tab" data-stab="about">About</button>
     </div>
     <div id="settingsPanelGuide" class="settings-panel active">
@@ -857,6 +858,20 @@
           <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">🔑 Connecting Buffer</div>
           <p style="font-size:13px;color:var(--muted);line-height:1.65;">Get your token at buffer.com/developers. Paste it in the token panel — choose Session (clears on close) or Local (persists between visits). Hit "Load from Buffer" to sync your channels and scheduled posts. Your token never leaves your device.</p>
         </div>
+      </div>
+    </div>
+    <div id="settingsPanelPlanning" class="settings-panel">
+      <div class="settings-section">
+        <div class="settings-section-title">Planning Settings</div>
+        <label class="settings-check"><input type="checkbox" id="showQueueGapsSetting" /> Show queue gaps</label>
+        <div class="label mt12">Posting schedule</div>
+        <div id="postingDaysSettings" class="settings-day-grid"></div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title">Calendar note types</div>
+        <div id="noteTypesSettings" class="note-types-settings"></div>
+        <button class="btn sm" id="addNoteTypeBtn" type="button">+ Add note type</button>
+        <div style="font-size:11px;color:var(--subtle);margin-top:8px;line-height:1.5;">Existing notes keep their saved labels. Unknown note types fall back to Note styling.</div>
       </div>
     </div>
     <div id="settingsPanelAbout" class="settings-panel">
@@ -890,12 +905,7 @@
     </div>
     <div class="field">
       <label class="label">Tag</label>
-      <select id="noteTag" class="input">
-        <option value="gold|Idea">💛 Idea</option>
-        <option value="blue|Draft">💙 Draft</option>
-        <option value="green|Campaign">💚 Campaign</option>
-        <option value="violet|Priority">💜 Priority</option>
-      </select>
+      <select id="noteTag" class="input"></select>
     </div>
     <div class="row">
       <button class="btn primary" id="saveNoteBtn">Save note</button>
@@ -969,8 +979,15 @@
       <button class="btn sm ghost" id="closeShare">Close</button>
     </div>
     <div class="card mb8" style="padding:14px;">
+      <div class="field" style="margin-bottom:12px;">
+        <label class="label">Snapshot range</label>
+        <select id="shareRange" class="input">
+          <option value="week">This week</option>
+          <option value="month" selected>This month</option>
+        </select>
+      </div>
       <div class="share-modal-stat">
-        <span class="share-modal-stat-label">Month</span>
+        <span class="share-modal-stat-label">Range</span>
         <span class="share-modal-stat-val" id="shareMonthName">—</span>
       </div>
       <div class="share-modal-stat">
@@ -978,9 +995,13 @@
         <span class="share-modal-stat-val" id="sharePostCount">0</span>
       </div>
       <div class="field mt12" style="margin-bottom:0;">
-        <label class="label">Snapshot title</label>
-        <input id="shareCustomTitle" class="input" placeholder="e.g. April content plan — Acme Co." maxlength="120" />
+        <label class="label">Recipient/client name or title</label>
+        <input id="shareCustomTitle" class="input" placeholder="e.g. Acme Co. content plan" maxlength="120" />
         <div style="font-size:11px;color:var(--subtle);margin-top:5px;line-height:1.5;">This appears as the headline on the shared page.</div>
+      </div>
+      <div class="field mt12" style="margin-bottom:0;">
+        <label class="label">Optional note</label>
+        <textarea id="shareNote" placeholder="Add context for your client or team…" style="min-height:74px;"></textarea>
       </div>
       <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted);">
         <input type="checkbox" id="includeNotes" checked style="accent-color:var(--brand);" /> Include planning notes
@@ -1052,6 +1073,7 @@
   <div class="snap-hero">
     <a href="/" class="snap-brand">PostIQ <span class="snap-brand-badge">Snapshot</span></a>
     <div class="snap-title" id="sharedTitle">Content Plan</div>
+    <div id="sharedSnapshotNote" class="snap-note-message" style="display:none;"></div>
     <div class="snap-stats">
       <div class="snap-stat"><strong id="sharedPostCount">0</strong> scheduled posts</div>
       <div class="snap-stat-dot"></div>

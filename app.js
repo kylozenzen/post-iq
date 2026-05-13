@@ -3,6 +3,8 @@
 // ── CONSTANTS ──────────────────────────────────────
 const STORE_KEY       = 'postiq_buffer_token';
 const NOTE_KEY        = 'postiq_calendar_notes_v2';
+const NOTE_TYPES_KEY  = 'postiqNoteTypes';
+const PLANNING_KEY    = 'postiqPlanningSettings';
 const TEMPLATE_KEY    = 'postiq_templates_v1';
 const CACHE_KEY       = 'postiq_buffer_cache_v1';
 const APPROVAL_PREFIX = 'postiq_approval_';
@@ -12,6 +14,21 @@ const UNSPLASH_KEY = 'tBuaYCO5p-pJPjgF29hR2yJGtlQaG4d5HqdVivV0lbQ';
 
 const TEMPLATE_TYPES     = ['All','Hooks','CTAs','Announcements','Engagement','Hashtag Sets'];
 const TEMPLATE_PLATFORMS = ['All Platforms','LinkedIn','X','Threads','Instagram','Universal'];
+const DAY_CODES = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+const DAY_LABELS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const DEFAULT_PLANNING_SETTINGS = { showQueueGaps: true, postingDays: ['MON','TUE','WED','THU','FRI'] };
+const DEFAULT_NOTE_TYPES = [
+  { id: 'note', label: 'Note', color: '#6366f1' },
+  { id: 'idea', label: 'Idea', color: '#22c55e' },
+  { id: 'reminder', label: 'Reminder', color: '#f59e0b' },
+  { id: 'revision', label: 'Needs Revision', color: '#ef4444' }
+];
+const LEGACY_NOTE_TYPES = {
+  gold: { id: 'idea', label: 'Idea', color: '#f59e0b' },
+  blue: { id: 'draft', label: 'Draft', color: '#3a3fff' },
+  green: { id: 'campaign', label: 'Campaign', color: '#0fa672' },
+  violet: { id: 'priority', label: 'Priority', color: '#7c3aed' }
+};
 
 // ── STATE ──────────────────────────────────────────
 let bufferToken = '';
@@ -72,6 +89,14 @@ function formatDateOnly(value) {
 }
 const normTags = v => Array.isArray(v) ? v.map(x => String(x).trim()).filter(Boolean) : String(v || '').split(',').map(x => x.trim()).filter(Boolean);
 const isVideo = url => /\.(mp4|mov|webm|avi|mkv|m4v)(\?|$)/i.test(String(url || ''));
+const isImageUrl = url => /\.(jpe?g|png|webp|gif)(\?|#|$)/i.test(String(url || ''));
+const normalizeHexColor = color => /^#[0-9a-f]{6}$/i.test(String(color || '')) ? String(color) : '#6366f1';
+const rgbaFromHex = (hex, alpha = 0.1) => {
+  const clean = String(hex || '').replace('#', '');
+  const full = clean.length === 3 ? clean.split('').map(ch => ch + ch).join('') : clean;
+  const num = /^[0-9a-f]{6}$/i.test(full) ? parseInt(full, 16) : 0x6366f1;
+  return `rgba(${(num >> 16) & 255},${(num >> 8) & 255},${num & 255},${alpha})`;
+};
 const maskToken = t => !t ? '—' : t.length <= 8 ? '••••' : `${t.slice(0,4)}••••${t.slice(-4)}`;
 
 
@@ -683,6 +708,81 @@ function renderChannelSelects() {
 // ── CALENDAR ──────────────────────────────────────
 function getNotes() { try { return JSON.parse(localStorage.getItem(NOTE_KEY) || '{}'); } catch { return {}; } }
 function setNotes(v) { localStorage.setItem(NOTE_KEY, JSON.stringify(v)); }
+function getPlanningSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PLANNING_KEY) || 'null') || {};
+    const postingDays = Array.isArray(saved.postingDays) ? saved.postingDays.filter(d => DAY_CODES.includes(d)) : DEFAULT_PLANNING_SETTINGS.postingDays;
+    return { showQueueGaps: saved.showQueueGaps !== false, postingDays: postingDays.length ? postingDays : DEFAULT_PLANNING_SETTINGS.postingDays };
+  } catch { return { ...DEFAULT_PLANNING_SETTINGS }; }
+}
+function setPlanningSettings(v) { localStorage.setItem(PLANNING_KEY, JSON.stringify(v)); }
+function getNoteTypes() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(NOTE_TYPES_KEY) || 'null');
+    if (Array.isArray(saved) && saved.length) return saved.map(t => ({ id: String(t.id || '').trim(), label: String(t.label || 'Note').trim() || 'Note', color: String(t.color || '#6366f1') })).filter(t => t.id);
+  } catch {}
+  return DEFAULT_NOTE_TYPES.map(t => ({ ...t }));
+}
+function setNoteTypes(types) { localStorage.setItem(NOTE_TYPES_KEY, JSON.stringify(types)); }
+function getNoteTypeMeta(note, noteTypes = getNoteTypes()) {
+  const fallback = noteTypes.find(t => t.id === 'note') || DEFAULT_NOTE_TYPES[0];
+  if (!note) return fallback;
+  const byId = noteTypes.find(t => t.id === note.typeId || t.id === note.type || t.id === note.id);
+  if (byId) return byId;
+  const byLabel = noteTypes.find(t => String(t.label).toLowerCase() === String(note.label || '').toLowerCase());
+  if (byLabel) return byLabel;
+  if (note.tag && LEGACY_NOTE_TYPES[note.tag]) return LEGACY_NOTE_TYPES[note.tag];
+  return fallback;
+}
+function notePillStyle(meta) {
+  const color = normalizeHexColor(meta?.color || DEFAULT_NOTE_TYPES[0].color);
+  return `background:${rgbaFromHex(color, .1)};border:1px solid ${rgbaFromHex(color, .24)};color:${color};`;
+}
+function renderNoteTypeOptions(selectedId) {
+  const sel = qs('noteTag'); if (!sel) return;
+  const types = getNoteTypes();
+  sel.innerHTML = types.map(t => `<option value="${safeText(t.id)}" ${t.id === selectedId ? 'selected' : ''}>${safeText(t.label)}</option>`).join('');
+}
+function mediaUrlsFromAssets(assets) {
+  const urls = [];
+  if (!Array.isArray(assets)) return urls;
+  assets.forEach(asset => {
+    const item = asset?.image || asset?.video || asset?.document || asset?.link || asset;
+    const url = item?.url || item?.thumbnailUrl || item?.previewUrl;
+    if (url) urls.push(String(url));
+  });
+  return urls;
+}
+function getPostMediaUrls(post) {
+  const candidates = [];
+  ['mediaUrls','media_urls','media','imageUrls','image_urls'].forEach(k => { if (Array.isArray(post?.[k])) candidates.push(...post[k]); });
+  ['mediaUrl','media_url','imageUrl','image_url','thumbnailUrl','thumbnail_url'].forEach(k => { if (post?.[k]) candidates.push(post[k]); });
+  candidates.push(...mediaUrlsFromAssets(post?.assets));
+  return [...new Set(candidates.map(x => String(x || '').trim()).filter(Boolean))];
+}
+function mediaPreviewHtml(post) {
+  const urls = getPostMediaUrls(post);
+  if (!urls.length) return '';
+  const items = urls.map(url => isImageUrl(url)
+    ? `<a class="post-media-preview" href="${safeText(url)}" target="_blank" rel="noopener"><img src="${safeText(url)}" alt="Attached media preview" loading="lazy" onerror="this.closest('a').classList.add('is-broken');this.remove();" /><span class="post-media-broken">Preview unavailable — open media</span></a>`
+    : `<a class="post-media-link" href="${safeText(url)}" target="_blank" rel="noopener">Open media ↗</a>`).join('');
+  return `<div class="post-media-list"><div class="post-detail-label">Media</div>${items}</div>`;
+}
+function postChannelLabel(p) {
+  const ch = state.channels.find(c => c.id === (p?.channelId || p?.channel_id));
+  return p?.channelName || p?.channel || ch?.displayName || ch?.name || '';
+}
+function postPlatformLabel(p) {
+  const ch = state.channels.find(c => c.id === (p?.channelId || p?.channel_id));
+  return p?.platform || p?.service || ch?.service || '';
+}
+function snapshotPostPayload(p) {
+  return {
+    dueAt: p.dueAt, text: p.text || '', status: p.status || 'scheduled',
+    channelName: postChannelLabel(p), platform: postPlatformLabel(p), channelId: p.channelId || '',
+    mediaUrls: getPostMediaUrls(p)
+  };
+}
 
 function renderCalendar() {
   qs('monthLabel').textContent = monthLabel(state.month);
@@ -708,11 +808,14 @@ function renderCalendar() {
 
     let html = `<div class="day-num">${d.getDate()}</div>`;
     if (dayPosts.length) html += `<div class="day-count">${dayPosts.length}</div>`;
-    if (dayPosts[0]) html += `<div class="day-post-pill">${safeText(compact(dayPosts[0].text, 60))}</div>`;
-    if (dayPosts[1]) html += `<div class="day-post-pill">${safeText(compact(dayPosts[1].text, 60))}</div>`;
+    if (dayPosts[0]) html += `<button type="button" class="day-post-pill" data-post-detail="${key}">${safeText(compact(dayPosts[0].text, 60))}</button>`;
+    if (dayPosts[1]) html += `<button type="button" class="day-post-pill" data-post-detail="${key}">${safeText(compact(dayPosts[1].text, 60))}</button>`;
     if (dayPosts.length > 2) html += `<div class="more-indicator">+${dayPosts.length - 2} more</div>`;
-    if (note) html += `<div class="day-note-pill ${note.tag || 'gold'}">${safeText(compact(note.text, 50))}</div>`;
+    if (note) { const meta = getNoteTypeMeta(note); html += `<div class="day-note-pill" style="${notePillStyle(meta)}">${safeText(compact(note.text, 50))}</div>`; }
     day.innerHTML = html;
+    day.querySelectorAll('[data-post-detail]').forEach(el => {
+      el.addEventListener('click', ev => { ev.stopPropagation(); openCalendarPostDetails(key, dayPosts, note ? [note] : []); });
+    });
     day.onclick = () => openDayNote(d);
     grid.appendChild(day);
   }
@@ -722,11 +825,13 @@ function renderCalendar() {
 function detectQueueGaps() {
   const panel = qs('gapsPanel'); const list = qs('gapsList');
   if (!panel || !list || !bufferToken) { if (panel) panel.style.display = 'none'; return; }
+  const settings = getPlanningSettings();
+  if (!settings.showQueueGaps) { panel.style.display = 'none'; return; }
   const today = new Date(); today.setHours(0,0,0,0);
   const gaps = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(today); d.setDate(today.getDate() + i);
-    if ([0,6].includes(d.getDay())) continue;
+    if (!settings.postingDays.includes(DAY_CODES[d.getDay()])) continue;
     const key = fmtDate(d);
     const hasPosts = state.scheduled.some(p => fmtDate(new Date(p.dueAt)) === key);
     if (!hasPosts) gaps.push(d);
@@ -746,16 +851,17 @@ function detectQueueGaps() {
 function openDayNote(date) {
   state.selectedDate = date;
   const key = fmtDate(date);
-  const note = getNotes()[key] || { text: '', tag: 'gold', label: 'Idea' };
+  const note = getNotes()[key] || { text: '', typeId: 'note' };
   qs('noteDateLabel').textContent = date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
   qs('noteText').value = note.text || '';
-  qs('noteTag').value = `${note.tag || 'gold'}|${note.label || 'Idea'}`;
+  renderNoteTypeOptions(getNoteTypeMeta(note).id);
   const dayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
   const dmMono = 'DM Mono';
   qs('dayPostPreview').innerHTML = dayPosts.length
-    ? `<div style="font-size:11px;font-family:'${dmMono}',monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;">${dayPosts.length} scheduled post${dayPosts.length > 1 ? 's' : ''}</div>${dayPosts.map(p => `<div style="font-size:12px;padding:6px 8px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:5px;color:var(--brand);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${safeText(p.text || '(no text)')}</div>`).join('')}`
+    ? `<div style="font-size:11px;font-family:'${dmMono}',monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;">${dayPosts.length} scheduled post${dayPosts.length > 1 ? 's' : ''}</div>${dayPosts.map(p => `<button type="button" class="day-post-preview-btn" data-note-post-detail="${key}">${safeText(p.text || '(no text)')}</button>`).join('')}`
     : `<div style="font-size:12px;color:var(--subtle);margin-bottom:8px;">No posts scheduled on this day.</div>`;
   qs('noteStatus').textContent = '';
+  qs('dayPostPreview').querySelectorAll('[data-note-post-detail]').forEach(btn => btn.addEventListener('click', () => openCalendarPostDetails(key, dayPosts, note?.text ? [note] : [])));
   openModal('noteModal');
 }
 
@@ -763,10 +869,11 @@ function saveNote() {
   if (!state.selectedDate) return;
   const key = fmtDate(state.selectedDate);
   const text = qs('noteText').value.trim();
-  const [tag, label] = qs('noteTag').value.split('|');
+  const typeId = qs('noteTag').value || 'note';
+  const typeMeta = getNoteTypes().find(t => t.id === typeId) || DEFAULT_NOTE_TYPES[0];
   const notes = getNotes();
   if (!text) { delete notes[key]; setNotes(notes); qs('noteStatus').textContent = 'Note removed.'; renderCalendar(); return; }
-  notes[key] = { text, tag, label };
+  notes[key] = { text, typeId: typeMeta.id, label: typeMeta.label, color: typeMeta.color };
   setNotes(notes); qs('noteStatus').textContent = 'Saved.'; renderCalendar();
   showToast('Note saved', 'success');
 }
@@ -782,7 +889,8 @@ function sendNoteToDraft() {
   if (!state.selectedDate) return;
   const text = qs('noteText').value.trim();
   if (!text) { qs('noteStatus').textContent = 'Add a note first.'; return; }
-  const [, label] = qs('noteTag').value.split('|');
+  const typeMeta = getNoteTypes().find(t => t.id === qs('noteTag').value) || DEFAULT_NOTE_TYPES[0];
+  const label = typeMeta.label;
   const editor = qs('composerEditor');
   const payload = `[${label}] ${fmtDate(state.selectedDate)}\n${text}`;
   editor.innerText = editor.innerText ? `${editor.innerText}\n\n${payload}` : payload;
@@ -816,10 +924,12 @@ function renderAgenda() {
     dayEl.style.cssText = `border:1px solid ${isToday ? 'var(--brand)' : 'var(--border)'};border-radius:10px;padding:12px;margin-bottom:8px;background:var(--surface);cursor:pointer;`;
     const dateLabel = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
     let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-family:'${dmMono}',monospace;font-size:11px;font-weight:600;color:${isToday ? 'var(--brand)' : 'var(--muted)'};">${dateLabel}</span>${data.posts.length ? `<span style="font-size:9px;font-family:'${dmMono}',monospace;background:var(--brand-dim);color:var(--brand);border:1px solid var(--brand-glow);padding:1px 5px;border-radius:3px;">${data.posts.length} post${data.posts.length > 1 ? 's' : ''}</span>` : ''}</div>`;
-    data.posts.slice(0, 2).forEach(p => { html += `<div style="font-size:12px;padding:6px 8px;background:var(--brand-dim);border:1px solid var(--brand-glow);border-radius:5px;color:var(--brand);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${safeText(compact(p.text, 80))}</div>`; });
+    data.posts.slice(0, 2).forEach(p => { html += `<button type="button" class="day-post-preview-btn" data-agenda-post="${key}">${safeText(compact(p.text, 80))}</button>`; });
     if (data.posts.length > 2) html += `<div style="font-size:10px;color:var(--subtle);margin-bottom:4px;">+${data.posts.length - 2} more</div>`;
-    if (data.note) html += `<div class="day-note-pill ${data.note.tag || 'gold'}" style="display:block;border-radius:5px;margin-top:4px;">${safeText(compact(data.note.text, 60))}</div>`;
-    dayEl.innerHTML = html; dayEl.onclick = () => openDayNote(date);
+    if (data.note) { const meta = getNoteTypeMeta(data.note); html += `<div class="day-note-pill" style="display:block;border-radius:5px;margin-top:4px;${notePillStyle(meta)}">${safeText(compact(data.note.text, 60))}</div>`; }
+    dayEl.innerHTML = html;
+    dayEl.querySelectorAll('[data-agenda-post]').forEach(btn => btn.addEventListener('click', ev => { ev.stopPropagation(); openCalendarPostDetails(key, data.posts, data.note ? [data.note] : []); }));
+    dayEl.onclick = () => openDayNote(date);
     agenda.appendChild(dayEl);
   });
   if (!Object.keys(map).length) {
@@ -829,66 +939,86 @@ function renderAgenda() {
 }
 
 // Calendar snapshot share
+function visibleWeekBounds() {
+  const base = new Date(state.month);
+  const today = new Date();
+  if (today.getFullYear() === state.month.getFullYear() && today.getMonth() === state.month.getMonth()) base.setDate(today.getDate());
+  const start = new Date(base); start.setHours(0,0,0,0); start.setDate(base.getDate() - base.getDay());
+  const end = new Date(start); end.setDate(start.getDate() + 6); end.setHours(23,59,59,999);
+  return { start, end };
+}
+function rangeLabelForSnapshot(range) {
+  if (range === 'week') {
+    const { start, end } = visibleWeekBounds();
+    return `This week · ${start.toLocaleDateString(undefined, { month:'short', day:'numeric' })}–${end.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' })}`;
+  }
+  return monthLabel(state.month);
+}
+// Calendar snapshot share
 function shareSnapshot() {
   const include     = qs('includeNotes').checked;
   const customTitle = (qs('shareCustomTitle')?.value || '').trim();
-  const posts = state.scheduled.filter(p => {
-    const d = new Date(p.dueAt);
+  const message     = (qs('shareNote')?.value || '').trim();
+  const range       = qs('shareRange')?.value || 'month';
+  const bounds      = range === 'week' ? visibleWeekBounds() : null;
+  const inRange = value => {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return false;
+    if (range === 'week') return d >= bounds.start && d <= bounds.end;
     return d.getFullYear() === state.month.getFullYear() && d.getMonth() === state.month.getMonth();
-  });
+  };
+  const posts = state.scheduled.filter(p => inRange(p.dueAt));
   const allNotes   = getNotes();
-  const monthNotes = Object.entries(allNotes)
-    .filter(([k]) => { const d = new Date(k + 'T00:00:00'); return d.getFullYear() === state.month.getFullYear() && d.getMonth() === state.month.getMonth(); })
-    .map(([date, val]) => ({ date, ...val }));
-  const label      = monthLabel(state.month);
+  const rangeNotes = Object.entries(allNotes)
+    .filter(([k]) => inRange(k + 'T12:00:00'))
+    .map(([date, val]) => ({ date, ...val, ...getNoteTypeMeta(val) }));
+  const label      = rangeLabelForSnapshot(range);
   const snapshotId = generateSnapshotId();
   const title      = customTitle || label + ' content plan';
   qs('shareMonthName').textContent = label;
   qs('sharePostCount').textContent = posts.length;
   const payload = {
-    snapshotId, createdAt: Date.now(), period: 'month', month: label, title, customTitle,
+    snapshotId, createdAt: Date.now(), period: range, month: range === 'month' ? monthLabel(state.month) : '', rangeLabel: label, title, customTitle, message,
     includeNotes: include,
-    posts: posts.map(p => ({ dueAt: p.dueAt, text: p.text || '', channelName: p.channelName || p.channel || '', platform: p.service || p.platform || '', channelId: p.channelId || '' })),
-    notes: include ? monthNotes : []
+    noteTypes: getNoteTypes(),
+    posts: posts.map(snapshotPostPayload),
+    notes: include ? rangeNotes : []
   };
   const encoded = toBase64Url(JSON.stringify(payload));
   qs('shareLink').value = location.origin + location.pathname + '#share=' + snapshotId + '.' + encoded;
   const meta = qs('shareLinkMeta'); if (meta) meta.style.display = 'block';
 }
 
-function openSharedDayDetails(key, data) {
-  const titleEl = qs('sharedDayTitle');
-  const bodyEl  = qs('sharedDayBody');
-  if (!titleEl || !bodyEl) return;
-  titleEl.textContent = formatDateOnly(key);
-  const sections = [];
-  if (data.posts && data.posts.length) {
-    const dmMono = 'DM Mono';
-    const postsHtml = data.posts.map((p, idx) => {
-      const platform = p.platform || p.channelName || '';
-      return `<div class="snap-modal-post">
-        <div class="snap-modal-post-hdr">
-          <div class="snap-modal-post-meta">
-            <span class="snap-post-num">Post ${idx + 1}</span>
-            ${platform ? '<span class="snap-platform-badge">' + safeText(platform) + '</span>' : ''}
-          </div>
-          <span class="snap-scheduled-time">${safeText(formatDateTime(p.dueAt))}</span>
+function postDetailCardsHtml(posts) {
+  return posts.map((p, idx) => {
+    const platform = postPlatformLabel(p) || postChannelLabel(p);
+    const channel = postChannelLabel(p);
+    const status = p.status || 'scheduled';
+    return `<div class="snap-modal-post">
+      <div class="snap-modal-post-hdr">
+        <div class="snap-modal-post-meta">
+          <span class="snap-post-num">Post ${idx + 1}</span>
+          ${platform ? '<span class="snap-platform-badge">' + safeText(platform) + '</span>' : ''}
+          ${channel && channel !== platform ? '<span class="snap-platform-badge">' + safeText(channel) + '</span>' : ''}
+          ${status ? '<span class="snap-platform-badge">' + safeText(status) + '</span>' : ''}
         </div>
-        <div class="snap-modal-post-body">${safeText(p.text || '(no copy)')}</div>
-        <div class="snap-modal-post-copy">
-          <button class="btn sm ghost" data-copy="${safeText(p.text || '')}">Copy post</button>
-        </div>
-      </div>`;
-    }).join('');
-    sections.push(`<div style="margin-bottom:16px;"><div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">${data.posts.length} Scheduled post${data.posts.length > 1 ? 's' : ''}</div>${postsHtml}</div>`);
-  } else {
-    sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No post scheduled</div><div class="empty-desc">This day does not have a scheduled post in the shared snapshot.</div></div>');
-  }
-  if (data.notes && data.notes.length) {
-    const notesHtml = data.notes.map(n => `<div class="snap-modal-note"><div class="snap-modal-note-label">${safeText(n.label || n.tag || 'Note')}</div><div class="snap-modal-note-text">${safeText(n.text || '')}</div></div>`).join('');
-    sections.push(`<div><div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">Planning notes</div>${notesHtml}</div>`);
-  }
-  bodyEl.innerHTML = sections.join('');
+        <span class="snap-scheduled-time">${safeText(formatDateTime(p.dueAt))}</span>
+      </div>
+      <div class="snap-modal-post-body">${safeText(p.text || '(no copy)')}</div>
+      ${mediaPreviewHtml(p)}
+      <div class="snap-modal-post-copy">
+        <button class="btn sm ghost" data-copy="${safeText(p.text || '')}">Copy post</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function noteCardsHtml(notes, noteTypes = getNoteTypes()) {
+  return (notes || []).map(n => {
+    const meta = getNoteTypeMeta(n, noteTypes);
+    return `<div class="snap-modal-note" style="background:${rgbaFromHex(meta.color, .06)};border-color:${rgbaFromHex(meta.color, .24)};"><div class="snap-modal-note-label" style="color:${normalizeHexColor(meta.color)};">${safeText(meta.label || 'Note')}</div><div class="snap-modal-note-text">${safeText(n.text || '')}</div></div>`;
+  }).join('');
+}
+function bindPostDetailCopy(bodyEl) {
   bodyEl.querySelectorAll('[data-copy]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const ok = await copyTextSafe(btn.dataset.copy);
@@ -896,7 +1026,30 @@ function openSharedDayDetails(key, data) {
       else showToast('Could not copy', 'error');
     });
   });
+}
+function openCalendarPostDetails(key, posts, notes = []) {
+  openPostDetails(key, { posts, notes }, { title: formatDateOnly(key), noteTypes: getNoteTypes() });
+}
+function openPostDetails(key, data, options = {}) {
+  const titleEl = qs('sharedDayTitle');
+  const bodyEl  = qs('sharedDayBody');
+  if (!titleEl || !bodyEl) return;
+  titleEl.textContent = options.title || formatDateOnly(key);
+  const sections = [];
+  if (data.posts && data.posts.length) {
+    sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${data.posts.length} Scheduled post${data.posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(data.posts)}</div>`);
+  } else {
+    sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No post scheduled</div><div class="empty-desc">This day does not have a scheduled post in this calendar.</div></div>');
+  }
+  if (data.notes && data.notes.length) {
+    sections.push(`<div><div class="post-detail-label">Planning notes</div>${noteCardsHtml(data.notes, options.noteTypes || getNoteTypes())}</div>`);
+  }
+  bodyEl.innerHTML = sections.join('');
+  bindPostDetailCopy(bodyEl);
   openModal('sharedDayModal');
+}
+function openSharedDayDetails(key, data, snap = {}) {
+  openPostDetails(key, data, { title: formatDateOnly(key), noteTypes: snap.noteTypes || DEFAULT_NOTE_TYPES });
 }
 
 function renderSharedFromHash() {
@@ -910,21 +1063,23 @@ function renderSharedFromHash() {
     qs('sharedView').classList.remove('hidden');
     const titleEl = qs('sharedTitle');
     if (titleEl) titleEl.textContent = snap.title || snap.customTitle || snap.month || 'Content Plan';
-    const countEl = qs('sharedPostCount'); if (countEl) countEl.textContent = snap.posts.length;
-    const periodEl = qs('sharedPeriodStat'); if (periodEl && snap.month) periodEl.innerHTML = '<strong>' + safeText(snap.month) + '</strong>';
+    const countEl = qs('sharedPostCount'); if (countEl) countEl.textContent = (snap.posts || []).length;
+    const noteEl = qs('sharedSnapshotNote'); if (noteEl) { noteEl.textContent = snap.message || ''; noteEl.style.display = snap.message ? 'block' : 'none'; }
+    const periodEl = qs('sharedPeriodStat'); if (periodEl) periodEl.innerHTML = '<strong>' + safeText(snap.rangeLabel || snap.month || 'Snapshot') + '</strong>';
     if (snap.includeNotes && snap.notes?.length) {
       const dot2  = qs('sharedNotesDot');  if (dot2)  dot2.style.display  = 'block';
       const stat = qs('sharedNotesStat'); if (stat) { stat.style.display = 'flex'; stat.innerHTML = '<strong>' + snap.notes.length + '</strong>&nbsp;planning note' + (snap.notes.length > 1 ? 's' : ''); }
     }
     const calLabel = qs('sharedCalLabel');
-    if (calLabel) calLabel.textContent = snap.posts.length > 0 ? 'Click any highlighted day to read the full post' : 'No posts in this snapshot';
+    if (calLabel) calLabel.textContent = (snap.posts || []).length > 0 ? 'Click any highlighted day to read the full post' : 'No posts in this snapshot';
     const closeBtn = qs('closeSharedDay'); if (closeBtn) closeBtn.onclick = () => closeModal('sharedDayModal');
     const map = {};
-    snap.posts.forEach(p => { const k = String(p.dueAt || '').slice(0,10); if (!map[k]) map[k]={posts:[],notes:[]}; map[k].posts.push(p); });
+    (snap.posts || []).forEach(p => { const k = String(p.dueAt || '').slice(0,10); if (!map[k]) map[k]={posts:[],notes:[]}; map[k].posts.push(p); });
     (snap.notes || []).forEach(n => { if (!map[n.date]) map[n.date]={posts:[],notes:[]}; map[n.date].notes.push(n); });
     const grid = qs('sharedGrid'); grid.innerHTML = '';
     let baseDate = new Date();
-    if (snap.posts[0]?.dueAt)      baseDate = new Date(snap.posts[0].dueAt);
+    if (snap.posts?.[0]?.dueAt)      baseDate = new Date(snap.posts[0].dueAt);
+    else if (snap.month) { const parsed = new Date(snap.month + ' 1'); if (!Number.isNaN(parsed.getTime())) baseDate = parsed; }
     else if (snap.notes?.[0]?.date) baseDate = new Date(snap.notes[0].date + 'T00:00:00');
     const first = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
     const start = new Date(first); start.setDate(1 - first.getDay());
@@ -943,10 +1098,10 @@ function renderSharedFromHash() {
         if (data.posts.length > 2) inner += '<div class="more-indicator">+' + (data.posts.length - 2) + ' more</div>';
       }
       if (data.notes.length && snap.includeNotes) {
-        data.notes.slice(0,1).forEach(n => { inner += '<div class="day-note-pill ' + (n.tag||'gold') + '">' + safeText((n.text||'').slice(0,50)) + '</div>'; });
+        data.notes.slice(0,1).forEach(n => { const meta = getNoteTypeMeta(n, snap.noteTypes || DEFAULT_NOTE_TYPES); inner += '<div class="day-note-pill" style="' + notePillStyle(meta) + '">' + safeText((n.text||'').slice(0,50)) + '</div>'; });
       }
       day.innerHTML = inner;
-      if (hasContent) day.onclick = () => openSharedDayDetails(key, data);
+      if (hasContent) day.onclick = () => openSharedDayDetails(key, data, snap);
       grid.appendChild(day);
     }
     return true;
@@ -1092,10 +1247,15 @@ async function editPost(input, options = {}) {
   return result;
 }
 
-function appendScheduled(post) {
+function appendScheduled(post, sourceInput = {}) {
   const id = post?.id; if (!id) return;
   if (state.scheduled.some(p => p.id === id)) return;
-  state.scheduled = [...state.scheduled, { id, text: post.text || '', dueAt: post.dueAt, channelId: post.channelId }];
+  const channel = state.channels.find(c => c.id === (post.channelId || sourceInput.channelId));
+  state.scheduled = [...state.scheduled, {
+    id, text: post.text || sourceInput.text || '', dueAt: post.dueAt || sourceInput.dueAt, channelId: post.channelId || sourceInput.channelId,
+    channelName: channel?.displayName || channel?.name || '', platform: channel?.service || '', status: 'scheduled',
+    mediaUrls: mediaUrlsFromAssets(sourceInput.assets)
+  }];
   cache.scheduled = { value: state.scheduled, ts: Date.now() }; saveCacheState();
 }
 
@@ -1137,7 +1297,7 @@ async function composerSend(action) {
     }
     const msg = action === 'draft' ? 'Draft saved.' : action === 'queue' ? 'Added to queue.' : 'Scheduled.';
     qs('composerStatus').textContent = msg; showToast(msg, 'success');
-    if (created?.post?.dueAt) { appendScheduled(created.post); renderCalendar(); }
+    if (created?.post?.dueAt) { appendScheduled(created.post, input); renderCalendar(); }
     qs('composerEditor').innerHTML = '';
     qs('composerEditor').dispatchEvent(new Event('input'));
     qs('composerWhen').value = '';
@@ -1339,7 +1499,7 @@ window.approvalPublish = async function (safeId, action) {
     clearApprovalMeta(draftId);
     const msg = action === 'draft' ? 'Draft saved.' : action === 'queue' ? 'Added to queue.' : 'Scheduled.';
     showToast(msg, 'success');
-    if (created?.post?.dueAt) { appendScheduled(created.post); renderCalendar(); }
+    if (created?.post?.dueAt) { appendScheduled(created.post, input); renderCalendar(); }
     const card = document.querySelector(`[data-draft-id="${CSS.escape(draftId)}"]`);
     if (card) { card.style.opacity = '.4'; card.style.pointerEvents = 'none'; setTimeout(() => card.remove(), 600); }
   } catch (e) {
@@ -1461,6 +1621,60 @@ function syncComposerWhen() {
 }
 
 // ── INIT ──────────────────────────────────────────────
+function renderPlanningSettings() {
+  const show = qs('showQueueGapsSetting');
+  const daysWrap = qs('postingDaysSettings');
+  if (!show || !daysWrap) return;
+  const settings = getPlanningSettings();
+  show.checked = settings.showQueueGaps;
+  daysWrap.innerHTML = DAY_CODES.map((code, idx) => `<label class="settings-check"><input type="checkbox" data-posting-day="${code}" ${settings.postingDays.includes(code) ? 'checked' : ''} /> ${DAY_LABELS[idx]}</label>`).join('');
+}
+function savePlanningSettingsFromUI() {
+  const show = qs('showQueueGapsSetting');
+  const postingDays = [...document.querySelectorAll('[data-posting-day]')].filter(i => i.checked).map(i => i.dataset.postingDay);
+  const next = { showQueueGaps: !!show?.checked, postingDays: postingDays.length ? postingDays : DEFAULT_PLANNING_SETTINGS.postingDays };
+  setPlanningSettings(next);
+  detectQueueGaps();
+}
+function renderNoteTypesSettings() {
+  const wrap = qs('noteTypesSettings'); if (!wrap) return;
+  const types = getNoteTypes();
+  wrap.innerHTML = types.map((t, idx) => `
+    <div class="note-type-row" data-note-type-row="${safeText(t.id)}">
+      <input type="color" value="${safeText(t.color)}" data-note-type-color="${safeText(t.id)}" aria-label="${safeText(t.label)} color" />
+      <input class="input" value="${safeText(t.label)}" data-note-type-label="${safeText(t.id)}" maxlength="40" />
+      <button class="btn sm ghost" type="button" data-delete-note-type="${safeText(t.id)}" ${DEFAULT_NOTE_TYPES.some(d => d.id === t.id) ? 'disabled title="Default types cannot be deleted"' : ''}>Delete</button>
+    </div>`).join('');
+  renderNoteTypeOptions(qs('noteTag')?.value);
+}
+function saveNoteTypesFromSettings() {
+  const current = getNoteTypes();
+  const next = current.map(t => {
+    const label = document.querySelector(`[data-note-type-label="${CSS.escape(t.id)}"]`)?.value.trim() || t.label;
+    const color = document.querySelector(`[data-note-type-color="${CSS.escape(t.id)}"]`)?.value || t.color;
+    return { ...t, label, color };
+  });
+  setNoteTypes(next);
+  renderCalendar();
+  renderNoteTypeOptions(qs('noteTag')?.value);
+}
+function addNoteType() {
+  const types = getNoteTypes();
+  const id = `custom_${Date.now().toString(36)}`;
+  types.push({ id, label: 'New type', color: '#6366f1' });
+  setNoteTypes(types);
+  renderNoteTypesSettings();
+}
+function deleteNoteType(id) {
+  if (DEFAULT_NOTE_TYPES.some(t => t.id === id)) return;
+  const notes = getNotes();
+  const inUse = Object.values(notes).some(n => (n.typeId || n.type || n.id) === id);
+  if (inUse) { showToast('This note type is used by existing notes.', 'error'); return; }
+  setNoteTypes(getNoteTypes().filter(t => t.id !== id));
+  renderNoteTypesSettings();
+  renderCalendar();
+}
+
 function init() {
   const approveParam = new URLSearchParams(location.search).get('approve');
   if (approveParam) { renderReviewerPage(approveParam); return; }
@@ -1475,6 +1689,8 @@ function init() {
   qs('scheduleDate').value = new Date().toISOString().slice(0, 10);
   qs('scheduleDate').min = new Date().toISOString().slice(0, 10);
   renderCalendar();
+  renderPlanningSettings();
+  renderNoteTypesSettings();
   activateView('calendarView');
 
   qs('manageTokenBtn').onclick = () => {
@@ -1507,13 +1723,23 @@ function init() {
   qs('nextMonth').onclick = () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() + 1, 1); renderCalendar(); detectQueueGaps(); };
   qs('todayMonth').onclick = () => { state.month = new Date(); renderCalendar(); detectQueueGaps(); };
   qs('closeNote').onclick = () => closeModal('noteModal');
+  const closeShared = qs('closeSharedDay'); if (closeShared) closeShared.onclick = () => closeModal('sharedDayModal');
   qs('saveNoteBtn').onclick = saveNote;
   qs('deleteNoteBtn').onclick = deleteNote;
   qs('sendNoteToDraftBtn').onclick = sendNoteToDraft;
-  qs('shareMonthBtn').onclick = () => { const t = qs('shareCustomTitle'); if (t && !t.value.trim()) t.value = `${monthLabel(state.month)} snapshot`; shareSnapshot(); openModal('shareModal'); };
+  qs('shareMonthBtn').onclick = () => { shareSnapshot(); openModal('shareModal'); };
   qs('closeShare').onclick = () => closeModal('shareModal');
   qs('includeNotes').onchange = shareSnapshot;
+  const shareRangeInput = qs('shareRange'); if (shareRangeInput) shareRangeInput.onchange = shareSnapshot;
   const shareTitleInput = qs('shareCustomTitle'); if (shareTitleInput) shareTitleInput.oninput = shareSnapshot;
+  const shareNoteInput = qs('shareNote'); if (shareNoteInput) shareNoteInput.oninput = shareSnapshot;
+  const showQueue = qs('showQueueGapsSetting'); if (showQueue) showQueue.onchange = savePlanningSettingsFromUI;
+  const postingDays = qs('postingDaysSettings'); if (postingDays) postingDays.addEventListener('change', savePlanningSettingsFromUI);
+  const noteTypesWrap = qs('noteTypesSettings'); if (noteTypesWrap) {
+    noteTypesWrap.addEventListener('input', saveNoteTypesFromSettings);
+    noteTypesWrap.addEventListener('click', e => { const btn = e.target.closest('[data-delete-note-type]'); if (btn) deleteNoteType(btn.dataset.deleteNoteType); });
+  }
+  const addNoteTypeBtn = qs('addNoteTypeBtn'); if (addNoteTypeBtn) addNoteTypeBtn.onclick = addNoteType;
   qs('generateShare').onclick = () => { shareSnapshot(); qs('generateShare').textContent = '✓ Link ready'; setTimeout(() => { qs('generateShare').textContent = 'Generate link'; }, 2500); };
   qs('copyShare').onclick = async () => { const ok = await copyTextSafe(qs('shareLink').value || ''); if (ok) { qs('copyShare').textContent = 'Copied!'; setTimeout(() => { qs('copyShare').textContent = 'Copy'; }, 1800); } else showToast('Could not copy', 'error'); };
 
@@ -1755,7 +1981,7 @@ function init() {
   qs('mobClearTokenBtn').onclick = () => { qs('mobTokenInput').value = ''; setBufferToken('', { mode: 'session', messageEl: qs('mobTokenMsg') }); };
   qs('mobOpenSettings').onclick = () => { closeMobDrawer(); openModal('settingsModal'); };
 
-  const smb = qs('shareMonthBtnMob'); if (smb) smb.onclick = () => { const t = qs('shareCustomTitle'); if (t && !t.value.trim()) t.value = `${monthLabel(state.month)} snapshot`; shareSnapshot(); openModal('shareModal'); };
+  const smb = qs('shareMonthBtnMob'); if (smb) smb.onclick = () => { shareSnapshot(); openModal('shareModal'); };
 
   const ccbm = qs('composerClearBtnMob');
   if (ccbm) {
