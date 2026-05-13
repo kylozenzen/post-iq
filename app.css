@@ -1811,3 +1811,6 @@ body.zen-active #zenActions { opacity: 0; pointer-events: none; transition: opac
 .note-type-row input[type="color"] { width:42px; height:34px; padding:2px; border:1px solid var(--border2); border-radius:6px; background:var(--surface); }
 .snap-note-message { margin: 0 0 14px; padding: 12px 14px; border-radius: var(--r2); background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); color: rgba(255,255,255,.82); font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
 @media (max-width: 520px) { .settings-day-grid { grid-template-columns:1fr; } .note-type-row { grid-template-columns:38px 1fr; } .note-type-row button { grid-column:2; justify-self:start; } }
+.cal-filter-row { display:flex; align-items:center; justify-content:flex-end; gap:8px; margin: -4px 0 10px; }
+.snap-modal-note-actions { display:flex; justify-content:flex-end; margin-top:10px; }
+@media (max-width: 768px) { .cal-filter-row { justify-content:flex-start; padding: 0 2px; } }

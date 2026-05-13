@@ -42,6 +42,8 @@ const state = {
   scheduled: [],
   month: new Date(),
   selectedDate: null,
+  editingNoteId: null,
+  calendarFilter: 'all',
   syncState: 'idle',
   templates: [],
   templateType: 'All',
@@ -706,8 +708,49 @@ function renderChannelSelects() {
 }
 
 // ── CALENDAR ──────────────────────────────────────
-function getNotes() { try { return JSON.parse(localStorage.getItem(NOTE_KEY) || '{}'); } catch { return {}; } }
-function setNotes(v) { localStorage.setItem(NOTE_KEY, JSON.stringify(v)); }
+function createNoteId() { return `note_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`; }
+function normalizeNoteForDate(note, date) {
+  if (!note || typeof note !== 'object') return null;
+  const meta = getNoteTypeMeta(note);
+  const text = String(note.text || '').trim();
+  if (!text) return null;
+  const createdAt = note.createdAt || note.updatedAt || new Date().toISOString();
+  return {
+    ...note,
+    id: note.id || createNoteId(),
+    date: note.date || date,
+    typeId: note.typeId || note.type || meta.id || 'note',
+    label: note.label || meta.label || 'Note',
+    color: note.color || meta.color || DEFAULT_NOTE_TYPES[0].color,
+    text,
+    createdAt,
+    updatedAt: note.updatedAt || createdAt
+  };
+}
+function normalizeNotesStore(raw) {
+  const source = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+  const normalized = {};
+  let changed = !source || Array.isArray(raw);
+  Object.entries(source).forEach(([date, value]) => {
+    const list = Array.isArray(value) ? value : [value];
+    if (!Array.isArray(value)) changed = true;
+    if (list.some(n => !n || typeof n !== 'object' || !n.id || !n.date || !(n.typeId || n.type))) changed = true;
+    const notes = list.map(n => normalizeNoteForDate(n, date)).filter(Boolean);
+    if (notes.length) normalized[date] = notes;
+    if (notes.length !== list.length) changed = true;
+  });
+  return { notes: normalized, changed };
+}
+function getNotes() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(NOTE_KEY) || '{}');
+    const { notes, changed } = normalizeNotesStore(raw);
+    if (changed) setNotes(notes);
+    return notes;
+  } catch { return {}; }
+}
+function setNotes(v) { localStorage.setItem(NOTE_KEY, JSON.stringify(normalizeNotesStore(v).notes)); }
+function getNotesForDate(dateKey, notes = getNotes()) { return Array.isArray(notes[dateKey]) ? notes[dateKey] : []; }
 function getPlanningSettings() {
   try {
     const saved = JSON.parse(localStorage.getItem(PLANNING_KEY) || 'null') || {};
@@ -742,6 +785,30 @@ function renderNoteTypeOptions(selectedId) {
   const sel = qs('noteTag'); if (!sel) return;
   const types = getNoteTypes();
   sel.innerHTML = types.map(t => `<option value="${safeText(t.id)}" ${t.id === selectedId ? 'selected' : ''}>${safeText(t.label)}</option>`).join('');
+}
+function calendarFilterAllowsPosts(filter = state.calendarFilter) { return filter === 'all' || filter === 'posts'; }
+function calendarFilterNotes(notes, filter = state.calendarFilter) {
+  const list = Array.isArray(notes) ? notes : [];
+  if (filter === 'posts') return [];
+  if (filter === 'all' || filter === 'notes') return list;
+  if (String(filter).startsWith('type:')) {
+    const typeId = String(filter).slice(5);
+    return list.filter(note => getNoteTypeMeta(note).id === typeId);
+  }
+  return list;
+}
+function renderCalendarFilter() {
+  const sel = qs('calendarFilter'); if (!sel) return;
+  const current = state.calendarFilter || 'all';
+  const options = [
+    { value: 'all', label: 'All' },
+    { value: 'posts', label: 'Posts only' },
+    { value: 'notes', label: 'Notes only' },
+    ...getNoteTypes().map(t => ({ value: `type:${t.id}`, label: t.label }))
+  ];
+  const selected = options.some(o => o.value === current) ? current : 'all';
+  if (selected !== current) state.calendarFilter = selected;
+  sel.innerHTML = options.map(o => `<option value="${safeText(o.value)}" ${o.value === selected ? 'selected' : ''}>${safeText(o.label)}</option>`).join('');
 }
 function mediaUrlsFromAssets(assets) {
   const urls = [];
@@ -786,6 +853,7 @@ function snapshotPostPayload(p) {
 
 function renderCalendar() {
   qs('monthLabel').textContent = monthLabel(state.month);
+  renderCalendarFilter();
   const grid = qs('calGrid'); grid.innerHTML = '';
   const first = monthStart(state.month);
   const start = new Date(first); start.setDate(1 - first.getDay());
@@ -795,8 +863,10 @@ function renderCalendar() {
     const d = new Date(start); d.setDate(start.getDate() + i);
     const key = fmtDate(d);
     const inMonth = d.getMonth() === state.month.getMonth();
-    const dayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
-    const note = notes[key];
+    const allDayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
+    const allDayNotes = getNotesForDate(key, notes);
+    const dayPosts = calendarFilterAllowsPosts() ? allDayPosts : [];
+    const dayNotes = calendarFilterNotes(allDayNotes);
     const isToday = key === today;
 
     const day = document.createElement('div');
@@ -804,23 +874,25 @@ function renderCalendar() {
     if (!inMonth) cls += ' other-month';
     if (isToday) cls += ' today';
     if (dayPosts.length) cls += ' has-posts';
+    if (dayNotes.length) cls += ' has-notes';
     day.className = cls;
 
     let html = `<div class="day-num">${d.getDate()}</div>`;
     if (dayPosts.length) html += `<div class="day-count">${dayPosts.length}</div>`;
-    if (dayPosts[0]) html += `<button type="button" class="day-post-pill" data-post-detail="${key}">${safeText(compact(dayPosts[0].text, 60))}</button>`;
-    if (dayPosts[1]) html += `<button type="button" class="day-post-pill" data-post-detail="${key}">${safeText(compact(dayPosts[1].text, 60))}</button>`;
+    dayPosts.slice(0, 2).forEach(p => { html += `<button type="button" class="day-post-pill" data-post-detail="${key}">${safeText(compact(p.text, 60))}</button>`; });
     if (dayPosts.length > 2) html += `<div class="more-indicator">+${dayPosts.length - 2} more</div>`;
-    if (note) { const meta = getNoteTypeMeta(note); html += `<div class="day-note-pill" style="${notePillStyle(meta)}">${safeText(compact(note.text, 50))}</div>`; }
+    dayNotes.slice(0, 2).forEach(note => { const meta = getNoteTypeMeta(note); html += `<div class="day-note-pill" style="${notePillStyle(meta)}">${safeText(compact(note.text, 50))}</div>`; });
+    if (dayNotes.length > 2) html += `<div class="more-indicator">+${dayNotes.length - 2} notes</div>`;
     day.innerHTML = html;
     day.querySelectorAll('[data-post-detail]').forEach(el => {
-      el.addEventListener('click', ev => { ev.stopPropagation(); openCalendarPostDetails(key, dayPosts, note ? [note] : []); });
+      el.addEventListener('click', ev => { ev.stopPropagation(); openCalendarPostDetails(key, allDayPosts, allDayNotes); });
     });
-    day.onclick = () => openDayNote(d);
+    day.onclick = () => openCalendarDayDetails(d);
     grid.appendChild(day);
   }
   renderAgenda();
 }
+
 
 function detectQueueGaps() {
   const panel = qs('gapsPanel'); const list = qs('gapsList');
@@ -848,20 +920,20 @@ function detectQueueGaps() {
   });
 }
 
-function openDayNote(date) {
+function openDayNote(date) { openCalendarDayDetails(date); }
+
+function openAddNoteForDate(date, noteId = null) {
   state.selectedDate = date;
+  state.editingNoteId = noteId;
   const key = fmtDate(date);
-  const note = getNotes()[key] || { text: '', typeId: 'note' };
-  qs('noteDateLabel').textContent = date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
-  qs('noteText').value = note.text || '';
-  renderNoteTypeOptions(getNoteTypeMeta(note).id);
+  const existing = noteId ? getNotesForDate(key).find(n => n.id === noteId) : null;
+  qs('noteDateLabel').textContent = `${date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })} · ${existing ? 'Edit note' : 'Add note'}`;
+  qs('noteText').value = existing?.text || '';
+  renderNoteTypeOptions(getNoteTypeMeta(existing || { typeId: 'note' }).id);
   const dayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
-  const dmMono = 'DM Mono';
-  qs('dayPostPreview').innerHTML = dayPosts.length
-    ? `<div style="font-size:11px;font-family:'${dmMono}',monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;">${dayPosts.length} scheduled post${dayPosts.length > 1 ? 's' : ''}</div>${dayPosts.map(p => `<button type="button" class="day-post-preview-btn" data-note-post-detail="${key}">${safeText(p.text || '(no text)')}</button>`).join('')}`
-    : `<div style="font-size:12px;color:var(--subtle);margin-bottom:8px;">No posts scheduled on this day.</div>`;
+  const noteCount = getNotesForDate(key).length;
+  qs('dayPostPreview').innerHTML = `<div style="font-size:12px;color:var(--subtle);margin-bottom:8px;">${dayPosts.length} scheduled post${dayPosts.length === 1 ? '' : 's'} · ${noteCount} existing note${noteCount === 1 ? '' : 's'}</div>`;
   qs('noteStatus').textContent = '';
-  qs('dayPostPreview').querySelectorAll('[data-note-post-detail]').forEach(btn => btn.addEventListener('click', () => openCalendarPostDetails(key, dayPosts, note?.text ? [note] : [])));
   openModal('noteModal');
 }
 
@@ -871,38 +943,53 @@ function resetNoteForm() {
   const preview = qs('dayPostPreview'); if (preview) preview.innerHTML = '';
   const status = qs('noteStatus'); if (status) status.textContent = '';
   state.selectedDate = null;
+  state.editingNoteId = null;
 }
 
 function saveNote() {
   if (!state.selectedDate) return;
   const key = fmtDate(state.selectedDate);
   const text = qs('noteText').value.trim();
+  if (!text) { qs('noteStatus').textContent = 'Add note text first.'; return; }
   const typeId = qs('noteTag').value || 'note';
   const typeMeta = getNoteTypes().find(t => t.id === typeId) || DEFAULT_NOTE_TYPES[0];
   const notes = getNotes();
-  if (!text) {
-    delete notes[key];
-    setNotes(notes);
-    renderCalendar();
-    closeModal('noteModal');
-    resetNoteForm();
-    activateView('calendarView');
-    showToast('Note removed');
-    return;
-  }
-  notes[key] = { text, typeId: typeMeta.id, label: typeMeta.label, color: typeMeta.color };
+  const list = getNotesForDate(key, notes);
+  const now = new Date().toISOString();
+  const existingIdx = state.editingNoteId ? list.findIndex(n => n.id === state.editingNoteId) : -1;
+  const nextNote = {
+    ...(existingIdx >= 0 ? list[existingIdx] : {}),
+    id: existingIdx >= 0 ? list[existingIdx].id : createNoteId(),
+    date: key,
+    text,
+    typeId: typeMeta.id,
+    label: typeMeta.label,
+    color: typeMeta.color,
+    createdAt: existingIdx >= 0 ? list[existingIdx].createdAt : now,
+    updatedAt: now
+  };
+  if (existingIdx >= 0) list[existingIdx] = nextNote;
+  else list.push(nextNote);
+  notes[key] = list;
   setNotes(notes);
   renderCalendar();
   closeModal('noteModal');
   resetNoteForm();
   activateView('calendarView');
-  showToast('Note saved', 'success');
+  showToast(existingIdx >= 0 ? 'Note updated' : 'Note saved', 'success');
 }
 
 function deleteNote() {
-  if (!state.selectedDate) return;
-  const notes = getNotes(); delete notes[fmtDate(state.selectedDate)];
-  setNotes(notes); qs('noteText').value = ''; qs('noteStatus').textContent = 'Deleted.'; renderCalendar();
+  if (!state.selectedDate || !state.editingNoteId) { resetNoteForm(); closeModal('noteModal'); return; }
+  const key = fmtDate(state.selectedDate);
+  const notes = getNotes();
+  const next = getNotesForDate(key, notes).filter(n => n.id !== state.editingNoteId);
+  if (next.length) notes[key] = next; else delete notes[key];
+  setNotes(notes);
+  renderCalendar();
+  closeModal('noteModal');
+  resetNoteForm();
+  activateView('calendarView');
   showToast('Note deleted');
 }
 
@@ -916,41 +1003,46 @@ function sendNoteToDraft() {
   const payload = `[${label}] ${fmtDate(state.selectedDate)}\n${text}`;
   editor.innerText = editor.innerText ? `${editor.innerText}\n\n${payload}` : payload;
   editor.dispatchEvent(new Event('input'));
-  closeModal('noteModal'); activateView('composerView');
+  closeModal('noteModal'); resetNoteForm(); activateView('composerView');
   showToast('Note sent to Draft');
 }
 
 function renderAgenda() {
   const agenda = qs('calAgenda'); if (!agenda) return;
+  renderCalendarFilter();
   const notes = getNotes(); const today = fmtDate(new Date());
   agenda.innerHTML = '';
   const nav = document.createElement('div'); nav.className = 'cal-header';
   nav.innerHTML = `<div class="cal-month-label" style="font-size:18px;">${monthLabel(state.month)}</div>`;
   agenda.appendChild(nav);
   const map = {};
-  state.scheduled.forEach(p => { const k = fmtDate(new Date(p.dueAt)); if (!map[k]) map[k] = { posts: [], note: null }; map[k].posts.push(p); });
-  Object.entries(notes).forEach(([k, n]) => {
-    if (!map[k]) map[k] = { posts: [], note: null }; map[k].note = n;
+  state.scheduled.forEach(p => { const k = fmtDate(new Date(p.dueAt)); if (!map[k]) map[k] = { posts: [], notes: [] }; map[k].posts.push(p); });
+  Object.entries(notes).forEach(([k, list]) => {
+    if (!map[k]) map[k] = { posts: [], notes: [] };
+    map[k].notes = getNotesForDate(k, notes);
   });
   const days = [];
   const ms = monthStart(state.month);
   for (let i = 0; i < 35; i++) { const d = new Date(ms.getFullYear(), ms.getMonth(), i + 1); if (d.getMonth() !== ms.getMonth()) break; days.push(fmtDate(d)); }
   const dmMono = 'DM Mono';
-  const bricolage = 'Bricolage Grotesque';
   days.forEach(key => {
-    const data = map[key]; if (!data) return;
+    const raw = map[key]; if (!raw) return;
+    const posts = calendarFilterAllowsPosts() ? raw.posts : [];
+    const filteredNotes = calendarFilterNotes(raw.notes);
+    if (!posts.length && !filteredNotes.length) return;
     const isToday = key === today;
     const date = new Date(key + 'T00:00:00');
     const dayEl = document.createElement('div');
     dayEl.style.cssText = `border:1px solid ${isToday ? 'var(--brand)' : 'var(--border)'};border-radius:10px;padding:12px;margin-bottom:8px;background:var(--surface);cursor:pointer;`;
     const dateLabel = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-    let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-family:'${dmMono}',monospace;font-size:11px;font-weight:600;color:${isToday ? 'var(--brand)' : 'var(--muted)'};">${dateLabel}</span>${data.posts.length ? `<span style="font-size:9px;font-family:'${dmMono}',monospace;background:var(--brand-dim);color:var(--brand);border:1px solid var(--brand-glow);padding:1px 5px;border-radius:3px;">${data.posts.length} post${data.posts.length > 1 ? 's' : ''}</span>` : ''}</div>`;
-    data.posts.slice(0, 2).forEach(p => { html += `<button type="button" class="day-post-preview-btn" data-agenda-post="${key}">${safeText(compact(p.text, 80))}</button>`; });
-    if (data.posts.length > 2) html += `<div style="font-size:10px;color:var(--subtle);margin-bottom:4px;">+${data.posts.length - 2} more</div>`;
-    if (data.note) { const meta = getNoteTypeMeta(data.note); html += `<div class="day-note-pill" style="display:block;border-radius:5px;margin-top:4px;${notePillStyle(meta)}">${safeText(compact(data.note.text, 60))}</div>`; }
+    let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-family:'${dmMono}',monospace;font-size:11px;font-weight:600;color:${isToday ? 'var(--brand)' : 'var(--muted)'};">${dateLabel}</span>${posts.length ? `<span style="font-size:9px;font-family:'${dmMono}',monospace;background:var(--brand-dim);color:var(--brand);border:1px solid var(--brand-glow);padding:1px 5px;border-radius:3px;">${posts.length} post${posts.length > 1 ? 's' : ''}</span>` : ''}</div>`;
+    posts.slice(0, 2).forEach(p => { html += `<button type="button" class="day-post-preview-btn" data-agenda-post="${key}">${safeText(compact(p.text, 80))}</button>`; });
+    if (posts.length > 2) html += `<div style="font-size:10px;color:var(--subtle);margin-bottom:4px;">+${posts.length - 2} more</div>`;
+    filteredNotes.slice(0, 2).forEach(note => { const meta = getNoteTypeMeta(note); html += `<div class="day-note-pill" style="display:block;border-radius:5px;margin-top:4px;${notePillStyle(meta)}">${safeText(compact(note.text, 60))}</div>`; });
+    if (filteredNotes.length > 2) html += `<div style="font-size:10px;color:var(--subtle);margin-top:4px;">+${filteredNotes.length - 2} notes</div>`;
     dayEl.innerHTML = html;
-    dayEl.querySelectorAll('[data-agenda-post]').forEach(btn => btn.addEventListener('click', ev => { ev.stopPropagation(); openCalendarPostDetails(key, data.posts, data.note ? [data.note] : []); }));
-    dayEl.onclick = () => openDayNote(date);
+    dayEl.querySelectorAll('[data-agenda-post]').forEach(btn => btn.addEventListener('click', ev => { ev.stopPropagation(); openCalendarPostDetails(key, raw.posts, raw.notes); }));
+    dayEl.onclick = () => openCalendarDayDetails(date);
     agenda.appendChild(dayEl);
   });
   if (!Object.keys(map).length) {
@@ -989,6 +1081,16 @@ function rangeLabelForSnapshot(range) {
   }
   return monthLabel(state.month);
 }
+function defaultSnapshotTitle(range, label) {
+  if (range === 'week') return String(label || '').replace(/^This week\s*·\s*/i, '') + ' content plan';
+  return `${monthLabel(state.month)} content plan`;
+}
+function snapshotDisplayTitle(snap) {
+  if (snap.customTitle) return snap.customTitle;
+  const range = getSnapshotRange(snap);
+  if (range === 'week') return String(snap.rangeLabel || snap.title || 'This week').replace(/^This week\s*·\s*/i, '').replace(/\s*content plan$/i, '') + ' content plan';
+  return snap.title || (snap.month ? `${snap.month} content plan` : 'Content Plan');
+}
 // Calendar snapshot share
 function shareSnapshot() {
   const include     = qs('includeNotes').checked;
@@ -1006,10 +1108,10 @@ function shareSnapshot() {
   const allNotes   = getNotes();
   const rangeNotes = Object.entries(allNotes)
     .filter(([k]) => inRange(k + 'T12:00:00'))
-    .map(([date, val]) => ({ date, ...val, ...getNoteTypeMeta(val) }));
+    .flatMap(([date, list]) => getNotesForDate(date, allNotes).map(note => ({ ...note, date, ...getNoteTypeMeta(note) })));
   const label      = rangeLabelForSnapshot(range);
   const snapshotId = generateSnapshotId();
-  const title      = customTitle || label + ' content plan';
+  const title      = customTitle || defaultSnapshotTitle(range, label);
   qs('shareMonthName').textContent = label;
   qs('sharePostCount').textContent = posts.length;
   const payload = {
@@ -1062,6 +1164,31 @@ function bindPostDetailCopy(bodyEl) {
       else showToast('Could not copy', 'error');
     });
   });
+}
+function editableNoteCardsHtml(notes, noteTypes = getNoteTypes()) {
+  return (notes || []).map(n => {
+    const meta = getNoteTypeMeta(n, noteTypes);
+    return `<div class="snap-modal-note" style="background:${rgbaFromHex(meta.color, .06)};border-color:${rgbaFromHex(meta.color, .24)};"><div class="snap-modal-note-label" style="color:${normalizeHexColor(meta.color)};">${safeText(meta.label || 'Note')}</div><div class="snap-modal-note-text">${safeText(n.text || '')}</div><div class="snap-modal-note-actions"><button class="btn sm ghost" data-edit-note="${safeText(n.id || '')}">Edit note</button></div></div>`;
+  }).join('');
+}
+function openCalendarDayDetails(date) {
+  const key = fmtDate(date);
+  const posts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
+  const notes = getNotesForDate(key);
+  const titleEl = qs('sharedDayTitle');
+  const bodyEl = qs('sharedDayBody');
+  if (!titleEl || !bodyEl) return;
+  titleEl.textContent = formatDateOnly(key);
+  const sections = [];
+  if (posts.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${posts.length} Scheduled post${posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(posts)}</div>`);
+  if (notes.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${notes.length} Planning note${notes.length > 1 ? 's' : ''}</div>${editableNoteCardsHtml(notes)}</div>`);
+  if (!posts.length && !notes.length) sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No plans yet</div><div class="empty-desc">Add a planning note or draft content for this day.</div></div>');
+  sections.push('<div class="row mt8"><button class="btn primary" data-add-note>Add planning note</button></div>');
+  bodyEl.innerHTML = sections.join('');
+  bindPostDetailCopy(bodyEl);
+  bodyEl.querySelector('[data-add-note]')?.addEventListener('click', () => { closeModal('sharedDayModal'); openAddNoteForDate(date); });
+  bodyEl.querySelectorAll('[data-edit-note]').forEach(btn => btn.addEventListener('click', () => { closeModal('sharedDayModal'); openAddNoteForDate(date, btn.dataset.editNote); }));
+  openModal('sharedDayModal');
 }
 function openCalendarPostDetails(key, posts, notes = []) {
   openPostDetails(key, { posts, notes }, { title: formatDateOnly(key), noteTypes: getNoteTypes() });
@@ -1162,7 +1289,7 @@ function renderSharedFromHash() {
     qs('app').classList.add('hidden');
     qs('sharedView').classList.remove('hidden');
     const titleEl = qs('sharedTitle');
-    if (titleEl) titleEl.textContent = snap.title || snap.customTitle || snap.month || 'Content Plan';
+    if (titleEl) titleEl.textContent = snapshotDisplayTitle(snap);
     const countEl = qs('sharedPostCount'); if (countEl) countEl.textContent = (snap.posts || []).length;
     const noteEl = qs('sharedSnapshotNote'); if (noteEl) { noteEl.textContent = snap.message || ''; noteEl.style.display = snap.message ? 'block' : 'none'; }
     const periodEl = qs('sharedPeriodStat'); if (periodEl) periodEl.innerHTML = '<strong>' + safeText(snap.rangeLabel || snap.month || 'Snapshot') + '</strong>';
@@ -1741,7 +1868,7 @@ function addNoteType() {
 function deleteNoteType(id) {
   if (DEFAULT_NOTE_TYPES.some(t => t.id === id)) return;
   const notes = getNotes();
-  const inUse = Object.values(notes).some(n => (n.typeId || n.type || n.id) === id);
+  const inUse = Object.values(notes).some(list => (Array.isArray(list) ? list : [list]).some(n => (n.typeId || n.type || n.id) === id));
   if (inUse) { showToast('This note type is used by existing notes.', 'error'); return; }
   setNoteTypes(getNoteTypes().filter(t => t.id !== id));
   renderNoteTypesSettings();
@@ -1795,7 +1922,7 @@ function init() {
   qs('prevMonth').onclick = () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() - 1, 1); renderCalendar(); detectQueueGaps(); };
   qs('nextMonth').onclick = () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() + 1, 1); renderCalendar(); detectQueueGaps(); };
   qs('todayMonth').onclick = () => { state.month = new Date(); renderCalendar(); detectQueueGaps(); };
-  qs('closeNote').onclick = () => closeModal('noteModal');
+  qs('closeNote').onclick = () => { closeModal('noteModal'); resetNoteForm(); };
   const closeShared = qs('closeSharedDay'); if (closeShared) closeShared.onclick = () => closeModal('sharedDayModal');
   qs('saveNoteBtn').onclick = saveNote;
   qs('deleteNoteBtn').onclick = deleteNote;
@@ -1806,6 +1933,7 @@ function init() {
   const shareRangeInput = qs('shareRange'); if (shareRangeInput) shareRangeInput.onchange = shareSnapshot;
   const shareTitleInput = qs('shareCustomTitle'); if (shareTitleInput) shareTitleInput.oninput = shareSnapshot;
   const shareNoteInput = qs('shareNote'); if (shareNoteInput) shareNoteInput.oninput = shareSnapshot;
+  const calendarFilter = qs('calendarFilter'); if (calendarFilter) calendarFilter.onchange = e => { state.calendarFilter = e.target.value || 'all'; renderCalendar(); };
   const showQueue = qs('showQueueGapsSetting'); if (showQueue) showQueue.onchange = savePlanningSettingsFromUI;
   const postingDays = qs('postingDaysSettings'); if (postingDays) postingDays.addEventListener('change', savePlanningSettingsFromUI);
   const noteTypesWrap = qs('noteTypesSettings'); if (noteTypesWrap) {
