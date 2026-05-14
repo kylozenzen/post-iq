@@ -713,11 +713,22 @@ function selectSettingsTab(tabName) {
   document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.id === panel));
 }
 
-function openConnectionSettings() {
+function openConnectionSettings(options = {}) {
   selectSettingsTab('connection');
-  tokenPanelOpen = false;
+  tokenPanelOpen = !!options.advancedApi;
   renderConnectionUI();
+  const panel = qs('tokenPanel');
+  if (options.advancedApi) setTokenPanelVisible(panel, true);
   openModal('settingsModal');
+}
+
+
+function getBufferConnectUrl() {
+  return '/auth/connect.html?return=/app.html';
+}
+
+function goToBufferConnect() {
+  location.href = getBufferConnectUrl();
 }
 
 function renderConnectionUI() {
@@ -2303,12 +2314,12 @@ function init() {
   qs('manageTokenBtn').onclick = () => {
     const connection = getBufferConnectionState();
     if (connection.connected) syncBuffer({ force: true });
-    else startBufferOAuth();
+    else goToBufferConnect();
   };
   qs('revealTokenBtn').onclick = openConnectionSettings;
   qs('saveTokenBtn').onclick = saveToken;
   qs('clearTokenBtn').onclick = () => { qs('tokenInput').value = ''; saveToken(); };
-  const connectBufferBtn = qs('connectBufferBtn'); if (connectBufferBtn) connectBufferBtn.onclick = startBufferOAuth;
+  const connectBufferBtn = qs('connectBufferBtn'); if (connectBufferBtn) connectBufferBtn.onclick = goToBufferConnect;
   const disconnectBufferBtn = qs('disconnectBufferBtn'); if (disconnectBufferBtn) disconnectBufferBtn.onclick = () => disconnectBuffer({ clearManual: getBufferConnectionState().source === 'manual' ? true : null });
 
   qs('syncBtn').onclick = () => syncBuffer({ force: true });
@@ -2322,6 +2333,10 @@ function init() {
     history.replaceState({}, document.title, cleanUrl);
   }
   renderConnectionUI();
+  const initialParams = new URLSearchParams(location.search);
+  if (initialParams.get('settings') === 'connection') {
+    openConnectionSettings({ advancedApi: initialParams.get('advanced') === 'api' });
+  }
   if (getBufferConnectionState().connected) syncBuffer({ force: connectedParam === 'buffer' });
 
   document.querySelectorAll('[data-view]').forEach(b => {
@@ -2578,7 +2593,7 @@ function init() {
   qs('mobManageTokenBtn').onclick = () => {
     const connection = getBufferConnectionState();
     if (connection.connected) syncBuffer({ force: true });
-    else startBufferOAuth();
+    else goToBufferConnect();
     closeMobDrawer();
   };
   const mobConnectionSettingsBtn = qs('mobConnectionSettingsBtn');
