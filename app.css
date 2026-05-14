@@ -104,11 +104,34 @@
       border-bottom: 1px solid rgba(255,255,255,.07);
     }
 
+    .connection-card {
+      margin: 0 10px 10px;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--r);
+      background: rgba(255,255,255,.035);
+    }
+
     .conn-row {
       display: flex;
       align-items: center;
       gap: 8px;
       margin-bottom: 8px;
+    }
+
+    .conn-heading {
+      margin: 0 0 6px;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 16px;
+      line-height: 1.15;
+      color: #fff;
+    }
+
+    .conn-helper {
+      margin: 0 0 12px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: rgba(255,255,255,.52);
     }
 
     .conn-dot {
@@ -142,7 +165,13 @@
       margin-bottom: 8px;
     }
 
-    .conn-actions { display: flex; gap: 6px; }
+    .conn-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .conn-last-sync {
+      margin-top: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: rgba(255,255,255,.34);
+    }
 
     /* Sync row */
     .side-sync {
@@ -1310,6 +1339,14 @@
     .settings-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
     .settings-panel { display: none; }
     .settings-panel.active { display: block; }
+    .settings-copy { font-size: 13px; color: var(--muted); line-height: 1.65; margin: 0; }
+    .connection-settings-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; margin-bottom: 14px; }
+    .connection-status-line, .connection-token-msg { font-size: 11px; color: var(--subtle); margin-top: 8px; font-family: 'DM Mono', monospace; min-height: 14px; }
+    .advanced-connection { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; }
+    .advanced-connection summary { cursor: pointer; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; color: var(--ink); }
+    .advanced-connection[open] summary { margin-bottom: 10px; }
+    .mobile-connection-card { padding: 12px; border: 1px solid var(--border); border-radius: var(--r); background: var(--surface2); }
+    .mobile-connection-card .conn-helper { color: var(--muted); }
 
     /* Mobile bottom nav */
     .mobile-tabs { display: none; }

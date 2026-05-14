@@ -660,7 +660,7 @@ function getBufferConnectionState() {
       token: oauthToken,
       expiresAt,
       expired,
-      label: expired ? 'Buffer connection expired' : 'Connected with Buffer',
+      label: expired ? 'Buffer connection expired' : 'Connected to Buffer',
     };
   }
 
@@ -672,7 +672,7 @@ function getBufferConnectionState() {
       token: manualToken,
       expiresAt: null,
       expired: false,
-      label: 'Connected with API key',
+      label: 'Connected',
     };
   }
 
@@ -700,7 +700,24 @@ function setButtonClass(el, className) {
 }
 
 function setTokenPanelVisible(panel, open) {
-  if (panel) panel.style.display = open ? 'block' : 'none';
+  if (!panel) return;
+  if (panel.tagName === 'DETAILS') panel.open = !!open;
+  else panel.style.display = open ? 'block' : 'none';
+}
+
+function selectSettingsTab(tabName) {
+  document.querySelectorAll('.settings-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.stab === tabName);
+  });
+  const panel = 'settingsPanel' + tabName.charAt(0).toUpperCase() + tabName.slice(1);
+  document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.id === panel));
+}
+
+function openConnectionSettings() {
+  selectSettingsTab('connection');
+  tokenPanelOpen = false;
+  renderConnectionUI();
+  openModal('settingsModal');
 }
 
 function renderConnectionUI() {
@@ -712,73 +729,65 @@ function renderConnectionUI() {
 
   const manualToken = getManualBufferToken();
   const desktopPanel = qs('tokenPanel');
-  const mobilePanel = qs('mobTokenPanel');
   if (!tokenPanelOpen) setTokenPanelVisible(desktopPanel, false);
-  if (!window.postiqMobileTokenPanelOpen) setTokenPanelVisible(mobilePanel, false);
 
-  const label = expired ? 'Buffer connection expired' : connection.label;
-  const preview = connected
-    ? (oauthActive ? 'OAuth connection active. No manual API key needed.' : `API key fallback active · ${maskPreview(connection.token)}`)
-    : (expired ? 'Reconnect Buffer to continue. API key fallback is available under Advanced.' : 'Recommended. No manual API key needed.');
+  const primaryHeading = connected ? (oauthActive ? 'Connected to Buffer' : 'Connected') : (expired ? 'Not connected' : 'Not connected');
+  const helper = connected
+    ? (oauthActive ? 'OAuth connection active. No manual API key needed.' : 'Manual connection active.')
+    : (expired ? 'Reconnect Buffer to load your channels, plan posts, and publish from PostIQ.' : 'Sign in with Buffer to load your channels, plan posts, and publish from PostIQ.');
+  const statusLabel = connected ? (oauthActive ? 'Connected to Buffer' : 'Connected') : 'Not connected';
 
   const connDot = qs('connDot'); if (connDot) connDot.classList.toggle('on', connected);
-  const connLabel = qs('connLabel'); if (connLabel) connLabel.textContent = label;
-  const connPreview = qs('connTokenPreview'); if (connPreview) connPreview.textContent = preview;
+  const connLabel = qs('connLabel'); if (connLabel) connLabel.textContent = statusLabel;
+  const connHeading = qs('connHeading'); if (connHeading) connHeading.textContent = primaryHeading;
+  const connHelper = qs('connHelper'); if (connHelper) connHelper.textContent = helper;
+  const connLastSync = qs('connLastSync');
+  const lastSynced = qs('lastSynced')?.textContent?.trim() || '';
+  if (connLastSync) {
+    connLastSync.textContent = lastSynced || '';
+    connLastSync.style.display = connected && lastSynced ? '' : 'none';
+  }
 
   const manageBtn = qs('manageTokenBtn');
   if (manageBtn) {
     setButtonClass(manageBtn, 'btn sm primary');
-    manageBtn.textContent = connected ? 'Disconnect' : (expired ? 'Reconnect Buffer' : 'Connect with Buffer');
+    manageBtn.textContent = connected ? 'Sync now' : (expired ? 'Sign in with Buffer' : 'Sign in with Buffer');
   }
   const revealBtn = qs('revealTokenBtn');
   if (revealBtn) {
     revealBtn.style.display = '';
-    revealBtn.textContent = tokenPanelOpen ? 'Hide advanced' : (manualActive ? 'Manage API key' : 'Advanced: Use API key instead');
+    revealBtn.textContent = connected ? 'Manage connection' : 'Connection settings';
   }
 
   const tokenInput = qs('tokenInput');
   if (tokenInput) tokenInput.value = manualToken || '';
   const tokenMsg = qs('tokenMsg');
-  if (tokenMsg && !tokenPanelOpen) tokenMsg.textContent = manualActive ? 'Manual API key fallback is active.' : '';
+  if (tokenMsg && !tokenPanelOpen) tokenMsg.textContent = manualActive ? 'Manual connection active.' : '';
 
-  const connectBtn = qs('connectBufferBtn');
-  if (connectBtn) {
-    connectBtn.textContent = expired ? 'Reconnect Buffer' : 'Connect with Buffer';
-    if (connectBtn.parentElement) connectBtn.parentElement.style.display = oauthActive && connected ? 'none' : '';
+  const oauthStatus = qs('oauthStatusText');
+  if (oauthStatus) {
+    oauthStatus.textContent = oauthActive && connected
+      ? 'OAuth is connected.'
+      : (expired ? 'OAuth connection expired. Reconnect to continue.' : 'OAuth is not connected.');
   }
+  const connectBtn = qs('connectBufferBtn');
+  if (connectBtn) connectBtn.textContent = oauthActive || expired ? 'Reconnect Buffer' : 'Connect with Buffer';
+  const disconnectBtn = qs('disconnectBufferBtn');
+  if (disconnectBtn) disconnectBtn.style.display = connected ? '' : 'none';
 
   const mobDot = qs('mobConnDot'); if (mobDot) mobDot.classList.toggle('on', connected);
-  const mobLabel = qs('mobConnLabel'); if (mobLabel) mobLabel.textContent = label;
+  const mobLabel = qs('mobConnLabel'); if (mobLabel) mobLabel.textContent = statusLabel;
+  const mobHelper = qs('mobConnHelper'); if (mobHelper) mobHelper.textContent = connected ? (oauthActive ? 'Connected to Buffer.' : 'Manual connection active.') : 'Sign in with Buffer to sync channels and posts.';
   const mobManage = qs('mobManageTokenBtn');
   if (mobManage) {
-    setButtonClass(mobManage, connected ? 'btn primary' : 'btn primary');
+    setButtonClass(mobManage, 'btn primary');
     mobManage.style.width = '100%';
     mobManage.style.justifyContent = 'center';
     mobManage.style.fontSize = '13px';
-    mobManage.textContent = connected ? 'Disconnect' : (expired ? 'Reconnect Buffer' : 'Connect with Buffer');
+    mobManage.textContent = connected ? 'Sync now' : 'Sign in with Buffer';
   }
-  let mobAdvancedBtn = qs('mobAdvancedTokenBtn');
-  if (!mobAdvancedBtn && mobManage?.parentElement) {
-    mobAdvancedBtn = document.createElement('button');
-    mobAdvancedBtn.id = 'mobAdvancedTokenBtn';
-    mobAdvancedBtn.type = 'button';
-    mobAdvancedBtn.className = 'btn ghost';
-    mobAdvancedBtn.style.cssText = 'width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-top:8px;';
-    mobManage.parentElement.appendChild(mobAdvancedBtn);
-  }
-  if (mobAdvancedBtn) {
-    mobAdvancedBtn.textContent = window.postiqMobileTokenPanelOpen ? 'Hide advanced' : (manualActive ? 'Manage API key' : 'Advanced: Use API key instead');
-    mobAdvancedBtn.onclick = toggleMobileTokenPanel;
-  }
-  const mobInput = qs('mobTokenInput');
-  if (mobInput) mobInput.value = manualToken || '';
-  const mobConnect = qs('mobConnectBufferBtn');
-  if (mobConnect) {
-    mobConnect.textContent = expired ? 'Reconnect Buffer' : 'Connect with Buffer';
-    if (mobConnect.parentElement) mobConnect.parentElement.style.display = oauthActive && connected ? 'none' : '';
-  }
-  const mobMsg = qs('mobTokenMsg');
-  if (mobMsg && !window.postiqMobileTokenPanelOpen) mobMsg.textContent = manualActive ? 'Manual API key fallback is active.' : '';
+  const mobSettings = qs('mobConnectionSettingsBtn');
+  if (mobSettings) mobSettings.textContent = connected ? 'Manage connection' : 'Connection settings';
 
   updateNavTags();
   return connection;
@@ -817,7 +826,7 @@ function updateNavTags() {
   const calDesc = qs('calDesc');
   if (calDesc) calDesc.textContent = connected
     ? 'Your Buffer queue in a monthly view. Spot gaps and add planning notes before you draft.'
-    : (connection.expired ? 'Reconnect Buffer to load your scheduled posts and spot queue gaps.' : 'Connect with Buffer to load your scheduled posts and spot queue gaps.');
+    : (connection.expired ? 'Reconnect Buffer to load your scheduled posts and spot queue gaps.' : 'Sign in with Buffer to load your scheduled posts and spot queue gaps.');
   const composerDesc = qs('composerDesc');
   if (composerDesc) composerDesc.textContent = connected
     ? 'Write your post, attach media, then send to Buffer as a draft, queued post, or scheduled post.'
@@ -836,23 +845,23 @@ function updateComposerButtonStates() {
     btn.disabled = !ready;
     btn.style.opacity = ready ? '1' : '.45';
     btn.style.cursor = ready ? 'pointer' : 'not-allowed';
-    btn.title = !connected ? (connection.expired ? 'Reconnect Buffer first' : 'Connect with Buffer first') : !hasChannel ? 'Load channels from Buffer first' : '';
+    btn.title = !connected ? (connection.expired ? 'Reconnect Buffer first' : 'Sign in with Buffer first') : !hasChannel ? 'Load channels from Buffer first' : '';
   });
 }
 
 function setBufferToken(token, { mode = 'session', messageEl = null } = {}) {
-  clearOAuthBufferToken();
+  const clean = String(token || '').trim();
   localStorage.removeItem(STORE_KEY);
   sessionStorage.removeItem(STORE_KEY);
-  const clean = String(token || '').trim();
   if (!clean) {
-    bufferToken = '';
-    clearSyncedData();
-    if (messageEl) messageEl.textContent = 'API key removed.';
+    const after = syncBufferTokenFromState();
+    if (!after.connected) clearSyncedData();
+    if (messageEl) messageEl.textContent = 'Manual API key disconnected.';
     renderConnectionUI();
-    showToast('API key removed');
+    showToast('Manual API key disconnected');
     return false;
   }
+  clearOAuthBufferToken();
   if (mode === 'local') localStorage.setItem(STORE_KEY, clean);
   else sessionStorage.setItem(STORE_KEY, clean);
   bufferToken = clean;
@@ -950,7 +959,7 @@ async function callBuffer(query, variables = {}) {
 function getErrorMessage(err, fallback = 'Request failed. Please try again.') {
   const code = String(err?.code || '').toUpperCase();
   const msg  = String(err?.message || '');
-  if (code === 'MISSING_TOKEN') return 'Connect with Buffer first.';
+  if (code === 'MISSING_TOKEN') return 'Sign in with Buffer first.';
   if (code === 'RATE_LIMIT' || err?.status === 429) return `Buffer rate limit hit.${err?.retryAfter ? ` Retry in ${err.retryAfter}s.` : ''}`;
   if (code === 'AUTH_ERROR' || /unauthorized|invalid|forbidden|expired/i.test(msg)) return 'Token appears invalid or expired. Reconnect Buffer.';
   if (code === 'PROXY_NETWORK_ERROR') return 'Network issue reaching Buffer. Check connection and retry.';
@@ -1036,7 +1045,7 @@ function getScheduledBounds() {
 async function syncBuffer({ force = false } = {}) {
   const connection = syncBufferTokenFromState();
   if (connection.expired) { renderConnectionUI(); setSyncStatus('failed', 'Buffer connection expired. Reconnect Buffer.'); return; }
-  if (!connection.connected) { renderConnectionUI(); setSyncStatus('failed', 'Connect with Buffer first.'); return; }
+  if (!connection.connected) { renderConnectionUI(); setSyncStatus('failed', 'Sign in with Buffer first.'); return; }
   setSyncStatus('syncing', 'Syncing…');
   const btn = qs('syncBtn'); const orig = btn.innerHTML;
   btn.innerHTML = '↻ Syncing…'; btn.disabled = true;
@@ -1049,6 +1058,7 @@ async function syncBuffer({ force = false } = {}) {
     renderCalendar();
     detectQueueGaps();
     setSyncStatus('success', `${posts.length} scheduled posts loaded.`);
+    renderConnectionUI();
     showToast(`Loaded ${posts.length} posts`, 'success');
     window.dispatchEvent(new Event('postiq:synced'));
   } catch (e) {
@@ -2292,18 +2302,20 @@ function init() {
 
   qs('manageTokenBtn').onclick = () => {
     const connection = getBufferConnectionState();
-    if (connection.connected) disconnectBuffer();
+    if (connection.connected) syncBuffer({ force: true });
     else startBufferOAuth();
   };
-  qs('revealTokenBtn').onclick = () => toggleDesktopTokenPanel({ reveal: true });
+  qs('revealTokenBtn').onclick = openConnectionSettings;
   qs('saveTokenBtn').onclick = saveToken;
   qs('clearTokenBtn').onclick = () => { qs('tokenInput').value = ''; saveToken(); };
   const connectBufferBtn = qs('connectBufferBtn'); if (connectBufferBtn) connectBufferBtn.onclick = startBufferOAuth;
+  const disconnectBufferBtn = qs('disconnectBufferBtn'); if (disconnectBufferBtn) disconnectBufferBtn.onclick = () => disconnectBuffer({ clearManual: getBufferConnectionState().source === 'manual' ? true : null });
 
   qs('syncBtn').onclick = () => syncBuffer({ force: true });
   const connectedParam = new URLSearchParams(location.search).get('connected');
   if (connectedParam === 'buffer') {
     showToast('Buffer connected.', 'success');
+    setSyncStatus('idle', 'Buffer connected.');
     const cleanParams = new URLSearchParams(location.search);
     cleanParams.delete('connected');
     const cleanUrl = `${location.pathname}${cleanParams.toString() ? `?${cleanParams.toString()}` : ''}${location.hash || ''}`;
@@ -2532,12 +2544,7 @@ function init() {
   qs('openSettings').onclick = () => openModal('settingsModal');
   qs('closeSettings').onclick = () => closeModal('settingsModal');
   document.querySelectorAll('.settings-tab').forEach(tab => {
-    tab.onclick = () => {
-      document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      const panel = 'settingsPanel' + tab.dataset.stab.charAt(0).toUpperCase() + tab.dataset.stab.slice(1);
-      document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.id === panel));
-    };
+    tab.onclick = () => selectSettingsTab(tab.dataset.stab);
   });
 
   document.querySelectorAll('.modal').forEach(modal => {
@@ -2570,17 +2577,12 @@ function init() {
   window.postiqMobileTokenPanelOpen = false;
   qs('mobManageTokenBtn').onclick = () => {
     const connection = getBufferConnectionState();
-    if (connection.connected) disconnectBuffer();
+    if (connection.connected) syncBuffer({ force: true });
     else startBufferOAuth();
+    closeMobDrawer();
   };
-  qs('mobSaveTokenBtn').onclick = () => {
-    const t = qs('mobTokenInput').value.trim();
-    const mode = [...document.querySelectorAll('input[name="mobTokenMode"]')].find(r => r.checked)?.value || 'session';
-    const ok = setBufferToken(t, { mode, messageEl: qs('mobTokenMsg') });
-    if (ok) { qs('tokenInput').value = t; syncBuffer({ force: true }); closeMobDrawer(); }
-  };
-  qs('mobClearTokenBtn').onclick = () => { qs('mobTokenInput').value = ''; setBufferToken('', { mode: 'session', messageEl: qs('mobTokenMsg') }); };
-  const mobConnectBufferBtn = qs('mobConnectBufferBtn'); if (mobConnectBufferBtn) mobConnectBufferBtn.onclick = startBufferOAuth;
+  const mobConnectionSettingsBtn = qs('mobConnectionSettingsBtn');
+  if (mobConnectionSettingsBtn) mobConnectionSettingsBtn.onclick = () => { closeMobDrawer(); openConnectionSettings(); };
   qs('mobOpenSettings').onclick = () => { closeMobDrawer(); openModal('settingsModal'); };
 
   const smb = qs('shareMonthBtnMob'); if (smb) smb.onclick = openShareSnapshotModal;
