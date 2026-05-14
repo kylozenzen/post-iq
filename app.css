@@ -111,12 +111,18 @@
       border-radius: var(--r);
       background: rgba(255,255,255,.035);
     }
+    .connection-card.compact {
+      padding: 12px;
+    }
 
     .conn-row {
       display: flex;
       align-items: center;
       gap: 8px;
       margin-bottom: 8px;
+    }
+    .connection-card.compact .conn-row {
+      margin-bottom: 10px;
     }
 
     .conn-heading {
@@ -166,11 +172,31 @@
     }
 
     .conn-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .connection-card.compact .conn-actions {
+      flex-direction: column;
+      gap: 7px;
+    }
+    .connection-card.compact .conn-actions .btn {
+      width: 100%;
+      justify-content: center;
+      min-height: 30px;
+    }
+    .connection-card.compact .conn-actions .btn.ghost {
+      min-height: auto;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: rgba(255,255,255,.58);
+    }
     .conn-last-sync {
       margin-top: 8px;
       font-family: 'DM Mono', monospace;
       font-size: 10px;
       color: rgba(255,255,255,.34);
+    }
+    .connection-card.compact .conn-last-sync {
+      margin-top: 6px;
+      text-align: center;
     }
 
     /* Sync row */

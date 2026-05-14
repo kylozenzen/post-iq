@@ -140,6 +140,7 @@
     .btn.primary:hover{background:#2a2fff;color:#fff;transform:translateY(-1px);box-shadow:0 6px 24px rgba(58,63,255,.36);}
     .link{color:var(--brand);font-weight:700;text-decoration:none;}
     .link:hover{text-decoration:underline;}
+    .explore-note{margin:2px 0 10px;font-size:13px;line-height:1.65;color:var(--muted);max-width:60ch;}
     .trust{font-size:13px;line-height:1.65;color:var(--subtle);max-width:60ch;}
     .advanced{margin-top:18px;font-size:13px;color:var(--muted);}
     .error{display:none;margin:0 0 18px;padding:12px 14px;border:1px solid rgba(239,68,68,.22);border-radius:12px;background:rgba(239,68,68,.07);color:#9f1239;font-size:14px;line-height:1.5;}
@@ -164,34 +165,34 @@
 </head>
 <body>
   <div class="shell">
-    <a class="brand" href="/app.html" aria-label="Back to PostIQ">PostIQ <span class="beta">Beta</span></a>
+    <a class="brand" href="/app.html" aria-label="Continue to PostIQ">PostIQ <span class="beta">Beta</span></a>
     <main class="card" aria-labelledby="pageTitle">
       <section class="main">
         <div class="eyebrow"><span class="dot"></span>Buffer connection</div>
         <h1 id="pageTitle">Sign in with Buffer</h1>
         <p class="copy">Connect your Buffer account to load your channels, view your queue, plan content, and publish from PostIQ.</p>
         <ul class="benefits" aria-label="Benefits">
-          <li><span class="check">✓</span>No manual API key needed</li>
           <li><span class="check">✓</span>Load your Buffer channels</li>
           <li><span class="check">✓</span>Draft, queue, and schedule posts</li>
           <li><span class="check">✓</span>Disconnect anytime</li>
         </ul>
         <div class="error" id="connectError" role="alert"></div>
         <div class="actions">
-          <button class="btn primary" id="continueBtn" type="button">Continue with Buffer</button>
-          <a class="link" id="backLink" href="/app.html">Back to PostIQ</a>
+          <button class="btn primary" id="continueBtn" type="button">Sign in with Buffer</button>
+          <a class="link" id="backLink" href="/app.html">Continue to PostIQ</a>
         </div>
+        <p class="explore-note">You can explore PostIQ without connecting Buffer. Sign in when you’re ready to sync channels, view your queue, or publish.</p>
         <p class="trust">PostIQ only uses your Buffer connection to power your planning, drafting, and publishing workflow.</p>
-        <p class="advanced"><a class="link" href="/app.html?settings=connection&amp;advanced=api">Need manual setup?</a></p>
+        <p class="advanced"><a class="link" href="/app.html?settings=connection&amp;advanced=api">Advanced connection settings</a></p>
       </section>
       <aside class="side" aria-label="Connection summary">
         <div class="side-card">
           <div class="side-title">One secure sign-in for your publishing workflow.</div>
-          <p>Use Buffer OAuth to keep PostIQ focused on planning, drafting, and publishing without asking you to paste credentials into the sidebar.</p>
+          <p>Sign in with Buffer when you are ready to sync channels, view your queue, and publish from PostIQ.</p>
           <div class="mini-list">
-            <div class="mini-item"><span class="mini-dot"></span>Public browser client</div>
-            <div class="mini-item"><span class="mini-dot"></span>PKCE redirect flow</div>
-            <div class="mini-item"><span class="mini-dot"></span>No frontend client secret</div>
+            <div class="mini-item"><span class="mini-dot"></span>Guided Buffer sign-in</div>
+            <div class="mini-item"><span class="mini-dot"></span>Channel and queue sync</div>
+            <div class="mini-item"><span class="mini-dot"></span>Publish when ready</div>
           </div>
         </div>
         <p>After Buffer approves the connection, you’ll return to PostIQ automatically.</p>
@@ -246,7 +247,7 @@
       error.textContent = 'We could not start Buffer sign-in. Please check that this page is loaded over HTTPS or localhost, then try again.';
       error.style.display = 'block';
       qs('continueBtn').disabled = false;
-      qs('continueBtn').textContent = 'Continue with Buffer';
+      qs('continueBtn').textContent = 'Sign in with Buffer';
     }
 
     async function startBufferOAuth() {

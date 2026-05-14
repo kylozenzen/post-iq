@@ -848,7 +848,7 @@
         </div>
         <div>
           <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">🔑 Connecting Buffer</div>
-          <p style="font-size:13px;color:var(--muted);line-height:1.65;">Sign in with Buffer for the recommended connection flow. Advanced users can fall back to a manual API key in Connection settings if OAuth is unavailable or they are testing manually. Use Sync now to refresh your channels and scheduled posts.</p>
+          <p style="font-size:13px;color:var(--muted);line-height:1.65;">Sign in with Buffer to connect PostIQ, then use Sync now to refresh your channels and scheduled posts. Manual setup lives in the advanced Connection settings for testing or backup access.</p>
         </div>
       </div>
     </div>
@@ -873,13 +873,13 @@
         <p class="settings-copy">Recommended for most users. Sign in with Buffer so PostIQ can load your channels and publish through your account.</p>
         <div class="connection-status-line" id="oauthStatusText">Not connected.</div>
         <div class="row mt12">
-          <button class="btn primary" id="connectBufferBtn" type="button">Connect with Buffer</button>
+          <button class="btn primary" id="connectBufferBtn" type="button">Sign in with Buffer</button>
           <button class="btn ghost" id="disconnectBufferBtn" type="button" style="display:none;">Disconnect</button>
         </div>
       </div>
       <details class="settings-section advanced-connection" id="tokenPanel">
         <summary>Advanced: API key fallback</summary>
-        <p class="settings-copy">Only use this if OAuth is unavailable or you are testing manually.</p>
+        <p class="settings-copy">Only use this if Buffer sign-in is unavailable or you are testing manually.</p>
         <div class="field">
           <label class="label">API key fallback</label>
           <input id="tokenInput" class="input mono" type="password" placeholder="Paste API key…" />
@@ -1038,7 +1038,7 @@
   </div>
 </div>
 
-<!-- ── MOBILE DRAWER (token + sync) ── -->
+<!-- ── MOBILE DRAWER (connection + sync) ── -->
 <div class="mob-backdrop" id="mobBackdrop"></div>
 <div class="mob-drawer" id="mobDrawer">
   <div class="mob-drawer-handle"></div>
