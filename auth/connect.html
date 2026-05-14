@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign in with Buffer — PostIQ</title>
+  <meta name="description" content="Connect Buffer to PostIQ to load channels, view your queue, plan content, and publish." />
+  <meta name="theme-color" content="#1a1a2e" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Lato:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#f5f6fa;
+      --surface:#ffffff;
+      --surface2:#f9fafc;
+      --border:#e8eaf2;
+      --border2:#d8dce8;
+      --text:#14162a;
+      --muted:#5a6080;
+      --subtle:#9298b0;
+      --ink:#2c3050;
+      --brand:#3a3fff;
+      --brand-dim:rgba(58,63,255,.08);
+      --brand-glow:rgba(58,63,255,.18);
+      --green:#0fa672;
+      --r:16px;
+      --r2:10px;
+      --shadow:0 12px 40px rgba(20,22,42,.12),0 4px 12px rgba(20,22,42,.06);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      min-height:100vh;
+      font-family:'Lato',system-ui,sans-serif;
+      color:var(--text);
+      background:var(--bg);
+      display:grid;
+      place-items:center;
+      padding:28px 18px;
+      overflow-x:hidden;
+    }
+    body::before{
+      content:'';
+      position:fixed;
+      inset:0;
+      background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+      background-size:52px 52px;
+      opacity:.35;
+      pointer-events:none;
+    }
+    body::after{
+      content:'';
+      position:fixed;
+      width:420px;
+      height:420px;
+      border-radius:999px;
+      right:-160px;
+      top:-150px;
+      background:radial-gradient(circle,rgba(58,63,255,.22),transparent 65%);
+      pointer-events:none;
+    }
+    .shell{width:min(100%,920px);position:relative;z-index:1;}
+    .brand{
+      display:inline-flex;
+      align-items:center;
+      gap:9px;
+      font-family:'Bricolage Grotesque',sans-serif;
+      font-weight:800;
+      font-size:19px;
+      letter-spacing:-.3px;
+      color:var(--ink);
+      text-decoration:none;
+      margin-bottom:22px;
+    }
+    .beta{
+      font-family:'DM Mono',monospace;
+      font-size:10px;
+      font-weight:500;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      padding:3px 7px;
+      border-radius:4px;
+      background:var(--brand);
+      color:#fff;
+    }
+    .card{
+      display:grid;
+      grid-template-columns:minmax(0,1.05fr) minmax(280px,.75fr);
+      gap:0;
+      overflow:hidden;
+      border:1px solid var(--border);
+      border-radius:28px;
+      background:rgba(255,255,255,.88);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(18px);
+    }
+    .main{padding:42px;}
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-family:'DM Mono',monospace;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--brand);
+      margin-bottom:18px;
+    }
+    .dot{width:6px;height:6px;border-radius:999px;background:var(--brand);}
+    h1{
+      font-family:'Bricolage Grotesque',sans-serif;
+      font-size:clamp(2.35rem,5vw,4.4rem);
+      line-height:.98;
+      letter-spacing:-.055em;
+      color:var(--ink);
+      margin-bottom:18px;
+    }
+    .copy{font-size:17px;line-height:1.75;color:var(--muted);max-width:56ch;margin-bottom:26px;}
+    .benefits{display:grid;gap:11px;margin:0 0 30px;list-style:none;}
+    .benefits li{display:flex;align-items:center;gap:10px;color:var(--ink);font-weight:700;}
+    .check{display:grid;place-items:center;flex:0 0 22px;width:22px;height:22px;border-radius:999px;background:rgba(15,166,114,.1);color:var(--green);font-size:13px;}
+    .actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:18px;}
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      min-height:46px;
+      padding:0 22px;
+      border:1px solid var(--border2);
+      border-radius:var(--r2);
+      background:var(--surface);
+      color:var(--text);
+      font:700 15px/1 'Lato',sans-serif;
+      text-decoration:none;
+      cursor:pointer;
+      transition:all .16s ease;
+    }
+    .btn:hover{border-color:var(--brand-glow);color:var(--brand);background:var(--brand-dim);}
+    .btn.primary{background:var(--brand);border-color:transparent;color:#fff;box-shadow:0 3px 14px rgba(58,63,255,.28);}
+    .btn.primary:hover{background:#2a2fff;color:#fff;transform:translateY(-1px);box-shadow:0 6px 24px rgba(58,63,255,.36);}
+    .link{color:var(--brand);font-weight:700;text-decoration:none;}
+    .link:hover{text-decoration:underline;}
+    .trust{font-size:13px;line-height:1.65;color:var(--subtle);max-width:60ch;}
+    .advanced{margin-top:18px;font-size:13px;color:var(--muted);}
+    .error{display:none;margin:0 0 18px;padding:12px 14px;border:1px solid rgba(239,68,68,.22);border-radius:12px;background:rgba(239,68,68,.07);color:#9f1239;font-size:14px;line-height:1.5;}
+    .side{background:linear-gradient(155deg,#17182b,#252748 68%,#3033aa);color:#fff;padding:34px;display:flex;flex-direction:column;justify-content:space-between;min-height:440px;}
+    .side-card{border:1px solid rgba(255,255,255,.14);border-radius:20px;background:rgba(255,255,255,.08);padding:18px;box-shadow:0 18px 50px rgba(0,0,0,.16);}
+    .side-title{font-family:'Bricolage Grotesque',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.02em;margin-bottom:10px;}
+    .side p{color:rgba(255,255,255,.74);font-size:14px;line-height:1.65;}
+    .mini-list{display:grid;gap:10px;margin-top:18px;}
+    .mini-item{display:flex;align-items:center;gap:9px;font:500 12px/1.4 'DM Mono',monospace;color:rgba(255,255,255,.8);}
+    .mini-dot{width:7px;height:7px;border-radius:999px;background:#7dd3fc;box-shadow:0 0 18px rgba(125,211,252,.55);}
+    @media (max-width:760px){
+      body{place-items:start center;padding:18px 14px;}
+      .brand{margin:6px 0 16px;}
+      .card{grid-template-columns:1fr;border-radius:22px;}
+      .main{padding:28px 22px;}
+      .side{min-height:auto;padding:22px;}
+      .actions{align-items:stretch;}
+      .btn{width:100%;}
+      .actions .link{width:100%;text-align:center;padding:8px 0;}
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <a class="brand" href="/app.html" aria-label="Back to PostIQ">PostIQ <span class="beta">Beta</span></a>
+    <main class="card" aria-labelledby="pageTitle">
+      <section class="main">
+        <div class="eyebrow"><span class="dot"></span>Buffer connection</div>
+        <h1 id="pageTitle">Sign in with Buffer</h1>
+        <p class="copy">Connect your Buffer account to load your channels, view your queue, plan content, and publish from PostIQ.</p>
+        <ul class="benefits" aria-label="Benefits">
+          <li><span class="check">✓</span>No manual API key needed</li>
+          <li><span class="check">✓</span>Load your Buffer channels</li>
+          <li><span class="check">✓</span>Draft, queue, and schedule posts</li>
+          <li><span class="check">✓</span>Disconnect anytime</li>
+        </ul>
+        <div class="error" id="connectError" role="alert"></div>
+        <div class="actions">
+          <button class="btn primary" id="continueBtn" type="button">Continue with Buffer</button>
+          <a class="link" id="backLink" href="/app.html">Back to PostIQ</a>
+        </div>
+        <p class="trust">PostIQ only uses your Buffer connection to power your planning, drafting, and publishing workflow.</p>
+        <p class="advanced"><a class="link" href="/app.html?settings=connection&amp;advanced=api">Need manual setup?</a></p>
+      </section>
+      <aside class="side" aria-label="Connection summary">
+        <div class="side-card">
+          <div class="side-title">One secure sign-in for your publishing workflow.</div>
+          <p>Use Buffer OAuth to keep PostIQ focused on planning, drafting, and publishing without asking you to paste credentials into the sidebar.</p>
+          <div class="mini-list">
+            <div class="mini-item"><span class="mini-dot"></span>Public browser client</div>
+            <div class="mini-item"><span class="mini-dot"></span>PKCE redirect flow</div>
+            <div class="mini-item"><span class="mini-dot"></span>No frontend client secret</div>
+          </div>
+        </div>
+        <p>After Buffer approves the connection, you’ll return to PostIQ automatically.</p>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const BUFFER_AUTHORIZATION_ENDPOINT = 'https://auth.buffer.com/auth';
+    const BUFFER_OAUTH_SCOPE = 'posts:write posts:read account:read offline_access';
+    // Confirm this public Buffer OAuth client ID matches the app/callback configuration before deploying.
+    const BUFFER_CLIENT_ID = 'ijzu75qv_CAcO0qMelb93HjOVh1EwEanezilfgBiOEG';
+
+    const qs = id => document.getElementById(id);
+
+    function getSafeReturnPath() {
+      const requested = new URLSearchParams(location.search).get('return') || '/app.html';
+      try {
+        const url = new URL(requested, location.origin);
+        if (url.origin === location.origin && url.pathname.startsWith('/')) return `${url.pathname}${url.search}${url.hash}`;
+      } catch (_) {}
+      return '/app.html';
+    }
+
+    function generateRandomString(length) {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+      const bytes = new Uint8Array(length);
+      crypto.getRandomValues(bytes);
+      return Array.from(bytes, byte => chars[byte % chars.length]).join('');
+    }
+
+    function base64UrlEncode(arrayBuffer) {
+      const bytes = new Uint8Array(arrayBuffer);
+      let binary = '';
+      bytes.forEach(byte => { binary += String.fromCharCode(byte); });
+      return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    }
+
+    async function createPkceChallenge(verifier) {
+      const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+      return base64UrlEncode(digest);
+    }
+
+    function getOAuthRedirectUri() {
+      return ['localhost', '127.0.0.1'].includes(location.hostname)
+        ? 'http://localhost:8888/auth/callback.html'
+        : 'https://postiq.netlify.app/auth/callback.html';
+    }
+
+    function showConnectError() {
+      const error = qs('connectError');
+      error.textContent = 'We could not start Buffer sign-in. Please check that this page is loaded over HTTPS or localhost, then try again.';
+      error.style.display = 'block';
+      qs('continueBtn').disabled = false;
+      qs('continueBtn').textContent = 'Continue with Buffer';
+    }
+
+    async function startBufferOAuth() {
+      qs('connectError').style.display = 'none';
+      qs('continueBtn').disabled = true;
+      qs('continueBtn').textContent = 'Opening Buffer…';
+
+      if (!window.isSecureContext && !['localhost', '127.0.0.1'].includes(location.hostname)) {
+        showConnectError();
+        return;
+      }
+
+      // `state` helps protect the OAuth redirect flow by binding the callback to this browser session.
+      const oauthState = generateRandomString(48);
+      // PKCE is used because PostIQ is a public browser client that cannot keep secrets.
+      const verifier = generateRandomString(96);
+      const challenge = await createPkceChallenge(verifier);
+      const redirectUri = getOAuthRedirectUri();
+
+      sessionStorage.setItem('postiq_oauth_state', oauthState);
+      sessionStorage.setItem('postiq_pkce_verifier', verifier);
+      sessionStorage.setItem('postiq_oauth_redirect_uri', redirectUri);
+
+      // A client_secret must not be used in frontend code because browser source is visible to users.
+      const params = new URLSearchParams({
+        client_id: BUFFER_CLIENT_ID,
+        redirect_uri: redirectUri,
+        response_type: 'code',
+        state: oauthState,
+        code_challenge: challenge,
+        code_challenge_method: 'S256',
+        scope: BUFFER_OAUTH_SCOPE,
+      });
+
+      location.href = `${BUFFER_AUTHORIZATION_ENDPOINT}?${params.toString()}`;
+    }
+
+    qs('backLink').href = getSafeReturnPath();
+    qs('continueBtn').addEventListener('click', () => {
+      startBufferOAuth().catch(() => showConnectError());
+    });
+  </script>
+</body>
+</html>
