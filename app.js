@@ -742,16 +742,29 @@ function renderConnectionUI() {
   const desktopPanel = qs('tokenPanel');
   if (!tokenPanelOpen) setTokenPanelVisible(desktopPanel, false);
 
-  const primaryHeading = connected ? (oauthActive ? 'Connected to Buffer' : 'Connected') : (expired ? 'Not connected' : 'Not connected');
+  const primaryHeading = connected ? '' : 'Not connected';
   const helper = connected
-    ? (oauthActive ? 'OAuth connection active. No manual API key needed.' : 'Manual connection active.')
+    ? ''
     : (expired ? 'Reconnect Buffer to load your channels, plan posts, and publish from PostIQ.' : 'Sign in with Buffer to load your channels, plan posts, and publish from PostIQ.');
   const statusLabel = connected ? (oauthActive ? 'Connected to Buffer' : 'Connected') : 'Not connected';
 
+  const sidebarCard = document.querySelector('.side-connection.connection-card');
+  if (sidebarCard) {
+    sidebarCard.classList.toggle('compact', connected);
+    sidebarCard.classList.toggle('connected', connected);
+  }
   const connDot = qs('connDot'); if (connDot) connDot.classList.toggle('on', connected);
   const connLabel = qs('connLabel'); if (connLabel) connLabel.textContent = statusLabel;
-  const connHeading = qs('connHeading'); if (connHeading) connHeading.textContent = primaryHeading;
-  const connHelper = qs('connHelper'); if (connHelper) connHelper.textContent = helper;
+  const connHeading = qs('connHeading');
+  if (connHeading) {
+    connHeading.textContent = primaryHeading;
+    connHeading.style.display = connected ? 'none' : '';
+  }
+  const connHelper = qs('connHelper');
+  if (connHelper) {
+    connHelper.textContent = helper;
+    connHelper.style.display = connected ? 'none' : '';
+  }
   const connLastSync = qs('connLastSync');
   const lastSynced = qs('lastSynced')?.textContent?.trim() || '';
   if (connLastSync) {
@@ -767,28 +780,32 @@ function renderConnectionUI() {
   const revealBtn = qs('revealTokenBtn');
   if (revealBtn) {
     revealBtn.style.display = '';
-    revealBtn.textContent = connected ? 'Manage connection' : 'Connection settings';
+    revealBtn.textContent = 'Connection settings';
   }
 
   const tokenInput = qs('tokenInput');
   if (tokenInput) tokenInput.value = manualToken || '';
   const tokenMsg = qs('tokenMsg');
-  if (tokenMsg && !tokenPanelOpen) tokenMsg.textContent = manualActive ? 'Manual connection active.' : '';
+  if (tokenMsg && !tokenPanelOpen) tokenMsg.textContent = manualActive ? 'Manual API key fallback active.' : '';
 
   const oauthStatus = qs('oauthStatusText');
   if (oauthStatus) {
-    oauthStatus.textContent = oauthActive && connected
-      ? 'OAuth is connected.'
-      : (expired ? 'OAuth connection expired. Reconnect to continue.' : 'OAuth is not connected.');
+    oauthStatus.textContent = connected
+      ? (oauthActive ? 'Connected to Buffer.' : 'Connected with advanced setup.')
+      : (expired ? 'Buffer sign-in expired. Reconnect to continue.' : 'Not connected.');
   }
   const connectBtn = qs('connectBufferBtn');
-  if (connectBtn) connectBtn.textContent = oauthActive || expired ? 'Reconnect Buffer' : 'Connect with Buffer';
+  if (connectBtn) connectBtn.textContent = oauthActive || expired ? 'Reconnect Buffer' : 'Sign in with Buffer';
   const disconnectBtn = qs('disconnectBufferBtn');
   if (disconnectBtn) disconnectBtn.style.display = connected ? '' : 'none';
 
   const mobDot = qs('mobConnDot'); if (mobDot) mobDot.classList.toggle('on', connected);
   const mobLabel = qs('mobConnLabel'); if (mobLabel) mobLabel.textContent = statusLabel;
-  const mobHelper = qs('mobConnHelper'); if (mobHelper) mobHelper.textContent = connected ? (oauthActive ? 'Connected to Buffer.' : 'Manual connection active.') : 'Sign in with Buffer to sync channels and posts.';
+  const mobHelper = qs('mobConnHelper');
+  if (mobHelper) {
+    mobHelper.textContent = connected ? '' : 'Sign in with Buffer to load your channels, plan posts, and publish from PostIQ.';
+    mobHelper.style.display = connected ? 'none' : '';
+  }
   const mobManage = qs('mobManageTokenBtn');
   if (mobManage) {
     setButtonClass(mobManage, 'btn primary');
@@ -798,7 +815,7 @@ function renderConnectionUI() {
     mobManage.textContent = connected ? 'Sync now' : 'Sign in with Buffer';
   }
   const mobSettings = qs('mobConnectionSettingsBtn');
-  if (mobSettings) mobSettings.textContent = connected ? 'Manage connection' : 'Connection settings';
+  if (mobSettings) mobSettings.textContent = 'Connection settings';
 
   updateNavTags();
   return connection;
