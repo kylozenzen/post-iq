@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PostIQ Privacy Policy</title>
+<meta name="description" content="Privacy Policy for PostIQ, a Buffer companion app for content planning, drafting, reviewing, and scheduling." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@700;800&family=Lato:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #f5f6fa;
+  --surface:   #ffffff;
+  --surface2:  #f9fafc;
+  --border:    #e8eaf2;
+  --border2:   #d8dce8;
+  --text:      #14162a;
+  --muted:     #5a6080;
+  --subtle:    #9298b0;
+  --ink:       #2c3050;
+  --brand:     #3a3fff;
+  --brand-dim: rgba(58,63,255,.08);
+  --brand-glow:rgba(58,63,255,.18);
+  --r:  12px;
+  --r2:  8px;
+  --max: 880px;
+  --shadow-sm: 0 1px 3px rgba(20,22,42,.06),0 1px 2px rgba(20,22,42,.04);
+  --shadow:    0 4px 16px rgba(20,22,42,.08),0 1px 4px rgba(20,22,42,.04);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  font-family:'Lato',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  font-size:16px;
+  line-height:1.72;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:
+    linear-gradient(var(--border) 1px,transparent 1px),
+    linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:52px 52px;
+  opacity:.35;
+  pointer-events:none;
+  z-index:0;
+}
+.wrap{
+  width:min(calc(100% - 40px),var(--max));
+  margin:0 auto;
+  position:relative;
+  z-index:1;
+}
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  padding:16px 0;
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:rgba(245,246,250,.88);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-weight:800;
+  font-size:18px;
+  letter-spacing:-.3px;
+  color:var(--ink);
+  text-decoration:none;
+}
+.brand-beta{
+  font-family:'DM Mono',monospace;
+  font-size:10px;
+  font-weight:500;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  padding:3px 7px;
+  border-radius:4px;
+  background:var(--brand);
+  color:#fff;
+}
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:0 18px;
+  height:38px;
+  border-radius:var(--r2);
+  border:1px solid var(--border2);
+  background:var(--surface);
+  color:var(--text);
+  font-family:'Lato',sans-serif;
+  font-size:14px;
+  font-weight:600;
+  text-decoration:none;
+  white-space:nowrap;
+  transition:all .14s;
+  box-shadow:var(--shadow-sm);
+}
+.btn:hover{border-color:var(--brand-glow);color:var(--brand);background:var(--brand-dim);}
+.btn.ghost{background:transparent;border-color:var(--brand-glow);color:var(--brand);}
+.policy-hero{padding:58px 0 24px;text-align:center;}
+.eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-family:'DM Mono',monospace;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.14em;
+  color:var(--brand);
+  margin-bottom:18px;
+}
+.eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--brand);}
+h1{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-weight:800;
+  font-size:clamp(2.4rem,7vw,4rem);
+  line-height:1;
+  letter-spacing:-.05em;
+  color:var(--ink);
+  margin-bottom:14px;
+}
+.policy-subtitle{color:var(--muted);font-size:17px;max-width:58ch;margin:0 auto;}
+.policy-card{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:20px;
+  box-shadow:var(--shadow);
+  padding:42px;
+  margin:18px 0 56px;
+}
+.effective-date{
+  font-family:'DM Mono',monospace;
+  font-size:12px;
+  color:var(--brand);
+  background:var(--brand-dim);
+  border:1px solid var(--brand-glow);
+  border-radius:999px;
+  display:inline-flex;
+  padding:5px 12px;
+  margin-bottom:22px;
+}
+.policy-card p{color:var(--muted);margin-bottom:16px;}
+.policy-card h2{
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-size:1.45rem;
+  line-height:1.15;
+  letter-spacing:-.02em;
+  color:var(--ink);
+  margin:30px 0 10px;
+}
+.policy-card h2:first-of-type{margin-top:16px;}
+ul{padding-left:22px;margin:10px 0 18px;color:var(--muted);}
+li{margin-bottom:6px;}
+.policy-card strong{color:var(--ink);font-weight:600;}
+.policy-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+  border-top:1px solid var(--border);
+  padding-top:22px;
+  margin-top:32px;
+  color:var(--subtle);
+  font-size:13px;
+}
+.policy-footer a{color:var(--brand);font-weight:600;text-decoration:none;}
+.policy-footer a:hover{text-decoration:underline;}
+@media(max-width:640px){
+  .wrap{width:min(calc(100% - 28px),var(--max));}
+  .topbar{align-items:flex-start;}
+  .policy-hero{padding:42px 0 14px;text-align:left;}
+  .policy-card{padding:24px 18px;border-radius:16px;margin-bottom:36px;}
+  body{font-size:15px;line-height:1.68;}
+  .btn{padding:0 13px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <a href="/" class="brand">PostIQ <span class="brand-beta">Beta</span></a>
+    <a href="/" class="btn ghost">← Back home</a>
+  </header>
+
+  <main>
+    <section class="policy-hero">
+      <div class="eyebrow"><span class="eyebrow-dot"></span>Privacy Policy</div>
+      <h1>PostIQ Privacy Policy</h1>
+      <p class="policy-subtitle">How PostIQ handles Buffer access, planning data, local browser storage, shared snapshots, analytics, and user choices.</p>
+    </section>
+
+    <article class="policy-card">
+      <div class="effective-date">Effective date: May 2026</div>
+
+      <p>PostIQ is a content planning and workflow tool built to help Buffer users draft, organize, review, and schedule social content.</p>
+      <p>This Privacy Policy explains what information PostIQ uses, how it is handled, and what choices users have.</p>
+
+      <h2>1. Information PostIQ Uses</h2>
+      <p>PostIQ may use the following information depending on how you use the app:</p>
+      <ul>
+        <li>Buffer API access information that you provide or authorize</li>
+        <li>Buffer account and channel information needed to show your connected social channels</li>
+        <li>Draft content, captions, notes, snippets, calendar items, and planning data you create inside PostIQ</li>
+        <li>Scheduled or published post information made available through Buffer</li>
+        <li>Shared snapshot data you choose to generate</li>
+        <li>Basic usage information if analytics are enabled on public pages</li>
+      </ul>
+      <p>PostIQ is designed to collect as little information as possible.</p>
+
+      <h2>2. Buffer API Access and OAuth</h2>
+      <p>PostIQ connects with Buffer so users can plan, prepare, and schedule content.</p>
+      <p>PostIQ may support one or more Buffer connection methods, including manually entered API access and Buffer’s OAuth authorization flow, subject to Buffer app approval and availability.</p>
+      <p>If OAuth is enabled, Buffer may ask you to authorize PostIQ to access certain Buffer account information and perform actions you approve. This may include viewing connected social channels, reading scheduled or published content, preparing posts, editing posts, or scheduling content through Buffer.</p>
+      <p>PostIQ will only request access needed to support the app’s features.</p>
+      <p>OAuth access tokens are used to connect PostIQ with Buffer. Depending on the version of PostIQ you are using, these tokens may be stored locally in your browser or securely stored by PostIQ if future account-based, cloud, or team features are added.</p>
+      <p>PostIQ does not sell your Buffer data.<br />PostIQ does not use your Buffer data for advertising.<br />PostIQ does not intentionally share your Buffer data with third parties.</p>
+
+      <h2>3. Local Storage</h2>
+      <p>PostIQ uses browser storage, such as localStorage, to save app preferences and workflow data on your device.</p>
+      <p>This may include:</p>
+      <ul>
+        <li>Drafts</li>
+        <li>Snippets</li>
+        <li>Calendar notes</li>
+        <li>Planning settings</li>
+        <li>Snapshot settings</li>
+        <li>Connected Buffer channel details</li>
+        <li>API key, access token, or OAuth-related connection information, if manually entered or authorized by the user</li>
+      </ul>
+      <p>Because this information may be stored in your browser, clearing your browser data may delete your saved PostIQ data.</p>
+
+      <h2>4. Shared Snapshots</h2>
+      <p>PostIQ may allow users to create shareable calendar snapshots.</p>
+      <p>A snapshot may include content such as:</p>
+      <ul>
+        <li>Scheduled post text</li>
+        <li>Calendar dates</li>
+        <li>Notes added by the user</li>
+        <li>Media URLs attached to posts</li>
+        <li>A custom title or message added by the user</li>
+      </ul>
+      <p>Only create and share a snapshot if you are comfortable with the recipient viewing that information.</p>
+      <p>Anyone with access to a shared snapshot link may be able to view the snapshot content, depending on how the link is generated and hosted.</p>
+
+      <h2>5. Media URLs</h2>
+      <p>If you add or import media URLs into PostIQ, those URLs may appear in your calendar, drafts, posts, or shared snapshots.</p>
+      <p>PostIQ does not control third-party media hosting services. If you use a third-party image, video, or file URL, that third-party service may have its own privacy practices.</p>
+
+      <h2>6. Analytics</h2>
+      <p>PostIQ may use basic analytics tools to understand general usage, improve the app, and fix user experience issues.</p>
+      <p>Analytics may include information such as:</p>
+      <ul>
+        <li>Pages visited</li>
+        <li>Device/browser type</li>
+        <li>Referring website</li>
+        <li>General location based on IP address</li>
+        <li>Interaction events</li>
+      </ul>
+      <p>PostIQ does not use analytics to sell personal information.</p>
+      <p>If analytics are not currently installed, this section applies only if analytics are added later.</p>
+
+      <h2>7. Third-Party Services</h2>
+      <p>PostIQ may interact with third-party services, including:</p>
+      <ul>
+        <li>Buffer, for social media scheduling and account/channel access</li>
+        <li>Netlify or another hosting provider, for hosting the app and public pages</li>
+        <li>Analytics providers, if enabled</li>
+        <li>Media hosting services, if users include external media URLs</li>
+      </ul>
+      <p>These services have their own privacy policies and data practices.</p>
+
+      <h2>8. Data Sharing</h2>
+      <p>PostIQ does not sell personal data.</p>
+      <p>PostIQ only shares or exposes information when:</p>
+      <ul>
+        <li>You choose to generate or share a snapshot link</li>
+        <li>You connect or interact with Buffer through the app</li>
+        <li>A third-party hosting, analytics, or infrastructure provider processes limited technical data needed to operate the site</li>
+        <li>Disclosure is required by law</li>
+      </ul>
+
+      <h2>9. Data Security</h2>
+      <p>PostIQ is designed to minimize unnecessary data collection and storage.</p>
+      <p>Because parts of the app may work locally in your browser, you are responsible for protecting access to your own device, browser profile, and Buffer credentials.</p>
+      <p>Do not share your API key, access token, OAuth connection, or snapshot links with anyone you do not trust.</p>
+
+      <h2>10. Your Choices</h2>
+      <p>You can:</p>
+      <ul>
+        <li>Clear browser storage to remove locally saved PostIQ data</li>
+        <li>Disconnect or rotate your Buffer API key/token if you use manual API access</li>
+        <li>Revoke PostIQ’s access from your Buffer account settings if OAuth access is enabled</li>
+        <li>Avoid creating shared snapshots if you do not want content shared</li>
+        <li>Avoid entering sensitive information into drafts, notes, posts, or snapshots</li>
+      </ul>
+
+      <h2>11. Children’s Privacy</h2>
+      <p>PostIQ is not designed for children under 13 and does not knowingly collect information from children.</p>
+
+      <h2>12. Changes to This Policy</h2>
+      <p>This Privacy Policy may be updated as PostIQ evolves.</p>
+      <p>If major features are added, such as user accounts, server-side storage, payments, team features, or expanded OAuth-based account management, this policy should be reviewed and updated.</p>
+
+      <h2>13. Contact</h2>
+      <p>For privacy questions, contact:</p>
+      <p><strong>Ben Campbell</strong><br /><a href="mailto:hirebencampbell@gmail.com">hirebencampbell@gmail.com</a></p>
+
+      <footer class="policy-footer">
+        <span>PostIQ privacy questions? Email <a href="mailto:hirebencampbell@gmail.com">hirebencampbell@gmail.com</a>.</span>
+        <span><a href="/">Back to PostIQ</a> · <a href="/app.html">Open app</a></span>
+      </footer>
+    </article>
+  </main>
+</div>
+</body>
+</html>
