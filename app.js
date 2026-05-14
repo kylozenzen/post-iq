@@ -2,6 +2,11 @@
 
 // ── CONSTANTS ──────────────────────────────────────
 const STORE_KEY       = 'postiq_buffer_token';
+const OAUTH_ACCESS_TOKEN_KEY = 'postiq_buffer_access_token';
+const OAUTH_REFRESH_TOKEN_KEY = 'postiq_buffer_refresh_token';
+const OAUTH_EXPIRES_AT_KEY = 'postiq_buffer_token_expires_at';
+const OAUTH_TOKEN_TYPE_KEY = 'postiq_buffer_token_type';
+const OAUTH_SCOPE_KEY = 'postiq_buffer_token_scope';
 const NOTE_KEY        = 'postiq_calendar_notes_v2';
 const NOTE_TYPES_KEY  = 'postiqNoteTypes';
 const PLANNING_KEY    = 'postiqPlanningSettings';
@@ -105,6 +110,83 @@ const rgbaFromHex = (hex, alpha = 0.1) => {
   return `rgba(${(num >> 16) & 255},${(num >> 8) & 255},${num & 255},${alpha})`;
 };
 const maskToken = t => !t ? '—' : t.length <= 8 ? '••••' : `${t.slice(0,4)}••••${t.slice(-4)}`;
+
+// ── BUFFER OAUTH (PUBLIC CLIENT + PKCE) ─────────────
+function generateRandomString(length) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => chars[b % chars.length]).join('');
+}
+
+function base64UrlEncode(arrayBuffer) {
+  const bytes = new Uint8Array(arrayBuffer);
+  let binary = '';
+  bytes.forEach(byte => { binary += String.fromCharCode(byte); });
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
+function sha256(plainText) {
+  return crypto.subtle.digest('SHA-256', new TextEncoder().encode(plainText));
+}
+
+async function createPkceChallenge(verifier) {
+  return base64UrlEncode(await sha256(verifier));
+}
+
+function getOAuthRedirectUri() {
+  return ['localhost', '127.0.0.1'].includes(location.hostname)
+    ? 'http://localhost:8888/auth/callback.html'
+    : 'https://postiq.netlify.app/auth/callback.html';
+}
+
+async function startBufferOAuth() {
+  if (!window.isSecureContext && !['localhost', '127.0.0.1'].includes(location.hostname)) {
+    showToast('OAuth needs a secure HTTPS page.', 'error');
+    return;
+  }
+
+  // `state` protects the OAuth redirect from CSRF by binding this browser session to the callback.
+  const oauthState = generateRandomString(48);
+  // PKCE protects public clients: the browser keeps the verifier and Buffer receives only its challenge up front.
+  const verifier = generateRandomString(96);
+  const challenge = await createPkceChallenge(verifier);
+  const redirectUri = getOAuthRedirectUri();
+
+  sessionStorage.setItem('postiq_oauth_state', oauthState);
+  sessionStorage.setItem('postiq_pkce_verifier', verifier);
+  sessionStorage.setItem('postiq_oauth_redirect_uri', redirectUri);
+
+  // This is browser code for a public OAuth client; client secrets should never be used here.
+  const params = new URLSearchParams({
+    client_id: BUFFER_CLIENT_ID,
+    redirect_uri: redirectUri,
+    response_type: 'code',
+    state: oauthState,
+    code_challenge: challenge,
+    code_challenge_method: 'S256',
+    scope: 'accountRead postsRead postsWrite',
+  });
+  location.href = `https://auth.buffer.com/auth?${params.toString()}`;
+}
+
+function getOAuthBufferToken() {
+  const token = sessionStorage.getItem(OAUTH_ACCESS_TOKEN_KEY) || localStorage.getItem(OAUTH_ACCESS_TOKEN_KEY) || '';
+  if (!token) return '';
+  const expiresAt = Number(sessionStorage.getItem(OAUTH_EXPIRES_AT_KEY) || localStorage.getItem(OAUTH_EXPIRES_AT_KEY) || 0);
+  if (expiresAt && Date.now() >= expiresAt - 60000) return '';
+  return token;
+}
+
+function clearOAuthBufferToken() {
+  [sessionStorage, localStorage].forEach(store => {
+    store.removeItem(OAUTH_ACCESS_TOKEN_KEY);
+    store.removeItem(OAUTH_REFRESH_TOKEN_KEY);
+    store.removeItem(OAUTH_EXPIRES_AT_KEY);
+    store.removeItem(OAUTH_TOKEN_TYPE_KEY);
+    store.removeItem(OAUTH_SCOPE_KEY);
+  });
+}
 
 
 // ── BUFFER ASSET NORMALIZATION ─────────────────────
@@ -523,6 +605,7 @@ function updateComposerButtonStates() {
 }
 
 function setBufferToken(token, { mode = 'session', messageEl = null } = {}) {
+  clearOAuthBufferToken();
   localStorage.removeItem(STORE_KEY);
   sessionStorage.removeItem(STORE_KEY);
   const clean = String(token || '').trim();
@@ -544,7 +627,7 @@ function setBufferToken(token, { mode = 'session', messageEl = null } = {}) {
 }
 
 function loadStoredToken() {
-  bufferToken = sessionStorage.getItem(STORE_KEY) || localStorage.getItem(STORE_KEY) || '';
+  bufferToken = getOAuthBufferToken() || sessionStorage.getItem(STORE_KEY) || localStorage.getItem(STORE_KEY) || '';
   if (bufferToken) {
     const inp = qs('tokenInput'); if (inp) inp.value = bufferToken;
     loadCacheState();
@@ -618,6 +701,7 @@ function isAuthError(err) {
 
 function handleAuthFailure(msg) {
   bufferToken = '';
+  clearOAuthBufferToken();
   localStorage.removeItem(STORE_KEY); sessionStorage.removeItem(STORE_KEY);
   clearSyncedData(); refreshTokenUI();
   setSyncStatus('failed', msg);
@@ -1952,9 +2036,18 @@ function init() {
   };
   qs('saveTokenBtn').onclick = saveToken;
   qs('clearTokenBtn').onclick = () => { qs('tokenInput').value = ''; saveToken(); };
+  const connectBufferBtn = qs('connectBufferBtn'); if (connectBufferBtn) connectBufferBtn.onclick = startBufferOAuth;
 
   qs('syncBtn').onclick = () => syncBuffer({ force: true });
-  if (bufferToken) syncBuffer();
+  const connectedParam = new URLSearchParams(location.search).get('connected');
+  if (connectedParam === 'buffer') {
+    showToast('Buffer connected.', 'success');
+    const cleanParams = new URLSearchParams(location.search);
+    cleanParams.delete('connected');
+    const cleanUrl = `${location.pathname}${cleanParams.toString() ? `?${cleanParams.toString()}` : ''}${location.hash || ''}`;
+    history.replaceState({}, document.title, cleanUrl);
+  }
+  if (bufferToken) syncBuffer({ force: connectedParam === 'buffer' });
 
   document.querySelectorAll('[data-view]').forEach(b => {
     b.onclick = () => {
@@ -2227,6 +2320,7 @@ function init() {
     if (ok) { qs('tokenInput').value = t; syncBuffer({ force: true }); closeMobDrawer(); }
   };
   qs('mobClearTokenBtn').onclick = () => { qs('mobTokenInput').value = ''; setBufferToken('', { mode: 'session', messageEl: qs('mobTokenMsg') }); };
+  const mobConnectBufferBtn = qs('mobConnectBufferBtn'); if (mobConnectBufferBtn) mobConnectBufferBtn.onclick = startBufferOAuth;
   qs('mobOpenSettings').onclick = () => { closeMobDrawer(); openModal('settingsModal'); };
 
   const smb = qs('shareMonthBtnMob'); if (smb) smb.onclick = openShareSnapshotModal;

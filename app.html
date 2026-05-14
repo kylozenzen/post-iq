@@ -82,6 +82,10 @@
       </div>
       <!-- Token panel (toggles open) -->
       <div id="tokenPanel" style="display:none; margin-top:10px;">
+        <div style="padding:10px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface2);margin-bottom:12px;">
+          <button class="btn sm primary" id="connectBufferBtn" type="button" style="width:100%;justify-content:center;">Connect with Buffer</button>
+          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:6px;line-height:1.45;">Recommended. No manual API key needed.</div>
+        </div>
         <div class="field">
           <label class="label">Buffer API token</label>
           <input id="tokenInput" class="input mono" type="password" placeholder="Paste token…" />
@@ -1045,6 +1049,10 @@
     <button class="btn ghost" id="mobManageTokenBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">🔑 Manage Buffer token</button>
   </div>
   <div id="mobTokenPanel" style="display:none;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);margin-top:8px;">
+    <div style="padding:10px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);margin-bottom:12px;">
+      <button class="btn sm primary" id="mobConnectBufferBtn" type="button" style="width:100%;justify-content:center;">Connect with Buffer</button>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.45;">Recommended. No manual API key needed.</div>
+    </div>
     <div class="field">
       <label class="label">Buffer API token</label>
       <input id="mobTokenInput" class="input mono" type="password" placeholder="Paste token…" />
@@ -1141,6 +1149,9 @@
 <!-- ══════════════════════════════════
      JAVASCRIPT
      ══════════════════════════════════ -->
+  <script>
+    const BUFFER_CLIENT_ID = "ijzu75qv_CAcO0qMelb93HjOVh1EwEanezilfgBiOEG";
+  </script>
   <script src="./app.js" defer></script>
 
 
