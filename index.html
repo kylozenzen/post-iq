@@ -680,6 +680,9 @@ h2 em{font-style:normal;color:var(--brand);}
 .cta-card h2{font-size:clamp(1.8rem,3.5vw,2.4rem);margin-bottom:12px;}
 .cta-card p{font-size:15px;color:var(--muted);margin:0 auto 28px;max-width:44ch;line-height:1.7;}
 .cta-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.affiliate-note{margin-top:16px;font-size:12px;color:var(--subtle);line-height:1.6;}
+.affiliate-note a{color:var(--brand);font-weight:600;text-decoration:none;}
+.affiliate-note a:hover{text-decoration:underline;}
 
 /* ── PROOF LINE ── */
 .proof-line{
@@ -769,8 +772,9 @@ h2 em{font-style:normal;color:var(--brand);}
 <header class="topbar">
   <a href="/" class="brand">PostIQ <span class="brand-beta">Beta</span></a>
   <nav class="top-actions">
-    <a href="app.html" class="btn ghost">Open app</a>
-    <a href="app.html" class="btn primary">Try free →</a>
+    <a href="app.html" class="btn ghost">Open PostIQ</a>
+    <a href="app.html?connect=buffer" class="btn primary">Sign in with Buffer</a>
+    <a href="#try" class="btn ghost">Try Split Mode</a>
   </nav>
 </header>
 
@@ -782,16 +786,17 @@ h2 em{font-style:normal;color:var(--brand);}
       <div class="eyebrow"><span class="eyebrow-dot"></span>Buffer companion · content workflow</div>
       <h1>Stop Guessing<br>What To <em>Post.</em></h1>
       <p class="hero-sub">Plan your strategy. Draft with purpose.<br>Ship to Buffer when you're ready.</p>
-      <p class="hero-desc">PostIQ gives Buffer users a planning and drafting layer that turns "what do I even post today?" into a system — content pillars, a visual calendar, a focused composer, and a thread splitter. Use PostIQ free for lightweight writing tools. Sign in with Buffer when you want to sync channels, view your queue, or send posts.</p>
+      <p class="hero-desc">PostIQ helps you plan, draft, split, and publish smarter with Buffer. Sign in with your Buffer account to sync channels, view your queue, and send posts — no manual API key needed.</p>
       <div class="hero-ctas">
-        <a href="app.html" class="btn primary lg">Start free →</a>
-        <a href="#tools" class="btn lg">See the tools</a>
+        <a href="app.html" class="btn primary lg">Open PostIQ →</a>
+        <a href="app.html?connect=buffer" class="btn lg">Sign in with Buffer</a>
+        <a href="#try" class="btn ghost lg">Try Split Mode demo</a>
       </div>
       <div class="trust-strip">
-        <span class="trust-pill">Free preview tools</span>
         <span class="trust-pill">Sign in with Buffer</span>
-        <span class="trust-pill">No manual API key needed</span>
-        <span class="trust-pill">Built for planning and drafting</span>
+        <span class="trust-pill">Sync your channels</span>
+        <span class="trust-pill">Draft, plan, and publish</span>
+        <span class="trust-pill">Preview tools before connecting</span>
       </div>
       <div class="proof-line">
         <div class="avatar">BC</div>
@@ -879,7 +884,7 @@ h2 em{font-style:normal;color:var(--brand);}
 <section id="tools">
   <div class="section-eyebrow reveal">Your tools</div>
   <h2 class="reveal">Everything between<br><em>blank page and Buffer queue.</em></h2>
-  <p class="section-desc reveal">Six tools that work together. Preview lightweight writing tools for free, then sign in with Buffer when you want connected planning, drafting, and publishing.</p>
+  <p class="section-desc reveal">Six tools that work together around your Buffer workflow. Preview a few lightweight writing tools first, then sign in with Buffer to sync channels, plan your queue, draft posts, and publish.</p>
 
   <div class="tools-grid reveal-group">
 
@@ -898,7 +903,7 @@ h2 em{font-style:normal;color:var(--brand);}
     </div>
 
     <div class="tool-card featured reveal">
-      <div class="tool-tag free">Free preview</div>
+      <div class="tool-tag free">Preview available</div>
       <span class="tool-icon">🧠</span>
       <div class="tool-num">02 — Content Pillars</div>
       <h3>Know what to post<br>before you open Draft.</h3>
@@ -916,7 +921,7 @@ h2 em{font-style:normal;color:var(--brand);}
   <div class="tools-grid-wide reveal-group" style="margin-top:12px;">
 
     <div class="tool-card reveal">
-      <div class="tool-tag key">Requires Buffer sign-in</div>
+      <div class="tool-tag key">Works best with Buffer</div>
       <span class="tool-icon">✍️</span>
       <div class="tool-num">03 — Draft</div>
       <h3>Write it here.<br>Send to Buffer.</h3>
@@ -924,15 +929,15 @@ h2 em{font-style:normal;color:var(--brand);}
     </div>
 
     <div class="tool-card reveal">
-      <div class="tool-tag free">Free preview</div>
+      <div class="tool-tag free">Preview available</div>
       <span class="tool-icon">✂️</span>
       <div class="tool-num">04 — Thread Splitter</div>
       <h3>Long copy.<br>Thread-ready parts.</h3>
-      <p>Paste any long-form content and PostIQ breaks it into 280-character parts. Edit each one, then queue the whole thread to Buffer natively. Try it right now — no account needed.</p>
+      <p>Paste any long-form content and PostIQ breaks it into 280-character parts. Edit each one, then queue the whole thread to Buffer natively. Preview the splitter here, then connect Buffer to queue the finished thread natively.</p>
     </div>
 
     <div class="tool-card reveal">
-      <div class="tool-tag free">Free preview</div>
+      <div class="tool-tag free">Preview available</div>
       <span class="tool-icon">📈</span>
       <div class="tool-num">05 — Trending</div>
       <h3>Find ideas.<br>Write your take.</h3>
@@ -944,7 +949,7 @@ h2 em{font-style:normal;color:var(--brand);}
   <div class="tools-grid reveal-group" style="margin-top:12px;">
 
     <div class="tool-card reveal">
-      <div class="tool-tag free">Free preview</div>
+      <div class="tool-tag free">Preview available</div>
       <span class="tool-icon">⚡</span>
       <div class="tool-num">06 — Templates</div>
       <h3>Reusable starters<br>for every post type.</h3>
@@ -968,13 +973,13 @@ h2 em{font-style:normal;color:var(--brand);}
   </div>
 
   <!-- Thread Splitter live demo -->
-  <div class="demo-section reveal">
+  <div class="demo-section reveal" id="try">
     <div class="demo-section-hdr">
       <div>
         <div class="demo-section-title">Try the thread splitter</div>
-        <div class="demo-section-sub">Free preview — paste anything and see it split instantly</div>
+        <div class="demo-section-sub">Preview available — paste anything and see it split instantly</div>
       </div>
-      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:.06em;">Free tool · 280 char limit</span>
+      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--subtle);text-transform:uppercase;letter-spacing:.06em;">Split Mode demo · 280 char limit</span>
     </div>
     <div class="demo-body">
       <div class="demo-col">
@@ -998,65 +1003,68 @@ h2 em{font-style:normal;color:var(--brand);}
   <div class="buffer-bridge reveal">
     <div class="bridge-icon">⚡</div>
     <div class="bridge-copy">
-      <strong>Finish inside Buffer — or stay in PostIQ.</strong>
-      <span>Draft, queue, or schedule directly from PostIQ. Or use it purely for planning and copy everything to Buffer manually. Either way works.</span>
+      <strong>Connect Buffer to complete the workflow.</strong>
+      <span>PostIQ works best with your Buffer account connected: sync channels, see your queue, plan content, and send drafts or scheduled posts when you choose.</span>
+      <div class="affiliate-note">Need a Buffer account? <a href="https://join.buffer.com/ben-campbell" target="_blank" rel="noopener">Start with Buffer</a>. Partner link — I may earn a commission if you sign up.</div>
     </div>
     <div class="bridge-actions">
       <a href="app.html" class="btn primary">Open PostIQ →</a>
-      <a href="https://publish.buffer.com/" target="_blank" rel="noopener" class="btn">Open Buffer ↗</a>
+      <a href="app.html?connect=buffer" class="btn">Sign in with Buffer</a>
     </div>
   </div>
 
 </section>
 
-<!-- TRUST / TOKEN -->
+<!-- TRUST / CONNECT -->
 <section>
   <div class="section-eyebrow reveal">Trust and setup</div>
-  <h2 class="reveal">Sign in with Buffer —<br><em>no manual API key needed.</em></h2>
-  <p class="section-desc reveal">Use PostIQ free for lightweight writing tools. Sign in with Buffer when you want to sync channels, view your queue, or send posts.</p>
+  <h2 class="reveal">How connecting<br><em>Buffer works.</em></h2>
+  <p class="section-desc reveal">PostIQ works best when it is connected to Buffer. You can preview parts of PostIQ before connecting, but the full workflow requires Buffer sign-in.</p>
 
   <div class="token-grid reveal-group">
     <div class="token-card reveal">
       <div class="token-bg-num">01</div>
-      <h4>What it is</h4>
-      <p>Buffer sign-in connects PostIQ to your account with OAuth. You do not need to find or paste a manual API key for the normal setup.</p>
+      <h4>Sign in with Buffer</h4>
+      <p>Connect your Buffer account securely so PostIQ can load your channels and queue.</p>
     </div>
     <div class="token-card reveal">
       <div class="token-bg-num">02</div>
-      <h4>What PostIQ does with it</h4>
-      <p>Reads your channels and scheduled posts. Sends drafts, queues posts, or schedules them — only when you explicitly click a button. Nothing happens in the background.</p>
+      <h4>Plan and draft in PostIQ</h4>
+      <p>Use Composer, Split Mode, Snippets, Calendar, and Approvals to shape content before it goes out.</p>
     </div>
     <div class="token-card reveal">
       <div class="token-bg-num">03</div>
-      <h4>Manual fallback</h4>
-      <p>Advanced users can still use the API key fallback if OAuth is unavailable or they are testing manually. It lives in connection settings, not the main app sidebar.</p>
+      <h4>Send to Buffer</h4>
+      <p>When you're ready, create drafts, queue posts, or schedule content through Buffer.</p>
     </div>
   </div>
-  <div class="reveal" style="display:flex;justify-content:center;margin-top:24px;">
-    <a href="/auth/connect.html" class="btn primary lg">Sign in with Buffer →</a>
+  <div class="reveal" style="display:flex;justify-content:center;margin-top:24px;gap:10px;flex-wrap:wrap;">
+    <a href="app.html?connect=buffer" class="btn primary lg">Sign in with Buffer →</a>
+    <a href="app.html" class="btn lg">Open PostIQ</a>
   </div>
+  <div class="affiliate-note reveal" style="text-align:center;">Need a Buffer account? <a href="https://join.buffer.com/ben-campbell" target="_blank" rel="noopener">Start with Buffer</a>. Partner link — I may earn a commission if you sign up.</div>
 
   <div class="faq-wrap reveal">
     <div class="faq-list">
       <div class="faq-item open">
-        <button class="faq-q"><span>Do I need to sign in with Buffer to use Content Pillars or Trending?</span><span class="faq-icon">+</span></button>
-        <div class="faq-a">No. Both can be previewed without a Buffer connection. Content Pillars saves your strategy locally in your browser. Trending pulls public data from Reddit and Hacker News. Sign in with Buffer when you want to sync channels, view your queue, or send posts.</div>
+        <button class="faq-q"><span>Do I need a Buffer account?</span><span class="faq-icon">+</span></button>
+        <div class="faq-a">You'll get the most value from PostIQ when it is connected to Buffer. You can preview parts of the app first, but syncing channels, viewing your queue, and publishing require Buffer sign-in.</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q"><span>Do I need a manual API key?</span><span class="faq-icon">+</span></button>
-        <div class="faq-a">No for the recommended flow. Sign in with Buffer instead. A manual API key fallback remains available inside advanced connection settings for testing or if OAuth is unavailable.</div>
+        <button class="faq-q"><span>What happens when I sign in with Buffer?</span><span class="faq-icon">+</span></button>
+        <div class="faq-a">PostIQ can load your connected channels, show your queue and scheduled posts, and send drafts or scheduled posts to Buffer when you choose.</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q"><span>Does PostIQ post anything automatically?</span><span class="faq-icon">+</span></button>
-        <div class="faq-a">No. PostIQ only acts when you explicitly click Save draft, Add to queue, or Schedule. Nothing happens in the background. You're always in control of what goes to Buffer.</div>
+        <button class="faq-q"><span>Will PostIQ post automatically?</span><span class="faq-icon">+</span></button>
+        <div class="faq-a">No. PostIQ only sends content to Buffer when you choose to draft, queue, or schedule something.</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q"><span>Who is the Approve feature for?</span><span class="faq-icon">+</span></button>
-        <div class="faq-a">Anyone who has a post that needs a second pair of eyes before it goes live — a client, a manager, a collaborator. Generate a shareable link, they review and comment, you publish when it's approved. The reviewer never needs access to your Buffer account.</div>
+        <button class="faq-q"><span>What if I do not have Buffer yet?</span><span class="faq-icon">+</span></button>
+        <div class="faq-a">You can create a Buffer account first, then return to PostIQ and connect it. Need a Buffer account? <a href="https://join.buffer.com/ben-campbell" target="_blank" rel="noopener">Start here</a>. Partner link — I may earn a commission if you sign up.</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q"><span>Will this work with my Buffer plan?</span><span class="faq-icon">+</span></button>
-        <div class="faq-a">Sign in with Buffer and test the sync. If your plan supports the connected Buffer actions you need, you'll be up and running in seconds.</div>
+        <button class="faq-q"><span>Can I disconnect later?</span><span class="faq-icon">+</span></button>
+        <div class="faq-a">Yes. You can disconnect Buffer from PostIQ's connection settings anytime.</div>
       </div>
     </div>
   </div>
@@ -1079,8 +1087,8 @@ h2 em{font-style:normal;color:var(--brand);}
     </div>
     <div class="story-body" id="storyBody">
       <div class="story-inner">
-        <p>When Buffer opened their API beta, I was already deep in the weeds managing social for accounts that had grown to millions of followers. I kept a separate notes doc for planning. I reviewed content over email. I manually tracked what was approved and what wasn't.</p>
-        <p>The API changed that. Suddenly I could build the exact layer I was missing — a planning calendar that showed my whole month, a composer that sent directly to my queue, a content pillar system so I always knew what to write, and an approval flow that kept clients in the loop without giving them my Buffer login.</p>
+        <p>When I was deep in the weeds managing social for accounts that had grown to millions of followers, Buffer was already where publishing happened. I kept a separate notes doc for planning. I reviewed content over email. I tracked what was approved and what wasn't in a separate workflow.</p>
+        <p>Connecting that workflow to Buffer changed the shape of the tool I wanted — a planning calendar that showed my whole month, a composer that sent directly to my queue, a content pillar system so I always knew what to write, and an approval flow that kept clients in the loop without giving them my Buffer login.</p>
         <p>I built it for myself first. Then I thought about how many creators and social managers were running the same patched-together workflow. So I cleaned it up, kept it free, and put it out there.</p>
         <p style="margin-bottom:0;">PostIQ isn't trying to replace Buffer. It's the planning and strategy layer that makes Buffer feel complete.</p>
         <div class="story-sig">
@@ -1102,12 +1110,14 @@ h2 em{font-style:normal;color:var(--brand);}
   <div class="wrap">
     <div class="cta-card reveal">
       <div class="eyebrow" style="justify-content:center;margin-bottom:16px;opacity:1;animation:none;"><span class="eyebrow-dot"></span>Ready when you are</div>
-      <h2>Stop guessing.<br><em>Start posting.</em></h2>
-      <p>Content Pillars, Trending, Templates, and Thread Splitter can be previewed without connecting. Sign in with Buffer when you're ready to plan your queue, draft posts, and get sign-off before publishing.</p>
+      <h2>Ready to give your Buffer workflow<br><em>a smarter planning layer?</em></h2>
+      <p>Open PostIQ, sign in with Buffer, and start planning, drafting, splitting, and publishing from one focused workspace.</p>
       <div class="cta-actions">
-        <a href="app.html" class="btn primary lg" onclick="gtag('event','landing_cta_click',{location:'final_cta'});">Open PostIQ — it's free →</a>
-        <a href="app.html" class="btn lg">Try Thread Splitter</a>
+        <a href="app.html" class="btn primary lg" onclick="gtag('event','landing_cta_click',{location:'final_cta'});">Open PostIQ →</a>
+        <a href="app.html?connect=buffer" class="btn lg">Sign in with Buffer</a>
+        <a href="#try" class="btn ghost lg">Try Split Mode demo</a>
       </div>
+      <div class="affiliate-note">Need a Buffer account? <a href="https://join.buffer.com/ben-campbell" target="_blank" rel="noopener">Start with Buffer</a>. Partner link — I may earn a commission if you sign up.</div>
     </div>
   </div>
 </div>
@@ -1117,7 +1127,7 @@ h2 em{font-style:normal;color:var(--brand);}
   <div class="wrap footer-inner">
     <a href="/" class="footer-brand">PostIQ <span class="brand-beta">Beta</span></a>
     <nav class="footer-links" aria-label="Footer links">
-      <a href="app.html">Open app</a>
+      <a href="app.html">Open PostIQ</a>
       <a href="/privacy.html">Privacy Policy</a>
     </nav>
   </div>
@@ -1206,7 +1216,7 @@ if (pillarsCard) {
 }
 
 // CTA tracking
-document.querySelectorAll('a[href="app.html"]').forEach(function(link) {
+document.querySelectorAll('a[href^="app.html"]').forEach(function(link) {
   link.addEventListener('click', function() {
     var loc = link.closest('.topbar') ? 'topbar' : link.closest('.cta-card') ? 'final_cta' : 'hero';
     gtag('event','landing_cta_click', { location: loc });
