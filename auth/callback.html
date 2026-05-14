@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Connecting Buffer... | PostIQ</title>
+  <meta name="theme-color" content="#14162a" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@700;800&family=Lato:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f6fa;
+      --surface: #ffffff;
+      --surface2: #f9fafc;
+      --border: #e8eaf2;
+      --text: #14162a;
+      --muted: #5a6080;
+      --subtle: #9298b0;
+      --brand: #3a3fff;
+      --brand-dim: rgba(58,63,255,.08);
+      --brand-glow: rgba(58,63,255,.2);
+      --accent: #ff4f6a;
+      --green: #0fa672;
+      --red: #e04040;
+      --r: 12px;
+      --shadow-lg: 0 12px 40px rgba(20,22,42,.12), 0 4px 12px rgba(20,22,42,.06);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      font-family: 'Lato', system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 15%, rgba(58,63,255,.13), transparent 28%),
+        radial-gradient(circle at 80% 82%, rgba(255,79,106,.10), transparent 26%),
+        var(--bg);
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 52px 52px;
+      opacity: .35;
+      pointer-events: none;
+    }
+
+    .card {
+      width: min(100%, 460px);
+      position: relative;
+      z-index: 1;
+      padding: 32px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: rgba(255,255,255,.88);
+      box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(12px);
+      text-align: center;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 24px;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -.35px;
+    }
+
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      color: #fff;
+      background: var(--brand);
+      box-shadow: 0 8px 22px var(--brand-glow);
+      font-size: 15px;
+    }
+
+    .kicker {
+      margin-bottom: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+
+    h1 {
+      margin-bottom: 12px;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: clamp(30px, 7vw, 42px);
+      line-height: .98;
+      letter-spacing: -.05em;
+    }
+
+    .status {
+      min-height: 52px;
+      margin: 0 auto 22px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .status.error { color: var(--red); }
+    .status.success { color: var(--green); }
+
+    .loader {
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 20px;
+      border-radius: 50%;
+      border: 4px solid var(--brand-dim);
+      border-top-color: var(--brand);
+      animation: spin .85s linear infinite;
+    }
+
+    .loader.done {
+      display: grid;
+      place-items: center;
+      border-color: rgba(15,166,114,.16);
+      background: rgba(15,166,114,.09);
+      color: var(--green);
+      animation: none;
+    }
+
+    .loader.done::before { content: '✓'; font-size: 24px; font-weight: 800; }
+
+    .loader.failed {
+      display: grid;
+      place-items: center;
+      border-color: rgba(224,64,64,.16);
+      background: rgba(224,64,64,.08);
+      color: var(--red);
+      animation: none;
+    }
+
+    .loader.failed::before { content: '!'; font-size: 24px; font-weight: 800; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: var(--r);
+      color: #fff;
+      background: var(--brand);
+      box-shadow: 0 10px 24px var(--brand-glow);
+      font-family: 'Lato', system-ui, sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn[hidden] { display: none; }
+
+    .hint {
+      margin-top: 18px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--subtle);
+    }
+  </style>
+</head>
+<body>
+  <main class="card" aria-live="polite">
+    <div class="brand" aria-label="PostIQ">
+      <span class="brand-mark">P</span>
+      <span>PostIQ</span>
+    </div>
+    <div class="kicker">Buffer OAuth</div>
+    <div id="loader" class="loader" aria-hidden="true"></div>
+    <h1>Connecting Buffer...</h1>
+    <p id="status" class="status">Finishing the secure connection with Buffer. This should only take a moment.</p>
+    <a id="backButton" class="btn" href="/app.html" hidden>Back to PostIQ</a>
+    <p class="hint">You can safely return to PostIQ if this page does not continue.</p>
+  </main>
+
+  <script>
+    'use strict';
+
+    // TODO: Replace this placeholder with the Buffer public OAuth client ID.
+    const BUFFER_CLIENT_ID = "PASTE_BUFFER_CLIENT_ID_HERE";
+
+    const STORAGE_KEYS = {
+      legacyToken: 'postiq_buffer_token',
+      oauthAccessToken: 'postiq_buffer_access_token',
+      oauthRefreshToken: 'postiq_buffer_refresh_token',
+      oauthExpiresAt: 'postiq_buffer_token_expires_at',
+      oauthScope: 'postiq_buffer_token_scope',
+      oauthTokenType: 'postiq_buffer_token_type',
+      oauthState: 'postiq_oauth_state',
+      pkceVerifier: 'postiq_pkce_verifier',
+      oauthRedirectUri: 'postiq_oauth_redirect_uri'
+    };
+
+    const statusEl = document.getElementById('status');
+    const loaderEl = document.getElementById('loader');
+    const backButton = document.getElementById('backButton');
+
+    function setStatus(message, type) {
+      statusEl.textContent = message;
+      statusEl.classList.toggle('error', type === 'error');
+      statusEl.classList.toggle('success', type === 'success');
+      loaderEl.classList.toggle('failed', type === 'error');
+      loaderEl.classList.toggle('done', type === 'success');
+      if (type === 'error') backButton.hidden = false;
+    }
+
+    function cleanupOAuthSession() {
+      sessionStorage.removeItem(STORAGE_KEYS.oauthState);
+      sessionStorage.removeItem(STORAGE_KEYS.pkceVerifier);
+      sessionStorage.removeItem(STORAGE_KEYS.oauthRedirectUri);
+    }
+
+    function getRedirectUri() {
+      const storedRedirectUri = sessionStorage.getItem(STORAGE_KEYS.oauthRedirectUri);
+      if (storedRedirectUri) return storedRedirectUri;
+
+      const isLocalhost = window.location.hostname === 'localhost';
+      if (isLocalhost) return 'http://localhost:8888/auth/callback.html';
+
+      return `${window.location.origin}/auth/callback.html`;
+    }
+
+    function describeBufferError(error, description) {
+      if (error === 'access_denied') return 'Connection cancelled. Buffer was not connected, and no changes were made.';
+      return description || error || 'Buffer returned an authorization error.';
+    }
+
+    async function exchangeCodeForToken(code, redirectUri, codeVerifier) {
+      const body = new URLSearchParams({
+        client_id: BUFFER_CLIENT_ID,
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: redirectUri,
+        // Public OAuth clients omit client_secret because browser code cannot keep secrets confidential.
+        // Buffer verifies this public-client exchange with the PKCE code_verifier instead.
+        code_verifier: codeVerifier
+      });
+
+      let response;
+      try {
+        response = await fetch('https://auth.buffer.com/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: body.toString()
+        });
+      } catch (err) {
+        throw new Error('Network error while contacting Buffer. Please check your connection and try again.');
+      }
+
+      let responseText = '';
+      try {
+        responseText = await response.text();
+      } catch (err) {
+        throw new Error('Could not read Buffer\'s token response. Please try connecting again.');
+      }
+
+      let tokenPayload;
+      try {
+        tokenPayload = responseText ? JSON.parse(responseText) : {};
+      } catch (err) {
+        throw new Error('Buffer returned a response PostIQ could not parse. Please try connecting again.');
+      }
+
+      if (!response.ok) {
+        const message = tokenPayload.error_description || tokenPayload.error || `Buffer token exchange failed with HTTP ${response.status}.`;
+        throw new Error(message);
+      }
+
+      if (!tokenPayload.access_token) {
+        throw new Error('Buffer did not return an access token. Please try connecting again.');
+      }
+
+      return tokenPayload;
+    }
+
+    function storeTokens(tokenPayload) {
+      const accessToken = String(tokenPayload.access_token || '').trim();
+      const refreshToken = tokenPayload.refresh_token ? String(tokenPayload.refresh_token) : '';
+      const tokenType = tokenPayload.token_type ? String(tokenPayload.token_type) : '';
+      const scope = tokenPayload.scope ? String(tokenPayload.scope) : '';
+      const expiresIn = Number(tokenPayload.expires_in || 0);
+      const expiresAt = expiresIn > 0 ? Date.now() + expiresIn * 1000 : '';
+
+      sessionStorage.removeItem(STORAGE_KEYS.legacyToken);
+      localStorage.setItem(STORAGE_KEYS.legacyToken, accessToken);
+      localStorage.setItem(STORAGE_KEYS.oauthAccessToken, accessToken);
+
+      if (refreshToken) localStorage.setItem(STORAGE_KEYS.oauthRefreshToken, refreshToken);
+      else localStorage.removeItem(STORAGE_KEYS.oauthRefreshToken);
+
+      if (expiresAt) localStorage.setItem(STORAGE_KEYS.oauthExpiresAt, String(expiresAt));
+      else localStorage.removeItem(STORAGE_KEYS.oauthExpiresAt);
+
+      if (scope) localStorage.setItem(STORAGE_KEYS.oauthScope, scope);
+      else localStorage.removeItem(STORAGE_KEYS.oauthScope);
+
+      if (tokenType) localStorage.setItem(STORAGE_KEYS.oauthTokenType, tokenType);
+      else localStorage.removeItem(STORAGE_KEYS.oauthTokenType);
+    }
+
+    async function completeOAuthCallback() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      const returnedState = params.get('state');
+      const error = params.get('error');
+      const errorDescription = params.get('error_description');
+      const storedState = sessionStorage.getItem(STORAGE_KEYS.oauthState);
+      const codeVerifier = sessionStorage.getItem(STORAGE_KEYS.pkceVerifier);
+      const redirectUri = getRedirectUri();
+
+      // State validation prevents cross-site request forgery and ensures this callback belongs to the OAuth request PostIQ started.
+      if (!returnedState) throw new Error('Missing OAuth state from Buffer. Please start the connection again from PostIQ.');
+      if (!storedState) throw new Error('Missing saved OAuth state. Please start the connection again from PostIQ.');
+      if (returnedState !== storedState) throw new Error('OAuth state mismatch. For your safety, PostIQ stopped this connection attempt.');
+
+      if (error) {
+        const message = describeBufferError(error, errorDescription);
+        if (error === 'access_denied') {
+          cleanupOAuthSession();
+          setStatus(message, 'error');
+          return;
+        }
+        throw new Error(message);
+      }
+
+      if (!code) throw new Error('Missing authorization code from Buffer. Please start the connection again from PostIQ.');
+      // The PKCE code_verifier proves this browser tab initiated the authorization request and is required for public clients.
+      if (!codeVerifier) throw new Error('Missing PKCE verifier. Please start the connection again from PostIQ.');
+
+      const tokenPayload = await exchangeCodeForToken(code, redirectUri, codeVerifier);
+      storeTokens(tokenPayload);
+      cleanupOAuthSession();
+
+      setStatus('Buffer connected successfully. Returning you to PostIQ...', 'success');
+      window.setTimeout(() => {
+        window.location.assign('/app.html?connected=buffer');
+      }, 800);
+    }
+
+    completeOAuthCallback().catch(err => {
+      setStatus(err && err.message ? err.message : 'Unable to connect Buffer. Please try again from PostIQ.', 'error');
+    });
+  </script>
+</body>
+</html>
