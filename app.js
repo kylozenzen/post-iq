@@ -7,6 +7,7 @@ const OAUTH_REFRESH_TOKEN_KEY = 'postiq_buffer_refresh_token';
 const OAUTH_EXPIRES_AT_KEY = 'postiq_buffer_token_expires_at';
 const OAUTH_TOKEN_TYPE_KEY = 'postiq_buffer_token_type';
 const OAUTH_SCOPE_KEY = 'postiq_buffer_token_scope';
+const OAUTH_RECONNECT_NEEDED_KEY = 'postiq_buffer_reconnect_needed';
 const NOTE_KEY        = 'postiq_calendar_notes_v2';
 const NOTE_TYPES_KEY  = 'postiqNoteTypes';
 const PLANNING_KEY    = 'postiqPlanningSettings';
@@ -255,16 +256,7 @@ function getOAuthBufferToken() {
 }
 
 function clearOAuthBufferToken() {
-  [sessionStorage, localStorage].forEach(store => {
-    store.removeItem(OAUTH_ACCESS_TOKEN_KEY);
-    store.removeItem(OAUTH_REFRESH_TOKEN_KEY);
-    store.removeItem(OAUTH_EXPIRES_AT_KEY);
-    store.removeItem(OAUTH_TOKEN_TYPE_KEY);
-    store.removeItem(OAUTH_SCOPE_KEY);
-    store.removeItem('postiq_oauth_state');
-    store.removeItem('postiq_pkce_verifier');
-    store.removeItem('postiq_oauth_redirect_uri');
-  });
+  clearOAuthConnection();
 }
 
 
@@ -647,20 +639,162 @@ function getManualBufferToken() {
   return getStoredValue(STORE_KEY);
 }
 
-function getBufferConnectionState() {
-  const oauthToken = getStoredValue(OAUTH_ACCESS_TOKEN_KEY).trim();
-  const rawExpiresAt = getStoredValue(OAUTH_EXPIRES_AT_KEY);
-  const expiresAt = rawExpiresAt ? Number(rawExpiresAt) || null : null;
-  const expired = !!(oauthToken && expiresAt && Date.now() >= expiresAt);
 
-  if (oauthToken) {
+function getOAuthStorageForKey(key) {
+  if (sessionStorage.getItem(key)) return sessionStorage;
+  if (localStorage.getItem(key)) return localStorage;
+  return sessionStorage;
+}
+
+function setStoredOAuthValue(key, value) {
+  const store = getOAuthStorageForKey(OAUTH_ACCESS_TOKEN_KEY) || sessionStorage;
+  if (value === undefined || value === null || value === '') {
+    sessionStorage.removeItem(key);
+    localStorage.removeItem(key);
+    return;
+  }
+  store.setItem(key, String(value));
+  const other = store === sessionStorage ? localStorage : sessionStorage;
+  other.removeItem(key);
+}
+
+function getStoredOAuthToken() {
+  const accessToken = getStoredValue(OAUTH_ACCESS_TOKEN_KEY).trim();
+  const refreshToken = getStoredValue(OAUTH_REFRESH_TOKEN_KEY).trim();
+  const rawExpiresAt = getStoredValue(OAUTH_EXPIRES_AT_KEY).trim();
+  const expiresAt = rawExpiresAt ? Number(rawExpiresAt) || null : null;
+  if (!accessToken && !refreshToken && !expiresAt) return null;
+  return {
+    accessToken,
+    refreshToken,
+    tokenType: getStoredValue(OAUTH_TOKEN_TYPE_KEY).trim() || 'Bearer',
+    scope: getStoredValue(OAUTH_SCOPE_KEY).trim(),
+    expiresAt,
+  };
+}
+
+function isOAuthTokenExpired(bufferMs = 5 * 60 * 1000) {
+  const token = getStoredOAuthToken();
+  if (!token?.accessToken) return false;
+  if (!token.expiresAt) return true;
+  return Date.now() >= token.expiresAt - bufferMs;
+}
+
+function hasReconnectNeeded() {
+  return getStoredValue(OAUTH_RECONNECT_NEEDED_KEY) === '1';
+}
+
+function clearReconnectNeeded() {
+  sessionStorage.removeItem(OAUTH_RECONNECT_NEEDED_KEY);
+  localStorage.removeItem(OAUTH_RECONNECT_NEEDED_KEY);
+}
+
+function markBufferReconnectNeeded() {
+  // Reconnect state is used when refresh fails, so the main UI can ask users to sign in again.
+  const store = getOAuthStorageForKey(OAUTH_REFRESH_TOKEN_KEY) || sessionStorage;
+  store.setItem(OAUTH_RECONNECT_NEEDED_KEY, '1');
+  bufferToken = '';
+  renderConnectionUI();
+  setSyncStatus('failed', 'Reconnect Buffer to keep syncing.');
+}
+
+async function refreshBufferOAuthToken() {
+  const token = getStoredOAuthToken();
+  if (!token?.refreshToken) throw Object.assign(new Error('No Buffer refresh token'), { code: 'MISSING_REFRESH_TOKEN' });
+
+  // Public OAuth clients refresh without a browser secret; the refresh token keeps users connected.
+  const body = new URLSearchParams({
+    client_id: BUFFER_CLIENT_ID,
+    grant_type: 'refresh_token',
+    refresh_token: token.refreshToken,
+  });
+
+  let response;
+  try {
+    response = await fetch('https://auth.buffer.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString(),
+    });
+  } catch (err) {
+    markBufferReconnectNeeded();
+    throw Object.assign(new Error('Could not refresh Buffer connection'), { code: 'AUTH_ERROR', status: 401, cause: err });
+  }
+
+  let data = null;
+  try { data = await response.json(); } catch {}
+  if (!response.ok || !data?.access_token) {
+    sessionStorage.removeItem(OAUTH_ACCESS_TOKEN_KEY);
+    localStorage.removeItem(OAUTH_ACCESS_TOKEN_KEY);
+    markBufferReconnectNeeded();
+    throw Object.assign(new Error(data?.error_description || data?.error || 'Could not refresh Buffer connection'), { code: 'AUTH_ERROR', status: response.status || 401 });
+  }
+
+  clearReconnectNeeded();
+  setStoredOAuthValue(OAUTH_ACCESS_TOKEN_KEY, data.access_token);
+  if (data.refresh_token) setStoredOAuthValue(OAUTH_REFRESH_TOKEN_KEY, data.refresh_token);
+  setStoredOAuthValue(OAUTH_TOKEN_TYPE_KEY, data.token_type || token.tokenType || 'Bearer');
+  const scope = Array.isArray(data.scope) ? data.scope.join(' ') : (data.scope || token.scope || '');
+  setStoredOAuthValue(OAUTH_SCOPE_KEY, scope);
+  const expiresIn = Number(data.expires_in || 0);
+  setStoredOAuthValue(OAUTH_EXPIRES_AT_KEY, expiresIn ? Date.now() + expiresIn * 1000 : '');
+  renderConnectionUI();
+  return getStoredOAuthToken();
+}
+
+async function getActiveBufferToken() {
+  const oauthToken = getStoredOAuthToken();
+  if (oauthToken?.accessToken) {
+    if (!isOAuthTokenExpired()) {
+      clearReconnectNeeded();
+      return { token: oauthToken.accessToken, source: 'oauth' };
+    }
+    try {
+      const refreshed = await refreshBufferOAuthToken();
+      if (refreshed?.accessToken) return { token: refreshed.accessToken, source: 'oauth' };
+    } catch {
+      markBufferReconnectNeeded();
+      return null;
+    }
+  }
+
+  if (oauthToken?.refreshToken || hasReconnectNeeded()) {
+    markBufferReconnectNeeded();
+    return null;
+  }
+
+  const manualToken = getManualBufferToken().trim();
+  return manualToken ? { token: manualToken, source: 'manual' } : null;
+}
+
+function clearOAuthConnection() {
+  [sessionStorage, localStorage].forEach(store => {
+    store.removeItem(OAUTH_ACCESS_TOKEN_KEY);
+    store.removeItem(OAUTH_REFRESH_TOKEN_KEY);
+    store.removeItem(OAUTH_EXPIRES_AT_KEY);
+    store.removeItem(OAUTH_TOKEN_TYPE_KEY);
+    store.removeItem(OAUTH_SCOPE_KEY);
+    store.removeItem(OAUTH_RECONNECT_NEEDED_KEY);
+    store.removeItem('postiq_oauth_state');
+    store.removeItem('postiq_pkce_verifier');
+    store.removeItem('postiq_oauth_redirect_uri');
+  });
+}
+
+function getBufferConnectionState() {
+  const oauthToken = getStoredOAuthToken();
+  const expired = !!(oauthToken?.accessToken && isOAuthTokenExpired(0));
+  const reconnectNeeded = hasReconnectNeeded() || !!(oauthToken?.refreshToken && !oauthToken.accessToken);
+
+  if (oauthToken?.accessToken || reconnectNeeded) {
     return {
-      connected: !expired,
+      connected: !!(oauthToken?.accessToken && !expired && !reconnectNeeded),
       source: 'oauth',
-      token: oauthToken,
-      expiresAt,
-      expired,
-      label: expired ? 'Buffer connection expired' : 'Connected to Buffer',
+      token: oauthToken?.accessToken || '',
+      expiresAt: oauthToken?.expiresAt || null,
+      expired: expired || reconnectNeeded,
+      reconnectNeeded,
+      label: expired || reconnectNeeded ? 'Reconnect Buffer' : 'Connected to Buffer',
     };
   }
 
@@ -735,6 +869,7 @@ function renderConnectionUI() {
   const connection = syncBufferTokenFromState();
   const connected = connection.connected;
   const expired = connection.expired;
+  const reconnectNeeded = !!connection.reconnectNeeded;
   const oauthActive = connection.source === 'oauth';
   const manualActive = connection.source === 'manual';
 
@@ -742,11 +877,11 @@ function renderConnectionUI() {
   const desktopPanel = qs('tokenPanel');
   if (!tokenPanelOpen) setTokenPanelVisible(desktopPanel, false);
 
-  const primaryHeading = connected ? '' : 'Not connected';
+  const primaryHeading = connected ? '' : (reconnectNeeded ? 'Reconnect Buffer' : 'Not connected');
   const helper = connected
     ? ''
-    : (expired ? 'Reconnect Buffer to load your channels, plan posts, and publish from PostIQ.' : 'Sign in with Buffer to load your channels, plan posts, and publish from PostIQ.');
-  const statusLabel = connected ? (oauthActive ? 'Connected to Buffer' : 'Connected') : 'Not connected';
+    : (reconnectNeeded ? 'Your Buffer session expired. Sign in again to keep syncing.' : 'Sign in with Buffer to load your channels, plan posts, and publish from PostIQ.');
+  const statusLabel = connected ? (oauthActive ? 'Connected to Buffer' : 'Connected') : (reconnectNeeded ? 'Reconnect Buffer' : 'Not connected');
 
   const sidebarCard = document.querySelector('.side-connection.connection-card');
   if (sidebarCard) {
@@ -775,7 +910,7 @@ function renderConnectionUI() {
   const manageBtn = qs('manageTokenBtn');
   if (manageBtn) {
     setButtonClass(manageBtn, 'btn sm primary');
-    manageBtn.textContent = connected ? 'Sync now' : (expired ? 'Sign in with Buffer' : 'Sign in with Buffer');
+    manageBtn.textContent = connected ? 'Sync now' : (reconnectNeeded ? 'Reconnect Buffer' : 'Sign in with Buffer');
   }
   const revealBtn = qs('revealTokenBtn');
   if (revealBtn) {
@@ -792,18 +927,18 @@ function renderConnectionUI() {
   if (oauthStatus) {
     oauthStatus.textContent = connected
       ? (oauthActive ? 'Connected to Buffer.' : 'Connected with advanced setup.')
-      : (expired ? 'Buffer sign-in expired. Reconnect to continue.' : 'Not connected.');
+      : (reconnectNeeded ? 'Your Buffer session expired. Sign in again to keep syncing.' : 'Not connected.');
   }
   const connectBtn = qs('connectBufferBtn');
-  if (connectBtn) connectBtn.textContent = oauthActive || expired ? 'Reconnect Buffer' : 'Sign in with Buffer';
+  if (connectBtn) connectBtn.textContent = oauthActive || reconnectNeeded ? 'Reconnect Buffer' : 'Sign in with Buffer';
   const disconnectBtn = qs('disconnectBufferBtn');
-  if (disconnectBtn) disconnectBtn.style.display = connected ? '' : 'none';
+  if (disconnectBtn) disconnectBtn.style.display = oauthActive || reconnectNeeded ? '' : 'none';
 
   const mobDot = qs('mobConnDot'); if (mobDot) mobDot.classList.toggle('on', connected);
   const mobLabel = qs('mobConnLabel'); if (mobLabel) mobLabel.textContent = statusLabel;
   const mobHelper = qs('mobConnHelper');
   if (mobHelper) {
-    mobHelper.textContent = connected ? '' : 'Sign in with Buffer to load your channels, plan posts, and publish from PostIQ.';
+    mobHelper.textContent = connected ? '' : (reconnectNeeded ? 'Your Buffer session expired. Sign in again to keep syncing.' : 'Sign in with Buffer to load your channels, plan posts, and publish from PostIQ.');
     mobHelper.style.display = connected ? 'none' : '';
   }
   const mobManage = qs('mobManageTokenBtn');
@@ -812,7 +947,7 @@ function renderConnectionUI() {
     mobManage.style.width = '100%';
     mobManage.style.justifyContent = 'center';
     mobManage.style.fontSize = '13px';
-    mobManage.textContent = connected ? 'Sync now' : 'Sign in with Buffer';
+    mobManage.textContent = connected ? 'Sync now' : (reconnectNeeded ? 'Reconnect Buffer' : 'Sign in with Buffer');
   }
   const mobSettings = qs('mobConnectionSettingsBtn');
   if (mobSettings) mobSettings.textContent = 'Connection settings';
@@ -854,7 +989,7 @@ function updateNavTags() {
   const calDesc = qs('calDesc');
   if (calDesc) calDesc.textContent = connected
     ? 'Your Buffer queue in a monthly view. Spot gaps and add planning notes before you draft.'
-    : (connection.expired ? 'Reconnect Buffer to load your scheduled posts and spot queue gaps.' : 'Sign in with Buffer to load your scheduled posts and spot queue gaps.');
+    : (connection.reconnectNeeded ? 'Reconnect Buffer to load your scheduled posts and spot queue gaps.' : 'Sign in with Buffer to load your scheduled posts and spot queue gaps.');
   const composerDesc = qs('composerDesc');
   if (composerDesc) composerDesc.textContent = connected
     ? 'Write your post, attach media, then send to Buffer as a draft, queued post, or scheduled post.'
@@ -873,7 +1008,7 @@ function updateComposerButtonStates() {
     btn.disabled = !ready;
     btn.style.opacity = ready ? '1' : '.45';
     btn.style.cursor = ready ? 'pointer' : 'not-allowed';
-    btn.title = !connected ? (connection.expired ? 'Reconnect Buffer first' : 'Sign in with Buffer first') : !hasChannel ? 'Load channels from Buffer first' : '';
+    btn.title = !connected ? (connection.reconnectNeeded ? 'Reconnect Buffer first' : 'Sign in with Buffer first') : !hasChannel ? 'Load channels from Buffer first' : '';
   });
 }
 
@@ -899,27 +1034,13 @@ function setBufferToken(token, { mode = 'session', messageEl = null } = {}) {
   return true;
 }
 
-function disconnectBuffer({ clearManual = null } = {}) {
-  const before = getBufferConnectionState();
-  clearOAuthBufferToken();
-
-  if (before.source === 'manual') {
-    const shouldClearManual = clearManual === null
-      ? confirm('Disconnect the active API key fallback?')
-      : !!clearManual;
-    if (!shouldClearManual) {
-      renderConnectionUI();
-      return false;
-    }
-    localStorage.removeItem(STORE_KEY);
-    sessionStorage.removeItem(STORE_KEY);
-  }
-
+function disconnectBuffer() {
+  clearOAuthConnection();
   const after = syncBufferTokenFromState();
   if (!after.connected) clearSyncedData();
   renderConnectionUI();
   showToast('Buffer disconnected.', 'success');
-  setSyncStatus('idle', 'Buffer disconnected.');
+  setSyncStatus('idle', after.connected ? 'Connected with advanced setup.' : 'Buffer disconnected.');
   return true;
 }
 
@@ -933,6 +1054,27 @@ function loadStoredToken() {
     hydrateFromCache();
   }
   renderConnectionUI();
+}
+
+
+async function checkBufferConnectionHealth() {
+  const oauthToken = getStoredOAuthToken();
+  if (oauthToken?.accessToken && !isOAuthTokenExpired()) {
+    clearReconnectNeeded();
+    renderConnectionUI();
+    return getBufferConnectionState();
+  }
+  if (oauthToken?.accessToken || oauthToken?.refreshToken) {
+    try {
+      await refreshBufferOAuthToken();
+    } catch {
+      markBufferReconnectNeeded();
+    }
+    renderConnectionUI();
+    return getBufferConnectionState();
+  }
+  renderConnectionUI();
+  return getBufferConnectionState();
 }
 
 function saveToken() {
@@ -968,16 +1110,16 @@ function clearSyncedData() {
 
 // ── BUFFER API ──────────────────────────────────────
 async function callBuffer(query, variables = {}) {
-  const connection = syncBufferTokenFromState();
-  if (connection.expired) throw Object.assign(new Error('Buffer connection expired'), { code: 'AUTH_ERROR', status: 401 });
-  if (!connection.connected || !connection.token) throw Object.assign(new Error('No Buffer token'), { code: 'MISSING_TOKEN' });
+  const activeToken = await getActiveBufferToken();
+  if (!activeToken?.token) throw Object.assign(new Error(hasReconnectNeeded() ? 'Buffer connection expired' : 'No Buffer token'), { code: hasReconnectNeeded() ? 'AUTH_ERROR' : 'MISSING_TOKEN', status: hasReconnectNeeded() ? 401 : undefined });
   let res;
-  try { res = await fetch('/.netlify/functions/buffer-proxy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: connection.token, query, variables }) }); }
+  try { res = await fetch('/.netlify/functions/buffer-proxy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: activeToken.token, query, variables }) }); }
   catch (err) { throw Object.assign(new Error('Network error'), { code: 'PROXY_NETWORK_ERROR', retryable: true, cause: err }); }
   let data;
   try { data = await res.json(); } catch { throw Object.assign(new Error('Invalid proxy response'), { code: 'PROXY_BAD_RESPONSE' }); }
   if (data.errors?.length && !data.data) {
     const first = data.errors[0] || {};
+    if (activeToken.source === 'oauth' && (first.status === 401 || first.status === 403 || /unauthorized|invalid|forbidden|expired/i.test(String(first.message || '')))) markBufferReconnectNeeded();
     throw Object.assign(new Error(first.message || 'Buffer request failed'), { code: first.code || 'BUFFER_ERROR', status: first.status, retryable: !!first.retryable, retryAfter: first.retryAfter });
   }
   handleBufferWarnings(data);
@@ -1002,8 +1144,7 @@ function isAuthError(err) {
 
 function handleAuthFailure(msg) {
   bufferToken = '';
-  clearOAuthBufferToken();
-  localStorage.removeItem(STORE_KEY); sessionStorage.removeItem(STORE_KEY);
+  if (getBufferConnectionState().source === 'oauth') markBufferReconnectNeeded();
   clearSyncedData(); renderConnectionUI();
   setSyncStatus('failed', msg);
 }
@@ -1072,8 +1213,9 @@ function getScheduledBounds() {
 
 async function syncBuffer({ force = false } = {}) {
   const connection = syncBufferTokenFromState();
-  if (connection.expired) { renderConnectionUI(); setSyncStatus('failed', 'Buffer connection expired. Reconnect Buffer.'); return; }
-  if (!connection.connected) { renderConnectionUI(); setSyncStatus('failed', 'Sign in with Buffer first.'); return; }
+  const oauthToken = getStoredOAuthToken();
+  if (connection.reconnectNeeded) { renderConnectionUI(); setSyncStatus('failed', 'Reconnect Buffer to keep syncing.'); return; }
+  if (!connection.connected && !oauthToken?.accessToken && !oauthToken?.refreshToken) { renderConnectionUI(); setSyncStatus('failed', 'Sign in with Buffer first.'); return; }
   setSyncStatus('syncing', 'Syncing…');
   const btn = qs('syncBtn'); const orig = btn.innerHTML;
   btn.innerHTML = '↻ Syncing…'; btn.disabled = true;
@@ -1897,7 +2039,9 @@ function appendScheduled(post, sourceInput = {}) {
 async function composerSend(action) {
   const text = editorToText(qs('composerEditor').innerHTML);
   if (!text) { showToast('Write something first', 'error'); return; }
-  if (!syncBufferTokenFromState().connected) { showToast(getBufferConnectionState().expired ? 'Reconnect Buffer first' : 'Connect Buffer first', 'error'); return; }
+  const connection = getBufferConnectionState();
+  const oauthToken = getStoredOAuthToken();
+  if (!connection.connected && !oauthToken?.accessToken && !oauthToken?.refreshToken) { showToast(connection.reconnectNeeded ? 'Reconnect Buffer first' : 'Connect Buffer first', 'error'); return; }
   const channelId = qs('composerChannel').value;
   if (!channelId) { showToast('Load channels first', 'error'); return; }
   const needsApproval = qs('needsApprovalCheck')?.checked || false;
@@ -2337,10 +2481,11 @@ function init() {
   qs('saveTokenBtn').onclick = saveToken;
   qs('clearTokenBtn').onclick = () => { qs('tokenInput').value = ''; saveToken(); };
   const connectBufferBtn = qs('connectBufferBtn'); if (connectBufferBtn) connectBufferBtn.onclick = goToBufferConnect;
-  const disconnectBufferBtn = qs('disconnectBufferBtn'); if (disconnectBufferBtn) disconnectBufferBtn.onclick = () => disconnectBuffer({ clearManual: getBufferConnectionState().source === 'manual' ? true : null });
+  const disconnectBufferBtn = qs('disconnectBufferBtn'); if (disconnectBufferBtn) disconnectBufferBtn.onclick = disconnectBuffer;
 
   qs('syncBtn').onclick = () => syncBuffer({ force: true });
-  const connectedParam = new URLSearchParams(location.search).get('connected');
+  const initialParams = new URLSearchParams(location.search);
+  const connectedParam = initialParams.get('connected');
   if (connectedParam === 'buffer') {
     showToast('Buffer connected.', 'success');
     setSyncStatus('idle', 'Buffer connected.');
@@ -2350,11 +2495,12 @@ function init() {
     history.replaceState({}, document.title, cleanUrl);
   }
   renderConnectionUI();
-  const initialParams = new URLSearchParams(location.search);
   if (initialParams.get('settings') === 'connection') {
     openConnectionSettings({ advancedApi: initialParams.get('advanced') === 'api' });
   }
-  if (getBufferConnectionState().connected) syncBuffer({ force: connectedParam === 'buffer' });
+  checkBufferConnectionHealth().then(connection => {
+    if (connection.connected) syncBuffer({ force: connectedParam === 'buffer' });
+  });
 
   document.querySelectorAll('[data-view]').forEach(b => {
     b.onclick = () => {
