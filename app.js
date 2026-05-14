@@ -250,11 +250,8 @@ async function startBufferOAuth() {
 }
 
 function getOAuthBufferToken() {
-  const token = sessionStorage.getItem(OAUTH_ACCESS_TOKEN_KEY) || localStorage.getItem(OAUTH_ACCESS_TOKEN_KEY) || '';
-  if (!token) return '';
-  const expiresAt = Number(sessionStorage.getItem(OAUTH_EXPIRES_AT_KEY) || localStorage.getItem(OAUTH_EXPIRES_AT_KEY) || 0);
-  if (expiresAt && Date.now() >= expiresAt - 60000) return '';
-  return token;
+  const connection = getBufferConnectionState();
+  return connection.source === 'oauth' && connection.connected ? connection.token : '';
 }
 
 function clearOAuthBufferToken() {
@@ -264,6 +261,9 @@ function clearOAuthBufferToken() {
     store.removeItem(OAUTH_EXPIRES_AT_KEY);
     store.removeItem(OAUTH_TOKEN_TYPE_KEY);
     store.removeItem(OAUTH_SCOPE_KEY);
+    store.removeItem('postiq_oauth_state');
+    store.removeItem('postiq_pkce_verifier');
+    store.removeItem('postiq_oauth_redirect_uri');
   });
 }
 
@@ -638,19 +638,175 @@ function initTemplateSelectors() {
   });
 }
 
-// ── TOKEN ──────────────────────────────────────────
-function maskPreview(t) { return t ? maskToken(t) : 'Not connected'; }
+// ── TOKEN / CONNECTION STATE ──────────────────────────
+function getStoredValue(key) {
+  return sessionStorage.getItem(key) || localStorage.getItem(key) || '';
+}
+
+function getManualBufferToken() {
+  return getStoredValue(STORE_KEY);
+}
+
+function getBufferConnectionState() {
+  const oauthToken = getStoredValue(OAUTH_ACCESS_TOKEN_KEY).trim();
+  const rawExpiresAt = getStoredValue(OAUTH_EXPIRES_AT_KEY);
+  const expiresAt = rawExpiresAt ? Number(rawExpiresAt) || null : null;
+  const expired = !!(oauthToken && expiresAt && Date.now() >= expiresAt);
+
+  if (oauthToken) {
+    return {
+      connected: !expired,
+      source: 'oauth',
+      token: oauthToken,
+      expiresAt,
+      expired,
+      label: expired ? 'Buffer connection expired' : 'Connected with Buffer',
+    };
+  }
+
+  const manualToken = getManualBufferToken().trim();
+  if (manualToken) {
+    return {
+      connected: true,
+      source: 'manual',
+      token: manualToken,
+      expiresAt: null,
+      expired: false,
+      label: 'Connected with API key',
+    };
+  }
+
+  return {
+    connected: false,
+    source: 'none',
+    token: '',
+    expiresAt: null,
+    expired: false,
+    label: 'Not connected',
+  };
+}
+
+function syncBufferTokenFromState() {
+  const connection = getBufferConnectionState();
+  bufferToken = connection.connected ? connection.token : '';
+  return connection;
+}
+
+function maskPreview(t) { return t ? maskToken(t) : '—'; }
+
+function setButtonClass(el, className) {
+  if (!el) return;
+  el.className = className;
+}
+
+function setTokenPanelVisible(panel, open) {
+  if (panel) panel.style.display = open ? 'block' : 'none';
+}
+
+function renderConnectionUI() {
+  const connection = syncBufferTokenFromState();
+  const connected = connection.connected;
+  const expired = connection.expired;
+  const oauthActive = connection.source === 'oauth';
+  const manualActive = connection.source === 'manual';
+
+  const manualToken = getManualBufferToken();
+  const desktopPanel = qs('tokenPanel');
+  const mobilePanel = qs('mobTokenPanel');
+  if (!tokenPanelOpen) setTokenPanelVisible(desktopPanel, false);
+  if (!window.postiqMobileTokenPanelOpen) setTokenPanelVisible(mobilePanel, false);
+
+  const label = expired ? 'Buffer connection expired' : connection.label;
+  const preview = connected
+    ? (oauthActive ? 'OAuth connection active. No manual API key needed.' : `API key fallback active · ${maskPreview(connection.token)}`)
+    : (expired ? 'Reconnect Buffer to continue. API key fallback is available under Advanced.' : 'Recommended. No manual API key needed.');
+
+  const connDot = qs('connDot'); if (connDot) connDot.classList.toggle('on', connected);
+  const connLabel = qs('connLabel'); if (connLabel) connLabel.textContent = label;
+  const connPreview = qs('connTokenPreview'); if (connPreview) connPreview.textContent = preview;
+
+  const manageBtn = qs('manageTokenBtn');
+  if (manageBtn) {
+    setButtonClass(manageBtn, 'btn sm primary');
+    manageBtn.textContent = connected ? 'Disconnect' : (expired ? 'Reconnect Buffer' : 'Connect with Buffer');
+  }
+  const revealBtn = qs('revealTokenBtn');
+  if (revealBtn) {
+    revealBtn.style.display = '';
+    revealBtn.textContent = tokenPanelOpen ? 'Hide advanced' : (manualActive ? 'Manage API key' : 'Advanced: Use API key instead');
+  }
+
+  const tokenInput = qs('tokenInput');
+  if (tokenInput) tokenInput.value = manualToken || '';
+  const tokenMsg = qs('tokenMsg');
+  if (tokenMsg && !tokenPanelOpen) tokenMsg.textContent = manualActive ? 'Manual API key fallback is active.' : '';
+
+  const connectBtn = qs('connectBufferBtn');
+  if (connectBtn) {
+    connectBtn.textContent = expired ? 'Reconnect Buffer' : 'Connect with Buffer';
+    if (connectBtn.parentElement) connectBtn.parentElement.style.display = oauthActive && connected ? 'none' : '';
+  }
+
+  const mobDot = qs('mobConnDot'); if (mobDot) mobDot.classList.toggle('on', connected);
+  const mobLabel = qs('mobConnLabel'); if (mobLabel) mobLabel.textContent = label;
+  const mobManage = qs('mobManageTokenBtn');
+  if (mobManage) {
+    setButtonClass(mobManage, connected ? 'btn primary' : 'btn primary');
+    mobManage.style.width = '100%';
+    mobManage.style.justifyContent = 'center';
+    mobManage.style.fontSize = '13px';
+    mobManage.textContent = connected ? 'Disconnect' : (expired ? 'Reconnect Buffer' : 'Connect with Buffer');
+  }
+  let mobAdvancedBtn = qs('mobAdvancedTokenBtn');
+  if (!mobAdvancedBtn && mobManage?.parentElement) {
+    mobAdvancedBtn = document.createElement('button');
+    mobAdvancedBtn.id = 'mobAdvancedTokenBtn';
+    mobAdvancedBtn.type = 'button';
+    mobAdvancedBtn.className = 'btn ghost';
+    mobAdvancedBtn.style.cssText = 'width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-top:8px;';
+    mobManage.parentElement.appendChild(mobAdvancedBtn);
+  }
+  if (mobAdvancedBtn) {
+    mobAdvancedBtn.textContent = window.postiqMobileTokenPanelOpen ? 'Hide advanced' : (manualActive ? 'Manage API key' : 'Advanced: Use API key instead');
+    mobAdvancedBtn.onclick = toggleMobileTokenPanel;
+  }
+  const mobInput = qs('mobTokenInput');
+  if (mobInput) mobInput.value = manualToken || '';
+  const mobConnect = qs('mobConnectBufferBtn');
+  if (mobConnect) {
+    mobConnect.textContent = expired ? 'Reconnect Buffer' : 'Connect with Buffer';
+    if (mobConnect.parentElement) mobConnect.parentElement.style.display = oauthActive && connected ? 'none' : '';
+  }
+  const mobMsg = qs('mobTokenMsg');
+  if (mobMsg && !window.postiqMobileTokenPanelOpen) mobMsg.textContent = manualActive ? 'Manual API key fallback is active.' : '';
+
+  updateNavTags();
+  return connection;
+}
 
 function refreshTokenUI() {
-  const connected = !!bufferToken;
-  qs('connDot').classList.toggle('on', connected);
-  qs('connLabel').textContent = connected ? 'Connected' : 'Not connected';
-  qs('connTokenPreview').textContent = maskPreview(bufferToken);
-  updateNavTags();
+  renderConnectionUI();
+}
+
+function toggleDesktopTokenPanel({ reveal = false } = {}) {
+  tokenPanelOpen = !tokenPanelOpen;
+  setTokenPanelVisible(qs('tokenPanel'), tokenPanelOpen);
+  if (reveal && tokenPanelOpen) {
+    const inp = qs('tokenInput');
+    if (inp) { inp.type = 'text'; inp.focus(); }
+  }
+  renderConnectionUI();
+}
+
+function toggleMobileTokenPanel() {
+  window.postiqMobileTokenPanelOpen = !window.postiqMobileTokenPanelOpen;
+  setTokenPanelVisible(qs('mobTokenPanel'), window.postiqMobileTokenPanelOpen);
+  renderConnectionUI();
 }
 
 function updateNavTags() {
-  const connected = !!bufferToken;
+  const connection = getBufferConnectionState();
+  const connected = connection.connected;
   ['calNavTag','appNavTag'].forEach(id => {
     const el = qs(id); if (!el) return;
     el.style.display = connected ? 'none' : '';
@@ -661,17 +817,18 @@ function updateNavTags() {
   const calDesc = qs('calDesc');
   if (calDesc) calDesc.textContent = connected
     ? 'Your Buffer queue in a monthly view. Spot gaps and add planning notes before you draft.'
-    : 'Connect your Buffer token to load your scheduled posts and spot queue gaps.';
+    : (connection.expired ? 'Reconnect Buffer to load your scheduled posts and spot queue gaps.' : 'Connect with Buffer to load your scheduled posts and spot queue gaps.');
   const composerDesc = qs('composerDesc');
   if (composerDesc) composerDesc.textContent = connected
     ? 'Write your post, attach media, then send to Buffer as a draft, queued post, or scheduled post.'
     : 'Write here now — connect Buffer to unlock drafting, queueing, and scheduling.';
   updateComposerButtonStates();
-  qs('calEmptyHint').style.display = connected ? 'none' : 'block';
+  const calEmpty = qs('calEmptyHint'); if (calEmpty) calEmpty.style.display = connected ? 'none' : 'block';
 }
 
 function updateComposerButtonStates() {
-  const connected = !!bufferToken;
+  const connection = getBufferConnectionState();
+  const connected = connection.connected;
   const hasChannel = !!qs('composerChannel')?.value;
   const ready = connected && hasChannel;
   ['composerDraft','composerQueue','composerScheduleToggle'].forEach(id => {
@@ -679,7 +836,7 @@ function updateComposerButtonStates() {
     btn.disabled = !ready;
     btn.style.opacity = ready ? '1' : '.45';
     btn.style.cursor = ready ? 'pointer' : 'not-allowed';
-    btn.title = !connected ? 'Add your Buffer token first' : !hasChannel ? 'Load channels from Buffer first' : '';
+    btn.title = !connected ? (connection.expired ? 'Reconnect Buffer first' : 'Connect with Buffer first') : !hasChannel ? 'Load channels from Buffer first' : '';
   });
 }
 
@@ -691,28 +848,54 @@ function setBufferToken(token, { mode = 'session', messageEl = null } = {}) {
   if (!clean) {
     bufferToken = '';
     clearSyncedData();
-    if (messageEl) messageEl.textContent = 'Token removed.';
-    refreshTokenUI();
-    showToast('Token removed');
+    if (messageEl) messageEl.textContent = 'API key removed.';
+    renderConnectionUI();
+    showToast('API key removed');
     return false;
   }
   if (mode === 'local') localStorage.setItem(STORE_KEY, clean);
   else sessionStorage.setItem(STORE_KEY, clean);
   bufferToken = clean;
-  if (messageEl) messageEl.textContent = mode === 'local' ? 'Saved locally.' : 'Saved for session.';
-  refreshTokenUI();
-  showToast('Token saved', 'success');
+  if (messageEl) messageEl.textContent = mode === 'local' ? 'API key fallback saved locally.' : 'API key fallback saved for session.';
+  renderConnectionUI();
+  showToast('API key fallback saved', 'success');
+  return true;
+}
+
+function disconnectBuffer({ clearManual = null } = {}) {
+  const before = getBufferConnectionState();
+  clearOAuthBufferToken();
+
+  if (before.source === 'manual') {
+    const shouldClearManual = clearManual === null
+      ? confirm('Disconnect the active API key fallback?')
+      : !!clearManual;
+    if (!shouldClearManual) {
+      renderConnectionUI();
+      return false;
+    }
+    localStorage.removeItem(STORE_KEY);
+    sessionStorage.removeItem(STORE_KEY);
+  }
+
+  const after = syncBufferTokenFromState();
+  if (!after.connected) clearSyncedData();
+  renderConnectionUI();
+  showToast('Buffer disconnected.', 'success');
+  setSyncStatus('idle', 'Buffer disconnected.');
   return true;
 }
 
 function loadStoredToken() {
-  bufferToken = getOAuthBufferToken() || sessionStorage.getItem(STORE_KEY) || localStorage.getItem(STORE_KEY) || '';
-  if (bufferToken) {
-    const inp = qs('tokenInput'); if (inp) inp.value = bufferToken;
+  const connection = syncBufferTokenFromState();
+  const manualToken = getManualBufferToken();
+  const inp = qs('tokenInput'); if (inp) inp.value = manualToken;
+  const mobInp = qs('mobTokenInput'); if (mobInp) mobInp.value = manualToken;
+  if (connection.connected) {
     loadCacheState();
     hydrateFromCache();
   }
-  refreshTokenUI();
+  renderConnectionUI();
 }
 
 function saveToken() {
@@ -748,9 +931,11 @@ function clearSyncedData() {
 
 // ── BUFFER API ──────────────────────────────────────
 async function callBuffer(query, variables = {}) {
-  if (!bufferToken) throw Object.assign(new Error('No Buffer token'), { code: 'MISSING_TOKEN' });
+  const connection = syncBufferTokenFromState();
+  if (connection.expired) throw Object.assign(new Error('Buffer connection expired'), { code: 'AUTH_ERROR', status: 401 });
+  if (!connection.connected || !connection.token) throw Object.assign(new Error('No Buffer token'), { code: 'MISSING_TOKEN' });
   let res;
-  try { res = await fetch('/.netlify/functions/buffer-proxy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: bufferToken, query, variables }) }); }
+  try { res = await fetch('/.netlify/functions/buffer-proxy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: connection.token, query, variables }) }); }
   catch (err) { throw Object.assign(new Error('Network error'), { code: 'PROXY_NETWORK_ERROR', retryable: true, cause: err }); }
   let data;
   try { data = await res.json(); } catch { throw Object.assign(new Error('Invalid proxy response'), { code: 'PROXY_BAD_RESPONSE' }); }
@@ -765,7 +950,7 @@ async function callBuffer(query, variables = {}) {
 function getErrorMessage(err, fallback = 'Request failed. Please try again.') {
   const code = String(err?.code || '').toUpperCase();
   const msg  = String(err?.message || '');
-  if (code === 'MISSING_TOKEN') return 'Add your Buffer token first.';
+  if (code === 'MISSING_TOKEN') return 'Connect with Buffer first.';
   if (code === 'RATE_LIMIT' || err?.status === 429) return `Buffer rate limit hit.${err?.retryAfter ? ` Retry in ${err.retryAfter}s.` : ''}`;
   if (code === 'AUTH_ERROR' || /unauthorized|invalid|forbidden|expired/i.test(msg)) return 'Token appears invalid or expired. Reconnect Buffer.';
   if (code === 'PROXY_NETWORK_ERROR') return 'Network issue reaching Buffer. Check connection and retry.';
@@ -782,7 +967,7 @@ function handleAuthFailure(msg) {
   bufferToken = '';
   clearOAuthBufferToken();
   localStorage.removeItem(STORE_KEY); sessionStorage.removeItem(STORE_KEY);
-  clearSyncedData(); refreshTokenUI();
+  clearSyncedData(); renderConnectionUI();
   setSyncStatus('failed', msg);
 }
 
@@ -849,7 +1034,9 @@ function getScheduledBounds() {
 }
 
 async function syncBuffer({ force = false } = {}) {
-  if (!bufferToken) { setSyncStatus('failed', 'Add your Buffer token first.'); return; }
+  const connection = syncBufferTokenFromState();
+  if (connection.expired) { renderConnectionUI(); setSyncStatus('failed', 'Buffer connection expired. Reconnect Buffer.'); return; }
+  if (!connection.connected) { renderConnectionUI(); setSyncStatus('failed', 'Connect with Buffer first.'); return; }
   setSyncStatus('syncing', 'Syncing…');
   const btn = qs('syncBtn'); const orig = btn.innerHTML;
   btn.innerHTML = '↻ Syncing…'; btn.disabled = true;
@@ -1089,7 +1276,7 @@ function renderCalendar() {
 
 function detectQueueGaps() {
   const panel = qs('gapsPanel'); const list = qs('gapsList');
-  if (!panel || !list || !bufferToken) { if (panel) panel.style.display = 'none'; return; }
+  if (!panel || !list || !getBufferConnectionState().connected) { if (panel) panel.style.display = 'none'; return; }
   const settings = getPlanningSettings();
   if (!settings.showQueueGaps) { panel.style.display = 'none'; return; }
   const today = new Date(); today.setHours(0,0,0,0);
@@ -1672,7 +1859,7 @@ function appendScheduled(post, sourceInput = {}) {
 async function composerSend(action) {
   const text = editorToText(qs('composerEditor').innerHTML);
   if (!text) { showToast('Write something first', 'error'); return; }
-  if (!bufferToken) { showToast('Connect Buffer first', 'error'); return; }
+  if (!syncBufferTokenFromState().connected) { showToast(getBufferConnectionState().expired ? 'Reconnect Buffer first' : 'Connect Buffer first', 'error'); return; }
   const channelId = qs('composerChannel').value;
   if (!channelId) { showToast('Load channels first', 'error'); return; }
   const needsApproval = qs('needsApprovalCheck')?.checked || false;
@@ -2104,15 +2291,11 @@ function init() {
   activateView('calendarView');
 
   qs('manageTokenBtn').onclick = () => {
-    tokenPanelOpen = !tokenPanelOpen;
-    qs('tokenPanel').style.display = tokenPanelOpen ? 'block' : 'none';
-    qs('manageTokenBtn').textContent = tokenPanelOpen ? 'Done' : 'Manage token';
+    const connection = getBufferConnectionState();
+    if (connection.connected) disconnectBuffer();
+    else startBufferOAuth();
   };
-  qs('revealTokenBtn').onclick = () => {
-    tokenPanelOpen = true; qs('tokenPanel').style.display = 'block';
-    qs('manageTokenBtn').textContent = 'Done';
-    const inp = qs('tokenInput'); inp.type = 'text'; inp.focus();
-  };
+  qs('revealTokenBtn').onclick = () => toggleDesktopTokenPanel({ reveal: true });
   qs('saveTokenBtn').onclick = saveToken;
   qs('clearTokenBtn').onclick = () => { qs('tokenInput').value = ''; saveToken(); };
   const connectBufferBtn = qs('connectBufferBtn'); if (connectBufferBtn) connectBufferBtn.onclick = startBufferOAuth;
@@ -2126,7 +2309,8 @@ function init() {
     const cleanUrl = `${location.pathname}${cleanParams.toString() ? `?${cleanParams.toString()}` : ''}${location.hash || ''}`;
     history.replaceState({}, document.title, cleanUrl);
   }
-  if (bufferToken) syncBuffer({ force: connectedParam === 'buffer' });
+  renderConnectionUI();
+  if (getBufferConnectionState().connected) syncBuffer({ force: connectedParam === 'buffer' });
 
   document.querySelectorAll('[data-view]').forEach(b => {
     b.onclick = () => {
@@ -2368,9 +2552,7 @@ function init() {
   function openMobDrawer() {
     const syncEl = qs('syncStatus');
     const ms = qs('mobSyncStatus'); if (ms && syncEl) ms.textContent = syncEl.textContent;
-    const connected = !!bufferToken;
-    const md = qs('mobConnDot'); if (md) md.classList.toggle('on', connected);
-    const ml = qs('mobConnLabel'); if (ml) ml.textContent = connected ? 'Connected' : 'Not connected';
+    renderConnectionUI();
     qs('mobDrawer').classList.add('open');
     qs('mobBackdrop').classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -2385,12 +2567,11 @@ function init() {
     const btn = qs(id); if (btn) btn.onclick = openMobDrawer;
   });
   qs('mobSyncBtn').onclick = () => { syncBuffer({ force: true }); closeMobDrawer(); };
-  let mobTokenOpen = false;
+  window.postiqMobileTokenPanelOpen = false;
   qs('mobManageTokenBtn').onclick = () => {
-    mobTokenOpen = !mobTokenOpen;
-    qs('mobTokenPanel').style.display = mobTokenOpen ? 'block' : 'none';
-    qs('mobManageTokenBtn').textContent = mobTokenOpen ? '🔑 Done' : '🔑 Manage Buffer token';
-    if (mobTokenOpen && bufferToken) qs('mobTokenInput').value = bufferToken;
+    const connection = getBufferConnectionState();
+    if (connection.connected) disconnectBuffer();
+    else startBufferOAuth();
   };
   qs('mobSaveTokenBtn').onclick = () => {
     const t = qs('mobTokenInput').value.trim();
