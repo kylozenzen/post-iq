@@ -61,6 +61,23 @@
       actions.innerHTML = `<a href="${APP_URL}">${primaryText}</a><button class="ghost" type="button" onclick="sessionStorage.clear(); location.href='${APP_URL}'">Start over</button>`;
     }
 
+    function yesNo(value) {
+      return value ? 'yes' : 'no';
+    }
+
+    function buildOAuthTechnicalDetails({ error, errorDescription, iss, state, storedState, verifier, code }) {
+      return [
+        `error: ${error || 'none'}`,
+        `error_description: ${errorDescription || 'none'}`,
+        `iss: ${iss || 'none'}`,
+        `returned state present: ${yesNo(state)}`,
+        `stored state present: ${yesNo(storedState)}`,
+        `stored verifier present: ${yesNo(verifier)}`,
+        `code present: ${yesNo(code)}`,
+        `current origin: ${location.origin}`,
+      ].join('\n');
+    }
+
     async function exchangeCodeForTokens(code, redirectUri, verifier) {
       const body = new URLSearchParams({
         client_id: BUFFER_CLIENT_ID,
@@ -102,34 +119,36 @@
       const state = params.get('state');
       const error = params.get('error');
       const errorDescription = params.get('error_description');
+      const iss = params.get('iss');
       const storedState = sessionStorage.getItem('postiq_oauth_state');
       const verifier = sessionStorage.getItem('postiq_pkce_verifier');
       const redirectUri = sessionStorage.getItem('postiq_oauth_redirect_uri');
+      const technicalDetails = buildOAuthTechnicalDetails({ error, errorDescription, iss, state, storedState, verifier, code });
 
       if (error === 'access_denied') {
-        setScreen('cancelled', 'Connection cancelled', 'No problem — Buffer was not connected. You can try again whenever you are ready.');
+        setScreen('cancelled', 'Connection cancelled', 'Buffer did not authorize the connection. If you never saw an approval screen, the authorization request may need adjustment.', technicalDetails);
         showActions('Back to PostIQ');
         return;
       }
       if (error) {
-        setScreen('error', 'Buffer connection failed', errorDescription || error);
+        setScreen('error', 'Buffer connection failed', errorDescription || error, technicalDetails);
         showActions('Back to PostIQ');
         return;
       }
 
       // `state` protects against CSRF. The callback must match the value generated before redirecting to Buffer.
       if (!state || !storedState || state !== storedState) {
-        setScreen('error', 'Security check failed', 'The OAuth state was missing or invalid, so PostIQ stopped the connection for your safety.');
+        setScreen('error', 'Security check failed', 'The OAuth state was missing or invalid, so PostIQ stopped the connection for your safety.', technicalDetails);
         showActions('Try again');
         return;
       }
       if (!code) {
-        setScreen('error', 'Missing authorization code', 'Buffer did not return the code PostIQ needs to finish connecting.');
+        setScreen('error', 'Missing authorization code', 'Buffer did not return the code PostIQ needs to finish connecting.', technicalDetails);
         showActions('Try again');
         return;
       }
       if (!verifier || !redirectUri) {
-        setScreen('error', 'Session expired', 'The saved PKCE verifier or redirect URL is missing. Please start the Buffer connection again.');
+        setScreen('error', 'Session expired', 'The saved PKCE verifier or redirect URL is missing. Please start the Buffer connection again.', technicalDetails);
         showActions('Try again');
         return;
       }
@@ -143,7 +162,7 @@
         setScreen('success', 'Buffer connected', 'Redirecting you back to PostIQ…');
         setTimeout(() => { location.href = `${APP_URL}?connected=buffer`; }, 700);
       } catch (err) {
-        setScreen('error', 'Could not finish connecting', err.message || 'The token exchange failed. Please try again.');
+        setScreen('error', 'Could not finish connecting', err.message || 'The token exchange failed. Please try again.', `${technicalDetails}\ntoken exchange error: ${err.message || 'unknown'}`);
         showActions('Try again');
       }
     }

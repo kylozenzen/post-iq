@@ -112,6 +112,10 @@ const rgbaFromHex = (hex, alpha = 0.1) => {
 const maskToken = t => !t ? '—' : t.length <= 8 ? '••••' : `${t.slice(0,4)}••••${t.slice(-4)}`;
 
 // ── BUFFER OAUTH (PUBLIC CLIENT + PKCE) ─────────────
+const BUFFER_AUTHORIZATION_ENDPOINT = 'https://auth.buffer.com/auth';
+const BUFFER_OAUTH_SCOPE = 'account:read posts:read posts:write offline_access';
+const BUFFER_OAUTH_DEBUG_KEY = 'postiq_oauth_debug';
+
 function generateRandomString(length) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
   const bytes = new Uint8Array(length);
@@ -140,6 +144,63 @@ function getOAuthRedirectUri() {
     : 'https://postiq.netlify.app/auth/callback.html';
 }
 
+function isOAuthDebugEnabled() {
+  return localStorage.getItem(BUFFER_OAUTH_DEBUG_KEY) === '1';
+}
+
+function redactOAuthClientId(authUrl) {
+  const url = new URL(authUrl);
+  if (url.searchParams.has('client_id')) url.searchParams.set('client_id', '[redacted]');
+  return url.toString();
+}
+
+function logOAuthDebug(details) {
+  if (!isOAuthDebugEnabled()) return;
+  console.info('[PostIQ OAuth debug]', details);
+}
+
+function showOAuthDebugPanel(details, continueUrl) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;display:grid;place-items:center;padding:18px;background:rgba(8,10,24,.72);backdrop-filter:blur(8px);';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-label', 'Buffer OAuth debug details');
+
+  const panel = document.createElement('div');
+  panel.style.cssText = 'width:min(100%,720px);max-height:90vh;overflow:auto;border:1px solid rgba(255,255,255,.14);border-radius:22px;background:#17182b;color:#f8fafc;box-shadow:0 28px 90px rgba(0,0,0,.45);padding:22px;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;';
+
+  const rows = [
+    ['authorization endpoint', details.authorizationEndpoint],
+    ['redirect_uri', details.redirectUri],
+    ['response_type', details.responseType],
+    ['scope', details.scope],
+    ['code_challenge_method', details.codeChallengeMethod],
+    ['state length', String(details.stateLength)],
+    ['code_verifier length', String(details.codeVerifierLength)],
+    ['full authorization URL', details.redactedAuthorizationUrl],
+  ];
+
+  panel.innerHTML = `
+    <div style="font-weight:800;font-size:22px;margin-bottom:8px;">Buffer OAuth Debug</div>
+    <p style="margin:0 0 16px;color:#a5adbd;line-height:1.5;">Debug mode is enabled, so PostIQ is pausing before redirecting to Buffer.</p>
+    <div style="display:grid;gap:10px;margin-bottom:18px;">
+      ${rows.map(([label, value]) => `
+        <div style="border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:10px;background:rgba(255,255,255,.04);">
+          <div style="font:700 11px/1.3 'DM Mono',monospace;text-transform:uppercase;letter-spacing:.04em;color:#8b5cf6;margin-bottom:5px;">${safeText(label)}</div>
+          <div style="font:12px/1.55 'DM Mono',monospace;color:#dbe2ee;overflow-wrap:anywhere;">${safeText(value)}</div>
+        </div>
+      `).join('')}
+    </div>
+    <button class="btn primary" type="button" data-oauth-continue="1">Continue to Buffer</button>
+  `;
+
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+  const continueBtn = overlay.querySelector('[data-oauth-continue]');
+  continueBtn.focus();
+  continueBtn.addEventListener('click', () => { location.href = continueUrl; });
+}
+
 async function startBufferOAuth() {
   if (!window.isSecureContext && !['localhost', '127.0.0.1'].includes(location.hostname)) {
     showToast('OAuth needs a secure HTTPS page.', 'error');
@@ -162,12 +223,31 @@ async function startBufferOAuth() {
     client_id: BUFFER_CLIENT_ID,
     redirect_uri: redirectUri,
     response_type: 'code',
+    scope: BUFFER_OAUTH_SCOPE,
     state: oauthState,
     code_challenge: challenge,
     code_challenge_method: 'S256',
-    scope: 'accountRead postsRead postsWrite',
+    prompt: 'consent',
   });
-  location.href = `https://auth.buffer.com/auth?${params.toString()}`;
+  const authorizationUrl = `${BUFFER_AUTHORIZATION_ENDPOINT}?${params.toString()}`;
+
+  if (isOAuthDebugEnabled()) {
+    const debugDetails = {
+      authorizationEndpoint: BUFFER_AUTHORIZATION_ENDPOINT,
+      redirectUri,
+      responseType: 'code',
+      scope: BUFFER_OAUTH_SCOPE,
+      codeChallengeMethod: 'S256',
+      stateLength: oauthState.length,
+      codeVerifierLength: verifier.length,
+      redactedAuthorizationUrl: redactOAuthClientId(authorizationUrl),
+    };
+    logOAuthDebug(debugDetails);
+    showOAuthDebugPanel(debugDetails, authorizationUrl);
+    return;
+  }
+
+  location.href = authorizationUrl;
 }
 
 function getOAuthBufferToken() {
