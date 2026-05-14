@@ -113,7 +113,7 @@ const maskToken = t => !t ? '—' : t.length <= 8 ? '••••' : `${t.slice(
 
 // ── BUFFER OAUTH (PUBLIC CLIENT + PKCE) ─────────────
 const BUFFER_AUTHORIZATION_ENDPOINT = 'https://auth.buffer.com/auth';
-const BUFFER_OAUTH_SCOPE = 'account:read posts:read posts:write offline_access';
+const BUFFER_OAUTH_SCOPE = 'posts:write posts:read account:read offline_access';
 const BUFFER_OAUTH_DEBUG_KEY = 'postiq_oauth_debug';
 
 function generateRandomString(length) {
@@ -227,7 +227,6 @@ async function startBufferOAuth() {
     state: oauthState,
     code_challenge: challenge,
     code_challenge_method: 'S256',
-    prompt: 'consent',
   });
   const authorizationUrl = `${BUFFER_AUTHORIZATION_ENDPOINT}?${params.toString()}`;
 
