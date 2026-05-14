@@ -89,6 +89,11 @@ function formatDateOnly(value) {
   if (Number.isNaN(d.getTime())) return value;
   return d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 }
+function formatDateWithYear(date) {
+  const d = date instanceof Date ? date : new Date(String(date) + 'T00:00:00');
+  if (Number.isNaN(d.getTime())) return String(date || 'this date');
+  return d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+}
 const normTags = v => Array.isArray(v) ? v.map(x => String(x).trim()).filter(Boolean) : String(v || '').split(',').map(x => x.trim()).filter(Boolean);
 const isVideo = url => /\.(mp4|mov|webm|avi|mkv|m4v)(\?|$)/i.test(String(url || ''));
 const isImageUrl = url => /\.(jpe?g|png|webp|gif)(\?|#|$)/i.test(String(url || ''));
@@ -794,10 +799,16 @@ function notePillStyle(meta) {
   const color = normalizeHexColor(meta?.color || DEFAULT_NOTE_TYPES[0].color);
   return `background:${rgbaFromHex(color, .1)};border:1px solid ${rgbaFromHex(color, .24)};color:${color};`;
 }
+function getDefaultNoteType() {
+  const types = getNoteTypes();
+  return types.find(t => t.id === 'note') || types[0] || DEFAULT_NOTE_TYPES[0];
+}
 function renderNoteTypeOptions(selectedId) {
   const sel = qs('noteTag'); if (!sel) return;
   const types = getNoteTypes();
-  sel.innerHTML = types.map(t => `<option value="${safeText(t.id)}" ${t.id === selectedId ? 'selected' : ''}>${safeText(t.label)}</option>`).join('');
+  const defaultId = getDefaultNoteType().id;
+  const activeId = selectedId || defaultId;
+  sel.innerHTML = types.map(t => `<option value="${safeText(t.id)}" ${t.id === activeId ? 'selected' : ''}>${safeText(t.label)}</option>`).join('');
 }
 function calendarFilterAllowsPosts(filter = state.calendarFilter) { return filter === 'all' || filter === 'posts'; }
 function calendarFilterNotes(notes, filter = state.calendarFilter) {
@@ -890,15 +901,21 @@ function renderCalendar() {
     if (dayNotes.length) cls += ' has-notes';
     day.className = cls;
 
-    let html = `<div class="day-num">${d.getDate()}</div>`;
+    let html = `<div class="day-header"><div class="day-num">${d.getDate()}</div><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add note for ${safeText(formatDateWithYear(d))}">+</button></div>`;
     if (dayPosts.length) html += `<div class="day-count">${dayPosts.length}</div>`;
     dayPosts.slice(0, 2).forEach(p => { html += `<button type="button" class="day-post-pill" data-post-detail="${key}">${safeText(compact(p.text, 60))}</button>`; });
     if (dayPosts.length > 2) html += `<div class="more-indicator">+${dayPosts.length - 2} more</div>`;
-    dayNotes.slice(0, 2).forEach(note => { const meta = getNoteTypeMeta(note); html += `<div class="day-note-pill" style="${notePillStyle(meta)}">${safeText(compact(note.text, 50))}</div>`; });
+    dayNotes.slice(0, 2).forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="day-note-pill" data-note-detail="${safeText(note.id)}" style="${notePillStyle(meta)}" aria-label="Edit note for ${safeText(formatDateWithYear(d))}">${safeText(compact(note.text, 50))}</button>`; });
     if (dayNotes.length > 2) html += `<div class="more-indicator">+${dayNotes.length - 2} notes</div>`;
     day.innerHTML = html;
+    day.querySelectorAll('[data-add-note-date]').forEach(el => {
+      el.addEventListener('click', ev => { ev.stopPropagation(); openNewNoteForDate(d); });
+    });
     day.querySelectorAll('[data-post-detail]').forEach(el => {
       el.addEventListener('click', ev => { ev.stopPropagation(); openCalendarPostDetails(key, allDayPosts, allDayNotes); });
+    });
+    day.querySelectorAll('[data-note-detail]').forEach(el => {
+      el.addEventListener('click', ev => { ev.stopPropagation(); openEditNoteForDate(d, el.dataset.noteDetail); });
     });
     day.onclick = () => openCalendarDayDetails(d);
     grid.appendChild(day);
@@ -935,14 +952,11 @@ function detectQueueGaps() {
 
 function openDayNote(date) { openCalendarDayDetails(date); }
 
-function openAddNoteForDate(date, noteId = null) {
-  state.selectedDate = date;
-  state.editingNoteId = noteId;
+function populateNoteModal(date, existing = null) {
   const key = fmtDate(date);
-  const existing = noteId ? getNotesForDate(key).find(n => n.id === noteId) : null;
   qs('noteDateLabel').textContent = `${date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })} · ${existing ? 'Edit note' : 'Add note'}`;
-  qs('noteText').value = existing?.text || '';
-  renderNoteTypeOptions(getNoteTypeMeta(existing || { typeId: 'note' }).id);
+  qs('noteText').value = existing ? existing.text || '' : '';
+  renderNoteTypeOptions(existing ? getNoteTypeMeta(existing).id : getDefaultNoteType().id);
   const dayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
   const noteCount = getNotesForDate(key).length;
   qs('dayPostPreview').innerHTML = `<div style="font-size:12px;color:var(--subtle);margin-bottom:8px;">${dayPosts.length} scheduled post${dayPosts.length === 1 ? '' : 's'} · ${noteCount} existing note${noteCount === 1 ? '' : 's'}</div>`;
@@ -950,9 +964,29 @@ function openAddNoteForDate(date, noteId = null) {
   openModal('noteModal');
 }
 
+function openNewNoteForDate(date) {
+  state.selectedDate = date;
+  state.editingNoteId = null;
+  populateNoteModal(date, null);
+}
+
+function openEditNoteForDate(date, noteId) {
+  const key = fmtDate(date);
+  const existing = getNotesForDate(key).find(n => n.id === noteId);
+  if (!existing) { openNewNoteForDate(date); return; }
+  state.selectedDate = date;
+  state.editingNoteId = existing.id;
+  populateNoteModal(date, existing);
+}
+
+function openAddNoteForDate(date, noteId = null) {
+  if (noteId) openEditNoteForDate(date, noteId);
+  else openNewNoteForDate(date);
+}
+
 function resetNoteForm() {
   const textEl = qs('noteText'); if (textEl) textEl.value = '';
-  renderNoteTypeOptions('note');
+  renderNoteTypeOptions(getDefaultNoteType().id);
   const preview = qs('dayPostPreview'); if (preview) preview.innerHTML = '';
   const status = qs('noteStatus'); if (status) status.textContent = '';
   state.selectedDate = null;
