@@ -3,6 +3,36 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+<script>
+// Returning users who have already entered the product or connected Buffer skip marketing.
+// postiq_has_opened_app means the user has already entered the product.
+// postiq_has_connected_buffer means the user has connected Buffer before.
+// ?landing=1, ?home=1, or ?noRedirect=1 lets users intentionally view the marketing page.
+(function() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+
+    const wantsLanding =
+      params.has("landing") ||
+      params.has("home") ||
+      params.has("noRedirect");
+
+    const hasOpenedApp =
+      localStorage.getItem("postiq_has_opened_app") === "true";
+
+    const hasConnectedBuffer =
+      localStorage.getItem("postiq_has_connected_buffer") === "true" ||
+      !!localStorage.getItem("postiq_buffer_access_token") ||
+      !!localStorage.getItem("postiq_buffer_refresh_token");
+
+    if (!wantsLanding && (hasConnectedBuffer || hasOpenedApp)) {
+      window.location.replace("/app.html");
+    }
+  } catch (err) {
+    // If localStorage is unavailable, keep the landing page available for new visitors.
+  }
+})();
+</script>
 <title>PostIQ — Stop Guessing What To Post</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@700;800&family=Lato:wght@400;600&display=swap" rel="stylesheet">
@@ -1124,6 +1154,7 @@ h2 em{font-style:normal;color:var(--brand);}
     <a href="/" class="footer-brand">PostIQ <span class="brand-beta">Beta</span></a>
     <nav class="footer-links" aria-label="Footer links">
       <a href="app.html">Open PostIQ</a>
+      <a href="/?landing=1">View landing page</a>
       <a href="/privacy.html">Privacy Policy</a>
     </nav>
   </div>

@@ -8,6 +8,7 @@ const OAUTH_EXPIRES_AT_KEY = 'postiq_buffer_token_expires_at';
 const OAUTH_TOKEN_TYPE_KEY = 'postiq_buffer_token_type';
 const OAUTH_SCOPE_KEY = 'postiq_buffer_token_scope';
 const OAUTH_RECONNECT_NEEDED_KEY = 'postiq_buffer_reconnect_needed';
+const HAS_CONNECTED_BUFFER_KEY = 'postiq_has_connected_buffer';
 const NOTE_KEY        = 'postiq_calendar_notes_v2';
 const NOTE_TYPES_KEY  = 'postiqNoteTypes';
 const PLANNING_KEY    = 'postiqPlanningSettings';
@@ -639,6 +640,21 @@ function getManualBufferToken() {
   return getStoredValue(STORE_KEY);
 }
 
+function markHasConnectedBuffer() {
+  try {
+    // postiq_has_connected_buffer means the user has connected Buffer before.
+    localStorage.setItem(HAS_CONNECTED_BUFFER_KEY, 'true');
+  } catch (err) {}
+}
+
+function clearHasConnectedBuffer() {
+  try { localStorage.removeItem(HAS_CONNECTED_BUFFER_KEY); } catch (err) {}
+}
+
+function hasStoredOAuthToken() {
+  const token = getStoredOAuthToken();
+  return !!(token?.accessToken || token?.refreshToken);
+}
 
 function getOAuthStorageForKey(key) {
   if (sessionStorage.getItem(key)) return sessionStorage;
@@ -731,6 +747,7 @@ async function refreshBufferOAuthToken() {
   }
 
   clearReconnectNeeded();
+  markHasConnectedBuffer();
   setStoredOAuthValue(OAUTH_ACCESS_TOKEN_KEY, data.access_token);
   if (data.refresh_token) setStoredOAuthValue(OAUTH_REFRESH_TOKEN_KEY, data.refresh_token);
   setStoredOAuthValue(OAUTH_TOKEN_TYPE_KEY, data.token_type || token.tokenType || 'Bearer');
@@ -1036,6 +1053,7 @@ function setBufferToken(token, { mode = 'session', messageEl = null } = {}) {
 
 function disconnectBuffer() {
   clearOAuthConnection();
+  clearHasConnectedBuffer();
   const after = syncBufferTokenFromState();
   if (!after.connected) clearSyncedData();
   renderConnectionUI();
@@ -1061,6 +1079,7 @@ async function checkBufferConnectionHealth() {
   const oauthToken = getStoredOAuthToken();
   if (oauthToken?.accessToken && !isOAuthTokenExpired()) {
     clearReconnectNeeded();
+    markHasConnectedBuffer();
     renderConnectionUI();
     return getBufferConnectionState();
   }
@@ -1071,7 +1090,9 @@ async function checkBufferConnectionHealth() {
       markBufferReconnectNeeded();
     }
     renderConnectionUI();
-    return getBufferConnectionState();
+    const connection = getBufferConnectionState();
+    if (connection.connected) markHasConnectedBuffer();
+    return connection;
   }
   renderConnectionUI();
   return getBufferConnectionState();
@@ -2487,6 +2508,7 @@ function init() {
   const initialParams = new URLSearchParams(location.search);
   const connectedParam = initialParams.get('connected');
   if (connectedParam === 'buffer') {
+    if (hasStoredOAuthToken()) markHasConnectedBuffer();
     showToast('Buffer connected.', 'success');
     setSyncStatus('idle', 'Buffer connected.');
     const cleanParams = new URLSearchParams(location.search);
