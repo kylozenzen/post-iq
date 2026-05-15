@@ -1140,6 +1140,10 @@
      ══════════════════════════════════ -->
   <script>
     const BUFFER_CLIENT_ID = "ijzu75qv_CAcO0qMelb93HjOVh1EwEanezilfgBiOEG";
+    try {
+      // postiq_has_opened_app means the user has already entered the product.
+      localStorage.setItem("postiq_has_opened_app", "true");
+    } catch (err) {}
   </script>
   <script src="./app.js" defer></script>
 
