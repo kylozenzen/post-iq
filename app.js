@@ -88,6 +88,7 @@ const state = {
 };
 
 const mediaState = { url: '', type: '', videoThumbUrl: '', source: '' };
+const shareState = { dirty: true, lastLink: '', copyTimer: null, readyTimer: null };
 
 // Cache layer
 const cache = {
@@ -282,7 +283,11 @@ const SNAP_ADJECTIVES = ['amber','brisk','cobalt','clever','cosmic','crisp','ele
 const SNAP_NOUNS = ['atlas','beacon','canvas','comet','draft','ember','grove','harbor','kite','lane','maple','orbit','pencil','quill','signal','spark','studio','thread'];
 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 const toBase64Url = str => btoa(unescape(encodeURIComponent(str))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-const fromBase64Url = str => decodeURIComponent(escape(atob(str.replace(/-/g, '+').replace(/_/g, '/'))));
+const fromBase64Url = str => {
+  const normalized = String(str || '').replace(/-/g, '+').replace(/_/g, '/');
+  const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+  return decodeURIComponent(escape(atob(padded)));
+};
 function generateSnapshotId() { return `${pick(SNAP_ADJECTIVES)}-${pick(SNAP_NOUNS)}-${Math.random().toString(36).slice(2, 6)}`; }
 function formatDateTime(value) {
   if (!value) return 'Unscheduled';
@@ -1834,18 +1839,50 @@ function renderAgenda() {
 }
 
 // Calendar snapshot share
+function showShareCopyError() {
+  if (typeof showGlobalStatus === 'function') {
+    showGlobalStatus('Could not copy the snapshot link. Select the link and copy it manually.', { type: 'error', title: 'Copy failed' });
+  } else if (typeof showToast === 'function') {
+    showToast('Could not copy', 'error');
+  }
+}
+function setGenerateShareText(text) {
+  const generate = qs('generateShare');
+  if (generate) generate.textContent = text;
+}
+function updateShareUrlWarning(link = qs('shareLink')?.value || '') {
+  const warning = qs('shareUrlWarning');
+  if (!warning) return;
+  const len = String(link || '').length;
+  warning.classList.toggle('strong', len > 10000);
+  if (len > 10000) {
+    warning.textContent = 'This snapshot link is very long and may not work in every app. Try sharing a week view or excluding planning notes.';
+    warning.style.display = 'block';
+  } else if (len > 6000) {
+    warning.textContent = 'This snapshot link is getting long. It should still work, but a week view may be easier to share.';
+    warning.style.display = 'block';
+  } else {
+    warning.textContent = '';
+    warning.style.display = 'none';
+  }
+}
 function resetShareForm({ resetRange = true } = {}) {
   const title = qs('shareCustomTitle'); if (title) title.value = '';
   const note = qs('shareNote'); if (note) note.value = '';
   const link = qs('shareLink'); if (link) link.value = '';
+  shareState.dirty = true;
+  shareState.lastLink = '';
   const meta = qs('shareLinkMeta'); if (meta) meta.style.display = 'none';
-  const generate = qs('generateShare'); if (generate) generate.textContent = 'Generate link';
+  const empty = qs('shareEmptyHint'); if (empty) empty.style.display = 'none';
+  updateShareUrlWarning('');
+  setGenerateShareText('Generate link');
+  const copy = qs('copyShare'); if (copy) copy.textContent = 'Copy';
   const range = qs('shareRange'); if (range && resetRange) range.value = 'month';
 }
 function openShareSnapshotModal() {
   if (!getFeatureFlag('snapshots')) { showFeaturePaused('snapshots'); return; }
   resetShareForm();
-  shareSnapshot();
+  updateShareSummary();
   openModal('shareModal');
 }
 
@@ -1874,9 +1911,7 @@ function snapshotDisplayTitle(snap) {
   if (range === 'week') return String(snap.rangeLabel || snap.title || 'This week').replace(/^This week\s*·\s*/i, '').replace(/\s*content plan$/i, '') + ' content plan';
   return snap.title || (snap.month ? `${snap.month} content plan` : 'Content Plan');
 }
-// Calendar snapshot share
-function shareSnapshot() {
-  if (!getFeatureFlag('snapshots')) { showFeaturePaused('snapshots'); return; }
+function buildSnapshotPayload() {
   const include     = !!qs('includeNotes')?.checked;
   const customTitle = (qs('shareCustomTitle')?.value || '').trim();
   const message     = (qs('shareNote')?.value || '').trim();
@@ -1896,20 +1931,74 @@ function shareSnapshot() {
   const label      = rangeLabelForSnapshot(range);
   const snapshotId = generateSnapshotId();
   const title      = customTitle || defaultSnapshotTitle(range, label);
-  qs('shareMonthName').textContent = label;
-  qs('sharePostCount').textContent = posts.length;
-  const payload = {
-    snapshotId, createdAt: Date.now(), period: range, month: range === 'month' ? monthLabel(state.month) : '', rangeLabel: label,
-    rangeStart: range === 'week' ? fmtDate(bounds.start) : '', rangeEnd: range === 'week' ? fmtDate(bounds.end) : '', title, customTitle, message,
-    includeNotes: include,
-    noteTypes: getNoteTypes(),
-    posts: posts.map(snapshotPostPayload),
-    notes: include ? rangeNotes : []
+  return {
+    payload: {
+      snapshotId, createdAt: Date.now(), period: range, month: range === 'month' ? monthLabel(state.month) : '', rangeLabel: label,
+      rangeStart: range === 'week' ? fmtDate(bounds.start) : '', rangeEnd: range === 'week' ? fmtDate(bounds.end) : '', title, customTitle, message,
+      includeNotes: include,
+      noteTypes: getNoteTypes(),
+      posts: posts.map(snapshotPostPayload),
+      notes: include ? rangeNotes : []
+    },
+    label,
+    posts,
+    rangeNotes,
+    include
   };
-  const encoded = toBase64Url(JSON.stringify(payload));
-  qs('shareLink').value = location.origin + location.pathname + '#share=' + snapshotId + '.' + encoded;
-  const meta = qs('shareLinkMeta'); if (meta) meta.style.display = 'block';
 }
+function updateShareSummary() {
+  const { label, posts, rangeNotes, include } = buildSnapshotPayload();
+  const name = qs('shareMonthName'); if (name) name.textContent = label;
+  const count = qs('sharePostCount'); if (count) count.textContent = posts.length;
+  const empty = qs('shareEmptyHint'); if (empty) empty.style.display = posts.length === 0 ? 'block' : 'none';
+  return { posts, rangeNotes, include };
+}
+function markShareNeedsRefresh() {
+  updateShareSummary();
+  const link = qs('shareLink')?.value || '';
+  shareState.dirty = !!link;
+  if (link) setGenerateShareText('Refresh link');
+  else setGenerateShareText('Generate link');
+  const meta = qs('shareLinkMeta');
+  if (meta && link) meta.textContent = 'Snapshot settings changed. Refresh the link before sharing.';
+  updateShareUrlWarning(link);
+}
+function shareSnapshot() {
+  if (!getFeatureFlag('snapshots')) { showFeaturePaused('snapshots'); return ''; }
+  const { payload } = buildSnapshotPayload();
+  updateShareSummary();
+  const encoded = toBase64Url(JSON.stringify(payload));
+  const link = location.origin + location.pathname + '#share=' + payload.snapshotId + '.' + encoded;
+  const linkInput = qs('shareLink'); if (linkInput) linkInput.value = link;
+  shareState.dirty = false;
+  shareState.lastLink = link;
+  const meta = qs('shareLinkMeta');
+  if (meta) {
+    meta.textContent = 'Anyone with this link can view the snapshot. No PostIQ account needed.';
+    meta.style.display = 'block';
+  }
+  updateShareUrlWarning(link);
+  setGenerateShareText('Link ready');
+  if (shareState.readyTimer) clearTimeout(shareState.readyTimer);
+  shareState.readyTimer = setTimeout(() => setGenerateShareText('Refresh link'), 2200);
+  return link;
+}
+async function copyCurrentShareLink() {
+  if (!getFeatureFlag('snapshots')) { showFeaturePaused('snapshots'); return; }
+  let link = qs('shareLink')?.value || '';
+  if (!link || shareState.dirty) link = shareSnapshot();
+  if (!link) { showShareCopyError(); return; }
+  const ok = await copyTextSafe(link);
+  const btn = qs('copyShare');
+  if (ok) {
+    if (btn) btn.textContent = 'Copied!';
+    if (shareState.copyTimer) clearTimeout(shareState.copyTimer);
+    shareState.copyTimer = setTimeout(() => { const nextBtn = qs('copyShare'); if (nextBtn) nextBtn.textContent = 'Copy'; }, 1800);
+  } else {
+    showShareCopyError();
+  }
+}
+
 
 function postDetailCardsHtml(posts) {
   return posts.map((p, idx) => {
@@ -1996,7 +2085,7 @@ function openPostDetails(key, data, options = {}) {
   openModal('sharedDayModal');
 }
 function openSharedDayDetails(key, data, snap = {}) {
-  openPostDetails(key, data, { title: formatDateOnly(key), noteTypes: snap.noteTypes || DEFAULT_NOTE_TYPES });
+  openPostDetails(key, { posts: data.posts || [], notes: snap.includeNotes !== false ? (data.notes || []) : [] }, { title: formatDateOnly(key), noteTypes: snap.noteTypes || DEFAULT_NOTE_TYPES });
 }
 
 function getSnapshotRange(snap) {
@@ -2022,7 +2111,8 @@ function getSharedBaseDate(snap) {
   return new Date();
 }
 function renderSharedDayCell(grid, key, date, data, snap, { inMonth = true } = {}) {
-  const hasContent = data.posts.length > 0 || data.notes.length > 0;
+  const visibleNotes = snap.includeNotes !== false ? (data.notes || []) : [];
+  const hasContent = (data.posts || []).length > 0 || visibleNotes.length > 0;
   const day = document.createElement('div');
   day.className = 'cal-day' + (!inMonth ? ' other-month' : '') + (hasContent ? ' has-content' : ' empty-day');
   let inner = '<div class="day-num">' + date.getDate() + '</div>';
@@ -2031,11 +2121,11 @@ function renderSharedDayCell(grid, key, date, data, snap, { inMonth = true } = {
     data.posts.slice(0,2).forEach(post => { inner += '<div class="day-post-pill">' + safeText((post.text||'').slice(0,60)) + '</div>'; });
     if (data.posts.length > 2) inner += '<div class="more-indicator">+' + (data.posts.length - 2) + ' more</div>';
   }
-  if (data.notes.length && snap.includeNotes) {
-    data.notes.slice(0,1).forEach(n => { const meta = getNoteTypeMeta(n, snap.noteTypes || DEFAULT_NOTE_TYPES); inner += '<div class="day-note-pill" style="' + notePillStyle(meta) + '">' + safeText((n.text||'').slice(0,50)) + '</div>'; });
+  if (visibleNotes.length) {
+    visibleNotes.slice(0,1).forEach(n => { const meta = getNoteTypeMeta(n, snap.noteTypes || DEFAULT_NOTE_TYPES); inner += '<div class="day-note-pill" style="' + notePillStyle(meta) + '">' + safeText((n.text||'').slice(0,50)) + '</div>'; });
   }
   day.innerHTML = inner;
-  if (hasContent) day.onclick = () => openSharedDayDetails(key, data, snap);
+  if (hasContent) day.onclick = () => openSharedDayDetails(key, { posts: data.posts || [], notes: visibleNotes }, snap);
   grid.appendChild(day);
 }
 function renderSharedCalendarGrid(snap, map) {
@@ -2063,33 +2153,78 @@ function renderSharedCalendarGrid(snap, map) {
   }
 }
 
+function renderSharedErrorView(err) {
+  console.error('Failed to render shared snapshot', err);
+  qs('app')?.classList.add('hidden');
+  qs('sharedView')?.classList.add('hidden');
+  qs('sharedErrorView')?.classList.remove('hidden');
+}
+function parseSharedSnapshotFromHash() {
+  const raw = location.hash.slice(7);
+  if (!raw) throw new Error('Missing shared snapshot payload');
+  const dot = raw.indexOf('.');
+  const encoded = dot >= 0 ? raw.slice(dot + 1) : raw;
+  if (!encoded) throw new Error('Missing encoded shared snapshot payload');
+  const snap = JSON.parse(fromBase64Url(encoded));
+  if (!snap || typeof snap !== 'object') throw new Error('Shared snapshot payload was not an object');
+  return snap;
+}
 function renderSharedFromHash() {
   if (!location.hash.startsWith('#share=')) return false;
   try {
-    const raw     = location.hash.slice(7);
-    const dot     = raw.indexOf('.');
-    const encoded = dot >= 0 ? raw.slice(dot + 1) : raw;
-    const snap    = JSON.parse(fromBase64Url(encoded));
-    qs('app').classList.add('hidden');
-    qs('sharedView').classList.remove('hidden');
+    const snap = parseSharedSnapshotFromHash();
+    const posts = Array.isArray(snap.posts) ? snap.posts : [];
+    const notes = snap.includeNotes !== false && Array.isArray(snap.notes) ? snap.notes : [];
+    const hasPosts = posts.length > 0;
+    const hasNotes = notes.length > 0;
+    qs('app')?.classList.add('hidden');
+    qs('sharedErrorView')?.classList.add('hidden');
+    qs('sharedView')?.classList.remove('hidden');
     const titleEl = qs('sharedTitle');
     if (titleEl) titleEl.textContent = snapshotDisplayTitle(snap);
-    const countEl = qs('sharedPostCount'); if (countEl) countEl.textContent = (snap.posts || []).length;
-    const noteEl = qs('sharedSnapshotNote'); if (noteEl) { noteEl.textContent = snap.message || ''; noteEl.style.display = snap.message ? 'block' : 'none'; }
+    const countEl = qs('sharedPostCount');
+    if (countEl) {
+      countEl.textContent = posts.length;
+      if (countEl.parentElement) countEl.parentElement.innerHTML = '<strong id="sharedPostCount">' + posts.length + '</strong> scheduled post' + (posts.length === 1 ? '' : 's');
+    }
+    const noteEl = qs('sharedSnapshotNote');
+    if (noteEl) {
+      if (snap.message) {
+        noteEl.textContent = snap.message;
+      } else if (!hasPosts && hasNotes) {
+        noteEl.textContent = 'This snapshot mainly contains planning notes for the selected range.';
+      } else if (!hasPosts) {
+        noteEl.textContent = 'This shared view does not include scheduled posts or planning notes for the selected range.';
+      } else {
+        noteEl.textContent = '';
+      }
+      noteEl.style.display = noteEl.textContent ? 'block' : 'none';
+    }
+    if (!hasPosts && !hasNotes && titleEl) titleEl.textContent = 'No posts in this snapshot';
+    if (!hasPosts && hasNotes && titleEl && !snap.customTitle && !snap.title) titleEl.textContent = 'Planning notes snapshot';
     const periodEl = qs('sharedPeriodStat'); if (periodEl) periodEl.innerHTML = '<strong>' + safeText(snap.rangeLabel || snap.month || 'Snapshot') + '</strong>';
-    if (snap.includeNotes && snap.notes?.length) {
-      const dot2  = qs('sharedNotesDot');  if (dot2)  dot2.style.display  = 'block';
-      const stat = qs('sharedNotesStat'); if (stat) { stat.style.display = 'flex'; stat.innerHTML = '<strong>' + snap.notes.length + '</strong>&nbsp;planning note' + (snap.notes.length > 1 ? 's' : ''); }
+    const dot2 = qs('sharedNotesDot'); if (dot2) dot2.style.display = hasNotes ? 'block' : 'none';
+    const stat = qs('sharedNotesStat');
+    if (stat) {
+      stat.style.display = hasNotes ? 'flex' : 'none';
+      stat.innerHTML = hasNotes ? '<strong>' + notes.length + '</strong>&nbsp;planning note' + (notes.length > 1 ? 's' : '') : '';
     }
     const calLabel = qs('sharedCalLabel');
-    if (calLabel) calLabel.textContent = (snap.posts || []).length > 0 ? 'Click any highlighted day to read the full post' : 'No posts in this snapshot';
+    if (calLabel) {
+      if (hasPosts) calLabel.textContent = 'Click any highlighted day to read the full post';
+      else if (hasNotes) calLabel.textContent = 'Click highlighted days to read planning notes';
+      else calLabel.textContent = 'No posts in this snapshot';
+    }
     const closeBtn = qs('closeSharedDay'); if (closeBtn) closeBtn.onclick = () => closeModal('sharedDayModal');
     const map = {};
-    (snap.posts || []).forEach(p => { const k = String(p.dueAt || '').slice(0,10); if (!map[k]) map[k]={posts:[],notes:[]}; map[k].posts.push(p); });
-    (snap.notes || []).forEach(n => { if (!map[n.date]) map[n.date]={posts:[],notes:[]}; map[n.date].notes.push(n); });
-    renderSharedCalendarGrid(snap, map);
+    posts.forEach(p => { const k = String(p.dueAt || '').slice(0,10); if (!k) return; if (!map[k]) map[k]={posts:[],notes:[]}; map[k].posts.push(p); });
+    notes.forEach(n => { if (!n.date) return; if (!map[n.date]) map[n.date]={posts:[],notes:[]}; map[n.date].notes.push(n); });
+    renderSharedCalendarGrid({ ...snap, posts, notes }, map);
     return true;
-  } catch(err) { console.error('Failed to render shared snapshot', err); return false; }
+  } catch(err) {
+    renderSharedErrorView(err);
+    return true;
+  }
 }
 
 // ── COMPOSER ──────────────────────────────────────
@@ -2747,10 +2882,10 @@ function init() {
   on('sendNoteToDraftBtn', 'click', sendNoteToDraft);
   on('shareMonthBtn', 'click', openShareSnapshotModal);
   on('closeShare', 'click', () => closeModal('shareModal'));
-  on('includeNotes', 'change', shareSnapshot);
-  const shareRangeInput = qs('shareRange'); if (shareRangeInput) shareRangeInput.onchange = shareSnapshot;
-  const shareTitleInput = qs('shareCustomTitle'); if (shareTitleInput) shareTitleInput.oninput = shareSnapshot;
-  const shareNoteInput = qs('shareNote'); if (shareNoteInput) shareNoteInput.oninput = shareSnapshot;
+  on('includeNotes', 'change', markShareNeedsRefresh);
+  const shareRangeInput = qs('shareRange'); if (shareRangeInput) shareRangeInput.onchange = markShareNeedsRefresh;
+  const shareTitleInput = qs('shareCustomTitle'); if (shareTitleInput) shareTitleInput.oninput = markShareNeedsRefresh;
+  const shareNoteInput = qs('shareNote'); if (shareNoteInput) shareNoteInput.oninput = markShareNeedsRefresh;
   const calendarFilter = qs('calendarFilter'); if (calendarFilter) calendarFilter.onchange = e => { state.calendarFilter = e.target.value || 'all'; renderCalendar(); };
   const showQueue = qs('showQueueGapsSetting'); if (showQueue) showQueue.onchange = savePlanningSettingsFromUI;
   const postingDays = qs('postingDaysSettings'); if (postingDays) postingDays.addEventListener('change', savePlanningSettingsFromUI);
@@ -2759,8 +2894,8 @@ function init() {
     noteTypesWrap.addEventListener('click', e => { const btn = e.target.closest('[data-delete-note-type]'); if (btn) deleteNoteType(btn.dataset.deleteNoteType); });
   }
   const addNoteTypeBtn = qs('addNoteTypeBtn'); if (addNoteTypeBtn) addNoteTypeBtn.onclick = addNoteType;
-  on('generateShare', 'click', () => { shareSnapshot(); const btn = qs('generateShare'); if (btn) btn.textContent = '✓ Link ready'; setTimeout(() => { const nextBtn = qs('generateShare'); if (nextBtn) nextBtn.textContent = 'Generate link'; }, 2500); });
-  on('copyShare', 'click', async () => { const ok = await copyTextSafe(qs('shareLink')?.value || ''); if (ok) { const btn = qs('copyShare'); if (btn) btn.textContent = 'Copied!'; setTimeout(() => { const nextBtn = qs('copyShare'); if (nextBtn) nextBtn.textContent = 'Copy'; }, 1800); } else showToast('Could not copy', 'error'); });
+  on('generateShare', 'click', shareSnapshot);
+  on('copyShare', 'click', copyCurrentShareLink);
 
   const editor = qs('composerEditor');
   if (!editor) { applyFeatureFlags(); return; }

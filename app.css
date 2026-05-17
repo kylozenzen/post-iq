@@ -2030,3 +2030,88 @@ body.zen-active #zenActions { opacity: 0; pointer-events: none; transition: opac
 @media (hover: none), (pointer: coarse) {
   .day-add-note-btn { opacity: 1; }
 }
+
+/* Snapshot public beta polish */
+.share-trust-copy,
+.share-empty-hint {
+  font-size: 11px;
+  color: var(--subtle);
+  line-height: 1.5;
+  margin-top: 10px;
+}
+.share-trust-copy {
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.share-empty-hint,
+.share-url-warning {
+  border: 1px solid rgba(245,158,11,.22);
+  background: rgba(245,158,11,.06);
+  color: var(--amber);
+  border-radius: var(--r2);
+  padding: 8px 10px;
+}
+.share-url-warning {
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 8px;
+}
+.share-url-warning.strong {
+  border-color: rgba(239,68,68,.24);
+  background: rgba(239,68,68,.06);
+  color: var(--red);
+}
+.snap-trust-copy {
+  color: rgba(255,255,255,.62);
+  font-size: 12px;
+  line-height: 1.55;
+  margin: -4px 0 14px;
+  max-width: 720px;
+}
+.snap-note-message {
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  border-radius: var(--r2);
+  color: rgba(255,255,255,.86);
+  line-height: 1.6;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  white-space: pre-wrap;
+}
+#sharedErrorView {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 24px;
+}
+#sharedErrorView.hidden { display: none; }
+.shared-error-card {
+  width: min(520px, 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  padding: 30px;
+  text-align: center;
+}
+.shared-error-card h1 {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 24px;
+  letter-spacing: -.3px;
+  margin: 0 0 10px;
+  color: var(--ink);
+}
+.shared-error-card p {
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0 auto 18px;
+  max-width: 380px;
+}
+@media (max-width: 768px) {
+  #sharedGrid.cal-grid { gap: 6px; }
+  #sharedGrid .cal-day { min-height: 74px; padding: 7px 5px; }
+  #sharedGrid .day-post-pill,
+  #sharedGrid .day-note-pill { font-size: 9px; padding: 3px 4px; }
+}
