@@ -3,7 +3,23 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>PostIQ — Stop Guessing What To Post</title>
+<title>PostIQ — A Smarter Planning Layer for Buffer</title>
+<meta name="description" content="PostIQ is a free companion workspace for Buffer users. Plan your queue, compose posts, split threads, build content pillars, review content, and share clean snapshots before publishing." />
+<meta name="theme-color" content="#f5f6fa" />
+<link rel="canonical" href="https://postiq.netlify.app/" />
+<meta property="og:title" content="PostIQ — A Smarter Planning Layer for Buffer" />
+<meta property="og:description" content="Plan, compose, split, review, and share content before it goes out through Buffer." />
+<meta property="og:image" content="https://postiq.netlify.app/postiq-og.png" />
+<meta property="og:url" content="https://postiq.netlify.app/" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="PostIQ" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="PostIQ — A Smarter Planning Layer for Buffer" />
+<meta name="twitter:description" content="Plan, compose, split, review, and share content before it goes out through Buffer." />
+<meta name="twitter:image" content="https://postiq.netlify.app/postiq-og.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png" />
+<link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@700;800&family=Lato:wght@400;600&display=swap" rel="stylesheet">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-5RV57M7J0K"></script>
@@ -67,6 +83,14 @@ body::before{
   margin:0 auto;
   position:relative;
   z-index:1;
+}
+
+.beta-trust-note{
+  margin-top:14px;
+  max-width:62ch;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.6;
 }
 
 /* ── TOPBAR ── */
@@ -729,8 +753,8 @@ h2 em{font-style:normal;color:var(--brand);}
 <header class="topbar">
   <a href="/" class="brand">PostIQ <span class="brand-beta">Beta</span></a>
   <nav class="top-actions">
-    <a href="app.html" class="btn ghost">Preview locally</a>
-    <a href="app.html?connect=buffer" class="btn primary">Sign in with Buffer</a>
+    <a href="/app.html" class="btn ghost">Explore PostIQ</a>
+    <a href="/auth/connect.html?return=/app.html" class="btn primary">Sign in with Buffer</a>
   </nav>
 </header>
 
@@ -744,9 +768,10 @@ h2 em{font-style:normal;color:var(--brand);}
       <p class="hero-sub">Plan your strategy. Compose with purpose.<br>Ship to Buffer when you're ready.</p>
       <p class="hero-desc">PostIQ helps you plan, compose, split, and publish smarter with Buffer. Sign in with your Buffer account to sync channels, view your queue, and send posts from one focused workspace.</p>
       <div class="hero-ctas">
-        <a href="app.html?connect=buffer" class="btn primary lg">Sign in with Buffer →</a>
-        <a href="app.html" class="btn ghost lg">Preview local sandbox</a>
+        <a href="/auth/connect.html?return=/app.html" class="btn primary lg">Sign in with Buffer →</a>
+        <a href="/app.html" class="btn ghost lg">Explore PostIQ</a>
       </div>
+      <p class="beta-trust-note">PostIQ is a free public beta companion for Buffer users. Connect Buffer when you’re ready to sync channels, view your queue, or publish. PostIQ is independently built and not officially affiliated with Buffer unless otherwise noted.</p>
     </div>
 
     <!-- Hero visual -->
@@ -921,11 +946,11 @@ h2 em{font-style:normal;color:var(--brand);}
     <div class="bridge-copy">
       <strong>Connect Buffer to complete the workflow.</strong>
       <span>PostIQ works best with your Buffer account connected: sync channels, see your queue, plan content, and send drafts or scheduled posts when you choose.</span>
-      <div class="affiliate-note">Need a Buffer account? <a href="https://join.buffer.com/ben-campbell" target="_blank" rel="noopener">Start with Buffer</a>. Partner link — I may earn a commission if you sign up.</div>
+      <div class="affiliate-note">Need a Buffer account? <a href="https://join.buffer.com/ben-campbell" target="_blank" rel="noopener">Create a Buffer account</a>. Partner link — I may earn a commission if you sign up.</div>
     </div>
     <div class="bridge-actions">
-      <a href="app.html?connect=buffer" class="btn primary">Sign in with Buffer</a>
-      <a href="app.html" class="btn ghost">Preview locally</a>
+      <a href="/auth/connect.html?return=/app.html" class="btn primary">Sign in with Buffer</a>
+      <a href="/app.html" class="btn ghost">Explore PostIQ</a>
     </div>
   </div>
 
@@ -955,8 +980,8 @@ h2 em{font-style:normal;color:var(--brand);}
     </div>
   </div>
   <div class="reveal" style="display:flex;justify-content:center;margin-top:24px;gap:10px;flex-wrap:wrap;">
-    <a href="app.html?connect=buffer" class="btn primary lg">Sign in with Buffer →</a>
-    <a href="app.html" class="btn ghost lg">Preview local sandbox</a>
+    <a href="/auth/connect.html?return=/app.html" class="btn primary lg">Sign in with Buffer →</a>
+    <a href="/app.html" class="btn ghost lg">Explore PostIQ</a>
   </div>
   <div class="faq-wrap reveal">
     <div class="faq-list">
@@ -974,7 +999,7 @@ h2 em{font-style:normal;color:var(--brand);}
       </div>
       <div class="faq-item">
         <button class="faq-q"><span>What if I do not have Buffer yet?</span><span class="faq-icon">+</span></button>
-        <div class="faq-a">You can create a Buffer account first, then return to PostIQ and connect it. Need a Buffer account? <a href="https://join.buffer.com/ben-campbell" target="_blank" rel="noopener">Start here</a>. Partner link — I may earn a commission if you sign up.</div>
+        <div class="faq-a">You can create a Buffer account first, then return to PostIQ and connect it. Need a Buffer account? <a href="https://join.buffer.com/ben-campbell" target="_blank" rel="noopener">Create a Buffer account</a>. Partner link — I may earn a commission if you sign up.</div>
       </div>
       <div class="faq-item">
         <button class="faq-q"><span>Can I disconnect later?</span><span class="faq-icon">+</span></button>
@@ -1027,8 +1052,8 @@ h2 em{font-style:normal;color:var(--brand);}
       <h2>Ready to give your Buffer workflow<br><em>a smarter planning layer?</em></h2>
       <p>Open PostIQ, sign in with Buffer, and start planning, composing, splitting, and publishing from one focused workspace.</p>
       <div class="cta-actions">
-        <a href="app.html?connect=buffer" class="btn primary lg" onclick="gtag('event','landing_cta_click',{location:'final_cta'});">Sign in with Buffer →</a>
-        <a href="app.html" class="btn ghost lg">Preview local sandbox</a>
+        <a href="/auth/connect.html?return=/app.html" class="btn primary lg">Sign in with Buffer →</a>
+        <a href="/app.html" class="btn ghost lg">Explore PostIQ</a>
       </div>
     </div>
   </div>
@@ -1040,7 +1065,7 @@ h2 em{font-style:normal;color:var(--brand);}
     <a href="/" class="footer-brand">PostIQ <span class="brand-beta">Beta</span></a>
     <nav class="footer-links" aria-label="Footer links">
       <button id="openSupportBtn" style="background:none;border:none;color:var(--muted);font-weight:600;font-family:'Lato',sans-serif;font-size:13px;cursor:pointer;padding:0;">Support</button>
-      <a href="app.html">Preview locally</a>
+      <a href="/app.html">Explore PostIQ</a>
       <a href="/privacy.html">Privacy Policy</a>
     </nav>
   </div>
@@ -1156,11 +1181,13 @@ if (pillarsCard) {
   }, { threshold: 0.3 }).observe(pillarsCard);
 }
 
-// CTA tracking
-document.querySelectorAll('a[href^="app.html"]').forEach(function(link) {
+// CTA tracking should never block normal link navigation.
+document.querySelectorAll('a[href="/app.html"], a[href="/auth/connect.html?return=/app.html"]').forEach(function(link) {
   link.addEventListener('click', function() {
-    var loc = link.closest('.topbar') ? 'topbar' : link.closest('.cta-card') ? 'final_cta' : 'hero';
-    gtag('event','landing_cta_click', { location: loc });
+    if (typeof gtag !== 'function') return;
+    var loc = link.closest('.topbar') ? 'topbar' : link.closest('.cta-card') ? 'final_cta' : link.closest('.buffer-bridge') ? 'buffer_bridge' : 'hero';
+    var flow = link.getAttribute('href').indexOf('/auth/connect.html') === 0 ? 'buffer_connect' : 'open_app';
+    gtag('event','landing_cta_click', { location: loc, flow: flow });
   });
 });
 
