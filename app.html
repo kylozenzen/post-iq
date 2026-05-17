@@ -587,28 +587,36 @@
 
             <!-- STAGE 1: Guided journey -->
             <div class="cp-stage" id="cpStageJourney">
-              <div style="max-width:660px;">
+              <div class="cp-builder-form-wrap" style="max-width:820px;">
                 <!-- Loading screen (hidden until generate()) -->
-                <div id="ssmLoading" style="display:none;text-align:center;padding:40px 20px;">
-                  <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:12px;" id="ssmLoadStep">Reading your inputs...</div>
-                  <div style="border:1px solid var(--border2);height:14px;max-width:280px;margin:0 auto 16px;overflow:hidden;border-radius:2px;"><div style="height:100%;background:var(--brand);width:0%;transition:width .1s linear;" id="ssmLoadBar"></div></div>
-                  <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;color:var(--ink);letter-spacing:-.02em;">Building your pillar plan<span id="ssmDots">...</span></div>
+                <div id="ssmLoading" style="display:none;text-align:center;padding:44px 20px;background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:0 10px 28px rgba(22,34,68,.06);">
+                  <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--brand);margin-bottom:12px;" id="ssmLoadStep">Reading your inputs...</div>
+                  <div style="border:1px solid var(--border2);height:14px;max-width:320px;margin:0 auto 16px;overflow:hidden;border-radius:999px;background:var(--surface2);"><div style="height:100%;background:var(--brand);width:0%;transition:width .1s linear;border-radius:999px;" id="ssmLoadBar"></div></div>
+                  <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;color:var(--ink);letter-spacing:-.02em;">Building your pillar plan<span id="ssmDots">...</span></div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:8px;">Creating editable ideas only — nothing is sent to Buffer.</div>
                 </div>
-              
+
                 <!-- Form (shown by default) -->
-                <div id="ssmForm">
-                  <div style="margin-bottom:20px;">
-                    <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--brand);margin-bottom:8px;">Pillar Plan Builder</div>
-                    <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:18px;color:var(--ink);margin-bottom:4px;">Generate a practical pillar plan.</div>
-                    <div style="font-size:13px;color:var(--muted);line-height:1.6;">Answer six quick fields. PostIQ will suggest pillars, series ideas, and starter angles you can use when you’re ready.</div>
+                <div id="ssmForm" class="cp-builder-form-card" style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px;box-shadow:0 10px 28px rgba(22,34,68,.06);">
+                  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px;flex-wrap:wrap;">
+                    <div>
+                      <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--brand);margin-bottom:8px;">Pillar Plan Builder</div>
+                      <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:24px;line-height:1.1;color:var(--ink);letter-spacing:-.03em;margin-bottom:6px;">Not sure what to post about?</div>
+                      <div style="font-size:14px;color:var(--muted);line-height:1.65;max-width:62ch;">Answer a few quick questions and PostIQ will suggest your repeatable content themes, seed ideas, and recurring series. Think of it as a blank-page anti-venom.</div>
+                    </div>
+                    <span class="chip brand" style="flex-shrink:0;">Ideas only</span>
                   </div>
-              
-                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                    <div class="field">
+
+                  <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:18px;font-size:12px;color:var(--muted);line-height:1.55;">
+                    This builds a pillar plan inside PostIQ. It will not create Buffer drafts, queue posts, or publish anything until you choose a Buffer action yourself.
+                  </div>
+
+                  <div class="cp-form-stack" style="display:flex;flex-direction:column;gap:14px;">
+                    <div class="field" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px;">
                       <label class="label">Brand / Creator Name</label>
                       <input type="text" class="input" id="ssm-brand" placeholder="e.g. Maria Chen, TechWave" />
                     </div>
-                    <div class="field">
+                    <div class="field" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px;">
                       <label class="label">Industry Category</label>
                       <select class="input" id="ssm-industry">
                         <option value="">Select industry...</option>
@@ -626,15 +634,15 @@
                         <option value="localbiz">Local Business</option>
                       </select>
                     </div>
-                    <div class="field">
+                    <div class="field" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px;">
                       <label class="label">Target Audience</label>
                       <input type="text" class="input" id="ssm-audience" placeholder="e.g. early-stage founders, busy moms" />
                     </div>
-                    <div class="field">
+                    <div class="field" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px;">
                       <label class="label">Product / Service / Offer</label>
                       <input type="text" class="input" id="ssm-offer" placeholder="e.g. 1:1 coaching, SaaS tool, meal kits" />
                     </div>
-                    <div class="field">
+                    <div class="field" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px;">
                       <label class="label">Brand Tone</label>
                       <select class="input" id="ssm-tone">
                         <option value="">Select tone...</option>
@@ -646,7 +654,7 @@
                         <option value="professional">Professional & Polished</option>
                       </select>
                     </div>
-                    <div class="field">
+                    <div class="field" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px;">
                       <label class="label">Main Goal</label>
                       <select class="input" id="ssm-goal">
                         <option value="">Select goal...</option>
@@ -659,14 +667,13 @@
                         <option value="event">Promote Event</option>
                       </select>
                     </div>
+                    <div class="field" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px;">
+                      <label class="label">Anything else? <span style="color:var(--subtle);font-weight:400;">Optional</span></label>
+                      <textarea class="input" id="ssm-notes" placeholder="Upcoming launches, topics to avoid, specific angles, seasonal promos, weird constraints..." style="min-height:92px;"></textarea>
+                    </div>
                   </div>
-              
-                  <div class="field" style="margin-top:4px;grid-column:1/-1;">
-                    <label class="label">Anything else? (optional)</label>
-                    <textarea class="input" id="ssm-notes" placeholder="Upcoming launches, topics to avoid, specific angles..." style="min-height:60px;"></textarea>
-                  </div>
-              
-                  <div style="display:flex;gap:8px;margin-top:16px;align-items:center;">
+
+                  <div style="display:flex;gap:10px;margin-top:18px;align-items:center;justify-content:space-between;flex-wrap:wrap;">
                     <button class="btn ghost" id="ssmBackBtn" type="button">← Back</button>
                     <button class="btn primary" id="ssmGenerateBtn" type="button">Generate pillar plan →</button>
                   </div>

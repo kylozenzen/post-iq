@@ -3224,6 +3224,7 @@ Replace everything inside <div class="cp-stage" id="cpStageJourney"> with:
 window.ContentPillars = (() => {
   const CP_KEY    = 'postiq_pillars_v3';
   const USAGE_KEY = 'postiq_pillars_usage_v1';
+  const CP_TEMPLATE_TAG = 'postiq-content-pillars';
   const TONES     = ['Practical', 'Story', 'Contrarian', 'Question'];
   const COLORS    = ['#3a3fff','#0fa672','#f59e0b','#ff4f6a','#7c3aed','#9298b0'];
 
@@ -3242,6 +3243,30 @@ window.ContentPillars = (() => {
   function cpBumpUsage(pid) { const u = cpGetUsage(); u[pid] = (u[pid] || 0) + 1; try { localStorage.setItem(USAGE_KEY, JSON.stringify(u)); } catch {} }
   function cpTotalUsage() { return Object.values(cpGetUsage()).reduce((a, b) => a + Number(b || 0), 0); }
   function cpUsageFor(pid) { return cpGetUsage()[pid] || 0; }
+
+  function cpGeneratedSeriesNames() {
+    try { return new Set(Object.values(SERIES || {}).flat().map(s => String(s?.name || '').trim()).filter(Boolean)); }
+    catch { return new Set(); }
+  }
+
+  function cpIsGeneratedTemplate(tpl) {
+    const tags = Array.isArray(tpl?.tags) ? tpl.tags.map(x => String(x || '').trim().toLowerCase()) : [];
+    if (tags.includes(CP_TEMPLATE_TAG) || tags.includes('pillar-plan')) return true;
+    const title = String(tpl?.title || '').trim();
+    return tags.includes('series') && cpGeneratedSeriesNames().has(title);
+  }
+
+  function cpClearGeneratedTemplates() {
+    if (typeof state === 'undefined' || !Array.isArray(state.templates)) return 0;
+    const before = state.templates.length;
+    state.templates = state.templates.filter(t => !cpIsGeneratedTemplate(t));
+    const removed = before - state.templates.length;
+    if (removed > 0) {
+      if (typeof persistTemplates === 'function') persistTemplates();
+      if (typeof renderTemplates === 'function') renderTemplates();
+    }
+    return removed;
+  }
 
   function cpNormalizePillar(p, i = 0) {
     return {
@@ -3449,6 +3474,13 @@ window.ContentPillars = (() => {
       cta:     p.cta || '',
     }));
 
+    if (inp.notes && pillars.length) {
+      pillars[0].seeds = [
+        `Context to work in: ${inp.notes}`,
+        ...pillars[0].seeds
+      ].slice(0, 6);
+    }
+
     return { pillars, series, quickWin, inp };
   }
 
@@ -3470,11 +3502,12 @@ window.ContentPillars = (() => {
     const offer    = (cpQs('ssm-offer')?.value    || '').trim() || 'your offer';
     const tone     = cpQs('ssm-tone')?.value      || 'bold';
     const goal     = cpQs('ssm-goal')?.value      || 'grow';
+    const notes    = (cpQs('ssm-notes')?.value    || '').trim();
 
     if (!industry) { if (typeof showToast === 'function') showToast('Select an industry first', 'error'); return; }
     if (!goal)     { if (typeof showToast === 'function') showToast('Select a goal first', 'error'); return; }
 
-    const inp = { brand, industry, audience, offer, tone, goal };
+    const inp = { brand, industry, audience, offer, tone, goal, notes }
     cpState._ssmInputs = inp;
 
     // Show loading screen
@@ -3502,7 +3535,7 @@ window.ContentPillars = (() => {
     const result = ssmBuildStrategy(inp);
 
     // Set identity from inputs
-    cpState.identity = `${inp.brand} — ${inp.audience} — ${inp.offer}`;
+    cpState.identity = `${inp.brand} — ${inp.audience} — ${inp.offer}${inp.notes ? ` — Context: ${inp.notes}` : ''}`;
     cpState.pillars  = result.pillars.map(cpNormalizePillar);
     cpState._ssmInputs = inp;
 
@@ -3520,6 +3553,9 @@ window.ContentPillars = (() => {
 
     // Keep the quick-win starter inside the pillar plan. Do not auto-insert into Compose.
     cpState._latestGeneratedStarter = result.quickWin || '';
+
+    // Replace any old pillar-generated series templates so reset/new generation stays clean.
+    cpClearGeneratedTemplates();
 
     // Save recurring series as PostIQ templates
     ssmSaveSeriesAsTemplates(result.series, inp);
@@ -3553,8 +3589,8 @@ window.ContentPillars = (() => {
       title:     s.name,
       type:      'Hooks',
       platform:  'Universal',
-      tags:      ['series', inp.industry, inp.goal].filter(Boolean),
-      body:      s.desc,
+      tags:      [CP_TEMPLATE_TAG, 'pillar-plan', 'series', inp.industry, inp.goal, inp.notes ? 'custom-context' : ''].filter(Boolean),
+      body:      inp.notes ? `${s.desc}\n\nContext to consider: ${inp.notes}` : s.desc,
       createdAt: now,
       updatedAt: now,
     }));
@@ -3741,8 +3777,19 @@ window.ContentPillars = (() => {
 
     const rb = cpQs('cpRestartBtn');
     if (rb) rb.addEventListener('click', () => {
-      if (!confirm('Start over? Your current pillars will be cleared.')) return;
-      cpState.pillars = []; cpState.identity = ''; cpPersist(); cpShowStage('cpStageGate'); cpRenderCompact();
+      if (!confirm('Start over? This clears your pillars, starter counts, and pillar-generated series templates.')) return;
+      const removedTemplates = cpClearGeneratedTemplates();
+      cpState.pillars = [];
+      cpState.identity = '';
+      cpState._ssmInputs = null;
+      cpState._latestGeneratedStarter = '';
+      try { localStorage.removeItem(CP_KEY); localStorage.removeItem(USAGE_KEY); } catch {}
+      const bi = cpQs('cpBuilderIdentity'); if (bi) bi.value = '';
+      ['ssm-brand','ssm-industry','ssm-audience','ssm-offer','ssm-tone','ssm-goal','ssm-notes'].forEach(id => { const el = cpQs(id); if (el) el.value = ''; });
+      cpRenderPillars();
+      cpShowStage('cpStageGate');
+      cpRenderCompact();
+      if (typeof showToast === 'function') showToast(`Content pillars reset${removedTemplates ? ` — removed ${removedTemplates} generated template${removedTemplates > 1 ? 's' : ''}` : ''}.`, 'success');
     });
 
     const eb = cpQs('cpExportBtn');
