@@ -224,28 +224,6 @@ h1 em{font-style:normal;color:var(--brand);}
   animation:fadeUp .5s .44s ease forwards;
 }
 
-.trust-strip{
-  display:flex;
-  flex-wrap:wrap;
-  gap:7px;
-  opacity:0;
-  animation:fadeUp .5s .52s ease forwards;
-}
-.trust-pill{
-  display:inline-flex;
-  align-items:center;
-  gap:5px;
-  padding:4px 11px;
-  border:1px solid var(--border2);
-  border-radius:999px;
-  background:var(--surface);
-  font-family:'DM Mono',monospace;
-  font-size:10px;
-  color:var(--subtle);
-  box-shadow:var(--shadow-sm);
-}
-.trust-pill::before{content:'✓';color:var(--green);font-size:10px;font-weight:700;}
-
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
 
 /* ── HERO VISUAL ── */
@@ -432,17 +410,6 @@ h2 em{font-style:normal;color:var(--brand);}
   background:linear-gradient(135deg,var(--brand-dim) 0%,var(--surface) 60%);
 }
 .tool-card.featured::before{opacity:1;}
-
-.tool-tag{
-  display:inline-flex;align-items:center;
-  height:20px;padding:0 8px;border-radius:4px;
-  font-family:'DM Mono',monospace;font-size:9px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.05em;
-  border:1px solid var(--border2);color:var(--subtle);
-  margin-bottom:14px;
-}
-.tool-tag.free{background:var(--green-dim);border-color:rgba(15,166,114,.2);color:var(--green);}
-.tool-tag.key{background:var(--brand-dim);border-color:var(--brand-glow);color:var(--brand);}
 
 .tool-icon{font-size:22px;margin-bottom:10px;display:block;}
 .tool-num{
@@ -684,16 +651,6 @@ h2 em{font-style:normal;color:var(--brand);}
 .affiliate-note a{color:var(--brand);font-weight:600;text-decoration:none;}
 .affiliate-note a:hover{text-decoration:underline;}
 
-/* ── PROOF LINE ── */
-.proof-line{
-  display:flex;align-items:flex-start;gap:12px;
-  margin-top:22px;padding:13px 15px;
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--r);box-shadow:var(--shadow-sm);max-width:460px;
-}
-.proof-text{font-size:13px;color:var(--muted);line-height:1.55;}
-.proof-text strong{color:var(--ink);font-weight:600;}
-
 /* ── SCROLL REVEAL ── */
 .reveal{opacity:0;transform:translateY(14px);transition:opacity .4s ease,transform .4s ease;}
 .reveal.visible{opacity:1;transform:none;}
@@ -772,7 +729,7 @@ h2 em{font-style:normal;color:var(--brand);}
 <header class="topbar">
   <a href="/" class="brand">PostIQ <span class="brand-beta">Beta</span></a>
   <nav class="top-actions">
-    <a href="app.html" class="btn ghost">Open PostIQ</a>
+    <a href="app.html" class="btn ghost">Preview locally</a>
     <a href="app.html?connect=buffer" class="btn primary">Sign in with Buffer</a>
   </nav>
 </header>
@@ -788,18 +745,7 @@ h2 em{font-style:normal;color:var(--brand);}
       <p class="hero-desc">PostIQ helps you plan, draft, split, and publish smarter with Buffer. Sign in with your Buffer account to sync channels, view your queue, and send posts from one focused workspace.</p>
       <div class="hero-ctas">
         <a href="app.html?connect=buffer" class="btn primary lg">Sign in with Buffer →</a>
-        <a href="app.html" class="btn lg">Open PostIQ</a>
-        <a href="#try" class="btn ghost lg">Try Split Mode demo</a>
-      </div>
-      <div class="trust-strip">
-        <span class="trust-pill">Sign in with Buffer</span>
-        <span class="trust-pill">Sync your channels</span>
-        <span class="trust-pill">Draft, plan, and publish</span>
-        <span class="trust-pill">Preview tools before connecting</span>
-      </div>
-      <div class="proof-line">
-        <div class="avatar">BC</div>
-        <div class="proof-text"><strong>Built by a practitioner.</strong> I grew a social account to 6M+ followers and built PostIQ because the gap between "content strategy" and "Buffer queue" had no good tool. This is it.</div>
+        <a href="app.html" class="btn ghost lg">Preview local sandbox</a>
       </div>
     </div>
 
@@ -888,7 +834,6 @@ h2 em{font-style:normal;color:var(--brand);}
   <div class="tools-grid reveal-group">
 
     <div class="tool-card featured reveal">
-      <div class="tool-tag key">Requires Buffer sign-in</div>
       <span class="tool-icon">📅</span>
       <div class="tool-num">01 — Plan</div>
       <h3>See your whole month.<br>Fill the gaps.</h3>
@@ -901,8 +846,7 @@ h2 em{font-style:normal;color:var(--brand);}
       </div>
     </div>
 
-    <div class="tool-card featured reveal">
-      <div class="tool-tag free">Strategy layer</div>
+    <div class="tool-card featured reveal" data-track-pillars>
       <span class="tool-icon">🧠</span>
       <div class="tool-num">02 — Content Pillars</div>
       <h3>Know what to post<br>before you open Draft.</h3>
@@ -920,7 +864,6 @@ h2 em{font-style:normal;color:var(--brand);}
   <div class="tools-grid-wide reveal-group" style="margin-top:12px;">
 
     <div class="tool-card reveal">
-      <div class="tool-tag key">Works best with Buffer</div>
       <span class="tool-icon">✍️</span>
       <div class="tool-num">03 — Draft</div>
       <h3>Write it here.<br>Send to Buffer.</h3>
@@ -928,7 +871,6 @@ h2 em{font-style:normal;color:var(--brand);}
     </div>
 
     <div class="tool-card reveal">
-      <div class="tool-tag free">Preview available</div>
       <span class="tool-icon">✂️</span>
       <div class="tool-num">04 — Thread Splitter</div>
       <h3>Long copy.<br>Thread-ready parts.</h3>
@@ -936,7 +878,6 @@ h2 em{font-style:normal;color:var(--brand);}
     </div>
 
     <div class="tool-card reveal">
-      <div class="tool-tag free">Idea starter</div>
       <span class="tool-icon">📈</span>
       <div class="tool-num">05 — Trending</div>
       <h3>Find ideas.<br>Write your take.</h3>
@@ -948,7 +889,6 @@ h2 em{font-style:normal;color:var(--brand);}
   <div class="tools-grid reveal-group" style="margin-top:12px;">
 
     <div class="tool-card reveal">
-      <div class="tool-tag free">Workflow helper</div>
       <span class="tool-icon">⚡</span>
       <div class="tool-num">06 — Templates</div>
       <h3>Reusable starters<br>for every post type.</h3>
@@ -962,7 +902,6 @@ h2 em{font-style:normal;color:var(--brand);}
     </div>
 
     <div class="tool-card reveal">
-      <div class="tool-tag key">Requires Buffer sign-in</div>
       <span class="tool-icon">✅</span>
       <div class="tool-num">07 — Approve</div>
       <h3>Sign-off before<br>it goes live.</h3>
@@ -1007,8 +946,8 @@ h2 em{font-style:normal;color:var(--brand);}
       <div class="affiliate-note">Need a Buffer account? <a href="https://join.buffer.com/ben-campbell" target="_blank" rel="noopener">Start with Buffer</a>. Partner link — I may earn a commission if you sign up.</div>
     </div>
     <div class="bridge-actions">
-      <a href="app.html" class="btn primary">Open PostIQ →</a>
-      <a href="app.html?connect=buffer" class="btn">Sign in with Buffer</a>
+      <a href="app.html?connect=buffer" class="btn primary">Sign in with Buffer</a>
+      <a href="app.html" class="btn ghost">Preview locally</a>
     </div>
   </div>
 
@@ -1039,7 +978,7 @@ h2 em{font-style:normal;color:var(--brand);}
   </div>
   <div class="reveal" style="display:flex;justify-content:center;margin-top:24px;gap:10px;flex-wrap:wrap;">
     <a href="app.html?connect=buffer" class="btn primary lg">Sign in with Buffer →</a>
-    <a href="app.html" class="btn lg">Open PostIQ</a>
+    <a href="app.html" class="btn ghost lg">Preview local sandbox</a>
   </div>
   <div class="faq-wrap reveal">
     <div class="faq-list">
@@ -1110,9 +1049,8 @@ h2 em{font-style:normal;color:var(--brand);}
       <h2>Ready to give your Buffer workflow<br><em>a smarter planning layer?</em></h2>
       <p>Open PostIQ, sign in with Buffer, and start planning, drafting, splitting, and publishing from one focused workspace.</p>
       <div class="cta-actions">
-        <a href="app.html" class="btn primary lg" onclick="gtag('event','landing_cta_click',{location:'final_cta'});">Open PostIQ →</a>
-        <a href="app.html?connect=buffer" class="btn lg">Sign in with Buffer</a>
-        <a href="#try" class="btn ghost lg">Try Split Mode demo</a>
+        <a href="app.html?connect=buffer" class="btn primary lg" onclick="gtag('event','landing_cta_click',{location:'final_cta'});">Sign in with Buffer →</a>
+        <a href="app.html" class="btn ghost lg">Preview local sandbox</a>
       </div>
     </div>
   </div>
@@ -1123,11 +1061,40 @@ h2 em{font-style:normal;color:var(--brand);}
   <div class="wrap footer-inner">
     <a href="/" class="footer-brand">PostIQ <span class="brand-beta">Beta</span></a>
     <nav class="footer-links" aria-label="Footer links">
-      <a href="app.html">Open PostIQ</a>
+      <button id="openSupportBtn" style="background:none;border:none;color:var(--muted);font-weight:600;font-family:'Lato',sans-serif;font-size:13px;cursor:pointer;padding:0;">Support</button>
+      <a href="app.html">Preview locally</a>
       <a href="/privacy.html">Privacy Policy</a>
     </nav>
   </div>
 </footer>
+
+<!-- SUPPORT MODAL (Netlify Form) -->
+<div id="supportModal" style="display:none; position:fixed; inset:0; background:rgba(20,22,42,0.6); z-index:9999; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);">
+  <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--r); width:100%; max-width:440px; padding:28px; box-shadow:var(--shadow-lg); position:relative;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h3 style="font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:18px; color:var(--ink);">Need Help?</h3>
+      <button id="closeSupportBtn" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--subtle); line-height:1;">&times;</button>
+    </div>
+    <p style="font-size:13px; color:var(--muted); margin-bottom:20px; line-height:1.6;">Have a question about your Buffer connection or need a hand with the workflow? Drop a message below.</p>
+    
+    <form name="postiq-support" method="POST" data-netlify="true" style="display:flex; flex-direction:column; gap:14px;">
+      <input type="hidden" name="form-name" value="postiq-support" />
+      <div>
+        <label style="display:block; font-size:12px; font-weight:600; color:var(--text); margin-bottom:6px;">Your Name</label>
+        <input type="text" name="name" required style="width:100%; height:40px; border:1px solid var(--border2); border-radius:var(--r2); padding:0 14px; font-family:'Lato',sans-serif; font-size:14px; background:var(--surface2); outline:none;" />
+      </div>
+      <div>
+        <label style="display:block; font-size:12px; font-weight:600; color:var(--text); margin-bottom:6px;">Email Address</label>
+        <input type="email" name="email" required style="width:100%; height:40px; border:1px solid var(--border2); border-radius:var(--r2); padding:0 14px; font-family:'Lato',sans-serif; font-size:14px; background:var(--surface2); outline:none;" />
+      </div>
+      <div>
+        <label style="display:block; font-size:12px; font-weight:600; color:var(--text); margin-bottom:6px;">How can I help?</label>
+        <textarea name="message" required style="width:100%; min-height:110px; border:1px solid var(--border2); border-radius:var(--r2); padding:12px 14px; font-family:'Lato',sans-serif; font-size:14px; background:var(--surface2); resize:vertical; outline:none;"></textarea>
+      </div>
+      <button type="submit" class="btn primary" style="width:100%; justify-content:center; margin-top:8px; height:42px;">Send Message</button>
+    </form>
+  </div>
+</div>
 
 <script>
 // Split algo — matches app exactly
@@ -1217,6 +1184,19 @@ document.querySelectorAll('a[href^="app.html"]').forEach(function(link) {
     var loc = link.closest('.topbar') ? 'topbar' : link.closest('.cta-card') ? 'final_cta' : 'hero';
     gtag('event','landing_cta_click', { location: loc });
   });
+});
+
+// Support Modal Toggle
+var supportModal = document.getElementById('supportModal');
+document.getElementById('openSupportBtn').addEventListener('click', function() {
+  supportModal.style.display = 'flex';
+});
+document.getElementById('closeSupportBtn').addEventListener('click', function() {
+  supportModal.style.display = 'none';
+});
+// Close on outside click
+supportModal.addEventListener('click', function(e) {
+  if (e.target === supportModal) supportModal.style.display = 'none';
 });
 </script>
 </body>
