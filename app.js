@@ -993,7 +993,7 @@ function updateNavTags() {
   const composerDesc = qs('composerDesc');
   if (composerDesc) composerDesc.textContent = connected
     ? 'Write your post, attach media, then send to Buffer as a draft, queued post, or scheduled post.'
-    : 'Write here now — connect Buffer to unlock drafting, queueing, and scheduling.';
+    : 'Write here now — connect Buffer to unlock Buffer drafts, queueing, and scheduling.';
   updateComposerButtonStates();
   const calEmpty = qs('calEmptyHint'); if (calEmpty) calEmpty.style.display = connected ? 'none' : 'block';
 }
@@ -3090,7 +3090,7 @@ function init() {
   if (guidePanel && !guidePanel.querySelector('[data-guide-trending]')) {
     const trendingEntry = document.createElement('div');
     trendingEntry.dataset.guideTrending = '1';
-    trendingEntry.innerHTML = `<div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">📈 Trending</div><p style="font-size:13px;color:var(--muted);line-height:1.65;">Browse hot Reddit posts by subreddit or Hacker News stories for post inspiration. Click "Compose from this" on any story to pin it as a reference above your Composer editor.</p>`;
+    trendingEntry.innerHTML = `<div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">📈 Trending</div><p style="font-size:13px;color:var(--muted);line-height:1.65;">Browse hot Reddit posts by subreddit or Hacker News stories for post inspiration. Click "Compose from this" on any story to pin it as a reference above your Compose editor.</p>`;
     const threadEntry = document.createElement('div');
     threadEntry.innerHTML = `<div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">🧵 Split into thread</div><p style="font-size:13px;color:var(--muted);line-height:1.65;">Inside Compose, switch to the Split tab. Paste long-form content, hit Split Thread, and PostIQ breaks it into numbered parts. Edit each part, then queue or schedule the whole thread to Buffer natively.</p>`;
     guidePanel.querySelector('div').appendChild(trendingEntry);
@@ -3123,7 +3123,7 @@ function init() {
 <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-family:'DM Mono',monospace;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--brand-dim);border:1px solid var(--brand-glow);color:var(--brand);padding:2px 8px;border-radius:4px;margin-bottom:8px;">Pillar Plan Builder</span>
 <span class="cp-gate-title">Generate my content strategy</span>
 <span class="cp-gate-desc">Answer 6 quick questions. Get 5 content pillars, 25 post ideas, hooks, CTAs, recurring series ideas, and one post you can publish today.</span>
-<span class="cp-gate-cta">Feed the machine →</span>
+<span class="cp-gate-cta">Build my plan →</span>
 */
 
 // ── SSM FORM HTML (insert inside #cpStageJourney, replace all inner content) ──
@@ -3142,8 +3142,8 @@ Replace everything inside <div class="cp-stage" id="cpStageJourney"> with:
   <div id="ssmForm">
     <div style="margin-bottom:20px;">
       <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--brand);margin-bottom:8px;">Pillar Plan Builder</div>
-      <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:18px;color:var(--ink);margin-bottom:4px;">Feed the machine. Get a strategy.</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.6;">6 quick fields. Deterministic output — same engine that powers the pillar planning engine.</div>
+      <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:18px;color:var(--ink);margin-bottom:4px;">Answer a few questions. Get a pillar plan.</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6;">6 quick fields. Deterministic output — built from your inputs.</div>
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -3483,7 +3483,7 @@ window.ContentPillars = (() => {
     if (form)    form.style.display    = 'none';
     if (loading) loading.style.display = 'block';
 
-    const steps  = ['Detecting your industry...','Matching goal + industry combo...','Pulling pillar templates...','Generating hooks for your tone...','Finalizing your strategy...'];
+    const steps  = ['Detecting your industry...','Matching goal + industry combo...','Pulling pillar templates...','Generating hooks for your tone...','Finalizing your pillar plan...'];
     const bar    = cpQs('ssmLoadBar');
     const label  = cpQs('ssmLoadStep');
     let i = 0;
@@ -3518,14 +3518,14 @@ window.ContentPillars = (() => {
     // Render pillars in builder
     cpRenderPillars();
 
-    // Send quick-win post to composer editor
-    ssmSendQuickWin(result.quickWin);
+    // Keep the quick-win starter inside the pillar plan. Do not auto-insert into Compose.
+    cpState._latestGeneratedStarter = result.quickWin || '';
 
     // Save recurring series as PostIQ templates
     ssmSaveSeriesAsTemplates(result.series, inp);
 
     if (typeof showToast === 'function') {
-      showToast('Pillar plan generated — starter added to Compose', 'success');
+      showToast('Pillar plan generated — review your starters below', 'success');
     }
 
     // Restore form for next time
@@ -3577,7 +3577,7 @@ window.ContentPillars = (() => {
       card.className  = 'cp-pillar-card';
       card.dataset.pid = pillar.id;
       const usage = cpUsageFor(pillar.id);
-      card.innerHTML = `<div class="cp-pillar-head"><div class="cp-pillar-tab" style="background:${pillarColor(pi)};"></div><div class="cp-pillar-head-inner"><div class="cp-pillar-inputs"><input class="cp-pillar-name" data-field="name" value="${cpEsc(pillar.name)}" placeholder="Pillar name" /><input class="cp-pillar-promise" data-field="promise" value="${cpEsc(pillar.promise)}" placeholder="The recurring promise this pillar makes…" /></div></div><div class="cp-pillar-head-right"><select class="cp-layer-select" data-field="layer"><option value="" ${pillar.layer ? '' : 'selected'}>Tag layer…</option><option value="awareness" ${pillar.layer==='awareness'?'selected':''}>👁 Awareness</option><option value="credibility" ${pillar.layer==='credibility'?'selected':''}>🎓 Credibility</option><option value="action" ${pillar.layer==='action'?'selected':''}>🛒 Action</option></select><span class="cp-usage-badge ${usage > 0 ? 'used' : ''}">${usage > 0 ? `${usage} drafted` : 'unused'}</span></div></div>` +
+      card.innerHTML = `<div class="cp-pillar-head"><div class="cp-pillar-tab" style="background:${pillarColor(pi)};"></div><div class="cp-pillar-head-inner"><div class="cp-pillar-inputs"><input class="cp-pillar-name" data-field="name" value="${cpEsc(pillar.name)}" placeholder="Pillar name" /><input class="cp-pillar-promise" data-field="promise" value="${cpEsc(pillar.promise)}" placeholder="The recurring promise this pillar makes…" /></div></div><div class="cp-pillar-head-right"><select class="cp-layer-select" data-field="layer"><option value="" ${pillar.layer ? '' : 'selected'}>Tag layer…</option><option value="awareness" ${pillar.layer==='awareness'?'selected':''}>👁 Awareness</option><option value="credibility" ${pillar.layer==='credibility'?'selected':''}>🎓 Credibility</option><option value="action" ${pillar.layer==='action'?'selected':''}>🛒 Action</option></select><span class="cp-usage-badge ${usage > 0 ? 'used' : ''}">${usage > 0 ? `${usage} starter${usage > 1 ? 's' : ''}` : 'unused'}</span></div></div>` +
         (pillar.hook ? `<div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--brand);background:var(--brand-dim);border-top:1px solid var(--brand-glow);padding:8px 13px;line-height:1.45;">Hook: "${cpEsc(pillar.hook)}"</div>` : '') +
         `<div class="cp-seeds" data-seeds-for="${pillar.id}">${pillar.seeds.map((seed, si) => cpSeedRowHtml(pillar, si, seed)).join('')}</div><div class="cp-pillar-footer"><button class="btn sm ghost" data-action="add-seed" type="button" style="font-size:11px;height:26px;padding:0 10px;">+ Add seed idea</button><button class="btn sm ghost" data-action="remove-pillar" type="button" style="font-size:11px;height:26px;padding:0 8px;color:var(--subtle);">Remove pillar</button></div>`;
 
@@ -3665,7 +3665,7 @@ window.ContentPillars = (() => {
     const score = Math.min(100, (Math.min(total, 5) / 5) * 40 + (Math.min(seeds, 15) / 15) * 40 + (Math.min(used, 5) / 5) * 20);
     const bar = cpQs('cpHealthBar');
     if (bar) { bar.style.width = `${score}%`; bar.className = `cp-health-fill${score >= 70 ? ' good' : score >= 40 ? ' warn' : ''}`; }
-    const msgs = [[90,'Pillar system firing on all cylinders.'],[70,'Strong foundation. Keep drafting.'],[50,'Looking solid. Start drafting from seeds.'],[20,'Good start — add more seed ideas.'],[0,'Add your pillars to start.']];
+    const msgs = [[90,'Pillar system firing on all cylinders.'],[70,'Strong foundation. Keep creating starters.'],[50,'Looking solid. Start from a few seeds.'],[20,'Good start — add more seed ideas.'],[0,'Add your pillars to start.']];
     const msg = msgs.find(m => score >= m[0]);
     const el = cpQs('cpHealthMsg'); if (el) el.textContent = (msg || msgs[msgs.length - 1])[1];
   }
@@ -3695,7 +3695,7 @@ window.ContentPillars = (() => {
       const seed  = pillar.seeds.find(s => String(s || '').trim()) || '';
       const count = usage[pillar.id] || 0;
       const unusedBadge  = count === 0 ? `<span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);border:1px solid var(--border);padding:1px 6px;border-radius:999px;margin-left:6px;">unused</span>` : '';
-      const draftedLabel = count > 0 ? `${count} post${count > 1 ? 's' : ''} drafted` : 'Not used yet';
+      const draftedLabel = count > 0 ? `${count} starter${count > 1 ? 's' : ''} created` : 'Not used yet';
       const seedHtml = seed ? `<div class="cp-compact-seed">${cpEsc(seed)}</div><div class="cp-compact-row"><span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">${draftedLabel}</span><button class="btn sm primary" type="button" style="height:24px;font-size:11px;padding:0 8px;" data-start="${cpEsc(pillar.id)}">Start</button></div>` : '';
       card.innerHTML = `<div class="cp-compact-name">${cpEsc(pillar.name)}${unusedBadge}</div>${seedHtml}`;
       const btn = card.querySelector('[data-start]');
