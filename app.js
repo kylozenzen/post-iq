@@ -29,6 +29,27 @@ const DEFAULT_NOTE_TYPES = [
   { id: 'reminder', label: 'Reminder', color: '#f59e0b' },
   { id: 'revision', label: 'Needs Revision', color: '#ef4444' }
 ];
+const DEFAULT_POSTIQ_CONFIG = {
+  betaMessage: 'PostIQ is in public beta. Some tools may change as Buffer’s API evolves.',
+  features: {
+    calendar: true,
+    composer: true,
+    ideas: true,
+    contentPillars: true,
+    trending: true,
+    approvals: true,
+    snapshots: true,
+    uploads: true,
+    unsplash: true
+  },
+  notices: {
+    approvals: '',
+    trending: '',
+    uploads: '',
+    snapshots: ''
+  }
+};
+const BETA_BANNER_SESSION_KEY = 'postiq_beta_banner_seen';
 const LEGACY_NOTE_TYPES = {
   gold: { id: 'idea', label: 'Idea', color: '#f59e0b' },
   blue: { id: 'draft', label: 'Draft', color: '#3a3fff' },
@@ -42,6 +63,13 @@ let currentViewId = 'calendarView';
 let currentIdeasTab = 'pillars';
 let tokenPanelOpen = false;
 let modalCount = 0;
+let globalStatusTimer = null;
+let lastGlobalErrorBannerAt = 0;
+let postiqConfig = {
+  ...DEFAULT_POSTIQ_CONFIG,
+  features: { ...DEFAULT_POSTIQ_CONFIG.features },
+  notices: { ...DEFAULT_POSTIQ_CONFIG.notices },
+};
 
 const state = {
   channels: [],
@@ -77,6 +105,178 @@ const monthLabel = d => d.toLocaleDateString(undefined, { month: 'long', year: '
 const monthStart = d => new Date(d.getFullYear(), d.getMonth(), 1);
 const safeText = v => String(v || '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
 const compact = (v, max = 80) => { const t = String(v || '').trim(); return t.length > max ? t.slice(0, max - 1) + '…' : t; };
+
+const validStatusType = type => ['info', 'warning', 'error', 'success'].includes(type) ? type : 'info';
+const defaultFeaturePausedMessage = 'This feature is temporarily paused during the PostIQ public beta.';
+
+function showGlobalStatus(message, options = {}) {
+  const banner = qs('globalStatusBanner');
+  const titleEl = qs('globalStatusTitle');
+  const msgEl = qs('globalStatusMessage');
+  if (!banner || !titleEl || !msgEl) return null;
+
+  if (globalStatusTimer) {
+    clearTimeout(globalStatusTimer);
+    globalStatusTimer = null;
+  }
+
+  const type = validStatusType(options.type || 'info');
+  titleEl.textContent = String(options.title || 'PostIQ notice');
+  msgEl.textContent = String(message || 'Something needs your attention.');
+  banner.className = `global-status-banner ${type}`;
+  banner.dataset.type = type;
+
+  if (!options.persistent) {
+    const delay = Number(options.timeout) > 0 ? Number(options.timeout) : 5000;
+    globalStatusTimer = setTimeout(hideGlobalStatus, delay);
+  }
+  return banner;
+}
+
+function hideGlobalStatus() {
+  const banner = qs('globalStatusBanner');
+  if (!banner) return;
+  if (globalStatusTimer) {
+    clearTimeout(globalStatusTimer);
+    globalStatusTimer = null;
+  }
+  banner.classList.add('hidden');
+}
+
+function bindGlobalStatusDismiss() {
+  on('globalStatusDismiss', 'click', () => {
+    hideGlobalStatus();
+    try { sessionStorage.setItem(BETA_BANNER_SESSION_KEY, '1'); } catch {}
+  });
+}
+
+function mergePostiqConfig(base, override) {
+  if (!override || typeof override !== 'object') return {
+    ...base,
+    features: { ...base.features },
+    notices: { ...base.notices },
+  };
+  return {
+    ...base,
+    ...override,
+    features: { ...(base.features || {}), ...(override.features || {}) },
+    notices: { ...(base.notices || {}), ...(override.notices || {}) },
+  };
+}
+
+function getFeatureFlag(name) {
+  if (!name) return true;
+  return postiqConfig?.features?.[name] !== false;
+}
+
+function getFeatureNotice(name) {
+  return String(postiqConfig?.notices?.[name] || defaultFeaturePausedMessage);
+}
+
+function showFeaturePaused(name) {
+  showGlobalStatus(getFeatureNotice(name), { title: 'Feature paused', type: 'warning', timeout: 6000 });
+}
+
+function setFeatureControlPaused(el, featureName, paused) {
+  if (!el) return;
+  const notice = getFeatureNotice(featureName);
+  el.dataset.featureFlag = featureName;
+  el.classList.toggle('feature-paused', paused);
+  el.setAttribute('aria-disabled', paused ? 'true' : 'false');
+  if (paused) {
+    el.dataset.postiqOriginalTitle = el.dataset.postiqOriginalTitle || el.getAttribute('title') || '';
+    el.setAttribute('title', notice);
+    if ('disabled' in el) el.disabled = true;
+  } else {
+    if ('disabled' in el) el.disabled = false;
+    const original = el.dataset.postiqOriginalTitle || '';
+    if (original) el.setAttribute('title', original);
+    else el.removeAttribute('title');
+    delete el.dataset.postiqOriginalTitle;
+  }
+}
+
+function applyFeatureFlags() {
+  const flagControls = {
+    snapshots: ['shareMonthBtn', 'shareMonthBtnMob', 'generateShare', 'copyShare'],
+    approvals: ['approvalsRefreshBtn', 'approvalsRefreshBtnMob'],
+    uploads: ['uploadBrowseBtn', 'uploadReplaceBtn'],
+    unsplash: ['unsplashSearchBtn'],
+  };
+
+  Object.entries(flagControls).forEach(([feature, ids]) => {
+    const paused = !getFeatureFlag(feature);
+    ids.forEach(id => setFeatureControlPaused(qs(id), feature, paused));
+  });
+
+  document.querySelectorAll('[data-view="approvalsView"]').forEach(el => setFeatureControlPaused(el, 'approvals', !getFeatureFlag('approvals')));
+  document.querySelectorAll('[data-ideas-tab="trending"]').forEach(el => setFeatureControlPaused(el, 'trending', !getFeatureFlag('trending')));
+  document.querySelectorAll('.media-tab[data-mtab="upload"], [data-mtabpanel="upload"] button, #uploadZone').forEach(el => setFeatureControlPaused(el, 'uploads', !getFeatureFlag('uploads')));
+  document.querySelectorAll('.media-tab[data-mtab="unsplash"], [data-mtabpanel="unsplash"] button, [data-mtabpanel="unsplash"] input').forEach(el => setFeatureControlPaused(el, 'unsplash', !getFeatureFlag('unsplash')));
+}
+
+async function loadPostiqConfig() {
+  try {
+    const response = await fetch('/.netlify/functions/app-config', { headers: { Accept: 'application/json' } });
+    if (!response.ok) return;
+    const remoteConfig = await response.json();
+    postiqConfig = mergePostiqConfig(DEFAULT_POSTIQ_CONFIG, remoteConfig);
+  } catch {
+    postiqConfig = mergePostiqConfig(DEFAULT_POSTIQ_CONFIG);
+  } finally {
+    applyFeatureFlags();
+    maybeShowBetaBanner();
+  }
+}
+
+function maybeShowBetaBanner() {
+  const message = String(postiqConfig?.betaMessage || '').trim();
+  if (!message) return;
+  try {
+    if (sessionStorage.getItem(BETA_BANNER_SESSION_KEY)) return;
+    sessionStorage.setItem(BETA_BANNER_SESSION_KEY, '1');
+  } catch {}
+  showGlobalStatus(message, { title: 'Public beta', type: 'info', timeout: 7000 });
+}
+
+function handlePausedFeatureEvent(event) {
+  const target = event.target?.closest?.('[data-feature-flag]');
+  if (!target) return;
+  const feature = target.dataset.featureFlag;
+  if (getFeatureFlag(feature)) return;
+  event.preventDefault();
+  event.stopPropagation();
+  if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+  showFeaturePaused(feature);
+}
+
+function showGlobalErrorBanner() {
+  const now = Date.now();
+  if (now - lastGlobalErrorBannerAt < 3000) return;
+  lastGlobalErrorBannerAt = now;
+  showGlobalStatus('Something did not load correctly. Try refreshing, reconnecting Buffer, or using another tool.', {
+    title: 'PostIQ hit a snag',
+    type: 'error',
+    persistent: true,
+  });
+}
+
+function bindGlobalErrorHandlers() {
+  window.addEventListener('error', event => {
+    console.error('[PostIQ global error]', {
+      message: event.message,
+      source: event.filename,
+      line: event.lineno,
+      column: event.colno,
+      error: event.error,
+    });
+    showGlobalErrorBanner();
+  });
+  window.addEventListener('unhandledrejection', event => {
+    console.error('[PostIQ unhandled rejection]', event.reason);
+    showGlobalErrorBanner();
+  });
+}
 
 const SNAP_ADJECTIVES = ['amber','brisk','cobalt','clever','cosmic','crisp','electric','golden','lively','lunar','mint','neon','quiet','rapid','silver','sunny','tidy','vivid'];
 const SNAP_NOUNS = ['atlas','beacon','canvas','comet','draft','ember','grove','harbor','kite','lane','maple','orbit','pencil','quill','signal','spark','studio','thread'];
@@ -1643,6 +1843,7 @@ function resetShareForm({ resetRange = true } = {}) {
   const range = qs('shareRange'); if (range && resetRange) range.value = 'month';
 }
 function openShareSnapshotModal() {
+  if (!getFeatureFlag('snapshots')) { showFeaturePaused('snapshots'); return; }
   resetShareForm();
   shareSnapshot();
   openModal('shareModal');
@@ -1675,7 +1876,8 @@ function snapshotDisplayTitle(snap) {
 }
 // Calendar snapshot share
 function shareSnapshot() {
-  const include     = qs('includeNotes').checked;
+  if (!getFeatureFlag('snapshots')) { showFeaturePaused('snapshots'); return; }
+  const include     = !!qs('includeNotes')?.checked;
   const customTitle = (qs('shareCustomTitle')?.value || '').trim();
   const message     = (qs('shareNote')?.value || '').trim();
   const range       = qs('shareRange')?.value || 'month';
@@ -1974,6 +2176,8 @@ async function handleUploadFile(file) {
 }
 
 function switchMediaTab(id) {
+  if (id === 'upload' && !getFeatureFlag('uploads')) { showFeaturePaused('uploads'); return; }
+  if (id === 'unsplash' && !getFeatureFlag('unsplash')) { showFeaturePaused('unsplash'); return; }
   document.querySelectorAll('.media-tab').forEach(t => t.classList.toggle('active', t.dataset.mtab === id));
   document.querySelectorAll('.media-tab-panel').forEach(p => p.classList.toggle('active', p.dataset.mtabpanel === id));
 }
@@ -2003,8 +2207,8 @@ async function runUnsplashSearch() {
   } catch (err) { status.textContent = 'Search failed: ' + err.message; }
 }
 
-function openMediaPanel() { qs('mediaPanel').classList.add('open'); }
-function closeMediaPanel() { qs('mediaPanel').classList.remove('open'); }
+function openMediaPanel() { qs('mediaPanel')?.classList.add('open'); }
+function closeMediaPanel() { qs('mediaPanel')?.classList.remove('open'); }
 
 // ── POST CREATION ──────────────────────────────────
 async function createPost(input) {
@@ -2101,14 +2305,15 @@ async function composerSend(action) {
 const appState = { loading: false };
 
 async function loadApprovals() {
+  if (!getFeatureFlag('approvals')) { showFeaturePaused('approvals'); return; }
   if (appState.loading) return; appState.loading = true;
   const listEl = qs('approvalsList'), emptyEl = qs('approvalsEmpty');
   if (!listEl) { appState.loading = false; return; }
   listEl.innerHTML = '';
-  emptyEl.style.display = 'none';
+  if (emptyEl) emptyEl.style.display = 'none';
   try {
     const metas = getAllApprovalMetas();
-    if (!metas.length) { emptyEl.style.display = 'flex'; appState.loading = false; return; }
+    if (!metas.length) { if (emptyEl) emptyEl.style.display = 'flex'; appState.loading = false; return; }
     for (const meta of metas) {
       if (meta.link_generated && meta.approval_uuid) {
         try {
@@ -2368,6 +2573,7 @@ window.submitReview = async function (uuid, action) {
 
 // ── VIEW NAVIGATION ──────────────────────────────────
 function activateView(viewId) {
+  if (viewId === 'approvalsView' && !getFeatureFlag('approvals')) { showFeaturePaused('approvals'); return; }
   currentViewId = viewId;
   document.querySelectorAll('[data-view]').forEach(x => x.classList.toggle('active', x.dataset.view === viewId));
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId));
@@ -2378,6 +2584,7 @@ function activateView(viewId) {
 window.activateView = activateView;
 
 function setIdeasTab(tabId = 'pillars') {
+  if (tabId === 'trending' && !getFeatureFlag('trending')) { showFeaturePaused('trending'); tabId = 'pillars'; }
   const tab = ['pillars', 'templates', 'trending'].includes(tabId) ? tabId : 'pillars';
   currentIdeasTab = tab;
   document.querySelectorAll('.ideas-tab').forEach(btn => {
@@ -2398,10 +2605,12 @@ function buildTimePickers() {
 }
 
 function syncComposerWhen() {
-  const d = qs('scheduleDate').value; if (!d) { qs('composerWhen').value = ''; return; }
-  let h = parseInt(qs('scheduleHour').value); const m = parseInt(qs('scheduleMin').value); const ap = qs('scheduleAmpm').value;
+  const dateEl = qs('scheduleDate'), hourEl = qs('scheduleHour'), minEl = qs('scheduleMin'), ampmEl = qs('scheduleAmpm'), whenEl = qs('composerWhen');
+  if (!dateEl || !hourEl || !minEl || !ampmEl || !whenEl) return;
+  const d = dateEl.value; if (!d) { whenEl.value = ''; return; }
+  let h = parseInt(hourEl.value); const m = parseInt(minEl.value); const ap = ampmEl.value;
   if (ap === 'PM' && h !== 12) h += 12; if (ap === 'AM' && h === 12) h = 0;
-  qs('composerWhen').value = `${d}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00.000Z`;
+  whenEl.value = `${d}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00.000Z`;
 }
 
 // ── INIT ──────────────────────────────────────────────
@@ -2470,26 +2679,29 @@ function init() {
   renderTemplates();
   if (window.ContentPillars?.init) window.ContentPillars.init();
   buildTimePickers();
-  qs('scheduleDate').value = new Date().toISOString().slice(0, 10);
-  qs('scheduleDate').min = new Date().toISOString().slice(0, 10);
+  const scheduleDate = qs('scheduleDate');
+  if (scheduleDate) {
+    scheduleDate.value = new Date().toISOString().slice(0, 10);
+    scheduleDate.min = new Date().toISOString().slice(0, 10);
+  }
   renderChannelSelects();
   renderCalendar();
   renderPlanningSettings();
   renderNoteTypesSettings();
   activateView('calendarView');
 
-  qs('manageTokenBtn').onclick = () => {
+  on('manageTokenBtn', 'click', () => {
     const connection = getBufferConnectionState();
     if (connection.connected) syncBuffer({ force: true });
     else goToBufferConnect();
-  };
-  qs('revealTokenBtn').onclick = openConnectionSettings;
-  qs('saveTokenBtn').onclick = saveToken;
-  qs('clearTokenBtn').onclick = () => { qs('tokenInput').value = ''; saveToken(); };
+  });
+  on('revealTokenBtn', 'click', openConnectionSettings);
+  on('saveTokenBtn', 'click', saveToken);
+  on('clearTokenBtn', 'click', () => { const tokenInput = qs('tokenInput'); if (tokenInput) tokenInput.value = ''; saveToken(); });
   const connectBufferBtn = qs('connectBufferBtn'); if (connectBufferBtn) connectBufferBtn.onclick = goToBufferConnect;
   const disconnectBufferBtn = qs('disconnectBufferBtn'); if (disconnectBufferBtn) disconnectBufferBtn.onclick = disconnectBuffer;
 
-  qs('syncBtn').onclick = () => syncBuffer({ force: true });
+  on('syncBtn', 'click', () => syncBuffer({ force: true }));
   const initialParams = new URLSearchParams(location.search);
   const connectedParam = initialParams.get('connected');
   if (connectedParam === 'buffer') {
@@ -2525,17 +2737,17 @@ function init() {
     tabBtn.onclick = () => setIdeasTab(tabBtn.dataset.ideasTab);
   });
 
-  qs('prevMonth').onclick = () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() - 1, 1); renderCalendar(); detectQueueGaps(); };
-  qs('nextMonth').onclick = () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() + 1, 1); renderCalendar(); detectQueueGaps(); };
-  qs('todayMonth').onclick = () => { state.month = new Date(); renderCalendar(); detectQueueGaps(); };
-  qs('closeNote').onclick = () => { closeModal('noteModal'); resetNoteForm(); };
+  on('prevMonth', 'click', () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() - 1, 1); renderCalendar(); detectQueueGaps(); });
+  on('nextMonth', 'click', () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() + 1, 1); renderCalendar(); detectQueueGaps(); });
+  on('todayMonth', 'click', () => { state.month = new Date(); renderCalendar(); detectQueueGaps(); });
+  on('closeNote', 'click', () => { closeModal('noteModal'); resetNoteForm(); });
   const closeShared = qs('closeSharedDay'); if (closeShared) closeShared.onclick = () => closeModal('sharedDayModal');
-  qs('saveNoteBtn').onclick = saveNote;
-  qs('deleteNoteBtn').onclick = deleteNote;
-  qs('sendNoteToDraftBtn').onclick = sendNoteToDraft;
-  qs('shareMonthBtn').onclick = openShareSnapshotModal;
-  qs('closeShare').onclick = () => closeModal('shareModal');
-  qs('includeNotes').onchange = shareSnapshot;
+  on('saveNoteBtn', 'click', saveNote);
+  on('deleteNoteBtn', 'click', deleteNote);
+  on('sendNoteToDraftBtn', 'click', sendNoteToDraft);
+  on('shareMonthBtn', 'click', openShareSnapshotModal);
+  on('closeShare', 'click', () => closeModal('shareModal'));
+  on('includeNotes', 'change', shareSnapshot);
   const shareRangeInput = qs('shareRange'); if (shareRangeInput) shareRangeInput.onchange = shareSnapshot;
   const shareTitleInput = qs('shareCustomTitle'); if (shareTitleInput) shareTitleInput.oninput = shareSnapshot;
   const shareNoteInput = qs('shareNote'); if (shareNoteInput) shareNoteInput.oninput = shareSnapshot;
@@ -2547,10 +2759,11 @@ function init() {
     noteTypesWrap.addEventListener('click', e => { const btn = e.target.closest('[data-delete-note-type]'); if (btn) deleteNoteType(btn.dataset.deleteNoteType); });
   }
   const addNoteTypeBtn = qs('addNoteTypeBtn'); if (addNoteTypeBtn) addNoteTypeBtn.onclick = addNoteType;
-  qs('generateShare').onclick = () => { shareSnapshot(); qs('generateShare').textContent = '✓ Link ready'; setTimeout(() => { qs('generateShare').textContent = 'Generate link'; }, 2500); };
-  qs('copyShare').onclick = async () => { const ok = await copyTextSafe(qs('shareLink').value || ''); if (ok) { qs('copyShare').textContent = 'Copied!'; setTimeout(() => { qs('copyShare').textContent = 'Copy'; }, 1800); } else showToast('Could not copy', 'error'); };
+  on('generateShare', 'click', () => { shareSnapshot(); const btn = qs('generateShare'); if (btn) btn.textContent = '✓ Link ready'; setTimeout(() => { const nextBtn = qs('generateShare'); if (nextBtn) nextBtn.textContent = 'Generate link'; }, 2500); });
+  on('copyShare', 'click', async () => { const ok = await copyTextSafe(qs('shareLink')?.value || ''); if (ok) { const btn = qs('copyShare'); if (btn) btn.textContent = 'Copied!'; setTimeout(() => { const nextBtn = qs('copyShare'); if (nextBtn) nextBtn.textContent = 'Copy'; }, 1800); } else showToast('Could not copy', 'error'); });
 
   const editor = qs('composerEditor');
+  if (!editor) { applyFeatureFlags(); return; }
   editor.addEventListener('input', () => {
     const text = editorToText(editor.innerHTML);
     const ch = state.channels.find(c => c.id === qs('composerChannel')?.value);
@@ -2572,65 +2785,68 @@ function init() {
     const showClear = text.length > 0;
     const ccBtn = qs('composerClearBtn'); if (ccBtn) ccBtn.style.display = showClear ? 'inline-flex' : 'none';
   });
-  qs('charCount').textContent = '0 chars';
-  qs('composerChannel').addEventListener('change', updateComposerButtonStates);
+  const charCount = qs('charCount'); if (charCount) charCount.textContent = '0 chars';
+  on('composerChannel', 'change', updateComposerButtonStates);
 
-  qs('composerClearBtn').onclick = () => {
+  on('composerClearBtn', 'click', () => {
     if (editorToText(editor.innerHTML) && !confirm('Clear composer?')) return;
     editor.innerHTML = ''; editor.dispatchEvent(new Event('input'));
-    qs('composerStatus').textContent = ''; clearMedia();
-  };
+    const status = qs('composerStatus'); if (status) status.textContent = ''; clearMedia();
+  });
 
   document.querySelectorAll('[data-cmd]').forEach(btn => btn.onclick = () => composerFormat(btn.dataset.cmd));
-  qs('composerDraft').onclick = () => composerSend('draft');
-  qs('composerQueue').onclick = () => composerSend('queue');
-  qs('composerScheduleSend').onclick = () => composerSend('schedule');
-  qs('composerScheduleToggle').onclick = () => {
-    qs('schedulePanel').classList.add('open');
-    qs('composerScheduleToggle').style.display = 'none';
-  };
-  qs('scheduleCancel').onclick = () => {
-    qs('schedulePanel').classList.remove('open');
-    qs('composerScheduleToggle').style.display = 'inline-flex';
-  };
-  ['scheduleDate','scheduleHour','scheduleMin','scheduleAmpm'].forEach(id => qs(id).addEventListener('change', syncComposerWhen));
+  on('composerDraft', 'click', () => composerSend('draft'));
+  on('composerQueue', 'click', () => composerSend('queue'));
+  on('composerScheduleSend', 'click', () => composerSend('schedule'));
+  on('composerScheduleToggle', 'click', () => {
+    qs('schedulePanel')?.classList.add('open');
+    const toggle = qs('composerScheduleToggle'); if (toggle) toggle.style.display = 'none';
+  });
+  on('scheduleCancel', 'click', () => {
+    qs('schedulePanel')?.classList.remove('open');
+    const toggle = qs('composerScheduleToggle'); if (toggle) toggle.style.display = 'inline-flex';
+  });
+  ['scheduleDate','scheduleHour','scheduleMin','scheduleAmpm'].forEach(id => on(id, 'change', syncComposerWhen));
   syncComposerWhen();
   updateComposerButtonStates();
   window.addEventListener('postiq:synced', updateComposerButtonStates);
 
-  qs('insertTemplateBtn').onclick = () => { renderTemplatePicker(); openModal('templatePickerModal'); };
-  qs('saveAsTemplateBtn').onclick = () => {
+  on('insertTemplateBtn', 'click', () => { renderTemplatePicker(); openModal('templatePickerModal'); });
+  on('saveAsTemplateBtn', 'click', () => {
     const sel = window.getSelection(); const text = (sel?.toString() || '').trim();
     if (!text) { showToast('Select text in the editor first', 'error'); return; }
-    qs('templateBody').value = text; openTemplateModal();
-  };
+    const body = qs('templateBody'); if (body) body.value = text; openTemplateModal();
+  });
 
-  qs('refPinDismiss').onclick = () => { qs('refPin').style.display = 'none'; };
+  on('refPinDismiss', 'click', () => { const refPin = qs('refPin'); if (refPin) refPin.style.display = 'none'; });
 
-  qs('mediaToggleBtn').onclick = () => { qs('mediaPanel').classList.contains('open') ? closeMediaPanel() : openMediaPanel(); };
-  qs('mediaToggleOff').onclick = () => { qs('mediaPanel').classList.contains('open') ? closeMediaPanel() : openMediaPanel(); };
-  qs('mediaSummaryClear').onclick = () => { clearMedia(); showToast('Media removed'); };
+  on('mediaToggleBtn', 'click', () => { qs('mediaPanel')?.classList.contains('open') ? closeMediaPanel() : openMediaPanel(); });
+  on('mediaToggleOff', 'click', () => { qs('mediaPanel')?.classList.contains('open') ? closeMediaPanel() : openMediaPanel(); });
+  on('mediaSummaryClear', 'click', () => { clearMedia(); showToast('Media removed'); });
   document.querySelectorAll('.media-tab').forEach(t => t.onclick = () => switchMediaTab(t.dataset.mtab));
 
   const zone = qs('uploadZone'), fi = qs('uploadFileInput');
-  zone.onclick = e => { if (!e.target.closest('#uploadBrowseBtn') && !e.target.closest('#uploadResult')) fi.click(); };
-  qs('uploadBrowseBtn').onclick = e => { e.stopPropagation(); fi.click(); };
-  fi.onchange = () => { if (fi.files[0]) handleUploadFile(fi.files[0]); };
-  zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = 'var(--brand)'; zone.style.background = 'var(--brand-dim)'; });
-  zone.addEventListener('dragleave', e => { if (!zone.contains(e.relatedTarget)) { zone.style.borderColor = 'var(--border2)'; zone.style.background = ''; } });
-  zone.addEventListener('drop', e => { e.preventDefault(); zone.style.borderColor = 'var(--border2)'; zone.style.background = ''; if (e.dataTransfer.files[0]) handleUploadFile(e.dataTransfer.files[0]); });
+  if (zone && fi) {
+    zone.onclick = e => { if (!getFeatureFlag('uploads')) { showFeaturePaused('uploads'); return; } if (!e.target.closest('#uploadBrowseBtn') && !e.target.closest('#uploadResult')) fi.click(); };
+    on('uploadBrowseBtn', 'click', e => { e.stopPropagation(); if (!getFeatureFlag('uploads')) { showFeaturePaused('uploads'); return; } fi.click(); });
+    fi.onchange = () => { if (fi.files[0]) handleUploadFile(fi.files[0]); };
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = 'var(--brand)'; zone.style.background = 'var(--brand-dim)'; });
+    zone.addEventListener('dragleave', e => { if (!zone.contains(e.relatedTarget)) { zone.style.borderColor = 'var(--border2)'; zone.style.background = ''; } });
+    zone.addEventListener('drop', e => { e.preventDefault(); zone.style.borderColor = 'var(--border2)'; zone.style.background = ''; if (!getFeatureFlag('uploads')) { showFeaturePaused('uploads'); return; } if (e.dataTransfer.files[0]) handleUploadFile(e.dataTransfer.files[0]); });
+  }
   document.addEventListener('paste', e => {
-    if (!qs('mediaPanel').classList.contains('open')) return;
+    if (!qs('mediaPanel')?.classList.contains('open')) return;
+    if (!getFeatureFlag('uploads')) return;
     const active = document.querySelector('.media-tab.active')?.dataset?.mtab;
     if (active !== 'upload') return;
     const img = Array.from(e.clipboardData?.items || []).find(i => i.type.startsWith('image/'));
     if (img) handleUploadFile(img.getAsFile());
   });
-  qs('uploadReplaceBtn').onclick = e => { e.stopPropagation(); resetUploadTab(); fi.click(); };
-  qs('uploadClearBtn').onclick  = e => { e.stopPropagation(); resetUploadTab(); clearMedia(); showToast('Media removed'); };
+  on('uploadReplaceBtn', 'click', e => { e.stopPropagation(); if (!fi) return; if (!getFeatureFlag('uploads')) { showFeaturePaused('uploads'); return; } resetUploadTab(); fi.click(); });
+  on('uploadClearBtn', 'click', e => { e.stopPropagation(); resetUploadTab(); clearMedia(); showToast('Media removed'); });
 
   const urlInp = qs('mediaUrlInput'); const urlClear = qs('mediaUrlClear');
-  urlInp.addEventListener('input', () => {
+  if (urlInp && urlClear) urlInp.addEventListener('input', () => {
     const url = urlInp.value.trim();
     urlClear.style.display = url ? 'inline-flex' : 'none';
     const vts = qs('videoThumbSection'), up = qs('urlPreview'), ui = qs('urlPreviewImg'), ut = qs('urlPreviewType');
@@ -2645,25 +2861,25 @@ function init() {
       applyMedia(url, 'url', qs('videoThumbUrl')?.value?.trim() || '');
     } else { up.style.display = 'none'; clearMedia(); }
   });
-  urlClear.onclick = () => { urlInp.value = ''; urlInp.dispatchEvent(new Event('input')); };
+  if (urlClear && urlInp) urlClear.onclick = () => { urlInp.value = ''; urlInp.dispatchEvent(new Event('input')); };
   const vtu = qs('videoThumbUrl');
   if (vtu) vtu.addEventListener('input', () => { mediaState.videoThumbUrl = vtu.value.trim(); });
 
-  qs('unsplashSearchBtn').onclick = runUnsplashSearch;
-  qs('unsplashQuery').addEventListener('keydown', e => { if (e.key === 'Enter') runUnsplashSearch(); });
+  on('unsplashSearchBtn', 'click', runUnsplashSearch);
+  on('unsplashQuery', 'keydown', e => { if (e.key === 'Enter') runUnsplashSearch(); });
 
-  qs('newTemplateBtn').onclick = () => openTemplateModal();
+  on('newTemplateBtn', 'click', () => openTemplateModal());
   const manageTplBtn = qs('composerManageTemplatesBtn'); if (manageTplBtn) manageTplBtn.onclick = () => { activateView('ideasView'); setIdeasTab('templates'); };
-  qs('closeTemplateModal').onclick = () => closeModal('templateModal');
-  qs('cancelTemplateBtn').onclick = () => closeModal('templateModal');
-  qs('saveTemplateBtn').onclick = saveTemplate;
-  qs('closeTemplatePicker').onclick = () => closeModal('templatePickerModal');
-  qs('templateSearch').addEventListener('input', e => { state.templateSearch = e.target.value; renderTemplates(); });
-  qs('templatePlatformFilter').onchange = e => { state.templatePlatform = e.target.value; renderTemplates(); };
-  qs('pickerSearch').addEventListener('input', renderTemplatePicker);
-  qs('pickerType').onchange = renderTemplatePicker;
+  on('closeTemplateModal', 'click', () => closeModal('templateModal'));
+  on('cancelTemplateBtn', 'click', () => closeModal('templateModal'));
+  on('saveTemplateBtn', 'click', saveTemplate);
+  on('closeTemplatePicker', 'click', () => closeModal('templatePickerModal'));
+  on('templateSearch', 'input', e => { state.templateSearch = e.target.value; renderTemplates(); });
+  on('templatePlatformFilter', 'change', e => { state.templatePlatform = e.target.value; renderTemplates(); });
+  on('pickerSearch', 'input', renderTemplatePicker);
+  on('pickerType', 'change', renderTemplatePicker);
 
-  qs('approvalsRefreshBtn').onclick = loadApprovals;
+  on('approvalsRefreshBtn', 'click', loadApprovals);
   document.querySelectorAll('[data-afilter]').forEach(pill => {
     pill.onclick = () => {
       document.querySelectorAll('[data-afilter]').forEach(p => p.classList.remove('active'));
@@ -2695,17 +2911,17 @@ function init() {
       t.style.borderBottomColor = active ? 'var(--brand)' : 'transparent';
     });
     qs('composerEditor')?.focus();
-    qs('zenToggleBtn').title = 'Exit zen mode';
+    const zenToggle = qs('zenToggleBtn'); if (zenToggle) zenToggle.title = 'Exit zen mode';
   }
 
   function exitZen() {
     zenActive = false;
     document.body.classList.remove('zen-active');
-    qs('zenToggleBtn').title = 'Zen mode — distraction-free writing';
+    const zenToggle = qs('zenToggleBtn'); if (zenToggle) zenToggle.title = 'Zen mode — distraction-free writing';
   }
 
-  qs('zenToggleBtn').onclick = () => zenActive ? exitZen() : enterZen();
-  qs('zenExit').onclick = exitZen;
+  on('zenToggleBtn', 'click', () => zenActive ? exitZen() : enterZen());
+  on('zenExit', 'click', exitZen);
 
   const zenChannel = qs('zenChannel');
   if (zenChannel) {
@@ -2732,8 +2948,8 @@ function init() {
     }
   }, true);
 
-  qs('openSettings').onclick = () => openModal('settingsModal');
-  qs('closeSettings').onclick = () => closeModal('settingsModal');
+  on('openSettings', 'click', () => openModal('settingsModal'));
+  on('closeSettings', 'click', () => closeModal('settingsModal'));
   document.querySelectorAll('.settings-tab').forEach(tab => {
     tab.onclick = () => selectSettingsTab(tab.dataset.stab);
   });
@@ -2751,30 +2967,30 @@ function init() {
     const syncEl = qs('syncStatus');
     const ms = qs('mobSyncStatus'); if (ms && syncEl) ms.textContent = syncEl.textContent;
     renderConnectionUI();
-    qs('mobDrawer').classList.add('open');
-    qs('mobBackdrop').classList.add('open');
+    qs('mobDrawer')?.classList.add('open');
+    qs('mobBackdrop')?.classList.add('open');
     document.body.style.overflow = 'hidden';
   }
   function closeMobDrawer() {
-    qs('mobDrawer').classList.remove('open');
-    qs('mobBackdrop').classList.remove('open');
+    qs('mobDrawer')?.classList.remove('open');
+    qs('mobBackdrop')?.classList.remove('open');
     document.body.style.overflow = '';
   }
-  qs('mobBackdrop').onclick = closeMobDrawer;
+  on('mobBackdrop', 'click', closeMobDrawer);
   ['mobMenuBtn','mobMenuBtnDraft','mobMenuBtnApprovals'].forEach(id => {
     const btn = qs(id); if (btn) btn.onclick = openMobDrawer;
   });
-  qs('mobSyncBtn').onclick = () => { syncBuffer({ force: true }); closeMobDrawer(); };
+  on('mobSyncBtn', 'click', () => { syncBuffer({ force: true }); closeMobDrawer(); });
   window.postiqMobileTokenPanelOpen = false;
-  qs('mobManageTokenBtn').onclick = () => {
+  on('mobManageTokenBtn', 'click', () => {
     const connection = getBufferConnectionState();
     if (connection.connected) syncBuffer({ force: true });
     else goToBufferConnect();
     closeMobDrawer();
-  };
+  });
   const mobConnectionSettingsBtn = qs('mobConnectionSettingsBtn');
   if (mobConnectionSettingsBtn) mobConnectionSettingsBtn.onclick = () => { closeMobDrawer(); openConnectionSettings(); };
-  qs('mobOpenSettings').onclick = () => { closeMobDrawer(); openModal('settingsModal'); };
+  on('mobOpenSettings', 'click', () => { closeMobDrawer(); openModal('settingsModal'); });
 
   const smb = qs('shareMonthBtnMob'); if (smb) smb.onclick = openShareSnapshotModal;
 
@@ -2783,7 +2999,7 @@ function init() {
     ccbm.onclick = () => {
       if (editorToText(editor.innerHTML) && !confirm('Clear composer?')) return;
       editor.innerHTML = ''; editor.dispatchEvent(new Event('input'));
-      qs('composerStatus').textContent = ''; clearMedia();
+      const status = qs('composerStatus'); if (status) status.textContent = ''; clearMedia();
     };
   }
 
@@ -2805,8 +3021,8 @@ function init() {
       t.style.color = isActive ? 'var(--brand)' : 'var(--muted)';
       t.style.borderBottomColor = isActive ? 'var(--brand)' : 'transparent';
     });
-    qs('composeModePanel').style.display = mode === 'compose' ? 'contents' : 'none';
-    qs('splitModePanel').style.display  = mode === 'split'   ? 'block'    : 'none';
+    const composePanel = qs('composeModePanel'); if (composePanel) composePanel.style.display = mode === 'compose' ? 'contents' : 'none';
+    const splitPanel = qs('splitModePanel'); if (splitPanel) splitPanel.style.display  = mode === 'split'   ? 'block'    : 'none';
     const support = qs('composerSupportSection');
     if (support) support.style.display = mode === 'compose' ? 'grid' : 'none';
     if (mode === 'split') initSplitMode();
@@ -3847,6 +4063,15 @@ window.ContentPillars = (() => {
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
+  bindGlobalStatusDismiss();
+  bindGlobalErrorHandlers();
+  document.addEventListener('click', handlePausedFeatureEvent, true);
+  document.addEventListener('pointerdown', handlePausedFeatureEvent, true);
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Enter' || event.key === ' ') handlePausedFeatureEvent(event);
+  }, true);
+  loadPostiqConfig();
+
   document.addEventListener('click', (e) => {
     const trigger = e.target.closest('[data-view]');
     if (!trigger || !trigger.dataset.view) return;
@@ -3858,5 +4083,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  try { init(); } catch (e) { console.error('[PostIQ] init() crashed:', e); }
+  try { init(); applyFeatureFlags(); } catch (e) { console.error('[PostIQ] init() crashed:', e); showGlobalErrorBanner(); }
 });
