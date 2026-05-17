@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
   <title>PostIQ — Connecting Buffer</title>
   <meta name="theme-color" content="#1a1a2e" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -58,7 +59,11 @@
     function showActions(primaryText = 'Return to PostIQ') {
       const actions = qs('actions');
       actions.style.display = 'flex';
-      actions.innerHTML = `<a href="${APP_URL}">${primaryText}</a><button class="ghost" type="button" onclick="sessionStorage.clear(); location.href='${APP_URL}'">Start over</button>`;
+      actions.innerHTML = `<a href="${APP_URL}">${primaryText}</a><button class="ghost" type="button" id="startOverBtn">Start over</button>`;
+      qs('startOverBtn')?.addEventListener('click', () => {
+        ['postiq_oauth_state', 'postiq_pkce_verifier', 'postiq_oauth_redirect_uri'].forEach(key => sessionStorage.removeItem(key));
+        location.href = APP_URL;
+      });
     }
 
     function yesNo(value) {
@@ -103,14 +108,25 @@
       return payload;
     }
 
+    function storeTokenField(key, value) {
+      sessionStorage.removeItem(key);
+      if (value === undefined || value === null || value === '') {
+        localStorage.removeItem(key);
+        return;
+      }
+      localStorage.setItem(key, String(value));
+    }
+
     function storeTokens(tokenResponse) {
       const expiresIn = Number(tokenResponse.expires_in || 0);
       const scope = Array.isArray(tokenResponse.scope) ? tokenResponse.scope.join(' ') : (tokenResponse.scope || '');
-      sessionStorage.setItem('postiq_buffer_access_token', tokenResponse.access_token || '');
-      sessionStorage.setItem('postiq_buffer_refresh_token', tokenResponse.refresh_token || '');
-      sessionStorage.setItem('postiq_buffer_token_type', tokenResponse.token_type || '');
-      sessionStorage.setItem('postiq_buffer_token_scope', scope);
-      sessionStorage.setItem('postiq_buffer_token_expires_at', expiresIn ? String(Date.now() + expiresIn * 1000) : '');
+      storeTokenField('postiq_buffer_access_token', tokenResponse.access_token || '');
+      storeTokenField('postiq_buffer_refresh_token', tokenResponse.refresh_token || '');
+      storeTokenField('postiq_buffer_token_type', tokenResponse.token_type || 'Bearer');
+      storeTokenField('postiq_buffer_token_scope', scope);
+      storeTokenField('postiq_buffer_token_expires_at', expiresIn ? String(Date.now() + expiresIn * 1000) : '');
+      localStorage.removeItem('postiq_buffer_reconnect_needed');
+      sessionStorage.removeItem('postiq_buffer_reconnect_needed');
     }
 
     async function handleCallback() {
