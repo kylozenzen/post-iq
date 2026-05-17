@@ -1081,7 +1081,12 @@ function saveToken() {
   const token = qs('tokenInput').value.trim();
   const mode = [...document.querySelectorAll('input[name="tokenMode"]')].find(r => r.checked)?.value || 'session';
   const ok = setBufferToken(token, { mode, messageEl: qs('tokenMsg') });
-  if (ok) syncBuffer({ force: true });
+  if (ok) {
+    const msg = 'API key saved. Click Sync now to load Buffer posts.';
+    const tokenMsg = qs('tokenMsg');
+    if (tokenMsg) tokenMsg.textContent = msg;
+    setSyncStatus('idle', msg);
+  }
 }
 
 // ── CACHE ──────────────────────────────────────────
@@ -2467,6 +2472,7 @@ function init() {
   buildTimePickers();
   qs('scheduleDate').value = new Date().toISOString().slice(0, 10);
   qs('scheduleDate').min = new Date().toISOString().slice(0, 10);
+  renderChannelSelects();
   renderCalendar();
   renderPlanningSettings();
   renderNoteTypesSettings();
@@ -2499,7 +2505,14 @@ function init() {
     openConnectionSettings({ advancedApi: initialParams.get('advanced') === 'api' });
   }
   checkBufferConnectionHealth().then(connection => {
-    if (connection.connected) syncBuffer({ force: connectedParam === 'buffer' });
+    if (connection.connected) {
+      const hasCachedScheduledPosts = Array.isArray(state.scheduled) && state.scheduled.length > 0;
+      setSyncStatus('idle', hasCachedScheduledPosts
+        ? 'Using cached Buffer data. Click Sync now to refresh.'
+        : 'Connected. Click Sync now to load Buffer posts.');
+    } else if (connection.reconnectNeeded) {
+      setSyncStatus('failed', 'Reconnect Buffer to keep syncing.');
+    }
   });
 
   document.querySelectorAll('[data-view]').forEach(b => {
