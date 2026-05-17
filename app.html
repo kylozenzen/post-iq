@@ -1026,12 +1026,15 @@
       <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted);">
         <input type="checkbox" id="includeNotes" checked style="accent-color:var(--brand);" /> Include planning notes
       </label>
+      <div class="share-trust-copy">This creates a static copy of the selected posts and notes. Anyone with the link can view it. Later Buffer/PostIQ changes will not update this snapshot.</div>
+      <div id="shareEmptyHint" class="share-empty-hint" style="display:none;">This range has no scheduled posts yet. The snapshot will still show any included planning notes.</div>
     </div>
     <div class="row mt8">
       <button class="btn primary grow" id="generateShare" style="justify-content:center;">Generate link</button>
       <button class="btn" id="copyShare">Copy</button>
     </div>
     <input id="shareLink" class="input mt8 mono" readonly placeholder="Link will appear here…" style="font-size:11px;" />
+    <div id="shareUrlWarning" class="share-url-warning" style="display:none;"></div>
     <div id="shareLinkMeta" style="font-size:11px;color:var(--subtle);margin-top:6px;line-height:1.5;display:none;">Anyone with this link can view the snapshot. No PostIQ account needed.</div>
   </div>
 </div>
@@ -1074,6 +1077,7 @@
   <div class="snap-hero">
     <a href="/" class="snap-brand">PostIQ <span class="snap-brand-badge">Snapshot</span></a>
     <div class="snap-title" id="sharedTitle">Content Plan</div>
+    <div class="snap-trust-copy">Static snapshot · Generated from PostIQ. Changes made later in Buffer or PostIQ may not appear here.</div>
     <div id="sharedSnapshotNote" class="snap-note-message" style="display:none;"></div>
     <div class="snap-stats">
       <div class="snap-stat"><strong id="sharedPostCount">0</strong> scheduled posts</div>
@@ -1092,8 +1096,17 @@
     <div id="sharedGrid" class="cal-grid" style="margin-top:4px;"></div>
   </div>
   <div class="snap-footer">
-    <div class="snap-footer-copy"><strong>Built with PostIQ.</strong> The planning and composing layer for Buffer — free to start, no login needed.</div>
-    <a href="/" class="btn primary">Try PostIQ free →</a>
+    <div class="snap-footer-copy"><strong>Generated with PostIQ.</strong> The planning and composing layer for Buffer.</div>
+    <a href="/" class="btn primary">Visit PostIQ →</a>
+  </div>
+</section>
+
+<section id="sharedErrorView" class="hidden">
+  <div class="shared-error-card">
+    <div class="empty-icon">🔗</div>
+    <h1>This snapshot link could not be opened.</h1>
+    <p>The link may be incomplete or outdated. Ask the sender to generate a new snapshot.</p>
+    <a href="/app.html" class="btn primary">Back to PostIQ</a>
   </div>
 </section>
 
