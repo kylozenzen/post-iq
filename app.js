@@ -226,6 +226,7 @@ async function loadPostiqConfig() {
     postiqConfig = mergePostiqConfig(DEFAULT_POSTIQ_CONFIG);
   } finally {
     applyFeatureFlags();
+    renderSettingsFeatureStatus();
     maybeShowBetaBanner();
   }
 }
@@ -1046,10 +1047,32 @@ function setTokenPanelVisible(panel, open) {
 
 function selectSettingsTab(tabName) {
   document.querySelectorAll('.settings-tab').forEach(tab => {
-    tab.classList.toggle('active', tab.dataset.stab === tabName);
+    const active = tab.dataset.stab === tabName;
+    tab.classList.toggle('active', active);
+    tab.setAttribute('aria-selected', active ? 'true' : 'false');
+    tab.tabIndex = active ? 0 : -1;
   });
   const panel = 'settingsPanel' + tabName.charAt(0).toUpperCase() + tabName.slice(1);
-  document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.id === panel));
+  document.querySelectorAll('.settings-panel').forEach(p => {
+    const active = p.id === panel;
+    p.classList.toggle('active', active);
+    p.hidden = !active;
+  });
+  if (tabName === 'features') renderSettingsFeatureStatus();
+}
+
+function renderSettingsFeatureStatus() {
+  document.querySelectorAll('[data-settings-feature]').forEach(el => {
+    const feature = el.dataset.settingsFeature;
+    const available = getFeatureFlag(feature);
+    el.textContent = available ? 'Available' : 'Paused';
+    el.classList.toggle('is-paused', !available);
+    const notice = !available ? getFeatureNotice(feature) : '';
+    if (notice) el.setAttribute('title', notice);
+    else el.removeAttribute('title');
+  });
+  const betaMessage = qs('settingsBetaMessage');
+  if (betaMessage) betaMessage.textContent = String(postiqConfig?.betaMessage || '').trim();
 }
 
 function openConnectionSettings(options = {}) {
@@ -3085,8 +3108,22 @@ function init() {
 
   on('openSettings', 'click', () => openModal('settingsModal'));
   on('closeSettings', 'click', () => closeModal('settingsModal'));
+  selectSettingsTab(document.querySelector('.settings-tab.active')?.dataset.stab || 'connection');
   document.querySelectorAll('.settings-tab').forEach(tab => {
     tab.onclick = () => selectSettingsTab(tab.dataset.stab);
+    tab.addEventListener('keydown', e => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+      const tabs = [...document.querySelectorAll('.settings-tab')];
+      const current = tabs.indexOf(tab);
+      let next = current;
+      if (e.key === 'ArrowLeft') next = Math.max(0, current - 1);
+      if (e.key === 'ArrowRight') next = Math.min(tabs.length - 1, current + 1);
+      if (e.key === 'Home') next = 0;
+      if (e.key === 'End') next = tabs.length - 1;
+      e.preventDefault();
+      tabs[next]?.focus();
+      if (tabs[next]) selectSettingsTab(tabs[next].dataset.stab);
+    });
   });
 
   document.querySelectorAll('.modal').forEach(modal => {
@@ -3449,17 +3486,6 @@ function init() {
     origSetIdeasTab(tabId);
     if (currentIdeasTab === 'trending' && !trendingInited) { trendingInited = true; initTrending(); }
   };
-
-  const guidePanel = qs('settingsPanelGuide');
-  if (guidePanel && !guidePanel.querySelector('[data-guide-trending]')) {
-    const trendingEntry = document.createElement('div');
-    trendingEntry.dataset.guideTrending = '1';
-    trendingEntry.innerHTML = `<div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">📈 Trending</div><p style="font-size:13px;color:var(--muted);line-height:1.65;">Browse hot Reddit posts by subreddit or Hacker News stories for post inspiration. Click "Compose from this" on any story to pin it as a reference above your Compose editor.</p>`;
-    const threadEntry = document.createElement('div');
-    threadEntry.innerHTML = `<div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">🧵 Split into thread</div><p style="font-size:13px;color:var(--muted);line-height:1.65;">Inside Compose, switch to the Split tab. Paste long-form content, hit Split Thread, and PostIQ breaks it into numbered parts. Edit each part, then queue or schedule the whole thread to Buffer natively.</p>`;
-    guidePanel.querySelector('div').appendChild(trendingEntry);
-    guidePanel.querySelector('div').appendChild(threadEntry);
-  }
 
   if ('serviceWorker' in navigator && location.hostname !== 'localhost' && !location.hostname.includes('claudeusercontent')) {
     navigator.serviceWorker.register('/sw.js').catch(e => console.warn('SW:', e));
