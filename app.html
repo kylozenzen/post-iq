@@ -562,10 +562,11 @@
               </div>
               <div class="cp-gate-grid">
                 <button type="button" class="cp-gate-card" id="cpGateNew">
-                  <span class="cp-gate-icon">🧭</span>
-                  <span class="cp-gate-title">I'm new to content pillars</span>
-                  <span class="cp-gate-desc">Walk me through what pillars actually are, why they work, and how to build mine from scratch. Takes about 5 minutes.</span>
-                  <span class="cp-gate-cta">Start the guided path →</span>
+                  <span class="cp-gate-icon">⚡</span>
+                  <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-family:'DM Mono',monospace;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--brand-dim);border:1px solid var(--brand-glow);color:var(--brand);padding:2px 8px;border-radius:4px;margin-bottom:8px;">Strategy Snack Machine</span>
+                  <span class="cp-gate-title">Generate my content strategy</span>
+                  <span class="cp-gate-desc">Answer 6 quick questions. Get 5 content pillars, 25 post ideas, hooks, CTAs, recurring series ideas, and one post you can publish today.</span>
+                  <span class="cp-gate-cta">Feed the machine →</span>
                 </button>
                 <button type="button" class="cp-gate-card" id="cpGateExperienced">
                   <span class="cp-gate-icon">⚡</span>
@@ -578,115 +579,89 @@
 
             <!-- STAGE 1: Guided journey -->
             <div class="cp-stage" id="cpStageJourney">
-              <div class="cp-progress" id="cpProgress">
-                <div class="cp-prog-step active" data-jstep="0"><div class="cp-prog-dot">1</div><div class="cp-prog-label">What</div></div>
-                <div class="cp-prog-step" data-jstep="1"><div class="cp-prog-dot">2</div><div class="cp-prog-label">Who</div></div>
-                <div class="cp-prog-step" data-jstep="2"><div class="cp-prog-dot">3</div><div class="cp-prog-label">Trust</div></div>
-                <div class="cp-prog-step" data-jstep="3"><div class="cp-prog-dot">4</div><div class="cp-prog-label">Seeds</div></div>
-                <div class="cp-prog-step" data-jstep="4"><div class="cp-prog-dot">5</div><div class="cp-prog-label">Build</div></div>
-              </div>
-
-              <div class="cp-journey-step active" data-jstep="0">
-                <div class="cp-lesson">
-                  <div class="cp-lesson-eyebrow">Lesson 1 of 4</div>
-                  <div class="cp-lesson-title">Content pillars are a promise, not a category.</div>
-                  <div class="cp-lesson-body">Most people think of pillars as content buckets — "I'll post about marketing on Mondays." That's just a schedule, not a strategy.<br><br>A real content pillar is a <strong>recurring promise to your audience</strong>. It's the thing they can rely on you for. When someone follows you, they follow you because they expect a specific kind of value — and pillars make sure you deliver that consistently.<br><br>The best content accounts in any niche have 3–5 pillars. Not 10. Not 2. Enough variety to stay interesting, narrow enough to stay recognizable.</div>
-                  <div class="cp-examples">
-                    <div class="cp-example-tile"><div class="cp-example-tile-label">❌ Category</div><div class="cp-example-tile-text">"Marketing tips every Tuesday"</div></div>
-                    <div class="cp-example-tile"><div class="cp-example-tile-label">✓ Pillar</div><div class="cp-example-tile-text">"Real lessons from campaigns that ran — including the ones that flopped"</div></div>
-                    <div class="cp-example-tile"><div class="cp-example-tile-label">Why it matters</div><div class="cp-example-tile-text">The second one gives your audience a reason to keep coming back. The first one doesn't.</div></div>
+              <div style="max-width:660px;">
+                <!-- Loading screen (hidden until generate()) -->
+                <div id="ssmLoading" style="display:none;text-align:center;padding:40px 20px;">
+                  <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:12px;" id="ssmLoadStep">Analyzing your brand...</div>
+                  <div style="border:1px solid var(--border2);height:14px;max-width:280px;margin:0 auto 16px;overflow:hidden;border-radius:2px;"><div style="height:100%;background:var(--brand);width:0%;transition:width .1s linear;" id="ssmLoadBar"></div></div>
+                  <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;color:var(--ink);letter-spacing:-.02em;">Building your strategy<span id="ssmDots">...</span></div>
+                </div>
+              
+                <!-- Form (shown by default) -->
+                <div id="ssmForm">
+                  <div style="margin-bottom:20px;">
+                    <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--brand);margin-bottom:8px;">Strategy Snack Machine</div>
+                    <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:18px;color:var(--ink);margin-bottom:4px;">Feed the machine. Get a strategy.</div>
+                    <div style="font-size:13px;color:var(--muted);line-height:1.6;">6 quick fields. Deterministic output — same engine that powers the standalone Strategy Snack Machine tool.</div>
                   </div>
-                </div>
-                <div class="cp-journey-nav">
-                  <button class="btn primary" id="cpJ0Next" type="button">That makes sense — next →</button>
-                </div>
-              </div>
-
-              <div class="cp-journey-step" data-jstep="1">
-                <div class="cp-lesson">
-                  <div class="cp-lesson-eyebrow">Before we build your pillars</div>
-                  <div class="cp-lesson-title">Your pillars exist to serve a specific person.</div>
-                  <div class="cp-lesson-body">The fastest way to build a pillar that doesn't work is to design it around what <em>you</em> want to say instead of what <em>they</em> need to hear. Good pillars start with the audience.<br><br>Answer two quick questions. Don't overthink it.</div>
-                </div>
-                <div class="card" style="max-width:660px;margin-bottom:12px;">
-                  <div style="margin-bottom:16px;">
-                    <label class="cp-prompt-label" for="cpAudienceWho">Who do you create content for?</label>
-                    <input type="text" class="input" id="cpAudienceWho" placeholder="e.g. early-stage founders, burnt-out nurses, parents homeschooling for the first time" />
-                    <div class="cp-prompt-hint">Be specific. "Business owners" is too broad. "Freelance designers who want to raise their rates" is a person.</div>
-                  </div>
-                  <div>
-                    <label class="cp-prompt-label">What do they actually struggle with?</label>
-                    <div class="cp-prompt-hint" style="margin-bottom:8px;">Pick the ones that resonate.</div>
-                    <div class="cp-tag-picker" id="cpStruggles">
-                      <button type="button" class="cp-tag-pill" data-val="knowing what to say">Knowing what to say</button>
-                      <button type="button" class="cp-tag-pill" data-val="staying consistent">Staying consistent</button>
-                      <button type="button" class="cp-tag-pill" data-val="being seen as credible">Being seen as credible</button>
-                      <button type="button" class="cp-tag-pill" data-val="finding time">Finding time</button>
-                      <button type="button" class="cp-tag-pill" data-val="getting results">Getting results</button>
-                      <button type="button" class="cp-tag-pill" data-val="understanding the landscape">Understanding the landscape</button>
-                      <button type="button" class="cp-tag-pill" data-val="making decisions">Making decisions</button>
-                      <button type="button" class="cp-tag-pill" data-val="learning new skills">Learning new skills</button>
+              
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="field">
+                      <label class="label">Brand / Creator Name</label>
+                      <input type="text" class="input" id="ssm-brand" placeholder="e.g. Maria Chen, TechWave" />
                     </div>
-                    <input type="text" class="input" id="cpStruggleCustom" placeholder="Or describe it in your own words…" style="margin-top:8px;" />
+                    <div class="field">
+                      <label class="label">Industry Category</label>
+                      <select class="input" id="ssm-industry">
+                        <option value="">Select industry...</option>
+                        <option value="fitness">Fitness & Wellness</option>
+                        <option value="food">Food & Beverage</option>
+                        <option value="saas">SaaS / Tech</option>
+                        <option value="realestate">Real Estate</option>
+                        <option value="creative">Creative Services</option>
+                        <option value="ecommerce">E-Commerce / Product Brand</option>
+                        <option value="coaching">Coaching & Consulting</option>
+                        <option value="finance">Finance & Money</option>
+                        <option value="education">Education & Courses</option>
+                        <option value="nonprofit">Nonprofit / Mission-Driven</option>
+                        <option value="entertainment">Entertainment / Media</option>
+                        <option value="localbiz">Local Business</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label class="label">Target Audience</label>
+                      <input type="text" class="input" id="ssm-audience" placeholder="e.g. early-stage founders, busy moms" />
+                    </div>
+                    <div class="field">
+                      <label class="label">Product / Service / Offer</label>
+                      <input type="text" class="input" id="ssm-offer" placeholder="e.g. 1:1 coaching, SaaS tool, meal kits" />
+                    </div>
+                    <div class="field">
+                      <label class="label">Brand Tone</label>
+                      <select class="input" id="ssm-tone">
+                        <option value="">Select tone...</option>
+                        <option value="bold">Bold & Direct</option>
+                        <option value="playful">Playful & Fun</option>
+                        <option value="expert">Expert & Authoritative</option>
+                        <option value="warm">Warm & Relatable</option>
+                        <option value="edgy">Edgy & Provocative</option>
+                        <option value="professional">Professional & Polished</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label class="label">Main Goal</label>
+                      <select class="input" id="ssm-goal">
+                        <option value="">Select goal...</option>
+                        <option value="grow">Grow Audience</option>
+                        <option value="sales">Drive Sales</option>
+                        <option value="trust">Build Trust</option>
+                        <option value="educate">Educate</option>
+                        <option value="hired">Get Hired</option>
+                        <option value="launch">Launch Product</option>
+                        <option value="event">Promote Event</option>
+                      </select>
+                    </div>
                   </div>
-                </div>
-                <div class="cp-journey-nav">
-                  <button class="cp-back-btn" id="cpJ1Back" type="button">← Back</button>
-                  <button class="btn primary" id="cpJ1Next" type="button">Got it — next →</button>
-                </div>
-              </div>
-
-              <div class="cp-journey-step" data-jstep="2">
-                <div class="cp-lesson">
-                  <div class="cp-lesson-eyebrow">Lesson 2 of 4</div>
-                  <div class="cp-lesson-title">Every content strategy needs three kinds of posts.</div>
-                  <div class="cp-lesson-body">Before we name your pillars, you need to understand <strong>why people follow you</strong>. It's never just one reason. There are always three layers of trust being built at once — and your pillars should cover all three.</div>
-                  <div class="cp-trust-layers">
-                    <div class="cp-trust-layer"><div class="cp-trust-num">1</div><div><div class="cp-trust-title">Awareness trust — "You understand me"</div><div class="cp-trust-desc">Posts that show you know what your audience goes through. Problems named, frustrations validated, experiences reflected back.</div></div></div>
-                    <div class="cp-trust-layer"><div class="cp-trust-num">2</div><div><div class="cp-trust-title">Credibility trust — "You know what you're talking about"</div><div class="cp-trust-desc">Posts that demonstrate your expertise without bragging. Teaching, sharing real experience, showing your process.</div></div></div>
-                    <div class="cp-trust-layer"><div class="cp-trust-num">3</div><div><div class="cp-trust-title">Action trust — "You can help me"</div><div class="cp-trust-desc">Posts that make it easy to take the next step. What you offer, why it exists, who it's for, and what they should do next.</div></div></div>
+              
+                  <div class="field" style="margin-top:4px;grid-column:1/-1;">
+                    <label class="label">Anything else? (optional)</label>
+                    <textarea class="input" id="ssm-notes" placeholder="Upcoming launches, topics to avoid, specific angles..." style="min-height:60px;"></textarea>
                   </div>
-                  <div class="cp-lesson-body cp-callout">A common mistake is building 4 pillars that are all credibility content and wondering why nothing converts. Your pillars should map across all three layers.</div>
-                </div>
-                <div class="cp-journey-nav">
-                  <button class="cp-back-btn" id="cpJ2Back" type="button">← Back</button>
-                  <button class="btn primary" id="cpJ2Next" type="button">Understood — next →</button>
-                </div>
-              </div>
-
-              <div class="cp-journey-step" data-jstep="3">
-                <div class="cp-lesson">
-                  <div class="cp-lesson-eyebrow">Lesson 3 of 4</div>
-                  <div class="cp-lesson-title">Seed ideas are not brainstormed. They're collected.</div>
-                  <div class="cp-lesson-body">The best content doesn't come from staring at a blank page. It comes from paying attention to what already happens in your work and life.<br><br>Inside each pillar, you'll add <strong>seed ideas</strong> — specific, real things you could actually write about. Not vague topics. Real sparks.</div>
-                  <div class="cp-examples">
-                    <div class="cp-example-tile"><div class="cp-example-tile-label">❌ Too vague</div><div class="cp-example-tile-text">"Write about productivity tips"</div></div>
-                    <div class="cp-example-tile"><div class="cp-example-tile-label">✓ Good seed</div><div class="cp-example-tile-text">"The morning I deleted my to-do app and what I used instead"</div></div>
-                    <div class="cp-example-tile"><div class="cp-example-tile-label">✓ Good seed</div><div class="cp-example-tile-text">"Why every productivity system eventually breaks — and what that actually means"</div></div>
+              
+                  <div style="display:flex;gap:8px;margin-top:16px;align-items:center;">
+                    <button class="btn ghost" id="ssmBackBtn" type="button">← Back</button>
+                    <button class="btn primary" id="ssmGenerateBtn" type="button">⚡ Feed the Machine →</button>
                   </div>
-                  <div class="cp-lesson-body" style="margin-bottom:0;"><strong>Three questions that surface good seeds:</strong><br>What question did someone ask you this week that you answered automatically? What's obvious to you but surprises most people in your industry? What's a belief you held 2 years ago that you've since changed?</div>
-                </div>
-                <div class="card" style="max-width:660px;margin-bottom:12px;">
-                  <label class="cp-prompt-label" for="cpQuickSeeds">Write down 3 seed ideas right now. Don't filter them.</label>
-                  <div class="cp-prompt-hint" style="margin-bottom:8px;">Real things you know about that your audience doesn't.</div>
-                  <textarea class="input" id="cpQuickSeeds" style="min-height:100px;" placeholder="1. The question I get asked every single week is…&#10;2. Most people in my industry believe X, but I've found…&#10;3. A mistake I see constantly that's costing people…"></textarea>
-                </div>
-                <div class="cp-journey-nav">
-                  <button class="cp-back-btn" id="cpJ3Back" type="button">← Back</button>
-                  <button class="btn primary" id="cpJ3Next" type="button">Build my pillars →</button>
-                </div>
-              </div>
-
-              <div class="cp-journey-step" data-jstep="4">
-                <div class="cp-lesson">
-                  <div class="cp-lesson-eyebrow">You're ready</div>
-                  <div class="cp-lesson-title">Here's what PostIQ built from your answers.</div>
-                  <div class="cp-lesson-body">We've set up your first four pillars based on what you told us — built around the three trust layers and seeded with real starting ideas.<br><br><strong>These are not permanent.</strong> Rename anything. Add seeds. Delete what doesn't fit. The goal right now is to start — not to get it perfect.</div>
-                </div>
-                <div id="cpPreviewPillars" style="max-width:660px;margin-bottom:14px;"></div>
-                <div class="cp-journey-nav">
-                  <button class="cp-back-btn" id="cpJ4Back" type="button">← Back</button>
-                  <button class="btn primary" id="cpJ4Finish" type="button">Open builder and edit →</button>
                 </div>
               </div>
             </div>
