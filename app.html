@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PostIQ — Buffer Companion</title>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#1a1a2e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PostIQ" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+  <meta name="description" content="PostIQ is the planning and approval layer for Buffer. Plan your queue, draft posts, get sign-off before publishing." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Lato:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="./app.css" />
+
+</head>
+
+<body>
+
+<!-- SVG icons -->
+<svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+  <defs>
+    <symbol id="i-cal" viewBox="0 0 24 24"><path d="M8 2v4M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/></symbol>
+    <symbol id="i-compose" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></symbol>
+    <symbol id="i-templates" viewBox="0 0 24 24"><path d="M8 6h11M8 12h8M8 18h10M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+    <symbol id="i-buffer" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+    <symbol id="i-img" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+    <symbol id="i-trending" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 7-8"/><path d="M14 7h6v6"/></symbol>
+    <symbol id="i-thread" viewBox="0 0 24 24"><path d="M21 12c0 4-3 7-7 7s-7-3-7-7 3-7 7-7c3.5 0 6 2.3 6 5.5S17.5 16 14 16c-2.5 0-4-1.5-4-3.5S11.5 9 14 9h3"/></symbol>
+    <symbol id="i-unsplash" viewBox="0 0 24 24"><path d="M7.5 6.75V0h9v6.75h-9zm9 3.75H24V24H0V10.5h7.5v6.75h9V10.5z"/></symbol>
+  </defs>
+</svg>
+
+<!-- ── MOBILE TABS ── -->
+<nav class="mobile-tabs" id="mobileTabs">
+  <button class="mob-tab active" data-view="calendarView">
+    <svg><use href="#i-cal"/></svg>Plan
+  </button>
+  <button class="mob-tab" data-view="composerView">
+    <svg><use href="#i-compose"/></svg>Compose
+  </button>
+  <button class="mob-tab" data-view="ideasView">
+    <svg><use href="#i-trending"/></svg>Ideas
+  </button>
+  <button class="mob-tab" data-view="approvalsView">
+    <svg><use href="#i-check"/></svg>Approve
+  </button>
+  <button class="mob-tab" id="mobMoreBtn">
+    <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+    More
+  </button>
+</nav>
+
+<!-- ── APP SHELL ── -->
+<section id="app" class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="side">
+    <div class="side-logo">
+      <div class="logo-mark">
+        PostIQ <span class="logo-beta">Beta</span>
+      </div>
+    </div>
+
+    <!-- Connection -->
+    <div class="side-connection connection-card">
+      <div class="conn-row">
+        <div class="conn-dot" id="connDot"></div>
+        <span class="conn-label" id="connLabel">Not connected</span>
+      </div>
+      <h2 class="conn-heading" id="connHeading">Not connected</h2>
+      <p class="conn-helper" id="connHelper">Sign in with Buffer to load your channels, plan posts, and publish from PostIQ.</p>
+      <div class="conn-actions">
+        <button class="btn sm primary" id="manageTokenBtn">Sign in with Buffer</button>
+        <button class="btn sm ghost" id="revealTokenBtn">Connection settings</button>
+      </div>
+      <div class="conn-last-sync" id="connLastSync" style="display:none;"></div>
+    </div>
+
+    <!-- Sync status -->
+    <div class="side-sync">
+      <button class="btn" id="syncBtn" style="display:none;">↻ Load from Buffer</button>
+      <div class="sync-meta">
+        <span id="syncStatus">Not synced.</span>
+        <span id="lastSynced"></span>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="side-nav">
+      <div class="nav-section-label">Workflow</div>
+      <button class="nav-btn active" data-view="calendarView">
+        <span class="nav-icon"><svg><use href="#i-cal"/></svg></span>
+        <span class="nav-text">Plan</span>
+        <span class="nav-tag needs" id="calNavTag">Sign in</span>
+      </button>
+      <button class="nav-btn" data-view="composerView">
+        <span class="nav-icon"><svg><use href="#i-compose"/></svg></span>
+        <span class="nav-text">Draft</span>
+      </button>
+      <button class="nav-btn" data-view="ideasView">
+        <span class="nav-icon"><svg><use href="#i-trending"/></svg></span>
+        <span class="nav-text">Ideas</span>
+      </button>
+      <button class="nav-btn" data-view="approvalsView">
+        <span class="nav-icon"><svg><use href="#i-check"/></svg></span>
+        <span class="nav-text">Approve</span>
+        <span class="nav-tag needs" id="appNavTag">Sign in</span>
+      </button>
+    </nav>
+
+    <div class="side-bottom">
+      <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener">
+        <span class="nav-icon" style="opacity:.5;"><svg><use href="#i-buffer"/></svg></span>
+        <span class="nav-text">Open Buffer</span>
+      </a>
+      <button class="nav-btn" id="openSettings">
+        <span class="nav-icon" style="opacity:.5;"><svg><use href="#i-settings"/></svg></span>
+        <span class="nav-text">Settings &amp; Help</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- ══════════ PLAN (Calendar) ══════════ -->
+    <section id="calendarView" class="view active">
+      <!-- Mobile header -->
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">📅 Plan</span>
+        <div class="mob-view-actions">
+          <button class="btn sm" id="shareMonthBtnMob">Share</button>
+          <button class="btn sm ghost" id="mobMenuBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Desktop header -->
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Plan</h1>
+          <p class="page-desc" id="calDesc">Your Buffer queue in a monthly view. Spot gaps and add planning notes before you compose.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn" id="shareMonthBtn">Share snapshot</button>
+          <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
+        </div>
+      </div>
+
+      <div class="view-content">
+
+      <!-- Queue gaps (shown when connected + gaps found) -->
+      <div class="gaps-panel" id="gapsPanel" style="display:none;">
+        <div class="gaps-panel-hdr">
+          <span style="font-size:16px;">⚠️</span>
+          <span class="gaps-title">Queue gaps this week</span>
+          <span style="font-size:12px;color:var(--muted);margin-left:auto;">Click a day to add a note or plan content</span>
+        </div>
+        <div class="gaps-list" id="gapsList"></div>
+      </div>
+      <!-- Calendar header -->
+      <div class="cal-header">
+        <button class="btn sm ghost" id="prevMonth">‹</button>
+        <div class="cal-month-label" id="monthLabel"></div>
+        <button class="btn sm ghost" id="nextMonth">›</button>
+        <button class="btn sm ghost" id="todayMonth">Today</button>
+      </div>
+
+      <div class="cal-filter-row">
+        <label class="label" for="calendarFilter" style="margin:0;">Show</label>
+        <select id="calendarFilter" class="input" style="max-width:190px;"></select>
+      </div>
+
+      <!-- Day-of-week labels -->
+      <div class="cal-dow">
+        <div class="dow-cell">Sun</div><div class="dow-cell">Mon</div>
+        <div class="dow-cell">Tue</div><div class="dow-cell">Wed</div>
+        <div class="dow-cell">Thu</div><div class="dow-cell">Fri</div>
+        <div class="dow-cell">Sat</div>
+      </div>
+
+      <!-- Calendar grid (desktop) -->
+      <div class="cal-grid" id="calGrid"></div>
+
+      <!-- Agenda view (mobile) -->
+      <div class="cal-agenda" id="calAgenda" style="display:none;"></div>
+
+      <div id="calEmptyHint" class="mt16" style="display:none;">
+        <div class="empty-state">
+          <div class="empty-icon">📅</div>
+          <div class="empty-title">No scheduled posts loaded</div>
+          <div class="empty-desc">Sign in with Buffer and click "Sync now" to see your queue in this calendar.</div>
+        </div>
+      </div>
+      </div><!-- /view-content -->
+    </section>
+
+    <!-- ══════════ COMPOSE (Composer) ══════════ -->
+    <section id="composerView" class="view">
+      <!-- Mobile header -->
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">✍️ Compose</span>
+        <div class="mob-view-actions">
+          <button class="btn sm ghost" id="composerClearBtnMob" style="display:none;">Clear ✕</button>
+          <button class="btn sm ghost" id="mobMenuBtnDraft">
+            <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+      <!-- Desktop header -->
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Compose</h1>
+          <p class="page-desc" id="composerDesc">Write your post, attach media, then choose a Buffer action when you’re ready.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn ghost" id="composerClearBtn" style="display:none;">Clear ✕</button>
+          <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
+        </div>
+      </div>
+
+      <div class="composer-layout">
+
+        <!-- Mode tabs: Compose / Split -->
+        <div id="composerModeTabs" style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;grid-column:1/-1;">
+          <button class="composer-mode-tab active" data-cmode="compose" style="padding:9px 20px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Compose</button>
+          <button class="composer-mode-tab" data-cmode="split" style="padding:9px 20px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Split into thread</button>
+        </div>
+
+        <!-- ── COMPOSE MODE ── -->
+        <div id="composeModePanel" style="display:contents;">
+
+        <!-- Editor column -->
+        <div>
+          <!-- Trending reference pin (hidden until pinned from Trending) -->
+          <div id="refPin" style="display:none;background:var(--surface);border:1px solid var(--border2);border-left:3px solid var(--brand);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;position:relative;">
+            <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--brand);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Writing from</div>
+            <div id="refPinTitle" style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px;"></div>
+            <div id="refPinBody" style="font-size:12px;color:var(--muted);line-height:1.5;"></div>
+            <button id="refPinDismiss" style="position:absolute;top:8px;right:10px;background:none;border:none;color:var(--subtle);cursor:pointer;font-size:16px;" title="Dismiss">×</button>
+          </div>
+
+          <div class="editor-wrap">
+            <div class="editor-toolbar">
+              <button class="tb-btn" data-cmd="bold" title="Bold"><strong>B</strong></button>
+              <button class="tb-btn" data-cmd="italic" title="Italic"><em>I</em></button>
+              <div class="tb-sep"></div>
+              <button class="tb-btn" data-cmd="ul" title="Bullet list">• List</button>
+              <button class="tb-btn" data-cmd="ol" title="Numbered list">1. List</button>
+              <div class="tb-sep"></div>
+              <button class="tb-btn" id="insertTemplateBtn" title="Insert template" style="width:auto;padding:0 8px;font-size:11px;font-family:'DM Mono',monospace;">Templates</button>
+              <button class="tb-btn" id="saveAsTemplateBtn" title="Save selection as template" style="width:auto;padding:0 8px;font-size:11px;font-family:'DM Mono',monospace;">+ Save</button>
+              <div class="tb-sep"></div>
+              <button class="tb-btn" data-cmd="clear" title="Clear formatting" style="font-size:11px;font-family:'DM Mono',monospace;">Clear</button>
+              <button class="zen-btn" id="zenToggleBtn" title="Zen mode — distraction-free writing">
+                <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+              </button>
+            </div>
+            <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here…"></div>
+            <div class="editor-footer">
+              <select id="composerChannel" class="input" style="flex:1;max-width:280px;height:30px;padding:0 30px 0 10px;font-size:12px;"></select>
+              <span id="composerNoChannels" style="font-size:12px;color:var(--subtle);display:none;">↻ Sync to see channels</span>
+              <span class="char-count" id="charCount">0 chars</span>
+            </div>
+          </div>
+
+          <!-- Zen inline send actions (only visible in zen mode) -->
+          <div id="zenActions">
+            <select id="zenChannel" class="input"></select>
+            <button class="btn" id="zenDraft">Save Buffer draft</button>
+            <button class="btn success" id="zenQueue">Add to queue</button>
+            <button class="btn primary" id="zenSchedule">📅 Schedule…</button>
+          </div>
+
+          <!-- Media toggle -->
+          <div class="mt8">
+            <button class="media-toggle-btn" id="mediaToggleBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-img"/></svg>
+              Add media
+            </button>
+            <button class="media-toggle-btn has-media" id="mediaToggleOff" style="display:none;">
+              <img id="mediaThumbPreview" src="" style="width:16px;height:16px;border-radius:2px;object-fit:cover;display:none;" alt=""/>
+              <span id="mediaToggleLabel">🖼 Media attached</span>
+            </button>
+
+            <div class="media-panel" id="mediaPanel">
+              <div class="card mt8" style="padding:14px;">
+                <div class="media-tabs">
+                  <button class="media-tab active" data-mtab="upload">Upload</button>
+                  <button class="media-tab" data-mtab="url">URL</button>
+                  <button class="media-tab" data-mtab="unsplash">Unsplash</button>
+                </div>
+
+                <!-- Upload tab -->
+                <div class="media-tab-panel active" data-mtabpanel="upload">
+                  <input type="file" id="uploadFileInput" accept="image/*,video/*" style="display:none;"/>
+                  <div id="uploadZone" style="border:2px dashed var(--border2);border-radius:8px;padding:24px 16px;text-align:center;cursor:pointer;transition:all .2s;">
+                    <div style="font-size:24px;margin-bottom:8px;">📎</div>
+                    <div style="font-size:13px;color:var(--muted);">Drop image or <button class="btn sm ghost" id="uploadBrowseBtn" style="display:inline-flex;height:auto;padding:2px 6px;">browse</button></div>
+                    <div style="font-size:11px;color:var(--subtle);margin-top:4px;font-family:'DM Mono',monospace;">JPG, PNG, GIF, WEBP · paste to upload</div>
+                  </div>
+                  <div id="uploadResult" style="display:none;align-items:center;gap:12px;padding:10px 0;">
+                    <img id="uploadThumb" src="" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:6px;border:1px solid var(--border2);flex-shrink:0;"/>
+                    <div style="flex:1;min-width:0;">
+                      <div id="uploadResultName" style="font-size:12px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+                      <div id="uploadResultUrl" style="font-size:11px;color:var(--green);font-family:'DM Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+                      <div style="display:flex;gap:6px;margin-top:6px;">
+                        <button class="btn sm ghost" id="uploadReplaceBtn">↺ Replace</button>
+                        <button class="btn sm ghost" id="uploadClearBtn">✕</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="uploadStatus" style="font-size:11px;color:var(--muted);margin-top:6px;font-family:'DM Mono',monospace;"></div>
+                </div>
+
+                <!-- URL tab -->
+                <div class="media-tab-panel" data-mtabpanel="url">
+                  <div class="row mt8">
+                    <input id="mediaUrlInput" class="input grow" placeholder="https://… (image or video URL)" />
+                    <button class="btn sm ghost" id="mediaUrlClear" style="display:none;">✕</button>
+                  </div>
+                  <div id="urlPreview" style="display:none;align-items:center;gap:10px;margin-top:10px;">
+                    <img id="urlPreviewImg" src="" alt="" style="width:72px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--border2);flex-shrink:0;"/>
+                    <div id="urlPreviewType" style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);"></div>
+                  </div>
+                  <div id="videoThumbSection" style="display:none;margin-top:10px;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;">
+                    <div class="label mb8">Custom thumbnail (optional)</div>
+                    <input id="videoThumbUrl" class="input" placeholder="Thumbnail image URL…" />
+                  </div>
+                </div>
+
+                <!-- Unsplash tab -->
+                <div class="media-tab-panel" data-mtabpanel="unsplash">
+                  <div class="row mt8">
+                    <input id="unsplashQuery" class="input grow" placeholder="Search free photos…" />
+                    <button class="btn sm" id="unsplashSearchBtn">Search</button>
+                  </div>
+                  <div id="unsplashStatus" style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:6px;min-height:16px;"></div>
+                  <div id="unsplashGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;"></div>
+                </div>
+              </div>
+            </div>
+
+            <div id="mediaSummary" style="display:none;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;margin-top:8px;">
+              <img id="mediaSummaryThumb" src="" alt="" style="width:36px;height:24px;object-fit:cover;border-radius:4px;border:1px solid var(--border2);display:none;"/>
+              <div style="flex:1;min-width:0;">
+                <div id="mediaSummaryType" style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);text-transform:uppercase;"></div>
+                <div id="mediaSummaryUrl" style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+              </div>
+              <button class="btn sm ghost" id="mediaSummaryClear">✕ Remove</button>
+            </div>
+          </div>
+
+          <div id="composerStatus" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;min-height:18px;"></div>
+        </div>
+
+        <!-- Right panel -->
+        <div class="composer-panel">
+          <!-- Send to Buffer -->
+          <div class="panel-card">
+            <div class="panel-card-title">Send to Buffer</div>
+            <div class="send-actions">
+              <button class="btn" id="composerDraft">Save Buffer draft</button>
+              <button class="btn success" id="composerQueue">Add to queue</button>
+              <button class="btn primary" id="composerScheduleToggle">📅 Schedule…</button>
+            </div>
+            <div class="schedule-row" id="schedulePanel">
+              <div class="field" style="margin-bottom:8px;">
+                <label class="label">Date</label>
+                <input type="date" id="scheduleDate" class="input" />
+              </div>
+              <div class="cols2" style="gap:8px;">
+                <div class="field" style="margin-bottom:0;">
+                  <label class="label">Hour</label>
+                  <select id="scheduleHour" class="input"></select>
+                </div>
+                <div class="field" style="margin-bottom:0;">
+                  <label class="label">Min</label>
+                  <select id="scheduleMin" class="input"></select>
+                </div>
+              </div>
+              <div class="row">
+                <select id="scheduleAmpm" class="input" style="max-width:80px;flex-shrink:0;"></select>
+                <button class="btn primary grow" id="composerScheduleSend">Send</button>
+                <button class="btn ghost" id="scheduleCancel">✕</button>
+              </div>
+            </div>
+            <input type="hidden" id="composerWhen" />
+          </div>
+
+          <!-- Needs approval -->
+          <div class="panel-card" id="approvalCheckPanel">
+            <div class="panel-card-title">Sign-off</div>
+            <label class="approval-check-row">
+              <input type="checkbox" id="needsApprovalCheck" />
+              <span class="approval-check-label">Needs approval before publishing</span>
+            </label>
+            <div style="font-size:11px;color:var(--subtle);margin-top:8px;line-height:1.55;">Save as draft first — then generate an approval link from the Approve tab.</div>
+          </div>
+
+        </div>
+
+        </div><!-- /composeModePanel -->
+
+        <section id="composerSupportSection" class="composer-support" aria-label="Draft support tools">
+          <article class="panel-card composer-support-card">
+            <div class="composer-support-hdr">
+              <div class="panel-card-title" style="margin-bottom:0;">Templates</div>
+              <button class="btn sm ghost" type="button" id="composerManageTemplatesBtn">Manage templates →</button>
+            </div>
+            <div class="template-list" id="composerTemplateList">
+              <div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;">No templates yet.</div>
+            </div>
+          </article>
+
+          <article class="panel-card composer-support-card">
+            <div class="composer-support-hdr">
+              <div class="panel-card-title" style="margin-bottom:0;">Pillars</div>
+              <button class="btn sm ghost" type="button" data-view="ideasView" data-ideas-tab="pillars">Open builder →</button>
+            </div>
+            <div id="composerPillarsCompact" class="composer-pillars-compact">
+              <div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;">Build your pillars to see quick starters here.</div>
+            </div>
+          </article>
+        </section>
+
+        <!-- ── SPLIT MODE (Thread Splitter) ── -->
+        <div id="splitModePanel" style="display:none;grid-column:1/-1;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" id="splitGrid">
+            <!-- Source -->
+            <div>
+              <div class="card">
+                <div style="font-size:11px;font-family:'DM Mono',monospace;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px;">Source text</div>
+                <textarea id="threadInput" placeholder="Paste long-form content, notes, or a rough draft…" style="min-height:200px;"></textarea>
+                <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+                  <button class="btn primary" id="splitBtn">Split thread</button>
+                  <button class="btn ghost" id="splitSampleBtn">Sample</button>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-left:auto;cursor:pointer;">
+                    <input type="checkbox" id="threadNumberToggle" style="accent-color:var(--brand);" /> Number parts
+                  </label>
+                </div>
+              </div>
+            </div>
+            <!-- Output -->
+            <div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+                <div style="font-size:11px;font-family:'DM Mono',monospace;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);">Thread parts</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                  <button class="btn sm ghost" id="copyAllPartsBtn">Copy all</button>
+                  <select id="threadChannel" class="input" style="max-width:180px;height:30px;padding:0 28px 0 10px;font-size:12px;"></select>
+                </div>
+              </div>
+              <div id="threadEmpty" class="empty-state">
+                <div class="empty-icon">✂️</div>
+                <div class="empty-title">Nothing split yet</div>
+                <div class="empty-desc">Paste content on the left and hit Split thread.</div>
+              </div>
+              <div id="threadOut" style="display:flex;flex-direction:column;gap:8px;"></div>
+              <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;" id="threadActions" style="display:none;">
+                <button class="btn" id="draftThreadBtn">Save draft</button>
+                <button class="btn success" id="queueThreadBtn">Add to queue</button>
+                <button class="btn primary" id="scheduleThreadBtn">📅 Schedule…</button>
+              </div>
+              <div id="threadWhenRow" style="display:none;margin-top:8px;">
+                <input type="datetime-local" id="threadWhen" class="input" />
+              </div>
+              <div id="threadStatus" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;min-height:16px;"></div>
+            </div>
+          </div>
+          <!-- Mobile: stacked -->
+          <style>@media(max-width:768px){#splitGrid{grid-template-columns:1fr;}}</style>
+        </div>
+
+      </div><!-- /composer-layout -->
+    </section>
+
+    <!-- ══════════ APPROVE (Approvals) ══════════ -->
+    <section id="approvalsView" class="view">
+      <!-- Mobile header -->
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">✅ Approve</span>
+        <div class="mob-view-actions">
+          <button class="btn sm ghost" id="approvalsRefreshBtnMob">↻</button>
+          <button class="btn sm ghost" id="mobMenuBtnApprovals">
+            <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+      <!-- Desktop header -->
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Approve</h1>
+          <p class="page-desc">Route content through sign-off before it goes live. Generate a reviewer link, collect feedback, then publish when approved.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn" id="approvalsRefreshBtn">↻ Refresh</button>
+        </div>
+      </div>
+
+      <div class="view-content">
+      <div class="approvals-filter-row">
+        <span class="filter-label">Filter:</span>
+        <button class="filter-pill active" data-afilter="all">All</button>
+        <button class="filter-pill" data-afilter="pending">⏳ Pending</button>
+        <button class="filter-pill" data-afilter="approved">✓ Approved</button>
+        <button class="filter-pill" data-afilter="changes">✎ Changes</button>
+      </div>
+
+      <div id="approvalsEmpty" class="empty-state" style="display:none;">
+        <div class="empty-icon">✅</div>
+        <div class="empty-title">No pending approvals</div>
+        <div class="empty-desc">Save a Buffer draft with "Needs approval" checked in Compose, then come here to generate a reviewer link.</div>
+      </div>
+      <div id="approvalsList"></div>
+      </div><!-- /view-content -->
+    </section>
+
+    <!-- ══════════ IDEAS LIBRARY ══════════ -->
+    <section id="ideasView" class="view">
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">💡 Ideas</span>
+      </div>
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Ideas Library</h1>
+          <p class="page-desc">Build reusable content pillars, save post templates, and explore trends before turning ideas into Buffer-ready starters.</p>
+        </div>
+      </div>
+
+      <div class="view-content">
+        <div class="ideas-tool-switcher" style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:14px 16px;margin-bottom:18px;box-shadow:0 8px 22px rgba(22,34,68,.04);">
+          <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">Choose an idea tool</div>
+          <div class="ideas-tabs" role="tablist" aria-label="Ideas sections" style="margin:0;border:0;padding:0;">
+            <button class="ideas-tab active" type="button" data-ideas-tab="pillars">Content Pillars</button>
+            <button class="ideas-tab" type="button" data-ideas-tab="templates">Templates</button>
+            <button class="ideas-tab" type="button" data-ideas-tab="trending">Trending</button>
+          </div>
+        </div>
+
+        <section class="ideas-panel active" id="ideasPillarsPanel" data-ideas-panel="pillars">
+          <section id="pillars-section" class="content-pillars-section">
+            <div class="content-pillars-header">
+              <div>
+                <h2 class="content-pillars-title">Content Pillars</h2>
+                <p class="content-pillars-subtitle">Build a focused content system, map it across trust layers, and turn seed ideas into editable post starters. Nothing is sent to Buffer until you choose a Buffer action.</p>
+              </div>
+              <div class="content-pillars-header-actions">
+                <span class="chip brand">v2</span>
+              </div>
+            </div>
+
+            <!-- STAGE 0: Gate -->
+            <div class="cp-stage active" id="cpStageGate">
+              <div style="margin-bottom:16px;">
+                <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--brand);margin-bottom:12px;">Where are you starting from?</div>
+              </div>
+              <div class="cp-gate-grid">
+                <button type="button" class="cp-gate-card" id="cpGateNew">
+                  <span class="cp-gate-icon">⚡</span>
+                  <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-family:'DM Mono',monospace;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--brand-dim);border:1px solid var(--brand-glow);color:var(--brand);padding:2px 8px;border-radius:4px;margin-bottom:8px;">Pillar Plan Builder</span>
+                  <span class="cp-gate-title">Generate my pillar plan</span>
+                  <span class="cp-gate-desc">Answer 6 quick questions. Get 5 content pillars, seed ideas, recurring series ideas, and one editable starter added to Compose.</span>
+                  <span class="cp-gate-cta">Build my plan →</span>
+                </button>
+                <button type="button" class="cp-gate-card" id="cpGateExperienced">
+                  <span class="cp-gate-icon">⚡</span>
+                  <span class="cp-gate-title">I know my pillars — let me build</span>
+                  <span class="cp-gate-desc">Skip the explanation. Take me straight to the builder so I can set up pillars and seed ideas.</span>
+                  <span class="cp-gate-cta">Jump to builder →</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- STAGE 1: Guided journey -->
+            <div class="cp-stage" id="cpStageJourney">
+              <div style="max-width:660px;">
+                <!-- Loading screen (hidden until generate()) -->
+                <div id="ssmLoading" style="display:none;text-align:center;padding:40px 20px;">
+                  <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:12px;" id="ssmLoadStep">Reading your inputs...</div>
+                  <div style="border:1px solid var(--border2);height:14px;max-width:280px;margin:0 auto 16px;overflow:hidden;border-radius:2px;"><div style="height:100%;background:var(--brand);width:0%;transition:width .1s linear;" id="ssmLoadBar"></div></div>
+                  <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;color:var(--ink);letter-spacing:-.02em;">Building your pillar plan<span id="ssmDots">...</span></div>
+                </div>
+              
+                <!-- Form (shown by default) -->
+                <div id="ssmForm">
+                  <div style="margin-bottom:20px;">
+                    <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--brand);margin-bottom:8px;">Pillar Plan Builder</div>
+                    <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:18px;color:var(--ink);margin-bottom:4px;">Generate a practical pillar plan.</div>
+                    <div style="font-size:13px;color:var(--muted);line-height:1.6;">Answer six quick fields. PostIQ will suggest pillars, series ideas, and one editable starter you can refine in Compose.</div>
+                  </div>
+              
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="field">
+                      <label class="label">Brand / Creator Name</label>
+                      <input type="text" class="input" id="ssm-brand" placeholder="e.g. Maria Chen, TechWave" />
+                    </div>
+                    <div class="field">
+                      <label class="label">Industry Category</label>
+                      <select class="input" id="ssm-industry">
+                        <option value="">Select industry...</option>
+                        <option value="fitness">Fitness & Wellness</option>
+                        <option value="food">Food & Beverage</option>
+                        <option value="saas">SaaS / Tech</option>
+                        <option value="realestate">Real Estate</option>
+                        <option value="creative">Creative Services</option>
+                        <option value="ecommerce">E-Commerce / Product Brand</option>
+                        <option value="coaching">Coaching & Consulting</option>
+                        <option value="finance">Finance & Money</option>
+                        <option value="education">Education & Courses</option>
+                        <option value="nonprofit">Nonprofit / Mission-Driven</option>
+                        <option value="entertainment">Entertainment / Media</option>
+                        <option value="localbiz">Local Business</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label class="label">Target Audience</label>
+                      <input type="text" class="input" id="ssm-audience" placeholder="e.g. early-stage founders, busy moms" />
+                    </div>
+                    <div class="field">
+                      <label class="label">Product / Service / Offer</label>
+                      <input type="text" class="input" id="ssm-offer" placeholder="e.g. 1:1 coaching, SaaS tool, meal kits" />
+                    </div>
+                    <div class="field">
+                      <label class="label">Brand Tone</label>
+                      <select class="input" id="ssm-tone">
+                        <option value="">Select tone...</option>
+                        <option value="bold">Bold & Direct</option>
+                        <option value="playful">Playful & Fun</option>
+                        <option value="expert">Expert & Authoritative</option>
+                        <option value="warm">Warm & Relatable</option>
+                        <option value="edgy">Edgy & Provocative</option>
+                        <option value="professional">Professional & Polished</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label class="label">Main Goal</label>
+                      <select class="input" id="ssm-goal">
+                        <option value="">Select goal...</option>
+                        <option value="grow">Grow Audience</option>
+                        <option value="sales">Drive Sales</option>
+                        <option value="trust">Build Trust</option>
+                        <option value="educate">Educate</option>
+                        <option value="hired">Get Hired</option>
+                        <option value="launch">Launch Product</option>
+                        <option value="event">Promote Event</option>
+                      </select>
+                    </div>
+                  </div>
+              
+                  <div class="field" style="margin-top:4px;grid-column:1/-1;">
+                    <label class="label">Anything else? (optional)</label>
+                    <textarea class="input" id="ssm-notes" placeholder="Upcoming launches, topics to avoid, specific angles..." style="min-height:60px;"></textarea>
+                  </div>
+              
+                  <div style="display:flex;gap:8px;margin-top:16px;align-items:center;">
+                    <button class="btn ghost" id="ssmBackBtn" type="button">← Back</button>
+                    <button class="btn primary" id="ssmGenerateBtn" type="button">Generate pillar plan →</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STAGE 2: Builder -->
+            <div class="cp-stage" id="cpStageBuilder">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <button class="btn sm ghost" id="cpRestartBtn" type="button">← Start over</button>
+                  <button class="btn sm" id="cpExportBtn" type="button">Export starters</button>
+                </div>
+              </div>
+              <div class="cp-builder-layout">
+                <div>
+                  <div class="cp-identity-card">
+                    <div class="cp-identity-label">Your voice and point of view</div>
+                    <div class="cp-identity-sub">Describe who you are, who you help, and how you sound when you write. This shapes every post starter you generate.</div>
+                    <textarea class="input" id="cpBuilderIdentity" style="min-height:60px;" placeholder="e.g. I'm a social media strategist who grew accounts to 6M+ followers. I write for early-stage founders who want to build a real presence without outsourcing it. My tone is direct, practical, and a little blunt."></textarea>
+                  </div>
+                  <div class="cp-pillars-list" id="cpPillarsList"></div>
+                  <button class="cp-add-pillar" id="cpAddPillarBtn" type="button"><span>+</span> Add a pillar</button>
+                </div>
+                <div class="cp-sidebar">
+                  <div class="cp-sidebar-card">
+                    <div class="cp-sidebar-title">Pillar health</div>
+                    <div class="cp-stat-row"><span class="cp-stat-label">Pillars defined</span><span class="cp-stat-val brand" id="cpHealthPillars">0</span></div>
+                    <div class="cp-stat-row"><span class="cp-stat-label">Seeds total</span><span class="cp-stat-val" id="cpHealthSeeds">0</span></div>
+                    <div class="cp-stat-row"><span class="cp-stat-label">Starters created</span><span class="cp-stat-val green" id="cpHealthUsage">0</span></div>
+                    <div class="cp-health-bar"><div class="cp-health-fill" id="cpHealthBar" style="width:0%;"></div></div>
+                    <div class="cp-health-msg" id="cpHealthMsg">Add your pillars to start.</div>
+                  </div>
+                  <div class="cp-sidebar-card">
+                    <div class="cp-sidebar-title">Three layers check</div>
+                    <div class="cp-stat-row" style="margin-bottom:4px;"><span class="cp-stat-label" style="font-size:11px;">👁 Awareness (they see themselves)</span><span id="cpLayerA" style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">—</span></div>
+                    <div class="cp-stat-row" style="margin-bottom:4px;"><span class="cp-stat-label" style="font-size:11px;">🎓 Credibility (they trust you)</span><span id="cpLayerC" style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">—</span></div>
+                    <div class="cp-stat-row"><span class="cp-stat-label" style="font-size:11px;">🛒 Action (they hire or buy)</span><span id="cpLayerX" style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">—</span></div>
+                    <div style="font-size:11px;color:var(--subtle);margin-top:8px;line-height:1.55;font-family:'DM Mono',monospace;">Tag each pillar to see your balance.</div>
+                  </div>
+                  <div class="cp-sidebar-card">
+                    <div class="cp-sidebar-title">Quick reminders</div>
+                    <div class="cp-tip"><div class="cp-tip-icon">🎯</div><div class="cp-tip-text"><strong>3–5 pillars</strong> is the sweet spot. More than that and you lose focus.</div></div>
+                    <div class="cp-tip"><div class="cp-tip-icon">💡</div><div class="cp-tip-text"><strong>Seed ideas</strong> come from real life — questions you get asked, things that frustrated you, wins you've had.</div></div>
+                    <div class="cp-tip"><div class="cp-tip-icon">⚡</div><div class="cp-tip-text">Hit <strong>Start</strong> on any seed to drop a post starter straight into Compose.</div></div>
+                    <div class="cp-tip"><div class="cp-tip-icon">📐</div><div class="cp-tip-text">The <strong>tone angle</strong> changes how the draft opens — Practical, Story, Contrarian, or Question.</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <section class="ideas-panel" id="ideasTemplatesPanel" data-ideas-panel="templates">
+          <div class="ideas-panel-hdr">
+            <p class="ideas-panel-copy">Reusable post starters — hooks, CTAs, announcements. Insert into Compose with one click.</p>
+            <div class="page-actions">
+              <button class="btn sm primary ideas-mobile-only" id="newTemplateBtnMob">+ New</button>
+              <button class="btn primary ideas-desktop-only" id="newTemplateBtn">+ New Template</button>
+            </div>
+          </div>
+          <div class="templates-layout">
+            <div class="templates-sidebar" id="templateTypeFilters"></div>
+            <div>
+              <div class="row mb8">
+                <input id="templateSearch" class="input grow" placeholder="Search templates…" />
+                <select id="templatePlatformFilter" class="input" style="max-width:160px;"></select>
+              </div>
+              <div id="templatesEmpty" class="empty-state" style="display:none;">
+                <div class="empty-icon">⚡</div>
+                <div class="empty-title">No templates yet</div>
+                <div class="empty-desc">Create your first template to reuse hooks, CTAs, and openers across every post you write.</div>
+              </div>
+              <div class="templates-grid" id="templatesGrid"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="ideas-panel" id="ideasTrendingPanel" data-ideas-panel="trending">
+          <div class="ideas-panel-hdr">
+            <p class="ideas-panel-copy">What's hot on Reddit and Hacker News right now. Click any story to open it in Draft.</p>
+            <div class="page-actions">
+              <button class="btn sm ghost" id="trendingRefreshMob">↻</button>
+              <button class="btn ghost" id="trendingRefreshBtn">↻ Refresh</button>
+            </div>
+          </div>
+
+        <!-- Source tabs -->
+        <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;">
+          <button class="trending-src-tab active" data-tsrc="reddit" style="padding:8px 18px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Reddit</button>
+          <button class="trending-src-tab" data-tsrc="hn" style="padding:8px 18px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Hacker News</button>
+        </div>
+
+        <!-- Reddit panel -->
+        <div id="trendingRedditPanel">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
+            <div id="trendingSubPills" style="display:flex;gap:5px;flex-wrap:wrap;flex:1;"></div>
+            <div style="display:flex;gap:6px;">
+              <input id="trendingCustomSub" class="input" placeholder="r/custom" style="width:130px;" />
+              <button class="btn sm" id="trendingGoSub">Go</button>
+              <button class="btn sm ghost" id="trendingRefreshReddit">↻</button>
+            </div>
+          </div>
+          <div id="trendingRedditStatus" style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:10px;min-height:16px;"></div>
+          <div id="trendingRedditList" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+
+        <!-- HN panel -->
+        <div id="trendingHNPanel" style="display:none;">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
+            <div style="display:flex;gap:5px;">
+              <button class="trending-hn-tab active" data-hn="topstories" style="padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--brand-dim);color:var(--brand);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;">Top</button>
+              <button class="trending-hn-tab" data-hn="newstories" style="padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--muted);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;">New</button>
+              <button class="trending-hn-tab" data-hn="beststories" style="padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--muted);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;">Best</button>
+            </div>
+            <button class="btn sm ghost" id="trendingRefreshHN" style="margin-left:auto;">↻</button>
+          </div>
+          <div id="trendingHNStatus" style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:10px;min-height:16px;"></div>
+          <div id="trendingHNList" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+
+        </section>
+      </div><!-- /view-content -->
+    </section>
+
+  </main>
+</section>
+
+<!-- ── MODALS ── -->
+
+<!-- Settings modal -->
+<div id="settingsModal" class="modal">
+  <div class="modal-card" style="max-width:580px;">
+    <div class="modal-hdr">
+      <span class="modal-title">Settings &amp; Help</span>
+      <button class="btn sm ghost" id="closeSettings">Close</button>
+    </div>
+    <div class="settings-tabs">
+      <button class="settings-tab active" data-stab="guide">Guide</button>
+      <button class="settings-tab" data-stab="planning">Planning</button>
+      <button class="settings-tab" data-stab="connection">Connection</button>
+      <button class="settings-tab" data-stab="about">About</button>
+    </div>
+    <div id="settingsPanelGuide" class="settings-panel active">
+      <div style="display:flex;flex-direction:column;gap:18px;">
+        <div>
+          <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">📅 Plan</div>
+          <p style="font-size:13px;color:var(--muted);line-height:1.65;">See your Buffer queue in a monthly calendar. Click any day to add a color-tagged planning note. The gap detector highlights days with nothing scheduled so you know where to focus your drafting sessions.</p>
+        </div>
+        <div>
+          <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">✍️ Draft</div>
+          <p style="font-size:13px;color:var(--muted);line-height:1.65;">Write posts in a focused editor, pull in a template, attach media via upload or URL, then send to Buffer as a draft, queued post, or scheduled post. Check "Needs approval" before saving a draft to route it through sign-off.</p>
+        </div>
+        <div>
+          <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">✅ Approve</div>
+          <p style="font-size:13px;color:var(--muted);line-height:1.65;">Generate a shareable reviewer link for any pending draft. The reviewer opens the link, reads the content, leaves a comment, and approves or requests changes. Once approved, you publish directly to Buffer from here.</p>
+        </div>
+        <div>
+          <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">⚡ Templates</div>
+          <p style="font-size:13px;color:var(--muted);line-height:1.65;">Save reusable draft starters — product announcement formats, engagement questions, stat callouts. Insert any template into the Draft editor with one click. Select text in the editor and hit "+ Save" to create a template from it.</p>
+        </div>
+        <div>
+          <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">🔑 Connecting Buffer</div>
+          <p style="font-size:13px;color:var(--muted);line-height:1.65;">Sign in with Buffer to connect PostIQ, then use Sync now to refresh your channels and scheduled posts. Manual setup lives in the advanced Connection settings for testing or backup access.</p>
+        </div>
+      </div>
+    </div>
+    <div id="settingsPanelPlanning" class="settings-panel">
+      <div class="settings-section">
+        <div class="settings-section-title">Planning Settings</div>
+        <label class="settings-check"><input type="checkbox" id="showQueueGapsSetting" /> Show queue gaps</label>
+        <div class="label mt12">Posting schedule</div>
+        <div id="postingDaysSettings" class="settings-day-grid"></div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title">Calendar note types</div>
+        <div id="noteTypesSettings" class="note-types-settings"></div>
+        <button class="btn sm" id="addNoteTypeBtn" type="button">+ Add note type</button>
+        <div style="font-size:11px;color:var(--subtle);margin-top:8px;line-height:1.5;">Existing notes keep their saved labels. Unknown note types fall back to Note styling.</div>
+      </div>
+    </div>
+
+    <div id="settingsPanelConnection" class="settings-panel">
+      <div class="settings-section connection-settings-card">
+        <div class="settings-section-title">Buffer sign-in</div>
+        <p class="settings-copy">Recommended for most users. Sign in with Buffer so PostIQ can load your channels and publish through your account. Disconnect Buffer clears this sign-in only; advanced manual setup stays until you clear it below.</p>
+        <div class="connection-status-line" id="oauthStatusText">Not connected.</div>
+        <div class="row mt12">
+          <button class="btn primary" id="connectBufferBtn" type="button">Sign in with Buffer</button>
+          <button class="btn ghost" id="disconnectBufferBtn" type="button" style="display:none;">Disconnect Buffer</button>
+        </div>
+      </div>
+      <details class="settings-section advanced-connection" id="tokenPanel">
+        <summary>Advanced: API key fallback</summary>
+        <p class="settings-copy">Only use this if Buffer sign-in is unavailable or you are testing manually.</p>
+        <div class="field">
+          <label class="label">API key fallback</label>
+          <input id="tokenInput" class="input mono" type="password" placeholder="Paste API key…" />
+        </div>
+        <div class="row mb8" style="gap:14px;">
+          <label class="settings-check"><input type="radio" name="tokenMode" value="session" checked /> Session</label>
+          <label class="settings-check"><input type="radio" name="tokenMode" value="local" /> Save locally</label>
+        </div>
+        <div class="row">
+          <button class="btn sm primary" id="saveTokenBtn">Save API key</button>
+          <button class="btn sm ghost" id="clearTokenBtn">Disconnect manual key</button>
+        </div>
+        <div id="tokenMsg" class="connection-token-msg"></div>
+      </details>
+    </div>
+    <div id="settingsPanelAbout" class="settings-panel">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;">
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px;margin-bottom:8px;color:var(--ink);">PostIQ — Buffer Companion</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:12px;">The planning and approval layer for Buffer. Plan your queue, draft posts with templates, get sign-off before publishing.</p>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:16px;">
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:15px;margin-bottom:4px;color:var(--ink);">Built by Ben Campbell</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:12px;">Social strategist and content builder. Grew a social account to 6M+ followers. Now building tools for serious Buffer users.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <a href="https://bencampbell.netlify.app/" target="_blank" rel="noopener" class="btn primary">My work</a>
+          <a href="https://www.linkedin.com/in/bencampbell8/" target="_blank" rel="noopener" class="btn">LinkedIn</a>
+          <a href="/privacy.html" class="btn">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Day note modal -->
+<div id="noteModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-hdr">
+      <span class="modal-title" id="noteDateLabel">—</span>
+      <button class="btn sm ghost" id="closeNote">Close</button>
+    </div>
+    <div id="dayPostPreview" class="mb8"></div>
+    <div class="field">
+      <label class="label">Planning note</label>
+      <textarea id="noteText" placeholder="What do you want to post on this day?" style="min-height:80px;"></textarea>
+    </div>
+    <div class="field">
+      <label class="label">Tag</label>
+      <select id="noteTag" class="input"></select>
+    </div>
+    <div class="row">
+      <button class="btn primary" id="saveNoteBtn">Save note</button>
+      <button class="btn" id="sendNoteToDraftBtn">Use in Draft</button>
+      <button class="btn ghost" id="deleteNoteBtn">Delete</button>
+    </div>
+    <div id="noteStatus" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;min-height:16px;"></div>
+  </div>
+</div>
+
+<!-- Template modal -->
+<div id="templateModal" class="modal">
+  <div class="modal-card lg">
+    <div class="modal-hdr">
+      <span class="modal-title" id="templateModalTitle">New Template</span>
+      <button class="btn sm ghost" id="closeTemplateModal">Close</button>
+    </div>
+    <div class="field">
+      <label class="label">Title</label>
+      <input id="templateTitle" class="input" placeholder="e.g. Product announcement hook" />
+    </div>
+    <div class="cols2">
+      <div class="field">
+        <label class="label">Type</label>
+        <select id="templateType" class="input"></select>
+      </div>
+      <div class="field">
+        <label class="label">Platform</label>
+        <select id="templatePlatform" class="input"></select>
+      </div>
+    </div>
+    <div class="field">
+      <label class="label">Tags (comma-separated)</label>
+      <input id="templateTags" class="input" placeholder="launch, b2b, hook" />
+    </div>
+    <div class="field">
+      <label class="label">Content</label>
+      <textarea id="templateBody" placeholder="Write your reusable template content…" style="min-height:140px;"></textarea>
+    </div>
+    <div class="row">
+      <button class="btn primary" id="saveTemplateBtn">Save template</button>
+      <button class="btn ghost" id="cancelTemplateBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Template picker modal -->
+<div id="templatePickerModal" class="modal">
+  <div class="modal-card lg">
+    <div class="modal-hdr">
+      <span class="modal-title">Insert template</span>
+      <button class="btn sm ghost" id="closeTemplatePicker">Close</button>
+    </div>
+    <div class="row mb8">
+      <input id="pickerSearch" class="input grow" placeholder="Search templates…" />
+      <select id="pickerType" class="input" style="max-width:140px;"></select>
+    </div>
+    <div id="pickerList" style="display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow-y:auto;"></div>
+    <div id="pickerEmpty" class="empty-state" style="display:none;margin-top:16px;">
+      <div class="empty-icon">⚡</div>
+      <div class="empty-title">No templates found</div>
+    </div>
+  </div>
+</div>
+
+<!-- Share modal -->
+<div id="shareModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-hdr">
+      <span class="modal-title">Share calendar snapshot</span>
+      <button class="btn sm ghost" id="closeShare">Close</button>
+    </div>
+    <div class="card mb8" style="padding:14px;">
+      <div class="field" style="margin-bottom:12px;">
+        <label class="label">Snapshot range</label>
+        <select id="shareRange" class="input">
+          <option value="week">This week</option>
+          <option value="month" selected>This month</option>
+        </select>
+      </div>
+      <div class="share-modal-stat">
+        <span class="share-modal-stat-label">Range</span>
+        <span class="share-modal-stat-val" id="shareMonthName">—</span>
+      </div>
+      <div class="share-modal-stat">
+        <span class="share-modal-stat-label">Scheduled posts</span>
+        <span class="share-modal-stat-val" id="sharePostCount">0</span>
+      </div>
+      <div class="field mt12" style="margin-bottom:0;">
+        <label class="label">Recipient/client name or title</label>
+        <input id="shareCustomTitle" class="input" placeholder="e.g. Acme Co. content plan" maxlength="120" />
+        <div style="font-size:11px;color:var(--subtle);margin-top:5px;line-height:1.5;">This appears as the headline on the shared page.</div>
+      </div>
+      <div class="field mt12" style="margin-bottom:0;">
+        <label class="label">Optional note</label>
+        <textarea id="shareNote" placeholder="Add context for your client or team…" style="min-height:74px;"></textarea>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted);">
+        <input type="checkbox" id="includeNotes" checked style="accent-color:var(--brand);" /> Include planning notes
+      </label>
+    </div>
+    <div class="row mt8">
+      <button class="btn primary grow" id="generateShare" style="justify-content:center;">Generate link</button>
+      <button class="btn" id="copyShare">Copy</button>
+    </div>
+    <input id="shareLink" class="input mt8 mono" readonly placeholder="Link will appear here…" style="font-size:11px;" />
+    <div id="shareLinkMeta" style="font-size:11px;color:var(--subtle);margin-top:6px;line-height:1.5;display:none;">Anyone with this link can view the snapshot. No PostIQ account needed.</div>
+  </div>
+</div>
+
+<!-- ── MOBILE DRAWER (connection + sync) ── -->
+<div class="mob-backdrop" id="mobBackdrop"></div>
+<div class="mob-drawer" id="mobDrawer">
+  <div class="mob-drawer-handle"></div>
+  <div class="mob-drawer-title">PostIQ <span class="logo-beta">Beta</span></div>
+
+  <!-- Connection status -->
+  <div class="mobile-connection-card">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <div class="conn-dot" id="mobConnDot"></div>
+      <span style="font-size:13px;color:var(--muted);font-family:'DM Mono',monospace;" id="mobConnLabel">Not connected</span>
+    </div>
+    <p class="conn-helper" id="mobConnHelper">Sign in with Buffer to load your channels, plan posts, and publish from PostIQ.</p>
+    <button class="btn primary" id="mobManageTokenBtn" style="width:100%;justify-content:center;font-size:13px;">Sign in with Buffer</button>
+    <button class="btn ghost" id="mobConnectionSettingsBtn" style="width:100%;justify-content:center;font-size:13px;margin-top:8px;">Connection settings</button>
+    <button class="btn" id="mobSyncBtn" style="display:none;width:100%;justify-content:center;margin-bottom:6px;">↻ Load from Buffer</button>
+    <div id="mobSyncStatus" style="font-size:11px;color:var(--subtle);font-family:'DM Mono',monospace;margin-top:8px;min-height:14px;"></div>
+  </div>
+
+  <div style="height:1px;background:var(--border);margin:14px 0;"></div>
+
+  <!-- Quick links -->
+  <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">↗ Open Buffer</a>
+  <button class="btn ghost" data-view="ideasView" id="mobDrawerIdeasBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">💡 Ideas</button>
+  <button class="btn ghost" id="mobOpenSettings" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">⚙ Settings &amp; Help</button>
+</div>
+
+<!-- Zen exit button (floats bottom-right when zen is active) -->
+<button id="zenExit">Esc · Exit zen</button>
+
+<!-- Toast container -->
+<div id="toastWrap" class="toast-wrap" aria-live="polite"></div>
+
+<!-- Shared view (read-only snapshot) -->
+<section id="sharedView" class="hidden">
+  <div class="snap-hero">
+    <a href="/" class="snap-brand">PostIQ <span class="snap-brand-badge">Snapshot</span></a>
+    <div class="snap-title" id="sharedTitle">Content Plan</div>
+    <div id="sharedSnapshotNote" class="snap-note-message" style="display:none;"></div>
+    <div class="snap-stats">
+      <div class="snap-stat"><strong id="sharedPostCount">0</strong> scheduled posts</div>
+      <div class="snap-stat-dot"></div>
+      <div class="snap-stat" id="sharedPeriodStat"></div>
+      <div class="snap-stat-dot" id="sharedNotesDot" style="display:none;"></div>
+      <div class="snap-stat" id="sharedNotesStat" style="display:none;"></div>
+    </div>
+  </div>
+  <div class="snap-cal-wrap">
+    <div class="snap-cal-label" id="sharedCalLabel">Click any highlighted day to read the full post</div>
+    <div class="cal-dow" style="margin-bottom:4px;">
+      <div class="dow-cell">Sun</div><div class="dow-cell">Mon</div><div class="dow-cell">Tue</div>
+      <div class="dow-cell">Wed</div><div class="dow-cell">Thu</div><div class="dow-cell">Fri</div><div class="dow-cell">Sat</div>
+    </div>
+    <div id="sharedGrid" class="cal-grid" style="margin-top:4px;"></div>
+  </div>
+  <div class="snap-footer">
+    <div class="snap-footer-copy"><strong>Built with PostIQ.</strong> The planning and drafting layer for Buffer — free to start, no login needed.</div>
+    <a href="/" class="btn primary">Try PostIQ free →</a>
+  </div>
+</section>
+
+<div id="sharedDayModal" class="modal">
+  <div class="modal-card lg">
+    <div class="modal-hdr">
+      <span class="modal-title" id="sharedDayTitle">Snapshot details</span>
+      <button class="btn sm ghost" id="closeSharedDay">Close</button>
+    </div>
+    <div id="sharedDayBody"></div>
+  </div>
+</div>
+
+<!-- Reviewer page -->
+<div id="reviewerPage">
+  <div class="reviewer-wrap">
+    <div class="reviewer-brand">
+      PostIQ <span class="logo-beta">Review</span>
+    </div>
+    <div id="reviewerLoading" class="reviewer-card" style="text-align:center;padding:48px 20px;color:var(--subtle);font-family:'DM Mono',monospace;font-size:13px;">
+      Loading review request…
+    </div>
+    <div id="reviewerContent" style="display:none;"></div>
+    <div id="reviewerConfirmed" style="display:none;">
+      <div class="reviewer-card" style="text-align:center;padding:48px 20px;">
+        <div id="reviewerConfirmIcon" style="font-size:48px;margin-bottom:16px;"></div>
+        <div id="reviewerConfirmTitle" style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:24px;margin-bottom:10px;"></div>
+        <p id="reviewerConfirmDesc" style="font-size:15px;color:var(--muted);line-height:1.6;max-width:400px;margin:0 auto;"></p>
+      </div>
+    </div>
+    <div id="reviewerError" style="display:none;">
+      <div class="reviewer-card" style="text-align:center;padding:48px 20px;">
+        <div style="font-size:40px;margin-bottom:16px;">🔍</div>
+        <div id="reviewerErrorMsg" style="font-size:14px;color:var(--muted);line-height:1.6;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     JAVASCRIPT
+     ══════════════════════════════════ -->
+  <script>
+    const BUFFER_CLIENT_ID = "ijzu75qv_CAcO0qMelb93HjOVh1EwEanezilfgBiOEG";
+  </script>
+  <script src="./app.js" defer></script>
+
+
+</body>
+</html>

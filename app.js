@@ -988,12 +988,12 @@ function updateNavTags() {
   });
   const calDesc = qs('calDesc');
   if (calDesc) calDesc.textContent = connected
-    ? 'Your Buffer queue in a monthly view. Spot gaps and add planning notes before you compose.'
+    ? 'Your Buffer queue in a monthly view. Spot gaps and add planning notes before you draft.'
     : (connection.reconnectNeeded ? 'Reconnect Buffer to load your scheduled posts and spot queue gaps.' : 'Sign in with Buffer to load your scheduled posts and spot queue gaps.');
   const composerDesc = qs('composerDesc');
   if (composerDesc) composerDesc.textContent = connected
     ? 'Write your post, attach media, then send to Buffer as a draft, queued post, or scheduled post.'
-    : 'Write here now — connect Buffer to unlock Buffer drafts, queueing, and scheduling.';
+    : 'Write here now — connect Buffer to unlock drafting, queueing, and scheduling.';
   updateComposerButtonStates();
   const calEmpty = qs('calEmptyHint'); if (calEmpty) calEmpty.style.display = connected ? 'none' : 'block';
 }
@@ -1759,7 +1759,7 @@ function openCalendarDayDetails(date) {
   const sections = [];
   if (posts.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${posts.length} Scheduled post${posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(posts)}</div>`);
   if (notes.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${notes.length} Planning note${notes.length > 1 ? 's' : ''}</div>${editableNoteCardsHtml(notes)}</div>`);
-  if (!posts.length && !notes.length) sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No plans yet</div><div class="empty-desc">Add a planning note or start content for this day.</div></div>');
+  if (!posts.length && !notes.length) sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No plans yet</div><div class="empty-desc">Add a planning note or draft content for this day.</div></div>');
   sections.push('<div class="row mt8"><button class="btn primary" data-add-note>Add planning note</button></div>');
   bodyEl.innerHTML = sections.join('');
   bindPostDetailCopy(bodyEl);
@@ -2184,7 +2184,7 @@ function renderApprovalCard(meta) {
           <div class="label mb8">Publish to</div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
             <select id="approval-ch-${safeId}" class="input" style="flex:1;min-width:160px;font-size:13px;"></select>
-            <button class="btn sm" onclick="approvalPublish('${safeId}','draft')">Buffer Draft</button>
+            <button class="btn sm" onclick="approvalPublish('${safeId}','draft')">Draft</button>
             <button class="btn sm success" onclick="approvalPublish('${safeId}','queue')">Queue</button>
             <button class="btn sm primary" onclick="approvalToggleSchedule('${safeId}')">📅 Schedule</button>
           </div>
@@ -2884,7 +2884,7 @@ function init() {
     };
 
     qs('splitSampleBtn').onclick = () => {
-      qs('threadInput').value = 'PostIQ helps Buffer users move faster. Start with one big idea, split it into clear thread parts, refine each part, and send a cleaner post flow to Buffer — saved as drafts, queued, or scheduled. The whole thing in under two minutes.';
+      qs('threadInput').value = 'PostIQ helps Buffer users move faster. Start with one big idea, split it into clear thread parts, refine each part, and send a cleaner post flow to Buffer — drafts, queued, or scheduled. The whole thing in under two minutes.';
       qs('splitBtn').click();
     };
 
@@ -3112,21 +3112,21 @@ function init() {
 //
 // CHANGES TO EXISTING HTML (app.html):
 //   1. Replace cpGateNew card inner HTML (see GATE CARD HTML section)
-//   2. Add SSM form HTML (see PILLAR PLAN FORM HTML section)
+//   2. Add SSM form HTML (see SSM FORM HTML section)
 //   Both are drop-in replacements — no structural changes needed.
 // ═══════════════════════════════════════════════════════════════
 
-// ── PILLAR PLAN GATE CARD HTML (replace cpGateNew button contents) ──────
+// ── SSM GATE CARD HTML (replace cpGateNew button contents) ──────
 // Paste this as the innerHTML of the existing #cpGateNew button:
 /*
 <span class="cp-gate-icon">⚡</span>
 <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-family:'DM Mono',monospace;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--brand-dim);border:1px solid var(--brand-glow);color:var(--brand);padding:2px 8px;border-radius:4px;margin-bottom:8px;">Pillar Plan Builder</span>
-<span class="cp-gate-title">Generate my pillar plan</span>
-<span class="cp-gate-desc">Answer 6 quick questions. Get 5 content pillars, 25 post starter ideas, hooks, CTAs, recurring series templates, and one editable starter added to Compose. Nothing goes to Buffer until you choose it.</span>
-<span class="cp-gate-cta">Generate pillar plan →</span>
+<span class="cp-gate-title">Generate my content strategy</span>
+<span class="cp-gate-desc">Answer 6 quick questions. Get 5 content pillars, 25 post ideas, hooks, CTAs, recurring series ideas, and one post you can publish today.</span>
+<span class="cp-gate-cta">Feed the machine →</span>
 */
 
-// ── PILLAR PLAN FORM HTML (insert inside #cpStageJourney, replace all inner content) ──
+// ── SSM FORM HTML (insert inside #cpStageJourney, replace all inner content) ──
 /*
 Replace everything inside <div class="cp-stage" id="cpStageJourney"> with:
 
@@ -3142,8 +3142,8 @@ Replace everything inside <div class="cp-stage" id="cpStageJourney"> with:
   <div id="ssmForm">
     <div style="margin-bottom:20px;">
       <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--brand);margin-bottom:8px;">Pillar Plan Builder</div>
-      <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:18px;color:var(--ink);margin-bottom:4px;">Answer 6 questions. Get a practical pillar plan.</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.6;">PostIQ will suggest pillars, seed ideas, recurring series templates, and one editable starter for Compose. Nothing is saved to Buffer until you use a Buffer action.</div>
+      <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:18px;color:var(--ink);margin-bottom:4px;">Feed the machine. Get a strategy.</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6;">6 quick fields. Deterministic output — same engine that powers the pillar planning engine.</div>
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -3211,7 +3211,7 @@ Replace everything inside <div class="cp-stage" id="cpStageJourney"> with:
 
     <div style="display:flex;gap:8px;margin-top:16px;align-items:center;">
       <button class="btn ghost" id="ssmBackBtn" type="button">← Back</button>
-      <button class="btn primary" id="ssmGenerateBtn" type="button">Generate pillar plan →</button>
+      <button class="btn primary" id="ssmGenerateBtn" type="button">⚡ Generate pillar plan →</button>
     </div>
   </div>
 </div>
@@ -3279,10 +3279,10 @@ window.ContentPillars = (() => {
     if (el) el.classList.add('active');
   }
 
-  // ── PILLAR PLAN ENGINE ─────────────────────────────────────────────────
+  // ── SSM ENGINE ─────────────────────────────────────────────────
 
   // Pillar library (subset — grow/sales for most verticals)
-  // Full library inlined from the strategy generator
+  // Full library inlined from SSM index.html
   const LIBRARY = {
     fitness_grow: [
       { name:'Real Progress, No Filter', desc:'Show the actual journey — sweat, setbacks, and small wins.', ideas:['Week 3 and I almost quit — here\'s what kept me going','My workout looked nothing like the plan today. Here\'s why that\'s fine','The fitness advice that actually worked for me (vs what I tried first)','What nobody shows you about getting in shape after 30','Progress pic I almost didn\'t post — but here we are'], hook:'The fitness account you actually need isn\'t showing you the full picture.', cta:'Follow if you\'re tired of the highlight reel. Real progress lives here.' },
@@ -3434,10 +3434,10 @@ window.ContentPillars = (() => {
     if (!rawPillars) rawPillars = getFallback(inp.industry, inp.goal, inp);
 
     const tonePool = HOOKS[inp.tone] || HOOKS.bold;
-    const series   = (SERIES[inp.goal] || SERIES.grow).map(item => ({ ...item }));
-    let quickWin   = getQuickWin(inp.industry, inp.goal, inp);
+    const series   = SERIES[inp.goal] || SERIES.grow;
+    const quickWin = getQuickWin(inp.industry, inp.goal, inp);
 
-    // Convert generated pillars → PostIQ pillar format with trust layer tags
+    // Convert SSM pillars → PostIQ pillar format with trust layer tags
     const pillars = rawPillars.map((p, i) => ({
       id:      cpUid(),
       name:    p.name,
@@ -3449,35 +3449,10 @@ window.ContentPillars = (() => {
       cta:     p.cta || '',
     }));
 
-    if (inp.notes) ssmApplyExtraContext({ pillars, series }, inp);
-    if (inp.notes) quickWin = `${quickWin}\n\nExtra context to use: ${inp.notes}`;
-
     return { pillars, series, quickWin, inp };
   }
 
-  function ssmApplyExtraContext(strategy, inp) {
-    const cleanNotes = String(inp.notes || '').trim().replace(/\s+/g, ' ');
-    if (!cleanNotes) return strategy;
-
-    const contextSeed = `Context-specific angle: ${cleanNotes}`;
-    if (strategy.pillars?.[0]) {
-      strategy.pillars[0].seeds = [contextSeed, ...(strategy.pillars[0].seeds || [])].slice(0, 5);
-      strategy.pillars[0].promise = `${strategy.pillars[0].promise} Keep this extra context in mind: ${cleanNotes}`;
-    }
-    if (strategy.pillars?.[3]) {
-      strategy.pillars[3].seeds = [`Use this offer/context in a conversion post: ${cleanNotes}`, ...(strategy.pillars[3].seeds || [])].slice(0, 5);
-    }
-
-    if (Array.isArray(strategy.series)) {
-      strategy.series.forEach(item => {
-        item.desc = `${item.desc}\n\nUse this extra context when adapting the series: ${cleanNotes}`;
-      });
-    }
-
-    return strategy;
-  }
-
-  // ── PILLAR PLAN FORM LOGIC ─────────────────────────────────────────────
+  // ── SSM FORM LOGIC ─────────────────────────────────────────────
 
   function ssmInit() {
     const backBtn     = cpQs('ssmBackBtn');
@@ -3495,12 +3470,11 @@ window.ContentPillars = (() => {
     const offer    = (cpQs('ssm-offer')?.value    || '').trim() || 'your offer';
     const tone     = cpQs('ssm-tone')?.value      || 'bold';
     const goal     = cpQs('ssm-goal')?.value      || 'grow';
-    const notes    = (cpQs('ssm-notes')?.value    || '').trim();
 
     if (!industry) { if (typeof showToast === 'function') showToast('Select an industry first', 'error'); return; }
     if (!goal)     { if (typeof showToast === 'function') showToast('Select a goal first', 'error'); return; }
 
-    const inp = { brand, industry, audience, offer, tone, goal, notes };
+    const inp = { brand, industry, audience, offer, tone, goal };
     cpState._ssmInputs = inp;
 
     // Show loading screen
@@ -3528,7 +3502,7 @@ window.ContentPillars = (() => {
     const result = ssmBuildStrategy(inp);
 
     // Set identity from inputs
-    cpState.identity = `${inp.brand} — ${inp.audience} — ${inp.offer}${inp.notes ? ` — Context: ${inp.notes}` : ''}`;
+    cpState.identity = `${inp.brand} — ${inp.audience} — ${inp.offer}`;
     cpState.pillars  = result.pillars.map(cpNormalizePillar);
     cpState._ssmInputs = inp;
 
@@ -3551,7 +3525,7 @@ window.ContentPillars = (() => {
     ssmSaveSeriesAsTemplates(result.series, inp);
 
     if (typeof showToast === 'function') {
-      showToast('Pillar plan created — starters added to Compose and Templates', 'success');
+      showToast('Pillar plan generated — starter added to Compose', 'success');
     }
 
     // Restore form for next time
@@ -3579,7 +3553,7 @@ window.ContentPillars = (() => {
       title:     s.name,
       type:      'Hooks',
       platform:  'Universal',
-      tags:      ['series', inp.industry, inp.goal, inp.notes ? 'custom-context' : ''].filter(Boolean),
+      tags:      ['series', inp.industry, inp.goal].filter(Boolean),
       body:      s.desc,
       createdAt: now,
       updatedAt: now,
@@ -3603,7 +3577,7 @@ window.ContentPillars = (() => {
       card.className  = 'cp-pillar-card';
       card.dataset.pid = pillar.id;
       const usage = cpUsageFor(pillar.id);
-      card.innerHTML = `<div class="cp-pillar-head"><div class="cp-pillar-tab" style="background:${pillarColor(pi)};"></div><div class="cp-pillar-head-inner"><div class="cp-pillar-inputs"><input class="cp-pillar-name" data-field="name" value="${cpEsc(pillar.name)}" placeholder="Pillar name" /><input class="cp-pillar-promise" data-field="promise" value="${cpEsc(pillar.promise)}" placeholder="The recurring promise this pillar makes…" /></div></div><div class="cp-pillar-head-right"><select class="cp-layer-select" data-field="layer"><option value="" ${pillar.layer ? '' : 'selected'}>Tag layer…</option><option value="awareness" ${pillar.layer==='awareness'?'selected':''}>👁 Awareness</option><option value="credibility" ${pillar.layer==='credibility'?'selected':''}>🎓 Credibility</option><option value="action" ${pillar.layer==='action'?'selected':''}>🛒 Action</option></select><span class="cp-usage-badge ${usage > 0 ? 'used' : ''}">${usage > 0 ? `${usage} started` : 'unused'}</span></div></div>` +
+      card.innerHTML = `<div class="cp-pillar-head"><div class="cp-pillar-tab" style="background:${pillarColor(pi)};"></div><div class="cp-pillar-head-inner"><div class="cp-pillar-inputs"><input class="cp-pillar-name" data-field="name" value="${cpEsc(pillar.name)}" placeholder="Pillar name" /><input class="cp-pillar-promise" data-field="promise" value="${cpEsc(pillar.promise)}" placeholder="The recurring promise this pillar makes…" /></div></div><div class="cp-pillar-head-right"><select class="cp-layer-select" data-field="layer"><option value="" ${pillar.layer ? '' : 'selected'}>Tag layer…</option><option value="awareness" ${pillar.layer==='awareness'?'selected':''}>👁 Awareness</option><option value="credibility" ${pillar.layer==='credibility'?'selected':''}>🎓 Credibility</option><option value="action" ${pillar.layer==='action'?'selected':''}>🛒 Action</option></select><span class="cp-usage-badge ${usage > 0 ? 'used' : ''}">${usage > 0 ? `${usage} drafted` : 'unused'}</span></div></div>` +
         (pillar.hook ? `<div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--brand);background:var(--brand-dim);border-top:1px solid var(--brand-glow);padding:8px 13px;line-height:1.45;">Hook: "${cpEsc(pillar.hook)}"</div>` : '') +
         `<div class="cp-seeds" data-seeds-for="${pillar.id}">${pillar.seeds.map((seed, si) => cpSeedRowHtml(pillar, si, seed)).join('')}</div><div class="cp-pillar-footer"><button class="btn sm ghost" data-action="add-seed" type="button" style="font-size:11px;height:26px;padding:0 10px;">+ Add seed idea</button><button class="btn sm ghost" data-action="remove-pillar" type="button" style="font-size:11px;height:26px;padding:0 8px;color:var(--subtle);">Remove pillar</button></div>`;
 
@@ -3691,7 +3665,7 @@ window.ContentPillars = (() => {
     const score = Math.min(100, (Math.min(total, 5) / 5) * 40 + (Math.min(seeds, 15) / 15) * 40 + (Math.min(used, 5) / 5) * 20);
     const bar = cpQs('cpHealthBar');
     if (bar) { bar.style.width = `${score}%`; bar.className = `cp-health-fill${score >= 70 ? ' good' : score >= 40 ? ' warn' : ''}`; }
-    const msgs = [[90,'Pillar system firing on all cylinders.'],[70,'Strong foundation. Keep building starters.'],[50,'Looking solid. Start from a seed when ready.'],[20,'Good start — add more seed ideas.'],[0,'Add your pillars to start.']];
+    const msgs = [[90,'Pillar system firing on all cylinders.'],[70,'Strong foundation. Keep drafting.'],[50,'Looking solid. Start drafting from seeds.'],[20,'Good start — add more seed ideas.'],[0,'Add your pillars to start.']];
     const msg = msgs.find(m => score >= m[0]);
     const el = cpQs('cpHealthMsg'); if (el) el.textContent = (msg || msgs[msgs.length - 1])[1];
   }
@@ -3721,7 +3695,7 @@ window.ContentPillars = (() => {
       const seed  = pillar.seeds.find(s => String(s || '').trim()) || '';
       const count = usage[pillar.id] || 0;
       const unusedBadge  = count === 0 ? `<span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);border:1px solid var(--border);padding:1px 6px;border-radius:999px;margin-left:6px;">unused</span>` : '';
-      const draftedLabel = count > 0 ? `${count} starter${count > 1 ? 's' : ''} created` : 'Not used yet';
+      const draftedLabel = count > 0 ? `${count} post${count > 1 ? 's' : ''} drafted` : 'Not used yet';
       const seedHtml = seed ? `<div class="cp-compact-seed">${cpEsc(seed)}</div><div class="cp-compact-row"><span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">${draftedLabel}</span><button class="btn sm primary" type="button" style="height:24px;font-size:11px;padding:0 8px;" data-start="${cpEsc(pillar.id)}">Start</button></div>` : '';
       card.innerHTML = `<div class="cp-compact-name">${cpEsc(pillar.name)}${unusedBadge}</div>${seedHtml}`;
       const btn = card.querySelector('[data-start]');
@@ -3737,7 +3711,7 @@ window.ContentPillars = (() => {
   function init() {
     const hasData = cpLoad();
 
-    // Gate: generated path
+    // Gate: SSM path
     const gN = cpQs('cpGateNew');
     if (gN) gN.addEventListener('click', () => { cpShowStage('cpStageJourney'); ssmInit(); });
 
