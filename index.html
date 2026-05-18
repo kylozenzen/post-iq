@@ -615,45 +615,6 @@ h2 em{font-style:normal;color:var(--brand);}
 .faq-a{max-height:0;overflow:hidden;transition:max-height .25s ease,padding .25s ease;padding:0 15px;font-size:13px;color:var(--muted);line-height:1.7;}
 .faq-item.open .faq-a{max-height:200px;padding:0 15px 14px;}
 
-/* ── STORY ── */
-.story-card{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-sm);
-  position:relative;
-}
-.story-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,var(--brand),rgba(58,63,255,.1));
-}
-.story-teaser{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:16px;padding:18px 22px;flex-wrap:wrap;
-}
-.story-teaser-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0;}
-.avatar{
-  width:38px;height:38px;border-radius:50%;
-  background:linear-gradient(135deg,var(--brand),#1a22cc);
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Bricolage Grotesque',sans-serif;font-weight:800;
-  font-size:12px;color:#fff;flex-shrink:0;
-}
-.story-toggle{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:7px 14px;border-radius:var(--r2);
-  border:1px solid var(--brand-glow);background:var(--brand-dim);
-  color:var(--brand);font-family:'Lato',sans-serif;font-size:13px;
-  font-weight:600;cursor:pointer;transition:all .14s;white-space:nowrap;flex-shrink:0;
-}
-.story-toggle:hover{background:rgba(58,63,255,.14);}
-.story-arrow{transition:transform .25s ease;display:inline-block;}
-.story-card.open .story-arrow{transform:rotate(180deg);}
-.story-body{max-height:0;overflow:hidden;transition:max-height .38s cubic-bezier(.4,0,.2,1);border-top:0px solid var(--border);}
-.story-card.open .story-body{max-height:500px;border-top-width:1px;}
-.story-inner{padding:26px 26px 22px;max-width:660px;}
-.story-inner p{font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:13px;}
-.story-sig{display:flex;align-items:center;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
-
-
 /* ── CREATOR BIO ── */
 .creator-bio-card{
   margin-top:22px;
@@ -757,8 +718,6 @@ h2 em{font-style:normal;color:var(--brand);}
   .bridge-actions{width:100%;}
   .bridge-actions .btn{flex:1;justify-content:center;}
   section{padding:52px 0 0;}
-  .story-teaser{flex-direction:column;align-items:flex-start;}
-  .story-toggle{width:100%;justify-content:center;}
   .creator-bio-card{grid-template-columns:56px 1fr;padding:16px;align-items:start;}
   .creator-bio-photo{width:56px;height:56px;border-radius:14px;}
   .creator-bio-card .btn{grid-column:1 / -1;justify-self:start;}
@@ -1029,39 +988,6 @@ h2 em{font-style:normal;color:var(--brand);}
   </div>
 </section>
 
-<!-- ORIGIN -->
-<section>
-  <div class="story-card reveal">
-    <div class="story-teaser">
-      <div class="story-teaser-left">
-        <div class="avatar">BC</div>
-        <div>
-          <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:2px;">Ben Campbell</div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.5;">I built PostIQ for myself. Opened it because more people needed it.</div>
-        </div>
-      </div>
-      <button class="story-toggle" id="storyToggle" aria-expanded="false">
-        Read the story <span class="story-arrow">↓</span>
-      </button>
-    </div>
-    <div class="story-body" id="storyBody">
-      <div class="story-inner">
-        <p>When I was deep in the weeds managing social for accounts that had grown to millions of followers, Buffer was already where publishing happened. I kept a separate notes doc for planning. I reviewed content over email. I tracked what was approved and what wasn't in a separate workflow.</p>
-        <p>Connecting that workflow to Buffer changed the shape of the tool I wanted — a planning calendar that showed my whole month, a composer that sent directly to my queue, a content pillar system so I always knew what to write, and an approval flow that kept clients in the loop without giving them my Buffer login.</p>
-        <p>I built it for myself first. Then I thought about how many creators and social managers were running the same patched-together workflow. So I cleaned it up, kept it focused, and put it out there.</p>
-        <p style="margin-bottom:0;">PostIQ isn't trying to replace Buffer. It's the planning and strategy layer that makes Buffer feel complete.</p>
-        <div class="story-sig">
-          <div class="avatar" style="width:34px;height:34px;font-size:11px;">BC</div>
-          <div>
-            <div style="font-weight:600;font-size:14px;color:var(--ink);">Ben Campbell</div>
-            <div style="font-size:12px;color:var(--subtle);">Social strategist · Builder · San Antonio, TX</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- CREATOR BIO -->
 <section aria-labelledby="creatorBioHeading">
   <div class="creator-bio-card reveal">
@@ -1176,15 +1102,6 @@ document.getElementById('sampleBtn').addEventListener('click', function() {
   document.getElementById('demoInput').value = SAMPLE;
   renderOutput(splitText(SAMPLE));
   gtag('event','demo_sample_used');
-});
-
-// Story toggle
-var storyToggle = document.getElementById('storyToggle');
-var storyCard = storyToggle.closest('.story-card');
-storyToggle.addEventListener('click', function() {
-  var open = storyCard.classList.toggle('open');
-  storyToggle.setAttribute('aria-expanded', open);
-  storyToggle.querySelector('.story-arrow').textContent = open ? '↑' : '↓';
 });
 
 // FAQ
