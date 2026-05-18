@@ -1937,29 +1937,56 @@
     .zen-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
     body.zen-active { overflow: hidden; }
-    .zen-overlay { position: fixed; inset: 0; z-index: 300; display: none; background: radial-gradient(circle at 20% 0%, color-mix(in srgb, var(--brand) 26%, #0f1017) 0%, #10131a 44%, #0b0d12 100%); color: var(--text); }
+    .zen-overlay {
+      position: fixed; inset: 0; z-index: 300; display: none;
+      background:
+        radial-gradient(1200px 620px at 10% -8%, color-mix(in srgb, var(--brand) 22%, transparent), transparent 64%),
+        radial-gradient(980px 560px at 88% 0%, color-mix(in srgb, #7c5cff 16%, transparent), transparent 62%),
+        linear-gradient(165deg, #0c1119 0%, #111827 42%, #10121a 100%);
+      color: var(--text);
+    }
+    .zen-overlay::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(9,12,19,.36) 0%, rgba(9,12,19,.68) 100%);
+    }
     body.zen-active .zen-overlay { display: block; }
-    .zen-shell { max-width: 1520px; margin: 0 auto; height: 100%; padding: clamp(14px,2vw,26px); display: flex; flex-direction: column; gap: 14px; }
+    .zen-shell { position: relative; z-index: 1; max-width: 1520px; margin: 0 auto; height: 100%; padding: clamp(14px,2vw,26px); display: flex; flex-direction: column; gap: 14px; }
     .zen-header { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
     .zen-header h2 { margin: 0; font-size: clamp(24px,3vw,34px); color: #f3f6fb; }
     .zen-header p { margin: 4px 0 0; font-size: 13px; color: color-mix(in srgb, var(--text) 70%, transparent); }
-    .zen-status-pill { font-size: 12px; letter-spacing: .01em; color: #ddf4ec; background: color-mix(in srgb, var(--ok) 24%, transparent); border: 1px solid color-mix(in srgb, var(--ok) 40%, transparent); border-radius: 999px; padding: 7px 10px; }
+    .zen-status-pill { font-size: 12px; letter-spacing: .01em; color: #ddf4ec; background: color-mix(in srgb, var(--ok) 20%, transparent); border: 1px solid color-mix(in srgb, var(--ok) 38%, transparent); border-radius: 999px; padding: 7px 10px; box-shadow: 0 0 0 1px rgba(255,255,255,.04) inset; }
     .zen-header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .zen-body { display: grid; grid-template-columns: minmax(0,2.35fr) minmax(250px,1fr); gap: 16px; min-height: 0; flex: 1; }
-    .zen-main,.zen-rail { background: color-mix(in srgb, var(--surface2) 70%, transparent); border: 1px solid color-mix(in srgb, var(--border2) 72%, #fff 6%); border-radius: 14px; padding: 16px; min-height: 0; backdrop-filter: blur(2px); }
+    .zen-main,.zen-rail { background: linear-gradient(160deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.035) 100%); border: 1px solid rgba(255,255,255,.14); border-radius: 16px; padding: 16px; min-height: 0; backdrop-filter: blur(10px); box-shadow: 0 16px 36px rgba(0,0,0,.24); }
     .zen-main { display: flex; flex-direction: column; gap: 12px; }
-    .zen-title,.zen-textarea { background: color-mix(in srgb, var(--surface) 80%, #090b12); color: #f2f5fb; border: 1px solid color-mix(in srgb, var(--border2) 72%, #fff 8%); font-family: 'Lato',sans-serif; }
-    .zen-title { min-height: 46px; font-size: 16px; }
-    .zen-textarea { min-height: clamp(55vh, 72vh, 78vh); width: 100%; border-radius: 12px; padding: 18px; line-height: 1.8; resize: vertical; font-size: clamp(17px,1.6vw,20px); }
+    .zen-title,.zen-textarea {
+      background: linear-gradient(180deg, rgba(18,23,34,.88) 0%, rgba(15,20,30,.94) 100%);
+      color: #f5f7fc;
+      border: 1px solid rgba(169,189,255,.18);
+      font-family: 'Lato',sans-serif;
+      transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    .zen-title { min-height: 48px; font-size: 16px; border-radius: 12px; padding: 10px 14px; margin-bottom: 2px; }
+    .zen-title::placeholder,.zen-textarea::placeholder { color: color-mix(in srgb, #d5deef 62%, transparent); }
+    .zen-title:focus,.zen-textarea:focus {
+      outline: none;
+      border-color: color-mix(in srgb, var(--brand) 56%, #bcd1ff);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 18%, transparent), 0 10px 24px rgba(0,0,0,.2);
+      background: linear-gradient(180deg, rgba(21,27,40,.92) 0%, rgba(17,22,34,.96) 100%);
+    }
+    .zen-textarea { min-height: clamp(55vh, 72vh, 78vh); width: 100%; border-radius: 12px; padding: 22px; line-height: 1.86; resize: vertical; font-size: clamp(17px,1.6vw,20px); }
     .zen-meta { display:flex; gap:10px; flex-wrap:wrap; align-items:center; font-size:12px; color: color-mix(in srgb, var(--text) 72%, transparent); }
     .zen-footer-actions { display:flex; gap:8px; flex-wrap:wrap; }
     .zen-helper-copy { margin: 2px 0 0; font-size: 12px; color: color-mix(in srgb, var(--text) 68%, transparent); }
-    .zen-rail { overflow: auto; }
+    .zen-rail { overflow: auto; background: linear-gradient(180deg, rgba(255,255,255,.085) 0%, rgba(255,255,255,.03) 100%); }
     .zen-rail-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
     .zen-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:10px; }
-    .zen-tab { border:1px solid var(--border2); background: var(--surface); color: var(--muted); border-radius: 8px; padding: 8px; font-size: 12px; cursor:pointer; }
-    .zen-tab.active { border-color: var(--brand-glow); color: var(--brand); background: var(--brand-dim); }
-    .zen-card { border:1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.03); border-radius: 10px; padding: 10px; margin-bottom: 8px; }
+    .zen-tab { border:1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.035); color: color-mix(in srgb, var(--text) 80%, transparent); border-radius: 999px; padding: 8px 10px; font-size: 12px; cursor:pointer; font-weight: 600; }
+    .zen-tab.active { border-color: color-mix(in srgb, var(--brand) 56%, #bcd1ff); color: #e8f0ff; background: color-mix(in srgb, var(--brand) 20%, transparent); }
+    .zen-card { border:1px solid rgba(255,255,255,.14); background: linear-gradient(180deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,.025) 100%); border-radius: 12px; padding: 10px; margin-bottom: 8px; }
     .zen-card p { margin: 0 0 8px; font-size: 13px; line-height: 1.45; }
     .zen-card small { color: rgba(237,240,245,.65); display:block; margin-bottom:8px; }
     .zen-card-actions { display:flex; gap:6px; flex-wrap: wrap; }
