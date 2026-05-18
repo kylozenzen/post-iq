@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="PostIQ">
+  <!-- Background -->
+  <rect width="64" height="64" rx="14" fill="#2C3050"/>
+  <!-- Arc 1 — inner -->
+  <path d="M22 42 Q32 30 42 42" stroke="#F5F6FA" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+  <!-- Arc 2 — outer -->
+  <path d="M13 33 Q32 14 51 33" stroke="#F5F6FA" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+  <!-- Blue dot -->
+  <circle cx="32" cy="50" r="5" fill="#3A3FFF"/>
+</svg>
