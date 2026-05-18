@@ -3053,52 +3053,103 @@ function init() {
   });
 
   // ── ZEN MODE ──
+  const ZEN_DRAFT_KEY = 'postiq_zen_draft_v1';
+  const ZEN_PINS_KEY = 'postiq_zen_pins_v1';
   let zenActive = false;
-
+  let zenPreviousView = 'composerView';
+  let zenLastSavedAt = '';
+  let zenSaveTimer = null;
+  const zenState = { selectedTab: 'pins' };
+  const parseLocal = (k, fallback) => { try { const raw = localStorage.getItem(k); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } };
+  const loadZenDraft = () => {
+    const d = parseLocal(ZEN_DRAFT_KEY, {});
+    return { title: String(d?.title || ''), body: String(d?.body || ''), selectedTab: ['pins','sparks','snippets'].includes(d?.selectedTab) ? d.selectedTab : 'pins', lastSavedAt: String(d?.lastSavedAt || '') };
+  };
+  const saveZenDraft = (draft) => { try { localStorage.setItem(ZEN_DRAFT_KEY, JSON.stringify(draft || {})); } catch {} };
+  const getZenPins = () => Array.isArray(parseLocal(ZEN_PINS_KEY, [])) ? parseLocal(ZEN_PINS_KEY, []) : [];
+  const saveZenPins = pins => { try { localStorage.setItem(ZEN_PINS_KEY, JSON.stringify(Array.isArray(pins) ? pins : [])); } catch {} };
+  const getZenIdeaSparks = () => (window.cpState?.pillars || []).flatMap(p => (Array.isArray(p?.seeds) ? p.seeds : [])).slice(0, 8).map(v => `Turn this idea into a practical post: ${compact(v, 90)}`);
+  const getZenTrendingSparks = () => Array.from(document.querySelectorAll('#trendingRedditList .trend-card-title, #trendingHNList .trend-card-title')).slice(0, 8).map(el => `What can your audience learn from: ${compact(el.textContent, 80)}?`);
+  const getZenSnippetItems = () => Array.isArray(state?.templates) ? state.templates.slice(0, 20).map(t => ({ text: t?.body || t?.title || '' })).filter(s => s.text.trim()) : [];
+  const zenFallbackSparks = ['Turn a small frustration into a useful lesson.','Explain the problem before pitching the feature.','Write the post you wish existed before you started.','Make the first line impossible to ignore.'];
+  const zenAppendToBody = text => { const b = qs('zenBodyInput'); if (!b || !text) return; b.value = `${b.value}${b.value ? '\n\n' : ''}${text}`; b.dispatchEvent(new Event('input')); };
+  function zenSaveNow() {
+    const draft = { title: qs('zenTitleInput')?.value || '', body: qs('zenBodyInput')?.value || '', selectedTab: zenState.selectedTab, lastSavedAt: new Date().toISOString() };
+    saveZenDraft(draft);
+    zenLastSavedAt = draft.lastSavedAt;
+    qs('zenLastSaved').textContent = 'Last saved just now';
+  }
+  function renderZenTab() {
+    const out = qs('zenTabContent'); if (!out) return;
+    if (zenState.selectedTab === 'pins') {
+      const pins = getZenPins();
+      out.innerHTML = `<div class="row mb8"><input id="zenPinLabel" class="input" placeholder="Label (optional)" /><input id="zenPinText" class="input grow" placeholder="Pin a quick note…" /><button class="btn sm" id="zenAddPin">Pin</button></div>` + (pins.length ? pins.map((p, i) => `<div class="zen-card"><small>${safeText(p.label || 'Pin')} · ${new Date(p.createdAt || Date.now()).toLocaleString()}</small><p>${safeText(p.text || '')}</p><div class="zen-card-actions"><button class="btn sm" data-zen-insert="${i}">Insert into draft</button><button class="btn sm" data-zen-copy="${i}">Copy</button><button class="btn sm ghost" data-zen-del="${i}">Delete</button></div></div>`).join('') : `<div class="empty-desc">Pin the stuff your brain swears it will remember and absolutely will not.</div>`);
+    } else if (zenState.selectedTab === 'sparks') {
+      const sparks = [...getZenTrendingSparks(), ...getZenIdeaSparks()].slice(0, 10);
+      const finalSparks = sparks.length ? sparks : zenFallbackSparks;
+      out.innerHTML = !sparks.length ? `<div class="empty-desc mb8">No trends loaded yet. Here are a few starter sparks.</div>` : '';
+      out.innerHTML += finalSparks.map((s, i) => `<div class="zen-card"><p>${safeText(s)}</p><div class="zen-card-actions"><button class="btn sm" data-zen-angle="${i}">Use as angle</button><button class="btn sm" data-zen-note="${i}">Insert as note</button><button class="btn sm ghost" data-zen-pin-spark="${i}">Pin this</button></div></div>`).join('');
+    } else {
+      const snippets = getZenSnippetItems();
+      out.innerHTML = snippets.length ? snippets.map((s, i) => `<div class="zen-card"><p>${safeText(compact(s.text, 220))}</p><div class="zen-card-actions"><button class="btn sm" data-zen-snip="${i}">Insert snippet</button></div></div>`).join('') : `<div class="empty-desc">No snippets saved yet. Future-you is already judging present-you.</div>`;
+    }
+  }
   function enterZen() {
+    zenPreviousView = currentViewId || 'composerView';
+    activateView('composerView');
     zenActive = true;
     document.body.classList.add('zen-active');
-    activateView('composerView');
-    const composePanel = qs('composeModePanel');
-    const splitPanel = qs('splitModePanel');
-    if (composePanel) composePanel.style.display = 'contents';
-    if (splitPanel) splitPanel.style.display = 'none';
-    document.querySelectorAll('.composer-mode-tab').forEach(t => {
-      const active = t.dataset.cmode === 'compose';
-      t.style.color = active ? 'var(--brand)' : 'var(--muted)';
-      t.style.borderBottomColor = active ? 'var(--brand)' : 'transparent';
-    });
-    qs('composerEditor')?.focus();
-    const zenToggle = qs('zenToggleBtn'); if (zenToggle) zenToggle.title = 'Exit zen mode';
+    const d = loadZenDraft();
+    zenState.selectedTab = d.selectedTab;
+    qs('zenTitleInput').value = d.title || '';
+    qs('zenBodyInput').value = d.body || editorToText(qs('composerEditor')?.innerHTML || '');
+    qs('zenLastSaved').textContent = d.lastSavedAt ? 'Last saved: ' + new Date(d.lastSavedAt).toLocaleTimeString() : 'Last saved: not yet';
+    document.querySelectorAll('.zen-tab').forEach(t => t.classList.toggle('active', t.dataset.zenTab === zenState.selectedTab));
+    renderZenTab();
+    qs('zenBodyInput')?.focus();
   }
-
   function exitZen() {
+    zenSaveNow();
     zenActive = false;
     document.body.classList.remove('zen-active');
-    const zenToggle = qs('zenToggleBtn'); if (zenToggle) zenToggle.title = 'Zen mode — distraction-free writing';
+    if (zenPreviousView) activateView(zenPreviousView);
   }
-
   on('zenToggleBtn', 'click', () => zenActive ? exitZen() : enterZen());
   on('zenExit', 'click', exitZen);
-
-  const zenChannel = qs('zenChannel');
-  if (zenChannel) {
-    zenChannel.addEventListener('change', () => {
-      const main = qs('composerChannel');
-      if (main) main.value = zenChannel.value;
-      updateComposerButtonStates();
-    });
-  }
-
-  const zenDraft = qs('zenDraft'); if (zenDraft) zenDraft.onclick = () => composerSend('draft');
-  const zenQueue = qs('zenQueue'); if (zenQueue) zenQueue.onclick = () => composerSend('queue');
-  const zenSchedule = qs('zenSchedule');
-  if (zenSchedule) zenSchedule.onclick = () => {
-    exitZen();
-    qs('schedulePanel')?.classList.add('open');
-    const tgl = qs('composerScheduleToggle');
-    if (tgl) tgl.style.display = 'none';
-  };
+  on('zenExitFooter', 'click', exitZen);
+  on('zenCopyBtn', 'click', () => { navigator.clipboard.writeText(`${qs('zenTitleInput')?.value || ''}\n${qs('zenBodyInput')?.value || ''}`.trim()); showToast('Copied', 'success'); });
+  on('zenCopyFooter', 'click', () => qs('zenCopyBtn')?.click());
+  on('zenSendCompose', 'click', () => { const ed = qs('composerEditor'); if (ed) { ed.innerText = [qs('zenTitleInput')?.value, qs('zenBodyInput')?.value].filter(Boolean).join('\n\n'); ed.dispatchEvent(new Event('input')); } showToast('Sent to Compose', 'success'); });
+  on('zenSaveDraftBtn', 'click', () => { qs('zenSendCompose')?.click(); const text = editorToText(qs('composerEditor')?.innerHTML || ''); if (text) composerSend('draft'); else { zenSaveNow(); showToast('Saved. Tiny productivity goblin satisfied.', 'success'); } });
+  on('zenSaveDraftFooter', 'click', () => qs('zenSaveDraftBtn')?.click());
+  on('zenClearDraftBtn', 'click', () => { if (!confirm('Clear your Zen draft?')) return; saveZenDraft({ title: '', body: '', selectedTab: zenState.selectedTab, lastSavedAt: '' }); qs('zenTitleInput').value = ''; qs('zenBodyInput').value = ''; qs('zenBodyInput').dispatchEvent(new Event('input')); });
+  on('zenRailToggle', 'click', () => { const rail = qs('zenRail'); if (!rail) return; rail.classList.toggle('collapsed'); const collapsed = rail.classList.contains('collapsed'); qs('zenRailToggle').textContent = collapsed ? 'Expand' : 'Collapse'; qs('zenRailToggle').setAttribute('aria-expanded', String(!collapsed)); });
+  ['zenTitleInput','zenBodyInput'].forEach(id => on(id, 'input', () => {
+    const body = qs('zenBodyInput')?.value || '';
+    qs('zenWordCount').textContent = `${body.trim() ? body.trim().split(/\s+/).length : 0} words`;
+    qs('zenCharCount').textContent = `${body.length} chars`;
+    if (zenSaveTimer) clearTimeout(zenSaveTimer);
+    zenSaveTimer = setTimeout(zenSaveNow, 450);
+  }));
+  document.querySelectorAll('.zen-tab').forEach(t => t.onclick = () => { zenState.selectedTab = t.dataset.zenTab; document.querySelectorAll('.zen-tab').forEach(b => b.classList.toggle('active', b === t)); renderZenTab(); zenSaveNow(); });
+  on('zenTabContent', 'click', e => {
+    const pins = getZenPins();
+    const sparks = ([...getZenTrendingSparks(), ...getZenIdeaSparks()].slice(0, 10).length ? [...getZenTrendingSparks(), ...getZenIdeaSparks()].slice(0, 10) : zenFallbackSparks);
+    const snippets = getZenSnippetItems();
+    const t = e.target.closest('button'); if (!t) return;
+    const i = Number(Object.values(t.dataset)[0]);
+    if (t.dataset.zenInsert !== undefined) zenAppendToBody(pins[i]?.text || '');
+    if (t.dataset.zenCopy !== undefined) navigator.clipboard.writeText(pins[i]?.text || '');
+    if (t.dataset.zenDel !== undefined) { pins.splice(i, 1); saveZenPins(pins); renderZenTab(); }
+    if (t.dataset.zenAngle !== undefined || t.dataset.zenNote !== undefined) zenAppendToBody(sparks[i] || '');
+    if (t.dataset.zenPinSpark !== undefined) { pins.unshift({ text: sparks[i] || '', label: 'Spark', createdAt: new Date().toISOString() }); saveZenPins(pins); showToast('Pinned spark', 'success'); }
+    if (t.dataset.zenSnip !== undefined) zenAppendToBody(snippets[i]?.text || '');
+    if (t.id === 'zenAddPin') {
+      const text = qs('zenPinText')?.value?.trim(); if (!text) return;
+      pins.unshift({ text, label: qs('zenPinLabel')?.value?.trim() || '', createdAt: new Date().toISOString() });
+      saveZenPins(pins); renderZenTab();
+    }
+  });
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && zenActive) {
