@@ -132,7 +132,7 @@
       </a>
       <button class="nav-btn" id="openSettings">
         <span class="nav-icon" style="opacity:.5;"><svg><use href="#i-settings"/></svg></span>
-        <span class="nav-text">Settings &amp; Help</span>
+        <span class="nav-text">Settings</span>
       </button>
     </div>
   </aside>
@@ -413,7 +413,7 @@
               <input type="checkbox" id="needsApprovalCheck" />
               <span class="approval-check-label">Needs approval before publishing</span>
             </label>
-            <div style="font-size:11px;color:var(--subtle);margin-top:8px;line-height:1.55;">Save as a Buffer draft first — then generate an approval link from the Approve tab.</div>
+            <div style="font-size:11px;color:var(--subtle);margin-top:8px;line-height:1.55;">Approvals are a beta workflow. Save as a Buffer draft first — then generate an approval link from the Approve tab when available.</div>
           </div>
 
         </div>
@@ -764,7 +764,7 @@
 
         <section class="ideas-panel" id="ideasTrendingPanel" data-ideas-panel="trending">
           <div class="ideas-panel-hdr">
-            <p class="ideas-panel-copy">What's hot on Reddit and Hacker News right now. Click any story to open it in Compose.</p>
+            <p class="ideas-panel-copy">Reddit and Hacker News inspiration when the beta tool is available. Click any story to open it in Compose.</p>
             <div class="page-actions">
               <button class="btn sm ghost" id="trendingRefreshMob">↻</button>
               <button class="btn ghost" id="trendingRefreshBtn">↻ Refresh</button>
@@ -816,96 +816,101 @@
 
 <!-- Settings modal -->
 <div id="settingsModal" class="modal">
-  <div class="modal-card" style="max-width:580px;">
-    <div class="modal-hdr">
-      <span class="modal-title">Settings &amp; Help</span>
-      <button class="btn sm ghost" id="closeSettings">Close</button>
+  <div class="modal-card settings-modal-card">
+    <div class="modal-hdr settings-modal-hdr">
+      <span class="modal-title">Settings</span>
+      <button class="btn sm ghost" id="closeSettings" type="button" aria-label="Close settings">Close</button>
     </div>
-    <div class="settings-tabs">
-      <button class="settings-tab active" data-stab="guide">Guide</button>
-      <button class="settings-tab" data-stab="planning">Planning</button>
-      <button class="settings-tab" data-stab="connection">Connection</button>
-      <button class="settings-tab" data-stab="about">About</button>
-    </div>
-    <div id="settingsPanelGuide" class="settings-panel active">
-      <div style="display:flex;flex-direction:column;gap:18px;">
-        <div>
-          <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">📅 Plan</div>
-          <p style="font-size:13px;color:var(--muted);line-height:1.65;">See your Buffer queue in a monthly calendar. Click any day to add a color-tagged planning note. The gap detector highlights days with nothing scheduled so you know where to focus your drafting sessions.</p>
-        </div>
-        <div>
-          <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">✍️ Compose</div>
-          <p style="font-size:13px;color:var(--muted);line-height:1.65;">Write posts in a focused editor, pull in a template, attach media via upload or URL, then choose a Buffer action when you’re ready. Check "Needs approval" before saving a Buffer draft to route it through sign-off.</p>
-        </div>
-        <div>
-          <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">✅ Approve</div>
-          <p style="font-size:13px;color:var(--muted);line-height:1.65;">Generate a shareable reviewer link for any pending Buffer draft. The reviewer opens the link, reads the content, leaves a comment, and approves or requests changes. Once approved, you publish directly to Buffer from here.</p>
-        </div>
-        <div>
-          <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">⚡ Templates</div>
-          <p style="font-size:13px;color:var(--muted);line-height:1.65;">Save reusable post starters — product announcement formats, engagement questions, stat callouts. Insert any template into Compose with one click. Select text in the editor and hit "+ Save" to create a template from it.</p>
-        </div>
-        <div>
-          <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">🔑 Connecting Buffer</div>
-          <p style="font-size:13px;color:var(--muted);line-height:1.65;">Sign in with Buffer to connect PostIQ, then use Sync now to refresh your channels and scheduled posts. Manual setup lives in the advanced Connection settings for testing or backup access.</p>
-        </div>
+    <div class="settings-modal-body">
+      <div class="settings-tabs" role="tablist" aria-label="Settings sections">
+        <button class="settings-tab active" id="settingsTabConnection" type="button" role="tab" aria-selected="true" aria-controls="settingsPanelConnection" data-stab="connection">Connection</button>
+        <button class="settings-tab" id="settingsTabPlanning" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelPlanning" data-stab="planning">Planning</button>
+        <button class="settings-tab" id="settingsTabNotes" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelNotes" data-stab="notes">Notes</button>
+        <button class="settings-tab" id="settingsTabFeatures" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelFeatures" data-stab="features">Beta / Features</button>
+        <button class="settings-tab" id="settingsTabAbout" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelAbout" data-stab="about">About</button>
       </div>
-    </div>
-    <div id="settingsPanelPlanning" class="settings-panel">
-      <div class="settings-section">
-        <div class="settings-section-title">Planning Settings</div>
-        <label class="settings-check"><input type="checkbox" id="showQueueGapsSetting" /> Show queue gaps</label>
-        <div class="label mt12">Posting schedule</div>
-        <div id="postingDaysSettings" class="settings-day-grid"></div>
-      </div>
-      <div class="settings-section">
-        <div class="settings-section-title">Calendar note types</div>
-        <div id="noteTypesSettings" class="note-types-settings"></div>
-        <button class="btn sm" id="addNoteTypeBtn" type="button">+ Add note type</button>
-        <div style="font-size:11px;color:var(--subtle);margin-top:8px;line-height:1.5;">Existing notes keep their saved labels. Unknown note types fall back to Note styling.</div>
-      </div>
-    </div>
 
-    <div id="settingsPanelConnection" class="settings-panel">
-      <div class="settings-section connection-settings-card">
-        <div class="settings-section-title">Buffer sign-in</div>
-        <p class="settings-copy">Recommended for most users. Sign in with Buffer so PostIQ can load your channels and publish through your account. Disconnect Buffer clears this sign-in only; advanced manual setup stays until you clear it below.</p>
-        <div class="connection-status-line" id="oauthStatusText">Not connected.</div>
-        <div class="row mt12">
-          <button class="btn primary" id="connectBufferBtn" type="button">Sign in with Buffer</button>
-          <button class="btn ghost" id="disconnectBufferBtn" type="button" style="display:none;">Disconnect Buffer</button>
+      <div id="settingsPanelConnection" class="settings-panel active" role="tabpanel" aria-labelledby="settingsTabConnection" tabindex="0">
+        <div class="settings-section connection-settings-card">
+          <div class="settings-section-title">Buffer connection</div>
+          <p class="settings-copy">Recommended for most users. Sign in with Buffer so PostIQ can load your channels, view your queue, and publish through your account when you choose.</p>
+          <div class="connection-status-line" id="oauthStatusText">Not connected.</div>
+          <div class="row mt12">
+            <button class="btn primary" id="connectBufferBtn" type="button">Sign in with Buffer</button>
+            <button class="btn ghost" id="disconnectBufferBtn" type="button" style="display:none;">Disconnect Buffer</button>
+          </div>
+        </div>
+        <details class="settings-section advanced-connection" id="tokenPanel">
+          <summary>Advanced: API key fallback</summary>
+          <p class="settings-copy">Only use this if Buffer sign-in is unavailable or you are testing manually. Disconnect Buffer clears OAuth sign-in only; saved manual keys stay here until you remove them.</p>
+          <div class="field">
+            <label class="label" for="tokenInput">API key fallback</label>
+            <input id="tokenInput" class="input mono" type="password" placeholder="Paste API key…" />
+          </div>
+          <div class="row mb8" style="gap:14px;">
+            <label class="settings-check"><input type="radio" name="tokenMode" value="session" checked /> Session</label>
+            <label class="settings-check"><input type="radio" name="tokenMode" value="local" /> Save locally</label>
+          </div>
+          <div class="row">
+            <button class="btn sm primary" id="saveTokenBtn" type="button">Save API key</button>
+            <button class="btn sm ghost" id="clearTokenBtn" type="button">Disconnect manual key</button>
+          </div>
+          <div id="tokenMsg" class="connection-token-msg"></div>
+        </details>
+      </div>
+
+      <div id="settingsPanelPlanning" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabPlanning" tabindex="0">
+        <div class="settings-section">
+          <div class="settings-section-title">Planning settings</div>
+          <p class="settings-copy">Control how the Plan / Calendar view highlights gaps in your Buffer queue.</p>
+          <label class="settings-check mt12"><input type="checkbox" id="showQueueGapsSetting" /> Show queue gaps</label>
+          <div class="label mt12">Posting schedule</div>
+          <div id="postingDaysSettings" class="settings-day-grid"></div>
         </div>
       </div>
-      <details class="settings-section advanced-connection" id="tokenPanel">
-        <summary>Advanced: API key fallback</summary>
-        <p class="settings-copy">Only use this if Buffer sign-in is unavailable or you are testing manually.</p>
-        <div class="field">
-          <label class="label">API key fallback</label>
-          <input id="tokenInput" class="input mono" type="password" placeholder="Paste API key…" />
+
+      <div id="settingsPanelNotes" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabNotes" tabindex="0">
+        <div class="settings-section">
+          <div class="settings-section-title">Planning notes</div>
+          <p class="settings-copy">Customize the labels and colors used for notes on the Plan / Calendar. Existing notes keep their saved labels; unknown note types fall back to Note styling.</p>
+          <div id="noteTypesSettings" class="note-types-settings mt12"></div>
+          <button class="btn sm" id="addNoteTypeBtn" type="button">+ Add note type</button>
         </div>
-        <div class="row mb8" style="gap:14px;">
-          <label class="settings-check"><input type="radio" name="tokenMode" value="session" checked /> Session</label>
-          <label class="settings-check"><input type="radio" name="tokenMode" value="local" /> Save locally</label>
-        </div>
-        <div class="row">
-          <button class="btn sm primary" id="saveTokenBtn">Save API key</button>
-          <button class="btn sm ghost" id="clearTokenBtn">Disconnect manual key</button>
-        </div>
-        <div id="tokenMsg" class="connection-token-msg"></div>
-      </details>
-    </div>
-    <div id="settingsPanelAbout" class="settings-panel">
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;">
-        <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px;margin-bottom:8px;color:var(--ink);">PostIQ — Buffer Companion</div>
-        <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:12px;">The planning and approval layer for Buffer. Plan your queue, compose posts with templates, get sign-off before publishing.</p>
       </div>
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:16px;">
-        <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:15px;margin-bottom:4px;color:var(--ink);">Built by Ben Campbell</div>
-        <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:12px;">Social strategist and content builder. Grew a social account to 6M+ followers. Now building tools for serious Buffer users.</p>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <a href="https://bencampbell.netlify.app/" target="_blank" rel="noopener" class="btn primary">My work</a>
-          <a href="https://www.linkedin.com/in/bencampbell8/" target="_blank" rel="noopener" class="btn">LinkedIn</a>
-          <a href="/privacy.html" class="btn">Privacy Policy</a>
+
+      <div id="settingsPanelFeatures" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabFeatures" tabindex="0">
+        <div class="settings-section">
+          <div class="settings-section-title">Public beta features</div>
+          <p class="settings-copy">Some tools can be paused during beta while they are being improved. If a feature is unavailable, PostIQ will show a notice instead of breaking the workflow.</p>
+          <div class="settings-feature-list" aria-label="Feature availability">
+            <div class="settings-feature-item"><span>Plan / Calendar</span><span class="settings-feature-status" data-settings-feature="calendar">Available</span></div>
+            <div class="settings-feature-item"><span>Compose</span><span class="settings-feature-status" data-settings-feature="composer">Available</span></div>
+            <div class="settings-feature-item"><span>Split into thread</span><span class="settings-feature-status is-static">Available</span></div>
+            <div class="settings-feature-item"><span>Ideas</span><span class="settings-feature-status" data-settings-feature="ideas">Available</span></div>
+            <div class="settings-feature-item"><span>Content Pillars</span><span class="settings-feature-status" data-settings-feature="contentPillars">Available</span></div>
+            <div class="settings-feature-item"><span>Templates</span><span class="settings-feature-status is-static">Available</span></div>
+            <div class="settings-feature-item"><span>Trending ideas</span><span class="settings-feature-status" data-settings-feature="trending">Available</span></div>
+            <div class="settings-feature-item"><span>Approvals <small>beta</small></span><span class="settings-feature-status" data-settings-feature="approvals">Available</span></div>
+            <div class="settings-feature-item"><span>Snapshot sharing</span><span class="settings-feature-status" data-settings-feature="snapshots">Available</span></div>
+            <div class="settings-feature-item"><span>Media upload</span><span class="settings-feature-status" data-settings-feature="uploads">Available</span></div>
+            <div class="settings-feature-item"><span>Unsplash search</span><span class="settings-feature-status" data-settings-feature="unsplash">Available</span></div>
+          </div>
+          <p class="settings-copy settings-feature-note" id="settingsBetaMessage"></p>
+        </div>
+      </div>
+
+      <div id="settingsPanelAbout" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabAbout" tabindex="0">
+        <div class="settings-section about-ben-card">
+          <img class="about-ben-photo" src="https://github.com/kylozenzen/ben-portfolio/blob/main/Ben%20Headshot%202026.jpg?raw=true" alt="Ben Campbell" loading="lazy" />
+          <div class="about-ben-copy">
+            <div class="settings-section-title">About Ben</div>
+            <p class="settings-copy">PostIQ was built by Ben Campbell, a social media and content strategist who needed a cleaner way to plan, write, split, and share posts before they went live.</p>
+            <p class="settings-copy">It started as a set of internal workflow tools and became a public beta companion for Buffer users.</p>
+            <div class="about-ben-actions">
+              <a href="https://bencampbell.netlify.app" target="_blank" rel="noopener" class="btn primary">View Ben’s portfolio</a>
+              <a href="/privacy.html" class="btn ghost">Privacy Policy</a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1064,7 +1069,7 @@
   <!-- Quick links -->
   <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">↗ Open Buffer</a>
   <button class="btn ghost" data-view="ideasView" id="mobDrawerIdeasBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">💡 Ideas</button>
-  <button class="btn ghost" id="mobOpenSettings" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">⚙ Settings &amp; Help</button>
+  <button class="btn ghost" id="mobOpenSettings" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">⚙ Settings</button>
 </div>
 
 <!-- Zen exit button (floats bottom-right when zen is active) -->

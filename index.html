@@ -615,43 +615,21 @@ h2 em{font-style:normal;color:var(--brand);}
 .faq-a{max-height:0;overflow:hidden;transition:max-height .25s ease,padding .25s ease;padding:0 15px;font-size:13px;color:var(--muted);line-height:1.7;}
 .faq-item.open .faq-a{max-height:200px;padding:0 15px 14px;}
 
-/* ── STORY ── */
-.story-card{
+/* ── CREATOR BIO ── */
+.creator-bio-card{
+  margin-top:22px;
   background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-sm);
-  position:relative;
+  border-radius:var(--r);box-shadow:var(--shadow-sm);
+  padding:18px;display:grid;grid-template-columns:72px 1fr auto;
+  gap:16px;align-items:center;
 }
-.story-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,var(--brand),rgba(58,63,255,.1));
+.creator-bio-photo{
+  display:block;width:72px;height:72px;border-radius:18px;object-fit:cover;
+  border:1px solid var(--border2);background:var(--surface3);box-shadow:var(--shadow-sm);
 }
-.story-teaser{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:16px;padding:18px 22px;flex-wrap:wrap;
-}
-.story-teaser-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0;}
-.avatar{
-  width:38px;height:38px;border-radius:50%;
-  background:linear-gradient(135deg,var(--brand),#1a22cc);
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Bricolage Grotesque',sans-serif;font-weight:800;
-  font-size:12px;color:#fff;flex-shrink:0;
-}
-.story-toggle{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:7px 14px;border-radius:var(--r2);
-  border:1px solid var(--brand-glow);background:var(--brand-dim);
-  color:var(--brand);font-family:'Lato',sans-serif;font-size:13px;
-  font-weight:600;cursor:pointer;transition:all .14s;white-space:nowrap;flex-shrink:0;
-}
-.story-toggle:hover{background:rgba(58,63,255,.14);}
-.story-arrow{transition:transform .25s ease;display:inline-block;}
-.story-card.open .story-arrow{transform:rotate(180deg);}
-.story-body{max-height:0;overflow:hidden;transition:max-height .38s cubic-bezier(.4,0,.2,1);border-top:0px solid var(--border);}
-.story-card.open .story-body{max-height:500px;border-top-width:1px;}
-.story-inner{padding:26px 26px 22px;max-width:660px;}
-.story-inner p{font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:13px;}
-.story-sig{display:flex;align-items:center;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
+.creator-bio-copy h3{font-size:18px;margin-bottom:5px;color:var(--ink);}
+.creator-bio-copy p{font-size:13px;color:var(--muted);line-height:1.65;margin:0;max-width:68ch;}
+.creator-bio-card .btn{justify-self:end;}
 
 /* ── CTA ── */
 .cta-section{padding:72px 0 96px;position:relative;z-index:1;}
@@ -740,8 +718,9 @@ h2 em{font-style:normal;color:var(--brand);}
   .bridge-actions{width:100%;}
   .bridge-actions .btn{flex:1;justify-content:center;}
   section{padding:52px 0 0;}
-  .story-teaser{flex-direction:column;align-items:flex-start;}
-  .story-toggle{width:100%;justify-content:center;}
+  .creator-bio-card{grid-template-columns:56px 1fr;padding:16px;align-items:start;}
+  .creator-bio-photo{width:56px;height:56px;border-radius:14px;}
+  .creator-bio-card .btn{grid-column:1 / -1;justify-self:start;}
 }
 </style>
 </head>
@@ -843,7 +822,7 @@ h2 em{font-style:normal;color:var(--brand);}
       <p>Your Buffer schedule lives in a monthly calendar. Add color-coded planning notes to any day. Queue gaps surface automatically so you draft with intention — not guesswork.</p>
       <div class="tool-features">
         <div class="tool-feat">Gap detection flags empty weekdays in the next 7 days</div>
-        <div class="tool-feat">Color-tagged notes: Idea, Draft, Campaign, Priority</div>
+        <div class="tool-feat">Color-tagged notes: Note, Idea, Reminder, Needs Revision</div>
         <div class="tool-feat">Pick a content pillar directly from any gap</div>
         <div class="tool-feat">Share a read-only snapshot with your team or client</div>
       </div>
@@ -870,7 +849,7 @@ h2 em{font-style:normal;color:var(--brand);}
       <span class="tool-icon">✍️</span>
       <div class="tool-num">03 — Compose</div>
       <h3>Write it here.<br>Send to Buffer.</h3>
-      <p>Rich text composer with templates, media attachment via upload, URL, or Unsplash, and a Trending story pin. When you're done — draft, queue, or schedule it to Buffer in one click.</p>
+      <p>Rich text composer with templates, media by URL, and optional upload or Unsplash tools when they are available in beta. Pin a Trending reference, then save a Buffer draft, queue, or schedule when you're ready.</p>
     </div>
 
     <div class="tool-card reveal">
@@ -882,9 +861,9 @@ h2 em{font-style:normal;color:var(--brand);}
 
     <div class="tool-card reveal">
       <span class="tool-icon">📈</span>
-      <div class="tool-num">05 — Trending</div>
+      <div class="tool-num">05 — Trending ideas</div>
       <h3>Find ideas.<br>Write your take.</h3>
-      <p>Browse hot Reddit posts by subreddit or Hacker News top stories. Click "Compose from this" and the headline pins above your composer as a reference — so you write your angle, not a summary.</p>
+      <p>Browse Reddit or Hacker News inspiration when the beta tool is available. Click "Compose from this" and the headline pins above your composer as a reference — so you write your angle, not a summary.</p>
     </div>
 
   </div>
@@ -906,7 +885,7 @@ h2 em{font-style:normal;color:var(--brand);}
 
     <div class="tool-card reveal">
       <span class="tool-icon">✅</span>
-      <div class="tool-num">07 — Approve</div>
+      <div class="tool-num">07 — Approvals beta</div>
       <h3>Sign-off before<br>it goes live.</h3>
       <p>Generate a shareable reviewer link for any draft. Your client or teammate reads the post, leaves feedback, and approves or requests changes. You publish once it's cleared — no Buffer access needed on their end.</p>
     </div>
@@ -971,7 +950,7 @@ h2 em{font-style:normal;color:var(--brand);}
     <div class="token-card reveal">
       <div class="token-bg-num">02</div>
       <h4>Plan and compose in PostIQ</h4>
-      <p>Use Composer, Split Mode, Snippets, Calendar, and Approvals to shape content before it goes out.</p>
+      <p>Use Compose, Split into thread, Templates, Plan / Calendar, and Approvals beta to shape content before it goes out.</p>
     </div>
     <div class="token-card reveal">
       <div class="token-bg-num">03</div>
@@ -1009,36 +988,15 @@ h2 em{font-style:normal;color:var(--brand);}
   </div>
 </section>
 
-<!-- ORIGIN -->
-<section>
-  <div class="story-card reveal">
-    <div class="story-teaser">
-      <div class="story-teaser-left">
-        <div class="avatar">BC</div>
-        <div>
-          <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:2px;">Ben Campbell</div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.5;">I built PostIQ for myself. Opened it because more people needed it.</div>
-        </div>
-      </div>
-      <button class="story-toggle" id="storyToggle" aria-expanded="false">
-        Read the story <span class="story-arrow">↓</span>
-      </button>
+<!-- CREATOR BIO -->
+<section aria-labelledby="creatorBioHeading">
+  <div class="creator-bio-card reveal">
+    <img class="creator-bio-photo" src="https://github.com/kylozenzen/ben-portfolio/blob/main/Ben%20Headshot%202026.jpg?raw=true" alt="Ben Campbell" loading="lazy" />
+    <div class="creator-bio-copy">
+      <h3 id="creatorBioHeading">Built by someone who actually needed this</h3>
+      <p>PostIQ was created by Ben Campbell, a social media and content strategist who has planned, written, and shipped content across SaaS, architecture, attractions, and large-scale brand channels. It started as a practical workflow tool and became a public beta companion for Buffer users.</p>
     </div>
-    <div class="story-body" id="storyBody">
-      <div class="story-inner">
-        <p>When I was deep in the weeds managing social for accounts that had grown to millions of followers, Buffer was already where publishing happened. I kept a separate notes doc for planning. I reviewed content over email. I tracked what was approved and what wasn't in a separate workflow.</p>
-        <p>Connecting that workflow to Buffer changed the shape of the tool I wanted — a planning calendar that showed my whole month, a composer that sent directly to my queue, a content pillar system so I always knew what to write, and an approval flow that kept clients in the loop without giving them my Buffer login.</p>
-        <p>I built it for myself first. Then I thought about how many creators and social managers were running the same patched-together workflow. So I cleaned it up, kept it focused, and put it out there.</p>
-        <p style="margin-bottom:0;">PostIQ isn't trying to replace Buffer. It's the planning and strategy layer that makes Buffer feel complete.</p>
-        <div class="story-sig">
-          <div class="avatar" style="width:34px;height:34px;font-size:11px;">BC</div>
-          <div>
-            <div style="font-weight:600;font-size:14px;color:var(--ink);">Ben Campbell</div>
-            <div style="font-size:12px;color:var(--subtle);">Social strategist · Builder · San Antonio, TX</div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <a href="https://bencampbell.netlify.app" target="_blank" rel="noopener" class="btn ghost">Meet Ben</a>
   </div>
 </section>
 
@@ -1144,15 +1102,6 @@ document.getElementById('sampleBtn').addEventListener('click', function() {
   document.getElementById('demoInput').value = SAMPLE;
   renderOutput(splitText(SAMPLE));
   gtag('event','demo_sample_used');
-});
-
-// Story toggle
-var storyToggle = document.getElementById('storyToggle');
-var storyCard = storyToggle.closest('.story-card');
-storyToggle.addEventListener('click', function() {
-  var open = storyCard.classList.toggle('open');
-  storyToggle.setAttribute('aria-expanded', open);
-  storyToggle.querySelector('.story-arrow').textContent = open ? '↑' : '↓';
 });
 
 // FAQ
