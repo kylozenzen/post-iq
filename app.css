@@ -1936,109 +1936,32 @@
     .zen-btn:hover { background: var(--surface3); color: var(--brand); }
     .zen-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
-    /* Zen overlay */
-    body.zen-active {
-      background: #0f0f12;
-    }
-    body.zen-active .side,
-    body.zen-active .mobile-tabs,
-    body.zen-active .page-hdr,
-    body.zen-active .mob-view-hdr,
-    body.zen-active .composer-panel,
-    body.zen-active #refPin,
-    body.zen-active .media-toggle-btn,
-    body.zen-active #mediaToggleOff,
-    body.zen-active #mediaSummary,
-    body.zen-active #composerStatus,
-    body.zen-active .editor-toolbar,
-body.zen-active #composerModeTabs,
-body.zen-active #splitModePanel,
-body.zen-active #composerSupportSection,
-body.zen-active #zenActions { opacity: 0; pointer-events: none; transition: opacity .3s ease; }
-
-    body.zen-active .app { grid-template-columns: 1fr; }
-    body.zen-active .main { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-    body.zen-active #composerView {
-      width: min(680px, 92vw);
-      padding: 0 0 40px !important;
-      margin: 0 auto;
-    }
-    body.zen-active .editor-wrap {
-      border: none;
-      border-radius: 0;
-      background: transparent;
-      box-shadow: none;
-    }
-    body.zen-active .rich-editor {
-      min-height: 55vh;
-      background: transparent;
-      color: #e8e6e0;
-      caret-color: var(--brand);
-      font-size: 18px;
-      line-height: 1.85;
-      padding: 32px 0;
-      font-family: 'Lato', sans-serif;
-      letter-spacing: .01em;
-    }
-    body.zen-active .rich-editor:empty::before { color: rgba(255,255,255,.18); font-style: italic; }
-    body.zen-active .editor-footer {
-      background: transparent;
-      border-top: 1px solid rgba(255,255,255,.06);
-      padding: 10px 0;
-    }
-    body.zen-active .editor-footer select,
-    body.zen-active .editor-footer #composerNoChannels { display: none; }
-    body.zen-active .char-count { color: rgba(255,255,255,.22); }
-    body.zen-active .char-count.warn { color: rgba(245,158,11,.6); }
-    body.zen-active .char-count.over { color: rgba(224,64,64,.8); }
-
-    /* Zen exit button — floats bottom-right */
-    #zenExit {
-      position: fixed;
-      bottom: 28px; right: 28px;
-      z-index: 200;
-      display: none;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 14px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,.1);
-      background: rgba(255,255,255,.06);
-      color: rgba(255,255,255,.35);
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all .2s;
-      backdrop-filter: blur(8px);
-    }
-    #zenExit:hover { color: rgba(255,255,255,.7); background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.2); }
-    body.zen-active #zenExit { display: flex; }
-
-    /* Zen send actions — appear inline below editor on zen mode */
-    #zenActions {
-      display: none;
-      gap: 8px;
-      flex-wrap: wrap;
-      padding: 12px 0 0;
-    }
-    body.zen-active #zenActions { display: none !important; }
-    #zenActions .btn { height: 36px; font-size: 13px; }
-    #zenActions .btn.primary { background: var(--brand); color: #fff; border-color: transparent; }
-    #zenActions select {
-      height: 36px;
-      padding: 0 28px 0 10px;
-      font-size: 13px;
-      background: rgba(255,255,255,.07);
-      border: 1px solid rgba(255,255,255,.12);
-      color: rgba(255,255,255,.6);
-      border-radius: var(--r2);
-    }
-
-    @media (max-width: 768px) {
-      #zenExit { bottom: 72px; right: 16px; }
-    }
+    body.zen-active { overflow: hidden; }
+    .zen-overlay { position: fixed; inset: 0; z-index: 300; display: none; background: radial-gradient(circle at 20% 0%, #1d2234 0%, #0f1017 45%, #0b0c12 100%); color: #edf0f5; }
+    body.zen-active .zen-overlay { display: block; }
+    .zen-shell { max-width: 1280px; margin: 0 auto; height: 100%; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+    .zen-header { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+    .zen-header h2 { margin: 0; font-size: 28px; }
+    .zen-header p { margin: 4px 0 0; font-size: 13px; color: rgba(237,240,245,.7); }
+    .zen-header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .zen-body { display: grid; grid-template-columns: minmax(0,1fr) 330px; gap: 14px; min-height: 0; flex: 1; }
+    .zen-main,.zen-rail { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 14px; min-height: 0; }
+    .zen-main { display: flex; flex-direction: column; gap: 10px; }
+    .zen-title,.zen-textarea { background: rgba(8,10,16,.8); color: #ecf0f7; border: 1px solid rgba(255,255,255,.14); }
+    .zen-textarea { min-height: 42vh; width: 100%; border-radius: 10px; padding: 14px; line-height: 1.7; resize: vertical; }
+    .zen-meta { display:flex; gap:10px; flex-wrap:wrap; align-items:center; font-size:12px; color: rgba(237,240,245,.72); }
+    .zen-footer-actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .zen-rail { overflow: auto; }
+    .zen-rail-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+    .zen-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:10px; }
+    .zen-tab { border:1px solid var(--border2); background: var(--surface); color: var(--muted); border-radius: 8px; padding: 8px; font-size: 12px; cursor:pointer; }
+    .zen-tab.active { border-color: var(--brand-glow); color: var(--brand); background: var(--brand-dim); }
+    .zen-card { border:1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.03); border-radius: 10px; padding: 10px; margin-bottom: 8px; }
+    .zen-card p { margin: 0 0 8px; font-size: 13px; line-height: 1.45; }
+    .zen-card small { color: rgba(237,240,245,.65); display:block; margin-bottom:8px; }
+    .zen-card-actions { display:flex; gap:6px; flex-wrap: wrap; }
+    .zen-rail.collapsed #zenTabContent, .zen-rail.collapsed .zen-tabs { display:none; }
+    @media (max-width: 920px) { .zen-body { grid-template-columns: 1fr; } .zen-textarea { min-height: 36vh; } }
 
 /* Calendar detail + planning settings additions */
 .day-post-pill { width: 100%; text-align: left; font-family: inherit; cursor: pointer; }
