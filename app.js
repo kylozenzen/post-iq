@@ -3096,13 +3096,14 @@ function init() {
     };
     saveZenDraft(draft);
     zenLastSavedAt = draft.updatedAt;
-    const saved = qs('zenLastSaved'); if (saved) saved.textContent = 'Last saved just now';
+    const saved = qs('zenLastSaved'); if (saved) saved.textContent = 'Saved in Zen.';
+    const status = qs('zenStatusText'); if (status) status.textContent = 'Saved in Zen.';
   }
   function renderZenTab() {
     const out = qs('zenTabContent'); if (!out) return;
     if (zenState.selectedTab === 'pins') {
       const pins = getZenPins();
-      out.innerHTML = `<div class="row mb8"><input id="zenPinLabel" class="input" placeholder="Label (optional)" /><input id="zenPinText" class="input grow" placeholder="Pin a quick note…" /><button class="btn sm" id="zenAddPin">Pin</button></div>` + (pins.length ? pins.map((p, i) => `<div class="zen-card"><small>${safeText(p.label || 'Pin')} · ${new Date(p.createdAt || Date.now()).toLocaleString()}</small><p>${safeText(p.text || '')}</p><div class="zen-card-actions"><button class="btn sm" data-zen-insert="${i}">Insert into draft</button><button class="btn sm" data-zen-copy="${i}">Copy</button><button class="btn sm ghost" data-zen-del="${i}">Delete</button></div></div>`).join('') : `<div class="empty-desc">Pin the stuff your brain swears it will remember and absolutely will not.</div>`);
+      out.innerHTML = `<div class="row mb8"><input id="zenPinLabel" class="input" placeholder="Label (optional)" /><input id="zenPinText" class="input grow" placeholder="Pin anything…" /><button class="btn sm" id="zenAddPin">Pin</button></div>` + (pins.length ? pins.map((p, i) => `<div class="zen-card"><small>${safeText(p.label || 'Pin')} · ${new Date(p.createdAt || Date.now()).toLocaleString()}</small><p>${safeText(p.text || '')}</p><div class="zen-card-actions"><button class="btn sm" data-zen-insert="${i}">Insert into draft</button><button class="btn sm" data-zen-copy="${i}">Copy</button><button class="btn sm ghost" data-zen-del="${i}">Delete</button></div></div>`).join('') : `<div class="empty-desc">Pin the stuff your brain swears it will remember and absolutely will not.</div>`);
     } else if (zenState.selectedTab === 'sparks') {
       const sparks = [...getZenTrendingSparks(), ...getZenIdeaSparks()].slice(0, 10);
       const finalSparks = sparks.length ? sparks : zenFallbackSparks;
@@ -3123,7 +3124,8 @@ function init() {
     zenState.selectedTab = d.selectedTab;
     const titleInput = qs('zenTitleInput'); if (titleInput) titleInput.value = d.title || '';
     const bodyInput = qs('zenBodyInput'); if (bodyInput) bodyInput.value = d.body || editorToText(qs('composerEditor')?.innerHTML || '');
-    const saved = qs('zenLastSaved'); if (saved) saved.textContent = d.updatedAt ? 'Last saved: ' + new Date(d.updatedAt).toLocaleTimeString() : 'Last saved: not yet';
+    const saved = qs('zenLastSaved'); if (saved) saved.textContent = 'Saved in Zen.';
+    const status = qs('zenStatusText'); if (status) status.textContent = 'Saved in Zen.';
     updateZenMetrics();
     document.querySelectorAll('.zen-tab').forEach(t => t.classList.toggle('active', t.dataset.zenTab === zenState.selectedTab));
     renderZenTab();
@@ -3141,6 +3143,7 @@ function init() {
   on('zenExitFooter', 'click', exitZen);
   on('zenCopyBtn', 'click', () => { navigator.clipboard.writeText(`${qs('zenTitleInput')?.value || ''}\n${qs('zenBodyInput')?.value || ''}`.trim()); showToast('Copied', 'success'); });
   on('zenCopyFooter', 'click', () => qs('zenCopyBtn')?.click());
+  on('zenSendComposeHeader', 'click', () => qs('zenSendCompose')?.click());
   on('zenSendCompose', 'click', () => {
     const ed = qs('composerEditor');
     if (ed) {
@@ -3149,10 +3152,8 @@ function init() {
     }
     showToast('Sent to Compose. Working title stayed in Zen.', 'success');
   });
-  on('zenSaveDraftBtn', 'click', () => { zenSaveNow(); showToast('Saved in Zen.', 'success'); });
-  on('zenSaveDraftFooter', 'click', () => qs('zenSaveDraftBtn')?.click());
   on('zenClearDraftBtn', 'click', () => { if (!confirm('Clear your Zen content?')) return; saveZenDraft({ title: '', body: '', updatedAt: '', backgroundImage: '', selectedTab: zenState.selectedTab }); const ti = qs('zenTitleInput'); if (ti) ti.value = ''; const bi = qs('zenBodyInput'); if (bi) { bi.value = ''; bi.dispatchEvent(new Event('input')); } updateZenMetrics(); });
-  on('zenRailToggle', 'click', () => { const rail = qs('zenRail'); if (!rail) return; rail.classList.toggle('collapsed'); const collapsed = rail.classList.contains('collapsed'); qs('zenRailToggle').textContent = collapsed ? 'Expand' : 'Collapse'; qs('zenRailToggle').setAttribute('aria-expanded', String(!collapsed)); });
+  on('zenRailToggle', 'click', () => { const rail = qs('zenRail'); if (!rail) return; rail.classList.toggle('collapsed'); const collapsed = rail.classList.contains('collapsed'); qs('zenRailToggle').textContent = collapsed ? 'Open Writing Tray' : 'Collapse'; qs('zenRailToggle').setAttribute('aria-expanded', String(!collapsed)); });
   ['zenTitleInput','zenBodyInput'].forEach(id => on(id, 'input', () => {
     updateZenMetrics();
     if (zenSaveTimer) clearTimeout(zenSaveTimer);

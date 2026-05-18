@@ -1071,40 +1071,41 @@
   <div class="zen-shell">
     <header class="zen-header">
       <div>
-        <h2>Zen Mode</h2>
-        <p>Write without tab-hopping. Zen is for shaping the post. Compose is where publishing happens.</p>
+        <h2>PostIQ Zen Mode</h2>
+        <p>A calmer place to turn ideas into posts.</p>
       </div>
+      <span class="zen-status-pill" id="zenStatusText">Saved in Zen.</span>
       <div class="zen-header-actions">
-        <button class="btn" id="zenSaveDraftBtn">Save in Zen</button>
         <button class="btn" id="zenCopyBtn">Copy</button>
-        <button class="btn ghost" id="zenExit" aria-label="Exit Zen Mode">Exit</button>
+        <button class="btn success" id="zenSendComposeHeader">Send to Compose</button>
+        <button class="btn ghost" id="zenExit" aria-label="Exit Zen Mode">Exit Zen</button>
       </div>
     </header>
     <div class="zen-body">
       <main class="zen-main">
-        <input id="zenTitleInput" class="input zen-title" placeholder="Optional title or hook…" />
-        <textarea id="zenBodyInput" class="zen-textarea" placeholder="Write your post here…"></textarea>
+        <input id="zenTitleInput" class="input zen-title" placeholder="Working title…" />
+        <textarea id="zenBodyInput" class="zen-textarea" placeholder="Start messy. That is literally the point."></textarea>
         <div class="zen-meta">
           <span id="zenWordCount">0 words</span>
           <span id="zenCharCount">0 chars</span>
-          <span id="zenLastSaved">Last saved: not yet</span>
+          <span id="zenLastSaved">Saved in Zen.</span>
           <button id="zenClearDraftBtn" class="btn ghost sm">Clear Zen Draft</button>
         </div>
         <div class="zen-footer-actions">
-          <button class="btn" id="zenSaveDraftFooter">Save in Zen</button>
-          <button class="btn" id="zenCopyFooter">Copy text</button>
+          <button class="btn" id="zenCopyFooter">Copy</button>
           <button class="btn success" id="zenSendCompose">Send to Compose</button>
-          <button class="btn ghost" id="zenExitFooter">Exit Zen Mode</button>
+          <button class="btn ghost" id="zenExitFooter">Exit Zen</button>
         </div>
+        <p class="zen-helper-copy">Zen is for shaping. Compose is for publishing.</p>
       </main>
       <aside class="zen-rail" id="zenRail">
         <div class="zen-rail-head">
-          <strong>Inspiration Rail</strong>
+          <strong>Writing Tray</strong>
           <button id="zenRailToggle" class="btn ghost sm" aria-expanded="true">Collapse</button>
         </div>
         <div class="zen-tabs">
           <button class="zen-tab active" data-zen-tab="pins">Pins</button>
-          <button class="zen-tab" data-zen-tab="sparks">Sparks</button>
+          <button class="zen-tab" data-zen-tab="sparks">Trending</button>
           <button class="zen-tab" data-zen-tab="snippets">Snippets</button>
         </div>
         <div id="zenTabContent"></div>
