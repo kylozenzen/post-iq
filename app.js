@@ -3063,7 +3063,13 @@ function init() {
   const parseLocal = (k, fallback) => { try { const raw = localStorage.getItem(k); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } };
   const loadZenDraft = () => {
     const d = parseLocal(ZEN_DRAFT_KEY, {});
-    return { title: String(d?.title || ''), body: String(d?.body || ''), selectedTab: ['pins','sparks','snippets'].includes(d?.selectedTab) ? d.selectedTab : 'pins', lastSavedAt: String(d?.lastSavedAt || '') };
+    return {
+      title: String(d?.title || ''),
+      body: String(d?.body || ''),
+      updatedAt: String(d?.updatedAt || d?.lastSavedAt || ''),
+      backgroundImage: String(d?.backgroundImage || ''),
+      selectedTab: ['pins','sparks','snippets'].includes(d?.selectedTab) ? d.selectedTab : 'pins'
+    };
   };
   const saveZenDraft = (draft) => { try { localStorage.setItem(ZEN_DRAFT_KEY, JSON.stringify(draft || {})); } catch {} };
   const getZenPins = () => Array.isArray(parseLocal(ZEN_PINS_KEY, [])) ? parseLocal(ZEN_PINS_KEY, []) : [];
@@ -3081,9 +3087,15 @@ function init() {
   };
   function zenSaveNow() {
     if (!hasZenDom()) return;
-    const draft = { title: qs('zenTitleInput')?.value || '', body: qs('zenBodyInput')?.value || '', selectedTab: zenState.selectedTab, lastSavedAt: new Date().toISOString() };
+    const draft = {
+      title: qs('zenTitleInput')?.value || '',
+      body: qs('zenBodyInput')?.value || '',
+      updatedAt: new Date().toISOString(),
+      backgroundImage: loadZenDraft().backgroundImage || '',
+      selectedTab: zenState.selectedTab
+    };
     saveZenDraft(draft);
-    zenLastSavedAt = draft.lastSavedAt;
+    zenLastSavedAt = draft.updatedAt;
     const saved = qs('zenLastSaved'); if (saved) saved.textContent = 'Last saved just now';
   }
   function renderZenTab() {
@@ -3111,7 +3123,7 @@ function init() {
     zenState.selectedTab = d.selectedTab;
     const titleInput = qs('zenTitleInput'); if (titleInput) titleInput.value = d.title || '';
     const bodyInput = qs('zenBodyInput'); if (bodyInput) bodyInput.value = d.body || editorToText(qs('composerEditor')?.innerHTML || '');
-    const saved = qs('zenLastSaved'); if (saved) saved.textContent = d.lastSavedAt ? 'Last saved: ' + new Date(d.lastSavedAt).toLocaleTimeString() : 'Last saved: not yet';
+    const saved = qs('zenLastSaved'); if (saved) saved.textContent = d.updatedAt ? 'Last saved: ' + new Date(d.updatedAt).toLocaleTimeString() : 'Last saved: not yet';
     updateZenMetrics();
     document.querySelectorAll('.zen-tab').forEach(t => t.classList.toggle('active', t.dataset.zenTab === zenState.selectedTab));
     renderZenTab();
@@ -3129,10 +3141,17 @@ function init() {
   on('zenExitFooter', 'click', exitZen);
   on('zenCopyBtn', 'click', () => { navigator.clipboard.writeText(`${qs('zenTitleInput')?.value || ''}\n${qs('zenBodyInput')?.value || ''}`.trim()); showToast('Copied', 'success'); });
   on('zenCopyFooter', 'click', () => qs('zenCopyBtn')?.click());
-  on('zenSendCompose', 'click', () => { const ed = qs('composerEditor'); if (ed) { ed.innerText = [qs('zenTitleInput')?.value, qs('zenBodyInput')?.value].filter(Boolean).join('\n\n'); ed.dispatchEvent(new Event('input')); } showToast('Sent to Compose', 'success'); });
-  on('zenSaveDraftBtn', 'click', () => { zenSaveNow(); showToast('Zen content saved locally.', 'success'); });
+  on('zenSendCompose', 'click', () => {
+    const ed = qs('composerEditor');
+    if (ed) {
+      ed.innerText = qs('zenBodyInput')?.value || '';
+      ed.dispatchEvent(new Event('input'));
+    }
+    showToast('Sent to Compose. Working title stayed in Zen.', 'success');
+  });
+  on('zenSaveDraftBtn', 'click', () => { zenSaveNow(); showToast('Saved in Zen.', 'success'); });
   on('zenSaveDraftFooter', 'click', () => qs('zenSaveDraftBtn')?.click());
-  on('zenClearDraftBtn', 'click', () => { if (!confirm('Clear your Zen content?')) return; saveZenDraft({ title: '', body: '', selectedTab: zenState.selectedTab, lastSavedAt: '' }); const ti = qs('zenTitleInput'); if (ti) ti.value = ''; const bi = qs('zenBodyInput'); if (bi) { bi.value = ''; bi.dispatchEvent(new Event('input')); } updateZenMetrics(); });
+  on('zenClearDraftBtn', 'click', () => { if (!confirm('Clear your Zen content?')) return; saveZenDraft({ title: '', body: '', updatedAt: '', backgroundImage: '', selectedTab: zenState.selectedTab }); const ti = qs('zenTitleInput'); if (ti) ti.value = ''; const bi = qs('zenBodyInput'); if (bi) { bi.value = ''; bi.dispatchEvent(new Event('input')); } updateZenMetrics(); });
   on('zenRailToggle', 'click', () => { const rail = qs('zenRail'); if (!rail) return; rail.classList.toggle('collapsed'); const collapsed = rail.classList.contains('collapsed'); qs('zenRailToggle').textContent = collapsed ? 'Expand' : 'Collapse'; qs('zenRailToggle').setAttribute('aria-expanded', String(!collapsed)); });
   ['zenTitleInput','zenBodyInput'].forEach(id => on(id, 'input', () => {
     updateZenMetrics();
