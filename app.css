@@ -1450,15 +1450,18 @@
     /* Settings modal tabs */
     .settings-modal-card {
       max-width: 640px;
+      max-height: 88vh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
     .settings-modal-hdr { flex-shrink: 0; }
     .settings-modal-body {
-      min-height: 460px;
+      flex: 1 1 auto;
+      min-height: min(440px, calc(88vh - 96px));
       max-height: calc(88vh - 96px);
       overflow-y: auto;
+      overflow-x: hidden;
       padding-right: 2px;
     }
     .settings-tabs {
@@ -1500,7 +1503,7 @@
     .settings-feature-status.is-paused { color:#9a3412; background:rgba(245,158,11,.12); }
     .settings-feature-note { margin-top: 14px; }
     .about-ben-card { display:grid; grid-template-columns:88px 1fr; gap:16px; align-items:start; }
-    .about-ben-photo { width:88px; height:88px; border-radius:20px; object-fit:cover; border:1px solid var(--border2); background:var(--surface3); box-shadow:var(--shadow-sm); }
+    .about-ben-photo { display:block; width:88px; height:88px; border-radius:20px; object-fit:cover; border:1px solid var(--border2); background:var(--surface3); box-shadow:var(--shadow-sm); }
     .about-ben-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
     .connection-status-line, .connection-token-msg { font-size: 11px; color: var(--subtle); margin-top: 8px; font-family: 'DM Mono', monospace; min-height: 14px; }
     .advanced-connection { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; }
@@ -2058,7 +2061,7 @@ body.zen-active #zenActions { opacity: 0; pointer-events: none; transition: opac
 .note-type-row input[type="color"] { width:42px; height:34px; padding:2px; border:1px solid var(--border2); border-radius:6px; background:var(--surface); }
 .snap-note-message { margin: 0 0 14px; padding: 12px 14px; border-radius: var(--r2); background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); color: rgba(255,255,255,.82); font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
 @media (max-width: 520px) {
-  .settings-modal-body { min-height: 0; max-height: calc(88vh - 94px); }
+  .settings-modal-body { min-height: min(360px, calc(88vh - 94px)); max-height: calc(88vh - 94px); }
   .settings-tabs { margin-bottom: 14px; }
   .settings-tab { padding: 8px 10px; font-size: 12px; }
   .settings-panel { min-height: 320px; }
