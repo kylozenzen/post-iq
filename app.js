@@ -2315,21 +2315,35 @@ async function imgurUpload(file) {
   return data.data.link;
 }
 
+function getErrorMessage(err) {
+  if (err instanceof Error) return err.message;
+  return String(err || 'Unknown error');
+}
+
+function logLocalModuleError(scope, err, details = {}) {
+  console.error(`[PostIQ:${scope}]`, { message: getErrorMessage(err), details, error: err });
+}
+
 async function handleUploadFile(file) {
   const st = qs('uploadStatus');
-  if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) { st.textContent = 'Unsupported type.'; return; }
-  if (file.type.startsWith('video/')) {
-    st.textContent = 'For video, use the URL tab with a hosted video link.';
-    switchMediaTab('url'); return;
-  }
-  qs('uploadZone').style.display = 'none'; st.textContent = 'Uploading…';
+  const zone = qs('uploadZone');
   try {
+    if (!st || !zone) return;
+    if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) { st.textContent = 'Unsupported type.'; return; }
+    if (file.type.startsWith('video/')) {
+      st.textContent = 'For video, use the URL tab with a hosted video link.';
+      switchMediaTab('url'); return;
+    }
+    zone.style.display = 'none'; st.textContent = 'Uploading…';
     const url = await imgurUpload(file);
     qs('uploadResult').style.display = 'flex';
     qs('uploadThumb').src = url; qs('uploadResultName').textContent = file.name || 'uploaded image'; qs('uploadResultUrl').textContent = url;
     st.textContent = ''; applyMedia(url, 'upload'); showToast('Image uploaded', 'success');
   } catch (err) {
-    qs('uploadZone').style.display = 'block'; st.textContent = 'Upload failed: ' + err.message;
+    if (zone) zone.style.display = 'block';
+    if (st) st.textContent = 'Unable to upload image. Please try again.';
+    logLocalModuleError('upload', err, { fileName: file?.name, fileType: file?.type, fileSize: file?.size });
+    return;
   }
 }
 
@@ -2342,11 +2356,14 @@ function switchMediaTab(id) {
 
 let _unsplashLast = '';
 async function runUnsplashSearch() {
-  const q = qs('unsplashQuery').value.trim(); if (!q) return;
-  if (q === _unsplashLast) return; _unsplashLast = q;
-  const grid = qs('unsplashGrid'), status = qs('unsplashStatus');
-  status.textContent = 'Searching…'; grid.innerHTML = '';
+  const queryInput = qs('unsplashQuery');
+  const grid = qs('unsplashGrid');
+  const status = qs('unsplashStatus');
   try {
+    if (!queryInput || !grid || !status) return;
+    const q = queryInput.value.trim(); if (!q) return;
+    if (q === _unsplashLast) return; _unsplashLast = q;
+    status.textContent = 'Searching…'; grid.innerHTML = '';
     const res = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&per_page=9&orientation=landscape`, { headers: { Authorization: `Client-ID ${UNSPLASH_KEY}` } });
     if (!res.ok) throw new Error(res.status === 403 ? 'Rate limit' : `HTTP ${res.status}`);
     const data = await res.json();
@@ -2362,7 +2379,11 @@ async function runUnsplashSearch() {
       item.onclick = () => { applyMedia(photo.urls.regular, 'unsplash'); closeMediaPanel(); showToast(`Photo by ${photo.user.name} added`, 'success'); };
       grid.appendChild(item);
     });
-  } catch (err) { status.textContent = 'Search failed: ' + err.message; }
+  } catch (err) {
+    if (status) status.textContent = 'Unable to fetch images. Please try again.';
+    logLocalModuleError('unsplash-search', err, { query: queryInput?.value?.trim() || '' });
+    return;
+  }
 }
 
 function openMediaPanel() { qs('mediaPanel')?.classList.add('open'); }
