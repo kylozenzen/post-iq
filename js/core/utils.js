@@ -42,3 +42,13 @@ export const rgbaFromHex = (hex, alpha = 0.1) => {
   return `rgba(${(num >> 16) & 255},${(num >> 8) & 255},${num & 255},${alpha})`;
 };
 export const maskToken = t => !t ? '—' : t.length <= 8 ? '••••' : `${t.slice(0,4)}••••${t.slice(-4)}`;
+
+export function getErrorMessage(err, fallback = 'Request failed. Please try again.') {
+  const code = String(err?.code || '').toUpperCase();
+  const msg  = String(err?.message || '');
+  if (code === 'MISSING_TOKEN') return 'Sign in with Buffer first.';
+  if (code === 'RATE_LIMIT' || err?.status === 429) return `Buffer rate limit hit.${err?.retryAfter ? ` Retry in ${err.retryAfter}s.` : ''}`;
+  if (code === 'AUTH_ERROR' || /unauthorized|invalid|forbidden|expired/i.test(msg)) return 'Token appears invalid or expired. Reconnect Buffer.';
+  if (code === 'PROXY_NETWORK_ERROR') return 'Network issue reaching Buffer. Check connection and retry.';
+  return msg || fallback;
+}

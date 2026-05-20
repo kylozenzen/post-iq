@@ -8,7 +8,7 @@ import {
 } from './js/core/constants.js';
 import {
   qs, on, fmtDate, monthLabel, monthStart, safeText, compact, pick, toBase64Url, fromBase64Url, generateSnapshotId, formatDateTime,
-  formatDateOnly, formatDateWithYear, normTags, isVideo, isImageUrl, normalizeHexColor, rgbaFromHex, maskToken
+  formatDateOnly, formatDateWithYear, normTags, isVideo, isImageUrl, normalizeHexColor, rgbaFromHex, maskToken, getErrorMessage
 } from './js/core/utils.js';
 
 const BUFFER_CLIENT_ID = window.BUFFER_CLIENT_ID;
@@ -1052,16 +1052,6 @@ async function callBuffer(query, variables = {}) {
   return data;
 }
 
-function getErrorMessage(err, fallback = 'Request failed. Please try again.') {
-  const code = String(err?.code || '').toUpperCase();
-  const msg  = String(err?.message || '');
-  if (code === 'MISSING_TOKEN') return 'Sign in with Buffer first.';
-  if (code === 'RATE_LIMIT' || err?.status === 429) return `Buffer rate limit hit.${err?.retryAfter ? ` Retry in ${err.retryAfter}s.` : ''}`;
-  if (code === 'AUTH_ERROR' || /unauthorized|invalid|forbidden|expired/i.test(msg)) return 'Token appears invalid or expired. Reconnect Buffer.';
-  if (code === 'PROXY_NETWORK_ERROR') return 'Network issue reaching Buffer. Check connection and retry.';
-  return msg || fallback;
-}
-
 function isAuthError(err) {
   return ['AUTH_ERROR'].includes(String(err?.code || '').toUpperCase())
     || err?.status === 401 || err?.status === 403
@@ -2006,11 +1996,6 @@ async function imgurUpload(file) {
   const data = await res.json();
   if (!data.success) throw new Error(data.data?.error || 'Upload failed');
   return data.data.link;
-}
-
-function getErrorMessage(err) {
-  if (err instanceof Error) return err.message;
-  return String(err || 'Unknown error');
 }
 
 function logLocalModuleError(scope, err, details = {}) {
