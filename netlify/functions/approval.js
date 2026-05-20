@@ -2,6 +2,14 @@
 // Approval workflow backend — reads/writes Upstash Redis.
 // Credentials never leave the server; the client only gets UUIDs back.
 
+function response(statusCode, corsHeaders, body) {
+  return {
+    statusCode,
+    headers: corsHeaders,
+    body: JSON.stringify(body),
+  };
+}
+
 exports.handler = async function (event) {
   const corsHeaders = {
     "Content-Type": "application/json",
@@ -18,22 +26,17 @@ exports.handler = async function (event) {
   const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
   if (!REDIS_URL || !REDIS_TOKEN) {
-    return {
-      statusCode: 200,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: "Approval service not configured — set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Netlify env vars." }),
-    };
+    return response(503, corsHeaders, {
+      error: "Approval service not configured — set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Netlify env vars.",
+      code: "APPROVAL_NOT_CONFIGURED",
+    });
   }
 
   let payload;
   try {
     payload = JSON.parse(event.body || "{}");
   } catch {
-    return {
-      statusCode: 200,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: "Invalid request body" }),
-    };
+    return response(400, corsHeaders, { error: "Invalid request body", code: "BAD_REQUEST" });
   }
 
   // --- helpers ---
@@ -52,8 +55,7 @@ exports.handler = async function (event) {
   }
 
   function generateUUID() {
-    const hex = () => Math.floor(Math.random() * 0x10000).toString(16).padStart(4, "0");
-    return `${hex()}${hex()}-${hex()}-4${hex().slice(1)}-${(Math.floor(Math.random()*4)+8).toString(16)}${hex().slice(1)}-${hex()}${hex()}${hex()}`;
+    return crypto.randomUUID();
   }
 
   const TTL = 60 * 60 * 24 * 30; // 30 days in seconds
@@ -65,11 +67,7 @@ exports.handler = async function (event) {
     if (action === "create") {
       const { post } = payload;
       if (!post || !post.content) {
-        return {
-          statusCode: 200,
-          headers: corsHeaders,
-          body: JSON.stringify({ error: "post.content is required" }),
-        };
+        return response(422, corsHeaders, { error: "post.content is required", code: "INVALID_POST" });
       }
 
       const uuid = generateUUID();
@@ -95,31 +93,19 @@ exports.handler = async function (event) {
         "https://postiq.netlify.app";
       const approvalUrl = `${host.replace(/\/$/, "")}/?approve=${uuid}`;
 
-      return {
-        statusCode: 200,
-        headers: corsHeaders,
-        body: JSON.stringify({ id: uuid, url: approvalUrl }),
-      };
+      return response(200, corsHeaders, { id: uuid, url: approvalUrl });
     }
 
     // ── GET ─────────────────────────────────────────────────────────────────
     if (action === "get") {
       const { id } = payload;
       if (!id || !/^[0-9a-f-]{36}$/i.test(id)) {
-        return {
-          statusCode: 200,
-          headers: corsHeaders,
-          body: JSON.stringify({ error: "Invalid or missing id" }),
-        };
+        return response(400, corsHeaders, { error: "Invalid or missing id", code: "BAD_REQUEST" });
       }
 
       const result = await redisCmd(["GET", `approval:${id}`]);
       if (!result.result) {
-        return {
-          statusCode: 200,
-          headers: corsHeaders,
-          body: JSON.stringify({ error: "Not found" }),
-        };
+        return response(404, corsHeaders, { error: "Not found", code: "NOT_FOUND" });
       }
 
       return {
@@ -133,20 +119,12 @@ exports.handler = async function (event) {
     if (action === "update") {
       const { id, status, author, comment } = payload;
       if (!id || !/^[0-9a-f-]{36}$/i.test(id)) {
-        return {
-          statusCode: 200,
-          headers: corsHeaders,
-          body: JSON.stringify({ error: "Invalid or missing id" }),
-        };
+        return response(400, corsHeaders, { error: "Invalid or missing id", code: "BAD_REQUEST" });
       }
 
       const getResult = await redisCmd(["GET", `approval:${id}`]);
       if (!getResult.result) {
-        return {
-          statusCode: 200,
-          headers: corsHeaders,
-          body: JSON.stringify({ error: "Not found" }),
-        };
+        return response(404, corsHeaders, { error: "Not found", code: "NOT_FOUND" });
       }
 
       const record = JSON.parse(getResult.result);
@@ -167,24 +145,12 @@ exports.handler = async function (event) {
 
       await redisCmd(["SET", `approval:${id}`, JSON.stringify(record), "EX", TTL]);
 
-      return {
-        statusCode: 200,
-        headers: corsHeaders,
-        body: JSON.stringify({ success: true, status: record.status, comments: record.comments }),
-      };
+      return response(200, corsHeaders, { success: true, status: record.status, comments: record.comments });
     }
 
-    return {
-      statusCode: 200,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: `Unknown action: ${payload.action}` }),
-    };
+    return response(400, corsHeaders, { error: `Unknown action: ${payload.action}`, code: "UNKNOWN_ACTION" });
   } catch (err) {
     console.error("[PostIQ approval]", err);
-    return {
-      statusCode: 200,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: err.message || "Internal error" }),
-    };
+    return response(500, corsHeaders, { error: err.message || "Internal error", code: "INTERNAL_ERROR" });
   }
 };

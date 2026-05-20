@@ -2372,11 +2372,16 @@ async function runUnsplashSearch() {
     data.results.forEach(photo => {
       const item = document.createElement('div');
       item.style.cssText = 'position:relative;border-radius:6px;overflow:hidden;border:2px solid transparent;cursor:pointer;aspect-ratio:4/3;background:var(--surface2);transition:border-color .12s;';
-      item.innerHTML = `<img src="${photo.urls.small}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy"/>`;
+      const img = document.createElement('img');
+      img.src = toSafeExternalUrl(photo?.urls?.small);
+      img.alt = '';
+      img.loading = 'lazy';
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+      item.appendChild(img);
       item.title = `Photo by ${photo.user.name}`;
       item.onmouseenter = () => { item.style.borderColor = 'var(--brand)'; };
       item.onmouseleave = () => { item.style.borderColor = 'transparent'; };
-      item.onclick = () => { applyMedia(photo.urls.regular, 'unsplash'); closeMediaPanel(); showToast(`Photo by ${photo.user.name} added`, 'success'); };
+      item.onclick = () => { const mediaUrl = toSafeExternalUrl(photo?.urls?.regular); if (!mediaUrl) return; applyMedia(mediaUrl, 'unsplash'); closeMediaPanel(); showToast(`Photo by ${photo.user.name} added`, 'success'); };
       grid.appendChild(item);
     });
   } catch (err) {
@@ -3347,7 +3352,7 @@ function init() {
             <button class="btn sm ghost" data-pi="${i}">Copy</button>
           </div>
         </div>
-        <textarea data-ti="${i}" style="min-height:80px;font-size:13px;">${p}</textarea>`;
+        <textarea data-ti="${i}" style="min-height:80px;font-size:13px;">${safeText(p)}</textarea>`;
       div.querySelector('[data-pi]').onclick = () => { navigator.clipboard.writeText(full); showToast('Part copied'); };
       div.querySelector('[data-ti]').addEventListener('input', e => {
         threadParts[+e.target.dataset.ti] = e.target.value;
@@ -3481,9 +3486,15 @@ function init() {
           </div>
           <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
             <button class="btn sm" style="font-size:11px;" data-inspire="${i}">→ Compose from this</button>
-            <a class="btn sm ghost" href="${safeText(item.url)}" target="_blank" rel="noopener" style="font-size:11px;">↗ Source</a>
+            <a class="btn sm ghost" data-source-link="1" target="_blank" rel="noopener" style="font-size:11px;">↗ Source</a>
           </div>
         </div>`;
+      const sourceLink = el.querySelector('[data-source-link]');
+      if (sourceLink) {
+        const safeUrl = toSafeExternalUrl(item.url);
+        if (safeUrl) sourceLink.setAttribute('href', safeUrl);
+        else sourceLink.remove();
+      }
       el.onmouseenter = () => { el.style.borderColor = 'var(--border2)'; };
       el.onmouseleave = () => { el.style.borderColor = 'var(--border)'; };
       el.querySelector('[data-inspire]').onclick = () => {
