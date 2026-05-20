@@ -40,7 +40,8 @@ const DEFAULT_POSTIQ_CONFIG = {
     approvals: true,
     snapshots: true,
     uploads: true,
-    unsplash: true
+    unsplash: true,
+    zenMode: true
   },
   notices: {
     approvals: '',
@@ -214,6 +215,11 @@ function applyFeatureFlags() {
   document.querySelectorAll('[data-ideas-tab="trending"]').forEach(el => setFeatureControlPaused(el, 'trending', !getFeatureFlag('trending')));
   document.querySelectorAll('.media-tab[data-mtab="upload"], [data-mtabpanel="upload"] button, #uploadZone').forEach(el => setFeatureControlPaused(el, 'uploads', !getFeatureFlag('uploads')));
   document.querySelectorAll('.media-tab[data-mtab="unsplash"], [data-mtabpanel="unsplash"] button, [data-mtabpanel="unsplash"] input').forEach(el => setFeatureControlPaused(el, 'unsplash', !getFeatureFlag('unsplash')));
+  const zenToggleBtn = qs('zenToggleBtn');
+  if (zenToggleBtn) {
+    if (!getFeatureFlag('zenMode')) zenToggleBtn.style.setProperty('display', 'none', 'important');
+    else zenToggleBtn.style.removeProperty('display');
+  }
 }
 
 async function loadPostiqConfig() {
@@ -1115,6 +1121,7 @@ function renderConnectionUI() {
   if (sidebarCard) {
     sidebarCard.classList.toggle('compact', connected);
     sidebarCard.classList.toggle('connected', connected);
+    sidebarCard.classList.toggle('api-live-pulse', connected);
   }
   const connDot = qs('connDot'); if (connDot) connDot.classList.toggle('on', connected);
   const connLabel = qs('connLabel'); if (connLabel) connLabel.textContent = statusLabel;
@@ -3201,6 +3208,7 @@ function init() {
   });
 
   document.addEventListener('keydown', e => {
+    if (!getFeatureFlag('zenMode')) return;
     if (e.key === 'Escape' && zenActive) {
       if (!document.querySelector('.modal.open')) { exitZen(); return; }
     }
