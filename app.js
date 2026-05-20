@@ -13,6 +13,143 @@ import {
 
 const BUFFER_CLIENT_ID = window.BUFFER_CLIENT_ID;
 
+
+let globalStatusTimer = null;
+let lastGlobalErrorBannerAt = 0;
+let postiqConfig = {
+  ...DEFAULT_POSTIQ_CONFIG,
+  features: { ...DEFAULT_POSTIQ_CONFIG.features },
+  notices: { ...DEFAULT_POSTIQ_CONFIG.notices },
+};
+
+const validStatusType = type => ['info', 'warning', 'error', 'success'].includes(type) ? type : 'info';
+const defaultFeaturePausedMessage = 'This feature is temporarily paused during the PostIQ public beta.';
+
+function showGlobalStatus(message, options = {}) {
+  const banner = qs('globalStatusBanner');
+  const titleEl = qs('globalStatusTitle');
+  const msgEl = qs('globalStatusMessage');
+  if (!banner || !titleEl || !msgEl) return null;
+  if (globalStatusTimer) { clearTimeout(globalStatusTimer); globalStatusTimer = null; }
+  const type = validStatusType(options.type || 'info');
+  titleEl.textContent = String(options.title || 'PostIQ notice');
+  msgEl.textContent = String(message || 'Something needs your attention.');
+  banner.className = `global-status-banner ${type}`;
+  banner.dataset.type = type;
+  if (!options.persistent) {
+    const delay = Number(options.timeout) > 0 ? Number(options.timeout) : 5000;
+    globalStatusTimer = setTimeout(hideGlobalStatus, delay);
+  }
+  return banner;
+}
+
+function hideGlobalStatus() {
+  const banner = qs('globalStatusBanner');
+  if (!banner) return;
+  if (globalStatusTimer) { clearTimeout(globalStatusTimer); globalStatusTimer = null; }
+  banner.classList.add('hidden');
+}
+
+function bindGlobalStatusDismiss() {
+  on('globalStatusDismiss', 'click', () => {
+    hideGlobalStatus();
+    try { sessionStorage.setItem(BETA_BANNER_SESSION_KEY, '1'); } catch {}
+  });
+}
+
+function mergePostiqConfig(base, override) {
+  if (!override || typeof override !== 'object') return { ...base, features: { ...base.features }, notices: { ...base.notices } };
+  return {
+    ...base,
+    ...override,
+    features: { ...(base.features || {}), ...(override.features || {}) },
+    notices: { ...(base.notices || {}), ...(override.notices || {}) },
+  };
+}
+
+function getFeatureFlag(name) { return !name ? true : postiqConfig?.features?.[name] !== false; }
+function getFeatureNotice(name) { return String(postiqConfig?.notices?.[name] || defaultFeaturePausedMessage); }
+function showFeaturePaused(name) { showGlobalStatus(getFeatureNotice(name), { title: 'Feature paused', type: 'warning', timeout: 6000 }); }
+
+function setFeatureControlPaused(el, featureName, paused) {
+  if (!el) return;
+  const notice = getFeatureNotice(featureName);
+  el.dataset.featureFlag = featureName;
+  el.classList.toggle('feature-paused', paused);
+  el.setAttribute('aria-disabled', paused ? 'true' : 'false');
+  if (paused) {
+    el.dataset.postiqOriginalTitle = el.dataset.postiqOriginalTitle || el.getAttribute('title') || '';
+    el.setAttribute('title', notice);
+    if ('disabled' in el) el.disabled = true;
+  } else {
+    if ('disabled' in el) el.disabled = false;
+    const original = el.dataset.postiqOriginalTitle || '';
+    if (original) el.setAttribute('title', original); else el.removeAttribute('title');
+    delete el.dataset.postiqOriginalTitle;
+  }
+}
+
+function applyFeatureFlags() {
+  const flagControls = { snapshots: ['shareMonthBtn', 'shareMonthBtnMob', 'generateShare', 'copyShare'], approvals: ['approvalsRefreshBtn', 'approvalsRefreshBtnMob'], uploads: ['uploadBrowseBtn', 'uploadReplaceBtn'], unsplash: ['unsplashSearchBtn'] };
+  Object.entries(flagControls).forEach(([feature, ids]) => {
+    const paused = !getFeatureFlag(feature);
+    ids.forEach(id => setFeatureControlPaused(qs(id), feature, paused));
+  });
+  document.querySelectorAll('[data-view="approvalsView"]').forEach(el => setFeatureControlPaused(el, 'approvals', !getFeatureFlag('approvals')));
+  document.querySelectorAll('[data-ideas-tab="trending"]').forEach(el => setFeatureControlPaused(el, 'trending', !getFeatureFlag('trending')));
+  document.querySelectorAll('.media-tab[data-mtab="upload"], [data-mtabpanel="upload"] button, #uploadZone').forEach(el => setFeatureControlPaused(el, 'uploads', !getFeatureFlag('uploads')));
+  document.querySelectorAll('.media-tab[data-mtab="unsplash"], [data-mtabpanel="unsplash"] button, [data-mtabpanel="unsplash"] input').forEach(el => setFeatureControlPaused(el, 'unsplash', !getFeatureFlag('unsplash')));
+  const zenToggleBtn = qs('zenToggleBtn');
+  if (zenToggleBtn) { if (!getFeatureFlag('zenMode')) zenToggleBtn.style.setProperty('display', 'none', 'important'); else zenToggleBtn.style.removeProperty('display'); }
+}
+
+function maybeShowBetaBanner() {
+  const message = String(postiqConfig?.betaMessage || '').trim();
+  if (!message) return;
+  try { if (sessionStorage.getItem(BETA_BANNER_SESSION_KEY)) return; sessionStorage.setItem(BETA_BANNER_SESSION_KEY, '1'); } catch {}
+  showGlobalStatus(message, { title: 'Public beta', type: 'info', timeout: 7000 });
+}
+
+function handlePausedFeatureEvent(event) {
+  const target = event.target?.closest?.('[data-feature-flag]');
+  if (!target) return;
+  const feature = target.dataset.featureFlag;
+  if (getFeatureFlag(feature)) return;
+  event.preventDefault(); event.stopPropagation();
+  if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+  showFeaturePaused(feature);
+}
+
+function showGlobalErrorBanner() {
+  const now = Date.now();
+  if (now - lastGlobalErrorBannerAt < 3000) return;
+  lastGlobalErrorBannerAt = now;
+  showGlobalStatus('Something did not load correctly. Try refreshing, reconnecting Buffer, or using another tool.', { title: 'PostIQ hit a snag', type: 'error', persistent: true });
+}
+
+function bindGlobalErrorHandlers() {
+  window.addEventListener('error', event => {
+    console.error('[PostIQ global error]', { message: event.message, source: event.filename, line: event.lineno, column: event.colno, error: event.error });
+    showGlobalErrorBanner();
+  });
+  window.addEventListener('unhandledrejection', event => { console.error('[PostIQ unhandled rejection]', event.reason); showGlobalErrorBanner(); });
+}
+
+async function loadPostiqConfig() {
+  try {
+    const response = await fetch('/.netlify/functions/app-config', { headers: { Accept: 'application/json' } });
+    if (!response.ok) return;
+    const remoteConfig = await response.json();
+    postiqConfig = mergePostiqConfig(DEFAULT_POSTIQ_CONFIG, remoteConfig);
+  } catch {
+    postiqConfig = mergePostiqConfig(DEFAULT_POSTIQ_CONFIG);
+  } finally {
+    applyFeatureFlags();
+    renderSettingsFeatureStatus();
+    maybeShowBetaBanner();
+  }
+}
+
 // ── BUFFER OAUTH (PUBLIC CLIENT + PKCE) ─────────────
 
 function generateRandomString(length) {
