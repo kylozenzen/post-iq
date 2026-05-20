@@ -21,6 +21,7 @@ const DEFAULT_POSTIQ_CONFIG = {
     snapshots: readBooleanEnv('POSTIQ_FEATURE_SNAPSHOTS', true),
     uploads: readBooleanEnv('POSTIQ_FEATURE_UPLOADS', false),
     unsplash: readBooleanEnv('POSTIQ_FEATURE_UNSPLASH', true),
+    zenMode: readBooleanEnv('POSTIQ_FEATURE_ZEN_MODE', false),
   },
   notices: {
     approvals: '',
