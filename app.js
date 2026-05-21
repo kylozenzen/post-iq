@@ -1168,16 +1168,38 @@ function renderConnectionUI() {
   const tokenMsg = qs('tokenMsg');
   if (tokenMsg && !tokenPanelOpen) tokenMsg.textContent = manualActive ? 'Manual API key fallback active.' : '';
 
+  const connectionIntroCopy = qs('connectionIntroCopy');
+  if (connectionIntroCopy) {
+    connectionIntroCopy.textContent = manualActive
+      ? 'PostIQ is currently connected using advanced API setup. You can keep using PostIQ this way, or switch to Buffer sign-in for the smoother OAuth experience.'
+      : 'Recommended for most users. Sign in with Buffer so PostIQ can load your channels, view your queue, and publish through your account when you choose.';
+  }
+
   const oauthStatus = qs('oauthStatusText');
   if (oauthStatus) {
-    oauthStatus.textContent = connected
-      ? (oauthActive ? 'Connected to Buffer.' : 'Connected with advanced setup.')
-      : (reconnectNeeded ? 'Your Buffer session expired. Sign in again to keep syncing.' : 'Not connected.');
+    oauthStatus.textContent = oauthActive
+      ? 'Connected with Buffer sign-in.'
+      : (manualActive
+        ? 'Connected via API key fallback.'
+        : (reconnectNeeded ? 'Your Buffer session expired. Sign in again to keep syncing.' : 'Not connected.'));
   }
   const connectBtn = qs('connectBufferBtn');
-  if (connectBtn) connectBtn.textContent = oauthActive || reconnectNeeded ? 'Reconnect Buffer' : 'Sign in with Buffer';
+  if (connectBtn) {
+    connectBtn.textContent = oauthActive || reconnectNeeded
+      ? 'Reconnect Buffer'
+      : (manualActive ? 'Switch to Buffer sign-in' : 'Sign in with Buffer');
+  }
   const disconnectBtn = qs('disconnectBufferBtn');
   if (disconnectBtn) disconnectBtn.style.display = oauthActive || reconnectNeeded ? '' : 'none';
+
+  const advancedConnectionCopy = qs('advancedConnectionCopy');
+  if (advancedConnectionCopy) {
+    advancedConnectionCopy.textContent = manualActive
+      ? 'You’re currently using the advanced setup. This works, but Buffer sign-in is recommended for most users because it is easier to manage and does not require manually storing an API key. Disconnect Buffer clears OAuth sign-in only; saved manual keys stay here until you remove them.'
+      : (oauthActive
+        ? 'API key fallback is optional and only needed if Buffer sign-in is unavailable. Disconnect Buffer clears OAuth sign-in only; saved manual keys stay here until you remove them.'
+        : 'Use this only if Buffer sign-in is unavailable or you need a manual setup. Disconnect Buffer clears OAuth sign-in only; saved manual keys stay here until you remove them.');
+  }
 
   const mobDot = qs('mobConnDot'); if (mobDot) mobDot.classList.toggle('on', connected);
   const mobLabel = qs('mobConnLabel'); if (mobLabel) mobLabel.textContent = statusLabel;

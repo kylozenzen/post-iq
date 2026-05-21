@@ -828,7 +828,7 @@
       <div id="settingsPanelConnection" class="settings-panel active" role="tabpanel" aria-labelledby="settingsTabConnection" tabindex="0">
         <div class="settings-section connection-settings-card">
           <div class="settings-section-title">Buffer connection</div>
-          <p class="settings-copy">Recommended for most users. Sign in with Buffer so PostIQ can load your channels, view your queue, and publish through your account when you choose.</p>
+          <p class="settings-copy" id="connectionIntroCopy">Recommended for most users. Sign in with Buffer so PostIQ can load your channels, view your queue, and publish through your account when you choose.</p>
           <div class="connection-status-line" id="oauthStatusText">Not connected.</div>
           <div class="row mt12">
             <button class="btn primary" id="connectBufferBtn" type="button">Sign in with Buffer</button>
@@ -837,7 +837,7 @@
         </div>
         <details class="settings-section advanced-connection" id="tokenPanel">
           <summary>Advanced: API key fallback</summary>
-          <p class="settings-copy">Only use this if Buffer sign-in is unavailable or you are testing manually. Disconnect Buffer clears OAuth sign-in only; saved manual keys stay here until you remove them.</p>
+          <p class="settings-copy" id="advancedConnectionCopy">Use this only if Buffer sign-in is unavailable or you need a manual setup. Disconnect Buffer clears OAuth sign-in only; saved manual keys stay here until you remove them.</p>
           <div class="field">
             <label class="label" for="tokenInput">API key fallback</label>
             <input id="tokenInput" class="input mono" type="password" placeholder="Paste API key…" />
