@@ -3532,17 +3532,35 @@ function init() {
     if (!statusEl || !listEl) return;
     statusEl.textContent = 'Loading…'; listEl.innerHTML = '';
     try {
-      const res = await fetch(`https://www.reddit.com/r/${trendingState.sub}/hot.json?limit=25`, { headers: { Accept: 'application/json' } });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      const posts = (data?.data?.children||[]).filter(p => !p.data.stickied);
+      let posts = [];
+      try {
+        const res = await fetch(`https://www.reddit.com/r/${trendingState.sub}/hot.json?limit=25`, { headers: { Accept: 'application/json' } });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        posts = (data?.data?.children || []).filter(p => !p.data.stickied);
+      } catch {
+        const rssRes = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(`https://www.reddit.com/r/${trendingState.sub}/hot.rss`)}`);
+        if (!rssRes.ok) throw new Error(`HTTP ${rssRes.status}`);
+        const rssData = await rssRes.json();
+        posts = (rssData?.items || []).map(item => ({
+          data: {
+            title: item.title,
+            score: 0,
+            num_comments: 0,
+            subreddit: trendingState.sub,
+            permalink: item.link ? item.link.replace('https://www.reddit.com', '') : '',
+            selftext: item.description ? String(item.description).replace(/<[^>]+>/g, ' ').trim() : '',
+            created_utc: item.pubDate ? Math.floor(new Date(item.pubDate).getTime() / 1000) : Math.floor(Date.now() / 1000),
+          }
+        }));
+      }
       statusEl.textContent = `${posts.length} posts from r/${trendingState.sub}`;
       renderTrendingItems('trendingRedditList', posts.map((p) => ({
         title: p.data.title, score: p.data.score, comments: p.data.num_comments,
         sub: `r/${p.data.subreddit}`, url: `https://reddit.com${p.data.permalink}`,
         body: p.data.selftext, age: timeAgo(p.data.created_utc * 1000),
       })));
-    } catch(e) { statusEl.textContent = 'Failed to load — Reddit may be blocking. Try again.'; }
+    } catch(e) { statusEl.textContent = 'Failed to load from Reddit and RSS fallback. Try another subreddit.'; }
   }
 
   async function loadHN() {
