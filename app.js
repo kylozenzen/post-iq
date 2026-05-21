@@ -2981,6 +2981,9 @@ function init() {
 
   on('composerClearBtn', 'click', () => {
     if (editorToText(editor.innerHTML) && !confirm('Clear composer?')) return;
+    editor.focus();
+    document.execCommand('selectAll', false, null);
+    document.execCommand('removeFormat', false, null);
     editor.innerHTML = ''; editor.dispatchEvent(new Event('input'));
     const status = qs('composerStatus'); if (status) status.textContent = ''; clearMedia();
   });
@@ -3283,6 +3286,9 @@ function init() {
   if (ccbm) {
     ccbm.onclick = () => {
       if (editorToText(editor.innerHTML) && !confirm('Clear composer?')) return;
+      editor.focus();
+      document.execCommand('selectAll', false, null);
+      document.execCommand('removeFormat', false, null);
       editor.innerHTML = ''; editor.dispatchEvent(new Event('input'));
       const status = qs('composerStatus'); if (status) status.textContent = ''; clearMedia();
     };
@@ -3311,6 +3317,11 @@ function init() {
     const support = qs('composerSupportSection');
     if (support) support.style.display = mode === 'compose' ? 'grid' : 'none';
     if (mode === 'split') initSplitMode();
+    const editorText = editorToText(qs('composerEditor').innerHTML);
+    if (editorText) {
+      const ti = qs('threadInput');
+      if (ti && !ti.value.trim()) ti.value = editorText;
+    }
   }
   document.querySelectorAll('.composer-mode-tab').forEach(t => {
     t.onclick = () => setComposerMode(t.dataset.cmode);
@@ -3521,17 +3532,35 @@ function init() {
     if (!statusEl || !listEl) return;
     statusEl.textContent = 'Loading…'; listEl.innerHTML = '';
     try {
-      const res = await fetch(`https://www.reddit.com/r/${trendingState.sub}/hot.json?limit=25`, { headers: { Accept: 'application/json' } });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      const posts = (data?.data?.children||[]).filter(p => !p.data.stickied);
+      let posts = [];
+      try {
+        const res = await fetch(`https://www.reddit.com/r/${trendingState.sub}/hot.json?limit=25`, { headers: { Accept: 'application/json' } });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        posts = (data?.data?.children || []).filter(p => !p.data.stickied);
+      } catch {
+        const rssRes = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(`https://www.reddit.com/r/${trendingState.sub}/hot.rss`)}`);
+        if (!rssRes.ok) throw new Error(`HTTP ${rssRes.status}`);
+        const rssData = await rssRes.json();
+        posts = (rssData?.items || []).map(item => ({
+          data: {
+            title: item.title,
+            score: 0,
+            num_comments: 0,
+            subreddit: trendingState.sub,
+            permalink: item.link ? item.link.replace('https://www.reddit.com', '') : '',
+            selftext: item.description ? String(item.description).replace(/<[^>]+>/g, ' ').trim() : '',
+            created_utc: item.pubDate ? Math.floor(new Date(item.pubDate).getTime() / 1000) : Math.floor(Date.now() / 1000),
+          }
+        }));
+      }
       statusEl.textContent = `${posts.length} posts from r/${trendingState.sub}`;
       renderTrendingItems('trendingRedditList', posts.map((p) => ({
         title: p.data.title, score: p.data.score, comments: p.data.num_comments,
         sub: `r/${p.data.subreddit}`, url: `https://reddit.com${p.data.permalink}`,
         body: p.data.selftext, age: timeAgo(p.data.created_utc * 1000),
       })));
-    } catch(e) { statusEl.textContent = 'Failed to load — Reddit may be blocking. Try again.'; }
+    } catch(e) { statusEl.textContent = 'Failed to load from Reddit and RSS fallback. Try another subreddit.'; }
   }
 
   async function loadHN() {
@@ -3539,15 +3568,39 @@ function init() {
     if (!statusEl || !listEl) return;
     statusEl.textContent = 'Loading…'; listEl.innerHTML = '';
     try {
-      const ids = await fetch(`https://hacker-news.firebaseio.com/v0/${trendingState.hn}.json`).then(r=>r.json());
-      const stories = await Promise.all(ids.slice(0,20).map(id => fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(r=>r.json())));
+      let stories = [];
+      try {
+        const idsRes = await fetch(`https://hacker-news.firebaseio.com/v0/${trendingState.hn}.json`);
+        if (!idsRes.ok) throw new Error(`HTTP ${idsRes.status}`);
+        const ids = await idsRes.json();
+        if (!Array.isArray(ids)) throw new Error('Invalid HN ids payload');
+        stories = await Promise.all(ids.slice(0,20).map(async id => {
+          const itemRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
+          if (!itemRes.ok) return null;
+          return itemRes.json();
+        }));
+      } catch {
+        const query = trendingState.hn === 'newstories' ? 'search_by_date' : 'search';
+        const algoliaRes = await fetch(`https://hn.algolia.com/api/v1/${query}?tags=story&hitsPerPage=20`);
+        if (!algoliaRes.ok) throw new Error(`HTTP ${algoliaRes.status}`);
+        const algoliaData = await algoliaRes.json();
+        stories = (algoliaData?.hits || []).map(hit => ({
+          id: hit.objectID,
+          title: hit.title,
+          score: hit.points || 0,
+          descendants: hit.num_comments || 0,
+          by: hit.author,
+          url: hit.url,
+          time: hit.created_at_i || Math.floor(Date.now() / 1000),
+        }));
+      }
       statusEl.textContent = `${stories.length} stories from Hacker News`;
       renderTrendingItems('trendingHNList', stories.filter(s=>s?.title).map((s) => ({
         title: s.title, score: s.score, comments: s.descendants||0,
         sub: s.by ? `by ${s.by}` : 'HN', url: s.url || `https://news.ycombinator.com/item?id=${s.id}`,
         age: timeAgo(s.time * 1000),
       })));
-    } catch(e) { statusEl.textContent = 'Failed to load Hacker News.'; }
+    } catch(e) { statusEl.textContent = 'Failed to load from Hacker News and fallback.'; }
   }
 
   function initTrending() {
