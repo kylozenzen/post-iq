@@ -49,44 +49,49 @@
     /* ── GLOBAL STATUS ── */
     .global-status-banner {
       position: fixed;
-      top: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 2000;
-      width: min(720px, calc(100vw - 24px));
+      top: 24px;
+      left: calc(var(--sidebar) + max(24px, (100vw - var(--sidebar) - 720px) / 2));
+      z-index: 9999;
+      width: min(720px, calc(100vw - var(--sidebar) - 48px));
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
       gap: 14px;
-      padding: 13px 14px 13px 16px;
+      padding: 16px 16px 16px 18px;
       border: 1px solid var(--border2);
-      border-left: 4px solid var(--brand);
       border-radius: var(--r);
       background: var(--surface);
       color: var(--text);
-      box-shadow: var(--shadow-lg);
+      box-shadow: 0 18px 45px rgba(20,22,42,.18), 0 4px 14px rgba(20,22,42,.1);
+      isolation: isolate;
+      pointer-events: auto;
+    }
+
+    .global-status-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      border-radius: var(--r) 0 0 var(--r);
+      background: var(--brand);
     }
 
     .global-status-banner.hidden { display: none !important; }
 
-    .global-status-banner.info {
-      border-left-color: var(--brand);
-      background: linear-gradient(90deg, var(--brand-dim), var(--surface) 34%);
+    .global-status-banner.info::before {
+      background: var(--brand);
     }
 
-    .global-status-banner.warning {
-      border-left-color: var(--amber);
-      background: linear-gradient(90deg, rgba(245,158,11,.12), var(--surface) 34%);
+    .global-status-banner.warning::before {
+      background: var(--amber);
     }
 
-    .global-status-banner.error {
-      border-left-color: var(--red);
-      background: linear-gradient(90deg, rgba(224,64,64,.12), var(--surface) 34%);
+    .global-status-banner.error::before {
+      background: var(--red);
     }
 
-    .global-status-banner.success {
-      border-left-color: var(--green);
-      background: linear-gradient(90deg, var(--green-dim), var(--surface) 34%);
+    .global-status-banner.success::before {
+      background: var(--green);
     }
 
     .global-status-copy {
@@ -119,6 +124,7 @@
       font-size: 19px;
       line-height: 1;
       flex-shrink: 0;
+      align-self: flex-start;
       transition: all .15s ease;
     }
 
@@ -139,9 +145,12 @@
 
     @media (max-width: 640px) {
       .global-status-banner {
-        top: 8px;
-        width: calc(100vw - 16px);
-        padding: 12px;
+        top: 16px;
+        left: 16px;
+        right: 16px;
+        width: auto;
+        max-width: none;
+        padding: 14px;
         gap: 10px;
       }
     }
