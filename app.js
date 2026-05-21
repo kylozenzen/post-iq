@@ -3498,7 +3498,7 @@ function init() {
   }
 
   // ── TRENDING ──
-  const trendingState = { src: 'reddit', sub: 'socialmedia', hn: 'topstories' };
+  const trendingState = { src: 'reddit', sub: 'socialmedia', hn: 'topstories', cacheTTL: 15 * 60 * 1000 };
   const DEFAULT_SUBS = ['socialmedia','entrepreneur','marketing','business'];
 
   function renderSubPills() {
@@ -3560,80 +3560,53 @@ function init() {
     });
   }
 
+  function setTrendingStatus(el, mode, text) {
+    if (!el) return;
+    const badge = mode ? `[${mode}] ` : '';
+    el.textContent = `${badge}${text}`;
+  }
+
   async function loadReddit() {
     const statusEl = qs('trendingRedditStatus'); const listEl = qs('trendingRedditList');
     if (!statusEl || !listEl) return;
-    statusEl.textContent = 'Loading…'; listEl.innerHTML = '';
+    setTrendingStatus(statusEl, 'Loading', `Loading r/${trendingState.sub}…`); listEl.innerHTML = '';
     try {
-      let posts = [];
-      try {
-        const res = await fetch(`https://www.reddit.com/r/${trendingState.sub}/hot.json?limit=25`, { headers: { Accept: 'application/json' } });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        posts = (data?.data?.children || []).filter(p => !p.data.stickied);
-      } catch {
-        const rssRes = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(`https://www.reddit.com/r/${trendingState.sub}/hot.rss`)}`);
-        if (!rssRes.ok) throw new Error(`HTTP ${rssRes.status}`);
-        const rssData = await rssRes.json();
-        posts = (rssData?.items || []).map(item => ({
-          data: {
-            title: item.title,
-            score: 0,
-            num_comments: 0,
-            subreddit: trendingState.sub,
-            permalink: item.link ? item.link.replace('https://www.reddit.com', '') : '',
-            selftext: item.description ? String(item.description).replace(/<[^>]+>/g, ' ').trim() : '',
-            created_utc: item.pubDate ? Math.floor(new Date(item.pubDate).getTime() / 1000) : Math.floor(Date.now() / 1000),
-          }
-        }));
-      }
-      statusEl.textContent = `${posts.length} posts from r/${trendingState.sub}`;
-      renderTrendingItems('trendingRedditList', posts.map((p) => ({
-        title: p.data.title, score: p.data.score, comments: p.data.num_comments,
-        sub: `r/${p.data.subreddit}`, url: `https://reddit.com${p.data.permalink}`,
-        body: p.data.selftext, age: timeAgo(p.data.created_utc * 1000),
+      const key = `reddit:${trendingState.sub}`;
+      const items = await window.PostIQTrending.fetchSource({ type: 'reddit', subreddit: trendingState.sub, sort: 'hot', limit: 20 });
+      window.PostIQTrendingCache.write(key, { savedAt: Date.now(), items });
+      setTrendingStatus(statusEl, 'Connected', `${items.length} posts from r/${trendingState.sub}`);
+      renderTrendingItems('trendingRedditList', items.map((p) => ({
+        title: p.title, score: p.score, comments: p.comments, sub: `r/${trendingState.sub}`, url: p.url, body: p.excerpt,
+        age: p.publishedAt ? timeAgo(new Date(p.publishedAt).getTime()) : '',
       })));
-    } catch(e) { statusEl.textContent = 'Failed to load from Reddit and RSS fallback. Try another subreddit.'; }
+    } catch(e) {
+      const cached = window.PostIQTrendingCache.getFresh(`reddit:${trendingState.sub}`, trendingState.cacheTTL);
+      if (cached?.items?.length) {
+        setTrendingStatus(statusEl, 'Cached', `Showing recently cached results.`);
+        renderTrendingItems('trendingRedditList', cached.items.map((p) => ({ title: p.title, score: p.score, comments: p.comments, sub: `r/${trendingState.sub}`, url: p.url, body: p.excerpt, age: p.publishedAt ? timeAgo(new Date(p.publishedAt).getTime()) : '' })));
+      } else {
+        setTrendingStatus(statusEl, 'Failed', 'Reddit is not available right now. Try again later or use RSS fallback.');
+      }
+    }
   }
 
   async function loadHN() {
     const statusEl = qs('trendingHNStatus'); const listEl = qs('trendingHNList');
     if (!statusEl || !listEl) return;
-    statusEl.textContent = 'Loading…'; listEl.innerHTML = '';
+    setTrendingStatus(statusEl, 'Loading', 'Loading Hacker News…'); listEl.innerHTML = '';
     try {
-      let stories = [];
-      try {
-        const idsRes = await fetch(`https://hacker-news.firebaseio.com/v0/${trendingState.hn}.json`);
-        if (!idsRes.ok) throw new Error(`HTTP ${idsRes.status}`);
-        const ids = await idsRes.json();
-        if (!Array.isArray(ids)) throw new Error('Invalid HN ids payload');
-        stories = await Promise.all(ids.slice(0,20).map(async id => {
-          const itemRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
-          if (!itemRes.ok) return null;
-          return itemRes.json();
-        }));
-      } catch {
-        const query = trendingState.hn === 'newstories' ? 'search_by_date' : 'search';
-        const algoliaRes = await fetch(`https://hn.algolia.com/api/v1/${query}?tags=story&hitsPerPage=20`);
-        if (!algoliaRes.ok) throw new Error(`HTTP ${algoliaRes.status}`);
-        const algoliaData = await algoliaRes.json();
-        stories = (algoliaData?.hits || []).map(hit => ({
-          id: hit.objectID,
-          title: hit.title,
-          score: hit.points || 0,
-          descendants: hit.num_comments || 0,
-          by: hit.author,
-          url: hit.url,
-          time: hit.created_at_i || Math.floor(Date.now() / 1000),
-        }));
-      }
-      statusEl.textContent = `${stories.length} stories from Hacker News`;
-      renderTrendingItems('trendingHNList', stories.filter(s=>s?.title).map((s) => ({
-        title: s.title, score: s.score, comments: s.descendants||0,
-        sub: s.by ? `by ${s.by}` : 'HN', url: s.url || `https://news.ycombinator.com/item?id=${s.id}`,
-        age: timeAgo(s.time * 1000),
-      })));
-    } catch(e) { statusEl.textContent = 'Failed to load from Hacker News and fallback.'; }
+      const key = `hn:${trendingState.hn}`;
+      const stories = await window.PostIQTrending.fetchSource({ type:'hn', defaultFeed: trendingState.hn, limit: 20 });
+      window.PostIQTrendingCache.write(key, { savedAt: Date.now(), items: stories });
+      setTrendingStatus(statusEl, 'Connected', `${stories.length} stories from Hacker News`);
+      renderTrendingItems('trendingHNList', stories.map((s) => ({ title: s.title, score: s.score, comments: s.comments || 0, sub: s.author ? `by ${s.author}` : 'HN', url: s.url, age: s.publishedAt ? timeAgo(new Date(s.publishedAt).getTime()) : '' })));
+    } catch(e) {
+      const cached = window.PostIQTrendingCache.getFresh(`hn:${trendingState.hn}`, trendingState.cacheTTL);
+      if (cached?.items?.length) {
+        setTrendingStatus(statusEl, 'Cached', 'Showing recently cached results.');
+        renderTrendingItems('trendingHNList', cached.items.map((s) => ({ title: s.title, score: s.score, comments: s.comments || 0, sub: s.author ? `by ${s.author}` : 'HN', url: s.url, age: s.publishedAt ? timeAgo(new Date(s.publishedAt).getTime()) : '' })));
+      } else setTrendingStatus(statusEl, 'Failed', 'Failed to load from Hacker News right now.');
+    }
   }
 
   function initTrending() {
