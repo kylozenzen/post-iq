@@ -654,8 +654,10 @@ h2 em{font-style:normal;color:var(--brand);}
 .affiliate-note a:hover{text-decoration:underline;}
 
 /* ── SCROLL REVEAL ── */
-.reveal{opacity:0;transform:translateY(14px);transition:opacity .4s ease,transform .4s ease;}
-.reveal.visible{opacity:1;transform:none;}
+/* Default content is visible. JS only enables reveal hiding after the reveal script is ready. */
+.reveal{opacity:1;transform:none;transition:opacity .4s ease,transform .4s ease;}
+.reveal-ready .reveal{opacity:0;transform:translateY(14px);}
+.reveal-ready .reveal.visible{opacity:1;transform:none;}
 .reveal-group .reveal{transition-delay:0s;}
 .reveal-group .reveal:nth-child(2){transition-delay:.06s;}
 .reveal-group .reveal:nth-child(3){transition-delay:.12s;}
@@ -1114,13 +1116,27 @@ document.querySelectorAll('.faq-q').forEach(function(btn) {
   });
 });
 
-// Scroll reveal
-var observer = new IntersectionObserver(function(entries) {
-  entries.forEach(function(e) {
-    if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+// Scroll reveal — fail-safe version.
+// Content stays visible by default. We only hide/reveal elements when IntersectionObserver is available.
+if ('IntersectionObserver' in window) {
+  document.documentElement.classList.add('reveal-ready');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.reveal').forEach(function(el) {
+    observer.observe(el);
   });
-}, { threshold: 0.08 });
-document.querySelectorAll('.reveal').forEach(function(el) { observer.observe(el); });
+} else {
+  document.querySelectorAll('.reveal').forEach(function(el) {
+    el.classList.add('visible');
+  });
+}
 
 // Pillar GA event
 var pillarsCard = document.querySelector('[data-track-pillars]');
@@ -1142,16 +1158,20 @@ document.querySelectorAll('a[href="/app.html"], a[href="/auth/connect.html?retur
 
 // Support Modal Toggle
 var supportModal = document.getElementById('supportModal');
-document.getElementById('openSupportBtn').addEventListener('click', function() {
-  supportModal.style.display = 'flex';
-});
-document.getElementById('closeSupportBtn').addEventListener('click', function() {
-  supportModal.style.display = 'none';
-});
-// Close on outside click
-supportModal.addEventListener('click', function(e) {
-  if (e.target === supportModal) supportModal.style.display = 'none';
-});
+var openSupportBtn = document.getElementById('openSupportBtn');
+var closeSupportBtn = document.getElementById('closeSupportBtn');
+
+if (supportModal && openSupportBtn && closeSupportBtn) {
+  openSupportBtn.addEventListener('click', function() {
+    supportModal.style.display = 'flex';
+  });
+  closeSupportBtn.addEventListener('click', function() {
+    supportModal.style.display = 'none';
+  });
+  supportModal.addEventListener('click', function(e) {
+    if (e.target === supportModal) supportModal.style.display = 'none';
+  });
+}
 </script>
 </body>
 </html>
