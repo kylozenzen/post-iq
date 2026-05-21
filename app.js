@@ -51,6 +51,8 @@ const DEFAULT_POSTIQ_CONFIG = {
   }
 };
 const BETA_BANNER_SESSION_KEY = 'postiq_beta_banner_seen';
+const BETA_BANNER_PERSIST_KEY = 'postiq_beta_banner_seen_persist';
+const APP_VISITED_KEY = 'postiq_app_visited';
 const LEGACY_NOTE_TYPES = {
   gold: { id: 'idea', label: 'Idea', color: '#f59e0b' },
   blue: { id: 'draft', label: 'Draft', color: '#3a3fff' },
@@ -148,7 +150,10 @@ function hideGlobalStatus() {
 function bindGlobalStatusDismiss() {
   on('globalStatusDismiss', 'click', () => {
     hideGlobalStatus();
-    try { sessionStorage.setItem(BETA_BANNER_SESSION_KEY, '1'); } catch {}
+    try {
+      sessionStorage.setItem(BETA_BANNER_SESSION_KEY, '1');
+      localStorage.setItem(BETA_BANNER_PERSIST_KEY, '1');
+    } catch {}
   });
 }
 
@@ -241,8 +246,9 @@ function maybeShowBetaBanner() {
   const message = String(postiqConfig?.betaMessage || '').trim();
   if (!message) return;
   try {
-    if (sessionStorage.getItem(BETA_BANNER_SESSION_KEY)) return;
+    if (sessionStorage.getItem(BETA_BANNER_SESSION_KEY) || localStorage.getItem(BETA_BANNER_PERSIST_KEY)) return;
     sessionStorage.setItem(BETA_BANNER_SESSION_KEY, '1');
+    localStorage.setItem(BETA_BANNER_PERSIST_KEY, '1');
   } catch {}
   showGlobalStatus(message, { title: 'Public beta', type: 'info', timeout: 7000 });
 }
@@ -1097,6 +1103,10 @@ function getBufferConnectUrl() {
 
 function goToBufferConnect() {
   location.href = getBufferConnectUrl();
+}
+
+function markAppVisited() {
+  try { localStorage.setItem(APP_VISITED_KEY, '1'); } catch {}
 }
 
 function renderConnectionUI() {
@@ -2864,6 +2874,7 @@ function init() {
   if (approveParam) { renderReviewerPage(approveParam); return; }
   if (renderSharedFromHash()) return;
 
+  markAppVisited();
   loadStoredToken();
   loadTemplates();
   initTemplateSelectors();
