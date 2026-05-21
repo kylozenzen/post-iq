@@ -2981,6 +2981,9 @@ function init() {
 
   on('composerClearBtn', 'click', () => {
     if (editorToText(editor.innerHTML) && !confirm('Clear composer?')) return;
+    editor.focus();
+    document.execCommand('selectAll', false, null);
+    document.execCommand('removeFormat', false, null);
     editor.innerHTML = ''; editor.dispatchEvent(new Event('input'));
     const status = qs('composerStatus'); if (status) status.textContent = ''; clearMedia();
   });
@@ -3283,6 +3286,9 @@ function init() {
   if (ccbm) {
     ccbm.onclick = () => {
       if (editorToText(editor.innerHTML) && !confirm('Clear composer?')) return;
+      editor.focus();
+      document.execCommand('selectAll', false, null);
+      document.execCommand('removeFormat', false, null);
       editor.innerHTML = ''; editor.dispatchEvent(new Event('input'));
       const status = qs('composerStatus'); if (status) status.textContent = ''; clearMedia();
     };
@@ -3311,6 +3317,11 @@ function init() {
     const support = qs('composerSupportSection');
     if (support) support.style.display = mode === 'compose' ? 'grid' : 'none';
     if (mode === 'split') initSplitMode();
+    const editorText = editorToText(qs('composerEditor').innerHTML);
+    if (editorText) {
+      const ti = qs('threadInput');
+      if (ti && !ti.value.trim()) ti.value = editorText;
+    }
   }
   document.querySelectorAll('.composer-mode-tab').forEach(t => {
     t.onclick = () => setComposerMode(t.dataset.cmode);
