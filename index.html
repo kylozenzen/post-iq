@@ -1060,6 +1060,22 @@ h2 em{font-style:normal;color:var(--brand);}
 </div>
 
 <script>
+// If a visitor has already used the app or has an active Buffer connection, send them directly to the app.
+(function redirectReturningUsersToApp() {
+  try {
+    var hasVisitedApp = localStorage.getItem('postiq_app_visited') === '1';
+    var hasOAuthToken = !!(localStorage.getItem('postiq_buffer_access_token') || sessionStorage.getItem('postiq_buffer_access_token'));
+    var hasRefreshToken = !!(localStorage.getItem('postiq_buffer_refresh_token') || sessionStorage.getItem('postiq_buffer_refresh_token'));
+    var hasManualToken = !!(localStorage.getItem('postiq_buffer_token') || sessionStorage.getItem('postiq_buffer_token'));
+    if (hasVisitedApp || hasOAuthToken || hasRefreshToken || hasManualToken) {
+      window.location.replace('/app.html');
+      return;
+    }
+  } catch (err) {
+    // ignore storage access errors and continue to landing page
+  }
+})();
+
 // Split algo — matches app exactly
 function splitText(text, max) {
   max = max || 280;
