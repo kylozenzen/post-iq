@@ -758,54 +758,59 @@
         </section>
 
         <section class="ideas-panel" id="ideasTrendingPanel" data-ideas-panel="trending">
-          <div class="ideas-panel-hdr">
-            <p class="ideas-panel-copy">Reddit and Hacker News inspiration when the beta tool is available. Click any story to open it in Compose.</p>
-            <div class="page-actions">
-              <button class="btn sm ghost" id="trendingRefreshMob">↻</button>
-              <button class="btn ghost" id="trendingRefreshBtn">↻ Refresh</button>
-            </div>
-          </div>
 
-        <!-- Source tabs -->
-        <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;">
-          <button class="trending-src-tab active" data-tsrc="reddit" style="padding:8px 18px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Reddit</button>
-          <button class="trending-src-tab" data-tsrc="hn" style="padding:8px 18px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Hacker News</button>
-        </div>
+<div class="ideas-panel-hdr">
+  <p class="ideas-panel-copy">Trending ideas from Reddit, Hacker News, and Product Hunt — all routed through a server-side proxy so they actually load. Click any story to open it in Compose.</p>
+  <div class="page-actions">
+    <button class="btn sm ghost" id="trendingRefreshMob">↻</button>
+    <button class="btn ghost" id="trendingRefreshBtn">↻ Refresh</button>
+  </div>
+</div>
 
-        <!-- Reddit panel -->
-        <div id="trendingRedditPanel">
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
-            <div id="trendingSubPills" style="display:flex;gap:5px;flex-wrap:wrap;flex:1;"></div>
-            <div style="display:flex;gap:6px;">
-              <input id="trendingCustomSub" class="input" placeholder="r/custom" style="width:130px;" />
-              <button class="btn sm" id="trendingGoSub">Go</button>
-              <button class="btn sm ghost" id="trendingRefreshReddit">↻</button>
-            </div>
-          </div>
-          <div id="trendingRedditStatus" style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:10px;min-height:16px;"></div>
-          <div id="trendingRedditList" style="display:flex;flex-direction:column;gap:6px;"></div>
-        </div>
+<!-- Source tabs — added producthunt -->
+<div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;">
+  <button class="trending-src-tab active" data-tsrc="reddit"      style="padding:8px 18px;border:none;background:transparent;color:var(--brand);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid var(--brand);margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Reddit</button>
+  <button class="trending-src-tab"        data-tsrc="hn"           style="padding:8px 18px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Hacker News</button>
+  <button class="trending-src-tab"        data-tsrc="producthunt"  style="padding:8px 18px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Product Hunt</button>
+</div>
 
-        <!-- HN panel -->
-        <div id="trendingHNPanel" style="display:none;">
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
-            <div style="display:flex;gap:5px;">
-              <button class="trending-hn-tab active" data-hn="topstories" style="padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--brand-dim);color:var(--brand);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;">Top</button>
-              <button class="trending-hn-tab" data-hn="newstories" style="padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--muted);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;">New</button>
-              <button class="trending-hn-tab" data-hn="beststories" style="padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--muted);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;">Best</button>
-            </div>
-            <button class="btn sm ghost" id="trendingRefreshHN" style="margin-left:auto;">↻</button>
-          </div>
-          <div id="trendingHNStatus" style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:10px;min-height:16px;"></div>
-          <div id="trendingHNList" style="display:flex;flex-direction:column;gap:6px;"></div>
-        </div>
+<!-- Reddit panel -->
+<div id="trendingRedditPanel">
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
+    <div id="trendingSubPills" style="display:flex;gap:5px;flex-wrap:wrap;flex:1;"></div>
+    <div style="display:flex;gap:6px;">
+      <input id="trendingCustomSub" class="input" placeholder="r/custom" style="width:130px;" />
+      <button class="btn sm" id="trendingGoSub">Go</button>
+      <button class="btn sm ghost" id="trendingRefreshReddit">↻</button>
+    </div>
+  </div>
+  <div id="trendingRedditStatus" style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:10px;min-height:16px;"></div>
+  <div id="trendingRedditList" style="display:flex;flex-direction:column;gap:0;"></div>
+</div>
 
-        </section>
-      </div><!-- /view-content -->
-    </section>
+<!-- HN panel -->
+<div id="trendingHNPanel" style="display:none;">
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
+    <div style="display:flex;gap:5px;">
+      <button class="trending-hn-tab active" data-hn="topstories" style="padding:5px 12px;border-radius:20px;border:1px solid var(--brand-glow);background:var(--brand-dim);color:var(--brand);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;">Top</button>
+      <button class="trending-hn-tab"        data-hn="newstories" style="padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--muted);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;">New</button>
+      <button class="trending-hn-tab"        data-hn="beststories" style="padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface);color:var(--muted);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;">Best</button>
+    </div>
+    <button class="btn sm ghost" id="trendingRefreshHN" style="margin-left:auto;">↻</button>
+  </div>
+  <div id="trendingHNStatus" style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:10px;min-height:16px;"></div>
+  <div id="trendingHNList" style="display:flex;flex-direction:column;gap:0;"></div>
+</div>
 
-  </main>
-</section>
+<!-- Product Hunt panel -->
+<div id="trendingPHPanel" style="display:none;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+    <div style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;">Today's top launches and products</div>
+    <button class="btn sm ghost" id="trendingRefreshPH">↻</button>
+  </div>
+  <div id="trendingPHStatus" style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:10px;min-height:16px;"></div>
+  <div id="trendingPHList" style="display:flex;flex-direction:column;gap:0;"></div>
+</div>
 
 <!-- ── MODALS ── -->
 
