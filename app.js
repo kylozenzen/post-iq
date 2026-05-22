@@ -3714,8 +3714,9 @@ function init() {
       console.warn('Trending init failed:', err);
     }
   }
+}
 
-  window.ContentPillars = (() => {
+window.ContentPillars = (() => {
 
   // ── SSM ENGINE ─────────────────────────────────────────────────
 
@@ -4245,7 +4246,6 @@ function init() {
     },
   };
 })();
-}
 
 document.addEventListener('DOMContentLoaded', () => {
   bindGlobalStatusDismiss();
