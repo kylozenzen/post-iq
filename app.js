@@ -3704,6 +3704,9 @@ function init() {
     loadReddit();
   }
 
+}
+
+  window.ContentPillars = (() => {
 
   // ── SSM ENGINE ─────────────────────────────────────────────────
 
