@@ -3701,7 +3701,17 @@ function init() {
       if (btn) btn.onclick = handler;
     });
 
-    loadReddit();
+    setTimeout(() => loadReddit(), 0);
+  }
+
+  let trendingInited = false;
+  if (!trendingInited) {
+    trendingInited = true;
+    try {
+      initTrending();
+    } catch (err) {
+      console.warn('Trending init failed:', err);
+    }
   }
 
 }
