@@ -7,6 +7,27 @@
 const DEFAULT_SUBS = ['socialmedia', 'entrepreneur', 'marketing', 'business', 'smallbusiness'];
 const HN_FEED_TYPES = ['topstories', 'newstories', 'beststories'];
 
+function decodeHtmlEntities(value) {
+  return String(value || '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)));
+}
+
+function cleanFeedText(value, max = 300) {
+  const decoded = decodeHtmlEntities(String(value || ''));
+  return decoded
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, max);
+}
+
 function corsHeaders() {
   return {
     'Content-Type': 'application/json; charset=utf-8',
@@ -49,7 +70,9 @@ async function fetchReddit(subreddit, limit = 25) {
   });
 
   if (!res.ok) {
-    throw new Error(`Reddit returned HTTP ${res.status} for r/${sub}`);
+    // Reddit occasionally blocks JSON endpoints in serverless environments.
+    // Fall back to RSS so the UI still loads.
+    return fetchRedditRssFallback(sub, limit, res.status);
   }
 
   const data = await res.json();
@@ -70,6 +93,47 @@ async function fetchReddit(subreddit, limit = 25) {
     }));
 
   return { posts, subreddit: sub };
+}
+
+async function fetchRedditRssFallback(sub, limit = 25, statusCode = 0) {
+  const res = await fetch(`https://www.reddit.com/r/${sub}/hot.rss?limit=${limit}`, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (compatible; PostIQBot/1.0; +https://postiq.app)',
+      'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml',
+    },
+  });
+
+  if (!res.ok) throw new Error(`Reddit returned HTTP ${statusCode || res.status} for r/${sub}`);
+
+  const xml = await res.text();
+  const items = [];
+  const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
+  let match;
+  while ((match = entryRegex.exec(xml)) !== null && items.length < limit) {
+    const entry = match[1];
+    const getTag = tag => {
+      const m = entry.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i'));
+      return m ? m[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim() : '';
+    };
+    const rawTitle = getTag('title');
+    const permalink = getTag('id') || getTag('link');
+    const summary = getTag('content') || getTag('summary');
+    const updated = getTag('updated') || getTag('published');
+    if (!rawTitle || !permalink) continue;
+    items.push({
+      title: cleanFeedText(rawTitle, 300),
+      score: 0,
+      comments: 0,
+      sub: `r/${sub}`,
+      url: permalink,
+      permalink,
+      selftext: cleanFeedText(summary, 300),
+      age: updated ? Math.max(0, Math.floor((Date.now() - new Date(updated).getTime()) / 1000)) : 0,
+      source: 'reddit',
+    });
+  }
+  if (!items.length) throw new Error(`Reddit returned HTTP ${statusCode || 403} for r/${sub}`);
+  return { posts: items, subreddit: sub };
 }
 
 async function fetchHN(feedType = 'topstories', limit = 20) {
@@ -195,37 +259,41 @@ async function fetchProductHuntFallback(limit = 20) {
 
   // Parse RSS items — simple regex approach (no DOM parser on server)
   const items = [];
-  const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-  let match;
-
-  while ((match = itemRegex.exec(xml)) !== null && items.length < limit) {
-    const itemXml = match[1];
+  const parseFeedItems = (chunk, mode) => {
     const getTag = tag => {
-      const m = itemXml.match(new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]></${tag}>|<${tag}[^>]*>([\\s\\S]*?)</${tag}>`));
+      const m = chunk.match(new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]></${tag}>|<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i'));
       return m ? (m[1] || m[2] || '').trim() : '';
     };
 
     const title = getTag('title');
-    const link = getTag('link');
-    const description = getTag('description');
-    const pubDate = getTag('pubDate');
+    const link = mode === 'atom'
+      ? ((chunk.match(/<link[^>]+href="([^"]+)"/i) || [])[1] || getTag('id'))
+      : getTag('link');
+    const description = getTag('description') || getTag('summary') || getTag('content');
+    const pubDate = getTag('pubDate') || getTag('updated') || getTag('published');
 
     if (title && link) {
       const ageSeconds = pubDate ? Math.floor((Date.now() - new Date(pubDate).getTime()) / 1000) : 0;
       items.push({
-        title: title.slice(0, 200),
-        tagline: description.replace(/<[^>]+>/g, '').slice(0, 200),
+        title: cleanFeedText(title, 200),
+        tagline: cleanFeedText(description, 200),
         score: 0,
         comments: 0,
         sub: 'Product Hunt',
         url: link,
         permalink: link,
-        selftext: description.replace(/<[^>]+>/g, '').slice(0, 300),
+        selftext: cleanFeedText(description, 300),
         age: ageSeconds,
         source: 'producthunt',
       });
     }
-  }
+  };
+
+  const itemRegex = /<item>([\s\S]*?)<\/item>/gi;
+  const entryRegex = /<entry>([\s\S]*?)<\/entry>/gi;
+  let match;
+  while ((match = itemRegex.exec(xml)) !== null && items.length < limit) parseFeedItems(match[1], 'rss');
+  while ((match = entryRegex.exec(xml)) !== null && items.length < limit) parseFeedItems(match[1], 'atom');
 
   if (!items.length) {
     throw new Error('Product Hunt RSS returned no parseable items');

@@ -3497,72 +3497,7 @@ function init() {
     });
   }
 
-  // ── TRENDING ──
-  const trendingState = { src: 'reddit', sub: 'socialmedia', hn: 'topstories' };
-  const DEFAULT_SUBS = ['socialmedia','entrepreneur','marketing','business'];
-
-  function renderSubPills() {
-    const wrap = qs('trendingSubPills'); if (!wrap) return;
-    wrap.innerHTML = '';
-    DEFAULT_SUBS.forEach(sub => {
-      const btn = document.createElement('button');
-      btn.style.cssText = `padding:5px 12px;border-radius:20px;border:1px solid var(--border2);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;transition:all .12s;background:${trendingState.sub===sub?'var(--brand-dim)':'var(--surface)'};color:${trendingState.sub===sub?'var(--brand)':'var(--muted)'};border-color:${trendingState.sub===sub?'var(--brand-glow)':'var(--border2)'};`;
-      btn.textContent = 'r/' + sub;
-      btn.onclick = () => { trendingState.sub = sub; renderSubPills(); loadReddit(); };
-      wrap.appendChild(btn);
-    });
-  }
-
-  function timeAgo(ts) {
-    const d = (Date.now() - ts) / 1000;
-    if (d < 3600) return `${Math.floor(d/60)}m ago`;
-    if (d < 86400) return `${Math.floor(d/3600)}h ago`;
-    return `${Math.floor(d/86400)}d ago`;
-  }
-
-  function renderTrendingItems(containerId, items) {
-    const list = qs(containerId); list.innerHTML = '';
-    if (!items.length) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">📈</div><div class="empty-title">Nothing loaded</div><div class="empty-desc">Try refreshing or switching to a different source.</div></div>'; return; }
-    items.forEach((item, i) => {
-      const el = document.createElement('div');
-      el.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;transition:border-color .12s;';
-      el.innerHTML = `
-        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--subtle);width:22px;flex-shrink:0;padding-top:2px;font-weight:600;">${i+1}</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:5px;">${safeText(item.title)}</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--amber);font-weight:700;">▲ ${(item.score||0).toLocaleString()}</span>
-            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">💬 ${item.comments||0}</span>
-            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--brand);">${safeText(item.sub||'')}</span>
-            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">${item.age||''}</span>
-          </div>
-          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
-            <button class="btn sm" style="font-size:11px;" data-inspire="${i}">→ Compose from this</button>
-            <a class="btn sm ghost" data-source-link="1" target="_blank" rel="noopener" style="font-size:11px;">↗ Source</a>
-          </div>
-        </div>`;
-      const sourceLink = el.querySelector('[data-source-link]');
-      if (sourceLink) {
-        const safeUrl = toSafeExternalUrl(item.url);
-        if (safeUrl) sourceLink.setAttribute('href', safeUrl);
-        else sourceLink.remove();
-      }
-      el.onmouseenter = () => { el.style.borderColor = 'var(--border2)'; };
-      el.onmouseleave = () => { el.style.borderColor = 'var(--border)'; };
-      el.querySelector('[data-inspire]').onclick = () => {
-        qs('refPinTitle').textContent = item.title;
-        qs('refPinBody').textContent = item.body ? item.body.slice(0,200) : '';
-        qs('refPin').style.display = 'block';
-        activateView('composerView');
-        showToast('Pinned as reference — write your take', 'info');
-      };
-      list.appendChild(el);
-    });
-  }
-
-  async function loadReddit() {
-
-    // ── TRENDING (PROXY-BASED) ────────────────────────────────────────
+  // ── TRENDING (PROXY-BASED) ────────────────────────────────────────
 // Replaces the direct-fetch trending section in app.js.
 // All feeds route through /.netlify/functions/trending to avoid CORS + CSP issues.
 // Drop this entire block in place of the existing trending state + initTrending() function.
@@ -3831,6 +3766,9 @@ function init() {
     // Load Reddit on init
     loadReddit();
   }
+
+  initTrending();
+}
 
 
 
