@@ -2913,6 +2913,7 @@ function init() {
   renderPlanningSettings();
   renderNoteTypesSettings();
   activateView('calendarView');
+  if (getFeatureFlag('trending')) initTrending();
 
   on('manageTokenBtn', 'click', () => {
     const connection = getBufferConnectionState();
@@ -4244,6 +4245,7 @@ function init() {
     },
   };
 })();
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   bindGlobalStatusDismiss();
