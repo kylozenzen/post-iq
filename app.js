@@ -2913,7 +2913,6 @@ function init() {
   renderPlanningSettings();
   renderNoteTypesSettings();
   activateView('calendarView');
-  if (getFeatureFlag('trending')) initTrending();
 
   on('manageTokenBtn', 'click', () => {
     const connection = getBufferConnectionState();
@@ -3705,9 +3704,7 @@ function init() {
     setTimeout(() => loadReddit(), 0);
   }
 
-  let trendingInited = false;
-  if (!trendingInited) {
-    trendingInited = true;
+  if (getFeatureFlag('trending')) {
     try {
       initTrending();
     } catch (err) {
