@@ -3561,141 +3561,276 @@ function init() {
   }
 
   async function loadReddit() {
-    const statusEl = qs('trendingRedditStatus'); const listEl = qs('trendingRedditList');
-    if (!statusEl || !listEl) return;
-    statusEl.textContent = 'Loading…'; listEl.innerHTML = '';
-    try {
-      let posts = [];
-      try {
-        const res = await fetch(`https://www.reddit.com/r/${trendingState.sub}/hot.json?limit=25`, { headers: { Accept: 'application/json' } });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        posts = (data?.data?.children || []).filter(p => !p.data.stickied);
-      } catch {
-        const rssRes = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(`https://www.reddit.com/r/${trendingState.sub}/hot.rss`)}`);
-        if (!rssRes.ok) throw new Error(`HTTP ${rssRes.status}`);
-        const rssData = await rssRes.json();
-        posts = (rssData?.items || []).map(item => ({
-          data: {
-            title: item.title,
-            score: 0,
-            num_comments: 0,
-            subreddit: trendingState.sub,
-            permalink: item.link ? item.link.replace('https://www.reddit.com', '') : '',
-            selftext: item.description ? String(item.description).replace(/<[^>]+>/g, ' ').trim() : '',
-            created_utc: item.pubDate ? Math.floor(new Date(item.pubDate).getTime() / 1000) : Math.floor(Date.now() / 1000),
-          }
-        }));
-      }
-      statusEl.textContent = `${posts.length} posts from r/${trendingState.sub}`;
-      renderTrendingItems('trendingRedditList', posts.map((p) => ({
-        title: p.data.title, score: p.data.score, comments: p.data.num_comments,
-        sub: `r/${p.data.subreddit}`, url: `https://reddit.com${p.data.permalink}`,
-        body: p.data.selftext, age: timeAgo(p.data.created_utc * 1000),
-      })));
-    } catch(e) { statusEl.textContent = 'Failed to load from Reddit and RSS fallback. Try another subreddit.'; }
+
+    // ── TRENDING (PROXY-BASED) ────────────────────────────────────────
+// Replaces the direct-fetch trending section in app.js.
+// All feeds route through /.netlify/functions/trending to avoid CORS + CSP issues.
+// Drop this entire block in place of the existing trending state + initTrending() function.
+
+  const trendingState = {
+    src: 'reddit',
+    sub: 'socialmedia',
+    hn: 'topstories',
+  };
+
+  // ── Proxy fetch helper ──────────────────────────────────────────
+  async function fetchTrendingFeed(params) {
+    const res = await fetch('/.netlify/functions/trending', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Trending feed returned HTTP ${res.status}`);
+    }
+    return res.json();
   }
 
+  // ── Time-ago formatter ──────────────────────────────────────────
+  function trendingTimeAgo(ageSeconds) {
+    const s = Number(ageSeconds || 0);
+    if (s < 3600)  return `${Math.max(1, Math.floor(s / 60))}m ago`;
+    if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+    return `${Math.floor(s / 86400)}d ago`;
+  }
+
+  // ── Render a list of feed items ─────────────────────────────────
+  function renderTrendingItems(containerId, items, sourceType) {
+    const list = qs(containerId);
+    if (!list) return;
+    list.innerHTML = '';
+
+    if (!items || !items.length) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📈</div>
+          <div class="empty-title">Nothing loaded</div>
+          <div class="empty-desc">Try refreshing or switching to a different source.</div>
+        </div>`;
+      return;
+    }
+
+    items.forEach((item, i) => {
+      const el = document.createElement('div');
+      el.className = 'trend-card';
+      el.style.cssText = `
+        display:flex;align-items:flex-start;gap:12px;
+        padding:12px 14px;
+        background:var(--surface);
+        border:1px solid var(--border);
+        border-radius:10px;
+        transition:border-color .12s;
+        margin-bottom:6px;
+      `;
+
+      const tagline = item.tagline || item.selftext || '';
+      const subLabel = String(item.sub || '').slice(0, 40);
+      const scoreLabel = item.score > 0 ? `▲ ${item.score.toLocaleString()}` : '';
+      const commentLabel = item.comments > 0 ? `💬 ${item.comments}` : '';
+      const ageLabel = item.age ? trendingTimeAgo(item.age) : '';
+
+      el.innerHTML = `
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--subtle);width:22px;flex-shrink:0;padding-top:2px;font-weight:600;">${i + 1}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="trend-card-title" style="font-size:13px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:${tagline ? '4px' : '5px'};">${safeText(item.title)}</div>
+          ${tagline ? `<div style="font-size:11px;color:var(--subtle);line-height:1.5;margin-bottom:5px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${safeText(tagline)}</div>` : ''}
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px;">
+            ${scoreLabel ? `<span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--amber);font-weight:700;">${safeText(scoreLabel)}</span>` : ''}
+            ${commentLabel ? `<span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">${safeText(commentLabel)}</span>` : ''}
+            ${subLabel ? `<span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--brand);">${safeText(subLabel)}</span>` : ''}
+            ${ageLabel ? `<span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">${safeText(ageLabel)}</span>` : ''}
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn sm" style="font-size:11px;" data-inspire="${i}">→ Compose from this</button>
+            <a class="btn sm ghost" href="${safeText(item.url || item.permalink || '#')}" target="_blank" rel="noopener" style="font-size:11px;">↗ Source</a>
+          </div>
+        </div>`;
+
+      el.onmouseenter = () => { el.style.borderColor = 'var(--border2)'; };
+      el.onmouseleave = () => { el.style.borderColor = 'var(--border)'; };
+
+      el.querySelector('[data-inspire]').onclick = () => {
+        const refPin = qs('refPin');
+        const refPinTitle = qs('refPinTitle');
+        const refPinBody = qs('refPinBody');
+        if (refPin && refPinTitle && refPinBody) {
+          refPinTitle.textContent = item.title;
+          refPinBody.textContent = tagline || '';
+          refPin.style.display = 'block';
+        }
+        if (typeof window.activateView === 'function') window.activateView('composerView');
+        showToast('Pinned as reference — write your take', 'success');
+      };
+
+      list.appendChild(el);
+    });
+  }
+
+  // ── Subreddit pills ─────────────────────────────────────────────
+  const DEFAULT_SUBS = ['socialmedia', 'entrepreneur', 'marketing', 'business', 'smallbusiness'];
+
+  function renderSubPills() {
+    const wrap = qs('trendingSubPills');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    DEFAULT_SUBS.forEach(sub => {
+      const active = trendingState.sub === sub;
+      const btn = document.createElement('button');
+      btn.style.cssText = `
+        padding:5px 12px;border-radius:20px;border:1px solid ${active ? 'var(--brand-glow)' : 'var(--border2)'};
+        font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;transition:all .12s;
+        background:${active ? 'var(--brand-dim)' : 'var(--surface)'};
+        color:${active ? 'var(--brand)' : 'var(--muted)'};
+      `;
+      btn.textContent = `r/${sub}`;
+      btn.onclick = () => { trendingState.sub = sub; renderSubPills(); loadReddit(); };
+      wrap.appendChild(btn);
+    });
+  }
+
+  // ── Reddit ──────────────────────────────────────────────────────
+  async function loadReddit() {
+    const statusEl = qs('trendingRedditStatus');
+    const listEl   = qs('trendingRedditList');
+    if (!statusEl || !listEl) return;
+
+    statusEl.textContent = `Loading r/${trendingState.sub}…`;
+    listEl.innerHTML = '';
+
+    try {
+      const data = await fetchTrendingFeed({ source: 'reddit', subreddit: trendingState.sub });
+      const posts = data.posts || [];
+      statusEl.textContent = `${posts.length} posts from r/${data.subreddit || trendingState.sub}`;
+      renderTrendingItems('trendingRedditList', posts, 'reddit');
+    } catch (err) {
+      statusEl.textContent = `Failed to load r/${trendingState.sub} — ${err.message}`;
+      renderTrendingItems('trendingRedditList', [], 'reddit');
+    }
+  }
+
+  // ── Hacker News ─────────────────────────────────────────────────
   async function loadHN() {
-    const statusEl = qs('trendingHNStatus'); const listEl = qs('trendingHNList');
+    const statusEl = qs('trendingHNStatus');
+    const listEl   = qs('trendingHNList');
     if (!statusEl || !listEl) return;
-    statusEl.textContent = 'Loading…'; listEl.innerHTML = '';
+
+    statusEl.textContent = 'Loading Hacker News…';
+    listEl.innerHTML = '';
+
     try {
-      let stories = [];
-      try {
-        const idsRes = await fetch(`https://hacker-news.firebaseio.com/v0/${trendingState.hn}.json`);
-        if (!idsRes.ok) throw new Error(`HTTP ${idsRes.status}`);
-        const ids = await idsRes.json();
-        if (!Array.isArray(ids)) throw new Error('Invalid HN ids payload');
-        stories = await Promise.all(ids.slice(0,20).map(async id => {
-          const itemRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
-          if (!itemRes.ok) return null;
-          return itemRes.json();
-        }));
-      } catch {
-        const query = trendingState.hn === 'newstories' ? 'search_by_date' : 'search';
-        const algoliaRes = await fetch(`https://hn.algolia.com/api/v1/${query}?tags=story&hitsPerPage=20`);
-        if (!algoliaRes.ok) throw new Error(`HTTP ${algoliaRes.status}`);
-        const algoliaData = await algoliaRes.json();
-        stories = (algoliaData?.hits || []).map(hit => ({
-          id: hit.objectID,
-          title: hit.title,
-          score: hit.points || 0,
-          descendants: hit.num_comments || 0,
-          by: hit.author,
-          url: hit.url,
-          time: hit.created_at_i || Math.floor(Date.now() / 1000),
-        }));
-      }
-      statusEl.textContent = `${stories.length} stories from Hacker News`;
-      renderTrendingItems('trendingHNList', stories.filter(s=>s?.title).map((s) => ({
-        title: s.title, score: s.score, comments: s.descendants||0,
-        sub: s.by ? `by ${s.by}` : 'HN', url: s.url || `https://news.ycombinator.com/item?id=${s.id}`,
-        age: timeAgo(s.time * 1000),
-      })));
-    } catch(e) { statusEl.textContent = 'Failed to load from Hacker News and fallback.'; }
+      const data = await fetchTrendingFeed({ source: 'hn', feed: trendingState.hn });
+      const posts = data.posts || [];
+      statusEl.textContent = `${posts.length} stories from Hacker News`;
+      renderTrendingItems('trendingHNList', posts, 'hn');
+    } catch (err) {
+      statusEl.textContent = `Failed to load Hacker News — ${err.message}`;
+      renderTrendingItems('trendingHNList', [], 'hn');
+    }
   }
 
+  // ── Product Hunt ────────────────────────────────────────────────
+  async function loadProductHunt() {
+    const statusEl = qs('trendingPHStatus');
+    const listEl   = qs('trendingPHList');
+    if (!statusEl || !listEl) return;
+
+    statusEl.textContent = 'Loading Product Hunt…';
+    listEl.innerHTML = '';
+
+    try {
+      const data = await fetchTrendingFeed({ source: 'producthunt' });
+      const posts = data.posts || [];
+      statusEl.textContent = `${posts.length} launches from Product Hunt`;
+      renderTrendingItems('trendingPHList', posts, 'producthunt');
+    } catch (err) {
+      statusEl.textContent = `Failed to load Product Hunt — ${err.message}`;
+      renderTrendingItems('trendingPHList', [], 'producthunt');
+    }
+  }
+
+  // ── initTrending ────────────────────────────────────────────────
   function initTrending() {
     renderSubPills();
 
+    // Source tab switching
     document.querySelectorAll('.trending-src-tab').forEach(tab => {
       tab.onclick = () => {
+        // Reset all tab styles
         document.querySelectorAll('.trending-src-tab').forEach(t => {
-          t.style.color = 'var(--muted)'; t.style.borderBottomColor = 'transparent';
+          t.style.color = 'var(--muted)';
+          t.style.borderBottomColor = 'transparent';
         });
-        tab.style.color = 'var(--brand)'; tab.style.borderBottomColor = 'var(--brand)';
+        tab.style.color = 'var(--brand)';
+        tab.style.borderBottomColor = 'var(--brand)';
+
         trendingState.src = tab.dataset.tsrc;
-        qs('trendingRedditPanel').style.display = trendingState.src==='reddit' ? 'block' : 'none';
-        qs('trendingHNPanel').style.display     = trendingState.src==='hn'     ? 'block' : 'none';
-        if (trendingState.src==='hn') loadHN();
+
+        const panels = {
+          reddit:       'trendingRedditPanel',
+          hn:           'trendingHNPanel',
+          producthunt:  'trendingPHPanel',
+        };
+        Object.values(panels).forEach(id => {
+          const el = qs(id);
+          if (el) el.style.display = 'none';
+        });
+        const active = panels[trendingState.src];
+        if (active) { const el = qs(active); if (el) el.style.display = 'block'; }
+
+        if (trendingState.src === 'hn')           loadHN();
+        if (trendingState.src === 'producthunt')  loadProductHunt();
       };
     });
 
+    // HN sub-tabs
     document.querySelectorAll('.trending-hn-tab').forEach(tab => {
       tab.onclick = () => {
         document.querySelectorAll('.trending-hn-tab').forEach(t => {
-          t.style.background='var(--surface)'; t.style.color='var(--muted)'; t.style.borderColor='var(--border2)';
+          t.style.background    = 'var(--surface)';
+          t.style.color         = 'var(--muted)';
+          t.style.borderColor   = 'var(--border2)';
         });
-        tab.style.background='var(--brand-dim)'; tab.style.color='var(--brand)'; tab.style.borderColor='var(--brand-glow)';
-        trendingState.hn = tab.dataset.hn; loadHN();
+        tab.style.background  = 'var(--brand-dim)';
+        tab.style.color       = 'var(--brand)';
+        tab.style.borderColor = 'var(--brand-glow)';
+        trendingState.hn = tab.dataset.hn;
+        loadHN();
       };
     });
 
-    qs('trendingGoSub').onclick = () => {
-      const val = qs('trendingCustomSub').value.trim().replace(/^r\//,'');
-      if (!val) return;
-      if (!DEFAULT_SUBS.includes(val)) DEFAULT_SUBS.push(val);
-      trendingState.sub = val; renderSubPills(); loadReddit();
-      qs('trendingCustomSub').value = '';
+    // Custom subreddit input
+    const goSub = qs('trendingGoSub');
+    const customSub = qs('trendingCustomSub');
+    if (goSub && customSub) {
+      goSub.onclick = () => {
+        const val = customSub.value.trim().replace(/^r\//i, '').replace(/[^a-zA-Z0-9_]/g, '');
+        if (!val) return;
+        if (!DEFAULT_SUBS.includes(val)) DEFAULT_SUBS.push(val);
+        trendingState.sub = val;
+        renderSubPills();
+        loadReddit();
+        customSub.value = '';
+      };
+      customSub.addEventListener('keydown', e => { if (e.key === 'Enter') goSub.click(); });
+    }
+
+    // Refresh buttons
+    const refreshHandlers = {
+      trendingRefreshBtn:     () => { if (trendingState.src === 'reddit') loadReddit(); else if (trendingState.src === 'hn') loadHN(); else loadProductHunt(); },
+      trendingRefreshMob:     () => { if (trendingState.src === 'reddit') loadReddit(); else if (trendingState.src === 'hn') loadHN(); else loadProductHunt(); },
+      trendingRefreshReddit:  () => loadReddit(),
+      trendingRefreshHN:      () => loadHN(),
+      trendingRefreshPH:      () => loadProductHunt(),
     };
-    qs('trendingCustomSub').addEventListener('keydown', e => { if (e.key==='Enter') qs('trendingGoSub').click(); });
-
-    ['trendingRefreshBtn','trendingRefreshMob','trendingRefreshReddit'].forEach(id => {
-      const btn = qs(id); if (btn) btn.onclick = () => { if (trendingState.src==='reddit') loadReddit(); else loadHN(); };
+    Object.entries(refreshHandlers).forEach(([id, handler]) => {
+      const btn = qs(id);
+      if (btn) btn.onclick = handler;
     });
-    const hnRefBtn = qs('trendingRefreshHN'); if (hnRefBtn) hnRefBtn.onclick = loadHN;
 
+    // Load Reddit on init
     loadReddit();
   }
-
-  let trendingInited = false;
-  const origActivateView = activateView;
-  window.activateView = function(viewId) {
-    origActivateView(viewId);
-    if (viewId === 'ideasView' && currentIdeasTab === 'trending' && !trendingInited) { trendingInited = true; initTrending(); }
-  };
-
-  const origSetIdeasTab = setIdeasTab;
-  setIdeasTab = function(tabId) {
-    origSetIdeasTab(tabId);
-    if (currentIdeasTab === 'trending' && !trendingInited) { trendingInited = true; initTrending(); }
-  };
-
-  if ('serviceWorker' in navigator && location.hostname !== 'localhost' && !location.hostname.includes('claudeusercontent')) {
-    navigator.serviceWorker.register('/sw.js').catch(e => console.warn('SW:', e));
-  }
-}
 
 
 
