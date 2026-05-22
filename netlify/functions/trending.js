@@ -7,6 +7,27 @@
 const DEFAULT_SUBS = ['socialmedia', 'entrepreneur', 'marketing', 'business', 'smallbusiness'];
 const HN_FEED_TYPES = ['topstories', 'newstories', 'beststories'];
 
+function decodeHtmlEntities(value) {
+  return String(value || '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)));
+}
+
+function cleanFeedText(value, max = 300) {
+  const decoded = decodeHtmlEntities(String(value || ''));
+  return decoded
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, max);
+}
+
 function corsHeaders() {
   return {
     'Content-Type': 'application/json; charset=utf-8',
@@ -100,13 +121,13 @@ async function fetchRedditRssFallback(sub, limit = 25, statusCode = 0) {
     const updated = getTag('updated') || getTag('published');
     if (!rawTitle || !permalink) continue;
     items.push({
-      title: rawTitle.replace(/<[^>]+>/g, '').slice(0, 300),
+      title: cleanFeedText(rawTitle, 300),
       score: 0,
       comments: 0,
       sub: `r/${sub}`,
       url: permalink,
       permalink,
-      selftext: summary.replace(/<[^>]+>/g, '').slice(0, 300),
+      selftext: cleanFeedText(summary, 300),
       age: updated ? Math.max(0, Math.floor((Date.now() - new Date(updated).getTime()) / 1000)) : 0,
       source: 'reddit',
     });
@@ -254,14 +275,14 @@ async function fetchProductHuntFallback(limit = 20) {
     if (title && link) {
       const ageSeconds = pubDate ? Math.floor((Date.now() - new Date(pubDate).getTime()) / 1000) : 0;
       items.push({
-        title: title.slice(0, 200),
-        tagline: description.replace(/<[^>]+>/g, '').slice(0, 200),
+        title: cleanFeedText(title, 200),
+        tagline: cleanFeedText(description, 200),
         score: 0,
         comments: 0,
         sub: 'Product Hunt',
         url: link,
         permalink: link,
-        selftext: description.replace(/<[^>]+>/g, '').slice(0, 300),
+        selftext: cleanFeedText(description, 300),
         age: ageSeconds,
         source: 'producthunt',
       });
