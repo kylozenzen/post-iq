@@ -3714,8 +3714,6 @@ function init() {
     }
   }
 
-}
-
   window.ContentPillars = (() => {
 
   // ── SSM ENGINE ─────────────────────────────────────────────────
