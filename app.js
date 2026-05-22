@@ -3497,83 +3497,9 @@ function init() {
     });
   }
 
-  // ── TRENDING ──
+  // ── TRENDING (PROXY-BASED) ──────────────────────────────────────
   const trendingState = { src: 'reddit', sub: 'socialmedia', hn: 'topstories' };
-  const DEFAULT_SUBS = ['socialmedia','entrepreneur','marketing','business'];
 
-  function renderSubPills() {
-    const wrap = qs('trendingSubPills'); if (!wrap) return;
-    wrap.innerHTML = '';
-    DEFAULT_SUBS.forEach(sub => {
-      const btn = document.createElement('button');
-      btn.style.cssText = `padding:5px 12px;border-radius:20px;border:1px solid var(--border2);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;transition:all .12s;background:${trendingState.sub===sub?'var(--brand-dim)':'var(--surface)'};color:${trendingState.sub===sub?'var(--brand)':'var(--muted)'};border-color:${trendingState.sub===sub?'var(--brand-glow)':'var(--border2)'};`;
-      btn.textContent = 'r/' + sub;
-      btn.onclick = () => { trendingState.sub = sub; renderSubPills(); loadReddit(); };
-      wrap.appendChild(btn);
-    });
-  }
-
-  function timeAgo(ts) {
-    const d = (Date.now() - ts) / 1000;
-    if (d < 3600) return `${Math.floor(d/60)}m ago`;
-    if (d < 86400) return `${Math.floor(d/3600)}h ago`;
-    return `${Math.floor(d/86400)}d ago`;
-  }
-
-  function renderTrendingItems(containerId, items) {
-    const list = qs(containerId); list.innerHTML = '';
-    if (!items.length) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">📈</div><div class="empty-title">Nothing loaded</div><div class="empty-desc">Try refreshing or switching to a different source.</div></div>'; return; }
-    items.forEach((item, i) => {
-      const el = document.createElement('div');
-      el.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;transition:border-color .12s;';
-      el.innerHTML = `
-        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--subtle);width:22px;flex-shrink:0;padding-top:2px;font-weight:600;">${i+1}</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:5px;">${safeText(item.title)}</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--amber);font-weight:700;">▲ ${(item.score||0).toLocaleString()}</span>
-            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">💬 ${item.comments||0}</span>
-            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--brand);">${safeText(item.sub||'')}</span>
-            <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);">${item.age||''}</span>
-          </div>
-          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
-            <button class="btn sm" style="font-size:11px;" data-inspire="${i}">→ Compose from this</button>
-            <a class="btn sm ghost" data-source-link="1" target="_blank" rel="noopener" style="font-size:11px;">↗ Source</a>
-          </div>
-        </div>`;
-      const sourceLink = el.querySelector('[data-source-link]');
-      if (sourceLink) {
-        const safeUrl = toSafeExternalUrl(item.url);
-        if (safeUrl) sourceLink.setAttribute('href', safeUrl);
-        else sourceLink.remove();
-      }
-      el.onmouseenter = () => { el.style.borderColor = 'var(--border2)'; };
-      el.onmouseleave = () => { el.style.borderColor = 'var(--border)'; };
-      el.querySelector('[data-inspire]').onclick = () => {
-        qs('refPinTitle').textContent = item.title;
-        qs('refPinBody').textContent = item.body ? item.body.slice(0,200) : '';
-        qs('refPin').style.display = 'block';
-        activateView('composerView');
-        showToast('Pinned as reference — write your take', 'info');
-      };
-      list.appendChild(el);
-    });
-  }
-
-  async function loadReddit() {
-
-    // ── TRENDING (PROXY-BASED) ────────────────────────────────────────
-// Replaces the direct-fetch trending section in app.js.
-// All feeds route through /.netlify/functions/trending to avoid CORS + CSP issues.
-// Drop this entire block in place of the existing trending state + initTrending() function.
-
-  const trendingState = {
-    src: 'reddit',
-    sub: 'socialmedia',
-    hn: 'topstories',
-  };
-
-  // ── Proxy fetch helper ──────────────────────────────────────────
   async function fetchTrendingFeed(params) {
     const res = await fetch('/.netlify/functions/trending', {
       method: 'POST',
@@ -3587,7 +3513,6 @@ function init() {
     return res.json();
   }
 
-  // ── Time-ago formatter ──────────────────────────────────────────
   function trendingTimeAgo(ageSeconds) {
     const s = Number(ageSeconds || 0);
     if (s < 3600)  return `${Math.max(1, Math.floor(s / 60))}m ago`;
@@ -3595,41 +3520,23 @@ function init() {
     return `${Math.floor(s / 86400)}d ago`;
   }
 
-  // ── Render a list of feed items ─────────────────────────────────
-  function renderTrendingItems(containerId, items, sourceType) {
+  function renderTrendingItems(containerId, items) {
     const list = qs(containerId);
     if (!list) return;
     list.innerHTML = '';
-
     if (!items || !items.length) {
-      list.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-icon">📈</div>
-          <div class="empty-title">Nothing loaded</div>
-          <div class="empty-desc">Try refreshing or switching to a different source.</div>
-        </div>`;
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">📈</div><div class="empty-title">Nothing loaded</div><div class="empty-desc">Try refreshing or switching to a different source.</div></div>`;
       return;
     }
-
     items.forEach((item, i) => {
       const el = document.createElement('div');
       el.className = 'trend-card';
-      el.style.cssText = `
-        display:flex;align-items:flex-start;gap:12px;
-        padding:12px 14px;
-        background:var(--surface);
-        border:1px solid var(--border);
-        border-radius:10px;
-        transition:border-color .12s;
-        margin-bottom:6px;
-      `;
-
+      el.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;transition:border-color .12s;margin-bottom:6px;';
       const tagline = item.tagline || item.selftext || '';
       const subLabel = String(item.sub || '').slice(0, 40);
       const scoreLabel = item.score > 0 ? `▲ ${item.score.toLocaleString()}` : '';
       const commentLabel = item.comments > 0 ? `💬 ${item.comments}` : '';
       const ageLabel = item.age ? trendingTimeAgo(item.age) : '';
-
       el.innerHTML = `
         <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--subtle);width:22px;flex-shrink:0;padding-top:2px;font-weight:600;">${i + 1}</div>
         <div style="flex:1;min-width:0;">
@@ -3646,10 +3553,8 @@ function init() {
             <a class="btn sm ghost" href="${safeText(item.url || item.permalink || '#')}" target="_blank" rel="noopener" style="font-size:11px;">↗ Source</a>
           </div>
         </div>`;
-
       el.onmouseenter = () => { el.style.borderColor = 'var(--border2)'; };
       el.onmouseleave = () => { el.style.borderColor = 'var(--border)'; };
-
       el.querySelector('[data-inspire]').onclick = () => {
         const refPin = qs('refPin');
         const refPinTitle = qs('refPinTitle');
@@ -3662,12 +3567,10 @@ function init() {
         if (typeof window.activateView === 'function') window.activateView('composerView');
         showToast('Pinned as reference — write your take', 'success');
       };
-
       list.appendChild(el);
     });
   }
 
-  // ── Subreddit pills ─────────────────────────────────────────────
   const DEFAULT_SUBS = ['socialmedia', 'entrepreneur', 'marketing', 'business', 'smallbusiness'];
 
   function renderSubPills() {
@@ -3677,129 +3580,100 @@ function init() {
     DEFAULT_SUBS.forEach(sub => {
       const active = trendingState.sub === sub;
       const btn = document.createElement('button');
-      btn.style.cssText = `
-        padding:5px 12px;border-radius:20px;border:1px solid ${active ? 'var(--brand-glow)' : 'var(--border2)'};
-        font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;transition:all .12s;
-        background:${active ? 'var(--brand-dim)' : 'var(--surface)'};
-        color:${active ? 'var(--brand)' : 'var(--muted)'};
-      `;
+      btn.style.cssText = `padding:5px 12px;border-radius:20px;border:1px solid ${active ? 'var(--brand-glow)' : 'var(--border2)'};font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;transition:all .12s;background:${active ? 'var(--brand-dim)' : 'var(--surface)'};color:${active ? 'var(--brand)' : 'var(--muted)'};`;
       btn.textContent = `r/${sub}`;
       btn.onclick = () => { trendingState.sub = sub; renderSubPills(); loadReddit(); };
       wrap.appendChild(btn);
     });
   }
 
-  // ── Reddit ──────────────────────────────────────────────────────
   async function loadReddit() {
     const statusEl = qs('trendingRedditStatus');
-    const listEl   = qs('trendingRedditList');
+    const listEl = qs('trendingRedditList');
     if (!statusEl || !listEl) return;
-
     statusEl.textContent = `Loading r/${trendingState.sub}…`;
     listEl.innerHTML = '';
-
     try {
       const data = await fetchTrendingFeed({ source: 'reddit', subreddit: trendingState.sub });
       const posts = data.posts || [];
       statusEl.textContent = `${posts.length} posts from r/${data.subreddit || trendingState.sub}`;
-      renderTrendingItems('trendingRedditList', posts, 'reddit');
+      renderTrendingItems('trendingRedditList', posts);
     } catch (err) {
       statusEl.textContent = `Failed to load r/${trendingState.sub} — ${err.message}`;
-      renderTrendingItems('trendingRedditList', [], 'reddit');
+      renderTrendingItems('trendingRedditList', []);
     }
   }
 
-  // ── Hacker News ─────────────────────────────────────────────────
   async function loadHN() {
     const statusEl = qs('trendingHNStatus');
-    const listEl   = qs('trendingHNList');
+    const listEl = qs('trendingHNList');
     if (!statusEl || !listEl) return;
-
     statusEl.textContent = 'Loading Hacker News…';
     listEl.innerHTML = '';
-
     try {
       const data = await fetchTrendingFeed({ source: 'hn', feed: trendingState.hn });
       const posts = data.posts || [];
       statusEl.textContent = `${posts.length} stories from Hacker News`;
-      renderTrendingItems('trendingHNList', posts, 'hn');
+      renderTrendingItems('trendingHNList', posts);
     } catch (err) {
       statusEl.textContent = `Failed to load Hacker News — ${err.message}`;
-      renderTrendingItems('trendingHNList', [], 'hn');
+      renderTrendingItems('trendingHNList', []);
     }
   }
 
-  // ── Product Hunt ────────────────────────────────────────────────
   async function loadProductHunt() {
     const statusEl = qs('trendingPHStatus');
-    const listEl   = qs('trendingPHList');
+    const listEl = qs('trendingPHList');
     if (!statusEl || !listEl) return;
-
     statusEl.textContent = 'Loading Product Hunt…';
     listEl.innerHTML = '';
-
     try {
       const data = await fetchTrendingFeed({ source: 'producthunt' });
       const posts = data.posts || [];
       statusEl.textContent = `${posts.length} launches from Product Hunt`;
-      renderTrendingItems('trendingPHList', posts, 'producthunt');
+      renderTrendingItems('trendingPHList', posts);
     } catch (err) {
       statusEl.textContent = `Failed to load Product Hunt — ${err.message}`;
-      renderTrendingItems('trendingPHList', [], 'producthunt');
+      renderTrendingItems('trendingPHList', []);
     }
   }
 
-  // ── initTrending ────────────────────────────────────────────────
   function initTrending() {
     renderSubPills();
 
-    // Source tab switching
     document.querySelectorAll('.trending-src-tab').forEach(tab => {
       tab.onclick = () => {
-        // Reset all tab styles
         document.querySelectorAll('.trending-src-tab').forEach(t => {
           t.style.color = 'var(--muted)';
           t.style.borderBottomColor = 'transparent';
         });
         tab.style.color = 'var(--brand)';
         tab.style.borderBottomColor = 'var(--brand)';
-
         trendingState.src = tab.dataset.tsrc;
-
-        const panels = {
-          reddit:       'trendingRedditPanel',
-          hn:           'trendingHNPanel',
-          producthunt:  'trendingPHPanel',
-        };
-        Object.values(panels).forEach(id => {
-          const el = qs(id);
-          if (el) el.style.display = 'none';
-        });
+        const panels = { reddit: 'trendingRedditPanel', hn: 'trendingHNPanel', producthunt: 'trendingPHPanel' };
+        Object.values(panels).forEach(id => { const el = qs(id); if (el) el.style.display = 'none'; });
         const active = panels[trendingState.src];
         if (active) { const el = qs(active); if (el) el.style.display = 'block'; }
-
-        if (trendingState.src === 'hn')           loadHN();
-        if (trendingState.src === 'producthunt')  loadProductHunt();
+        if (trendingState.src === 'hn') loadHN();
+        if (trendingState.src === 'producthunt') loadProductHunt();
       };
     });
 
-    // HN sub-tabs
     document.querySelectorAll('.trending-hn-tab').forEach(tab => {
       tab.onclick = () => {
         document.querySelectorAll('.trending-hn-tab').forEach(t => {
-          t.style.background    = 'var(--surface)';
-          t.style.color         = 'var(--muted)';
-          t.style.borderColor   = 'var(--border2)';
+          t.style.background = 'var(--surface)';
+          t.style.color = 'var(--muted)';
+          t.style.borderColor = 'var(--border2)';
         });
-        tab.style.background  = 'var(--brand-dim)';
-        tab.style.color       = 'var(--brand)';
+        tab.style.background = 'var(--brand-dim)';
+        tab.style.color = 'var(--brand)';
         tab.style.borderColor = 'var(--brand-glow)';
         trendingState.hn = tab.dataset.hn;
         loadHN();
       };
     });
 
-    // Custom subreddit input
     const goSub = qs('trendingGoSub');
     const customSub = qs('trendingCustomSub');
     if (goSub && customSub) {
@@ -3815,224 +3689,31 @@ function init() {
       customSub.addEventListener('keydown', e => { if (e.key === 'Enter') goSub.click(); });
     }
 
-    // Refresh buttons
     const refreshHandlers = {
-      trendingRefreshBtn:     () => { if (trendingState.src === 'reddit') loadReddit(); else if (trendingState.src === 'hn') loadHN(); else loadProductHunt(); },
-      trendingRefreshMob:     () => { if (trendingState.src === 'reddit') loadReddit(); else if (trendingState.src === 'hn') loadHN(); else loadProductHunt(); },
-      trendingRefreshReddit:  () => loadReddit(),
-      trendingRefreshHN:      () => loadHN(),
-      trendingRefreshPH:      () => loadProductHunt(),
+      trendingRefreshBtn:    () => { if (trendingState.src === 'reddit') loadReddit(); else if (trendingState.src === 'hn') loadHN(); else loadProductHunt(); },
+      trendingRefreshMob:    () => { if (trendingState.src === 'reddit') loadReddit(); else if (trendingState.src === 'hn') loadHN(); else loadProductHunt(); },
+      trendingRefreshReddit: () => loadReddit(),
+      trendingRefreshHN:     () => loadHN(),
+      trendingRefreshPH:     () => loadProductHunt(),
     };
     Object.entries(refreshHandlers).forEach(([id, handler]) => {
       const btn = qs(id);
       if (btn) btn.onclick = handler;
     });
 
-    // Load Reddit on init
-    loadReddit();
+    setTimeout(() => loadReddit(), 0);
   }
 
-
-
-// ── CONTENT PILLARS v2 ────────────────────────────────────
-// ═══════════════════════════════════════════════════════════════
-// STRATEGY SNACK MACHINE × POSTIQ INTEGRATION
-// Drop this entire block into app.js, replacing the existing
-// ContentPillars IIFE. Then update the cpGateNew handler below.
-//
-// CHANGES TO EXISTING HTML (app.html):
-//   1. Replace cpGateNew card inner HTML (see GATE CARD HTML section)
-//   2. Add SSM form HTML (see SSM FORM HTML section)
-//   Both are drop-in replacements — no structural changes needed.
-// ═══════════════════════════════════════════════════════════════
-
-// ── SSM GATE CARD HTML (replace cpGateNew button contents) ──────
-// Paste this as the innerHTML of the existing #cpGateNew button:
-/*
-<span class="cp-gate-icon">⚡</span>
-<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-family:'DM Mono',monospace;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--brand-dim);border:1px solid var(--brand-glow);color:var(--brand);padding:2px 8px;border-radius:4px;margin-bottom:8px;">Pillar Plan Builder</span>
-<span class="cp-gate-title">Generate my content strategy</span>
-<span class="cp-gate-desc">Answer 6 quick questions. Get 5 content pillars, 25 post ideas, hooks, CTAs, recurring series ideas, and one post you can publish today.</span>
-<span class="cp-gate-cta">Build my plan →</span>
-*/
-
-// ── SSM FORM HTML (insert inside #cpStageJourney, replace all inner content) ──
-/*
-Replace everything inside <div class="cp-stage" id="cpStageJourney"> with:
-
-<div style="max-width:660px;">
-  <!-- Loading screen (hidden until generate()) -->
-  <div id="ssmLoading" style="display:none;text-align:center;padding:40px 20px;">
-    <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:12px;" id="ssmLoadStep">Reading your inputs...</div>
-    <div style="border:1px solid var(--border2);height:14px;max-width:280px;margin:0 auto 16px;overflow:hidden;border-radius:2px;"><div style="height:100%;background:var(--brand);width:0%;transition:width .1s linear;" id="ssmLoadBar"></div></div>
-    <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;color:var(--ink);letter-spacing:-.02em;">Building your pillar plan<span id="ssmDots">...</span></div>
-  </div>
-
-  <!-- Form (shown by default) -->
-  <div id="ssmForm">
-    <div style="margin-bottom:20px;">
-      <div style="font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--brand);margin-bottom:8px;">Pillar Plan Builder</div>
-      <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:18px;color:var(--ink);margin-bottom:4px;">Answer a few questions. Get a pillar plan.</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.6;">6 quick fields. Deterministic output — built from your inputs.</div>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-      <div class="field">
-        <label class="label">Brand / Creator Name</label>
-        <input type="text" class="input" id="ssm-brand" placeholder="e.g. Maria Chen, TechWave" />
-      </div>
-      <div class="field">
-        <label class="label">Industry Category</label>
-        <select class="input" id="ssm-industry">
-          <option value="">Select industry...</option>
-          <option value="fitness">Fitness & Wellness</option>
-          <option value="food">Food & Beverage</option>
-          <option value="saas">SaaS / Tech</option>
-          <option value="realestate">Real Estate</option>
-          <option value="creative">Creative Services</option>
-          <option value="ecommerce">E-Commerce / Product Brand</option>
-          <option value="coaching">Coaching & Consulting</option>
-          <option value="finance">Finance & Money</option>
-          <option value="education">Education & Courses</option>
-          <option value="nonprofit">Nonprofit / Mission-Driven</option>
-          <option value="entertainment">Entertainment / Media</option>
-          <option value="localbiz">Local Business</option>
-        </select>
-      </div>
-      <div class="field">
-        <label class="label">Target Audience</label>
-        <input type="text" class="input" id="ssm-audience" placeholder="e.g. early-stage founders, busy moms" />
-      </div>
-      <div class="field">
-        <label class="label">Product / Service / Offer</label>
-        <input type="text" class="input" id="ssm-offer" placeholder="e.g. 1:1 coaching, SaaS tool, meal kits" />
-      </div>
-      <div class="field">
-        <label class="label">Brand Tone</label>
-        <select class="input" id="ssm-tone">
-          <option value="">Select tone...</option>
-          <option value="bold">Bold & Direct</option>
-          <option value="playful">Playful & Fun</option>
-          <option value="expert">Expert & Authoritative</option>
-          <option value="warm">Warm & Relatable</option>
-          <option value="edgy">Edgy & Provocative</option>
-          <option value="professional">Professional & Polished</option>
-        </select>
-      </div>
-      <div class="field">
-        <label class="label">Main Goal</label>
-        <select class="input" id="ssm-goal">
-          <option value="">Select goal...</option>
-          <option value="grow">Grow Audience</option>
-          <option value="sales">Drive Sales</option>
-          <option value="trust">Build Trust</option>
-          <option value="educate">Educate</option>
-          <option value="hired">Get Hired</option>
-          <option value="launch">Launch Product</option>
-          <option value="event">Promote Event</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="field" style="margin-top:4px;grid-column:1/-1;">
-      <label class="label">Anything else? (optional)</label>
-      <textarea class="input" id="ssm-notes" placeholder="Upcoming launches, topics to avoid, specific angles..." style="min-height:60px;"></textarea>
-    </div>
-
-    <div style="display:flex;gap:8px;margin-top:16px;align-items:center;">
-      <button class="btn ghost" id="ssmBackBtn" type="button">← Back</button>
-      <button class="btn primary" id="ssmGenerateBtn" type="button">⚡ Generate pillar plan →</button>
-    </div>
-  </div>
-</div>
-*/
-
-// ═══════════════════════════════════════════════════════════════
-// JAVASCRIPT — replaces window.ContentPillars IIFE in app.js
-// ═══════════════════════════════════════════════════════════════
+  if (getFeatureFlag('trending')) {
+    try {
+      initTrending();
+    } catch (err) {
+      console.warn('Trending init failed:', err);
+    }
+  }
+}
 
 window.ContentPillars = (() => {
-  const CP_KEY    = 'postiq_pillars_v3';
-  const USAGE_KEY = 'postiq_pillars_usage_v1';
-  const CP_TEMPLATE_TAG = 'postiq-content-pillars';
-  const TONES     = ['Practical', 'Story', 'Contrarian', 'Question'];
-  const COLORS    = ['#3a3fff','#0fa672','#f59e0b','#ff4f6a','#7c3aed','#9298b0'];
-
-  const cpState = {
-    identity: '',
-    pillars: [],
-    _ssmInputs: null,
-  };
-
-  const cpQs    = id => document.getElementById(id);
-  const cpUid   = () => Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
-  const cpEsc   = s  => String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  const pillarColor = i => COLORS[i % COLORS.length];
-
-  function cpGetUsage() { try { return JSON.parse(localStorage.getItem(USAGE_KEY) || '{}'); } catch { return {}; } }
-  function cpBumpUsage(pid) { const u = cpGetUsage(); u[pid] = (u[pid] || 0) + 1; try { localStorage.setItem(USAGE_KEY, JSON.stringify(u)); } catch {} }
-  function cpTotalUsage() { return Object.values(cpGetUsage()).reduce((a, b) => a + Number(b || 0), 0); }
-  function cpUsageFor(pid) { return cpGetUsage()[pid] || 0; }
-
-  function cpGeneratedSeriesNames() {
-    try { return new Set(Object.values(SERIES || {}).flat().map(s => String(s?.name || '').trim()).filter(Boolean)); }
-    catch { return new Set(); }
-  }
-
-  function cpIsGeneratedTemplate(tpl) {
-    const tags = Array.isArray(tpl?.tags) ? tpl.tags.map(x => String(x || '').trim().toLowerCase()) : [];
-    if (tags.includes(CP_TEMPLATE_TAG) || tags.includes('pillar-plan')) return true;
-    const title = String(tpl?.title || '').trim();
-    return tags.includes('series') && cpGeneratedSeriesNames().has(title);
-  }
-
-  function cpClearGeneratedTemplates() {
-    if (typeof state === 'undefined' || !Array.isArray(state.templates)) return 0;
-    const before = state.templates.length;
-    state.templates = state.templates.filter(t => !cpIsGeneratedTemplate(t));
-    const removed = before - state.templates.length;
-    if (removed > 0) {
-      if (typeof persistTemplates === 'function') persistTemplates();
-      if (typeof renderTemplates === 'function') renderTemplates();
-    }
-    return removed;
-  }
-
-  function cpNormalizePillar(p, i = 0) {
-    return {
-      id:      String(p?.id      || cpUid()),
-      name:    String(p?.name    || `Pillar ${i + 1}`),
-      promise: String(p?.promise || p?.desc || ''),
-      layer:   ['awareness','credibility','action'].includes(p?.layer) ? p.layer : '',
-      seeds:   Array.isArray(p?.seeds) && p.seeds.length ? p.seeds.map(s => String(s || '')) : (Array.isArray(p?.ideas) ? p.ideas.map(s => String(s || '')) : ['']),
-      tones:   p?.tones && typeof p.tones === 'object' ? p.tones : {},
-      hook:    String(p?.hook || ''),
-      cta:     String(p?.cta  || ''),
-    };
-  }
-
-  function cpPersist() {
-    try { localStorage.setItem(CP_KEY, JSON.stringify({ identity: cpState.identity, pillars: cpState.pillars })); } catch {}
-    cpRenderCompact();
-  }
-
-  function cpLoad() {
-    try {
-      const d = JSON.parse(localStorage.getItem(CP_KEY) || 'null');
-      if (d?.pillars?.length) {
-        cpState.identity = d.identity || '';
-        cpState.pillars  = d.pillars.map(cpNormalizePillar);
-        return true;
-      }
-    } catch {}
-    return false;
-  }
-
-  function cpShowStage(id) {
-    document.querySelectorAll('.cp-stage').forEach(el => el.classList.remove('active'));
-    const el = cpQs(id);
-    if (el) el.classList.add('active');
-  }
 
   // ── SSM ENGINE ─────────────────────────────────────────────────
 
