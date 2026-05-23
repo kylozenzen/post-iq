@@ -2940,7 +2940,7 @@ function init() {
   renderNoteTypesSettings();
   activateView('calendarView');
 
-  on('openSettings', 'click', () => openConnectionSettings());
+  on('openSettings', 'click', () => openModal('settingsModal'));
   on('closeSettings', 'click', () => closeModal('settingsModal'));
   selectSettingsTab(document.querySelector('.settings-tab.active')?.dataset.stab || 'connection');
   document.querySelectorAll('.settings-tab').forEach(tab => {
