@@ -41,7 +41,6 @@ const DEFAULT_POSTIQ_CONFIG = {
     snapshots: true,
     uploads: true,
     unsplash: true,
-    zenMode: true
   },
   notices: {
     approvals: '',
@@ -230,11 +229,6 @@ function applyFeatureFlags() {
   document.querySelectorAll('[data-ideas-tab="trending"]').forEach(el => setFeatureControlPaused(el, 'trending', !getFeatureFlag('trending')));
   document.querySelectorAll('.media-tab[data-mtab="upload"], [data-mtabpanel="upload"] button, #uploadZone').forEach(el => setFeatureControlPaused(el, 'uploads', !getFeatureFlag('uploads')));
   document.querySelectorAll('.media-tab[data-mtab="unsplash"], [data-mtabpanel="unsplash"] button, [data-mtabpanel="unsplash"] input').forEach(el => setFeatureControlPaused(el, 'unsplash', !getFeatureFlag('unsplash')));
-  const zenToggleBtn = qs('zenToggleBtn');
-  if (zenToggleBtn) {
-    if (!getFeatureFlag('zenMode')) zenToggleBtn.style.setProperty('display', 'none', 'important');
-    else zenToggleBtn.style.removeProperty('display');
-  }
 }
 
 async function loadPostiqConfig() {
@@ -3313,139 +3307,6 @@ function init() {
     };
   });
 
-  // ── ZEN MODE ──
-  const ZEN_DRAFT_KEY = 'postiq_zen_draft_v1';
-  const ZEN_PINS_KEY = 'postiq_zen_pins_v1';
-  let zenActive = false;
-  let zenPreviousView = 'composerView';
-  let zenLastSavedAt = '';
-  let zenSaveTimer = null;
-  const zenState = { selectedTab: 'pins' };
-  const parseLocal = (k, fallback) => { try { const raw = localStorage.getItem(k); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } };
-  const loadZenDraft = () => {
-    const d = parseLocal(ZEN_DRAFT_KEY, {});
-    return {
-      title: String(d?.title || ''),
-      body: String(d?.body || ''),
-      updatedAt: String(d?.updatedAt || d?.lastSavedAt || ''),
-      backgroundImage: String(d?.backgroundImage || ''),
-      selectedTab: ['pins','sparks','snippets'].includes(d?.selectedTab) ? d.selectedTab : 'pins'
-    };
-  };
-  const saveZenDraft = (draft) => { try { localStorage.setItem(ZEN_DRAFT_KEY, JSON.stringify(draft || {})); } catch {} };
-  const getZenPins = () => Array.isArray(parseLocal(ZEN_PINS_KEY, [])) ? parseLocal(ZEN_PINS_KEY, []) : [];
-  const saveZenPins = pins => { try { localStorage.setItem(ZEN_PINS_KEY, JSON.stringify(Array.isArray(pins) ? pins : [])); } catch {} };
-  const getZenIdeaSparks = () => (window.cpState?.pillars || []).flatMap(p => (Array.isArray(p?.seeds) ? p.seeds : [])).slice(0, 8).map(v => `Turn this idea into a practical post: ${compact(v, 90)}`);
-  const getZenTrendingSparks = () => Array.from(document.querySelectorAll('#trendingRedditList .trend-card-title, #trendingHNList .trend-card-title')).slice(0, 8).map(el => `What can your audience learn from: ${compact(el.textContent, 80)}?`);
-  const getZenSnippetItems = () => Array.isArray(state?.templates) ? state.templates.slice(0, 20).map(t => ({ text: t?.body || t?.title || '' })).filter(s => s.text.trim()) : [];
-  const zenFallbackSparks = ['Turn a small frustration into a useful lesson.','Explain the problem before pitching the feature.','Write the post you wish existed before you started.','Make the first line impossible to ignore.'];
-  const zenAppendToBody = text => { const b = qs('zenBodyInput'); if (!b || !text) return; b.value = `${b.value}${b.value ? '\n\n' : ''}${text}`; b.dispatchEvent(new Event('input')); };
-  const hasZenDom = () => !!(qs('zenOverlay') && qs('zenTitleInput') && qs('zenBodyInput'));
-  const updateZenMetrics = () => {
-    const body = qs('zenBodyInput')?.value || '';
-    const wc = qs('zenWordCount'); if (wc) wc.textContent = `${body.trim() ? body.trim().split(/\s+/).length : 0} words`;
-    const cc = qs('zenCharCount'); if (cc) cc.textContent = `${body.length} chars`;
-  };
-  function zenSaveNow() {
-    if (!hasZenDom()) return;
-    const draft = {
-      title: qs('zenTitleInput')?.value || '',
-      body: qs('zenBodyInput')?.value || '',
-      updatedAt: new Date().toISOString(),
-      backgroundImage: loadZenDraft().backgroundImage || '',
-      selectedTab: zenState.selectedTab
-    };
-    saveZenDraft(draft);
-    zenLastSavedAt = draft.updatedAt;
-    const saved = qs('zenLastSaved'); if (saved) saved.textContent = 'Saved in Zen.';
-    const status = qs('zenStatusText'); if (status) status.textContent = 'Saved in Zen.';
-  }
-  function renderZenTab() {
-    const out = qs('zenTabContent'); if (!out) return;
-    if (zenState.selectedTab === 'pins') {
-      const pins = getZenPins();
-      out.innerHTML = `<div class="row mb8"><input id="zenPinLabel" class="input" placeholder="Label (optional)" /><input id="zenPinText" class="input grow" placeholder="Pin anything…" /><button class="btn sm" id="zenAddPin">Pin</button></div>` + (pins.length ? pins.map((p, i) => `<div class="zen-card"><small>${safeText(p.label || 'Pin')} · ${new Date(p.createdAt || Date.now()).toLocaleString()}</small><p>${safeText(p.text || '')}</p><div class="zen-card-actions"><button class="btn sm" data-zen-insert="${i}">Insert into draft</button><button class="btn sm" data-zen-copy="${i}">Copy</button><button class="btn sm ghost" data-zen-del="${i}">Delete</button></div></div>`).join('') : `<div class="empty-desc">Pin the stuff your brain swears it will remember and absolutely will not.</div>`);
-    } else if (zenState.selectedTab === 'sparks') {
-      const sparks = [...getZenTrendingSparks(), ...getZenIdeaSparks()].slice(0, 10);
-      const finalSparks = sparks.length ? sparks : zenFallbackSparks;
-      out.innerHTML = !sparks.length ? `<div class="empty-desc mb8">No trends loaded yet. Here are a few starter sparks.</div>` : '';
-      out.innerHTML += finalSparks.map((s, i) => `<div class="zen-card"><p>${safeText(s)}</p><div class="zen-card-actions"><button class="btn sm" data-zen-angle="${i}">Use as angle</button><button class="btn sm" data-zen-note="${i}">Insert as note</button><button class="btn sm ghost" data-zen-pin-spark="${i}">Pin this</button></div></div>`).join('');
-    } else {
-      const snippets = getZenSnippetItems();
-      out.innerHTML = snippets.length ? snippets.map((s, i) => `<div class="zen-card"><p>${safeText(compact(s.text, 220))}</p><div class="zen-card-actions"><button class="btn sm" data-zen-snip="${i}">Insert snippet</button></div></div>`).join('') : `<div class="empty-desc">No snippets saved yet. Future-you is already judging present-you.</div>`;
-    }
-  }
-  function enterZen() {
-    if (!hasZenDom()) { showToast('Zen Mode is unavailable right now.', 'error'); return; }
-    zenPreviousView = currentViewId || 'composerView';
-    activateView('composerView');
-    zenActive = true;
-    document.body.classList.add('zen-active');
-    const d = loadZenDraft();
-    zenState.selectedTab = d.selectedTab;
-    const titleInput = qs('zenTitleInput'); if (titleInput) titleInput.value = d.title || '';
-    const bodyInput = qs('zenBodyInput'); if (bodyInput) bodyInput.value = d.body || editorToText(qs('composerEditor')?.innerHTML || '');
-    const saved = qs('zenLastSaved'); if (saved) saved.textContent = 'Saved in Zen.';
-    const status = qs('zenStatusText'); if (status) status.textContent = 'Saved in Zen.';
-    updateZenMetrics();
-    document.querySelectorAll('.zen-tab').forEach(t => t.classList.toggle('active', t.dataset.zenTab === zenState.selectedTab));
-    renderZenTab();
-    qs('zenBodyInput')?.focus();
-  }
-  function exitZen() {
-    if (zenSaveTimer) { clearTimeout(zenSaveTimer); zenSaveTimer = null; }
-    zenSaveNow();
-    zenActive = false;
-    document.body.classList.remove('zen-active');
-    if (zenPreviousView) activateView(zenPreviousView);
-  }
-  on('zenToggleBtn', 'click', () => zenActive ? exitZen() : enterZen());
-  on('zenExit', 'click', exitZen);
-  on('zenExitFooter', 'click', exitZen);
-  on('zenCopyBtn', 'click', () => { navigator.clipboard.writeText(`${qs('zenTitleInput')?.value || ''}\n${qs('zenBodyInput')?.value || ''}`.trim()); showToast('Copied', 'success'); });
-  on('zenCopyFooter', 'click', () => qs('zenCopyBtn')?.click());
-  on('zenSendComposeHeader', 'click', () => qs('zenSendCompose')?.click());
-  on('zenSendCompose', 'click', () => {
-    const ed = qs('composerEditor');
-    if (ed) {
-      ed.innerText = qs('zenBodyInput')?.value || '';
-      ed.dispatchEvent(new Event('input'));
-    }
-    showToast('Sent to Compose. Working title stayed in Zen.', 'success');
-  });
-  on('zenClearDraftBtn', 'click', () => { if (!confirm('Clear your Zen content?')) return; saveZenDraft({ title: '', body: '', updatedAt: '', backgroundImage: '', selectedTab: zenState.selectedTab }); const ti = qs('zenTitleInput'); if (ti) ti.value = ''; const bi = qs('zenBodyInput'); if (bi) { bi.value = ''; bi.dispatchEvent(new Event('input')); } updateZenMetrics(); });
-  on('zenRailToggle', 'click', () => { const rail = qs('zenRail'); if (!rail) return; rail.classList.toggle('collapsed'); const collapsed = rail.classList.contains('collapsed'); qs('zenRailToggle').textContent = collapsed ? 'Open Writing Tray' : 'Collapse'; qs('zenRailToggle').setAttribute('aria-expanded', String(!collapsed)); });
-  ['zenTitleInput','zenBodyInput'].forEach(id => on(id, 'input', () => {
-    updateZenMetrics();
-    if (zenSaveTimer) clearTimeout(zenSaveTimer);
-    zenSaveTimer = setTimeout(zenSaveNow, 450);
-  }));
-  document.querySelectorAll('.zen-tab').forEach(t => t.onclick = () => { zenState.selectedTab = t.dataset.zenTab; document.querySelectorAll('.zen-tab').forEach(b => b.classList.toggle('active', b === t)); renderZenTab(); zenSaveNow(); });
-  on('zenTabContent', 'click', e => {
-    const pins = getZenPins();
-    const sparks = ([...getZenTrendingSparks(), ...getZenIdeaSparks()].slice(0, 10).length ? [...getZenTrendingSparks(), ...getZenIdeaSparks()].slice(0, 10) : zenFallbackSparks);
-    const snippets = getZenSnippetItems();
-    const t = e.target.closest('button'); if (!t) return;
-    const i = Number(Object.values(t.dataset)[0]);
-    if (t.dataset.zenInsert !== undefined) zenAppendToBody(pins[i]?.text || '');
-    if (t.dataset.zenCopy !== undefined) navigator.clipboard.writeText(pins[i]?.text || '');
-    if (t.dataset.zenDel !== undefined) { pins.splice(i, 1); saveZenPins(pins); renderZenTab(); }
-    if (t.dataset.zenAngle !== undefined || t.dataset.zenNote !== undefined) zenAppendToBody(sparks[i] || '');
-    if (t.dataset.zenPinSpark !== undefined) { pins.unshift({ text: sparks[i] || '', label: 'Spark', createdAt: new Date().toISOString() }); saveZenPins(pins); showToast('Pinned spark', 'success'); }
-    if (t.dataset.zenSnip !== undefined) zenAppendToBody(snippets[i]?.text || '');
-    if (t.id === 'zenAddPin') {
-      const text = qs('zenPinText')?.value?.trim(); if (!text) return;
-      pins.unshift({ text, label: qs('zenPinLabel')?.value?.trim() || '', createdAt: new Date().toISOString() });
-      saveZenPins(pins); renderZenTab();
-    }
-  });
-
-  document.addEventListener('keydown', e => {
-    if (!getFeatureFlag('zenMode')) return;
-    if (e.key === 'Escape' && zenActive) {
-      if (!document.querySelector('.modal.open')) { exitZen(); return; }
-    }
-  }, true);
 
 
   document.querySelectorAll('.modal').forEach(modal => {
@@ -4231,7 +4092,7 @@ window.ContentPillars = (() => {
   const HOOKS = {
     bold: ['Stop doing this in {industry}. It\'s costing you.','The {industry} advice everyone repeats that is actually wrong.','Nobody in {industry} wants to say this out loud.','Here is the take that will get me unfollowed:','If you are doing {offer}, you need to hear this first.'],
     playful: ['Okay but why does nobody talk about this in {industry}??','This is unhinged but hear me out...','POV: you finally figured out {industry}','Friendly reminder that this exists and it is completely free.','Hot take incoming and I am not sorry at all.'],
-    expert: ['After years working in {industry}, here is what I know with confidence:','The research on this is clearer than most people realize.','A framework I have used across dozens of {audience}: it works.','Here is what actually happens in {industry} — not what the courses say.','If you only take one thing from this:'],
+    expert: ['After years working in {industry}, here is what I know with confidence:','The research on this is clearer than most people realize.','A framework I have used across many {audience}: it works.','Here is what actually happens in {industry} — not what the courses say.','If you only take one thing from this:'],
     warm: ['I have been wanting to share this for a while now.','Can we be honest for a second about {industry}?','Something I wish someone had told me earlier:','This community keeps teaching me things. Here is what I mean.','You are not behind. You are just human. Let me explain.'],
     edgy: ['Everyone is wrong about this in {industry}. Here is proof.','I am about to upset some people and that is fine.','This is what {industry} does not want {audience} to know.','Hard truth: the popular {industry} advice is keeping {audience} stuck.','Controversial? Maybe. But someone had to say it.'],
     professional: ['Sharing a framework that consistently drives results for {audience}:','Based on our experience across {industry}, here is what we have found:','A strategic insight for {audience} worth bookmarking:','The data does not lie: here is what matters in {industry}.','For {audience} making decisions in {industry}: this is worth your time.'],

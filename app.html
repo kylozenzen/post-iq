@@ -270,9 +270,6 @@
               <button class="tb-btn" id="saveAsTemplateBtn" title="Save selection as template" style="width:auto;padding:0 8px;font-size:11px;font-family:'DM Mono',monospace;">+ Save</button>
               <div class="tb-sep"></div>
               <button class="tb-btn" data-cmd="clear" title="Clear formatting" style="font-size:11px;font-family:'DM Mono',monospace;">Clear</button>
-              <button class="zen-btn" id="zenToggleBtn" title="Zen mode — distraction-free writing">
-                <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
-              </button>
             </div>
             <div id="composerEditor" class="rich-editor" contenteditable="true" data-placeholder="Write your post here…"></div>
             <div class="editor-footer">
@@ -282,8 +279,6 @@
             </div>
           </div>
 
-          <!-- Zen inline send actions (legacy hook) -->
-          <div id="zenActions" aria-hidden="true"></div>
 
           <!-- Media toggle -->
           <div class="mt8">
@@ -863,52 +858,7 @@
   <button class="btn ghost" id="mobOpenSettings" type="button" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">⚙ Settings</button>
 </div>
 
-<section id="zenOverlay" class="zen-overlay" aria-hidden="true">
-  <div class="zen-shell">
-    <header class="zen-header">
-      <div>
-        <h2>PostIQ Zen Mode</h2>
-        <p>A calmer place to turn ideas into posts.</p>
-      </div>
-      <span class="zen-status-pill" id="zenStatusText">Saved in Zen.</span>
-      <div class="zen-header-actions">
-        <button class="btn" id="zenCopyBtn">Copy</button>
-        <button class="btn success" id="zenSendComposeHeader">Send to Compose</button>
-        <button class="btn ghost" id="zenExit" aria-label="Exit Zen Mode">Exit Zen</button>
-      </div>
-    </header>
-    <div class="zen-body">
-      <main class="zen-main">
-        <input id="zenTitleInput" class="input zen-title" placeholder="Working title…" />
-        <textarea id="zenBodyInput" class="zen-textarea" placeholder="Start messy. That is literally the point."></textarea>
-        <div class="zen-meta">
-          <span id="zenWordCount">0 words</span>
-          <span id="zenCharCount">0 chars</span>
-          <span id="zenLastSaved">Saved in Zen.</span>
-          <button id="zenClearDraftBtn" class="btn ghost sm">Clear Zen Draft</button>
-        </div>
-        <div class="zen-footer-actions">
-          <button class="btn" id="zenCopyFooter">Copy</button>
-          <button class="btn success" id="zenSendCompose">Send to Compose</button>
-          <button class="btn ghost" id="zenExitFooter">Exit Zen</button>
-        </div>
-        <p class="zen-helper-copy">Zen is for shaping. Compose is for publishing.</p>
-      </main>
-      <aside class="zen-rail" id="zenRail">
-        <div class="zen-rail-head">
-          <strong>Writing Tray</strong>
-          <button id="zenRailToggle" class="btn ghost sm" aria-expanded="true">Collapse</button>
-        </div>
-        <div class="zen-tabs">
-          <button class="zen-tab active" data-zen-tab="pins">Pins</button>
-          <button class="zen-tab" data-zen-tab="sparks">Trending</button>
-          <button class="zen-tab" data-zen-tab="snippets">Snippets</button>
-        </div>
-        <div id="zenTabContent"></div>
-      </aside>
-    </div>
-  </div>
-</section>
+
 
 <!-- Toast container -->
 <div id="toastWrap" class="toast-wrap" aria-live="polite"></div>
@@ -1073,7 +1023,7 @@
 
       <div id="settingsPanelAbout" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabAbout" tabindex="0">
         <div class="settings-section about-ben-card">
-          <img class="about-ben-photo" src="https://github.com/kylozenzen/ben-portfolio/blob/main/Ben%20Headshot%202026.jpg?raw=true" alt="Ben Campbell" loading="lazy" />
+          <img class="about-ben-photo" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=640&q=80" alt="Ben Campbell" loading="lazy" />
           <div class="about-ben-copy">
             <div class="settings-section-title">About Ben</div>
             <p class="settings-copy">PostIQ was built by Ben Campbell, a social media and content strategist who needed a cleaner way to plan, write, split, and share posts before they went live.</p>
