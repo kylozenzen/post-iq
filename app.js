@@ -2918,7 +2918,7 @@ function init() {
   renderNoteTypesSettings();
   activateView('calendarView');
 
-  on('openSettings', 'click', () => openModal('settingsModal'));
+  on('openSettings', 'click', () => { console.log('clicked'); document.getElementById('settingsModal').classList.add('open'); document.body.style.overflow = 'hidden'; });
   on('closeSettings', 'click', () => closeModal('settingsModal'));
   selectSettingsTab(document.querySelector('.settings-tab.active')?.dataset.stab || 'connection');
   document.querySelectorAll('.settings-tab').forEach(tab => {
