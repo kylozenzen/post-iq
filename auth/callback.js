@@ -1,4 +1,3 @@
-const BUFFER_CLIENT_ID = 'ijzu75qv_CAcO0qMelb93HjOVh1EwEanezilfgBiOEG';
 const APP_URL = '/app.html';
 
 const qs = id => document.getElementById(id);
@@ -65,25 +64,23 @@ function buildOAuthTechnicalDetails({ error, errorDescription, iss, state, store
 }
 
 async function exchangeCodeForTokens(code, redirectUri, verifier) {
-  const body = new URLSearchParams({
-    client_id: BUFFER_CLIENT_ID,
-    grant_type: 'authorization_code',
-    code,
-    redirect_uri: redirectUri,
-    code_verifier: verifier,
-  });
-
-  const response = await fetch('https://auth.buffer.com/token', {
+  const tokenResponse = await fetch('/.netlify/functions/buffer-token', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString(),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      code,
+      redirect_uri: redirectUri,
+      code_verifier: verifier,
+    }),
   });
 
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(payload.error_description || payload.error || `Token exchange failed (${response.status})`);
+  const tokenData = await tokenResponse.json().catch(() => null);
+  if (!tokenResponse.ok || !tokenData?.access_token) {
+    throw new Error(tokenData?.error_description || tokenData?.error || 'Could not connect Buffer');
   }
-  return payload;
+  return tokenData;
 }
 
 function storeTokenField(key, value) {

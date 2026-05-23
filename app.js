@@ -450,6 +450,7 @@ async function startBufferOAuth() {
     state: oauthState,
     code_challenge: challenge,
     code_challenge_method: 'S256',
+    prompt: 'consent',
   });
   const authorizationUrl = `${BUFFER_AUTHORIZATION_ENDPOINT}?${params.toString()}`;
 
