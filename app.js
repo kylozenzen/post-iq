@@ -111,7 +111,13 @@ const monthStart = d => new Date(d.getFullYear(), d.getMonth(), 1);
 const safeText = v => String(v || '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
 const compact = (v, max = 80) => { const t = String(v || '').trim(); return t.length > max ? t.slice(0, max - 1) + '…' : t; };
 function toSafeExternalUrl(url) {
-  return String(url || '');
+  if (!url) return '';
+  const str = String(url).trim();
+  try {
+    const parsed = new URL(str);
+    if (parsed.protocol === 'https:' || parsed.protocol === 'http:') return str;
+  } catch {}
+  return '';
 }
 
 const validStatusType = type => ['info', 'warning', 'error', 'success'].includes(type) ? type : 'info';
@@ -3743,7 +3749,7 @@ function init() {
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <button class="btn sm" style="font-size:11px;" data-inspire="${i}">→ Compose from this</button>
-            <a class="btn sm ghost" href="${safeText(item.url || item.permalink || '#')}" target="_blank" rel="noopener" style="font-size:11px;">↗ Source</a>
+            <a class="btn sm ghost" href="${safeText(toSafeExternalUrl(item.url || item.permalink) || '#')}" target="_blank" rel="noopener" style="font-size:11px;">↗ Source</a>
           </div>
         </div>`;
 
