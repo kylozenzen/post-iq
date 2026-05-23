@@ -1107,7 +1107,8 @@ function openConnectionSettings(options = {}) {
   renderConnectionUI();
   const panel = qs('tokenPanel');
   if (options.advancedApi) setTokenPanelVisible(panel, true);
-  openModal('settingsModal');
+  
+  setTimeout(() => openModal('settingsModal'), 0);
 }
 
 
@@ -2973,7 +2974,7 @@ function init() {
     if (connection.connected) syncBuffer({ force: true });
     else goToBufferConnect();
   });
-  on('revealTokenBtn', 'click', openConnectionSettings);
+  on('revealTokenBtn', 'click', (e) => { e.preventDefault(); openConnectionSettings(); });
   on('saveTokenBtn', 'click', saveToken);
   on('clearTokenBtn', 'click', () => { const tokenInput = qs('tokenInput'); if (tokenInput) tokenInput.value = ''; saveToken(); });
   const connectBufferBtn = qs('connectBufferBtn'); if (connectBufferBtn) connectBufferBtn.onclick = goToBufferConnect;
