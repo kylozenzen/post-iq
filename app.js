@@ -630,17 +630,6 @@ async function copyTextSafe(text) {
     return false;
   }
 }
-function openModal(id) {
-  const el = qs(id); if (!el) return;
-  el.classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-function closeModal(id) {
-  const el = qs(id); if (!el) return;
-  el.classList.remove('open');
-  document.body.style.overflow = '';
-}
-
 // ── APPROVAL METADATA (localStorage) ──────────────
 function getApprovalMeta(draftId) {
   try { const r = localStorage.getItem(APPROVAL_PREFIX + draftId); return r ? JSON.parse(r) : null; } catch { return null; }
@@ -1091,10 +1080,29 @@ function renderSettingsFeatureStatus() {
 
 
 function openModal(id) {
-  const el = qs(id); if (!el) return;
-  console.trace('openModal: ' + id);
+  const el = qs(id);
+  if (!el) return false;
+  const wasOpen = el.classList.contains('open');
+  el.hidden = false;
+  el.setAttribute('aria-hidden', 'false');
   el.classList.add('open');
+  if (!wasOpen) modalCount += 1;
   document.body.style.overflow = 'hidden';
+  return true;
+}
+
+function closeModal(id) {
+  const el = qs(id);
+  if (!el) return false;
+  const wasOpen = el.classList.contains('open');
+  el.classList.remove('open');
+  el.setAttribute('aria-hidden', 'true');
+  if (wasOpen) modalCount = Math.max(0, modalCount - 1);
+  if (!document.querySelector('.modal.open')) {
+    modalCount = 0;
+    document.body.style.overflow = '';
+  }
+  return true;
 }
 
 
@@ -2932,7 +2940,7 @@ function init() {
   renderNoteTypesSettings();
   activateView('calendarView');
 
-  on('openSettings', 'click', () => { console.log('clicked'); document.getElementById('settingsModal').classList.add('open'); document.body.style.overflow = 'hidden'; });
+  on('openSettings', 'click', () => openConnectionSettings());
   on('closeSettings', 'click', () => closeModal('settingsModal'));
   selectSettingsTab(document.querySelector('.settings-tab.active')?.dataset.stab || 'connection');
   document.querySelectorAll('.settings-tab').forEach(tab => {
