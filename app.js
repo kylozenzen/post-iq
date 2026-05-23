@@ -898,7 +898,7 @@ function getOAuthStorageForKey(key) {
 }
 
 function setStoredOAuthValue(key, value) {
-  const store = getOAuthStorageForKey(OAUTH_ACCESS_TOKEN_KEY) || sessionStorage;
+  const store = getOAuthStorageForKey(OAUTH_REFRESH_TOKEN_KEY) || localStorage;
   if (value === undefined || value === null || value === '') {
     sessionStorage.removeItem(key);
     localStorage.removeItem(key);
