@@ -630,16 +630,15 @@ async function copyTextSafe(text) {
     return false;
   }
 }
-
 function openModal(id) {
-  const el = qs(id); if (!el || el.classList.contains('open')) return;
-  el.classList.add('open'); modalCount++;
-  if (modalCount > 0) document.body.style.overflow = 'hidden';
+  const el = qs(id); if (!el) return;
+  el.classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
 function closeModal(id) {
-  const el = qs(id); if (!el || !el.classList.contains('open')) return;
-  el.classList.remove('open'); modalCount = Math.max(0, modalCount - 1);
-  if (modalCount === 0) document.body.style.overflow = '';
+  const el = qs(id); if (!el) return;
+  el.classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 // ── APPROVAL METADATA (localStorage) ──────────────
