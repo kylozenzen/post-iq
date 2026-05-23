@@ -109,6 +109,9 @@ const monthLabel = d => d.toLocaleDateString(undefined, { month: 'long', year: '
 const monthStart = d => new Date(d.getFullYear(), d.getMonth(), 1);
 const safeText = v => String(v || '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
 const compact = (v, max = 80) => { const t = String(v || '').trim(); return t.length > max ? t.slice(0, max - 1) + '…' : t; };
+function toSafeExternalUrl(url) {
+  return String(url || '');
+}
 
 const validStatusType = type => ['info', 'warning', 'error', 'success'].includes(type) ? type : 'info';
 const defaultFeaturePausedMessage = 'This feature is temporarily paused during the PostIQ public beta.';
@@ -1515,14 +1518,15 @@ async function syncBuffer({ force = false } = {}) {
 function renderChannelSelects() {
   const sel = qs('composerChannel'); if (!sel) return;
   sel.innerHTML = '';
+  const noChannels = qs('composerNoChannels');
   if (state.channels.length) {
     state.channels.forEach(c => {
       const o = document.createElement('option');
       o.value = c.id; o.textContent = `${c.displayName || c.name} (${c.service})`; sel.appendChild(o);
     });
-    qs('composerNoChannels').style.display = 'none'; sel.style.display = '';
+    if (noChannels) noChannels.style.display = 'none'; sel.style.display = '';
   } else {
-    qs('composerNoChannels').style.display = 'block'; sel.style.display = 'none';
+    if (noChannels) noChannels.style.display = 'block'; sel.style.display = 'none';
   }
   updateComposerButtonStates();
 }
@@ -2822,6 +2826,7 @@ function setIdeasTab(tabId = 'pillars') {
 // ── SCHEDULE PICKERS ──────────────────────────────────
 function buildTimePickers() {
   const h = qs('scheduleHour'), m = qs('scheduleMin'), ap = qs('scheduleAmpm');
+  if (!h || !m || !ap) return;
   for (let i = 1; i <= 12; i++) { const o = document.createElement('option'); o.value = i; o.textContent = String(i).padStart(2, '0'); h.appendChild(o); }
   for (let i = 0; i < 60; i += 5) { const o = document.createElement('option'); o.value = i; o.textContent = String(i).padStart(2, '0'); m.appendChild(o); }
   ['AM','PM'].forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; ap.appendChild(o); });
@@ -3389,12 +3394,12 @@ function init() {
     const out = qs('threadOut'); const empty = qs('threadEmpty');
     const actions = qs('threadActions'); const whenRow = qs('threadWhenRow');
     if (!threadParts.length) {
-      out.innerHTML = ''; empty.style.display = 'flex';
+      out.innerHTML = ''; if (empty) empty.style.display = 'flex';
       if (actions) actions.style.display = 'none';
       if (whenRow) whenRow.style.display = 'none';
       return;
     }
-    empty.style.display = 'none';
+    if (empty) empty.style.display = 'none';
     if (actions) actions.style.display = 'flex';
     out.innerHTML = '';
     threadParts.forEach((p, i) => {
@@ -3477,7 +3482,7 @@ function init() {
       if (action === 'draft')    { input.mode = 'addToQueue'; input.saveToDraft = true; }
       if (action === 'queue')    { input.mode = 'addToQueue'; }
       if (action === 'schedule') {
-        if (!when) { qs('threadStatus').textContent = 'Set a date/time first.'; qs('threadWhenRow').style.display = 'block'; return; }
+        if (!when) { qs('threadStatus').textContent = 'Set a date/time first.'; const row = qs('threadWhenRow'); if (row) row.style.display = 'block'; return; }
         input.mode = 'customScheduled'; input.dueAt = when;
       }
       qs('threadStatus').textContent = 'Sending…';
@@ -3494,7 +3499,7 @@ function init() {
 
     qs('draftThreadBtn').onclick    = () => sendThread('draft');
     qs('queueThreadBtn').onclick    = () => sendThread('queue');
-    qs('scheduleThreadBtn').onclick = () => { qs('threadWhenRow').style.display = 'block'; };
+    qs('scheduleThreadBtn').onclick = () => { const row = qs('threadWhenRow'); if (row) row.style.display = 'block'; };
 
     window.addEventListener('postiq:synced', () => {
       const tch2 = qs('threadChannel'); if (!tch2) return;
