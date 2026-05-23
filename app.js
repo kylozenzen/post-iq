@@ -1089,6 +1089,18 @@ function renderSettingsFeatureStatus() {
   if (betaMessage) betaMessage.textContent = String(postiqConfig?.betaMessage || '').trim();
 }
 
+
+function openModal(id) {
+  const el = qs(id); if (!el) return;
+  console.trace('openModal: ' + id);
+  el.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+
+
+
+
 function openConnectionSettings(options = {}) {
   selectSettingsTab('connection');
   tokenPanelOpen = !!options.advancedApi;
@@ -1097,6 +1109,7 @@ function openConnectionSettings(options = {}) {
   if (options.advancedApi) setTokenPanelVisible(panel, true);
   openModal('settingsModal');
 }
+
 
 
 function getBufferConnectUrl() {
