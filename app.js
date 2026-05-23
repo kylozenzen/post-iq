@@ -66,6 +66,7 @@ let currentViewId = 'calendarView';
 let currentIdeasTab = 'pillars';
 let tokenPanelOpen = false;
 let modalCount = 0;
+let modalActionDelegatesBound = false;
 let globalStatusTimer = null;
 let lastGlobalErrorBannerAt = 0;
 let postiqConfig = {
@@ -714,18 +715,11 @@ function renderTemplates() {
       <div class="template-card-body">${safeText(s.body)}</div>
       ${s.tags?.length ? `<div class="template-card-tags">${safeText(s.tags.join(' · '))}</div>` : ''}
       <div class="template-card-actions">
-        <button class="btn sm" data-act="copy">Copy</button>
-        <button class="btn sm primary" data-act="use">→ Compose</button>
-        <button class="btn sm ghost" data-act="edit" style="margin-left:auto;">✏️</button>
-        <button class="btn sm ghost" data-act="del">🗑</button>
+        <button class="btn sm" type="button" data-template-action="copy" data-template-id="${safeText(s.id)}">Copy</button>
+        <button class="btn sm primary" type="button" data-template-action="use" data-template-id="${safeText(s.id)}">→ Compose</button>
+        <button class="btn sm ghost" type="button" data-template-action="edit" data-template-id="${safeText(s.id)}" style="margin-left:auto;">✏️</button>
+        <button class="btn sm ghost" type="button" data-template-action="delete" data-template-id="${safeText(s.id)}">🗑</button>
       </div>`;
-    card.querySelector('[data-act="copy"]').onclick = async () => {
-      const ok = await copyTextSafe(s.body || '');
-      showToast(ok ? 'Copied' : 'Copy failed', ok ? 'success' : 'error');
-    };
-    card.querySelector('[data-act="use"]').onclick  = () => { activateView('composerView'); useTemplateInEditor(s); };
-    card.querySelector('[data-act="edit"]').onclick = () => openTemplateModal(s.id);
-    card.querySelector('[data-act="del"]').onclick  = () => deleteTemplate(s.id);
     grid.appendChild(card);
   });
   renderComposerTemplateSidebar();
@@ -763,31 +757,79 @@ function useTemplateInEditor(template) {
 }
 
 function openTemplateModal(id = null) {
-  state.editingTemplateId = id;
-  const s = id ? state.templates.find(x => x.id === id) : null;
-  qs('templateModalTitle').textContent = s ? 'Edit Template' : 'New Template';
-  qs('templateTitle').value = s?.title || '';
-  qs('templateType').value = s?.type || 'Hooks';
-  qs('templatePlatform').value = s?.platform || 'Universal';
-  qs('templateTags').value = (s?.tags || []).join(', ');
-  qs('templateBody').value = s?.body || '';
-  openModal('templateModal');
+  const templateModalTitle = qs('templateModalTitle');
+  const templateTitle = qs('templateTitle');
+  const templateType = qs('templateType');
+  const templatePlatform = qs('templatePlatform');
+  const templateTags = qs('templateTags');
+  const templateBody = qs('templateBody');
+
+  if (!templateModalTitle || !templateTitle || !templateType || !templatePlatform || !templateTags || !templateBody) {
+    console.warn('[PostIQ] Template modal is missing required fields');
+    showToast('Template editor is missing required fields', 'error');
+    return false;
+  }
+
+  let s = null;
+  if (id) {
+    s = state.templates.find(x => x.id === id);
+    if (!s) {
+      showToast('Template not found', 'error');
+      console.warn('[PostIQ] Missing template for edit:', id);
+      return false;
+    }
+    state.editingTemplateId = id;
+  } else {
+    state.editingTemplateId = null;
+  }
+
+  templateModalTitle.textContent = s ? 'Edit Template' : 'New Template';
+  templateTitle.value = s?.title || '';
+  templateType.value = s?.type || 'Hooks';
+  templatePlatform.value = s?.platform || 'Universal';
+  templateTags.value = (s?.tags || []).join(', ');
+  templateBody.value = s?.body || '';
+
+  const opened = openModal('templateModal');
+  if (opened) templateTitle.focus();
+  return opened;
 }
 
 function saveTemplate() {
-  const title = qs('templateTitle').value.trim();
-  const body  = qs('templateBody').value.trim();
+  const templateTitle = qs('templateTitle');
+  const templateBody = qs('templateBody');
+  const templateType = qs('templateType');
+  const templatePlatform = qs('templatePlatform');
+  const templateTags = qs('templateTags');
+  if (!templateTitle || !templateBody || !templateType || !templatePlatform || !templateTags) {
+    console.warn('[PostIQ] Cannot save template because fields are missing');
+    showToast('Template form is missing fields', 'error');
+    return;
+  }
+
+  const title = templateTitle.value.trim();
+  const body = templateBody.value.trim();
   if (!title || !body) { showToast('Title and body required', 'error'); return; }
   const now = new Date().toISOString();
+
+  const editingId = state.editingTemplateId || null;
+  const prev = editingId ? state.templates.find(s => s.id === editingId) : null;
+  const treatingAsNew = !!editingId && !prev;
+  const id = treatingAsNew ? `${Date.now()}-${Math.random().toString(16).slice(2, 7)}` : (editingId || `${Date.now()}-${Math.random().toString(16).slice(2, 7)}`);
+
   const payload = {
-    id: state.editingTemplateId || `${Date.now()}-${Math.random().toString(16).slice(2, 7)}`,
-    title, type: qs('templateType').value, platform: qs('templatePlatform').value,
-    tags: normTags(qs('templateTags').value), body, createdAt: now, updatedAt: now,
+    id,
+    title,
+    type: templateType.value,
+    platform: templatePlatform.value,
+    tags: normTags(templateTags.value),
+    body,
+    createdAt: prev?.createdAt || now,
+    updatedAt: now,
   };
-  if (state.editingTemplateId) {
-    const prev = state.templates.find(s => s.id === state.editingTemplateId);
-    payload.createdAt = prev?.createdAt || now;
-    state.templates = state.templates.map(s => s.id === state.editingTemplateId ? payload : s);
+
+  if (editingId && prev) {
+    state.templates = state.templates.map(s => s.id === editingId ? payload : s);
   } else {
     state.templates = [payload, ...state.templates];
   }
@@ -1049,19 +1091,22 @@ function setTokenPanelVisible(panel, open) {
 }
 
 function selectSettingsTab(tabName) {
+  const targetTab = tabName || 'connection';
   document.querySelectorAll('.settings-tab').forEach(tab => {
-    const active = tab.dataset.stab === tabName;
+    if (!tab) return;
+    const active = tab.dataset.stab === targetTab;
     tab.classList.toggle('active', active);
     tab.setAttribute('aria-selected', active ? 'true' : 'false');
     tab.tabIndex = active ? 0 : -1;
   });
-  const panel = 'settingsPanel' + tabName.charAt(0).toUpperCase() + tabName.slice(1);
+  const panel = 'settingsPanel' + targetTab.charAt(0).toUpperCase() + targetTab.slice(1);
   document.querySelectorAll('.settings-panel').forEach(p => {
+    if (!p) return;
     const active = p.id === panel;
     p.classList.toggle('active', active);
     p.hidden = !active;
   });
-  if (tabName === 'features') renderSettingsFeatureStatus();
+  if (targetTab === 'features') renderSettingsFeatureStatus();
 }
 
 function renderSettingsFeatureStatus() {
@@ -1080,29 +1125,123 @@ function renderSettingsFeatureStatus() {
 
 
 function openModal(id) {
-  const el = qs(id);
-  if (!el) return false;
-  const wasOpen = el.classList.contains('open');
-  el.hidden = false;
-  el.setAttribute('aria-hidden', 'false');
-  el.classList.add('open');
-  if (!wasOpen) modalCount += 1;
+  const modal = document.getElementById(id);
+  if (!modal) {
+    console.warn('[PostIQ] Missing modal:', id);
+    return false;
+  }
+  const wasOpen = modal.classList.contains('open');
+  modal.removeAttribute('hidden');
+  modal.hidden = false;
+  modal.setAttribute('aria-hidden', 'false');
+  modal.classList.add('open');
+  document.body.classList.add('modal-open');
   document.body.style.overflow = 'hidden';
+  if (!wasOpen) modalCount += 1;
   return true;
 }
 
 function closeModal(id) {
-  const el = qs(id);
-  if (!el) return false;
-  const wasOpen = el.classList.contains('open');
-  el.classList.remove('open');
-  el.setAttribute('aria-hidden', 'true');
+  const modal = document.getElementById(id);
+  if (!modal) {
+    console.warn('[PostIQ] Missing modal:', id);
+    return false;
+  }
+  const wasOpen = modal.classList.contains('open');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  modal.hidden = true;
   if (wasOpen) modalCount = Math.max(0, modalCount - 1);
   if (!document.querySelector('.modal.open')) {
     modalCount = 0;
+    document.body.classList.remove('modal-open');
     document.body.style.overflow = '';
   }
   return true;
+}
+
+function bindModalActionDelegates() {
+  if (modalActionDelegatesBound) return;
+  modalActionDelegatesBound = true;
+
+  document.addEventListener('click', async event => {
+    const settingsBtn = event.target.closest('#openSettings');
+    if (settingsBtn) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (typeof selectSettingsTab === 'function') selectSettingsTab('connection');
+      openModal('settingsModal');
+      return;
+    }
+
+    const mobSettingsBtn = event.target.closest('#mobOpenSettings');
+    if (mobSettingsBtn) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (typeof closeMobDrawer === 'function') closeMobDrawer();
+      if (typeof selectSettingsTab === 'function') selectSettingsTab('connection');
+      openModal('settingsModal');
+      return;
+    }
+
+    const closeSettingsBtn = event.target.closest('#closeSettings');
+    if (closeSettingsBtn) {
+      event.preventDefault();
+      event.stopPropagation();
+      closeModal('settingsModal');
+      return;
+    }
+
+    const newTemplateBtn = event.target.closest('#newTemplateBtn, #newTemplateBtnMob');
+    if (newTemplateBtn) {
+      event.preventDefault();
+      event.stopPropagation();
+      openTemplateModal();
+      return;
+    }
+
+    const closeTemplateBtn = event.target.closest('#closeTemplateModal, #cancelTemplateBtn');
+    if (closeTemplateBtn) {
+      event.preventDefault();
+      event.stopPropagation();
+      closeModal('templateModal');
+      return;
+    }
+
+    const saveTemplateBtn = event.target.closest('#saveTemplateBtn');
+    if (saveTemplateBtn) {
+      event.preventDefault();
+      event.stopPropagation();
+      saveTemplate();
+      return;
+    }
+
+    const templateActionBtn = event.target.closest('[data-template-action][data-template-id]');
+    if (!templateActionBtn) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    const action = templateActionBtn.dataset.templateAction;
+    const id = templateActionBtn.dataset.templateId;
+    if (!id) return;
+
+    if (action === 'copy') {
+      const template = state.templates.find(t => t.id === id);
+      if (!template) { showToast('Template not found', 'error'); return; }
+      const ok = await copyTextSafe(template.body || '');
+      showToast(ok ? 'Copied' : 'Copy failed', ok ? 'success' : 'error');
+      return;
+    }
+    if (action === 'use') {
+      const template = state.templates.find(t => t.id === id);
+      if (!template) { showToast('Template not found', 'error'); return; }
+      activateView('composerView');
+      useTemplateInEditor(template);
+      return;
+    }
+    if (action === 'edit') { openTemplateModal(id); return; }
+    if (action === 'delete') { deleteTemplate(id); return; }
+  });
 }
 
 
@@ -2940,8 +3079,6 @@ function init() {
   renderNoteTypesSettings();
   activateView('calendarView');
 
-  on('openSettings', 'click', () => openModal('settingsModal'));
-  on('closeSettings', 'click', () => closeModal('settingsModal'));
   selectSettingsTab(document.querySelector('.settings-tab.active')?.dataset.stab || 'connection');
   document.querySelectorAll('.settings-tab').forEach(tab => {
     tab.onclick = () => selectSettingsTab(tab.dataset.stab);
@@ -2960,11 +3097,7 @@ function init() {
     });
   });
 
-  on('newTemplateBtn', 'click', () => openTemplateModal());
   const manageTplBtn = qs('composerManageTemplatesBtn'); if (manageTplBtn) manageTplBtn.onclick = () => { activateView('ideasView'); setIdeasTab('templates'); };
-  on('closeTemplateModal', 'click', () => closeModal('templateModal'));
-  on('cancelTemplateBtn', 'click', () => closeModal('templateModal'));
-  on('saveTemplateBtn', 'click', saveTemplate);
   on('closeTemplatePicker', 'click', () => closeModal('templatePickerModal'));
   on('templateSearch', 'input', e => { state.templateSearch = e.target.value; renderTemplates(); });
   on('templatePlatformFilter', 'change', e => { state.templatePlatform = e.target.value; renderTemplates(); });
@@ -3345,7 +3478,6 @@ function init() {
   });
   const mobConnectionSettingsBtn = qs('mobConnectionSettingsBtn');
   if (mobConnectionSettingsBtn) mobConnectionSettingsBtn.onclick = () => { closeMobDrawer(); openConnectionSettings(); };
-  on('mobOpenSettings', 'click', () => { closeMobDrawer(); openModal('settingsModal'); });
 
   const smb = qs('shareMonthBtnMob'); if (smb) smb.onclick = openShareSnapshotModal;
 
@@ -3367,7 +3499,6 @@ function init() {
   });
 
   const arbm = qs('approvalsRefreshBtnMob'); if (arbm) arbm.onclick = loadApprovals;
-  const ntbm = qs('newTemplateBtnMob'); if (ntbm) ntbm.onclick = () => openTemplateModal();
 
   const mobMoreBtn = qs('mobMoreBtn');
   if (mobMoreBtn) mobMoreBtn.onclick = openMobDrawer;
@@ -4542,12 +4673,22 @@ window.ContentPillars = (() => {
 document.addEventListener('DOMContentLoaded', () => {
   bindGlobalStatusDismiss();
   bindGlobalErrorHandlers();
+  bindModalActionDelegates();
   document.addEventListener('click', handlePausedFeatureEvent, true);
   document.addEventListener('pointerdown', handlePausedFeatureEvent, true);
   document.addEventListener('keydown', event => {
     if (event.key === 'Enter' || event.key === ' ') handlePausedFeatureEvent(event);
   }, true);
   loadPostiqConfig();
+  console.info('[PostIQ] Modal targets', {
+    settingsButton: !!document.getElementById('openSettings'),
+    mobileSettingsButton: !!document.getElementById('mobOpenSettings'),
+    settingsModal: !!document.getElementById('settingsModal'),
+    templateModal: !!document.getElementById('templateModal'),
+    templatesGrid: !!document.getElementById('templatesGrid'),
+    newTemplateBtn: !!document.getElementById('newTemplateBtn'),
+    saveTemplateBtn: !!document.getElementById('saveTemplateBtn')
+  });
 
   document.addEventListener('click', (e) => {
     const trigger = e.target.closest('[data-view]');

@@ -130,7 +130,7 @@
         <span class="nav-icon" style="opacity:.5;"><svg><use href="#i-buffer"/></svg></span>
         <span class="nav-text">Open Buffer</span>
       </a>
-      <button class="nav-btn" id="openSettings">
+      <button class="nav-btn" id="openSettings" type="button">
         <span class="nav-icon" style="opacity:.5;"><svg><use href="#i-settings"/></svg></span>
         <span class="nav-text">Settings</span>
       </button>
@@ -736,8 +736,8 @@
           <div class="ideas-panel-hdr">
             <p class="ideas-panel-copy">Reusable post starters — hooks, CTAs, announcements. Insert into Compose with one click.</p>
             <div class="page-actions">
-              <button class="btn sm primary ideas-mobile-only" id="newTemplateBtnMob">+ New</button>
-              <button class="btn primary ideas-desktop-only" id="newTemplateBtn">+ New Template</button>
+              <button class="btn sm primary ideas-mobile-only" id="newTemplateBtnMob" type="button">+ New</button>
+              <button class="btn primary ideas-desktop-only" id="newTemplateBtn" type="button">+ New Template</button>
             </div>
           </div>
           <div class="templates-layout">
@@ -853,7 +853,7 @@
   <!-- Quick links -->
   <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">↗ Open Buffer</a>
   <button class="btn ghost" data-view="ideasView" id="mobDrawerIdeasBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">💡 Ideas</button>
-  <button class="btn ghost" id="mobOpenSettings" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">⚙ Settings</button>
+  <button class="btn ghost" id="mobOpenSettings" type="button" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">⚙ Settings</button>
 </div>
 
 <section id="zenOverlay" class="zen-overlay" aria-hidden="true">
@@ -1104,7 +1104,7 @@
   <div class="modal-card lg">
     <div class="modal-hdr">
       <span class="modal-title" id="templateModalTitle">New Template</span>
-      <button class="btn sm ghost" id="closeTemplateModal">Close</button>
+      <button class="btn sm ghost" id="closeTemplateModal" type="button">Close</button>
     </div>
     <div class="field">
       <label class="label">Title</label>
@@ -1129,8 +1129,8 @@
       <textarea id="templateBody" placeholder="Write your reusable template content…" style="min-height:140px;"></textarea>
     </div>
     <div class="row">
-      <button class="btn primary" id="saveTemplateBtn">Save template</button>
-      <button class="btn ghost" id="cancelTemplateBtn">Cancel</button>
+      <button class="btn primary" id="saveTemplateBtn" type="button">Save template</button>
+      <button class="btn ghost" id="cancelTemplateBtn" type="button">Cancel</button>
     </div>
   </div>
 </div>
