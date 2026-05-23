@@ -30,7 +30,7 @@ const DEFAULT_NOTE_TYPES = [
   { id: 'revision', label: 'Needs Revision', color: '#ef4444' }
 ];
 const DEFAULT_POSTIQ_CONFIG = {
-  betaMessage: 'PostIQ is in public beta. Some tools may change as Buffer’s API evolves.',
+  betaMessage: "PostIQ is in public beta. Some tools may change as Buffer’s API evolves.",
   features: {
     calendar: true,
     composer: true,
