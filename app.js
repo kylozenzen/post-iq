@@ -2519,11 +2519,6 @@ async function imgurUpload(file) {
   return data.data.link;
 }
 
-function getErrorMessage(err) {
-  if (err instanceof Error) return err.message;
-  return String(err || 'Unknown error');
-}
-
 function logLocalModuleError(scope, err, details = {}) {
   console.error(`[PostIQ:${scope}]`, { message: getErrorMessage(err), details, error: err });
 }
