@@ -1825,6 +1825,7 @@ function saveNote() {
   closeModal('noteModal');
   resetNoteForm();
   activateView('calendarView');
+
   showToast(existingIdx >= 0 ? 'Note updated' : 'Note saved', 'success');
 }
 
@@ -2901,7 +2902,6 @@ function init() {
   loadTemplates();
   initTemplateSelectors();
   renderTemplates();
-  if (window.ContentPillars?.init) window.ContentPillars.init();
   buildTimePickers();
   const scheduleDate = qs('scheduleDate');
   if (scheduleDate) {
@@ -2913,6 +2913,43 @@ function init() {
   renderPlanningSettings();
   renderNoteTypesSettings();
   activateView('calendarView');
+
+  on('openSettings', 'click', () => openModal('settingsModal'));
+  on('closeSettings', 'click', () => closeModal('settingsModal'));
+  selectSettingsTab(document.querySelector('.settings-tab.active')?.dataset.stab || 'connection');
+  document.querySelectorAll('.settings-tab').forEach(tab => {
+    tab.onclick = () => selectSettingsTab(tab.dataset.stab);
+    tab.addEventListener('keydown', e => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+      const tabs = [...document.querySelectorAll('.settings-tab')];
+      const current = tabs.indexOf(tab);
+      let next = current;
+      if (e.key === 'ArrowLeft') next = Math.max(0, current - 1);
+      if (e.key === 'ArrowRight') next = Math.min(tabs.length - 1, current + 1);
+      if (e.key === 'Home') next = 0;
+      if (e.key === 'End') next = tabs.length - 1;
+      e.preventDefault();
+      tabs[next]?.focus();
+      if (tabs[next]) selectSettingsTab(tabs[next].dataset.stab);
+    });
+  });
+
+  on('newTemplateBtn', 'click', () => openTemplateModal());
+  const manageTplBtn = qs('composerManageTemplatesBtn'); if (manageTplBtn) manageTplBtn.onclick = () => { activateView('ideasView'); setIdeasTab('templates'); };
+  on('closeTemplateModal', 'click', () => closeModal('templateModal'));
+  on('cancelTemplateBtn', 'click', () => closeModal('templateModal'));
+  on('saveTemplateBtn', 'click', saveTemplate);
+  on('closeTemplatePicker', 'click', () => closeModal('templatePickerModal'));
+  on('templateSearch', 'input', e => { state.templateSearch = e.target.value; renderTemplates(); });
+  on('templatePlatformFilter', 'change', e => { state.templatePlatform = e.target.value; renderTemplates(); });
+  on('pickerSearch', 'input', renderTemplatePicker);
+  on('pickerType', 'change', renderTemplatePicker);
+
+  try {
+    if (window.ContentPillars?.init) window.ContentPillars.init();
+  } catch (e) {
+    console.error('[PostIQ] ContentPillars.init() failed:', e);
+  }
 
   on('manageTokenBtn', 'click', () => {
     const connection = getBufferConnectionState();
@@ -3095,16 +3132,6 @@ function init() {
   on('unsplashSearchBtn', 'click', runUnsplashSearch);
   on('unsplashQuery', 'keydown', e => { if (e.key === 'Enter') runUnsplashSearch(); });
 
-  on('newTemplateBtn', 'click', () => openTemplateModal());
-  const manageTplBtn = qs('composerManageTemplatesBtn'); if (manageTplBtn) manageTplBtn.onclick = () => { activateView('ideasView'); setIdeasTab('templates'); };
-  on('closeTemplateModal', 'click', () => closeModal('templateModal'));
-  on('cancelTemplateBtn', 'click', () => closeModal('templateModal'));
-  on('saveTemplateBtn', 'click', saveTemplate);
-  on('closeTemplatePicker', 'click', () => closeModal('templatePickerModal'));
-  on('templateSearch', 'input', e => { state.templateSearch = e.target.value; renderTemplates(); });
-  on('templatePlatformFilter', 'change', e => { state.templatePlatform = e.target.value; renderTemplates(); });
-  on('pickerSearch', 'input', renderTemplatePicker);
-  on('pickerType', 'change', renderTemplatePicker);
 
   on('approvalsRefreshBtn', 'click', loadApprovals);
   document.querySelectorAll('[data-afilter]').forEach(pill => {
@@ -3255,25 +3282,6 @@ function init() {
     }
   }, true);
 
-  on('openSettings', 'click', () => openModal('settingsModal'));
-  on('closeSettings', 'click', () => closeModal('settingsModal'));
-  selectSettingsTab(document.querySelector('.settings-tab.active')?.dataset.stab || 'connection');
-  document.querySelectorAll('.settings-tab').forEach(tab => {
-    tab.onclick = () => selectSettingsTab(tab.dataset.stab);
-    tab.addEventListener('keydown', e => {
-      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
-      const tabs = [...document.querySelectorAll('.settings-tab')];
-      const current = tabs.indexOf(tab);
-      let next = current;
-      if (e.key === 'ArrowLeft') next = Math.max(0, current - 1);
-      if (e.key === 'ArrowRight') next = Math.min(tabs.length - 1, current + 1);
-      if (e.key === 'Home') next = 0;
-      if (e.key === 'End') next = tabs.length - 1;
-      e.preventDefault();
-      tabs[next]?.focus();
-      if (tabs[next]) selectSettingsTab(tabs[next].dataset.stab);
-    });
-  });
 
   document.querySelectorAll('.modal').forEach(modal => {
     modal.addEventListener('click', e => { if (e.target === modal) closeModal(modal.id); });
@@ -3767,7 +3775,11 @@ function init() {
     loadReddit();
   }
 
-  initTrending();
+  try {
+    initTrending();
+  } catch (e) {
+    console.error('[PostIQ] initTrending() failed:', e);
+  }
 }
 
 
