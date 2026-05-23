@@ -815,235 +815,19 @@
 <!-- ── MODALS ── -->
 
 <!-- Settings modal -->
-<div id="settingsModal" class="modal">
-  <div class="modal-card settings-modal-card">
-    <div class="modal-hdr settings-modal-hdr">
-      <span class="modal-title">Settings</span>
-      <button class="btn sm ghost" id="closeSettings" type="button" aria-label="Close settings">Close</button>
-    </div>
-    <div class="settings-modal-body">
-      <div class="settings-tabs" role="tablist" aria-label="Settings sections">
-        <button class="settings-tab active" id="settingsTabConnection" type="button" role="tab" aria-selected="true" aria-controls="settingsPanelConnection" data-stab="connection">Connection</button>
-        <button class="settings-tab" id="settingsTabPlanning" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelPlanning" data-stab="planning">Planning</button>
-        <button class="settings-tab" id="settingsTabNotes" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelNotes" data-stab="notes">Notes</button>
-        <button class="settings-tab" id="settingsTabFeatures" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelFeatures" data-stab="features">Beta / Features</button>
-        <button class="settings-tab" id="settingsTabAbout" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelAbout" data-stab="about">About</button>
-      </div>
 
-      <div id="settingsPanelConnection" class="settings-panel active" role="tabpanel" aria-labelledby="settingsTabConnection" tabindex="0">
-        <div class="settings-section connection-settings-card">
-          <div class="settings-section-title">Buffer connection</div>
-          <p class="settings-copy" id="connectionIntroCopy">Recommended for most users. Sign in with Buffer so PostIQ can load your channels, view your queue, and publish through your account when you choose.</p>
-          <div class="connection-status-line" id="oauthStatusText">Not connected.</div>
-          <div class="row mt12">
-            <button class="btn primary" id="connectBufferBtn" type="button">Sign in with Buffer</button>
-            <button class="btn ghost" id="disconnectBufferBtn" type="button" style="display:none;">Disconnect Buffer</button>
-          </div>
-        </div>
-        <details class="settings-section advanced-connection" id="tokenPanel">
-          <summary>Advanced: API key fallback</summary>
-          <p class="settings-copy" id="advancedConnectionCopy">Use this only if Buffer sign-in is unavailable or you need a manual setup. Disconnect Buffer clears OAuth sign-in only; saved manual keys stay here until you remove them.</p>
-          <div class="field">
-            <label class="label" for="tokenInput">API key fallback</label>
-            <input id="tokenInput" class="input mono" type="password" placeholder="Paste API key…" />
-          </div>
-          <div class="row mb8" style="gap:14px;">
-            <label class="settings-check"><input type="radio" name="tokenMode" value="session" checked /> Session</label>
-            <label class="settings-check"><input type="radio" name="tokenMode" value="local" /> Save locally</label>
-          </div>
-          <div class="row">
-            <button class="btn sm primary" id="saveTokenBtn" type="button">Save API key</button>
-            <button class="btn sm ghost" id="clearTokenBtn" type="button">Disconnect manual key</button>
-          </div>
-          <div id="tokenMsg" class="connection-token-msg"></div>
-        </details>
-      </div>
-
-      <div id="settingsPanelPlanning" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabPlanning" tabindex="0">
-        <div class="settings-section">
-          <div class="settings-section-title">Planning settings</div>
-          <p class="settings-copy">Control how the Plan / Calendar view highlights gaps in your Buffer queue.</p>
-          <label class="settings-check mt12"><input type="checkbox" id="showQueueGapsSetting" /> Show queue gaps</label>
-          <div class="label mt12">Posting schedule</div>
-          <div id="postingDaysSettings" class="settings-day-grid"></div>
-        </div>
-      </div>
-
-      <div id="settingsPanelNotes" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabNotes" tabindex="0">
-        <div class="settings-section">
-          <div class="settings-section-title">Planning notes</div>
-          <p class="settings-copy">Customize the labels and colors used for notes on the Plan / Calendar. Existing notes keep their saved labels; unknown note types fall back to Note styling.</p>
-          <div id="noteTypesSettings" class="note-types-settings mt12"></div>
-          <button class="btn sm" id="addNoteTypeBtn" type="button">+ Add note type</button>
-        </div>
-      </div>
-
-      <div id="settingsPanelFeatures" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabFeatures" tabindex="0">
-        <div class="settings-section">
-          <div class="settings-section-title">Public beta features</div>
-          <p class="settings-copy">Some tools can be paused during beta while they are being improved. If a feature is unavailable, PostIQ will show a notice instead of breaking the workflow.</p>
-          <div class="settings-feature-list" aria-label="Feature availability">
-            <div class="settings-feature-item"><span>Plan / Calendar</span><span class="settings-feature-status" data-settings-feature="calendar">Available</span></div>
-            <div class="settings-feature-item"><span>Compose</span><span class="settings-feature-status" data-settings-feature="composer">Available</span></div>
-            <div class="settings-feature-item"><span>Split into thread</span><span class="settings-feature-status is-static">Available</span></div>
-            <div class="settings-feature-item"><span>Ideas</span><span class="settings-feature-status" data-settings-feature="ideas">Available</span></div>
-            <div class="settings-feature-item"><span>Content Pillars</span><span class="settings-feature-status" data-settings-feature="contentPillars">Available</span></div>
-            <div class="settings-feature-item"><span>Templates</span><span class="settings-feature-status is-static">Available</span></div>
-            <div class="settings-feature-item"><span>Trending ideas</span><span class="settings-feature-status" data-settings-feature="trending">Available</span></div>
-            <div class="settings-feature-item"><span>Approvals <small>beta</small></span><span class="settings-feature-status" data-settings-feature="approvals">Available</span></div>
-            <div class="settings-feature-item"><span>Snapshot sharing</span><span class="settings-feature-status" data-settings-feature="snapshots">Available</span></div>
-            <div class="settings-feature-item"><span>Media upload</span><span class="settings-feature-status" data-settings-feature="uploads">Available</span></div>
-            <div class="settings-feature-item"><span>Unsplash search</span><span class="settings-feature-status" data-settings-feature="unsplash">Available</span></div>
-          </div>
-          <p class="settings-copy settings-feature-note" id="settingsBetaMessage"></p>
-        </div>
-      </div>
-
-      <div id="settingsPanelAbout" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabAbout" tabindex="0">
-        <div class="settings-section about-ben-card">
-          <img class="about-ben-photo" src="https://github.com/kylozenzen/ben-portfolio/blob/main/Ben%20Headshot%202026.jpg?raw=true" alt="Ben Campbell" loading="lazy" />
-          <div class="about-ben-copy">
-            <div class="settings-section-title">About Ben</div>
-            <p class="settings-copy">PostIQ was built by Ben Campbell, a social media and content strategist who needed a cleaner way to plan, write, split, and share posts before they went live.</p>
-            <p class="settings-copy">It started as a set of internal workflow tools and became a public beta companion for Buffer users.</p>
-            <div class="about-ben-actions">
-              <a href="https://bencampbell.netlify.app" target="_blank" rel="noopener" class="btn primary">View Ben’s portfolio</a>
-              <a href="/privacy.html" class="btn ghost">Privacy Policy</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- Day note modal -->
-<div id="noteModal" class="modal">
-  <div class="modal-card">
-    <div class="modal-hdr">
-      <span class="modal-title" id="noteDateLabel">—</span>
-      <button class="btn sm ghost" id="closeNote">Close</button>
-    </div>
-    <div id="dayPostPreview" class="mb8"></div>
-    <div class="field">
-      <label class="label">Planning note</label>
-      <textarea id="noteText" placeholder="What do you want to post on this day?" style="min-height:80px;"></textarea>
-    </div>
-    <div class="field">
-      <label class="label">Tag</label>
-      <select id="noteTag" class="input"></select>
-    </div>
-    <div class="row">
-      <button class="btn primary" id="saveNoteBtn">Save note</button>
-      <button class="btn" id="sendNoteToDraftBtn">Use in Compose</button>
-      <button class="btn ghost" id="deleteNoteBtn">Delete</button>
-    </div>
-    <div id="noteStatus" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;min-height:16px;"></div>
-  </div>
-</div>
+
 
 <!-- Template modal -->
-<div id="templateModal" class="modal">
-  <div class="modal-card lg">
-    <div class="modal-hdr">
-      <span class="modal-title" id="templateModalTitle">New Template</span>
-      <button class="btn sm ghost" id="closeTemplateModal">Close</button>
-    </div>
-    <div class="field">
-      <label class="label">Title</label>
-      <input id="templateTitle" class="input" placeholder="e.g. Product announcement hook" />
-    </div>
-    <div class="cols2">
-      <div class="field">
-        <label class="label">Type</label>
-        <select id="templateType" class="input"></select>
-      </div>
-      <div class="field">
-        <label class="label">Platform</label>
-        <select id="templatePlatform" class="input"></select>
-      </div>
-    </div>
-    <div class="field">
-      <label class="label">Tags (comma-separated)</label>
-      <input id="templateTags" class="input" placeholder="launch, b2b, hook" />
-    </div>
-    <div class="field">
-      <label class="label">Content</label>
-      <textarea id="templateBody" placeholder="Write your reusable template content…" style="min-height:140px;"></textarea>
-    </div>
-    <div class="row">
-      <button class="btn primary" id="saveTemplateBtn">Save template</button>
-      <button class="btn ghost" id="cancelTemplateBtn">Cancel</button>
-    </div>
-  </div>
-</div>
+
 
 <!-- Template picker modal -->
-<div id="templatePickerModal" class="modal">
-  <div class="modal-card lg">
-    <div class="modal-hdr">
-      <span class="modal-title">Insert template</span>
-      <button class="btn sm ghost" id="closeTemplatePicker">Close</button>
-    </div>
-    <div class="row mb8">
-      <input id="pickerSearch" class="input grow" placeholder="Search templates…" />
-      <select id="pickerType" class="input" style="max-width:140px;"></select>
-    </div>
-    <div id="pickerList" style="display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow-y:auto;"></div>
-    <div id="pickerEmpty" class="empty-state" style="display:none;margin-top:16px;">
-      <div class="empty-icon">⚡</div>
-      <div class="empty-title">No templates found</div>
-    </div>
-  </div>
-</div>
+
 
 <!-- Share modal -->
-<div id="shareModal" class="modal">
-  <div class="modal-card">
-    <div class="modal-hdr">
-      <span class="modal-title">Share calendar snapshot</span>
-      <button class="btn sm ghost" id="closeShare">Close</button>
-    </div>
-    <div class="card mb8" style="padding:14px;">
-      <div class="field" style="margin-bottom:12px;">
-        <label class="label">Snapshot range</label>
-        <select id="shareRange" class="input">
-          <option value="week">This week</option>
-          <option value="month" selected>This month</option>
-        </select>
-      </div>
-      <div class="share-modal-stat">
-        <span class="share-modal-stat-label">Range</span>
-        <span class="share-modal-stat-val" id="shareMonthName">—</span>
-      </div>
-      <div class="share-modal-stat">
-        <span class="share-modal-stat-label">Scheduled posts</span>
-        <span class="share-modal-stat-val" id="sharePostCount">0</span>
-      </div>
-      <div class="field mt12" style="margin-bottom:0;">
-        <label class="label">Recipient/client name or title</label>
-        <input id="shareCustomTitle" class="input" placeholder="e.g. Acme Co. content plan" maxlength="120" />
-        <div style="font-size:11px;color:var(--subtle);margin-top:5px;line-height:1.5;">This appears as the headline on the shared page.</div>
-      </div>
-      <div class="field mt12" style="margin-bottom:0;">
-        <label class="label">Optional note</label>
-        <textarea id="shareNote" placeholder="Add context for your client or team…" style="min-height:74px;"></textarea>
-      </div>
-      <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted);">
-        <input type="checkbox" id="includeNotes" checked style="accent-color:var(--brand);" /> Include planning notes
-      </label>
-      <div class="share-trust-copy">This creates a static copy of the selected posts and notes. Anyone with the link can view it. Later Buffer/PostIQ changes will not update this snapshot.</div>
-      <div id="shareEmptyHint" class="share-empty-hint" style="display:none;">This range has no scheduled posts yet. The snapshot will still show any included planning notes.</div>
-    </div>
-    <div class="row mt8">
-      <button class="btn primary grow" id="generateShare" style="justify-content:center;">Generate link</button>
-      <button class="btn" id="copyShare">Copy</button>
-    </div>
-    <input id="shareLink" class="input mt8 mono" readonly placeholder="Link will appear here…" style="font-size:11px;" />
-    <div id="shareUrlWarning" class="share-url-warning" style="display:none;"></div>
-    <div id="shareLinkMeta" style="font-size:11px;color:var(--subtle);margin-top:6px;line-height:1.5;display:none;">Anyone with this link can view the snapshot. No PostIQ account needed.</div>
-  </div>
-</div>
+
 
 <!-- ── MOBILE DRAWER (connection + sync) ── -->
 <div class="mob-backdrop" id="mobBackdrop"></div>
@@ -1160,15 +944,7 @@
   </div>
 </section>
 
-<div id="sharedDayModal" class="modal">
-  <div class="modal-card lg">
-    <div class="modal-hdr">
-      <span class="modal-title" id="sharedDayTitle">Snapshot details</span>
-      <button class="btn sm ghost" id="closeSharedDay">Close</button>
-    </div>
-    <div id="sharedDayBody"></div>
-  </div>
-</div>
+
 
 <!-- Reviewer page -->
 <div id="reviewerPage">
@@ -1193,6 +969,244 @@
         <div id="reviewerErrorMsg" style="font-size:14px;color:var(--muted);line-height:1.6;"></div>
       </div>
     </div>
+  </div>
+</div>
+
+
+
+<div id="settingsModal" class="modal">
+  <div class="modal-card settings-modal-card">
+    <div class="modal-hdr settings-modal-hdr">
+      <span class="modal-title">Settings</span>
+      <button class="btn sm ghost" id="closeSettings" type="button" aria-label="Close settings">Close</button>
+    </div>
+    <div class="settings-modal-body">
+      <div class="settings-tabs" role="tablist" aria-label="Settings sections">
+        <button class="settings-tab active" id="settingsTabConnection" type="button" role="tab" aria-selected="true" aria-controls="settingsPanelConnection" data-stab="connection">Connection</button>
+        <button class="settings-tab" id="settingsTabPlanning" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelPlanning" data-stab="planning">Planning</button>
+        <button class="settings-tab" id="settingsTabNotes" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelNotes" data-stab="notes">Notes</button>
+        <button class="settings-tab" id="settingsTabFeatures" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelFeatures" data-stab="features">Beta / Features</button>
+        <button class="settings-tab" id="settingsTabAbout" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelAbout" data-stab="about">About</button>
+      </div>
+
+      <div id="settingsPanelConnection" class="settings-panel active" role="tabpanel" aria-labelledby="settingsTabConnection" tabindex="0">
+        <div class="settings-section connection-settings-card">
+          <div class="settings-section-title">Buffer connection</div>
+          <p class="settings-copy" id="connectionIntroCopy">Recommended for most users. Sign in with Buffer so PostIQ can load your channels, view your queue, and publish through your account when you choose.</p>
+          <div class="connection-status-line" id="oauthStatusText">Not connected.</div>
+          <div class="row mt12">
+            <button class="btn primary" id="connectBufferBtn" type="button">Sign in with Buffer</button>
+            <button class="btn ghost" id="disconnectBufferBtn" type="button" style="display:none;">Disconnect Buffer</button>
+          </div>
+        </div>
+        <details class="settings-section advanced-connection" id="tokenPanel">
+          <summary>Advanced: API key fallback</summary>
+          <p class="settings-copy" id="advancedConnectionCopy">Use this only if Buffer sign-in is unavailable or you need a manual setup. Disconnect Buffer clears OAuth sign-in only; saved manual keys stay here until you remove them.</p>
+          <div class="field">
+            <label class="label" for="tokenInput">API key fallback</label>
+            <input id="tokenInput" class="input mono" type="password" placeholder="Paste API key…" />
+          </div>
+          <div class="row mb8" style="gap:14px;">
+            <label class="settings-check"><input type="radio" name="tokenMode" value="session" checked /> Session</label>
+            <label class="settings-check"><input type="radio" name="tokenMode" value="local" /> Save locally</label>
+          </div>
+          <div class="row">
+            <button class="btn sm primary" id="saveTokenBtn" type="button">Save API key</button>
+            <button class="btn sm ghost" id="clearTokenBtn" type="button">Disconnect manual key</button>
+          </div>
+          <div id="tokenMsg" class="connection-token-msg"></div>
+        </details>
+      </div>
+
+      <div id="settingsPanelPlanning" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabPlanning" tabindex="0">
+        <div class="settings-section">
+          <div class="settings-section-title">Planning settings</div>
+          <p class="settings-copy">Control how the Plan / Calendar view highlights gaps in your Buffer queue.</p>
+          <label class="settings-check mt12"><input type="checkbox" id="showQueueGapsSetting" /> Show queue gaps</label>
+          <div class="label mt12">Posting schedule</div>
+          <div id="postingDaysSettings" class="settings-day-grid"></div>
+        </div>
+      </div>
+
+      <div id="settingsPanelNotes" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabNotes" tabindex="0">
+        <div class="settings-section">
+          <div class="settings-section-title">Planning notes</div>
+          <p class="settings-copy">Customize the labels and colors used for notes on the Plan / Calendar. Existing notes keep their saved labels; unknown note types fall back to Note styling.</p>
+          <div id="noteTypesSettings" class="note-types-settings mt12"></div>
+          <button class="btn sm" id="addNoteTypeBtn" type="button">+ Add note type</button>
+        </div>
+      </div>
+
+      <div id="settingsPanelFeatures" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabFeatures" tabindex="0">
+        <div class="settings-section">
+          <div class="settings-section-title">Public beta features</div>
+          <p class="settings-copy">Some tools can be paused during beta while they are being improved. If a feature is unavailable, PostIQ will show a notice instead of breaking the workflow.</p>
+          <div class="settings-feature-list" aria-label="Feature availability">
+            <div class="settings-feature-item"><span>Plan / Calendar</span><span class="settings-feature-status" data-settings-feature="calendar">Available</span></div>
+            <div class="settings-feature-item"><span>Compose</span><span class="settings-feature-status" data-settings-feature="composer">Available</span></div>
+            <div class="settings-feature-item"><span>Split into thread</span><span class="settings-feature-status is-static">Available</span></div>
+            <div class="settings-feature-item"><span>Ideas</span><span class="settings-feature-status" data-settings-feature="ideas">Available</span></div>
+            <div class="settings-feature-item"><span>Content Pillars</span><span class="settings-feature-status" data-settings-feature="contentPillars">Available</span></div>
+            <div class="settings-feature-item"><span>Templates</span><span class="settings-feature-status is-static">Available</span></div>
+            <div class="settings-feature-item"><span>Trending ideas</span><span class="settings-feature-status" data-settings-feature="trending">Available</span></div>
+            <div class="settings-feature-item"><span>Approvals <small>beta</small></span><span class="settings-feature-status" data-settings-feature="approvals">Available</span></div>
+            <div class="settings-feature-item"><span>Snapshot sharing</span><span class="settings-feature-status" data-settings-feature="snapshots">Available</span></div>
+            <div class="settings-feature-item"><span>Media upload</span><span class="settings-feature-status" data-settings-feature="uploads">Available</span></div>
+            <div class="settings-feature-item"><span>Unsplash search</span><span class="settings-feature-status" data-settings-feature="unsplash">Available</span></div>
+          </div>
+          <p class="settings-copy settings-feature-note" id="settingsBetaMessage"></p>
+        </div>
+      </div>
+
+      <div id="settingsPanelAbout" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabAbout" tabindex="0">
+        <div class="settings-section about-ben-card">
+          <img class="about-ben-photo" src="https://github.com/kylozenzen/ben-portfolio/blob/main/Ben%20Headshot%202026.jpg?raw=true" alt="Ben Campbell" loading="lazy" />
+          <div class="about-ben-copy">
+            <div class="settings-section-title">About Ben</div>
+            <p class="settings-copy">PostIQ was built by Ben Campbell, a social media and content strategist who needed a cleaner way to plan, write, split, and share posts before they went live.</p>
+            <p class="settings-copy">It started as a set of internal workflow tools and became a public beta companion for Buffer users.</p>
+            <div class="about-ben-actions">
+              <a href="https://bencampbell.netlify.app" target="_blank" rel="noopener" class="btn primary">View Ben’s portfolio</a>
+              <a href="/privacy.html" class="btn ghost">Privacy Policy</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="noteModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-hdr">
+      <span class="modal-title" id="noteDateLabel">—</span>
+      <button class="btn sm ghost" id="closeNote">Close</button>
+    </div>
+    <div id="dayPostPreview" class="mb8"></div>
+    <div class="field">
+      <label class="label">Planning note</label>
+      <textarea id="noteText" placeholder="What do you want to post on this day?" style="min-height:80px;"></textarea>
+    </div>
+    <div class="field">
+      <label class="label">Tag</label>
+      <select id="noteTag" class="input"></select>
+    </div>
+    <div class="row">
+      <button class="btn primary" id="saveNoteBtn">Save note</button>
+      <button class="btn" id="sendNoteToDraftBtn">Use in Compose</button>
+      <button class="btn ghost" id="deleteNoteBtn">Delete</button>
+    </div>
+    <div id="noteStatus" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;min-height:16px;"></div>
+  </div>
+</div>
+
+<div id="templateModal" class="modal">
+  <div class="modal-card lg">
+    <div class="modal-hdr">
+      <span class="modal-title" id="templateModalTitle">New Template</span>
+      <button class="btn sm ghost" id="closeTemplateModal">Close</button>
+    </div>
+    <div class="field">
+      <label class="label">Title</label>
+      <input id="templateTitle" class="input" placeholder="e.g. Product announcement hook" />
+    </div>
+    <div class="cols2">
+      <div class="field">
+        <label class="label">Type</label>
+        <select id="templateType" class="input"></select>
+      </div>
+      <div class="field">
+        <label class="label">Platform</label>
+        <select id="templatePlatform" class="input"></select>
+      </div>
+    </div>
+    <div class="field">
+      <label class="label">Tags (comma-separated)</label>
+      <input id="templateTags" class="input" placeholder="launch, b2b, hook" />
+    </div>
+    <div class="field">
+      <label class="label">Content</label>
+      <textarea id="templateBody" placeholder="Write your reusable template content…" style="min-height:140px;"></textarea>
+    </div>
+    <div class="row">
+      <button class="btn primary" id="saveTemplateBtn">Save template</button>
+      <button class="btn ghost" id="cancelTemplateBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="templatePickerModal" class="modal">
+  <div class="modal-card lg">
+    <div class="modal-hdr">
+      <span class="modal-title">Insert template</span>
+      <button class="btn sm ghost" id="closeTemplatePicker">Close</button>
+    </div>
+    <div class="row mb8">
+      <input id="pickerSearch" class="input grow" placeholder="Search templates…" />
+      <select id="pickerType" class="input" style="max-width:140px;"></select>
+    </div>
+    <div id="pickerList" style="display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow-y:auto;"></div>
+    <div id="pickerEmpty" class="empty-state" style="display:none;margin-top:16px;">
+      <div class="empty-icon">⚡</div>
+      <div class="empty-title">No templates found</div>
+    </div>
+  </div>
+</div>
+
+<div id="shareModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-hdr">
+      <span class="modal-title">Share calendar snapshot</span>
+      <button class="btn sm ghost" id="closeShare">Close</button>
+    </div>
+    <div class="card mb8" style="padding:14px;">
+      <div class="field" style="margin-bottom:12px;">
+        <label class="label">Snapshot range</label>
+        <select id="shareRange" class="input">
+          <option value="week">This week</option>
+          <option value="month" selected>This month</option>
+        </select>
+      </div>
+      <div class="share-modal-stat">
+        <span class="share-modal-stat-label">Range</span>
+        <span class="share-modal-stat-val" id="shareMonthName">—</span>
+      </div>
+      <div class="share-modal-stat">
+        <span class="share-modal-stat-label">Scheduled posts</span>
+        <span class="share-modal-stat-val" id="sharePostCount">0</span>
+      </div>
+      <div class="field mt12" style="margin-bottom:0;">
+        <label class="label">Recipient/client name or title</label>
+        <input id="shareCustomTitle" class="input" placeholder="e.g. Acme Co. content plan" maxlength="120" />
+        <div style="font-size:11px;color:var(--subtle);margin-top:5px;line-height:1.5;">This appears as the headline on the shared page.</div>
+      </div>
+      <div class="field mt12" style="margin-bottom:0;">
+        <label class="label">Optional note</label>
+        <textarea id="shareNote" placeholder="Add context for your client or team…" style="min-height:74px;"></textarea>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted);">
+        <input type="checkbox" id="includeNotes" checked style="accent-color:var(--brand);" /> Include planning notes
+      </label>
+      <div class="share-trust-copy">This creates a static copy of the selected posts and notes. Anyone with the link can view it. Later Buffer/PostIQ changes will not update this snapshot.</div>
+      <div id="shareEmptyHint" class="share-empty-hint" style="display:none;">This range has no scheduled posts yet. The snapshot will still show any included planning notes.</div>
+    </div>
+    <div class="row mt8">
+      <button class="btn primary grow" id="generateShare" style="justify-content:center;">Generate link</button>
+      <button class="btn" id="copyShare">Copy</button>
+    </div>
+    <input id="shareLink" class="input mt8 mono" readonly placeholder="Link will appear here…" style="font-size:11px;" />
+    <div id="shareUrlWarning" class="share-url-warning" style="display:none;"></div>
+    <div id="shareLinkMeta" style="font-size:11px;color:var(--subtle);margin-top:6px;line-height:1.5;display:none;">Anyone with this link can view the snapshot. No PostIQ account needed.</div>
+  </div>
+</div>
+
+<div id="sharedDayModal" class="modal">
+  <div class="modal-card lg">
+    <div class="modal-hdr">
+      <span class="modal-title" id="sharedDayTitle">Snapshot details</span>
+      <button class="btn sm ghost" id="closeSharedDay">Close</button>
+    </div>
+    <div id="sharedDayBody"></div>
   </div>
 </div>
 
