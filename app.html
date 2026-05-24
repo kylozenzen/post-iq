@@ -254,7 +254,8 @@
           <div id="refPin" style="display:none;background:var(--surface);border:1px solid var(--border2);border-left:3px solid var(--brand);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;position:relative;">
             <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--brand);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Writing from</div>
             <div id="refPinTitle" style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px;"></div>
-            <div id="refPinBody" style="font-size:12px;color:var(--muted);line-height:1.5;"></div>
+            <div id="refPinBody" style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:6px;"></div>
+            <a id="refPinSourceLink" href="#" target="_blank" rel="noopener" style="display:none;font-size:11px;color:var(--brand);text-decoration:none;">↗ Open source</a>
             <button id="refPinDismiss" style="position:absolute;top:8px;right:10px;background:none;border:none;color:var(--subtle);cursor:pointer;font-size:16px;" title="Dismiss">×</button>
           </div>
 
@@ -539,13 +540,30 @@
         <div class="ideas-tool-switcher" style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:14px 16px;margin-bottom:18px;box-shadow:0 8px 22px rgba(22,34,68,.04);">
           <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">Choose an idea tool</div>
           <div class="ideas-tabs" role="tablist" aria-label="Ideas sections" style="margin:0;border:0;padding:0;">
-            <button class="ideas-tab active" type="button" data-ideas-tab="pillars">Content Pillars</button>
+            <button class="ideas-tab active" type="button" data-ideas-tab="notebook">Notebook</button>
+            <button class="ideas-tab" type="button" data-ideas-tab="pillars">Content Pillars</button>
             <button class="ideas-tab" type="button" data-ideas-tab="templates">Templates</button>
             <button class="ideas-tab" type="button" data-ideas-tab="trending">Trending</button>
           </div>
         </div>
 
-        <section class="ideas-panel active" id="ideasPillarsPanel" data-ideas-panel="pillars">
+        
+        <section class="ideas-panel active" id="ideasNotebookPanel" data-ideas-panel="notebook">
+          <div class="ideas-panel-hdr">
+            <p class="ideas-panel-copy">Your saved inspiration — Reddit threads, articles, raw ideas. Hit Compose on any card to pin it above your editor and write your take.</p>
+            <div class="page-actions">
+              <button class="btn sm primary" id="newNotecardBtn" type="button">+ Add note</button>
+            </div>
+          </div>
+          <div id="notebookEmpty" class="empty-state">
+            <div class="empty-icon">📓</div>
+            <div class="empty-title">No notebook cards yet</div>
+            <div class="empty-desc">Save from Trending or add a manual note to build your writing references.</div>
+          </div>
+          <div id="notebookList"></div>
+        </section>
+
+        <section class="ideas-panel" id="ideasPillarsPanel" data-ideas-panel="pillars">
           <section id="pillars-section" class="content-pillars-section">
             <div class="content-pillars-header">
               <div>
@@ -1160,6 +1178,38 @@
     <input id="shareLink" class="input mt8 mono" readonly placeholder="Link will appear here…" style="font-size:11px;" />
     <div id="shareUrlWarning" class="share-url-warning" style="display:none;"></div>
     <div id="shareLinkMeta" style="font-size:11px;color:var(--subtle);margin-top:6px;line-height:1.5;display:none;">Anyone with this link can view the snapshot. No PostIQ account needed.</div>
+  </div>
+</div>
+
+
+<div id="notecardModal" class="modal">
+  <div class="modal-card">
+    <div class="modal-hdr">
+      <span class="modal-title" id="notecardModalTitle">Add to Notebook</span>
+      <button class="btn sm ghost" id="closeNotecardModal" type="button">Close</button>
+    </div>
+    <div class="field">
+      <label class="label">Title</label>
+      <input id="notecardTitle" class="input" placeholder="Card title" />
+    </div>
+    <div class="field">
+      <label class="label">Body / context</label>
+      <textarea id="notecardBody" class="input" style="min-height:120px;" placeholder="Capture the idea, quote, or angle..."></textarea>
+    </div>
+    <div class="field">
+      <label class="label">Source URL</label>
+      <input id="notecardUrl" class="input" placeholder="https://..." />
+    </div>
+    <div class="field">
+      <label class="label">Type</label>
+      <select id="notecardType" class="input">
+        <option value="idea">idea</option><option value="article">article</option><option value="note">note</option><option value="reddit">reddit</option><option value="hn">hn</option>
+      </select>
+    </div>
+    <div class="row">
+      <button class="btn primary" id="saveNotecardBtn" type="button">Save</button>
+      <button class="btn ghost" id="cancelNotecardBtn" type="button">Cancel</button>
+    </div>
   </div>
 </div>
 

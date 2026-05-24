@@ -13,6 +13,7 @@ const NOTE_TYPES_KEY  = 'postiqNoteTypes';
 const PLANNING_KEY    = 'postiqPlanningSettings';
 const TEMPLATE_KEY    = 'postiq_templates_v1';
 const CACHE_KEY       = 'postiq_buffer_cache_v1';
+const NOTEBOOK_KEY    = 'postiq_notebook_v1';
 const APPROVAL_PREFIX = 'postiq_approval_';
 
 const IMGUR_KEY    = '546c25a59c58ad7';
@@ -62,7 +63,7 @@ const LEGACY_NOTE_TYPES = {
 // ── STATE ──────────────────────────────────────────
 let bufferToken = '';
 let currentViewId = 'calendarView';
-let currentIdeasTab = 'pillars';
+let currentIdeasTab = 'notebook';
 let tokenPanelOpen = false;
 let modalCount = 0;
 let modalActionDelegatesBound = false;
@@ -2962,14 +2963,14 @@ function activateView(viewId) {
   document.querySelectorAll('[data-view]').forEach(x => x.classList.toggle('active', x.dataset.view === viewId));
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId));
   document.querySelectorAll('.mob-tab[data-view]').forEach(t => t.classList.toggle('active', t.dataset.view === viewId));
-  if (viewId === 'ideasView') setIdeasTab('pillars');
+  if (viewId === 'ideasView') setIdeasTab(currentIdeasTab || 'notebook');
   if (viewId === 'approvalsView') loadApprovals();
 }
 window.activateView = activateView;
 
-function setIdeasTab(tabId = 'pillars') {
-  if (tabId === 'trending' && !getFeatureFlag('trending')) { showFeaturePaused('trending'); tabId = 'pillars'; }
-  const tab = ['pillars', 'templates', 'trending'].includes(tabId) ? tabId : 'pillars';
+function setIdeasTab(tabId = 'notebook') {
+  if (tabId === 'trending' && !getFeatureFlag('trending')) { showFeaturePaused('trending'); tabId = 'notebook'; }
+  const tab = ['notebook', 'pillars', 'templates', 'trending'].includes(tabId) ? tabId : 'notebook';
   currentIdeasTab = tab;
   document.querySelectorAll('.ideas-tab').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.ideasTab === tab);
@@ -3106,6 +3107,12 @@ function init() {
     console.error('[PostIQ] ContentPillars.init() failed:', e);
   }
 
+  try {
+    if (window.Notebook?.init) window.Notebook.init();
+  } catch (e) {
+    console.error('[PostIQ] Notebook.init() failed:', e);
+  }
+
   on('manageTokenBtn', 'click', () => {
     const connection = getBufferConnectionState();
     if (connection.connected) syncBuffer({ force: true });
@@ -3237,7 +3244,7 @@ function init() {
     const body = qs('templateBody'); if (body) body.value = text; openTemplateModal();
   });
 
-  on('refPinDismiss', 'click', () => { const refPin = qs('refPin'); if (refPin) refPin.style.display = 'none'; });
+  on('refPinDismiss', 'click', () => { const refPin = qs('refPin'); const link = qs('refPinSourceLink'); if (refPin) refPin.style.display = 'none'; if (link) { link.style.display = 'none'; link.href = '#'; } });
 
   on('mediaToggleBtn', 'click', () => { qs('mediaPanel')?.classList.contains('open') ? closeMediaPanel() : openMediaPanel(); });
   on('mediaToggleOff', 'click', () => { qs('mediaPanel')?.classList.contains('open') ? closeMediaPanel() : openMediaPanel(); });
@@ -3525,6 +3532,146 @@ function init() {
     });
   }
 
+
+  function pinReferenceToComposer(data = {}) {
+    const refPin = qs('refPin');
+    const refPinTitle = qs('refPinTitle');
+    const refPinBody = qs('refPinBody');
+    const refPinSourceLink = qs('refPinSourceLink');
+    if (!refPin || !refPinTitle || !refPinBody) return;
+    refPinTitle.textContent = data.title || '';
+    refPinBody.textContent = data.body || '';
+    if (refPinSourceLink) {
+      const safeUrl = toSafeExternalUrl(data.url || '');
+      if (safeUrl) {
+        refPinSourceLink.href = safeUrl;
+        refPinSourceLink.style.display = 'inline-flex';
+      } else {
+        refPinSourceLink.href = '#';
+        refPinSourceLink.style.display = 'none';
+      }
+    }
+    refPin.style.display = 'block';
+  }
+
+window.Notebook = (() => {
+  let cards = [];
+  let initialized = false;
+
+  const getEls = () => ({
+    list: qs('notebookList'),
+    empty: qs('notebookEmpty'),
+    title: qs('notecardTitle'),
+    body: qs('notecardBody'),
+    url: qs('notecardUrl'),
+    type: qs('notecardType'),
+  });
+
+  const save = () => { try { localStorage.setItem(NOTEBOOK_KEY, JSON.stringify(cards)); } catch {} };
+  const load = () => { try { const parsed = JSON.parse(localStorage.getItem(NOTEBOOK_KEY) || '[]'); cards = Array.isArray(parsed) ? parsed : []; } catch { cards = []; } };
+  const age = ts => { const n = Date.now() - Number(ts || 0); const m=Math.floor(n/60000); if(m<60) return `${Math.max(1,m)}m ago`; const h=Math.floor(m/60); if(h<24) return `${h}h ago`; return `${Math.floor(h/24)}d ago`; };
+
+  function openNotecardModal(prefill = {}) {
+    const titleEl = document.getElementById('notecardTitle');
+    const bodyEl = document.getElementById('notecardBody');
+    const urlEl = document.getElementById('notecardUrl');
+    const typeEl = document.getElementById('notecardType');
+    const labelEl = document.getElementById('notecardModalTitle');
+    const modal = document.getElementById('notecardModal');
+
+    if (titleEl) titleEl.value = prefill.title || '';
+    if (bodyEl) bodyEl.value = prefill.body || '';
+    if (urlEl) urlEl.value = prefill.url || '';
+    if (typeEl) typeEl.value = prefill.type || 'idea';
+    if (labelEl) labelEl.textContent = prefill._label || 'Add to Notebook';
+
+    if (!modal) {
+      console.warn('[PostIQ] notecardModal not found');
+      return;
+    }
+
+    modal.classList.add('open');
+    modal.hidden = false;
+    modal.removeAttribute('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+
+    setTimeout(() => titleEl?.focus(), 0);
+  }
+
+  function closeNotecardModal() {
+    const modal = document.getElementById('notecardModal');
+    if (!modal) return;
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    modal.hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  function addCard(data={}) { const card={ id:`nb_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, type:String(data.type||'idea'), title:String(data.title||'Untitled idea').trim(), body:String(data.body||'').trim(), url:String(data.url||'').trim(), createdAt:Date.now() }; cards.unshift(card); save(); render(); return card; }
+  function removeCard(id){ cards = cards.filter(c => c.id !== id); save(); render(); }
+  function composeCard(card){ pinReferenceToComposer({ title: card.title, body: card.body, url: card.url }); if (typeof window.activateView === 'function') window.activateView('composerView'); const ed = qs('composerText'); if (ed?.focus) ed.focus(); if (typeof showToast === 'function') showToast('Pinned as reference — write your take', 'success'); }
+  function render(){ const {list,empty}=getEls(); if(!list||!empty) return; empty.style.display = cards.length ? 'none' : 'block'; list.innerHTML = cards.map(card => { const safeUrl = toSafeExternalUrl(card.url||''); return `<article class="notebook-card"><div class="notebook-card-hdr"><div class="notebook-card-meta"><span class="notebook-type-badge ${safeText(card.type)}">${safeText(card.type)}</span><span class="notebook-card-age">${safeText(age(card.createdAt))}</span></div></div><div class="notebook-card-body"><div class="notebook-card-title">${safeText(card.title)}</div>${card.body?`<div class="notebook-card-excerpt">${safeText(card.body)}</div>`:''}</div><div class="notebook-card-footer"><button class="btn sm" type="button" data-notebook-compose="${safeText(card.id)}">→ Compose</button>${safeUrl?`<a class="notebook-card-source-link" href="${safeText(safeUrl)}" target="_blank" rel="noopener">↗ Source</a>`:''}<button class="btn sm ghost" type="button" data-notebook-delete="${safeText(card.id)}">Delete</button></div></article>`; }).join('');
+      list.querySelectorAll('[data-notebook-compose]').forEach(btn=>btn.onclick=()=>{ const c=cards.find(x=>x.id===btn.dataset.notebookCompose); if(c) composeCard(c); });
+      list.querySelectorAll('[data-notebook-delete]').forEach(btn=>btn.onclick=()=>removeCard(btn.dataset.notebookDelete)); }
+
+  function saveFromModal() {
+    const titleEl = document.getElementById('notecardTitle');
+    const bodyEl = document.getElementById('notecardBody');
+    const urlEl = document.getElementById('notecardUrl');
+    const typeEl = document.getElementById('notecardType');
+    const title = String(titleEl?.value || '').trim();
+    if (!title) {
+      if (typeof showToast === 'function') showToast('Add a title first', 'error');
+      return;
+    }
+    addCard({ title, body: bodyEl?.value || '', url: urlEl?.value || '', type: typeEl?.value || 'idea' });
+    closeNotecardModal();
+    if (typeof showToast === 'function') showToast('Saved to Notebook', 'success');
+  }
+
+  function saveFromTrending(item={}) { const source = String(item.source || item.sourceType || '').toLowerCase(); const mapped = source === 'reddit' ? 'reddit' : source === 'hn' ? 'hn' : source === 'producthunt' ? 'ph' : 'idea'; const card = addCard({ title: item.title || 'Untitled', body: item.tagline || item.selftext || '', url: item.url || item.permalink || '', type: mapped }); return card; }
+
+  function init(){
+    load();
+    if (initialized) {
+      render();
+      return;
+    }
+    initialized = true;
+
+    const newBtn = document.getElementById('newNotecardBtn');
+    if (newBtn) {
+      newBtn.addEventListener('click', () => openNotecardModal());
+    } else {
+      console.warn('[PostIQ] newNotecardBtn not found');
+    }
+
+    const closeBtn = document.getElementById('closeNotecardModal');
+    if (closeBtn) closeBtn.addEventListener('click', closeNotecardModal);
+    const cancelBtn = document.getElementById('cancelNotecardBtn');
+    if (cancelBtn) cancelBtn.addEventListener('click', closeNotecardModal);
+    const saveBtn = document.getElementById('saveNotecardBtn');
+    if (saveBtn) saveBtn.addEventListener('click', saveFromModal);
+    else console.warn('[PostIQ] saveNotecardBtn not found');
+
+    const modal = document.getElementById('notecardModal');
+    if (modal) modal.addEventListener('click', (e) => { if (e.target && e.target.id === 'notecardModal') closeNotecardModal(); });
+
+    if (!document.getElementById('notecardTitle')) console.warn('[PostIQ] notecardTitle not found');
+
+    render();
+  }
+
+  return { init, render, addCard, openModal: openNotecardModal, saveFromTrending };
+})();
+
+  try {
+    if (window.Notebook?.init) window.Notebook.init();
+  } catch (e) {
+    console.error('[PostIQ] Notebook.init() failed:', e);
+  }
+
   // ── TRENDING (PROXY-BASED) ────────────────────────────────────────
 // Replaces the direct-fetch trending section in app.js.
 // All feeds route through /.netlify/functions/trending to avoid CORS + CSP issues.
@@ -3592,6 +3739,7 @@ function init() {
       const scoreLabel = item.score > 0 ? `▲ ${item.score.toLocaleString()}` : '';
       const commentLabel = item.comments > 0 ? `💬 ${item.comments}` : '';
       const ageLabel = item.age ? trendingTimeAgo(item.age) : '';
+      const safeSourceUrl = toSafeExternalUrl(item.url || item.permalink || '');
 
       el.innerHTML = `
         <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--subtle);width:22px;flex-shrink:0;padding-top:2px;font-weight:600;">${i + 1}</div>
@@ -3606,7 +3754,8 @@ function init() {
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <button class="btn sm" style="font-size:11px;" data-inspire="${i}">→ Compose from this</button>
-            <a class="btn sm ghost" href="${safeText(toSafeExternalUrl(item.url || item.permalink) || '#')}" target="_blank" rel="noopener" style="font-size:11px;">↗ Source</a>
+            ${safeSourceUrl ? `<a class=\"btn sm ghost\" href=\"${safeText(safeSourceUrl)}\" target=\"_blank\" rel=\"noopener\" style=\"font-size:11px;\">↗ Source</a>` : ''}
+            <button class="btn sm ghost" style="font-size:11px;" data-save-notebook="${i}">+ Notebook</button>
           </div>
         </div>`;
 
@@ -3614,18 +3763,22 @@ function init() {
       el.onmouseleave = () => { el.style.borderColor = 'var(--border)'; };
 
       el.querySelector('[data-inspire]').onclick = () => {
-        const refPin = qs('refPin');
-        const refPinTitle = qs('refPinTitle');
-        const refPinBody = qs('refPinBody');
-        if (refPin && refPinTitle && refPinBody) {
-          refPinTitle.textContent = item.title;
-          refPinBody.textContent = tagline || '';
-          refPin.style.display = 'block';
-        }
+        pinReferenceToComposer({ title: item.title, body: tagline || '', url: safeSourceUrl });
         if (typeof window.activateView === 'function') window.activateView('composerView');
         showToast('Pinned as reference — write your take', 'success');
       };
 
+      const saveBtn = el.querySelector('[data-save-notebook]');
+      if (saveBtn) {
+        saveBtn.onclick = () => {
+          if (window.Notebook?.saveFromTrending) {
+            window.Notebook.saveFromTrending({ ...item, source: sourceType });
+            saveBtn.textContent = '✓ Saved';
+            saveBtn.disabled = true;
+            if (typeof showToast === 'function') showToast('Saved to Notebook', 'success');
+          }
+        };
+      }
       list.appendChild(el);
     });
   }
