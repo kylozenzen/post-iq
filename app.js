@@ -3666,6 +3666,12 @@ window.Notebook = (() => {
   return { init, render, addCard, openModal: openNotecardModal, saveFromTrending };
 })();
 
+  try {
+    if (window.Notebook?.init) window.Notebook.init();
+  } catch (e) {
+    console.error('[PostIQ] Notebook.init() failed:', e);
+  }
+
   // ── TRENDING (PROXY-BASED) ────────────────────────────────────────
 // Replaces the direct-fetch trending section in app.js.
 // All feeds route through /.netlify/functions/trending to avoid CORS + CSP issues.
