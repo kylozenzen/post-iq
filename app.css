@@ -1466,7 +1466,38 @@
     .ideas-mobile-only { display: none; }
     .ideas-desktop-only { display: inline-flex; }
 
-    /* Settings modal tabs */
+    
+
+/* ── NOTEBOOK ── */
+.notebook-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+  box-shadow: var(--shadow-sm);
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+.notebook-card:hover { transform: translateY(-1px); box-shadow: var(--shadow); border-color: var(--border2); }
+.notebook-card-hdr { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.notebook-card-meta { display:flex; gap:8px; align-items:center; }
+.notebook-type-badge {
+  font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:.06em;
+  border:1px solid var(--border2); color:var(--muted); background:var(--surface2); padding:2px 6px; border-radius:999px;
+}
+.notebook-type-badge.idea { color: var(--brand); border-color: var(--brand-glow); background: var(--brand-dim); }
+.notebook-type-badge.article { color: #2563eb; border-color: rgba(37,99,235,.25); background: rgba(37,99,235,.08); }
+.notebook-type-badge.note { color: #7c3aed; border-color: rgba(124,58,237,.22); background: rgba(124,58,237,.08); }
+.notebook-type-badge.reddit { color: #ea580c; border-color: rgba(234,88,12,.26); background: rgba(234,88,12,.08); }
+.notebook-type-badge.hn { color: #b45309; border-color: rgba(180,83,9,.26); background: rgba(180,83,9,.08); }
+.notebook-card-age { font-size:10px; color:var(--subtle); font-family:'DM Mono',monospace; }
+.notebook-card-body { display:flex; flex-direction:column; gap:4px; }
+.notebook-card-title { font-size:13px; font-weight:600; color:var(--ink); }
+.notebook-card-excerpt { font-size:12px; color:var(--muted); line-height:1.55; white-space:pre-wrap; }
+.notebook-card-footer { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:10px; }
+.notebook-card-source-link { font-size:11px; color:var(--brand); text-decoration:none; }
+.notebook-card-source-link:hover { text-decoration:underline; }
+/* Settings modal tabs */
     .settings-modal-card {
       max-width: 640px;
       max-height: 88vh;
