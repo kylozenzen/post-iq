@@ -1468,6 +1468,19 @@
 
     
 
+
+#notebookEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+#notebookEmpty .empty-title,
+#notebookEmpty .empty-desc {
+  width: 100%;
+  margin: 0 auto;
+}
 /* ── NOTEBOOK ── */
 .notebook-card {
   background: var(--surface);
