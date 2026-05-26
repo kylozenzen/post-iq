@@ -2,7 +2,7 @@
 
 Buffer just opened their API. PostIQ is the first companion app built on it.
 
-PostIQ is a free public beta workspace for Buffer users. It gives your content workflow a planning layer that Buffer was never designed to be — calendar planning, composing, thread splitting, content pillars, client approvals, and clean snapshot sharing. Buffer stays your publishing home. PostIQ is everything before the publish button.
+PostIQ is a free public beta workspace for Buffer users. It gives your content workflow a planning layer to clean up your pre-content creation workflow — calendar planning, composing, thread splitting, content pillars, client approvals, and clean snapshot sharing. Buffer stays your publishing home. PostIQ is everything before the publish button.
 
 → **[Open PostIQ](https://postiq.netlify.app)**
 
