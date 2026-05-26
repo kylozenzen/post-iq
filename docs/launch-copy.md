@@ -24,7 +24,7 @@ Current beta tools include:
 - Templates / snippets
 - Snapshot links for clean content-plan sharing
 
-Public beta link: `[add link]`
+Public beta link: `https://postiq.netlify.app`
 
 Would genuinely love feedback from Buffer users — especially where the workflow feels useful, confusing, or one tiny papercut away from better.
 
@@ -56,7 +56,7 @@ It is intentionally not trying to replace Buffer. It is the planning layer befor
 
 If you manage social content, work with approvals, or just want fewer “where did that idea go?” moments, I’d love for you to try it and send feedback.
 
-Public beta: `[add link]`
+Public beta: `https://postiq.netlify.app`
 
 Smart workflows beat heroic tab juggling. Usually.
 
@@ -70,4 +70,4 @@ Useful for sending a week or month of planned content to a teammate, client, or 
 
 Snapshot links are static copies, so anyone with the link can view the included content. Simple, practical, and intentionally boring in the best way.
 
-Try it in the PostIQ public beta: `[add link]`
+Try it in the PostIQ public beta: `https://postiq.netlify.app`
