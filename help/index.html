@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PostIQ Help Center</title>
+  <meta name="description" content="PostIQ Help Center guides for planning, composing, reviewing, and sending content to Buffer." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Lato:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/help/help.css" />
+</head>
+<body>
+  <main class="help-shell" id="helpApp">
+    <header class="help-hero">
+      <p class="eyebrow">PostIQ Support</p>
+      <h1>PostIQ Help Center</h1>
+      <p class="subheader">These guides help you plan, compose, review, and send content to Buffer with confidence.</p>
+      <div class="hero-actions">
+        <a class="back-link" href="/app.html">← Back to PostIQ</a>
+      </div>
+    </header>
+
+    <section id="helpHome" aria-label="Help article list view">
+      <div class="filter-bar">
+        <label class="sr-only" for="helpSearch">Search help articles</label>
+        <input id="helpSearch" type="search" placeholder="Search by title, summary, category, or tags" autocomplete="off" />
+      </div>
+      <div class="category-filters" id="categoryFilters" role="group" aria-label="Filter articles by category"></div>
+      <div id="resultsMeta" class="results-meta" aria-live="polite"></div>
+      <div id="articlesGrid" class="articles-grid"></div>
+    </section>
+
+    <article id="articleView" class="article-view" hidden aria-live="polite"></article>
+  </main>
+
+  <script src="/help/articles.js"></script>
+  <script src="/help/help.js"></script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+:root {
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --surface2: #f8f9ff;
+  --ink: #1c2340;
+  --muted: #56607b;
+  --subtle: #7b849d;
+  --brand: #4f46e5;
+  --brand-dim: #eef0ff;
+  --border: #e4e7f2;
+  --shadow: 0 10px 24px rgba(22, 34, 68, .08);
+}
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font-family:'Lato',system-ui,-apple-system,sans-serif; }
+.help-shell { width:min(1100px, 92vw); margin:28px auto 44px; }
+.help-hero { background:linear-gradient(140deg, #1a1a2e, #25284f); color:#fff; border-radius:18px; padding:28px; box-shadow:var(--shadow); }
+.help-hero h1 { margin:0 0 8px; font:800 38px/1 'Bricolage Grotesque',sans-serif; letter-spacing:-.03em; }
+.eyebrow { margin:0 0 10px; font:500 11px/1 'DM Mono',monospace; opacity:.8; text-transform:uppercase; letter-spacing:.09em; }
+.subheader { margin:0; max-width:62ch; color:#ced2f8; line-height:1.6; }
+.hero-actions { margin-top:16px; }
+.back-link { color:#fff; text-decoration:none; border:1px solid rgba(255,255,255,.28); border-radius:10px; padding:8px 12px; display:inline-block; }
+.back-link:hover,.back-link:focus-visible { background:rgba(255,255,255,.12); }
+.filter-bar { margin:18px 0 12px; }
+#helpSearch { width:100%; border:1px solid var(--border); border-radius:12px; padding:12px 14px; background:var(--surface); color:var(--ink); font:500 14px 'Lato',sans-serif; }
+#helpSearch:focus-visible { outline:2px solid var(--brand); outline-offset:1px; }
+.category-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+.cat-btn { border:1px solid var(--border); background:var(--surface); color:var(--muted); border-radius:999px; padding:7px 12px; font:500 12px 'DM Mono',monospace; cursor:pointer; }
+.cat-btn.active,.cat-btn:hover,.cat-btn:focus-visible { border-color:#b8bef8; background:var(--brand-dim); color:var(--brand); }
+.results-meta { font:500 12px 'DM Mono',monospace; color:var(--subtle); margin:8px 0 14px; }
+.articles-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:12px; }
+.article-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px; box-shadow:0 4px 12px rgba(22,34,68,.03); }
+.article-category { margin:0 0 7px; color:var(--brand); font:500 11px 'DM Mono',monospace; text-transform:uppercase; letter-spacing:.06em; }
+.article-title { margin:0 0 6px; font:700 19px/1.2 'Bricolage Grotesque',sans-serif; }
+.article-summary { margin:0 0 10px; color:var(--muted); font-size:13px; line-height:1.55; }
+.article-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+.tag { background:var(--surface2); border:1px solid var(--border); border-radius:999px; font:500 11px 'DM Mono',monospace; padding:4px 7px; color:var(--muted); }
+.read-link { color:var(--brand); text-decoration:none; font-weight:700; font-size:13px; }
+.read-link:focus-visible,.read-link:hover { text-decoration:underline; }
+.article-view { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; box-shadow:var(--shadow); margin-top:18px; }
+.article-view h2 { margin:0 0 4px; font:800 33px/1.06 'Bricolage Grotesque',sans-serif; }
+.article-view .meta { margin:0 0 18px; color:var(--subtle); font:500 11px 'DM Mono',monospace; text-transform:uppercase; letter-spacing:.06em; }
+.article-body p,.article-body li { color:var(--muted); line-height:1.65; }
+.article-view a { color:var(--brand); }
+.article-nav { display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; margin-top:20px; }
+.btn-link { display:inline-block; padding:7px 10px; border-radius:10px; text-decoration:none; border:1px solid var(--border); color:var(--muted); background:var(--surface2); }
+.related-list { margin-top:18px; padding-top:12px; border-top:1px solid var(--border); }
+.related-list h3 { margin:0 0 8px; font-size:13px; color:var(--subtle); text-transform:uppercase; letter-spacing:.06em; font-family:'DM Mono',monospace; }
+.related-list a { margin-right:10px; font-size:13px; }
+.sr-only { position:absolute; left:-10000px; }
+@media (max-width: 720px) {
+  .help-shell { width:94vw; margin:16px auto 30px; }
+  .help-hero { padding:22px 18px; border-radius:14px; }
+  .help-hero h1 { font-size:31px; }
+  .article-view h2 { font-size:28px; }
+}
