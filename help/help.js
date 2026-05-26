@@ -1,27 +1,18 @@
 (function(){
   const articles = (window.POSTIQ_HELP_ARTICLES || []).slice();
   const bySlug = new Map(articles.map(a => [a.slug, a]));
-  const state = { query:'' };
 
   const homeEl = document.getElementById('helpHome');
   const articleEl = document.getElementById('articleView');
-  const searchEl = document.getElementById('helpSearch');
   const gridEl = document.getElementById('articlesGrid');
   const recommendedEl = document.getElementById('recommendedWrap');
-
-
-  function normalize(v){ return String(v || '').toLowerCase(); }
-  function matches(article){
-    const q = normalize(state.query).trim();
-    const bucket = [article.title, article.summary, article.category, ...(article.tags || [])].join(' ').toLowerCase();
-    const queryMatch = !q || bucket.includes(q);
-    return queryMatch;
-  }
+  const supportBackdropEl = document.getElementById('supportModalBackdrop');
+  const openSupportBtnEl = document.getElementById('openSupportModal');
+  const closeSupportBtnEl = document.getElementById('closeSupportModal');
 
   function escapeHtml(value){
     return String(value).replace(/[&<>'"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;' }[c]));
   }
-
 
   function articleCard(article, opts){
     const showCategory = !!opts.showCategory;
@@ -31,42 +22,21 @@
     return `<a class="article-card${featuredClass}" href="?article=${encodeURIComponent(article.slug)}" data-open-article="${article.slug}" aria-label="Read guide: ${escapeHtml(article.title)}">${categoryHtml}<h3 class="article-title">${article.title}</h3><p class="article-summary">${article.summary}</p><span class="read-link">Read guide →</span></a>`;
   }
 
-  function renderRecommended(filtered){
-    const featured = filtered.filter(a => a.featured === true).slice(0, 3);
-    if (!featured.length || state.query) {
+  function renderRecommended(){
+    const featured = articles.filter(a => a.featured === true).slice(0, 3);
+    if (!featured.length) {
       recommendedEl.innerHTML = '';
       return new Set();
     }
-    recommendedEl.innerHTML = `
-      <div class="section-head">Start here</div>
-      <div class="featured-grid">${featured.map(item => articleCard(item, { featured: true, showCategory: false })).join('')}</div>
-
-    `;
+    recommendedEl.innerHTML = `<div class="section-head">Start here</div><div class="featured-grid">${featured.map(item => articleCard(item, { featured: true, showCategory: false })).join('')}</div>`;
     return new Set(featured.map(f => f.slug));
   }
 
   function renderHome(){
-    const filtered = articles.filter(matches);
-    if (!filtered.length) {
-      recommendedEl.innerHTML = '';
-      gridEl.innerHTML = '<p class="article-summary">No help guides match your filters yet.</p>';
-      return;
-    }
-
-    const hiddenSlugs = renderRecommended(filtered);
-    const baseList = filtered.filter(a => !hiddenSlugs.has(a.slug));
-
-    if (!baseList.length) {
-      gridEl.innerHTML = '';
-      return;
-    }
-
-    const isSearching = !!state.query.trim();
-    const heading = isSearching ? 'Matching guides' : 'All guides';
-
-    gridEl.innerHTML = `<section><h2 class="section-head">${heading}</h2><div class="articles-grid">${baseList.map(a => articleCard(a, { showCategory: isSearching })).join('')}</div></section>`;
+    const hiddenSlugs = renderRecommended();
+    const baseList = articles.filter(a => !hiddenSlugs.has(a.slug));
+    gridEl.innerHTML = `<section><h2 class="section-head">All guides</h2><div class="articles-grid">${baseList.map(a => articleCard(a, { showCategory: false })).join('')}</div></section>`;
   }
-
 
   function renderArticle(slug){
     const article = bySlug.get(slug);
@@ -86,15 +56,20 @@
     if (slug) renderArticle(slug); else { articleEl.hidden = true; homeEl.hidden = false; renderHome(); }
   }
 
-  searchEl.addEventListener('input', () => { state.query = searchEl.value; renderHome(); });
+  function openSupportModal(){ supportBackdropEl.hidden = false; document.body.style.overflow = 'hidden'; }
+  function closeSupportModal(){ supportBackdropEl.hidden = true; document.body.style.overflow = ''; }
 
   document.addEventListener('click', (e) => {
     const articleLink = e.target.closest('[data-open-article]');
     if (articleLink){ e.preventDefault(); const slug = articleLink.dataset.openArticle; history.pushState({}, '', `?article=${encodeURIComponent(slug)}`); renderArticle(slug); return; }
     const homeLink = e.target.closest('[data-open-home]');
-    if (homeLink){ e.preventDefault(); history.pushState({}, '', '/help/'); applyRoute(); }
+    if (homeLink){ e.preventDefault(); history.pushState({}, '', '/help/'); applyRoute(); return; }
+    if (e.target === supportBackdropEl) closeSupportModal();
   });
 
+  openSupportBtnEl.addEventListener('click', openSupportModal);
+  closeSupportBtnEl.addEventListener('click', closeSupportModal);
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !supportBackdropEl.hidden) closeSupportModal(); });
   window.addEventListener('popstate', applyRoute);
 
   applyRoute();
