@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PostIQ Help Center</title>
+  <meta name="description" content="PostIQ Help Center guides for planning, composing, reviewing, and sending content to Buffer." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Lato:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/help/help.css" />
+</head>
+<body>
+  <main class="help-shell" id="helpApp">
+    <header class="help-hero">
+      <p class="eyebrow">PostIQ Support</p>
+      <h1>PostIQ Help Center</h1>
+      <p class="subheader">These guides help you plan, compose, review, and send content to Buffer with confidence.</p>
+      <div class="hero-actions">
+        <a class="back-link" href="/app.html">← Back to PostIQ</a>
+        <button class="hero-help-btn" id="openSupportBtn" type="button">Need more help?</button>
+      </div>
+    </header>
+
+    <section id="helpHome" aria-label="Help guide list view">
+      <section id="recommendedWrap" class="recommended-wrap" aria-label="Recommended guides"></section>
+      <div id="articlesGrid"></div>
+    </section>
+
+    <article id="articleView" class="article-view" hidden aria-live="polite"></article>
+  </main>
+
+  <div id="supportModal" class="support-modal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="supportModalTitle">
+    <div class="support-modal-card">
+      <div class="support-modal-header">
+        <h2 id="supportModalTitle">Need more help?</h2>
+        <button id="closeSupportBtn" type="button" class="support-close" aria-label="Close support form">×</button>
+      </div>
+      <p class="support-copy">Have a question about your Buffer connection or need a hand with the workflow? Drop a message below.</p>
+      <form name="postiq-support" method="POST" data-netlify="true" class="support-form">
+        <input type="hidden" name="form-name" value="postiq-support" />
+        <label>
+          <span>Your Name</span>
+          <input type="text" name="name" required />
+        </label>
+        <label>
+          <span>Email Address</span>
+          <input type="email" name="email" required />
+        </label>
+        <label>
+          <span>How can I help?</span>
+          <textarea name="message" rows="4" required></textarea>
+        </label>
+        <button type="submit">Send Message</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/help/articles.js"></script>
+  <script src="/help/help.js"></script>
+</body>
+</html>
