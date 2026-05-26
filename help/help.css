@@ -32,11 +32,25 @@ body { margin:0; background:var(--bg); color:var(--ink); font-family:'Lato',syst
 .article-summary { margin:0; color:var(--muted); font-size:13px; line-height:1.6; }
 .read-link { display:inline-block; margin-top:12px; color:var(--brand); text-decoration:none; font-weight:700; font-size:13px; }
 
-.support-modal-backdrop { position:fixed; inset:0; background:rgba(20,24,46,.52); display:grid; place-items:center; z-index:50; padding:18px; }
-.support-modal { width:min(520px, 100%); background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:18px; box-shadow:var(--shadow); position:relative; }
-.support-modal h2 { margin:0 0 8px; font:800 28px/1.1 'Bricolage Grotesque',sans-serif; color:var(--ink); }
+.support-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(20, 22, 42, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.support-modal.hidden { display: none; }
+.support-modal.is-open { display: flex; }
+.support-modal-card { width: 100%; max-width: 520px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); position: relative; }
+.support-modal-header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
+.support-modal h2 { margin:0; font:800 28px/1.1 'Bricolage Grotesque',sans-serif; color:var(--ink); }
 .support-copy { margin:0 0 14px; color:var(--muted); font-size:13px; line-height:1.6; }
-.support-close { position:absolute; top:10px; right:12px; border:none; background:none; color:var(--subtle); font-size:22px; cursor:pointer; }
+.support-close { border:none; background:none; color:var(--subtle); font-size:22px; cursor:pointer; line-height:1; }
 .support-form { display:grid; gap:10px; }
 .support-form label span { display:block; font-size:12px; font-weight:600; color:var(--ink); margin-bottom:5px; }
 .support-form input,.support-form textarea { width:100%; border:1px solid var(--border); border-radius:10px; padding:10px 12px; font:500 14px 'Lato',sans-serif; background:var(--surface2); color:var(--ink); }

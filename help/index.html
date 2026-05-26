@@ -17,7 +17,7 @@
       <p class="subheader">These guides help you plan, compose, review, and send content to Buffer with confidence.</p>
       <div class="hero-actions">
         <a class="back-link" href="/app.html">← Back to PostIQ</a>
-        <button class="hero-help-btn" id="openSupportModal" type="button">Need more help?</button>
+        <button class="hero-help-btn" id="openSupportBtn" type="button">Need more help?</button>
       </div>
     </header>
 
@@ -29,10 +29,12 @@
     <article id="articleView" class="article-view" hidden aria-live="polite"></article>
   </main>
 
-  <div id="supportModalBackdrop" class="support-modal-backdrop" hidden>
-    <section class="support-modal" role="dialog" aria-modal="true" aria-labelledby="supportModalTitle">
-      <button type="button" class="support-close" id="closeSupportModal" aria-label="Close support form">×</button>
-      <h2 id="supportModalTitle">Need more help?</h2>
+  <div id="supportModal" class="support-modal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="supportModalTitle">
+    <div class="support-modal-card">
+      <div class="support-modal-header">
+        <h2 id="supportModalTitle">Need more help?</h2>
+        <button id="closeSupportBtn" type="button" class="support-close" aria-label="Close support form">×</button>
+      </div>
       <p class="support-copy">Have a question about your Buffer connection or need a hand with the workflow? Drop a message below.</p>
       <form name="postiq-support" method="POST" data-netlify="true" class="support-form">
         <input type="hidden" name="form-name" value="postiq-support" />
@@ -50,7 +52,7 @@
         </label>
         <button type="submit">Send Message</button>
       </form>
-    </section>
+    </div>
   </div>
 
   <script src="/help/articles.js"></script>
