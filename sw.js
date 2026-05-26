@@ -1,5 +1,11 @@
-const CACHE = 'postiq-v1';
-const SHELL = ['/', '/index.html'];
+const CACHE = 'postiq-v2';
+const SHELL = [
+  '/',
+  '/index.html',
+  '/app.html',
+  '/app.css',
+  '/app.js'
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
@@ -16,7 +22,6 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Only cache same-origin GET requests — never API calls
   if (e.request.method !== 'GET') return;
   if (!e.request.url.startsWith(self.location.origin)) return;
   if (e.request.url.includes('netlify/functions')) return;

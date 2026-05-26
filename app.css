@@ -2103,3 +2103,75 @@
   #sharedGrid .day-post-pill,
   #sharedGrid .day-note-pill { font-size: 9px; padding: 3px 4px; }
 }
+
+
+/* ═══════════════════════════════════════════
+   POSTIQ — VISUAL UPGRADES (additive only)
+   ═══════════════════════════════════════════ */
+
+/* 4a. Subtle grid background — matches landing page */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(58,63,255,.14) 1px, transparent 1px),
+    linear-gradient(#e8eaf2 1px, transparent 1px),
+    linear-gradient(90deg, #e8eaf2 1px, transparent 1px);
+  background-size: 50px 50px, 50px 50px, 50px 50px;
+  opacity: .45;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Sidebar and main content sit above the grid */
+.side,
+.main {
+  position: relative;
+  z-index: 1;
+}
+
+/* 4b. Subtle brand glow top-right of canvas */
+body::after {
+  content: '';
+  position: fixed;
+  width: 500px;
+  height: 340px;
+  right: -140px;
+  top: -100px;
+  background: radial-gradient(ellipse, rgba(58,63,255,.07) 0%, transparent 68%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 4c. Warmer card shadow */
+.card {
+  box-shadow: 0 2px 8px rgba(20,22,50,.06), 0 1px 3px rgba(20,22,50,.04);
+}
+
+/* 4d. Bricolage Grotesque optical sizing on display text */
+.page-title,
+.modal-title,
+.section-title,
+.logo-mark {
+  font-variation-settings: 'opsz' 32;
+}
+
+/* 4e. Button press feel */
+.btn:active {
+  transform: scale(.97);
+}
+
+/* 4f. Global status banner mobile fix
+   The calc() references --sidebar width. On mobile the sidebar
+   is hidden but the banner still uses that offset and clips. */
+@media (max-width: 768px) {
+  .global-status-banner {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: none;
+    padding: 12px 14px;
+  }
+}
