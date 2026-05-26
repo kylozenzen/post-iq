@@ -15,11 +15,6 @@
     ? window.HELP_CATEGORIES
     : Array.from(new Set(articles.map(a => a.category)));
   const categories = ['All', ...categorySource];
-  const featuredTitles = new Set([
-    'Getting Started with PostIQ',
-    'Connect and Reconnect Buffer',
-    'Compose Posts and Send to Buffer'
-  ]);
 
   function normalize(v){ return String(v || '').toLowerCase(); }
   function matches(article){
@@ -47,7 +42,7 @@
   }
 
   function renderRecommended(filtered){
-    const featured = filtered.filter(a => featuredTitles.has(a.title)).slice(0, 3);
+    const featured = filtered.filter(a => a.featured === true).slice(0, 3);
     if (!featured.length || state.query || state.category !== 'All') {
       recommendedEl.innerHTML = '';
       return new Set();
