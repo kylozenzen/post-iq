@@ -29,8 +29,8 @@ body { margin:0; background:var(--bg); color:var(--ink); font-family:'Lato',syst
 .section-head { margin:14px 0 12px; color:var(--subtle); font:500 12px 'DM Mono',monospace; text-transform:uppercase; letter-spacing:.08em; }
 .all-guides-head { margin-top:16px; }
 .results-meta { font:500 12px 'DM Mono',monospace; color:var(--subtle); margin:14px 0 16px; }
-.featured-grid, .articles-grid { display:grid; gap:16px; grid-template-columns:repeat(3, minmax(0, 1fr)); }
-.article-card { display:block; text-decoration:none; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; box-shadow:0 4px 12px rgba(22,34,68,.03); transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease; }
+.featured-grid, .articles-grid { display:grid; gap:18px; grid-template-columns:repeat(3, minmax(0, 1fr)); width:100%; }
+.article-card { display:block; width:100%; min-width:0; text-decoration:none; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; box-shadow:0 4px 12px rgba(22,34,68,.03); transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease; }
 .article-card:hover { transform:translateY(-1px); border-color:#d4d9f2; box-shadow:0 8px 20px rgba(22,34,68,.06); }
 .article-card.featured { background:linear-gradient(180deg, #ffffff 0%, #fafbff 100%); border-color:#dce0f6; }
 .article-category { margin:0 0 7px; color:var(--brand); font:500 11px 'DM Mono',monospace; text-transform:uppercase; letter-spacing:.06em; }

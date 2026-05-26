@@ -1,3 +1,45 @@
+/*
+ HOW TO MANAGE HELP GUIDES
+
+ To add a new guide:
+ 1. Copy an existing article object.
+ 2. Give it a unique slug, like "compose-posts".
+ 3. Choose one category from HELP_CATEGORIES.
+ 4. Write a short summary for the card.
+ 5. Add searchable tags.
+ 6. Add the full guide content inside the body field.
+
+ To update a guide:
+ - Edit the title, summary, tags, or body.
+ - Do not change the slug unless you are okay with old links breaking.
+
+ To remove a guide:
+ - Delete the article object.
+ - Also remove its slug from relatedArticles in any other guide.
+
+ The slug controls the guide URL:
+ /help/?article=your-slug-here
+*/
+
+const HELP_CATEGORIES = [
+  "Getting Started",
+  "Buffer Connection",
+  "Plan / Calendar",
+  "Compose",
+  "Thread Splitter",
+  "Ideas Library",
+  "Content Pillars",
+  "Templates",
+  "Notebook",
+  "Trending",
+  "Snapshots",
+  "Approvals",
+  "Troubleshooting",
+  "Privacy & Data"
+];
+
+window.HELP_CATEGORIES = HELP_CATEGORIES;
+
 window.POSTIQ_HELP_ARTICLES = [
   {
     slug: 'getting-started',

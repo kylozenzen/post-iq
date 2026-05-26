@@ -11,7 +11,10 @@
   const metaEl = document.getElementById('resultsMeta');
   const recommendedEl = document.getElementById('recommendedWrap');
 
-  const categories = ['All', ...Array.from(new Set(articles.map(a => a.category)))];
+  const categorySource = Array.isArray(window.HELP_CATEGORIES) && window.HELP_CATEGORIES.length
+    ? window.HELP_CATEGORIES
+    : Array.from(new Set(articles.map(a => a.category)));
+  const categories = ['All', ...categorySource];
   const featuredTitles = new Set([
     'Getting Started with PostIQ',
     'Connect and Reconnect Buffer',
@@ -74,22 +77,14 @@
       return;
     }
 
-    const grouped = categories.filter(c => c !== 'All')
-      .map(category => ({ category, items: baseList.filter(a => a.category === category) }))
-      .filter(g => g.items.length);
+    const isAllTopic = state.category === 'All';
+    const isSearching = !!state.query.trim();
+    const showCategoryOnCard = isSearching && isAllTopic;
+    const heading = isSearching && isAllTopic ? 'Matching guides' : (isAllTopic ? 'All guides' : state.category);
 
-    if (state.query.trim() && state.category === 'All') {
-      gridEl.innerHTML = `<section><h2 class="section-head">Matching guides</h2><div class="articles-grid">${baseList.map(a => articleCard(a, { showCategory: true })).join('')}</div></section>`;
-      return;
-    }
-
-    gridEl.innerHTML = grouped.map(group => `
-      <section>
-        <h2 class="section-head">${group.category}</h2>
-        <div class="articles-grid">${group.items.map(a => articleCard(a, { showCategory: false })).join('')}</div>
-      </section>
-    `).join('');
+    gridEl.innerHTML = `<section><h2 class="section-head">${heading}</h2><div class="articles-grid">${baseList.map(a => articleCard(a, { showCategory: showCategoryOnCard })).join('')}</div></section>`;
   }
+
 
   function renderArticle(slug){
     const article = bySlug.get(slug);
