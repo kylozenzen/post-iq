@@ -5,8 +5,12 @@
   function safeParse(v, fallback) { try { return JSON.parse(v); } catch { return fallback; } }
   function getWebhooks() { return safeParse(localStorage.getItem(STORAGE_KEY), []); }
   function setWebhooks(items) { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); }
-  function validWebhook(url) {
+  function isValidWebhookUrl(url) {
     return /^https:\/\/discord\.com\/api\/webhooks\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+/.test(String(url || ''));
+  }
+  function getActiveWorkspace() {
+    const hooks = getWebhooks();
+    return Array.isArray(hooks) && hooks.length ? hooks[0] : null;
   }
 
   async function proxySend(payload) {
@@ -20,7 +24,7 @@
     return data;
   }
 
-  function renderSettings() {
+  function renderDiscordSettings() {
     const panel = qs('settingsPanelDiscord');
     if (!panel) return;
     const hooks = getWebhooks();
@@ -51,56 +55,79 @@
       const url = (qs('discordWebhookUrl')?.value || '').trim();
       const status = qs('discordHookStatus');
       if (!name || !url) { if (status) status.textContent = 'Enter label + webhook URL.'; return; }
-      if (!validWebhook(url)) { if (status) status.textContent = 'Invalid Discord webhook URL.'; return; }
+      if (!isValidWebhookUrl(url)) { if (status) status.textContent = 'Invalid Discord webhook URL.'; return; }
       const next = [...hooks, { name, url }];
       setWebhooks(next);
       if (status) status.textContent = 'Webhook saved locally.';
-      renderSettings();
-      renderSendRow();
+      renderDiscordSettings();
+      renderComposerToggle();
     });
 
     panel.querySelectorAll('[data-drm]').forEach(btn => btn.addEventListener('click', () => {
       const idx = Number(btn.getAttribute('data-drm'));
       const next = getWebhooks().filter((_, i) => i !== idx);
       setWebhooks(next);
-      renderSettings();
-      renderSendRow();
+      renderDiscordSettings();
+      renderComposerToggle();
     }));
   }
 
-  function renderSendRow() {
+  function renderComposerToggle() {
     const row = qs('discordSendRow');
     if (!row) return;
     const hooks = getWebhooks();
-    row.innerHTML = `<div class="panel-card" style="margin-top:12px;"><div class="panel-card-title">Discord</div><label class="approval-check-row"><input type="checkbox" id="discordSendToggle" ${hooks.length ? '' : 'disabled'} /><span class="approval-check-label">Also send successful Buffer actions to Discord</span></label><div style="font-size:11px;color:var(--subtle);margin-top:8px;">${hooks.length ? `${hooks.length} webhook workspace(s) saved.` : 'Add a webhook in Settings → Discord.'}</div></div>`;
+    const configured = hooks.some(h => isValidWebhookUrl(h?.url));
+    row.innerHTML = configured
+      ? `<div class="panel-card" style="margin-top:12px;"><div class="panel-card-title">Discord</div><label class="approval-check-row"><input type="checkbox" id="discordSendToggle" /><span class="approval-check-label">Also send successful Buffer actions to Discord</span></label><div style="font-size:11px;color:var(--subtle);margin-top:8px;">${hooks.length} webhook workspace(s) saved.</div></div>`
+      : '';
+  }
+
+  function getComposerDiscordState() {
+    return { enabled: !!qs('discordSendToggle')?.checked, configured: !!getActiveWorkspace() };
+  }
+
+  async function sendPostNotification(content) {
+    const hooks = getWebhooks().filter(h => isValidWebhookUrl(h?.url));
+    for (const hook of hooks) await proxySend({ webhookUrl: hook.url, content, workspace: hook.name });
   }
 
   async function onComposerSent(text, action, meta) {
     try {
       if (!qs('discordSendToggle')?.checked) return;
-      const hooks = getWebhooks();
-      if (!hooks.length) return;
+      if (!getWebhooks().length) return;
       const content = `**PostIQ ${action}**\n${text}\n\nPlatform: ${meta.platform || 'Unknown'}\nChannel: ${meta.channelName || 'Unknown'}${meta.dueAt ? `\nDue: ${meta.dueAt}` : ''}`;
-      for (const hook of hooks) {
-        await proxySend({ webhookUrl: hook.url, content, workspace: hook.name });
-      }
+      await sendPostNotification(content);
     } catch (e) {
       console.error('[PostIQ] Discord.onComposerSent failed:', e);
     }
   }
 
-  function init() {
-    renderSendRow();
-    qs('discordAnnounceBtn')?.addEventListener('click', async () => {
-      try {
-        const text = (qs('composerEditor')?.innerText || '').trim();
-        if (!text) return;
-        await onComposerSent(text, 'announcement', { platform: '', channelName: '', dueAt: '' });
-      } catch (e) {
-        console.error('[PostIQ] Discord announcement failed:', e);
-      }
-    });
+  async function openAnnouncementModal() {
+    const text = (qs('composerEditor')?.innerText || '').trim();
+    if (!text) return;
+    await onComposerSent(text, 'announcement', { platform: '', channelName: '', dueAt: '' });
   }
 
-  window.Discord = { init, renderSettings, renderSendRow, onComposerSent };
+  function init() {
+    getWebhooks();
+    renderComposerToggle();
+    qs('discordAnnounceBtn')?.addEventListener('click', async () => {
+      try { await openAnnouncementModal(); } catch (e) { console.error('[PostIQ] Discord announcement failed:', e); }
+    });
+    window.addEventListener('postiq:synced', renderComposerToggle);
+  }
+
+  window.Discord = {
+    init,
+    renderSettings: renderDiscordSettings,
+    renderComposerToggle,
+    getComposerDiscordState,
+    onComposerSent,
+    openAnnouncementModal,
+    sendPostNotification,
+    isConfigured: () => {
+      const ws = getActiveWorkspace();
+      return !!(ws && isValidWebhookUrl(ws.url || ws.webhookUrl));
+    },
+  };
 })();
