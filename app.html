@@ -431,6 +431,7 @@
             <div class="field">
               <label class="label" for="discordComposerDestination">Discord destination</label>
               <select id="discordComposerDestination" class="input"></select>
+              <a id="discordComposerGetStarted" href="#" style="display:none;margin-top:6px;font-size:12px;color:var(--brand);text-decoration:none;">Get started</a>
             </div>
             <div class="field">
               <label class="label" for="discordComposerText">Announcement</label>
@@ -838,6 +839,7 @@
   <button class="trending-src-tab active" data-tsrc="reddit"      style="padding:8px 18px;border:none;background:transparent;color:var(--brand);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid var(--brand);margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Reddit</button>
   <button class="trending-src-tab"        data-tsrc="hn"           style="padding:8px 18px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Hacker News</button>
   <button class="trending-src-tab"        data-tsrc="producthunt"  style="padding:8px 18px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Product Hunt</button>
+  <button class="trending-src-tab"        data-tsrc="rss"          style="padding:8px 18px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">RSS</button>
 </div>
 
 <!-- Reddit panel -->
@@ -876,6 +878,16 @@
   </div>
   <div id="trendingPHStatus" style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:10px;min-height:16px;"></div>
   <div id="trendingPHList" style="display:flex;flex-direction:column;gap:0;"></div>
+</div>
+
+<div id="trendingRSSPanel" style="display:none;">
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
+    <button class="btn sm" data-rss-feed="buffer-blog">Buffer Blog</button>
+    <button class="btn sm ghost" data-rss-feed="social-media-today">Social Media Today</button>
+    <button class="btn sm ghost" id="trendingRefreshRSS">↻</button>
+  </div>
+  <div id="trendingRSSStatus" style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:10px;min-height:16px;"></div>
+  <div id="trendingRSSList" style="display:flex;flex-direction:column;gap:0;"></div>
 </div>
 
 

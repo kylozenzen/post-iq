@@ -3703,7 +3703,12 @@ window.Notebook = (() => {
     src: 'reddit',
     sub: 'socialmedia',
     hn: 'topstories',
+    rss: 'buffer-blog',
   };
+  const RSS_SOURCES = [
+    { id: 'buffer-blog', name: 'Buffer Blog', type: 'rss', url: 'https://buffer.com/resources/feed' },
+    { id: 'social-media-today', name: 'Social Media Today', type: 'rss', url: 'https://www.socialmediatoday.com/feeds/news' },
+  ];
 
   // ── Proxy fetch helper ──────────────────────────────────────────
   async function fetchTrendingFeed(params) {
@@ -3887,6 +3892,24 @@ window.Notebook = (() => {
     }
   }
 
+  async function loadRSS() {
+    const statusEl = qs('trendingRSSStatus');
+    const listEl   = qs('trendingRSSList');
+    if (!statusEl || !listEl) return;
+    const source = RSS_SOURCES.find(s => s.id === trendingState.rss) || RSS_SOURCES[0];
+    statusEl.textContent = `Loading ${source.name}…`;
+    listEl.innerHTML = '';
+    try {
+      const data = await fetchTrendingFeed({ source: 'rss', feed: source.id });
+      const posts = data.posts || [];
+      statusEl.textContent = `${posts.length} stories from ${source.name}`;
+      renderTrendingItems('trendingRSSList', posts, 'rss');
+    } catch (err) {
+      statusEl.textContent = `Failed to load ${source.name} — ${err.message}`;
+      renderTrendingItems('trendingRSSList', [], 'rss');
+    }
+  }
+
   // ── initTrending ────────────────────────────────────────────────
   function initTrending() {
     renderSubPills();
@@ -3908,6 +3931,7 @@ window.Notebook = (() => {
           reddit:       'trendingRedditPanel',
           hn:           'trendingHNPanel',
           producthunt:  'trendingPHPanel',
+          rss:          'trendingRSSPanel',
         };
         Object.values(panels).forEach(id => {
           const el = qs(id);
@@ -3918,6 +3942,7 @@ window.Notebook = (() => {
 
         if (trendingState.src === 'hn')           loadHN();
         if (trendingState.src === 'producthunt')  loadProductHunt();
+        if (trendingState.src === 'rss')          loadRSS();
       };
     });
 
@@ -3934,6 +3959,14 @@ window.Notebook = (() => {
         tab.style.borderColor = 'var(--brand-glow)';
         trendingState.hn = tab.dataset.hn;
         loadHN();
+      };
+    });
+    document.querySelectorAll('[data-rss-feed]').forEach(btn => {
+      btn.onclick = () => {
+        trendingState.rss = btn.dataset.rssFeed;
+        document.querySelectorAll('[data-rss-feed]').forEach(b => b.className = 'btn sm ghost');
+        btn.className = 'btn sm';
+        loadRSS();
       };
     });
 
@@ -3960,6 +3993,7 @@ window.Notebook = (() => {
       trendingRefreshReddit:  () => loadReddit(),
       trendingRefreshHN:      () => loadHN(),
       trendingRefreshPH:      () => loadProductHunt(),
+      trendingRefreshRSS:     () => loadRSS(),
     };
     Object.entries(refreshHandlers).forEach(([id, handler]) => {
       const btn = qs(id);
