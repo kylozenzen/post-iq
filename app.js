@@ -3399,9 +3399,14 @@ function init() {
     });
     const composePanel = qs('composeModePanel'); if (composePanel) composePanel.style.display = mode === 'compose' ? 'contents' : 'none';
     const splitPanel = qs('splitModePanel'); if (splitPanel) splitPanel.style.display  = mode === 'split'   ? 'block'    : 'none';
+    const discordPanel = qs('discordModePanel'); if (discordPanel) discordPanel.style.display = mode === 'discord' ? 'block' : 'none';
     const support = qs('composerSupportSection');
     if (support) support.style.display = mode === 'compose' ? 'grid' : 'none';
     if (mode === 'split') initSplitMode();
+    if (mode === 'discord' && window.Discord) {
+      if (window.Discord.renderComposer) window.Discord.renderComposer();
+      if (window.Discord.checkScheduledAnnouncements) window.Discord.checkScheduledAnnouncements();
+    }
     const editorText = editorToText(qs('composerEditor').innerHTML);
     if (editorText) {
       const ti = qs('threadInput');
