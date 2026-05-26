@@ -1,37 +1,27 @@
 (function(){
   const articles = (window.POSTIQ_HELP_ARTICLES || []).slice();
   const bySlug = new Map(articles.map(a => [a.slug, a]));
-  const state = { query:'', category:'All' };
+  const state = { query:'' };
 
   const homeEl = document.getElementById('helpHome');
   const articleEl = document.getElementById('articleView');
   const searchEl = document.getElementById('helpSearch');
-  const topicSelectEl = document.getElementById('topicSelect');
   const gridEl = document.getElementById('articlesGrid');
-  const metaEl = document.getElementById('resultsMeta');
   const recommendedEl = document.getElementById('recommendedWrap');
 
-  const categorySource = Array.isArray(window.HELP_CATEGORIES) && window.HELP_CATEGORIES.length
-    ? window.HELP_CATEGORIES
-    : Array.from(new Set(articles.map(a => a.category)));
-  const categories = ['All', ...categorySource];
 
   function normalize(v){ return String(v || '').toLowerCase(); }
   function matches(article){
     const q = normalize(state.query).trim();
     const bucket = [article.title, article.summary, article.category, ...(article.tags || [])].join(' ').toLowerCase();
     const queryMatch = !q || bucket.includes(q);
-    const categoryMatch = state.category === 'All' || article.category === state.category;
-    return queryMatch && categoryMatch;
+    return queryMatch;
   }
 
   function escapeHtml(value){
     return String(value).replace(/[&<>'"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;' }[c]));
   }
 
-  function renderTopicSelect(){
-    topicSelectEl.innerHTML = categories.map(cat => `<option value="${escapeHtml(cat)}" ${state.category===cat?'selected':''}>${cat}</option>`).join('');
-  }
 
   function articleCard(article, opts){
     const showCategory = !!opts.showCategory;
@@ -43,21 +33,20 @@
 
   function renderRecommended(filtered){
     const featured = filtered.filter(a => a.featured === true).slice(0, 3);
-    if (!featured.length || state.query || state.category !== 'All') {
+    if (!featured.length || state.query) {
       recommendedEl.innerHTML = '';
       return new Set();
     }
     recommendedEl.innerHTML = `
       <div class="section-head">Start here</div>
       <div class="featured-grid">${featured.map(item => articleCard(item, { featured: true, showCategory: false })).join('')}</div>
-      <div class="section-head all-guides-head">All guides</div>
+
     `;
     return new Set(featured.map(f => f.slug));
   }
 
   function renderHome(){
     const filtered = articles.filter(matches);
-    metaEl.textContent = `${filtered.length} guide${filtered.length===1?'':'s'} shown`;
     if (!filtered.length) {
       recommendedEl.innerHTML = '';
       gridEl.innerHTML = '<p class="article-summary">No help guides match your filters yet.</p>';
@@ -72,12 +61,10 @@
       return;
     }
 
-    const isAllTopic = state.category === 'All';
     const isSearching = !!state.query.trim();
-    const showCategoryOnCard = isSearching && isAllTopic;
-    const heading = isSearching && isAllTopic ? 'Matching guides' : (isAllTopic ? 'All guides' : state.category);
+    const heading = isSearching ? 'Matching guides' : 'All guides';
 
-    gridEl.innerHTML = `<section><h2 class="section-head">${heading}</h2><div class="articles-grid">${baseList.map(a => articleCard(a, { showCategory: showCategoryOnCard })).join('')}</div></section>`;
+    gridEl.innerHTML = `<section><h2 class="section-head">${heading}</h2><div class="articles-grid">${baseList.map(a => articleCard(a, { showCategory: isSearching })).join('')}</div></section>`;
   }
 
 
@@ -100,7 +87,6 @@
   }
 
   searchEl.addEventListener('input', () => { state.query = searchEl.value; renderHome(); });
-  topicSelectEl.addEventListener('change', () => { state.category = topicSelectEl.value; renderHome(); });
 
   document.addEventListener('click', (e) => {
     const articleLink = e.target.closest('[data-open-article]');
@@ -111,6 +97,5 @@
 
   window.addEventListener('popstate', applyRoute);
 
-  renderTopicSelect();
   applyRoute();
 })();

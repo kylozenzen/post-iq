@@ -25,12 +25,30 @@
         <label class="sr-only" for="helpSearch">Search help guides</label>
         <input id="helpSearch" type="search" placeholder="Search guides by title, summary, topic, or tags" autocomplete="off" />
       </div>
-      <div class="topic-row">
-        <label for="topicSelect">Browse by topic</label>
-        <select id="topicSelect"></select>
-      </div>
+
+      <section class="support-card" aria-label="Support form">
+        <h2 class="support-title">Need help?</h2>
+        <p class="support-copy">Have a question about your Buffer connection or need a hand with the workflow? Drop a message below.</p>
+        <p class="support-note">Tell me what’s happening and I’ll use it to improve the beta, too.</p>
+        <form name="postiq-support" method="POST" data-netlify="true" class="support-form">
+          <input type="hidden" name="form-name" value="postiq-support" />
+          <label>
+            <span>Your Name</span>
+            <input type="text" name="name" required />
+          </label>
+          <label>
+            <span>Email Address</span>
+            <input type="email" name="email" required />
+          </label>
+          <label>
+            <span>How can I help?</span>
+            <textarea name="message" rows="4" required></textarea>
+          </label>
+          <button type="submit">Send Message</button>
+        </form>
+      </section>
+
       <section id="recommendedWrap" class="recommended-wrap" aria-label="Recommended guides"></section>
-      <div id="resultsMeta" class="results-meta" aria-live="polite"></div>
       <div id="articlesGrid"></div>
     </section>
 
