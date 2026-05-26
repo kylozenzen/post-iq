@@ -20,12 +20,16 @@
       </div>
     </header>
 
-    <section id="helpHome" aria-label="Help article list view">
+    <section id="helpHome" aria-label="Help guide list view">
       <div class="filter-bar">
-        <label class="sr-only" for="helpSearch">Search help articles</label>
-        <input id="helpSearch" type="search" placeholder="Search by title, summary, category, or tags" autocomplete="off" />
+        <label class="sr-only" for="helpSearch">Search help guides</label>
+        <input id="helpSearch" type="search" placeholder="Search guides by title, summary, topic, or tags" autocomplete="off" />
       </div>
-      <div class="category-filters" id="categoryFilters" role="group" aria-label="Filter articles by category"></div>
+      <div class="topic-row">
+        <label for="topicSelect">Browse by topic</label>
+        <select id="topicSelect"></select>
+      </div>
+      <section id="recommendedWrap" class="recommended-wrap" aria-label="Recommended guides"></section>
       <div id="resultsMeta" class="results-meta" aria-live="polite"></div>
       <div id="articlesGrid" class="articles-grid"></div>
     </section>

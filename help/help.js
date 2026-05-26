@@ -6,11 +6,17 @@
   const homeEl = document.getElementById('helpHome');
   const articleEl = document.getElementById('articleView');
   const searchEl = document.getElementById('helpSearch');
-  const filtersEl = document.getElementById('categoryFilters');
+  const topicSelectEl = document.getElementById('topicSelect');
   const gridEl = document.getElementById('articlesGrid');
   const metaEl = document.getElementById('resultsMeta');
+  const recommendedEl = document.getElementById('recommendedWrap');
 
   const categories = ['All', ...Array.from(new Set(articles.map(a => a.category)))];
+  const featuredTitles = new Set([
+    'Getting Started with PostIQ',
+    'Connect and Reconnect Buffer',
+    'Compose Posts and Send to Buffer'
+  ]);
 
   function normalize(v){ return String(v || '').toLowerCase(); }
   function matches(article){
@@ -21,79 +27,100 @@
     return queryMatch && categoryMatch;
   }
 
-  function renderFilters(){
-    filtersEl.innerHTML = categories.map(cat => `<button type="button" class="cat-btn ${state.category===cat?'active':''}" data-category="${cat}" aria-pressed="${state.category===cat}">${cat}</button>`).join('');
+  function escapeHtml(value){
+    return String(value).replace(/[&<>'"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;' }[c]));
   }
 
-  function articleCard(article){
-    return `<article class="article-card"><p class="article-category">${article.category}</p><h2 class="article-title">${article.title}</h2><p class="article-summary">${article.summary}</p><div class="article-tags">${(article.tags||[]).map(t=>`<span class="tag">#${t}</span>`).join('')}</div><a class="read-link" href="?article=${encodeURIComponent(article.slug)}" data-open-article="${article.slug}">Read article →</a></article>`;
+  function renderTopicSelect(){
+    topicSelectEl.innerHTML = categories.map(cat => `<option value="${escapeHtml(cat)}" ${state.category===cat?'selected':''}>${cat}</option>`).join('');
+  }
+
+  function articleCard(article, opts){
+    const showCategory = !!opts.showCategory;
+    const featured = !!opts.featured;
+    const categoryHtml = showCategory ? `<p class="article-category">${article.category}</p>` : '';
+    const featuredClass = featured ? ' featured' : '';
+    return `<a class="article-card${featuredClass}" href="?article=${encodeURIComponent(article.slug)}" data-open-article="${article.slug}" aria-label="Read guide: ${escapeHtml(article.title)}">${categoryHtml}<h3 class="article-title">${article.title}</h3><p class="article-summary">${article.summary}</p><span class="read-link">Read guide →</span></a>`;
+  }
+
+  function renderRecommended(filtered){
+    const featured = filtered.filter(a => featuredTitles.has(a.title)).slice(0, 3);
+    if (!featured.length || state.query || state.category !== 'All') {
+      recommendedEl.innerHTML = '';
+      return new Set();
+    }
+    recommendedEl.innerHTML = `
+      <div class="section-head">Start here</div>
+      <div class="featured-grid">${featured.map(item => articleCard(item, { featured: true, showCategory: false })).join('')}</div>
+      <div class="section-head all-guides-head">All guides</div>
+    `;
+    return new Set(featured.map(f => f.slug));
   }
 
   function renderHome(){
     const filtered = articles.filter(matches);
-    metaEl.textContent = `${filtered.length} article${filtered.length===1?'':'s'} shown`;
+    metaEl.textContent = `${filtered.length} guide${filtered.length===1?'':'s'} shown`;
     if (!filtered.length) {
-      gridEl.innerHTML = '<p class="article-summary">No help articles match your filters yet.</p>';
+      recommendedEl.innerHTML = '';
+      gridEl.innerHTML = '<p class="article-summary">No help guides match your filters yet.</p>';
       return;
     }
-    const grouped = categories.filter(c=>c!=='All').map(category => ({ category, items: filtered.filter(a => a.category === category) })).filter(g=>g.items.length);
+
+    const hiddenSlugs = renderRecommended(filtered);
+    const baseList = filtered.filter(a => !hiddenSlugs.has(a.slug));
+
+    if (!baseList.length) {
+      gridEl.innerHTML = '';
+      return;
+    }
+
+    const grouped = categories.filter(c => c !== 'All')
+      .map(category => ({ category, items: baseList.filter(a => a.category === category) }))
+      .filter(g => g.items.length);
+
+    if (state.query.trim() && state.category === 'All') {
+      gridEl.innerHTML = `<section><h2 class="section-head">Matching guides</h2><div class="articles-grid">${baseList.map(a => articleCard(a, { showCategory: true })).join('')}</div></section>`;
+      return;
+    }
+
     gridEl.innerHTML = grouped.map(group => `
       <section>
-        <h2 class="article-category" style="font-size:12px;margin-bottom:10px;">${group.category}</h2>
-        <div class="articles-grid">${group.items.map(articleCard).join('')}</div>
+        <h2 class="section-head">${group.category}</h2>
+        <div class="articles-grid">${group.items.map(a => articleCard(a, { showCategory: false })).join('')}</div>
       </section>
     `).join('');
   }
 
   function renderArticle(slug){
     const article = bySlug.get(slug);
-    if (!article){
-      articleEl.hidden = true;
-      homeEl.hidden = false;
-      renderHome();
-      return;
-    }
+    if (!article){ articleEl.hidden = true; homeEl.hidden = false; renderHome(); return; }
     const related = (article.relatedArticles || []).map(rs => bySlug.get(rs)).filter(Boolean);
     articleEl.innerHTML = `<h2>${article.title}</h2><p class="meta">${article.category}</p><div class="article-body">${article.body}</div>
-      <div class="related-list">${related.length ? `<h3>Related articles</h3>${related.map(r => `<a href="?article=${encodeURIComponent(r.slug)}" data-open-article="${r.slug}">${r.title}</a>`).join('')}` : ''}</div>
-      <div class="article-nav"><a class="btn-link" href="/help/" data-open-home="true">← Back to all articles</a><a class="btn-link" href="/app.html">Back to PostIQ</a></div>`;
+      <div class="related-list">${related.length ? `<h3>Related guides</h3>${related.map(r => `<a href="?article=${encodeURIComponent(r.slug)}" data-open-article="${r.slug}">${r.title}</a>`).join('')}` : ''}</div>
+      <div class="article-nav"><a class="btn-link" href="/help/" data-open-home="true">← Back to all guides</a><a class="btn-link" href="/app.html">Back to PostIQ</a></div>`;
     homeEl.hidden = true;
     articleEl.hidden = false;
     window.scrollTo({ top: 0, behavior: 'instant' });
   }
 
-  function applyRoute(push){
+  function applyRoute(){
     const params = new URLSearchParams(window.location.search);
     const slug = params.get('article');
     if (slug) renderArticle(slug); else { articleEl.hidden = true; homeEl.hidden = false; renderHome(); }
-    if (push) history.pushState({}, '', slug ? `?article=${encodeURIComponent(slug)}` : '/help/');
   }
 
   searchEl.addEventListener('input', () => { state.query = searchEl.value; renderHome(); });
-  filtersEl.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-category]'); if (!btn) return;
-    state.category = btn.dataset.category; renderFilters(); renderHome();
-  });
+  topicSelectEl.addEventListener('change', () => { state.category = topicSelectEl.value; renderHome(); });
 
   document.addEventListener('click', (e) => {
     const articleLink = e.target.closest('[data-open-article]');
-    if (articleLink){
-      e.preventDefault();
-      const slug = articleLink.dataset.openArticle;
-      history.pushState({}, '', `?article=${encodeURIComponent(slug)}`);
-      renderArticle(slug);
-      return;
-    }
+    if (articleLink){ e.preventDefault(); const slug = articleLink.dataset.openArticle; history.pushState({}, '', `?article=${encodeURIComponent(slug)}`); renderArticle(slug); return; }
     const homeLink = e.target.closest('[data-open-home]');
-    if (homeLink){
-      e.preventDefault();
-      history.pushState({}, '', '/help/');
-      applyRoute(false);
-    }
+    if (homeLink){ e.preventDefault(); history.pushState({}, '', '/help/'); applyRoute(); }
   });
 
-  window.addEventListener('popstate', () => applyRoute(false));
+  window.addEventListener('popstate', applyRoute);
 
-  renderFilters();
-  applyRoute(false);
+  renderTopicSelect();
+  applyRoute();
 })();
