@@ -2175,3 +2175,13 @@ body::after {
     padding: 12px 14px;
   }
 }
+
+.discord-composer-card,.discord-scheduled-card{margin-bottom:12px;}
+.discord-mode-controls{display:flex;gap:16px;font-size:12px;color:var(--muted);margin:8px 0;}
+.discord-mode-controls label{display:flex;gap:6px;align-items:center;cursor:pointer;}
+.discord-schedule-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.discord-local-note{font-size:11px;color:var(--subtle);margin-top:8px;line-height:1.5;}
+.discord-scheduled-empty{font-size:12px;color:var(--subtle);font-family:'DM Mono',monospace;padding:8px 0;}
+.discord-scheduled-item{border:1px solid var(--border2);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--surface);}
+.discord-scheduled-meta{font-size:11px;color:var(--subtle);margin-bottom:6px;}
+.discord-scheduled-msg{font-size:12px;color:var(--muted);margin-bottom:8px;white-space:pre-wrap;}

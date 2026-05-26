@@ -245,10 +245,11 @@
 
       <div class="composer-layout">
 
-        <!-- Mode tabs: Compose / Split -->
+        <!-- Mode tabs: Compose / Split / Discord -->
         <div id="composerModeTabs" style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;grid-column:1/-1;">
           <button class="composer-mode-tab active" data-cmode="compose" style="padding:9px 20px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Compose</button>
           <button class="composer-mode-tab" data-cmode="split" style="padding:9px 20px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Split into thread</button>
+          <button class="composer-mode-tab" data-cmode="discord" style="padding:9px 20px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Lato',sans-serif;transition:all .12s;">Discord</button>
         </div>
 
         <!-- ── COMPOSE MODE ── -->
@@ -423,6 +424,41 @@
         </div>
 
         </div><!-- /composeModePanel -->
+
+        <div id="discordModePanel" style="display:none;grid-column:1/-1;">
+          <div class="card discord-composer-card">
+            <div class="panel-card-title">Discord announcement composer</div>
+            <div class="field">
+              <label class="label" for="discordComposerDestination">Discord destination</label>
+              <select id="discordComposerDestination" class="input"></select>
+            </div>
+            <div class="field">
+              <label class="label" for="discordComposerText">Announcement</label>
+              <textarea id="discordComposerText" class="input" style="min-height:140px;" placeholder="Write your Discord announcement..."></textarea>
+            </div>
+            <div class="discord-mode-controls">
+              <label><input id="discordSendNowMode" type="radio" name="discordComposerMode" checked> Post now</label>
+              <label><input id="discordScheduleMode" type="radio" name="discordComposerMode"> Schedule for later</label>
+            </div>
+            <div id="discordScheduleControls" class="discord-schedule-controls" style="display:none;">
+              <div class="discord-schedule-row">
+                <input id="discordScheduleDate" type="date" class="input">
+                <input id="discordScheduleTime" type="time" class="input">
+              </div>
+              <div class="discord-local-note">Local schedule: PostIQ needs to be open to send scheduled Discord announcements.</div>
+            </div>
+            <div class="row">
+              <button id="discordComposerSendBtn" class="btn primary" type="button">Post to Discord</button>
+              <button id="discordComposerScheduleBtn" class="btn primary" type="button" style="display:none;">Schedule announcement</button>
+              <button id="discordComposerClearBtn" class="btn ghost" type="button">Clear</button>
+            </div>
+            <div id="discordComposerStatus" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;min-height:18px;"></div>
+          </div>
+          <div class="card discord-scheduled-card">
+            <div class="panel-card-title">Scheduled announcements</div>
+            <div id="discordScheduledList"></div>
+          </div>
+        </div>
 
         <section id="composerSupportSection" class="composer-support" aria-label="Compose support tools">
           <article class="panel-card composer-support-card">

@@ -1,191 +1,173 @@
 (function () {
   const DISCORD_KEY = 'postiq_discord_webhooks';
+  const DISCORD_SCHEDULE_KEY = 'postiq.discord.scheduled.v1';
   const DEFAULT_CONFIG = {
     workspaces: [],
     activeWorkspaceId: null,
+    announcementsEnabled: true,
+    announceBufferActions: false,
     sendOnQueue: true,
     sendOnPublish: true,
-    announcementsEnabled: true,
   };
 
   let config = { ...DEFAULT_CONFIG, workspaces: [] };
+  let scheduleTimer = null;
 
-  function dqs(id) { return document.getElementById(id); }
-  function isValidWebhookUrl(url) {
-    return /^https:\/\/discord\.com\/api\/webhooks\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+/.test(String(url || ''));
-  }
+  const dqs = (id) => document.getElementById(id);
+  const isValidWebhookUrl = (url) => /^https:\/\/discord\.com\/api\/webhooks\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+/.test(String(url || ''));
+  const uid = (prefix) => `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  const status = (msg) => { const el = dqs('discordComposerStatus'); if (el) el.textContent = msg || ''; };
 
-  function save() {
-    localStorage.setItem(DISCORD_KEY, JSON.stringify(config));
-  }
-
+  function save() { localStorage.setItem(DISCORD_KEY, JSON.stringify(config)); }
   function load() {
     try {
-      const raw = localStorage.getItem(DISCORD_KEY);
-      if (!raw) {
-        config = { ...DEFAULT_CONFIG, workspaces: [] };
-        return;
-      }
-
-      const parsed = JSON.parse(raw);
-
-      config = {
-        ...DEFAULT_CONFIG,
-        ...parsed,
-        workspaces: Array.isArray(parsed?.workspaces) ? parsed.workspaces : [],
-        activeWorkspaceId: parsed?.activeWorkspaceId || null,
-        sendOnQueue: !!parsed?.sendOnQueue,
-        sendOnPublish: !!parsed?.sendOnPublish,
-        announcementsEnabled: parsed?.announcementsEnabled !== false,
-      };
-    } catch (err) {
-      console.warn('[PostIQ Discord] Failed to load config. Resetting Discord config.', err);
-      config = { ...DEFAULT_CONFIG, workspaces: [] };
-    }
+      const parsed = JSON.parse(localStorage.getItem(DISCORD_KEY) || '{}');
+      config = { ...DEFAULT_CONFIG, ...parsed, workspaces: Array.isArray(parsed.workspaces) ? parsed.workspaces : [] };
+    } catch { config = { ...DEFAULT_CONFIG, workspaces: [] }; }
   }
-
-  function getActiveWorkspace() {
-    const ws = Array.isArray(config.workspaces) ? config.workspaces : [];
-    if (!ws.length) return null;
-    return ws.find(w => w.id === config.activeWorkspaceId) || ws[0];
+  function getSchedules() {
+    try { const v = JSON.parse(localStorage.getItem(DISCORD_SCHEDULE_KEY) || '[]'); return Array.isArray(v) ? v : []; }
+    catch { return []; }
   }
+  function saveSchedules(items) { localStorage.setItem(DISCORD_SCHEDULE_KEY, JSON.stringify(items)); }
+  function getWorkspaceById(id) { return (config.workspaces || []).find(w => w.id === id) || null; }
+  function getActiveWorkspace() { return getWorkspaceById(config.activeWorkspaceId) || (config.workspaces || [])[0] || null; }
 
   async function proxySend(payload) {
-    const res = await fetch('/.netlify/functions/discord-webhook', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    const res = await fetch('/.netlify/functions/discord-webhook', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || 'Discord send failed');
     return data;
   }
 
   function renderDiscordSettings() {
-    const panel = dqs('settingsPanelDiscord');
-    if (!panel) return;
+    const panel = dqs('settingsPanelDiscord'); if (!panel) return;
     const ws = Array.isArray(config.workspaces) ? config.workspaces : [];
     const active = getActiveWorkspace();
-
-    panel.innerHTML = `
-      <div class="settings-section">
-        <div class="settings-section-title">Discord webhooks</div>
-        <p class="settings-copy">Saved locally in your browser only.</p>
-        <div class="field">
-          <label class="label" for="discordWorkspaceName">Workspace label</label>
-          <input id="discordWorkspaceName" class="input" placeholder="Team / workspace" />
-        </div>
-        <div class="field">
-          <label class="label" for="discordWebhookUrl">Webhook URL</label>
-          <input id="discordWebhookUrl" class="input mono" placeholder="https://discord.com/api/webhooks/..." />
-        </div>
-        <div class="row">
-          <button class="btn sm primary" id="discordAddWebhookBtn" type="button">Save webhook</button>
-        </div>
-        <div id="discordHookStatus" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;min-height:16px;"></div>
-        <div id="discordWebhookList" class="mt12"></div>
-      </div>`;
-
-    const list = dqs('discordWebhookList');
-    list.innerHTML = ws.length
-      ? ws.map((w, i) => `<div class="row" style="justify-content:space-between;border:1px solid var(--border2);padding:8px;border-radius:8px;margin-bottom:8px;"><span style="font-size:12px;">${w.name || 'Webhook ' + (i + 1)}${active?.id === w.id ? ' (active)' : ''}</span><div style="display:flex;gap:6px;"><button class="btn sm ghost" data-dset="${w.id}">Use</button><button class="btn sm ghost" data-ddel="${w.id}">Delete</button></div></div>`).join('')
-      : '<div style="font-size:12px;color:var(--subtle);">No webhooks saved.</div>';
-
+    panel.innerHTML = `<div class="settings-section"><div class="settings-section-title">Discord destinations</div><p class="settings-copy">Saved locally in your browser only.</p>
+      <div class="field"><label class="label" for="discordWorkspaceName">Destination name</label><input id="discordWorkspaceName" class="input" placeholder="Product updates" /></div>
+      <div class="field"><label class="label" for="discordWebhookUrl">Webhook URL</label><input id="discordWebhookUrl" class="input mono" placeholder="https://discord.com/api/webhooks/..." /></div>
+      <div class="row"><button class="btn sm primary" id="discordAddWebhookBtn" type="button">Save destination</button></div>
+      <div id="discordHookStatus" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;min-height:16px;"></div>
+      <div id="discordWebhookList" class="mt12"></div></div>`;
+    dqs('discordWebhookList').innerHTML = ws.length ? ws.map((w) => `<div class="row" style="justify-content:space-between;border:1px solid var(--border2);padding:8px;border-radius:8px;margin-bottom:8px;"><span style="font-size:12px;">${w.name}${active?.id===w.id?' (default)':''}</span><div style="display:flex;gap:6px;"><button class="btn sm ghost" data-dset="${w.id}">Set default</button><button class="btn sm ghost" data-ddel="${w.id}">Delete</button></div></div>`).join('') : '<div style="font-size:12px;color:var(--subtle);">No Discord destinations saved.</div>';
     dqs('discordAddWebhookBtn')?.addEventListener('click', () => {
-      const name = (dqs('discordWorkspaceName')?.value || '').trim();
-      const webhookUrl = (dqs('discordWebhookUrl')?.value || '').trim();
-      const status = dqs('discordHookStatus');
-      if (!name || !webhookUrl) { if (status) status.textContent = 'Enter label + webhook URL.'; return; }
-      if (!isValidWebhookUrl(webhookUrl)) { if (status) status.textContent = 'Invalid Discord webhook URL.'; return; }
-
-      const id = `ws_${Date.now().toString(36)}`;
-      const nextWorkspaces = [...ws, { id, name, webhookUrl }];
-      config = { ...config, workspaces: nextWorkspaces, activeWorkspaceId: config.activeWorkspaceId || id };
-      save();
-      if (status) status.textContent = 'Webhook saved locally.';
-      renderDiscordSettings();
-      renderComposerToggle();
+      const name = (dqs('discordWorkspaceName')?.value || '').trim(); const webhookUrl = (dqs('discordWebhookUrl')?.value || '').trim(); const st = dqs('discordHookStatus');
+      if (!name || !webhookUrl) return st && (st.textContent = 'Enter destination name + webhook URL.');
+      if (!isValidWebhookUrl(webhookUrl)) return st && (st.textContent = 'Invalid Discord webhook URL.');
+      const entry = { id: uid('ws'), name, webhookUrl, createdAt: new Date().toISOString() };
+      config.workspaces = [...ws, entry]; if (!config.activeWorkspaceId) config.activeWorkspaceId = entry.id; save(); renderDiscordSettings(); renderDiscordDestinationSelect();
     });
-
-    panel.querySelectorAll('[data-ddel]').forEach(btn => btn.addEventListener('click', () => {
-      const id = btn.getAttribute('data-ddel');
-      const nextWorkspaces = ws.filter(w => w.id !== id);
-      const nextActive = config.activeWorkspaceId === id ? (nextWorkspaces[0]?.id || null) : config.activeWorkspaceId;
-      config = { ...config, workspaces: nextWorkspaces, activeWorkspaceId: nextActive };
-      save();
-      renderDiscordSettings();
-      renderComposerToggle();
-    }));
-
-    panel.querySelectorAll('[data-dset]').forEach(btn => btn.addEventListener('click', () => {
-      const id = btn.getAttribute('data-dset');
-      config = { ...config, activeWorkspaceId: id };
-      save();
-      renderDiscordSettings();
-      renderComposerToggle();
-    }));
+    panel.querySelectorAll('[data-ddel]').forEach((btn) => btn.addEventListener('click', () => { const id = btn.getAttribute('data-ddel'); config.workspaces = ws.filter(w => w.id !== id); if (config.activeWorkspaceId === id) config.activeWorkspaceId = config.workspaces[0]?.id || null; save(); renderDiscordSettings(); renderDiscordDestinationSelect(); }));
+    panel.querySelectorAll('[data-dset]').forEach((btn) => btn.addEventListener('click', () => { config.activeWorkspaceId = btn.getAttribute('data-dset'); save(); renderDiscordSettings(); renderDiscordDestinationSelect(); }));
   }
+
+  function renderDiscordDestinationSelect() {
+    const select = dqs('discordComposerDestination'); if (!select) return;
+    const ws = Array.isArray(config.workspaces) ? config.workspaces : [];
+    select.innerHTML = '';
+    if (!ws.length) { select.innerHTML = '<option value="" disabled selected>No Discord destination connected</option>'; status('Add a Discord destination in Settings.'); return; }
+    const activeId = ws.some(w => w.id === config.activeWorkspaceId) ? config.activeWorkspaceId : ws[0].id;
+    if (activeId !== config.activeWorkspaceId) { config.activeWorkspaceId = activeId; save(); }
+    select.innerHTML = ws.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
+    select.value = activeId;
+    select.onchange = () => { config.activeWorkspaceId = select.value; save(); status(''); };
+  }
+
+  function initDiscordComposerMode() {
+    const now = dqs('discordSendNowMode'); const later = dqs('discordScheduleMode');
+    const sendBtn = dqs('discordComposerSendBtn'); const schedBtn = dqs('discordComposerScheduleBtn'); const controls = dqs('discordScheduleControls');
+    const apply = () => { const scheduleMode = !!later?.checked; if (controls) controls.style.display = scheduleMode ? 'block' : 'none'; if (sendBtn) sendBtn.style.display = scheduleMode ? 'none' : 'inline-flex'; if (schedBtn) schedBtn.style.display = scheduleMode ? 'inline-flex' : 'none'; };
+    if (now) now.checked = true;
+    now?.addEventListener('change', apply); later?.addEventListener('change', apply); apply();
+  }
+
+  async function sendDiscordComposerMessage() {
+    const destinationId = dqs('discordComposerDestination')?.value;
+    const ws = getWorkspaceById(destinationId);
+    const message = (dqs('discordComposerText')?.value || '').trim();
+    if (!ws || !isValidWebhookUrl(ws.webhookUrl)) return status('Select a valid Discord destination.');
+    if (!message) return status('Write a Discord announcement first.');
+    status('Posting to Discord...');
+    try {
+      await proxySend({ webhookUrl: ws.webhookUrl, content: message, workspace: ws.name });
+      status('Posted to Discord.');
+      if (dqs('discordComposerText')) dqs('discordComposerText').value = '';
+      renderScheduledDiscordList();
+      setTimeout(() => status(''), 2200);
+    } catch (e) { status(`Failed to post: ${e.message || 'Unknown error'}`); }
+  }
+
+  function scheduleDiscordAnnouncement() {
+    const destinationId = dqs('discordComposerDestination')?.value;
+    const ws = getWorkspaceById(destinationId);
+    const message = (dqs('discordComposerText')?.value || '').trim();
+    const date = dqs('discordScheduleDate')?.value; const time = dqs('discordScheduleTime')?.value;
+    if (!ws || !isValidWebhookUrl(ws.webhookUrl)) return status('Select a valid Discord destination.');
+    if (!message) return status('Write a Discord announcement first.');
+    if (!date || !time) return status('Choose date and time.');
+    const scheduledAt = new Date(`${date}T${time}`);
+    if (Number.isNaN(scheduledAt.getTime()) || scheduledAt <= new Date()) return status('Choose a future time.');
+    const items = getSchedules();
+    items.push({ id: uid('sched'), destinationId: ws.id, destinationName: ws.name, webhookUrl: ws.webhookUrl, message, scheduledAt: scheduledAt.toISOString(), createdAt: new Date().toISOString(), status: 'scheduled' });
+    saveSchedules(items);
+    status('Discord announcement scheduled.');
+    dqs('discordComposerText').value = ''; dqs('discordScheduleDate').value = ''; dqs('discordScheduleTime').value = '';
+    renderScheduledDiscordList();
+  }
+
+  function renderScheduledDiscordList() {
+    const el = dqs('discordScheduledList'); if (!el) return;
+    const pending = getSchedules().filter(i => i.status === 'scheduled').sort((a,b) => new Date(a.scheduledAt) - new Date(b.scheduledAt));
+    if (!pending.length) { el.innerHTML = '<div class="discord-scheduled-empty">No scheduled Discord announcements.</div>'; return; }
+    el.innerHTML = pending.map(i => `<div class="discord-scheduled-item" data-sid="${i.id}"><div class="discord-scheduled-meta"><strong>${i.destinationName}</strong> · ${new Date(i.scheduledAt).toLocaleString()}</div><div class="discord-scheduled-msg">${i.message.slice(0, 180)}</div><div class="row"><button class="btn sm" data-send-now="${i.id}" type="button">Send now</button><button class="btn sm ghost" data-cancel="${i.id}" type="button">Cancel</button></div></div>`).join('');
+    el.querySelectorAll('[data-send-now]').forEach(btn => btn.addEventListener('click', async () => { const id = btn.getAttribute('data-send-now'); await sendScheduledNow(id); }));
+    el.querySelectorAll('[data-cancel]').forEach(btn => btn.addEventListener('click', () => { const id = btn.getAttribute('data-cancel'); saveSchedules(getSchedules().filter(i => i.id !== id)); renderScheduledDiscordList(); status('Scheduled announcement canceled.'); }));
+  }
+
+  async function sendScheduledNow(id) {
+    const items = getSchedules(); const item = items.find(i => i.id === id); if (!item) return;
+    try { await proxySend({ webhookUrl: item.webhookUrl, content: item.message, workspace: item.destinationName }); item.status = 'sent'; status('Scheduled announcement sent.'); }
+    catch (e) { item.status = 'failed'; status(`Failed scheduled send: ${e.message || 'Unknown error'}`); }
+    saveSchedules(items); renderScheduledDiscordList();
+  }
+
+  async function checkScheduledDiscordAnnouncements() {
+    const items = getSchedules();
+    const due = items.filter(i => i.status === 'scheduled' && new Date(i.scheduledAt) <= new Date());
+    if (!due.length) return;
+    let sentCount = 0;
+    for (const item of due) {
+      try { await proxySend({ webhookUrl: item.webhookUrl, content: item.message, workspace: item.destinationName }); item.status = 'sent'; sentCount += 1; }
+      catch { item.status = 'failed'; }
+    }
+    saveSchedules(items); renderScheduledDiscordList();
+    if (sentCount > 0) status(`${sentCount} scheduled Discord announcement(s) sent.`);
+  }
+
+  function startScheduleChecker() { if (scheduleTimer) return; scheduleTimer = setInterval(checkScheduledDiscordAnnouncements, 60000); checkScheduledDiscordAnnouncements(); }
 
   function renderComposerToggle() {
     const row = dqs('discordSendRow');
     if (!row) return;
-    const ws = Array.isArray(config.workspaces) ? config.workspaces : [];
-    const configured = ws.some(w => isValidWebhookUrl(w?.webhookUrl));
-    row.innerHTML = configured
-      ? `<div class="panel-card" style="margin-top:12px;"><div class="panel-card-title">Discord</div><label class="approval-check-row"><input type="checkbox" id="discordSendToggle" /><span class="approval-check-label">Also send successful Buffer actions to Discord</span></label><div style="font-size:11px;color:var(--subtle);margin-top:8px;">${ws.length} webhook workspace(s) saved.</div></div>`
-      : '';
+    row.innerHTML = '';
   }
 
-  function getComposerDiscordState() {
-    return { enabled: !!dqs('discordSendToggle')?.checked, configured: !!getActiveWorkspace() };
+  async function onComposerSent() {
+    return;
   }
 
-  async function sendPostNotification(content) {
-    const ws = Array.isArray(config.workspaces) ? config.workspaces : [];
-    const validWorkspaces = ws.filter(w => isValidWebhookUrl(w?.webhookUrl));
-    for (const workspace of validWorkspaces) {
-      await proxySend({ webhookUrl: workspace.webhookUrl, content, workspace: workspace.name });
-    }
-  }
-
-  async function onComposerSent(text, action, meta) {
-    try {
-      if (!dqs('discordSendToggle')?.checked) return;
-      if (!getActiveWorkspace()) return;
-      const content = `**PostIQ ${action}**\n${text}\n\nPlatform: ${meta.platform || 'Unknown'}\nChannel: ${meta.channelName || 'Unknown'}${meta.dueAt ? `\nDue: ${meta.dueAt}` : ''}`;
-      await sendPostNotification(content);
-    } catch (e) {
-      console.error('[PostIQ] Discord.onComposerSent failed:', e);
-    }
-  }
-
-  async function openAnnouncementModal() {
-    const text = (dqs('composerEditor')?.innerText || '').trim();
-    if (!text) return;
-    await onComposerSent(text, 'announcement', { platform: '', channelName: '', dueAt: '' });
-  }
+  function renderComposer() { renderDiscordDestinationSelect(); renderScheduledDiscordList(); initDiscordComposerMode(); }
 
   function init() {
     load();
+    renderComposer();
     renderComposerToggle();
-
-    const announceBtn = dqs('discordAnnounceBtn');
-    if (announceBtn) announceBtn.onclick = openAnnouncementModal;
-
-    window.addEventListener('postiq:synced', renderComposerToggle);
+    startScheduleChecker();
+    dqs('discordComposerSendBtn')?.addEventListener('click', sendDiscordComposerMessage);
+    dqs('discordComposerScheduleBtn')?.addEventListener('click', scheduleDiscordAnnouncement);
+    dqs('discordComposerClearBtn')?.addEventListener('click', () => { if (dqs('discordComposerText')) dqs('discordComposerText').value = ''; status(''); });
   }
 
-  window.Discord = {
-    init,
-    renderSettings: renderDiscordSettings,
-    renderComposerToggle,
-    getComposerDiscordState,
-    onComposerSent,
-    openAnnouncementModal,
-    sendPostNotification,
-    isConfigured: () => {
-      const ws = getActiveWorkspace();
-      return !!(ws && isValidWebhookUrl(ws.webhookUrl));
-    },
-  };
+  window.Discord = { init, renderSettings: renderDiscordSettings, renderComposer, renderDestinationSelect: renderDiscordDestinationSelect, renderScheduledList: renderScheduledDiscordList, checkScheduledAnnouncements: checkScheduledDiscordAnnouncements, initDiscordComposerMode, onComposerSent, renderComposerToggle };
 })();
