@@ -1109,6 +1109,7 @@ function selectSettingsTab(tabName) {
     p.hidden = !active;
   });
   if (targetTab === 'features') renderSettingsFeatureStatus();
+  if (targetTab === 'discord' && window.Discord) window.Discord.renderSettings();
 }
 
 function renderSettingsFeatureStatus() {
@@ -2670,6 +2671,16 @@ async function composerSend(action) {
     }
     const msg = action === 'draft' ? 'Buffer draft saved.' : action === 'queue' ? 'Added to queue.' : 'Scheduled.';
     qs('composerStatus').textContent = msg; showToast(msg, 'success');
+
+    // Discord integration
+    if (window.Discord) {
+      const channel = state.channels.find(c => c.id === channelId);
+      window.Discord.onComposerSent(text, action, {
+        platform: channel?.service || '',
+        channelName: channel?.displayName || channel?.name || '',
+        dueAt: action === 'schedule' ? when : '',
+      });
+    }
     if (created?.post?.dueAt) { appendScheduled(created.post, input); renderCalendar(); }
     qs('composerEditor').innerHTML = '';
     qs('composerEditor').dispatchEvent(new Event('input'));
@@ -3105,6 +3116,12 @@ function init() {
     if (window.ContentPillars?.init) window.ContentPillars.init();
   } catch (e) {
     console.error('[PostIQ] ContentPillars.init() failed:', e);
+  }
+
+  try {
+    if (window.Discord?.init) window.Discord.init();
+  } catch (e) {
+    console.error('[PostIQ] Discord.init() failed:', e);
   }
 
   try {

@@ -413,6 +413,13 @@
             <div style="font-size:11px;color:var(--subtle);margin-top:8px;line-height:1.55;">Approvals are a beta workflow. Save as a Buffer draft first — then generate an approval link from the Approve tab when available.</div>
           </div>
 
+          <div id="discordSendRow"></div>
+
+          <button class="btn sm ghost" id="discordAnnounceBtn" type="button"
+            style="width:100%;justify-content:center;font-size:12px;gap:6px;">
+            <span style="color:#5865f2;">⌘</span> Discord Announcement
+          </button>
+
         </div>
 
         </div><!-- /composeModePanel -->
@@ -938,6 +945,7 @@
     const BUFFER_CLIENT_ID = "ijzu75qv_CAcO0qMelb93HjOVh1EwEanezilfgBiOEG";
   </script>
   <script src="./app.js" defer></script>
+  <script src="./discord-integration.js" defer></script>
 
 
 <!-- Reviewer page -->
@@ -979,6 +987,10 @@
         <button class="settings-tab" id="settingsTabNotes" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelNotes" data-stab="notes">Notes</button>
         <button class="settings-tab" id="settingsTabFeatures" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelFeatures" data-stab="features">Beta / Features</button>
         <button class="settings-tab" id="settingsTabAbout" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelAbout" data-stab="about">About</button>
+        <button class="settings-tab" id="settingsTabDiscord" type="button" role="tab"
+          aria-selected="false" aria-controls="settingsPanelDiscord" data-stab="discord">
+          Discord
+        </button>
       </div>
 
       <div id="settingsPanelConnection" class="settings-panel active" role="tabpanel" aria-labelledby="settingsTabConnection" tabindex="0">
@@ -1063,6 +1075,11 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <div id="settingsPanelDiscord" class="settings-panel" role="tabpanel"
+        aria-labelledby="settingsTabDiscord" tabindex="0">
+        <!-- Filled by Discord.renderSettings() on tab open -->
       </div>
     </div>
   </div>
