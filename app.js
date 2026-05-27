@@ -54,7 +54,7 @@ const BETA_BANNER_SESSION_KEY = 'postiq_beta_banner_seen';
 const BETA_BANNER_PERSIST_KEY = 'postiq_beta_banner_seen_persist';
 const APP_VISITED_KEY = 'postiq_app_visited';
 const CALENDAR_VIEW_KEY = 'postiq_calendar_view';
-const FEATURE_HOME_DASHBOARD = false;
+const FEATURE_HOME_DASHBOARD = true;
 const LEGACY_NOTE_TYPES = {
   gold: { id: 'idea', label: 'Idea', color: '#f59e0b' },
   blue: { id: 'draft', label: 'Draft', color: '#3a3fff' },
@@ -1249,7 +1249,7 @@ function bindModalActionDelegates() {
     if (action === 'use') {
       const template = state.templates.find(t => t.id === id);
       if (!template) { showToast('Template not found', 'error'); return; }
-      activateView('composerView');
+      activateView('homeView');
       useTemplateInEditor(template);
       return;
     }
@@ -3167,68 +3167,266 @@ function getHomeDashboardData() {
 }
 async function renderHomeView() {
   if (!FEATURE_HOME_DASHBOARD) return;
-  let d;
-  try {
-    d = getHomeDashboardData();
-  } catch (err) {
-    d = { connected: false, reconnectNeeded: false, displayName: getHomeDisplayName(), queue: { next7: [], byDayCount: 0, weekGaps: [], activeChannelsCount: 0 }, next72: [], hasScheduledPosts: false };
-    if (!homeDashboardWarned) {
-      console.warn('Home dashboard data unavailable; rendering fallback state.', err);
-      homeDashboardWarned = true;
-    }
+
+  const shell = qs('homeDashboard');
+  if (!shell) return;
+
+  const connection = getBufferConnectionState?.() || { connected: false, reconnectNeeded: false };
+  const connected = !!connection.connected;
+  const reconnectNeeded = !!connection.reconnectNeeded;
+  const scheduled = Array.isArray(state?.scheduled) ? state.scheduled : [];
+  const channels = Array.isArray(state?.channels) ? state.channels : [];
+  const settings = getPlanningSettings();
+  const now = new Date();
+  const todayKey = fmtDate(now);
+  const notes = getNotes();
+
+  const next7End = new Date(now.getTime() + 7 * 86400000);
+  const next7 = scheduled.filter(p => {
+    const d = new Date(p.dueAt || 0);
+    return d >= now && d <= next7End;
+  }).sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt));
+
+  const todayPosts = scheduled.filter(p => fmtDate(new Date(p.dueAt || 0)) === todayKey);
+
+  const gaps = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now);
+    d.setDate(now.getDate() + i);
+    d.setHours(0, 0, 0, 0);
+
+    if (!settings.postingDays.includes(DAY_CODES[d.getDay()])) continue;
+
+    const key = fmtDate(d);
+    if (!next7.some(p => fmtDate(new Date(p.dueAt)) === key)) gaps.push(d);
   }
-  const q = d.queue || { next7: [], byDayCount: 0, weekGaps: [], activeChannelsCount: 0 };
+
+  const nextPost = next7[0] || null;
+  const nextPostTime = nextPost ? new Date(nextPost.dueAt) : null;
+
+  function fmtRelativeDay(date) {
+    const diff = Math.floor(
+      (new Date(date).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86400000
+    );
+
+    if (diff === 0) return 'Today';
+    if (diff === 1) return 'Tomorrow';
+
+    return new Date(date).toLocaleDateString(undefined, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+
+  function fmtTime(date) {
+    return new Date(date).toLocaleTimeString([], {
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+  }
+
+  const connBg = connected
+    ? 'rgba(15,166,114,.08)'
+    : reconnectNeeded
+      ? 'rgba(245,158,11,.08)'
+      : 'rgba(58,63,255,.06)';
+
+  const connBorder = connected
+    ? 'rgba(15,166,114,.2)'
+    : reconnectNeeded
+      ? 'rgba(245,158,11,.25)'
+      : 'var(--brand-glow)';
+
+  const connDotColor = connected
+    ? 'var(--green)'
+    : reconnectNeeded
+      ? 'var(--amber)'
+      : 'var(--subtle)';
+
+  const connLabel = connected
+    ? scheduled.length
+      ? `${scheduled.length} posts loaded`
+      : 'Connected — sync to load posts'
+    : reconnectNeeded
+      ? 'Session expired — reconnect Buffer'
+      : 'Not connected';
+
+  const connActionLabel = connected
+    ? '↻ Sync'
+    : reconnectNeeded
+      ? 'Reconnect Buffer'
+      : 'Sign in with Buffer';
+
+  const connActionClass = connected
+    ? 'hd-conn-btn'
+    : 'hd-conn-btn hd-conn-btn--primary';
+
+  const connBar = `
+    <div class="hd-conn" style="background:${connBg};border-color:${connBorder};">
+      <span class="hd-conn-dot" style="background:${connDotColor};${connected ? 'box-shadow:0 0 0 3px rgba(15,166,114,.2);' : ''}"></span>
+      <span class="hd-conn-label">${safeText(connLabel)}</span>
+      <div class="hd-conn-actions">
+        <button class="${connActionClass}" id="homeConnSyncBtn">${safeText(connActionLabel)}</button>
+        <button class="hd-conn-btn hd-conn-btn--ghost" id="homeConnSettingsBtn">Settings</button>
+      </div>
+    </div>`;
+
+  const weekDays = [];
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now);
+    d.setDate(now.getDate() + i);
+    d.setHours(0, 0, 0, 0);
+
+    const key = fmtDate(d);
+    const dayPosts = next7.filter(p => fmtDate(new Date(p.dueAt)) === key);
+    const isToday = i === 0;
+    const isGap = settings.postingDays.includes(DAY_CODES[d.getDay()]) && dayPosts.length === 0 && connected;
+    const dotColor = dayPosts.length ? 'var(--brand)' : isGap ? 'var(--accent)' : 'var(--border2)';
+
+    const inlineStyle = isToday
+      ? 'background:var(--brand-dim);border-color:var(--brand-glow);'
+      : isGap
+        ? 'background:rgba(255,79,106,.04);border-color:rgba(255,79,106,.2);'
+        : '';
+
+    weekDays.push(`
+      <button class="hd-week-day${isToday ? ' hd-week-day--today' : ''}${isGap ? ' hd-week-day--gap' : ''}"
+              style="${inlineStyle}" data-home-day="${key}" type="button">
+        <span class="hd-week-dow">${DAY_CODES[d.getDay()]}</span>
+        <span class="hd-week-num">${d.getDate()}</span>
+        <span class="hd-week-dot" style="background:${dotColor};"></span>
+        ${dayPosts.length ? `<span class="hd-week-count">${dayPosts.length}</span>` : ''}
+      </button>`);
+  }
+
+  const weekStrip = `
+    <div class="hd-section">
+      <div class="hd-section-hdr">
+        <span class="hd-section-label">This week</span>
+        <button class="hd-text-btn" data-view="calendarView" type="button">Full calendar →</button>
+      </div>
+      <div class="hd-week-strip">${weekDays.join('')}</div>
+      ${gaps.length ? `
+        <div class="hd-gaps-row">
+          <span class="hd-gaps-label">⚠ ${gaps.length} gap${gaps.length > 1 ? 's' : ''} — </span>
+          ${gaps.slice(0, 3).map(d => `<button class="hd-gap-chip" data-home-day="${fmtDate(d)}" type="button">${safeText(d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }))}</button>`).join('')}
+          ${gaps.length > 3 ? `<span class="hd-gaps-more">+${gaps.length - 3} more</span>` : ''}
+        </div>` : connected && scheduled.length ? `<div class="hd-no-gaps">✓ No gaps in your posting schedule this week</div>` : ''}
+    </div>`;
+
+  const upcomingItems = next7.slice(0, 5);
+
+  const upcomingHtml = upcomingItems.length ? upcomingItems.map(p => {
+    const d = new Date(p.dueAt);
+    const ch = channels.find(c => c.id === p.channelId);
+    const platform = ch?.service || '';
+
+    return `
+      <div class="hd-post-row">
+        <div class="hd-post-time">
+          <span class="hd-post-day">${safeText(fmtRelativeDay(d))}</span>
+          <span class="hd-post-clock">${safeText(fmtTime(d))}</span>
+        </div>
+        <div class="hd-post-body">
+          <div class="hd-post-text">${safeText(compact(p.text || '(no copy)', 120))}</div>
+          ${platform ? `<span class="hd-post-platform">${safeText(platform)}</span>` : ''}
+        </div>
+      </div>`;
+  }).join('') : `
+    <div class="hd-empty">
+      <div class="hd-empty-icon">📭</div>
+      <div class="hd-empty-text">${safeText(connected ? 'Nothing scheduled in the next 7 days.' : 'Connect Buffer to see your upcoming posts.')}</div>
+    </div>`;
+
+  const nextUp = `
+    <div class="hd-section">
+      <div class="hd-section-hdr">
+        <span class="hd-section-label">Next up</span>
+        ${upcomingItems.length ? `<button class="hd-text-btn" data-view="calendarView" type="button">See all →</button>` : ''}
+      </div>
+      <div class="hd-post-list">${upcomingHtml}</div>
+    </div>`;
+
+  const quickActions = `
+    <div class="hd-section">
+      <div class="hd-section-hdr">
+        <span class="hd-section-label">Jump to</span>
+      </div>
+      <div class="hd-actions">
+        <button class="hd-action" data-view="composerView" type="button">
+          <span class="hd-action-icon">✍️</span>
+          <span class="hd-action-label">Compose</span>
+        </button>
+        <button class="hd-action" data-view="calendarView" type="button">
+          <span class="hd-action-icon">📅</span>
+          <span class="hd-action-label">Calendar</span>
+        </button>
+        <button class="hd-action" data-view="ideasView" type="button">
+          <span class="hd-action-icon">💡</span>
+          <span class="hd-action-label">Ideas</span>
+        </button>
+        <button class="hd-action" data-view="approvalsView" type="button">
+          <span class="hd-action-icon">✅</span>
+          <span class="hd-action-label">Approve</span>
+        </button>
+      </div>
+    </div>`;
+
   const syncedText = qs('lastSynced')?.textContent?.trim();
-  const isConnectedNoData = d.connected && !d.hasScheduledPosts;
-  const coveragePct = Math.max(0, Math.min(100, Math.round(((q.byDayCount || 0) / 7) * 100)));
 
-  const welcome = qs('homeWelcomeCard');
-  if (welcome) welcome.innerHTML = `<div class="home-kicker">Command Center</div><div class="home-title">${safeText(getGreetingLabel())}${d.displayName && d.displayName !== 'there' ? `, ${safeText(d.displayName)}` : ''}.</div><div class="home-copy">${d.connected ? (isConnectedNoData ? 'Connected. Click Sync now to load Buffer posts.' : 'Here’s what’s happening in your content queue.') : 'Connect Buffer to unlock your dashboard.'}</div><div class="home-status-pills"><span class="home-status-pill ${d.connected ? 'connected' : 'offline'}">${d.connected ? 'Connected' : (d.reconnectNeeded ? 'Reconnect needed' : 'Not connected')}</span><span class="home-status-pill">${q.next7?.length || 0} scheduled</span><span class="home-status-pill ${q.weekGaps?.length ? 'gap' : ''}">${q.weekGaps?.length || 0} gaps</span><span class="home-status-pill">${q.activeChannelsCount || 0} channels</span>${syncedText ? `<span class="home-status-pill">${safeText(syncedText)}</span>` : ''}</div><div class="home-actions-row"><button class="btn sm primary" id="homeSyncBtn">${d.connected ? '↻ Sync now' : (d.reconnectNeeded ? 'Reconnect Buffer' : 'Sign in with Buffer')}</button></div>`;
+  const headerLine = connected && next7.length
+    ? `${next7.length} post${next7.length > 1 ? 's' : ''} in the next 7 days${nextPost ? ` · next ${fmtRelativeDay(nextPostTime)} at ${fmtTime(nextPostTime)}` : ''}`
+    : connected
+      ? 'Queue is empty — ready to plan'
+      : reconnectNeeded
+        ? 'Session expired'
+        : 'Connect Buffer to load your queue';
 
-  const gapSummary = q.weekGaps?.length ? `Coverage needs attention: ${q.weekGaps.map(code => DAY_LABELS[DAY_CODES.indexOf(code)]).join(', ')} currently look open.` : 'Nice work — no configured posting-day gaps this week.';
-  const qh = qs('homeQueueHealth');
-  if (qh) qh.innerHTML = `<div class="home-kicker">Queue Health</div><div class="home-title">Current week snapshot</div><div class="home-copy">${!d.connected ? 'Connect Buffer to see your queue health.' : (isConnectedNoData ? 'Click Sync now to load Buffer posts.' : gapSummary)}</div><div class="home-stat-grid"><div class="home-stat"><div class="home-stat-num">${q.next7?.length || 0}</div><div class="home-stat-lbl">Scheduled</div></div><div class="home-stat"><div class="home-stat-num">${q.byDayCount || 0}</div><div class="home-stat-lbl">Days covered</div></div><div class="home-stat"><div class="home-stat-num">${q.weekGaps?.length || 0}</div><div class="home-stat-lbl">Gaps this week</div></div><div class="home-stat"><div class="home-stat-num">${q.activeChannelsCount || 0}</div><div class="home-stat-lbl">Channels</div></div></div><div class="home-coverage-wrap"><div class="home-item-meta">Coverage ${coveragePct}%</div><div class="home-coverage-bar"><span style="width:${coveragePct}%"></span></div></div>`;
+  shell.innerHTML = `
+    <div class="hd-header">
+      <div class="hd-header-left">
+        <h1 class="hd-title">Home</h1>
+        <p class="hd-subtitle">${safeText(headerLine)}</p>
+      </div>
+      ${syncedText ? `<span class="hd-synced">${safeText(syncedText)}</span>` : ''}
+    </div>
+    ${connBar}
+    ${weekStrip}
+    ${nextUp}
+    ${quickActions}`;
 
-  const next = qs('homeNext72');
-  const nextItems = (d.next72 || []).slice(0, 5);
-  const nextEmptyText = !d.connected ? 'Connect Buffer to see upcoming posts.' : (isConnectedNoData ? 'Sync Buffer to see upcoming posts.' : 'No scheduled posts in the next 72 hours.');
-  const fmtDay = dt => { const now=new Date(); const t=new Date(dt); const delta=Math.floor((new Date(t.getFullYear(),t.getMonth(),t.getDate())-new Date(now.getFullYear(),now.getMonth(),now.getDate()))/86400000); if(delta===0) return 'Today'; if(delta===1) return 'Tomorrow'; return t.toLocaleDateString(undefined,{weekday:'short'}); };
-  if (next) next.innerHTML = `<div class="home-kicker">Next 72 Hours</div><div class="home-title">Upcoming scheduled posts</div><div class="home-post-list">${nextItems.length ? nextItems.map(p => { const due = new Date(p?.due_at || p?.dueAt || 0); return `<div class="home-post-item"><div class="home-item-meta">${fmtDay(due)} · ${due.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} · ${safeText(p?.service || p?.channel || 'Channel')}</div><div class="home-item-title">${safeText(compact(p?.text || p?.description || p?.body || '', 150))}</div></div>`; }).join('') : `<div class="home-post-item"><div class="home-item-title">${nextEmptyText}</div></div>`}</div><div class="home-actions-row"><button class="btn sm" id="homeViewCalendarBtn">View in calendar</button></div>`;
-
-  const news = qs('homeNews');
-  if (news) {
-    news.innerHTML = `<div class="home-kicker">Social News</div><div class="home-title">Social News</div><div class="home-copy">Fresh platform updates and content signals worth watching.</div><div class="home-social-grid"><div class="home-news-card"><div class="home-item-title">Loading stories…</div></div></div>`;
-    try {
-      const items = await getSocialNewsForHome();
-      const bySource = {
-        Buffer: (items || []).filter(i => i?._source === 'Buffer').slice(0, 2),
-        'Social Media Today': (items || []).filter(i => i?._source === 'Social Media Today').slice(0, 2),
-      };
-      const cards = [];
-      const pushSourceCards = (source, emptyText) => {
-        const srcItems = bySource[source] || [];
-        for (let i = 0; i < 2; i += 1) {
-          const item = srcItems[i];
-          if (item) cards.push(item);
-          else cards.push({ _source: source, _empty: true, title: emptyText });
-        }
-      };
-      pushSourceCards('Buffer', 'No new Buffer stories loaded yet.');
-      pushSourceCards('Social Media Today', 'No Social Media Today stories loaded yet.');
-      window.__homeNewsItems = cards;
-      news.innerHTML = `<div class="home-kicker">Social News</div><div class="home-title">Social News</div><div class="home-copy">Fresh platform updates and content signals worth watching.</div><div class="home-social-grid">${cards.map((n, idx) => `<div class="home-news-card ${n._empty ? 'empty' : ''}"><div class="home-news-source ${n?._source === 'Buffer' ? 'buffer' : 'smt'}">${safeText(n?._source || 'Source')}</div><div class="home-item-title">${safeText(compact(n?.title || 'Untitled', 140))}</div><div class="home-item-meta">${safeText(n?.publishedAt ? new Date(n.publishedAt).toLocaleDateString() : '')}</div><div class="home-actions-row">${n._empty ? '' : `<a class="btn sm ghost" href="${safeText(toSafeExternalUrl(n?.url || n?.link || n?.permalink) || '#')}" target="_blank" rel="noopener">Open</a><button class="btn sm" data-home-use-idea="${idx}">Use as idea</button>`}</div></div>`).join('')}</div>`;
-    } catch {
-      window.__homeNewsItems = [];
-      news.innerHTML = `<div class="home-kicker">Social News</div><div class="home-title">Social News</div><div class="home-copy">Social news will appear here once sources are loaded.</div><div class="home-social-grid"><div class="home-news-card empty"><div class="home-item-title">Social news will appear here once sources are loaded.</div></div></div>`;
-    }
+  const syncBtn = qs('homeConnSyncBtn');
+  if (syncBtn) {
+    syncBtn.onclick = () => {
+      if (connected) syncBuffer({ force: true });
+      else goToBufferConnect();
+    };
   }
 
-  const note = qs('homeDevNote');
-  if (note) note.innerHTML = `<div class="home-kicker">Message from the dev team</div><div class="home-title">Message from the dev team</div><div class="home-copy">PostIQ is still in beta, which means some edges may be weird. If something feels clunky, useful, confusing, or weirdly magical, I want to know.</div><div class="home-actions-row"><a class="btn sm" href="mailto:hello@postiq.app?subject=PostIQ%20beta%20feedback">Send feedback</a></div>`;
+  const settingsBtn = qs('homeConnSettingsBtn');
+  if (settingsBtn) settingsBtn.onclick = () => openConnectionSettings();
 
-  const qa = qs('homeQuickActions');
-  if (qa) qa.innerHTML = `<div class="home-kicker">Quick Actions</div><div class="home-title">Quick Actions</div><div class="home-action-grid"><button class="home-action-card" data-home-action="compose"><span class="home-action-icon">✍️</span><span class="home-action-title">New Post</span><span class="home-action-copy">Start a fresh draft.</span></button><button class="home-action-card" data-home-action="gap"><span class="home-action-icon">🧩</span><span class="home-action-title">Fill Gap</span><span class="home-action-copy">Patch an empty spot in your week.</span></button><button class="home-action-card" data-home-action="snapshot"><span class="home-action-icon">📸</span><span class="home-action-title">Create Snapshot</span><span class="home-action-copy">Share the plan without another login.</span></button><a class="home-action-card" href="https://publish.buffer.com/" target="_blank" rel="noopener"><span class="home-action-icon">↗</span><span class="home-action-title">Open Buffer</span><span class="home-action-copy">Jump to publishing.</span></a></div>`;
+  shell.querySelectorAll('[data-home-day]').forEach(btn => {
+    btn.onclick = () => {
+      const key = btn.dataset.homeDay;
+      const parts = key.split('-');
+      const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+
+      activateView('calendarView');
+      state.month = new Date(d.getFullYear(), d.getMonth(), 1);
+      renderCalendar();
+
+      setTimeout(() => openCalendarDayDetails(d), 120);
+    };
+  });
+
+  shell.querySelectorAll('[data-view]').forEach(btn => {
+    btn.onclick = () => activateView(btn.dataset.view);
+  });
 }
+
 function initHomeView() {
   if (!FEATURE_HOME_DASHBOARD) return;
   renderHomeView();
@@ -5025,3 +5223,71 @@ document.addEventListener('DOMContentLoaded', () => {
 
   try { init(); applyFeatureFlags(); } catch (e) { console.error('[PostIQ] init() crashed:', e); showGlobalErrorBanner(); }
 });
+
+  // ── MOBILE SURVEY ─────────────────────────────────────────────
+  (function initMobileSurvey() {
+    const form = document.getElementById('mobSurveyForm');
+    if (!form) return;
+
+    const chips = document.querySelectorAll('.mob-chip');
+    const featInput = document.getElementById('mobFeaturesInput');
+    const submitBtn = document.getElementById('mobSurveySubmit');
+    const noteEl = document.getElementById('mobSurveyNote');
+    const confirmEl = document.getElementById('mobSurveyConfirm');
+    const selected = new Set();
+
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const feature = chip.dataset.feature;
+
+        if (selected.has(feature)) {
+          selected.delete(feature);
+          chip.classList.remove('selected');
+        } else {
+          selected.add(feature);
+          chip.classList.add('selected');
+        }
+
+        featInput.value = [...selected].join(', ');
+        submitBtn.disabled = selected.size === 0;
+
+        if (noteEl) {
+          noteEl.textContent = selected.size > 0 ? `${selected.size} selected` : '';
+          noteEl.style.display = selected.size > 0 ? 'block' : 'none';
+        }
+      });
+    });
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+
+      if (selected.size === 0) return;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+
+      try {
+        await fetch('/', {
+          method: 'POST',
+          body: new FormData(form)
+        });
+
+        form.style.display = 'none';
+
+        if (confirmEl) confirmEl.style.display = 'block';
+      } catch {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send →';
+      }
+    });
+
+    if (location.hash.startsWith('#share=')) {
+      const card = document.getElementById('mobSnapshotHint');
+
+      if (card) {
+        card.href = location.href;
+        card.style.display = 'flex';
+      }
+    }
+  })();
+

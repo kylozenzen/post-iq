@@ -155,21 +155,10 @@
 
     <!-- ══════════ HOME ══════════ -->
     <section id="homeView" class="view active">
-      <div class="home-grid v1">
-        <div class="home-main-col">
-          <div class="home-card home-hero-card" id="homeWelcomeCard"></div>
-          <div class="home-command-grid">
-            <div class="home-card home-health-card" id="homeQueueHealth"></div>
-            <div class="home-card home-next-card" id="homeNext72"></div>
-          </div>
-          <div class="home-card" id="homeNews"></div>
-          <div class="home-lower-grid">
-            <div class="home-card home-dev-card" id="homeDevNote"></div>
-            <div class="home-card" id="homeQuickActions"></div>
-          </div>
-        </div>
-      </div>
-    </section>
+  <div class="hd-shell" id="homeDashboard">
+    <!-- Populated entirely by renderHomeView() -->
+  </div>
+</section>
 
     <!-- ══════════ PLAN (Calendar) ══════════ -->
     <section id="calendarView" class="view active">
@@ -925,33 +914,84 @@
   </main>
 </section><!-- /app -->
 
-<section id="mobileComingSoon" class="mobile-coming-soon" aria-label="PostIQ mobile coming soon">
-  <div class="mobile-coming-card">
-    <h1>PostIQ mobile is coming soon</h1>
-    <p>PostIQ is currently built for desktop planning and publishing workflows. Want particular features on mobile? Tell the dev team what would actually help.</p>
-    <ul class="mobile-feature-ideas">
-      <li>Quick drafts</li><li>Thread Splitter</li><li>Calendar / week view</li><li>Snapshot links</li>
-      <li>Snippets</li><li>Buffer queue check</li><li>Discord posting</li><li>Social news / RSS ideas</li>
-    </ul>
-    <form name="mobile-feature-requests" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="mobile-feature-form">
-      <input type="hidden" name="form-name" value="mobile-feature-requests" />
-      <p hidden><label>Don’t fill this out: <input name="bot-field" /></label></p>
-      <label>Name (optional)<input type="text" name="name" class="input" /></label>
-      <label>Email (optional)<input type="email" name="email" class="input" /></label>
-      <fieldset>
-        <legend>Features</legend>
-        <label><input type="checkbox" name="features" value="Quick drafts"> Quick drafts</label>
-        <label><input type="checkbox" name="features" value="Thread Splitter"> Thread Splitter</label>
-        <label><input type="checkbox" name="features" value="Calendar / week view"> Calendar / week view</label>
-        <label><input type="checkbox" name="features" value="Snapshot links"> Snapshot links</label>
-        <label><input type="checkbox" name="features" value="Snippets"> Snippets</label>
-        <label><input type="checkbox" name="features" value="Buffer queue check"> Buffer queue check</label>
-        <label><input type="checkbox" name="features" value="Discord posting"> Discord posting</label>
-        <label><input type="checkbox" name="features" value="Social news / RSS ideas"> Social news / RSS ideas</label>
-      </fieldset>
-      <label>Notes<textarea name="notes" class="input" rows="4"></textarea></label>
-      <button type="submit" class="btn primary">Send feedback</button>
-    </form>
+<section id="mobileComingSoon" class="mobile-coming-soon" aria-label="PostIQ on mobile">
+  <div class="mob-cs-inner">
+
+    <div class="mob-cs-brand">
+      PostIQ <span class="mob-cs-beta">Beta</span>
+    </div>
+
+    <div class="mob-cs-hero">
+      <div class="mob-cs-icon">📱</div>
+      <h1 class="mob-cs-title">PostIQ is built for desktop right now</h1>
+      <p class="mob-cs-desc">The full planning and composing workflow needs more screen. But you can still use PostIQ on a wider screen, or tell us what would actually be useful on mobile.</p>
+    </div>
+
+    <div class="mob-cs-works">
+      <div class="mob-cs-works-label">These work right now</div>
+
+      <a id="mobSnapshotHint" class="mob-cs-action-card" href="#" style="display:none;">
+        <span class="mob-cs-action-icon">🔗</span>
+        <div>
+          <div class="mob-cs-action-title">View snapshot</div>
+          <div class="mob-cs-action-desc">Read-only content plan shared with you</div>
+        </div>
+        <span class="mob-cs-action-arrow">→</span>
+      </a>
+
+      <a href="https://postiq.netlify.app" class="mob-cs-action-card">
+        <span class="mob-cs-action-icon">🖥</span>
+        <div>
+          <div class="mob-cs-action-title">Open on desktop</div>
+          <div class="mob-cs-action-desc">Full PostIQ — plan, compose, publish</div>
+        </div>
+        <span class="mob-cs-action-arrow">→</span>
+      </a>
+
+      <a href="mailto:?subject=PostIQ%20link&body=https://postiq.netlify.app" class="mob-cs-action-card">
+        <span class="mob-cs-action-icon">✉️</span>
+        <div>
+          <div class="mob-cs-action-title">Send link to yourself</div>
+          <div class="mob-cs-action-desc">Open it later on a bigger screen</div>
+        </div>
+        <span class="mob-cs-action-arrow">→</span>
+      </a>
+    </div>
+
+    <div class="mob-cs-survey">
+      <div class="mob-cs-survey-label">Help us build the right mobile version</div>
+      <p class="mob-cs-survey-desc">What would you actually use PostIQ for on your phone?</p>
+
+      <form name="mobile-feature-requests" method="POST" data-netlify="true" netlify-honeypot="bot-field" id="mobSurveyForm">
+        <input type="hidden" name="form-name" value="mobile-feature-requests" />
+        <p hidden><label>Don't fill this out: <input name="bot-field" /></label></p>
+
+        <div class="mob-cs-chips" id="mobFeatureChips">
+          <button type="button" class="mob-chip" data-feature="Quick drafts">✍️ Quick drafts</button>
+          <button type="button" class="mob-chip" data-feature="Check my calendar">📅 Check my calendar</button>
+          <button type="button" class="mob-chip" data-feature="Approve content">✅ Approve content</button>
+          <button type="button" class="mob-chip" data-feature="Thread splitter">✂️ Thread splitter</button>
+          <button type="button" class="mob-chip" data-feature="View snapshots">🔗 View snapshots</button>
+          <button type="button" class="mob-chip" data-feature="Save ideas">💡 Save ideas</button>
+          <button type="button" class="mob-chip" data-feature="Buffer queue check">📊 Queue check</button>
+          <button type="button" class="mob-chip" data-feature="All of it">⚡ All of it</button>
+        </div>
+
+        <input type="hidden" name="features" id="mobFeaturesInput" />
+
+        <div class="mob-cs-survey-note" id="mobSurveyNote" style="display:none;"></div>
+
+        <textarea name="notes" class="mob-cs-textarea" placeholder="Anything else? (optional)" rows="3"></textarea>
+        <input type="email" name="email" class="mob-cs-input" placeholder="Email (optional — for updates)" />
+
+        <button type="submit" class="mob-cs-submit" id="mobSurveySubmit" disabled>Send →</button>
+
+        <div class="mob-cs-confirm" id="mobSurveyConfirm" style="display:none;">
+          ✓ Got it — thanks. We'll build the right thing.
+        </div>
+      </form>
+    </div>
+
   </div>
 </section>
           
