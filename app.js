@@ -746,6 +746,38 @@ function renderComposerTemplateSidebar() {
   });
 }
 
+
+function updateComposerClearButtonVisibility() {
+  const editor = document.getElementById('composerEditor');
+  const hasContent = !!editor && editor.innerText.trim().length > 0;
+  const ccBtn = document.getElementById('composerClearBtn');
+  const ccBtnMob = document.getElementById('composerClearBtnMob');
+  if (ccBtn) ccBtn.style.display = hasContent ? 'inline-flex' : 'none';
+  if (ccBtnMob) ccBtnMob.style.display = hasContent ? 'inline-flex' : 'none';
+}
+
+function clearComposer() {
+  const editor = document.getElementById('composerEditor');
+  if (!editor) return;
+  editor.focus();
+  try {
+    document.execCommand('selectAll', false, null);
+    document.execCommand('removeFormat', false, null);
+  } catch {}
+  editor.innerHTML = '';
+  editor.textContent = '';
+  editor.dispatchEvent(new InputEvent('input', {
+    bubbles: true,
+    cancelable: true,
+    inputType: 'deleteContentBackward'
+  }));
+  const status = qs('composerStatus');
+  if (status) status.textContent = '';
+  if (typeof clearMedia === 'function') clearMedia();
+  if (typeof clearDraftTransferState === 'function') clearDraftTransferState();
+  updateComposerClearButtonVisibility();
+}
+
 function useTemplateInEditor(template) {
   const editor = qs('composerEditor'); if (!editor) return;
   const body = template.body || '';
@@ -759,11 +791,8 @@ function useTemplateInEditor(template) {
     }
   } catch { editor.innerText = editor.innerText ? `${editor.innerText}\n\n${body}` : body; }
   editor.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
+  updateComposerClearButtonVisibility();
   editor.focus();
-  const ccBtn = document.getElementById('composerClearBtn');
-  const ccBtnMob = document.getElementById('composerClearBtnMob');
-  if (ccBtn) ccBtn.style.display = 'inline-flex';
-  if (ccBtnMob) ccBtnMob.style.display = 'inline-flex';
   showToast('Template inserted', 'success');
 }
 
@@ -1939,7 +1968,7 @@ function renderWeekView() {
     const dayNotes = calendarFilterNotes(allDayNotes);
     const card = document.createElement('div');
     card.className = 'cal-week-day';
-    let html = `<div class="cal-week-day-title"><span>${d.toLocaleDateString(undefined,{ weekday:'short'})}</span><strong>${d.toLocaleDateString(undefined,{ month:'short', day:'numeric'})}</strong><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add note for ${safeText(formatDateWithYear(d))}">+</button></div>`;
+    let html = `<div class="cal-week-day-title"><span class="cal-week-day-name">${d.toLocaleDateString(undefined,{ weekday:'short'})}</span><div class="cal-week-day-title-right"><strong class="cal-week-day-date">${d.toLocaleDateString(undefined,{ month:'short', day:'numeric'})}</strong><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add note for ${safeText(formatDateWithYear(d))}">+</button></div></div>`;
     if (!dayPosts.length && !dayNotes.length) html += `<div class="cal-week-empty">No posts or notes</div>`;
     dayPosts.forEach(p => { html += `<button type="button" class="day-post-pill" data-week-post="${key}">${safeText(compact(p.text, 80))}</button>`; });
     dayNotes.forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="day-note-pill" data-week-note="${safeText(note.id)}" style="${notePillStyle(meta)}">${safeText(compact(note.text, 70))}</button>`; });
@@ -1968,6 +1997,11 @@ function setCalendarView(view) {
 }
 function updateCalendarViewUI() {
   const isWeek = state.calendarView === 'week';
+  const calendarRoot = qs('calendarView');
+  if (calendarRoot) {
+    calendarRoot.classList.toggle('is-week-view', isWeek);
+    calendarRoot.classList.toggle('is-month-view', !isWeek);
+  }
   qs('calGrid')?.style.setProperty('display', isWeek ? 'none' : 'grid');
   qs('calWeek')?.style.setProperty('display', isWeek ? 'block' : 'none');
   qs('calendarViewMonthBtn')?.classList.toggle('active', !isWeek);
@@ -2101,7 +2135,8 @@ function sendNoteToDraft() {
   const editor = qs('composerEditor');
   const payload = `[${label}] ${fmtDate(state.selectedDate)}\n${text}`;
   editor.innerText = editor.innerText ? `${editor.innerText}\n\n${payload}` : payload;
-  editor.dispatchEvent(new Event('input'));
+  editor.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
+  updateComposerClearButtonVisibility();
   closeModal('noteModal'); resetNoteForm(); activateView('composerView');
   showToast('Note sent to Compose');
 }
@@ -3247,7 +3282,8 @@ function initHomeView() {
         if (ed) {
           const sourceUrl = toSafeExternalUrl(item.url || item.link || item.permalink);
           ed.textContent = `Idea from ${item._source || 'news'}:\n${item.title || ''}${sourceUrl ? `\n${sourceUrl}` : ''}\n\nMy take: `;
-          ed.dispatchEvent(new Event('input'));
+          ed.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
+          updateComposerClearButtonVisibility();
         }
       }
     }
@@ -3469,21 +3505,12 @@ function init() {
       cc.textContent = `${text.length} chars`;
       cc.className = 'char-count' + (text.length > 500 ? ' warn' : '');
     }
-    const showClear = text.length > 0;
-    const ccBtn = qs('composerClearBtn'); if (ccBtn) ccBtn.style.display = showClear ? 'inline-flex' : 'none';
+    updateComposerClearButtonVisibility();
   });
   const charCount = qs('charCount'); if (charCount) charCount.textContent = '0 chars';
   on('composerChannel', 'change', updateComposerButtonStates);
 
-  on('composerClearBtn', 'click', () => {
-    editor.focus();
-    document.execCommand('selectAll', false, null);
-    document.execCommand('removeFormat', false, null);
-    editor.innerHTML = '';
-    editor.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
-    const status = qs('composerStatus'); if (status) status.textContent = '';
-    clearMedia();
-  });
+  on('composerClearBtn', 'click', clearComposer);
 
   document.querySelectorAll('[data-cmd]').forEach(btn => btn.onclick = () => composerFormat(btn.dataset.cmd));
   on('composerDraft', 'click', () => composerSend('draft'));
@@ -3618,22 +3645,10 @@ function init() {
   const smb = qs('shareMonthBtnMob'); if (smb) smb.onclick = openShareSnapshotModal;
 
   const ccbm = qs('composerClearBtnMob');
-  if (ccbm) {
-    ccbm.onclick = () => {
-      editor.focus();
-      document.execCommand('selectAll', false, null);
-      document.execCommand('removeFormat', false, null);
-      editor.innerHTML = '';
-      editor.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
-      const status = qs('composerStatus'); if (status) status.textContent = '';
-      clearMedia();
-    };
-  }
+  if (ccbm) ccbm.onclick = clearComposer;
 
-  editor.addEventListener('input', () => {
-    const hasText = !!editorToText(editor.innerHTML);
-    const ccbmBtn = qs('composerClearBtnMob'); if (ccbmBtn) ccbmBtn.style.display = hasText ? 'inline-flex' : 'none';
-  });
+  editor.addEventListener('input', updateComposerClearButtonVisibility);
+  updateComposerClearButtonVisibility();
 
   const arbm = qs('approvalsRefreshBtnMob'); if (arbm) arbm.onclick = loadApprovals;
 
@@ -4842,6 +4857,7 @@ window.ContentPillars = (() => {
       const existing = editor.innerText.trim();
       editor.innerText = existing ? `${existing}\n\n${text}` : text;
       editor.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
+      updateComposerClearButtonVisibility();
       if (typeof window.activateView === 'function') window.activateView('composerView');
       editor.focus();
       return true;
