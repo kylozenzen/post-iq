@@ -62,7 +62,7 @@ const LEGACY_NOTE_TYPES = {
 
 // ── STATE ──────────────────────────────────────────
 let bufferToken = '';
-let currentViewId = 'calendarView';
+let currentViewId = 'homeView';
 let currentIdeasTab = 'notebook';
 let tokenPanelOpen = false;
 let modalCount = 0;
@@ -948,6 +948,7 @@ function markBufferReconnectNeeded() {
   store.setItem(OAUTH_RECONNECT_NEEDED_KEY, '1');
   bufferToken = '';
   renderConnectionUI();
+  initHomeView();
   setSyncStatus('failed', 'Reconnect Buffer to keep syncing.');
 }
 
@@ -992,6 +993,7 @@ async function refreshBufferOAuthToken() {
   const expiresIn = Number(data.expires_in || 0);
   setStoredOAuthValue(OAUTH_EXPIRES_AT_KEY, expiresIn ? Date.now() + expiresIn * 1000 : '');
   renderConnectionUI();
+  initHomeView();
   return getStoredOAuthToken();
 }
 
@@ -1255,6 +1257,7 @@ function openConnectionSettings(options = {}) {
   selectSettingsTab('connection');
   tokenPanelOpen = !!options.advancedApi;
   renderConnectionUI();
+  initHomeView();
   const panel = qs('tokenPanel');
   if (options.advancedApi) setTokenPanelVisible(panel, true);
   
@@ -1391,6 +1394,7 @@ function renderConnectionUI() {
 
 function refreshTokenUI() {
   renderConnectionUI();
+  initHomeView();
 }
 
 function toggleDesktopTokenPanel({ reveal = false } = {}) {
@@ -1401,12 +1405,14 @@ function toggleDesktopTokenPanel({ reveal = false } = {}) {
     if (inp) { inp.type = 'text'; inp.focus(); }
   }
   renderConnectionUI();
+  initHomeView();
 }
 
 function toggleMobileTokenPanel() {
   window.postiqMobileTokenPanelOpen = !window.postiqMobileTokenPanelOpen;
   setTokenPanelVisible(qs('mobTokenPanel'), window.postiqMobileTokenPanelOpen);
   renderConnectionUI();
+  initHomeView();
 }
 
 function updateNavTags() {
@@ -1454,6 +1460,7 @@ function setBufferToken(token, { mode = 'session', messageEl = null } = {}) {
     if (!after.connected) clearSyncedData();
     if (messageEl) messageEl.textContent = 'Manual API key disconnected.';
     renderConnectionUI();
+  initHomeView();
     showToast('Manual API key disconnected');
     return false;
   }
@@ -1463,6 +1470,7 @@ function setBufferToken(token, { mode = 'session', messageEl = null } = {}) {
   bufferToken = clean;
   if (messageEl) messageEl.textContent = mode === 'local' ? 'API key fallback saved locally.' : 'API key fallback saved for session.';
   renderConnectionUI();
+  initHomeView();
   showToast('API key fallback saved', 'success');
   return true;
 }
@@ -1472,6 +1480,7 @@ function disconnectBuffer() {
   const after = syncBufferTokenFromState();
   if (!after.connected) clearSyncedData();
   renderConnectionUI();
+  initHomeView();
   showToast('Buffer disconnected.', 'success');
   setSyncStatus('idle', after.connected ? 'Connected with advanced setup.' : 'Buffer disconnected.');
   return true;
@@ -1487,6 +1496,7 @@ function loadStoredToken() {
     hydrateFromCache();
   }
   renderConnectionUI();
+  initHomeView();
 }
 
 
@@ -1495,6 +1505,7 @@ async function checkBufferConnectionHealth() {
   if (oauthToken?.accessToken && !isOAuthTokenExpired()) {
     clearReconnectNeeded();
     renderConnectionUI();
+  initHomeView();
     return getBufferConnectionState();
   }
   if (oauthToken?.accessToken || oauthToken?.refreshToken) {
@@ -1504,9 +1515,11 @@ async function checkBufferConnectionHealth() {
       markBufferReconnectNeeded();
     }
     renderConnectionUI();
+  initHomeView();
     return getBufferConnectionState();
   }
   renderConnectionUI();
+  initHomeView();
   return getBufferConnectionState();
 }
 
@@ -1667,6 +1680,7 @@ async function syncBuffer({ force = false } = {}) {
     detectQueueGaps();
     setSyncStatus('success', `${posts.length} scheduled posts loaded.`);
     renderConnectionUI();
+  initHomeView();
     showToast(`Loaded ${posts.length} posts`, 'success');
     window.dispatchEvent(new Event('postiq:synced'));
   } catch (e) {
@@ -1991,7 +2005,7 @@ function saveNote() {
   renderCalendar();
   closeModal('noteModal');
   resetNoteForm();
-  activateView('calendarView');
+  activateView('homeView');
 
   showToast(existingIdx >= 0 ? 'Note updated' : 'Note saved', 'success');
 }
@@ -2006,7 +2020,7 @@ function deleteNote() {
   renderCalendar();
   closeModal('noteModal');
   resetNoteForm();
-  activateView('calendarView');
+  activateView('homeView');
   showToast('Note deleted');
 }
 
@@ -2974,6 +2988,7 @@ function activateView(viewId) {
   document.querySelectorAll('[data-view]').forEach(x => x.classList.toggle('active', x.dataset.view === viewId));
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId));
   document.querySelectorAll('.mob-tab[data-view]').forEach(t => t.classList.toggle('active', t.dataset.view === viewId));
+  if (viewId === 'homeView') renderHomeView();
   if (viewId === 'ideasView') setIdeasTab(currentIdeasTab || 'notebook');
   if (viewId === 'approvalsView') loadApprovals();
 }
@@ -3010,6 +3025,60 @@ function syncComposerWhen() {
   whenEl.value = `${d}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00.000Z`;
 }
 
+
+function getGreetingLabel() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+function getScheduledPostsForRange(startDate, endDate) {
+  const startMs = +startDate; const endMs = +endDate;
+  return (state.scheduled || []).filter(p => {
+    const due = new Date(p.due_at || p.dueAt || p.scheduled_at || p.scheduledAt || 0).getTime();
+    return due >= startMs && due <= endMs;
+  });
+}
+function getHomeDashboardData() {
+  const now = new Date();
+  const weekEnd = new Date(now.getTime() + 7*86400000);
+  const posts7 = getScheduledPostsForRange(now, weekEnd);
+  const posts72 = getScheduledPostsForRange(now, new Date(now.getTime()+72*3600000));
+  const daySet = new Set(posts7.map(p => fmtDate(new Date(p.due_at || p.dueAt || p.scheduled_at || p.scheduledAt || now))));
+  const platforms = new Set(posts7.map(p => (p.service || p.channel_service || p.channel || 'Unknown')));
+  const settings = getPlanningSettings();
+  const gapDays = (settings.postingDays || []).filter(code => {
+    const idx = DAY_CODES.indexOf(code); if (idx < 0) return false;
+    const d = new Date(now); d.setDate(now.getDate() + ((idx - now.getDay() + 7) % 7));
+    return !daySet.has(fmtDate(d));
+  });
+  let pillars=[]; try { pillars = JSON.parse(localStorage.getItem('postiq_pillars_v3')||'{}').pillars || []; } catch {}
+  return { now, posts7, posts72, coveredDays: daySet.size, gapDays, platforms: platforms.size, pillars };
+}
+function renderHomeView() {
+  const d = getHomeDashboardData();
+  const connected = !!getBufferAccessToken();
+  const greeting = qs('homeGreeting'); if (greeting) greeting.textContent = getGreetingLabel();
+  const chip = qs('homeStatusChip'); if (chip) { chip.classList.toggle('connected', connected); chip.textContent = connected ? '● Buffer connected' : 'Connect Buffer to unlock your dashboard'; }
+  const qh = qs('homeQueueHealth'); if (qh) qh.innerHTML = `<div class="section-title">Queue health</div><div style="font-size:13px;color:var(--muted);margin:8px 0;">${connected ? (d.posts7.length ? `Queue healthy through ${new Date(Math.max(...d.posts7.map(p=>new Date(p.due_at||p.dueAt).getTime()))).toLocaleDateString(undefined,{weekday:'long'})} · ${d.gapDays.length} gaps this week` : 'No scheduled posts found yet') : 'Connect Buffer to see queue health'}</div><div class="home-qh-stats"><div class="home-qh-stat"><div class="home-qh-num">${d.posts7.length}</div><div class="home-qh-lbl">Scheduled</div></div><div class="home-qh-stat"><div class="home-qh-num">${d.gapDays.length}</div><div class="home-qh-lbl">Gaps</div></div><div class="home-qh-stat"><div class="home-qh-num">${d.coveredDays}</div><div class="home-qh-lbl">Days covered</div></div><div class="home-qh-stat"><div class="home-qh-num">${d.platforms}</div><div class="home-qh-lbl">Platforms</div></div></div><div style="margin-top:12px" class="home-progress"><span style="width:${Math.min(100,Math.round((d.coveredDays/7)*100))}%"></span></div>`;
+  const next = qs('homeNext72'); if (next) next.innerHTML = `<div class="section-title">Next 72 hours</div><div class="home-list">${d.posts72.length ? d.posts72.map(p=>`<div class="home-item"><div style="font-family:'DM Mono',monospace;color:var(--subtle)">${new Date(p.due_at||p.dueAt).toLocaleString()}</div><div>${safeText(compact(p.text||p.description||'',120))}</div></div>`).join('') : '<div class="home-item">No scheduled posts in next 72 hours.</div>'}</div><div style="margin-top:10px;"><button class="btn sm" id="homeViewCalendarBtn">View calendar</button></div>`;
+  const pillars = qs('homePillars'); if (pillars) pillars.innerHTML = `<div class="section-title">Pillar pipeline</div>${d.pillars.length ? '<div class="home-list">'+d.pillars.map(p=>`<div class="home-item"><strong>${safeText(p.name||'Untitled')}</strong><div style="font-size:11px;color:var(--muted)">${safeText(p.promise||'')}</div></div>`).join('')+'</div>' : '<div class="home-item">Not sure what to post about? Build content pillars to give your week some structure.<div style="margin-top:8px;"><button class="btn sm" id="homeBuildPillarsBtn">Build pillars</button></div></div>'}`;
+  const news = qs('homeNews'); if (news) news.innerHTML = `<div class="section-title">Platform news</div><div id="homeNewsList" class="home-list"><div class="home-item">Open Ideas → Trending → RSS to load latest items.</div></div>`;
+  const prompt = qs('homePrompt'); if (prompt) prompt.innerHTML = `<div style="font-size:10px;font-family:'DM Mono',monospace;opacity:.7;text-transform:uppercase">Write this today</div><div style="margin-top:10px;font-size:13px;line-height:1.6" id="homePromptText">${safeText(d.pillars[0]?.seeds?.find(Boolean) || 'Share one practical lesson you learned this week and what changed after you applied it.')}</div><div style="display:flex;gap:8px;margin-top:12px;"><button class="btn sm primary" id="homeStartDraftBtn">Start draft</button><button class="btn sm ghost" id="homeNewPromptBtn">New prompt</button></div>`;
+  const qa = qs('homeQuickActions'); if (qa) qa.innerHTML = `<div class="section-title">Quick actions</div><div class="home-quick"><button data-home-action="compose">✍️ New post</button><button data-home-action="gap">⚠ Fill a gap</button><button data-home-action="pillars">🧠 Build pillars</button><button data-home-action="snapshot">📸 Create snapshot</button><a href="https://publish.buffer.com/" target="_blank" rel="noopener">↗ Open Buffer</a></div>`;
+}
+function initHomeView() {
+  renderHomeView();
+  document.addEventListener('click', e => {
+    const a=e.target.closest('[data-home-action]'); if (a){ const v=a.dataset.homeAction; if (v==='compose'||v==='gap'){activateView('composerView');} if (v==='pillars'){activateView('ideasView'); setIdeasTab('pillars');} if (v==='snapshot'){activateView('calendarView'); openShareSnapshotModal();} }
+    if (e.target.id==='homeViewCalendarBtn') activateView('calendarView');
+    if (e.target.id==='homeBuildPillarsBtn') { activateView('ideasView'); setIdeasTab('pillars'); }
+    if (e.target.id==='homeSyncBtn') syncBuffer({force:true});
+    if (e.target.id==='homeNewPostBtn') activateView('composerView');
+    if (e.target.id==='homeStartDraftBtn') { const text=qs('homePromptText')?.textContent||''; const ed=qs('composerEditor'); if (ed){activateView('composerView'); ed.textContent=text; ed.dispatchEvent(new Event('input'));} }
+    if (e.target.id==='homeNewPromptBtn') { const prompts=['Share a contrarian take your audience needs to hear.','Write a quick behind-the-scenes process you used this week.','Teach one repeatable framework in 5 bullets.']; const el=qs('homePromptText'); if (el) el.textContent=prompts[Math.floor(Math.random()*prompts.length)]; }
+  });
+}
 // ── INIT ──────────────────────────────────────────────
 function renderPlanningSettings() {
   const show = qs('showQueueGapsSetting');
@@ -3085,7 +3154,7 @@ function init() {
   renderCalendar();
   renderPlanningSettings();
   renderNoteTypesSettings();
-  activateView('calendarView');
+  activateView('homeView');
 
   selectSettingsTab(document.querySelector('.settings-tab.active')?.dataset.stab || 'connection');
   document.querySelectorAll('.settings-tab').forEach(tab => {
@@ -3153,6 +3222,7 @@ function init() {
     history.replaceState({}, document.title, cleanUrl);
   }
   renderConnectionUI();
+  initHomeView();
   if (initialParams.get('settings') === 'connection') {
     openConnectionSettings({ advancedApi: initialParams.get('advanced') === 'api' });
   }
@@ -3342,6 +3412,7 @@ function init() {
     const syncEl = qs('syncStatus');
     const ms = qs('mobSyncStatus'); if (ms && syncEl) ms.textContent = syncEl.textContent;
     renderConnectionUI();
+  initHomeView();
     qs('mobDrawer')?.classList.add('open');
     qs('mobBackdrop')?.classList.add('open');
     document.body.style.overflow = 'hidden';

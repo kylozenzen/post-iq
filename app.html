@@ -49,7 +49,10 @@
 
 <!-- ── MOBILE TABS ── -->
 <nav class="mobile-tabs" id="mobileTabs">
-  <button class="mob-tab active" data-view="calendarView">
+  <button class="mob-tab active" data-view="homeView">
+    🏠 Home
+  </button>
+  <button class="mob-tab" data-view="calendarView">
     <svg><use href="#i-cal"/></svg>Plan
   </button>
   <button class="mob-tab" data-view="composerView">
@@ -105,7 +108,12 @@
     <!-- Nav -->
     <nav class="side-nav">
       <div class="nav-section-label">Workflow</div>
-      <button class="nav-btn active" data-view="calendarView">
+      <button class="nav-btn active" data-view="homeView">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-text">Home</span>
+        <span class="nav-tag new">New</span>
+      </button>
+      <button class="nav-btn" data-view="calendarView">
         <span class="nav-icon"><svg><use href="#i-cal"/></svg></span>
         <span class="nav-text">Plan</span>
         <span class="nav-tag needs" id="calNavTag">Sign in</span>
@@ -143,6 +151,38 @@
 
   <!-- MAIN CONTENT -->
   <main class="main">
+
+
+    <!-- ══════════ HOME ══════════ -->
+    <section id="homeView" class="view active">
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <div class="home-greeting-row">
+            <span class="home-greeting-time" id="homeGreeting">Good morning</span>
+            <div class="home-greeting-divider"></div>
+            <span class="home-status-chip" id="homeStatusChip">Connect Buffer to unlock your dashboard</span>
+          </div>
+          <h1 class="page-title">Here’s where things stand.</h1>
+          <p class="page-desc" id="homeSubtitle">Queue health, upcoming posts, pillar coverage, and social updates.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn ghost" id="homeSyncBtn">↻ Sync</button>
+          <button class="btn primary" id="homeNewPostBtn">+ New post</button>
+        </div>
+      </div>
+      <div class="home-grid">
+        <div class="home-main-col">
+          <div class="home-card" id="homeQueueHealth"></div>
+          <div class="home-card" id="homeNext72"></div>
+          <div class="home-card" id="homePillars"></div>
+        </div>
+        <div class="home-side-col">
+          <div class="home-prompt-card" id="homePrompt"></div>
+          <div class="home-card" id="homeQuickActions"></div>
+          <div class="home-card" id="homeNews"></div>
+        </div>
+      </div>
+    </section>
 
     <!-- ══════════ PLAN (Calendar) ══════════ -->
     <section id="calendarView" class="view active">
