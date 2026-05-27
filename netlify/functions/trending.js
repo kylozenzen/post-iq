@@ -2,10 +2,14 @@
 
 // netlify/functions/trending.js
 // Server-side proxy for trending feeds — avoids CORS and CSP issues.
-// Supports: reddit, hn (Hacker News), producthunt
+// Supports: reddit, hn (Hacker News), producthunt, rss
 
 const DEFAULT_SUBS = ['socialmedia', 'entrepreneur', 'marketing', 'business', 'smallbusiness'];
 const HN_FEED_TYPES = ['topstories', 'newstories', 'beststories'];
+const RSS_FEEDS = {
+  'buffer-blog': { id: 'buffer-blog', name: 'Buffer Blog', type: 'rss', url: 'https://buffer.com/resources/feed' },
+  'social-media-today': { id: 'social-media-today', name: 'Social Media Today', type: 'rss', url: 'https://www.socialmediatoday.com/feeds/news' },
+};
 
 function decodeHtmlEntities(value) {
   return String(value || '')
@@ -302,6 +306,49 @@ async function fetchProductHuntFallback(limit = 20) {
   return { posts: items };
 }
 
+async function fetchRSS(feedId, limit = 20) {
+  const selected = RSS_FEEDS[String(feedId || '').trim()] || RSS_FEEDS['buffer-blog'];
+  const res = await fetch(selected.url, {
+    headers: {
+      'User-Agent': 'PostIQ/1.0 (Buffer companion app; content planning)',
+      'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml',
+    },
+  });
+  if (!res.ok) throw new Error(`${selected.name} returned HTTP ${res.status}`);
+  const xml = await res.text();
+  const posts = [];
+  const parseItem = (chunk, mode) => {
+    const getTag = tag => {
+      const m = chunk.match(new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]></${tag}>|<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i'));
+      return m ? (m[1] || m[2] || '').trim() : '';
+    };
+    const title = getTag('title');
+    const link = mode === 'atom' ? ((chunk.match(/<link[^>]+href="([^"]+)"/i) || [])[1] || getTag('id')) : getTag('link');
+    const description = getTag('description') || getTag('summary') || getTag('content');
+    const pubDate = getTag('pubDate') || getTag('updated') || getTag('published');
+    if (!title || !link) return;
+    posts.push({
+      title: cleanFeedText(title, 250),
+      tagline: cleanFeedText(description, 200),
+      score: 0,
+      comments: 0,
+      sub: selected.name,
+      url: link,
+      permalink: link,
+      selftext: cleanFeedText(description, 300),
+      age: pubDate ? Math.max(0, Math.floor((Date.now() - new Date(pubDate).getTime()) / 1000)) : 0,
+      source: 'rss',
+    });
+  };
+  const itemRegex = /<item>([\s\S]*?)<\/item>/gi;
+  const entryRegex = /<entry>([\s\S]*?)<\/entry>/gi;
+  let match;
+  while ((match = itemRegex.exec(xml)) !== null && posts.length < limit) parseItem(match[1], 'rss');
+  while ((match = entryRegex.exec(xml)) !== null && posts.length < limit) parseItem(match[1], 'atom');
+  if (!posts.length) throw new Error(`${selected.name} returned no parseable items`);
+  return { posts, feed: selected };
+}
+
 exports.handler = async function(event) {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders(), body: '' };
@@ -337,7 +384,12 @@ exports.handler = async function(event) {
       return successResponse(result);
     }
 
-    return errorResponse(400, `Unknown source: ${source}. Use reddit, hn, or producthunt.`, 'UNKNOWN_SOURCE');
+    if (source === 'rss') {
+      const result = await fetchRSS(feed || 'buffer-blog', itemLimit);
+      return successResponse(result);
+    }
+
+    return errorResponse(400, `Unknown source: ${source}. Use reddit, hn, producthunt, or rss.`, 'UNKNOWN_SOURCE');
   } catch (err) {
     console.error(`[PostIQ trending] ${source} fetch failed:`, err.message);
     return errorResponse(502, err.message || 'Feed fetch failed', 'FETCH_ERROR');

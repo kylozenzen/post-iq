@@ -17,6 +17,13 @@
   const isValidWebhookUrl = (url) => /^https:\/\/discord\.com\/api\/webhooks\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+/.test(String(url || ''));
   const uid = (prefix) => `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
   const status = (msg) => { const el = dqs('discordComposerStatus'); if (el) el.textContent = msg || ''; };
+  const openDiscordSettings = () => {
+    if (typeof window.selectSettingsTab === 'function') window.selectSettingsTab('discord');
+    if (typeof window.openModal === 'function') window.openModal('settingsModal');
+    const panel = dqs('settingsPanelDiscord');
+    if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    dqs('discordWebhookUrl')?.focus();
+  };
 
   function save() { localStorage.setItem(DISCORD_KEY, JSON.stringify(config)); }
   function load() {
@@ -45,6 +52,19 @@
     const ws = Array.isArray(config.workspaces) ? config.workspaces : [];
     const active = getActiveWorkspace();
     panel.innerHTML = `<div class="settings-section"><div class="settings-section-title">Discord destinations</div><p class="settings-copy">Saved locally in your browser only.</p>
+      <div style="border:1px solid var(--border2);border-radius:10px;background:var(--surface);padding:10px 12px;margin:10px 0 14px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;">How to connect Discord</div>
+        <ol style="margin:0;padding-left:18px;font-size:12px;color:var(--muted);line-height:1.55;">
+          <li>In Discord, open your server.</li>
+          <li>Go to Server Settings → Integrations → Webhooks.</li>
+          <li>Click New Webhook.</li>
+          <li>Choose the Discord channel you want PostIQ to post in.</li>
+          <li>Copy the webhook URL.</li>
+          <li>Come back to PostIQ and paste it below as a Discord destination.</li>
+        </ol>
+        <p style="margin:8px 0 0;font-size:11px;color:var(--subtle);">Tip: Create a private #postiq-test channel first so you can test without posting to your whole server.</p>
+        <p style="margin:8px 0 0;font-size:11px;color:var(--amber);">Treat your Discord webhook URL like a password. Anyone with the URL may be able to post into that Discord channel.</p>
+      </div>
       <div class="field"><label class="label" for="discordWorkspaceName">Destination name</label><input id="discordWorkspaceName" class="input" placeholder="Product updates" /></div>
       <div class="field"><label class="label" for="discordWebhookUrl">Webhook URL</label><input id="discordWebhookUrl" class="input mono" placeholder="https://discord.com/api/webhooks/..." /></div>
       <div class="row"><button class="btn sm primary" id="discordAddWebhookBtn" type="button">Save destination</button></div>
@@ -66,11 +86,19 @@
     const select = dqs('discordComposerDestination'); if (!select) return;
     const ws = Array.isArray(config.workspaces) ? config.workspaces : [];
     select.innerHTML = '';
-    if (!ws.length) { select.innerHTML = '<option value="" disabled selected>No Discord destination connected</option>'; status('Add a Discord destination in Settings.'); return; }
+    if (!ws.length) {
+      select.innerHTML = '<option value="" disabled selected>No Discord destination connected</option>';
+      status('No Discord destination connected yet. Get started by adding a Discord webhook in Settings.');
+      const start = dqs('discordComposerGetStarted');
+      if (start) start.style.display = 'inline-flex';
+      return;
+    }
     const activeId = ws.some(w => w.id === config.activeWorkspaceId) ? config.activeWorkspaceId : ws[0].id;
     if (activeId !== config.activeWorkspaceId) { config.activeWorkspaceId = activeId; save(); }
     select.innerHTML = ws.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
     select.value = activeId;
+    const start = dqs('discordComposerGetStarted');
+    if (start) start.style.display = 'none';
     select.onchange = () => { config.activeWorkspaceId = select.value; save(); status(''); };
   }
 
@@ -167,6 +195,7 @@
     dqs('discordComposerSendBtn')?.addEventListener('click', sendDiscordComposerMessage);
     dqs('discordComposerScheduleBtn')?.addEventListener('click', scheduleDiscordAnnouncement);
     dqs('discordComposerClearBtn')?.addEventListener('click', () => { if (dqs('discordComposerText')) dqs('discordComposerText').value = ''; status(''); });
+    dqs('discordComposerGetStarted')?.addEventListener('click', (e) => { e.preventDefault(); openDiscordSettings(); });
   }
 
   window.Discord = { init, renderSettings: renderDiscordSettings, renderComposer, renderDestinationSelect: renderDiscordDestinationSelect, renderScheduledList: renderScheduledDiscordList, checkScheduledAnnouncements: checkScheduledDiscordAnnouncements, initDiscordComposerMode, onComposerSent, renderComposerToggle };
