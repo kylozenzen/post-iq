@@ -69,6 +69,8 @@ let modalCount = 0;
 let modalActionDelegatesBound = false;
 let globalStatusTimer = null;
 let lastGlobalErrorBannerAt = 0;
+let homeActionsBound = false;
+let homeDashboardWarned = false;
 let postiqConfig = {
   ...DEFAULT_POSTIQ_CONFIG,
   features: { ...DEFAULT_POSTIQ_CONFIG.features },
@@ -1304,6 +1306,8 @@ function renderConnectionUI() {
   }
   const connDot = qs('connDot'); if (connDot) connDot.classList.toggle('on', connected);
   const connLabel = qs('connLabel'); if (connLabel) connLabel.textContent = statusLabel;
+  const homeNavTag = qs('homeNavTag');
+  if (homeNavTag) homeNavTag.style.display = connected ? '' : 'none';
   const connHeading = qs('connHeading');
   if (connHeading) {
     connHeading.textContent = primaryHeading;
@@ -3092,27 +3096,45 @@ async function getSocialNewsForHome() {
 }
 function getHomeDashboardData() {
   const now = new Date();
-  const connected = !!getBufferAccessToken();
-  const queue = getQueueHealth(state.scheduled || []);
-  return { now, connected, displayName: getHomeDisplayName(), queue, next72: getNext72HoursPosts(state.scheduled || []) };
+  const connection = getBufferConnectionState?.() || { connected: false, reconnectNeeded: false };
+  const connected = !!connection.connected;
+  const queue = getQueueHealth(state?.scheduled || []);
+  const next72 = getNext72HoursPosts(state?.scheduled || []);
+  const hasScheduledPosts = Array.isArray(state?.scheduled) && state.scheduled.length > 0;
+  return { now, connected, reconnectNeeded: !!connection.reconnectNeeded, displayName: getHomeDisplayName(), queue, next72, hasScheduledPosts };
 }
 async function renderHomeView() {
-  const d = getHomeDashboardData();
+  let d;
+  try {
+    d = getHomeDashboardData();
+  } catch (err) {
+    d = { connected: false, reconnectNeeded: false, displayName: getHomeDisplayName(), queue: { next7: [], byDayCount: 0, weekGaps: [], activeChannelsCount: 0 }, next72: [], hasScheduledPosts: false };
+    if (!homeDashboardWarned) {
+      console.warn('Home dashboard data unavailable; rendering fallback state.', err);
+      homeDashboardWarned = true;
+    }
+  }
   const syncedText = qs('lastSynced')?.textContent?.trim();
+  const isConnectedNoData = d.connected && !d.hasScheduledPosts;
   const welcome = qs('homeWelcomeCard');
-  if (welcome) welcome.innerHTML = `<div class="home-kicker">Welcome</div><div class="home-title">${safeText(getGreetingLabel())}${d.displayName && d.displayName !== 'there' ? `, ${safeText(d.displayName)}` : ''}.</div><div class="home-copy">Here’s what’s happening in your content queue.</div><div class="home-actions-row"><span class="home-chip ${d.connected ? 'connected' : ''}">${d.connected ? 'Connected to Buffer' : 'Not connected'}</span>${syncedText ? `<span class="home-chip">${safeText(syncedText)}</span>` : ''}<button class="btn sm" id="homeSyncBtn">↻ Sync Buffer</button></div>`;
-  const q = d.queue;
-  const gapSummary = q.weekGaps.length ? `You're covered through ${q.next7.length ? new Date(Math.max(...q.next7.map(p => new Date(p.due_at || p.dueAt || 0).getTime()))).toLocaleDateString(undefined, { weekday: 'long' }) : 'this week'}, but ${q.weekGaps.map(code => DAY_LABELS[DAY_CODES.indexOf(code)]).join(' and ')} look empty.` : 'Nice work — no configured posting-day gaps this week.';
+  if (welcome) welcome.innerHTML = `<div class="home-kicker">Welcome</div><div class="home-title">${safeText(getGreetingLabel())}${d.displayName && d.displayName !== 'there' ? `, ${safeText(d.displayName)}` : ''}.</div><div class="home-copy">${d.connected ? (isConnectedNoData ? 'Connected. Click Sync now to load Buffer posts.' : 'Here’s what’s happening in your content queue.') : 'Connect Buffer to load your channels, queue, and scheduled posts.'}</div><div class="home-actions-row"><span class="home-chip ${d.connected ? 'connected' : ''}">${d.connected ? 'Connected to Buffer' : (d.reconnectNeeded ? 'Reconnect Buffer' : 'Not connected')}</span>${syncedText ? `<span class="home-chip">${safeText(syncedText)}</span>` : ''}<button class="btn sm" id="homeSyncBtn">${d.connected ? '↻ Sync now' : (d.reconnectNeeded ? 'Reconnect Buffer' : 'Sign in with Buffer')}</button></div>`;
+  const q = d.queue || { next7: [], byDayCount: 0, weekGaps: [], activeChannelsCount: 0 };
+  const gapSummary = q.weekGaps?.length ? `You're covered through ${q.next7?.length ? new Date(Math.max(...q.next7.map(p => new Date(p?.due_at || p?.dueAt || 0).getTime()))).toLocaleDateString(undefined, { weekday: 'long' }) : 'this week'}, but ${q.weekGaps.map(code => DAY_LABELS[DAY_CODES.indexOf(code)]).join(' and ')} look empty.` : 'Nice work — no configured posting-day gaps this week.';
   const qh = qs('homeQueueHealth');
-  if (qh) qh.innerHTML = `<div class="home-kicker">Queue Health</div><div class="home-title">Current week snapshot</div><div class="home-copy">${d.connected ? (q.next7.length ? gapSummary : 'No scheduled posts found yet.') : 'Connect Buffer to unlock queue health.'}</div><div class="home-stat-grid"><div class="home-stat"><div class="home-stat-num">${q.next7.length}</div><div class="home-stat-lbl">7-day posts</div></div><div class="home-stat"><div class="home-stat-num">${q.byDayCount}</div><div class="home-stat-lbl">Days covered</div></div><div class="home-stat"><div class="home-stat-num">${q.weekGaps.length}</div><div class="home-stat-lbl">Gaps</div></div><div class="home-stat"><div class="home-stat-num">${q.activeChannelsCount}</div><div class="home-stat-lbl">Channels</div></div></div>`;
+  if (qh) qh.innerHTML = `<div class="home-kicker">Queue Health</div><div class="home-title">Current week snapshot</div><div class="home-copy">${d.connected ? (q.next7?.length ? gapSummary : 'Connect Buffer to see your queue health.') : 'Connect Buffer to see your queue health.'}</div><div class="home-stat-grid"><div class="home-stat"><div class="home-stat-num">${q.next7?.length || 0}</div><div class="home-stat-lbl">7-day posts</div></div><div class="home-stat"><div class="home-stat-num">${q.byDayCount || 0}</div><div class="home-stat-lbl">Days covered</div></div><div class="home-stat"><div class="home-stat-num">${q.weekGaps?.length || 0}</div><div class="home-stat-lbl">Gaps</div></div><div class="home-stat"><div class="home-stat-num">${q.activeChannelsCount || 0}</div><div class="home-stat-lbl">Channels</div></div></div>`;
   const next = qs('homeNext72');
-  if (next) next.innerHTML = `<div class="home-kicker">Next 72 Hours</div><div class="home-title">Upcoming scheduled posts</div><div class="home-list">${d.next72.length ? d.next72.map(p => `<div class="home-item"><div class="home-item-meta">${new Date(p.due_at || p.dueAt).toLocaleString()} · ${safeText(p.service || p.channel || 'Channel')}</div><div class="home-item-title">${safeText(compact(p.text || p.description || p.body || '', 160))}</div></div>`).join('') : '<div class="home-item"><div class="home-item-title">No scheduled posts in the next 72 hours.</div></div>'}</div><div class="home-actions-row"><button class="btn sm" id="homeViewCalendarBtn">View in calendar</button></div>`;
+  if (next) next.innerHTML = `<div class="home-kicker">Next 72 Hours</div><div class="home-title">Upcoming scheduled posts</div><div class="home-list">${(d.next72 || []).length ? d.next72.map(p => `<div class="home-item"><div class="home-item-meta">${new Date(p?.due_at || p?.dueAt || 0).toLocaleString()} · ${safeText(p?.service || p?.channel || 'Channel')}</div><div class="home-item-title">${safeText(compact(p?.text || p?.description || p?.body || '', 160))}</div></div>`).join('') : '<div class="home-item"><div class="home-item-title">Connect Buffer to see your upcoming posts.</div></div>'}</div><div class="home-actions-row"><button class="btn sm" id="homeViewCalendarBtn">View in calendar</button></div>`;
   const news = qs('homeNews');
   if (news) {
     news.innerHTML = `<div class="home-kicker">Social News</div><div class="home-title">What's happening in social</div><div class="home-copy">Loading latest items…</div>`;
-    const items = await getSocialNewsForHome();
-    news.innerHTML = `<div class="home-kicker">Social News</div><div class="home-title">What's happening in social</div><div class="home-list">${items.length ? items.map((n, idx) => `<div class="home-item"><div class="home-news-source">${safeText(n._source || 'Source')}</div><div class="home-item-title">${safeText(compact(n.title || 'Untitled', 140))}</div><div class="home-actions-row"><a class="btn sm ghost" href="${safeText(toSafeExternalUrl(n.url || n.link || n.permalink) || '#')}" target="_blank" rel="noopener">Open</a><button class="btn sm" data-home-use-idea="${idx}">Use as idea</button></div></div>`).join('') : '<div class="home-item"><div class="home-item-title">No news items available right now.</div></div>'}</div>`;
-    window.__homeNewsItems = items;
+    try {
+      const items = await getSocialNewsForHome();
+      news.innerHTML = `<div class="home-kicker">Social News</div><div class="home-title">What's happening in social</div><div class="home-list">${items.length ? items.map((n, idx) => `<div class="home-item"><div class="home-news-source">${safeText(n?._source || 'Source')}</div><div class="home-item-title">${safeText(compact(n?.title || 'Untitled', 140))}</div><div class="home-actions-row"><a class="btn sm ghost" href="${safeText(toSafeExternalUrl(n?.url || n?.link || n?.permalink) || '#')}" target="_blank" rel="noopener">Open</a><button class="btn sm" data-home-use-idea="${idx}">Use as idea</button></div></div>`).join('') : '<div class="home-item"><div class="home-item-title">Social news will appear here once sources are loaded.</div></div>'}</div>`;
+      window.__homeNewsItems = items;
+    } catch {
+      window.__homeNewsItems = [];
+      news.innerHTML = `<div class="home-kicker">Social News</div><div class="home-title">What's happening in social</div><div class="home-list"><div class="home-item"><div class="home-item-title">Social news will appear here once sources are loaded.</div></div></div>`;
+    }
   }
   const note = qs('homeDevNote');
   if (note) note.innerHTML = `<div class="home-kicker">Note from the dev team</div><div class="home-title">PostIQ is still in beta</div><div class="home-copy">PostIQ is still in beta, which means some edges may be weird. If something feels clunky, useful, confusing, or weirdly magical, I want to know.</div><div class="home-actions-row"><a class="btn sm" href="mailto:hello@postiq.app?subject=PostIQ%20beta%20feedback">Send feedback</a></div>`;
@@ -3121,10 +3143,12 @@ async function renderHomeView() {
 }
 function initHomeView() {
   renderHomeView();
+  if (homeActionsBound) return;
+  homeActionsBound = true;
   document.addEventListener('click', e => {
     const a=e.target.closest('[data-home-action]'); if (a){ const v=a.dataset.homeAction; if (v==='compose'){activateView('composerView');} if (v==='gap'){activateView('calendarView');} if (v==='snapshot'){activateView('calendarView'); openShareSnapshotModal();} }
     if (e.target.id==='homeViewCalendarBtn') activateView('calendarView');
-    if (e.target.id==='homeSyncBtn') syncBuffer({force:true});
+    if (e.target.id==='homeSyncBtn') { const connection = getBufferConnectionState(); if (connection.connected) syncBuffer({force:true}); else goToBufferConnect(); }
     const ideaBtn = e.target.closest('[data-home-use-idea]');
     if (ideaBtn) {
       const item = (window.__homeNewsItems || [])[Number(ideaBtn.dataset.homeUseIdea)];
