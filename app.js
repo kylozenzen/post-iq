@@ -3032,6 +3032,13 @@ function getGreetingLabel() {
   if (h < 17) return 'Good afternoon';
   return 'Good evening';
 }
+function getHomeDisplayName() {
+  const channelName = (state.channels || []).find(ch => ch && ch.name)?.name || '';
+  const savedName = localStorage.getItem('postiq_display_name') || '';
+  const fromChannel = String(channelName).replace(/^@/, '').trim();
+  const fromSettings = String(savedName).trim();
+  return fromChannel || fromSettings || 'there';
+}
 function getScheduledPostsForRange(startDate, endDate) {
   const startMs = +startDate; const endMs = +endDate;
   return (state.scheduled || []).filter(p => {
@@ -3039,44 +3046,98 @@ function getScheduledPostsForRange(startDate, endDate) {
     return due >= startMs && due <= endMs;
   });
 }
+function getQueueHealth(posts = []) {
+  const now = new Date();
+  const settings = getPlanningSettings();
+  const next7 = getScheduledPostsForRange(now, new Date(now.getTime() + 7 * 86400000));
+  const byDay = new Set(next7.map(p => fmtDate(new Date(p.due_at || p.dueAt || p.scheduled_at || p.scheduledAt))));
+  const activeChannels = new Set(next7.map(p => String(p.service || p.channel_service || p.channel_id || p.channel || 'Unknown')));
+  const weekGaps = (settings.postingDays || []).filter(code => {
+    const idx = DAY_CODES.indexOf(code);
+    if (idx < 0) return false;
+    const d = new Date(now);
+    d.setDate(now.getDate() + ((idx - now.getDay() + 7) % 7));
+    return !byDay.has(fmtDate(d));
+  });
+  return { next7, byDayCount: byDay.size, weekGaps, activeChannelsCount: activeChannels.size };
+}
+function getNext72HoursPosts(posts = []) {
+  const now = new Date();
+  return getScheduledPostsForRange(now, new Date(now.getTime() + 72 * 3600000))
+    .sort((a, b) => new Date(a.due_at || a.dueAt || 0) - new Date(b.due_at || b.dueAt || 0))
+    .slice(0, 5);
+}
+async function getSocialNewsForHome() {
+  const feeds = [
+    { source: 'rss', feed: 'buffer-blog', label: 'Buffer' },
+    { source: 'rss', feed: 'social-media-today', label: 'Social Media Today' },
+    { source: 'reddit', subreddit: 'socialmedia', label: 'Reddit' },
+    { source: 'hn', feed: 'top', label: 'Hacker News' },
+  ];
+  const out = [];
+  for (const f of feeds) {
+    try {
+      const res = await fetch('/.netlify/functions/trending', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(f),
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      (data.posts || []).slice(0, 2).forEach(p => out.push({ ...p, _source: f.label }));
+      if (out.length >= 5) break;
+    } catch {}
+  }
+  return out.slice(0, 5);
+}
 function getHomeDashboardData() {
   const now = new Date();
-  const weekEnd = new Date(now.getTime() + 7*86400000);
-  const posts7 = getScheduledPostsForRange(now, weekEnd);
-  const posts72 = getScheduledPostsForRange(now, new Date(now.getTime()+72*3600000));
-  const daySet = new Set(posts7.map(p => fmtDate(new Date(p.due_at || p.dueAt || p.scheduled_at || p.scheduledAt || now))));
-  const platforms = new Set(posts7.map(p => (p.service || p.channel_service || p.channel || 'Unknown')));
-  const settings = getPlanningSettings();
-  const gapDays = (settings.postingDays || []).filter(code => {
-    const idx = DAY_CODES.indexOf(code); if (idx < 0) return false;
-    const d = new Date(now); d.setDate(now.getDate() + ((idx - now.getDay() + 7) % 7));
-    return !daySet.has(fmtDate(d));
-  });
-  let pillars=[]; try { pillars = JSON.parse(localStorage.getItem('postiq_pillars_v3')||'{}').pillars || []; } catch {}
-  return { now, posts7, posts72, coveredDays: daySet.size, gapDays, platforms: platforms.size, pillars };
-}
-function renderHomeView() {
-  const d = getHomeDashboardData();
   const connected = !!getBufferAccessToken();
-  const greeting = qs('homeGreeting'); if (greeting) greeting.textContent = getGreetingLabel();
-  const chip = qs('homeStatusChip'); if (chip) { chip.classList.toggle('connected', connected); chip.textContent = connected ? '● Buffer connected' : 'Connect Buffer to unlock your dashboard'; }
-  const qh = qs('homeQueueHealth'); if (qh) qh.innerHTML = `<div class="section-title">Queue health</div><div style="font-size:13px;color:var(--muted);margin:8px 0;">${connected ? (d.posts7.length ? `Queue healthy through ${new Date(Math.max(...d.posts7.map(p=>new Date(p.due_at||p.dueAt).getTime()))).toLocaleDateString(undefined,{weekday:'long'})} · ${d.gapDays.length} gaps this week` : 'No scheduled posts found yet') : 'Connect Buffer to see queue health'}</div><div class="home-qh-stats"><div class="home-qh-stat"><div class="home-qh-num">${d.posts7.length}</div><div class="home-qh-lbl">Scheduled</div></div><div class="home-qh-stat"><div class="home-qh-num">${d.gapDays.length}</div><div class="home-qh-lbl">Gaps</div></div><div class="home-qh-stat"><div class="home-qh-num">${d.coveredDays}</div><div class="home-qh-lbl">Days covered</div></div><div class="home-qh-stat"><div class="home-qh-num">${d.platforms}</div><div class="home-qh-lbl">Platforms</div></div></div><div style="margin-top:12px" class="home-progress"><span style="width:${Math.min(100,Math.round((d.coveredDays/7)*100))}%"></span></div>`;
-  const next = qs('homeNext72'); if (next) next.innerHTML = `<div class="section-title">Next 72 hours</div><div class="home-list">${d.posts72.length ? d.posts72.map(p=>`<div class="home-item"><div style="font-family:'DM Mono',monospace;color:var(--subtle)">${new Date(p.due_at||p.dueAt).toLocaleString()}</div><div>${safeText(compact(p.text||p.description||'',120))}</div></div>`).join('') : '<div class="home-item">No scheduled posts in next 72 hours.</div>'}</div><div style="margin-top:10px;"><button class="btn sm" id="homeViewCalendarBtn">View calendar</button></div>`;
-  const pillars = qs('homePillars'); if (pillars) pillars.innerHTML = `<div class="section-title">Pillar pipeline</div>${d.pillars.length ? '<div class="home-list">'+d.pillars.map(p=>`<div class="home-item"><strong>${safeText(p.name||'Untitled')}</strong><div style="font-size:11px;color:var(--muted)">${safeText(p.promise||'')}</div></div>`).join('')+'</div>' : '<div class="home-item">Not sure what to post about? Build content pillars to give your week some structure.<div style="margin-top:8px;"><button class="btn sm" id="homeBuildPillarsBtn">Build pillars</button></div></div>'}`;
-  const news = qs('homeNews'); if (news) news.innerHTML = `<div class="section-title">Platform news</div><div id="homeNewsList" class="home-list"><div class="home-item">Open Ideas → Trending → RSS to load latest items.</div></div>`;
-  const prompt = qs('homePrompt'); if (prompt) prompt.innerHTML = `<div style="font-size:10px;font-family:'DM Mono',monospace;opacity:.7;text-transform:uppercase">Write this today</div><div style="margin-top:10px;font-size:13px;line-height:1.6" id="homePromptText">${safeText(d.pillars[0]?.seeds?.find(Boolean) || 'Share one practical lesson you learned this week and what changed after you applied it.')}</div><div style="display:flex;gap:8px;margin-top:12px;"><button class="btn sm primary" id="homeStartDraftBtn">Start draft</button><button class="btn sm ghost" id="homeNewPromptBtn">New prompt</button></div>`;
-  const qa = qs('homeQuickActions'); if (qa) qa.innerHTML = `<div class="section-title">Quick actions</div><div class="home-quick"><button data-home-action="compose">✍️ New post</button><button data-home-action="gap">⚠ Fill a gap</button><button data-home-action="pillars">🧠 Build pillars</button><button data-home-action="snapshot">📸 Create snapshot</button><a href="https://publish.buffer.com/" target="_blank" rel="noopener">↗ Open Buffer</a></div>`;
+  const queue = getQueueHealth(state.scheduled || []);
+  return { now, connected, displayName: getHomeDisplayName(), queue, next72: getNext72HoursPosts(state.scheduled || []) };
+}
+async function renderHomeView() {
+  const d = getHomeDashboardData();
+  const syncedText = qs('lastSynced')?.textContent?.trim();
+  const welcome = qs('homeWelcomeCard');
+  if (welcome) welcome.innerHTML = `<div class="home-kicker">Welcome</div><div class="home-title">${safeText(getGreetingLabel())}${d.displayName && d.displayName !== 'there' ? `, ${safeText(d.displayName)}` : ''}.</div><div class="home-copy">Here’s what’s happening in your content queue.</div><div class="home-actions-row"><span class="home-chip ${d.connected ? 'connected' : ''}">${d.connected ? 'Connected to Buffer' : 'Not connected'}</span>${syncedText ? `<span class="home-chip">${safeText(syncedText)}</span>` : ''}<button class="btn sm" id="homeSyncBtn">↻ Sync Buffer</button></div>`;
+  const q = d.queue;
+  const gapSummary = q.weekGaps.length ? `You're covered through ${q.next7.length ? new Date(Math.max(...q.next7.map(p => new Date(p.due_at || p.dueAt || 0).getTime()))).toLocaleDateString(undefined, { weekday: 'long' }) : 'this week'}, but ${q.weekGaps.map(code => DAY_LABELS[DAY_CODES.indexOf(code)]).join(' and ')} look empty.` : 'Nice work — no configured posting-day gaps this week.';
+  const qh = qs('homeQueueHealth');
+  if (qh) qh.innerHTML = `<div class="home-kicker">Queue Health</div><div class="home-title">Current week snapshot</div><div class="home-copy">${d.connected ? (q.next7.length ? gapSummary : 'No scheduled posts found yet.') : 'Connect Buffer to unlock queue health.'}</div><div class="home-stat-grid"><div class="home-stat"><div class="home-stat-num">${q.next7.length}</div><div class="home-stat-lbl">7-day posts</div></div><div class="home-stat"><div class="home-stat-num">${q.byDayCount}</div><div class="home-stat-lbl">Days covered</div></div><div class="home-stat"><div class="home-stat-num">${q.weekGaps.length}</div><div class="home-stat-lbl">Gaps</div></div><div class="home-stat"><div class="home-stat-num">${q.activeChannelsCount}</div><div class="home-stat-lbl">Channels</div></div></div>`;
+  const next = qs('homeNext72');
+  if (next) next.innerHTML = `<div class="home-kicker">Next 72 Hours</div><div class="home-title">Upcoming scheduled posts</div><div class="home-list">${d.next72.length ? d.next72.map(p => `<div class="home-item"><div class="home-item-meta">${new Date(p.due_at || p.dueAt).toLocaleString()} · ${safeText(p.service || p.channel || 'Channel')}</div><div class="home-item-title">${safeText(compact(p.text || p.description || p.body || '', 160))}</div></div>`).join('') : '<div class="home-item"><div class="home-item-title">No scheduled posts in the next 72 hours.</div></div>'}</div><div class="home-actions-row"><button class="btn sm" id="homeViewCalendarBtn">View in calendar</button></div>`;
+  const news = qs('homeNews');
+  if (news) {
+    news.innerHTML = `<div class="home-kicker">Social News</div><div class="home-title">What's happening in social</div><div class="home-copy">Loading latest items…</div>`;
+    const items = await getSocialNewsForHome();
+    news.innerHTML = `<div class="home-kicker">Social News</div><div class="home-title">What's happening in social</div><div class="home-list">${items.length ? items.map((n, idx) => `<div class="home-item"><div class="home-news-source">${safeText(n._source || 'Source')}</div><div class="home-item-title">${safeText(compact(n.title || 'Untitled', 140))}</div><div class="home-actions-row"><a class="btn sm ghost" href="${safeText(toSafeExternalUrl(n.url || n.link || n.permalink) || '#')}" target="_blank" rel="noopener">Open</a><button class="btn sm" data-home-use-idea="${idx}">Use as idea</button></div></div>`).join('') : '<div class="home-item"><div class="home-item-title">No news items available right now.</div></div>'}</div>`;
+    window.__homeNewsItems = items;
+  }
+  const note = qs('homeDevNote');
+  if (note) note.innerHTML = `<div class="home-kicker">Note from the dev team</div><div class="home-title">PostIQ is still in beta</div><div class="home-copy">PostIQ is still in beta, which means some edges may be weird. If something feels clunky, useful, confusing, or weirdly magical, I want to know.</div><div class="home-actions-row"><a class="btn sm" href="mailto:hello@postiq.app?subject=PostIQ%20beta%20feedback">Send feedback</a></div>`;
+  const qa = qs('homeQuickActions');
+  if (qa) qa.innerHTML = `<div class="home-kicker">Quick Actions</div><div class="home-quick"><button class="btn" data-home-action="compose">New Post</button><button class="btn" data-home-action="gap">Fill Gap</button><button class="btn" data-home-action="snapshot">Create Snapshot</button><a class="btn" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer</a></div>`;
 }
 function initHomeView() {
   renderHomeView();
   document.addEventListener('click', e => {
-    const a=e.target.closest('[data-home-action]'); if (a){ const v=a.dataset.homeAction; if (v==='compose'||v==='gap'){activateView('composerView');} if (v==='pillars'){activateView('ideasView'); setIdeasTab('pillars');} if (v==='snapshot'){activateView('calendarView'); openShareSnapshotModal();} }
+    const a=e.target.closest('[data-home-action]'); if (a){ const v=a.dataset.homeAction; if (v==='compose'){activateView('composerView');} if (v==='gap'){activateView('calendarView');} if (v==='snapshot'){activateView('calendarView'); openShareSnapshotModal();} }
     if (e.target.id==='homeViewCalendarBtn') activateView('calendarView');
-    if (e.target.id==='homeBuildPillarsBtn') { activateView('ideasView'); setIdeasTab('pillars'); }
     if (e.target.id==='homeSyncBtn') syncBuffer({force:true});
-    if (e.target.id==='homeNewPostBtn') activateView('composerView');
-    if (e.target.id==='homeStartDraftBtn') { const text=qs('homePromptText')?.textContent||''; const ed=qs('composerEditor'); if (ed){activateView('composerView'); ed.textContent=text; ed.dispatchEvent(new Event('input'));} }
-    if (e.target.id==='homeNewPromptBtn') { const prompts=['Share a contrarian take your audience needs to hear.','Write a quick behind-the-scenes process you used this week.','Teach one repeatable framework in 5 bullets.']; const el=qs('homePromptText'); if (el) el.textContent=prompts[Math.floor(Math.random()*prompts.length)]; }
+    const ideaBtn = e.target.closest('[data-home-use-idea]');
+    if (ideaBtn) {
+      const item = (window.__homeNewsItems || [])[Number(ideaBtn.dataset.homeUseIdea)];
+      if (item) {
+        activateView('composerView');
+        const ed = qs('composerEditor');
+        if (ed) {
+          const sourceUrl = toSafeExternalUrl(item.url || item.link || item.permalink);
+          ed.textContent = `Idea from ${item._source || 'news'}:\n${item.title || ''}${sourceUrl ? `\n${sourceUrl}` : ''}\n\nMy take: `;
+          ed.dispatchEvent(new Event('input'));
+        }
+      }
+    }
   });
 }
 // ── INIT ──────────────────────────────────────────────

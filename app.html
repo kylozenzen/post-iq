@@ -157,29 +157,18 @@
     <section id="homeView" class="view active">
       <div class="page-hdr">
         <div class="page-hdr-left">
-          <div class="home-greeting-row">
-            <span class="home-greeting-time" id="homeGreeting">Good morning</span>
-            <div class="home-greeting-divider"></div>
-            <span class="home-status-chip" id="homeStatusChip">Connect Buffer to unlock your dashboard</span>
-          </div>
-          <h1 class="page-title">Here’s where things stand.</h1>
-          <p class="page-desc" id="homeSubtitle">Queue health, upcoming posts, pillar coverage, and social updates.</p>
-        </div>
-        <div class="page-actions">
-          <button class="btn ghost" id="homeSyncBtn">↻ Sync</button>
-          <button class="btn primary" id="homeNewPostBtn">+ New post</button>
+          <h1 class="page-title">Home</h1>
+          <p class="page-desc">A quick read on your queue, near-term posts, and social signals.</p>
         </div>
       </div>
-      <div class="home-grid">
+      <div class="home-grid v1">
         <div class="home-main-col">
+          <div class="home-card" id="homeWelcomeCard"></div>
           <div class="home-card" id="homeQueueHealth"></div>
           <div class="home-card" id="homeNext72"></div>
-          <div class="home-card" id="homePillars"></div>
-        </div>
-        <div class="home-side-col">
-          <div class="home-prompt-card" id="homePrompt"></div>
-          <div class="home-card" id="homeQuickActions"></div>
           <div class="home-card" id="homeNews"></div>
+          <div class="home-card" id="homeDevNote"></div>
+          <div class="home-card" id="homeQuickActions"></div>
         </div>
       </div>
     </section>
