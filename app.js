@@ -53,6 +53,8 @@ const DEFAULT_POSTIQ_CONFIG = {
 const BETA_BANNER_SESSION_KEY = 'postiq_beta_banner_seen';
 const BETA_BANNER_PERSIST_KEY = 'postiq_beta_banner_seen_persist';
 const APP_VISITED_KEY = 'postiq_app_visited';
+const CALENDAR_VIEW_KEY = 'postiq_calendar_view';
+const FEATURE_HOME_DASHBOARD = false;
 const LEGACY_NOTE_TYPES = {
   gold: { id: 'idea', label: 'Idea', color: '#f59e0b' },
   blue: { id: 'draft', label: 'Draft', color: '#3a3fff' },
@@ -62,7 +64,7 @@ const LEGACY_NOTE_TYPES = {
 
 // ── STATE ──────────────────────────────────────────
 let bufferToken = '';
-let currentViewId = 'homeView';
+let currentViewId = 'composerView';
 let currentIdeasTab = 'notebook';
 let tokenPanelOpen = false;
 let modalCount = 0;
@@ -85,6 +87,7 @@ const state = {
   editingNoteId: null,
   calendarFilter: 'all',
   syncState: 'idle',
+  calendarView: localStorage.getItem(CALENDAR_VIEW_KEY) === 'week' ? 'week' : 'month',
   templates: [],
   templateType: 'All',
   templatePlatform: 'All Platforms',
@@ -1864,6 +1867,7 @@ function renderCalendar() {
   qs('monthLabel').textContent = monthLabel(state.month);
   renderCalendarFilter();
   const grid = qs('calGrid'); grid.innerHTML = '';
+  const week = qs('calWeek'); if (week) week.innerHTML = '';
   const first = monthStart(state.month);
   const start = new Date(first); start.setDate(1 - first.getDay());
   const notes = getNotes();
@@ -1906,6 +1910,55 @@ function renderCalendar() {
     grid.appendChild(day);
   }
   renderAgenda();
+  renderWeekView();
+  updateCalendarViewUI();
+}
+
+function weekStart(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+}
+function renderWeekView() {
+  const weekEl = qs('calWeek'); if (!weekEl) return;
+  const notes = getNotes();
+  const start = weekStart(state.month);
+  const end = new Date(start); end.setDate(start.getDate() + 6);
+  weekEl.innerHTML = `<div class="cal-week-hdr"><div class="cal-week-range">${start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}–${end.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div><div class="cal-week-controls"><button class="btn sm ghost" id="prevWeek">‹ Prev week</button><button class="btn sm ghost" id="nextWeek">Next week ›</button></div></div>`;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    const key = fmtDate(d);
+    const allDayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
+    const allDayNotes = getNotesForDate(key, notes);
+    const dayPosts = calendarFilterAllowsPosts() ? allDayPosts : [];
+    const dayNotes = calendarFilterNotes(allDayNotes);
+    const card = document.createElement('div');
+    card.className = 'cal-week-day';
+    let html = `<div class="cal-week-day-title"><span>${d.toLocaleDateString(undefined,{ weekday:'short'})}</span><strong>${d.toLocaleDateString(undefined,{ month:'short', day:'numeric'})}</strong></div>`;
+    if (!dayPosts.length && !dayNotes.length) html += `<div class="cal-week-empty">No posts or notes</div>`;
+    dayPosts.forEach(p => { html += `<button type="button" class="day-post-pill" data-week-post="${key}">${safeText(compact(p.text, 80))}</button>`; });
+    dayNotes.forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="day-note-pill" data-week-note="${safeText(note.id)}" style="${notePillStyle(meta)}">${safeText(compact(note.text, 70))}</button>`; });
+    card.innerHTML = html;
+    card.querySelectorAll('[data-week-post]').forEach(el => el.addEventListener('click', ev => { ev.stopPropagation(); openCalendarPostDetails(key, allDayPosts, allDayNotes); }));
+    card.querySelectorAll('[data-week-note]').forEach(el => el.addEventListener('click', ev => { ev.stopPropagation(); openEditNoteForDate(d, el.dataset.weekNote); }));
+    card.onclick = () => openCalendarDayDetails(d);
+    weekEl.appendChild(card);
+  }
+  on('prevWeek', 'click', () => { state.month = new Date(start.getFullYear(), start.getMonth(), start.getDate() - 7); renderCalendar(); detectQueueGaps(); });
+  on('nextWeek', 'click', () => { state.month = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 7); renderCalendar(); detectQueueGaps(); });
+}
+function setCalendarView(view) {
+  state.calendarView = view === 'week' ? 'week' : 'month';
+  localStorage.setItem(CALENDAR_VIEW_KEY, state.calendarView);
+  updateCalendarViewUI();
+}
+function updateCalendarViewUI() {
+  const isWeek = state.calendarView === 'week';
+  qs('calGrid')?.style.setProperty('display', isWeek ? 'none' : 'grid');
+  qs('calWeek')?.style.setProperty('display', isWeek ? 'block' : 'none');
+  qs('calendarViewMonthBtn')?.classList.toggle('active', !isWeek);
+  qs('calendarViewWeekBtn')?.classList.toggle('active', isWeek);
 }
 
 
@@ -2007,7 +2060,7 @@ function saveNote() {
   renderCalendar();
   closeModal('noteModal');
   resetNoteForm();
-  activateView('homeView');
+  activateView('calendarView');
 
   showToast(existingIdx >= 0 ? 'Note updated' : 'Note saved', 'success');
 }
@@ -2022,7 +2075,7 @@ function deleteNote() {
   renderCalendar();
   closeModal('noteModal');
   resetNoteForm();
-  activateView('homeView');
+  activateView('calendarView');
   showToast('Note deleted');
 }
 
@@ -2985,12 +3038,13 @@ window.submitReview = async function (uuid, action) {
 
 // ── VIEW NAVIGATION ──────────────────────────────────
 function activateView(viewId) {
+  if (viewId === 'homeView' && !FEATURE_HOME_DASHBOARD) viewId = 'composerView';
   if (viewId === 'approvalsView' && !getFeatureFlag('approvals')) { showFeaturePaused('approvals'); return; }
   currentViewId = viewId;
   document.querySelectorAll('[data-view]').forEach(x => x.classList.toggle('active', x.dataset.view === viewId));
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId));
   document.querySelectorAll('.mob-tab[data-view]').forEach(t => t.classList.toggle('active', t.dataset.view === viewId));
-  if (viewId === 'homeView') renderHomeView();
+  if (viewId === 'homeView' && FEATURE_HOME_DASHBOARD) renderHomeView();
   if (viewId === 'ideasView') setIdeasTab(currentIdeasTab || 'notebook');
   if (viewId === 'approvalsView') loadApprovals();
 }
@@ -3099,6 +3153,7 @@ function getHomeDashboardData() {
   return { now, connected, reconnectNeeded: !!connection.reconnectNeeded, displayName: getHomeDisplayName(), queue, next72, hasScheduledPosts };
 }
 async function renderHomeView() {
+  if (!FEATURE_HOME_DASHBOARD) return;
   let d;
   try {
     d = getHomeDashboardData();
@@ -3162,6 +3217,7 @@ async function renderHomeView() {
   if (qa) qa.innerHTML = `<div class="home-kicker">Quick Actions</div><div class="home-title">Quick Actions</div><div class="home-action-grid"><button class="home-action-card" data-home-action="compose"><span class="home-action-icon">✍️</span><span class="home-action-title">New Post</span><span class="home-action-copy">Start a fresh draft.</span></button><button class="home-action-card" data-home-action="gap"><span class="home-action-icon">🧩</span><span class="home-action-title">Fill Gap</span><span class="home-action-copy">Patch an empty spot in your week.</span></button><button class="home-action-card" data-home-action="snapshot"><span class="home-action-icon">📸</span><span class="home-action-title">Create Snapshot</span><span class="home-action-copy">Share the plan without another login.</span></button><a class="home-action-card" href="https://publish.buffer.com/" target="_blank" rel="noopener"><span class="home-action-icon">↗</span><span class="home-action-title">Open Buffer</span><span class="home-action-copy">Jump to publishing.</span></a></div>`;
 }
 function initHomeView() {
+  if (!FEATURE_HOME_DASHBOARD) return;
   renderHomeView();
   if (homeActionsBound) return;
   homeActionsBound = true;
@@ -3259,7 +3315,7 @@ function init() {
   renderCalendar();
   renderPlanningSettings();
   renderNoteTypesSettings();
-  activateView('homeView');
+  activateView('composerView');
 
   selectSettingsTab(document.querySelector('.settings-tab.active')?.dataset.stab || 'connection');
   document.querySelectorAll('.settings-tab').forEach(tab => {
@@ -3327,7 +3383,7 @@ function init() {
     history.replaceState({}, document.title, cleanUrl);
   }
   renderConnectionUI();
-  initHomeView();
+  if (FEATURE_HOME_DASHBOARD) initHomeView();
   if (initialParams.get('settings') === 'connection') {
     openConnectionSettings({ advancedApi: initialParams.get('advanced') === 'api' });
   }
@@ -3348,6 +3404,9 @@ function init() {
       if (b.dataset.view === 'ideasView' && b.dataset.ideasTab) setIdeasTab(b.dataset.ideasTab);
     };
   });
+  document.querySelectorAll('[data-home-feature="true"]').forEach(el => { if (!FEATURE_HOME_DASHBOARD) el.style.display = 'none'; });
+  on('calendarViewMonthBtn', 'click', () => setCalendarView('month'));
+  on('calendarViewWeekBtn', 'click', () => setCalendarView('week'));
   document.querySelectorAll('.ideas-tab').forEach(tabBtn => {
     tabBtn.onclick = () => setIdeasTab(tabBtn.dataset.ideasTab);
   });
