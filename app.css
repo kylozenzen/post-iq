@@ -2185,3 +2185,19 @@ body::after {
 .discord-scheduled-item{border:1px solid var(--border2);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--surface);}
 .discord-scheduled-meta{font-size:11px;color:var(--subtle);margin-bottom:6px;}
 .discord-scheduled-msg{font-size:12px;color:var(--muted);margin-bottom:8px;white-space:pre-wrap;}
+
+.app {
+  min-height: 100vh;
+  align-items: stretch;
+}
+
+.side {
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+}
+
+.main {
+  min-height: 100vh;
+}
