@@ -1586,9 +1586,10 @@
     .settings-tab:hover { color: var(--brand); background: var(--brand-dim); }
     .settings-tab.active, .settings-tab[aria-selected="true"] { color: var(--brand); border-bottom-color: var(--brand); background: var(--surface2); }
     .settings-tab:focus-visible { outline: 2px solid var(--brand-glow); outline-offset: -2px; }
-    .settings-panel { display: none; min-height: 380px; }
+    .settings-panel { display: none; min-height: 420px; max-height: 420px; overflow-y: auto; padding-right: 4px; }
     .settings-panel.active { display: block; }
     .settings-panel:focus { outline: none; }
+.settings-panel[hidden] { display: none !important; }
     .settings-copy { font-size: 13px; color: var(--muted); line-height: 1.65; margin: 0; }
     .settings-copy + .settings-copy { margin-top: 10px; }
     .connection-settings-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; margin-bottom: 14px; }
@@ -2036,7 +2037,7 @@
   .settings-modal-body { min-height: min(360px, calc(88vh - 94px)); max-height: calc(88vh - 94px); }
   .settings-tabs { margin-bottom: 14px; }
   .settings-tab { padding: 8px 10px; font-size: 12px; }
-  .settings-panel { min-height: 320px; }
+  .settings-panel { min-height: 360px; max-height: 360px; }
   .settings-day-grid { grid-template-columns:1fr; }
   .settings-feature-item { align-items:flex-start; flex-direction:column; gap:6px; }
   .about-ben-card { grid-template-columns:1fr; }
@@ -2222,8 +2223,13 @@ body::after {
 .cal-week-hdr { display:flex; justify-content:space-between; align-items:center; gap:8px; }
 .cal-week-controls { display:flex; gap:8px; }
 .cal-week-day { border:1px solid var(--border); border-radius:10px; padding:10px; background:var(--surface); }
-.cal-week-day-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; color:var(--muted); position:relative; }
-.cal-week-day-title .day-add-note-btn { opacity: 0; transition: opacity .12s; }
+.is-week-view .cal-dow { display:none !important; }
+.cal-week-day-title { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; margin-bottom:8px; color:var(--muted); position:relative; }
+.cal-week-day-title span { flex:0 0 auto; }
+.cal-week-day-title strong { margin-left:auto; text-align:right; flex:1; }
+.cal-week-day-title-right { display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-left:auto; }
+.cal-week-day-date { text-align:right; }
+.cal-week-day-title .day-add-note-btn { opacity: 0; transition: opacity .12s; margin-left:8px; flex:0 0 auto; }
 .cal-week-day:hover .day-add-note-btn { opacity: 1; }
 .cal-week-empty { color:var(--subtle); font-size:12px; }
 
@@ -2305,4 +2311,12 @@ body::after {
 .home-action-copy{font-size:11px;color:var(--muted);line-height:1.45}
 @media (max-width: 1100px){
   .home-command-grid,.home-lower-grid,.home-social-grid{grid-template-columns:minmax(0,1fr)}
+}
+
+
+@media (max-width: 768px) {
+  .settings-panel {
+    min-height: 360px;
+    max-height: 360px;
+  }
 }
