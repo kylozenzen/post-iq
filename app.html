@@ -49,7 +49,10 @@
 
 <!-- ── MOBILE TABS ── -->
 <nav class="mobile-tabs" id="mobileTabs">
-  <button class="mob-tab active" data-view="calendarView">
+  <button class="mob-tab active" data-view="homeView">
+    🏠 Home
+  </button>
+  <button class="mob-tab" data-view="calendarView">
     <svg><use href="#i-cal"/></svg>Plan
   </button>
   <button class="mob-tab" data-view="composerView">
@@ -105,7 +108,12 @@
     <!-- Nav -->
     <nav class="side-nav">
       <div class="nav-section-label">Workflow</div>
-      <button class="nav-btn active" data-view="calendarView">
+      <button class="nav-btn active" data-view="homeView">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-text">Home</span>
+        <span class="nav-tag new">New</span>
+      </button>
+      <button class="nav-btn" data-view="calendarView">
         <span class="nav-icon"><svg><use href="#i-cal"/></svg></span>
         <span class="nav-text">Plan</span>
         <span class="nav-tag needs" id="calNavTag">Sign in</span>
@@ -143,6 +151,27 @@
 
   <!-- MAIN CONTENT -->
   <main class="main">
+
+
+    <!-- ══════════ HOME ══════════ -->
+    <section id="homeView" class="view active">
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Home</h1>
+          <p class="page-desc">A quick read on your queue, near-term posts, and social signals.</p>
+        </div>
+      </div>
+      <div class="home-grid v1">
+        <div class="home-main-col">
+          <div class="home-card" id="homeWelcomeCard"></div>
+          <div class="home-card" id="homeQueueHealth"></div>
+          <div class="home-card" id="homeNext72"></div>
+          <div class="home-card" id="homeNews"></div>
+          <div class="home-card" id="homeDevNote"></div>
+          <div class="home-card" id="homeQuickActions"></div>
+        </div>
+      </div>
+    </section>
 
     <!-- ══════════ PLAN (Calendar) ══════════ -->
     <section id="calendarView" class="view active">

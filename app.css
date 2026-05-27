@@ -2201,3 +2201,27 @@ body::after {
 .main {
   min-height: 100vh;
 }
+
+/* ═══════════════════════════════════════════
+   POSTIQ — HOME DASHBOARD V1
+   ═══════════════════════════════════════════ */
+.home-grid.v1{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.home-main-col{display:flex;flex-direction:column;gap:14px}
+.home-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--sh0)}
+.home-kicker{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--subtle)}
+.home-title{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px;color:var(--ink);margin:4px 0 8px}
+.home-copy{font-size:13px;color:var(--muted);line-height:1.6}
+.home-chip{display:inline-flex;padding:3px 8px;border:1px solid var(--border2);border-radius:999px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted)}
+.home-chip.connected{color:var(--green);background:var(--green-dim);border-color:rgba(15,166,114,.3)}
+.home-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+.home-stat{padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2)}
+.home-stat-num{font-family:'Bricolage Grotesque',sans-serif;font-size:19px;font-weight:800;color:var(--ink)}
+.home-stat-lbl{font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);text-transform:uppercase}
+.home-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.home-item{border:1px solid var(--border);border-radius:8px;padding:10px;background:var(--surface2)}
+.home-item-meta{font-size:10px;font-family:'DM Mono',monospace;color:var(--subtle);margin-bottom:4px}
+.home-item-title{font-size:12px;color:var(--text);line-height:1.5}
+.home-actions-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.home-news-source{font-size:10px;font-family:'DM Mono',monospace;color:var(--brand)}
+.home-quick{display:flex;flex-wrap:wrap;gap:8px}
+.home-quick .btn{height:32px;padding:0 12px;font-size:12px}

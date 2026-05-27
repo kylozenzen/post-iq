@@ -62,7 +62,7 @@ const LEGACY_NOTE_TYPES = {
 
 // ── STATE ──────────────────────────────────────────
 let bufferToken = '';
-let currentViewId = 'calendarView';
+let currentViewId = 'homeView';
 let currentIdeasTab = 'notebook';
 let tokenPanelOpen = false;
 let modalCount = 0;
@@ -948,6 +948,7 @@ function markBufferReconnectNeeded() {
   store.setItem(OAUTH_RECONNECT_NEEDED_KEY, '1');
   bufferToken = '';
   renderConnectionUI();
+  initHomeView();
   setSyncStatus('failed', 'Reconnect Buffer to keep syncing.');
 }
 
@@ -992,6 +993,7 @@ async function refreshBufferOAuthToken() {
   const expiresIn = Number(data.expires_in || 0);
   setStoredOAuthValue(OAUTH_EXPIRES_AT_KEY, expiresIn ? Date.now() + expiresIn * 1000 : '');
   renderConnectionUI();
+  initHomeView();
   return getStoredOAuthToken();
 }
 
@@ -1255,6 +1257,7 @@ function openConnectionSettings(options = {}) {
   selectSettingsTab('connection');
   tokenPanelOpen = !!options.advancedApi;
   renderConnectionUI();
+  initHomeView();
   const panel = qs('tokenPanel');
   if (options.advancedApi) setTokenPanelVisible(panel, true);
   
@@ -1391,6 +1394,7 @@ function renderConnectionUI() {
 
 function refreshTokenUI() {
   renderConnectionUI();
+  initHomeView();
 }
 
 function toggleDesktopTokenPanel({ reveal = false } = {}) {
@@ -1401,12 +1405,14 @@ function toggleDesktopTokenPanel({ reveal = false } = {}) {
     if (inp) { inp.type = 'text'; inp.focus(); }
   }
   renderConnectionUI();
+  initHomeView();
 }
 
 function toggleMobileTokenPanel() {
   window.postiqMobileTokenPanelOpen = !window.postiqMobileTokenPanelOpen;
   setTokenPanelVisible(qs('mobTokenPanel'), window.postiqMobileTokenPanelOpen);
   renderConnectionUI();
+  initHomeView();
 }
 
 function updateNavTags() {
@@ -1454,6 +1460,7 @@ function setBufferToken(token, { mode = 'session', messageEl = null } = {}) {
     if (!after.connected) clearSyncedData();
     if (messageEl) messageEl.textContent = 'Manual API key disconnected.';
     renderConnectionUI();
+  initHomeView();
     showToast('Manual API key disconnected');
     return false;
   }
@@ -1463,6 +1470,7 @@ function setBufferToken(token, { mode = 'session', messageEl = null } = {}) {
   bufferToken = clean;
   if (messageEl) messageEl.textContent = mode === 'local' ? 'API key fallback saved locally.' : 'API key fallback saved for session.';
   renderConnectionUI();
+  initHomeView();
   showToast('API key fallback saved', 'success');
   return true;
 }
@@ -1472,6 +1480,7 @@ function disconnectBuffer() {
   const after = syncBufferTokenFromState();
   if (!after.connected) clearSyncedData();
   renderConnectionUI();
+  initHomeView();
   showToast('Buffer disconnected.', 'success');
   setSyncStatus('idle', after.connected ? 'Connected with advanced setup.' : 'Buffer disconnected.');
   return true;
@@ -1487,6 +1496,7 @@ function loadStoredToken() {
     hydrateFromCache();
   }
   renderConnectionUI();
+  initHomeView();
 }
 
 
@@ -1495,6 +1505,7 @@ async function checkBufferConnectionHealth() {
   if (oauthToken?.accessToken && !isOAuthTokenExpired()) {
     clearReconnectNeeded();
     renderConnectionUI();
+  initHomeView();
     return getBufferConnectionState();
   }
   if (oauthToken?.accessToken || oauthToken?.refreshToken) {
@@ -1504,9 +1515,11 @@ async function checkBufferConnectionHealth() {
       markBufferReconnectNeeded();
     }
     renderConnectionUI();
+  initHomeView();
     return getBufferConnectionState();
   }
   renderConnectionUI();
+  initHomeView();
   return getBufferConnectionState();
 }
 
@@ -1667,6 +1680,7 @@ async function syncBuffer({ force = false } = {}) {
     detectQueueGaps();
     setSyncStatus('success', `${posts.length} scheduled posts loaded.`);
     renderConnectionUI();
+  initHomeView();
     showToast(`Loaded ${posts.length} posts`, 'success');
     window.dispatchEvent(new Event('postiq:synced'));
   } catch (e) {
@@ -1991,7 +2005,7 @@ function saveNote() {
   renderCalendar();
   closeModal('noteModal');
   resetNoteForm();
-  activateView('calendarView');
+  activateView('homeView');
 
   showToast(existingIdx >= 0 ? 'Note updated' : 'Note saved', 'success');
 }
@@ -2006,7 +2020,7 @@ function deleteNote() {
   renderCalendar();
   closeModal('noteModal');
   resetNoteForm();
-  activateView('calendarView');
+  activateView('homeView');
   showToast('Note deleted');
 }
 
@@ -2974,6 +2988,7 @@ function activateView(viewId) {
   document.querySelectorAll('[data-view]').forEach(x => x.classList.toggle('active', x.dataset.view === viewId));
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId));
   document.querySelectorAll('.mob-tab[data-view]').forEach(t => t.classList.toggle('active', t.dataset.view === viewId));
+  if (viewId === 'homeView') renderHomeView();
   if (viewId === 'ideasView') setIdeasTab(currentIdeasTab || 'notebook');
   if (viewId === 'approvalsView') loadApprovals();
 }
@@ -3010,6 +3025,121 @@ function syncComposerWhen() {
   whenEl.value = `${d}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00.000Z`;
 }
 
+
+function getGreetingLabel() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+function getHomeDisplayName() {
+  const channelName = (state.channels || []).find(ch => ch && ch.name)?.name || '';
+  const savedName = localStorage.getItem('postiq_display_name') || '';
+  const fromChannel = String(channelName).replace(/^@/, '').trim();
+  const fromSettings = String(savedName).trim();
+  return fromChannel || fromSettings || 'there';
+}
+function getScheduledPostsForRange(startDate, endDate) {
+  const startMs = +startDate; const endMs = +endDate;
+  return (state.scheduled || []).filter(p => {
+    const due = new Date(p.due_at || p.dueAt || p.scheduled_at || p.scheduledAt || 0).getTime();
+    return due >= startMs && due <= endMs;
+  });
+}
+function getQueueHealth(posts = []) {
+  const now = new Date();
+  const settings = getPlanningSettings();
+  const next7 = getScheduledPostsForRange(now, new Date(now.getTime() + 7 * 86400000));
+  const byDay = new Set(next7.map(p => fmtDate(new Date(p.due_at || p.dueAt || p.scheduled_at || p.scheduledAt))));
+  const activeChannels = new Set(next7.map(p => String(p.service || p.channel_service || p.channel_id || p.channel || 'Unknown')));
+  const weekGaps = (settings.postingDays || []).filter(code => {
+    const idx = DAY_CODES.indexOf(code);
+    if (idx < 0) return false;
+    const d = new Date(now);
+    d.setDate(now.getDate() + ((idx - now.getDay() + 7) % 7));
+    return !byDay.has(fmtDate(d));
+  });
+  return { next7, byDayCount: byDay.size, weekGaps, activeChannelsCount: activeChannels.size };
+}
+function getNext72HoursPosts(posts = []) {
+  const now = new Date();
+  return getScheduledPostsForRange(now, new Date(now.getTime() + 72 * 3600000))
+    .sort((a, b) => new Date(a.due_at || a.dueAt || 0) - new Date(b.due_at || b.dueAt || 0))
+    .slice(0, 5);
+}
+async function getSocialNewsForHome() {
+  const feeds = [
+    { source: 'rss', feed: 'buffer-blog', label: 'Buffer' },
+    { source: 'rss', feed: 'social-media-today', label: 'Social Media Today' },
+    { source: 'reddit', subreddit: 'socialmedia', label: 'Reddit' },
+    { source: 'hn', feed: 'top', label: 'Hacker News' },
+  ];
+  const out = [];
+  for (const f of feeds) {
+    try {
+      const res = await fetch('/.netlify/functions/trending', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(f),
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      (data.posts || []).slice(0, 2).forEach(p => out.push({ ...p, _source: f.label }));
+      if (out.length >= 5) break;
+    } catch {}
+  }
+  return out.slice(0, 5);
+}
+function getHomeDashboardData() {
+  const now = new Date();
+  const connected = !!getBufferAccessToken();
+  const queue = getQueueHealth(state.scheduled || []);
+  return { now, connected, displayName: getHomeDisplayName(), queue, next72: getNext72HoursPosts(state.scheduled || []) };
+}
+async function renderHomeView() {
+  const d = getHomeDashboardData();
+  const syncedText = qs('lastSynced')?.textContent?.trim();
+  const welcome = qs('homeWelcomeCard');
+  if (welcome) welcome.innerHTML = `<div class="home-kicker">Welcome</div><div class="home-title">${safeText(getGreetingLabel())}${d.displayName && d.displayName !== 'there' ? `, ${safeText(d.displayName)}` : ''}.</div><div class="home-copy">Here’s what’s happening in your content queue.</div><div class="home-actions-row"><span class="home-chip ${d.connected ? 'connected' : ''}">${d.connected ? 'Connected to Buffer' : 'Not connected'}</span>${syncedText ? `<span class="home-chip">${safeText(syncedText)}</span>` : ''}<button class="btn sm" id="homeSyncBtn">↻ Sync Buffer</button></div>`;
+  const q = d.queue;
+  const gapSummary = q.weekGaps.length ? `You're covered through ${q.next7.length ? new Date(Math.max(...q.next7.map(p => new Date(p.due_at || p.dueAt || 0).getTime()))).toLocaleDateString(undefined, { weekday: 'long' }) : 'this week'}, but ${q.weekGaps.map(code => DAY_LABELS[DAY_CODES.indexOf(code)]).join(' and ')} look empty.` : 'Nice work — no configured posting-day gaps this week.';
+  const qh = qs('homeQueueHealth');
+  if (qh) qh.innerHTML = `<div class="home-kicker">Queue Health</div><div class="home-title">Current week snapshot</div><div class="home-copy">${d.connected ? (q.next7.length ? gapSummary : 'No scheduled posts found yet.') : 'Connect Buffer to unlock queue health.'}</div><div class="home-stat-grid"><div class="home-stat"><div class="home-stat-num">${q.next7.length}</div><div class="home-stat-lbl">7-day posts</div></div><div class="home-stat"><div class="home-stat-num">${q.byDayCount}</div><div class="home-stat-lbl">Days covered</div></div><div class="home-stat"><div class="home-stat-num">${q.weekGaps.length}</div><div class="home-stat-lbl">Gaps</div></div><div class="home-stat"><div class="home-stat-num">${q.activeChannelsCount}</div><div class="home-stat-lbl">Channels</div></div></div>`;
+  const next = qs('homeNext72');
+  if (next) next.innerHTML = `<div class="home-kicker">Next 72 Hours</div><div class="home-title">Upcoming scheduled posts</div><div class="home-list">${d.next72.length ? d.next72.map(p => `<div class="home-item"><div class="home-item-meta">${new Date(p.due_at || p.dueAt).toLocaleString()} · ${safeText(p.service || p.channel || 'Channel')}</div><div class="home-item-title">${safeText(compact(p.text || p.description || p.body || '', 160))}</div></div>`).join('') : '<div class="home-item"><div class="home-item-title">No scheduled posts in the next 72 hours.</div></div>'}</div><div class="home-actions-row"><button class="btn sm" id="homeViewCalendarBtn">View in calendar</button></div>`;
+  const news = qs('homeNews');
+  if (news) {
+    news.innerHTML = `<div class="home-kicker">Social News</div><div class="home-title">What's happening in social</div><div class="home-copy">Loading latest items…</div>`;
+    const items = await getSocialNewsForHome();
+    news.innerHTML = `<div class="home-kicker">Social News</div><div class="home-title">What's happening in social</div><div class="home-list">${items.length ? items.map((n, idx) => `<div class="home-item"><div class="home-news-source">${safeText(n._source || 'Source')}</div><div class="home-item-title">${safeText(compact(n.title || 'Untitled', 140))}</div><div class="home-actions-row"><a class="btn sm ghost" href="${safeText(toSafeExternalUrl(n.url || n.link || n.permalink) || '#')}" target="_blank" rel="noopener">Open</a><button class="btn sm" data-home-use-idea="${idx}">Use as idea</button></div></div>`).join('') : '<div class="home-item"><div class="home-item-title">No news items available right now.</div></div>'}</div>`;
+    window.__homeNewsItems = items;
+  }
+  const note = qs('homeDevNote');
+  if (note) note.innerHTML = `<div class="home-kicker">Note from the dev team</div><div class="home-title">PostIQ is still in beta</div><div class="home-copy">PostIQ is still in beta, which means some edges may be weird. If something feels clunky, useful, confusing, or weirdly magical, I want to know.</div><div class="home-actions-row"><a class="btn sm" href="mailto:hello@postiq.app?subject=PostIQ%20beta%20feedback">Send feedback</a></div>`;
+  const qa = qs('homeQuickActions');
+  if (qa) qa.innerHTML = `<div class="home-kicker">Quick Actions</div><div class="home-quick"><button class="btn" data-home-action="compose">New Post</button><button class="btn" data-home-action="gap">Fill Gap</button><button class="btn" data-home-action="snapshot">Create Snapshot</button><a class="btn" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer</a></div>`;
+}
+function initHomeView() {
+  renderHomeView();
+  document.addEventListener('click', e => {
+    const a=e.target.closest('[data-home-action]'); if (a){ const v=a.dataset.homeAction; if (v==='compose'){activateView('composerView');} if (v==='gap'){activateView('calendarView');} if (v==='snapshot'){activateView('calendarView'); openShareSnapshotModal();} }
+    if (e.target.id==='homeViewCalendarBtn') activateView('calendarView');
+    if (e.target.id==='homeSyncBtn') syncBuffer({force:true});
+    const ideaBtn = e.target.closest('[data-home-use-idea]');
+    if (ideaBtn) {
+      const item = (window.__homeNewsItems || [])[Number(ideaBtn.dataset.homeUseIdea)];
+      if (item) {
+        activateView('composerView');
+        const ed = qs('composerEditor');
+        if (ed) {
+          const sourceUrl = toSafeExternalUrl(item.url || item.link || item.permalink);
+          ed.textContent = `Idea from ${item._source || 'news'}:\n${item.title || ''}${sourceUrl ? `\n${sourceUrl}` : ''}\n\nMy take: `;
+          ed.dispatchEvent(new Event('input'));
+        }
+      }
+    }
+  });
+}
 // ── INIT ──────────────────────────────────────────────
 function renderPlanningSettings() {
   const show = qs('showQueueGapsSetting');
@@ -3085,7 +3215,7 @@ function init() {
   renderCalendar();
   renderPlanningSettings();
   renderNoteTypesSettings();
-  activateView('calendarView');
+  activateView('homeView');
 
   selectSettingsTab(document.querySelector('.settings-tab.active')?.dataset.stab || 'connection');
   document.querySelectorAll('.settings-tab').forEach(tab => {
@@ -3153,6 +3283,7 @@ function init() {
     history.replaceState({}, document.title, cleanUrl);
   }
   renderConnectionUI();
+  initHomeView();
   if (initialParams.get('settings') === 'connection') {
     openConnectionSettings({ advancedApi: initialParams.get('advanced') === 'api' });
   }
@@ -3342,6 +3473,7 @@ function init() {
     const syncEl = qs('syncStatus');
     const ms = qs('mobSyncStatus'); if (ms && syncEl) ms.textContent = syncEl.textContent;
     renderConnectionUI();
+  initHomeView();
     qs('mobDrawer')?.classList.add('open');
     qs('mobBackdrop')?.classList.add('open');
     document.body.style.overflow = 'hidden';
