@@ -64,7 +64,7 @@ const LEGACY_NOTE_TYPES = {
 
 // ── STATE ──────────────────────────────────────────
 let bufferToken = '';
-let currentViewId = 'composerView';
+let currentViewId = 'calendarView';
 let currentIdeasTab = 'notebook';
 let tokenPanelOpen = false;
 let modalCount = 0;
@@ -758,8 +758,12 @@ function useTemplateInEditor(template) {
       editor.innerText = editor.innerText ? `${editor.innerText}\n\n${body}` : body;
     }
   } catch { editor.innerText = editor.innerText ? `${editor.innerText}\n\n${body}` : body; }
-  editor.dispatchEvent(new Event('input'));
+  editor.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
   editor.focus();
+  const ccBtn = document.getElementById('composerClearBtn');
+  const ccBtnMob = document.getElementById('composerClearBtnMob');
+  if (ccBtn) ccBtn.style.display = 'inline-flex';
+  if (ccBtnMob) ccBtnMob.style.display = 'inline-flex';
   showToast('Template inserted', 'success');
 }
 
@@ -1935,7 +1939,7 @@ function renderWeekView() {
     const dayNotes = calendarFilterNotes(allDayNotes);
     const card = document.createElement('div');
     card.className = 'cal-week-day';
-    let html = `<div class="cal-week-day-title"><span>${d.toLocaleDateString(undefined,{ weekday:'short'})}</span><strong>${d.toLocaleDateString(undefined,{ month:'short', day:'numeric'})}</strong></div>`;
+    let html = `<div class="cal-week-day-title"><span>${d.toLocaleDateString(undefined,{ weekday:'short'})}</span><strong>${d.toLocaleDateString(undefined,{ month:'short', day:'numeric'})}</strong><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add note for ${safeText(formatDateWithYear(d))}">+</button></div>`;
     if (!dayPosts.length && !dayNotes.length) html += `<div class="cal-week-empty">No posts or notes</div>`;
     dayPosts.forEach(p => { html += `<button type="button" class="day-post-pill" data-week-post="${key}">${safeText(compact(p.text, 80))}</button>`; });
     dayNotes.forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="day-note-pill" data-week-note="${safeText(note.id)}" style="${notePillStyle(meta)}">${safeText(compact(note.text, 70))}</button>`; });
@@ -1943,6 +1947,15 @@ function renderWeekView() {
     card.querySelectorAll('[data-week-post]').forEach(el => el.addEventListener('click', ev => { ev.stopPropagation(); openCalendarPostDetails(key, allDayPosts, allDayNotes); }));
     card.querySelectorAll('[data-week-note]').forEach(el => el.addEventListener('click', ev => { ev.stopPropagation(); openEditNoteForDate(d, el.dataset.weekNote); }));
     card.onclick = () => openCalendarDayDetails(d);
+
+    // Bind add-note buttons same as month view
+    card.querySelectorAll('[data-add-note-date]').forEach(el => {
+      el.addEventListener('click', ev => {
+        ev.stopPropagation();
+        openNewNoteForDate(d);
+      });
+    });
+
     weekEl.appendChild(card);
   }
   on('prevWeek', 'click', () => { state.month = new Date(start.getFullYear(), start.getMonth(), start.getDate() - 7); renderCalendar(); detectQueueGaps(); });
@@ -3315,7 +3328,7 @@ function init() {
   renderCalendar();
   renderPlanningSettings();
   renderNoteTypesSettings();
-  activateView('composerView');
+  activateView('calendarView');
 
   selectSettingsTab(document.querySelector('.settings-tab.active')?.dataset.stab || 'connection');
   document.querySelectorAll('.settings-tab').forEach(tab => {
@@ -3463,12 +3476,13 @@ function init() {
   on('composerChannel', 'change', updateComposerButtonStates);
 
   on('composerClearBtn', 'click', () => {
-    if (editorToText(editor.innerHTML) && !confirm('Clear composer?')) return;
     editor.focus();
     document.execCommand('selectAll', false, null);
     document.execCommand('removeFormat', false, null);
-    editor.innerHTML = ''; editor.dispatchEvent(new Event('input'));
-    const status = qs('composerStatus'); if (status) status.textContent = ''; clearMedia();
+    editor.innerHTML = '';
+    editor.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
+    const status = qs('composerStatus'); if (status) status.textContent = '';
+    clearMedia();
   });
 
   document.querySelectorAll('[data-cmd]').forEach(btn => btn.onclick = () => composerFormat(btn.dataset.cmd));
@@ -3606,12 +3620,13 @@ function init() {
   const ccbm = qs('composerClearBtnMob');
   if (ccbm) {
     ccbm.onclick = () => {
-      if (editorToText(editor.innerHTML) && !confirm('Clear composer?')) return;
       editor.focus();
       document.execCommand('selectAll', false, null);
       document.execCommand('removeFormat', false, null);
-      editor.innerHTML = ''; editor.dispatchEvent(new Event('input'));
-      const status = qs('composerStatus'); if (status) status.textContent = ''; clearMedia();
+      editor.innerHTML = '';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
+      const status = qs('composerStatus'); if (status) status.textContent = '';
+      clearMedia();
     };
   }
 

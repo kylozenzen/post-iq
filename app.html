@@ -208,21 +208,22 @@
         </div>
         <div class="gaps-list" id="gapsList"></div>
       </div>
-      <!-- Calendar header -->
-      <div class="cal-header">
-        <button class="btn sm ghost" id="prevMonth">‹</button>
-        <div class="cal-month-label" id="monthLabel"></div>
-        <button class="btn sm ghost" id="nextMonth">›</button>
-          <button class="btn sm ghost" id="todayMonth">Today</button>
+      <!-- Calendar toolbar — month nav, view toggle, and filter in one row -->
+      <div class="cal-toolbar">
+        <div class="cal-toolbar-nav">
+          <button class="btn sm ghost" id="prevMonth">‹</button>
+          <div class="cal-month-label" id="monthLabel"></div>
+          <button class="btn sm ghost" id="nextMonth">›</button>
+          <button class="btn sm ghost" id="todayMonth" style="font-size:11px;">Today</button>
+        </div>
+
+        <div class="cal-toolbar-right">
+          <select id="calendarFilter" class="input" style="max-width:150px;font-size:12px;height:30px;padding:0 28px 0 8px;"></select>
           <div class="cal-view-toggle" role="tablist" aria-label="Calendar view mode">
             <button class="btn sm ghost active" id="calendarViewMonthBtn" type="button" data-calendar-view="month">Month</button>
             <button class="btn sm ghost" id="calendarViewWeekBtn" type="button" data-calendar-view="week">Week</button>
           </div>
-      </div>
-
-      <div class="cal-filter-row">
-        <label class="label" for="calendarFilter" style="margin:0;">Show</label>
-        <select id="calendarFilter" class="input" style="max-width:190px;"></select>
+        </div>
       </div>
 
       <!-- Day-of-week labels -->
