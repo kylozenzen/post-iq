@@ -49,7 +49,7 @@
 
 <!-- ── MOBILE TABS ── -->
 <nav class="mobile-tabs" id="mobileTabs">
-  <button class="mob-tab active" data-view="homeView">
+  <button class="mob-tab active" data-view="homeView" data-home-feature="true">
     🏠 Home
   </button>
   <button class="mob-tab" data-view="calendarView">
@@ -108,7 +108,7 @@
     <!-- Nav -->
     <nav class="side-nav">
       <div class="nav-section-label">Workflow</div>
-      <button class="nav-btn active" data-view="homeView">
+      <button class="nav-btn active" data-view="homeView" data-home-feature="true">
         <span class="nav-icon">🏠</span>
         <span class="nav-text">Home</span>
         
@@ -213,7 +213,11 @@
         <button class="btn sm ghost" id="prevMonth">‹</button>
         <div class="cal-month-label" id="monthLabel"></div>
         <button class="btn sm ghost" id="nextMonth">›</button>
-        <button class="btn sm ghost" id="todayMonth">Today</button>
+          <button class="btn sm ghost" id="todayMonth">Today</button>
+          <div class="cal-view-toggle" role="tablist" aria-label="Calendar view mode">
+            <button class="btn sm ghost active" id="calendarViewMonthBtn" type="button" data-calendar-view="month">Month</button>
+            <button class="btn sm ghost" id="calendarViewWeekBtn" type="button" data-calendar-view="week">Week</button>
+          </div>
       </div>
 
       <div class="cal-filter-row">
@@ -231,6 +235,7 @@
 
       <!-- Calendar grid (desktop) -->
       <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-week" id="calWeek" style="display:none;"></div>
 
       <!-- Agenda view (mobile) -->
       <div class="cal-agenda" id="calAgenda" style="display:none;"></div>
@@ -442,11 +447,6 @@
           </div>
 
           <div id="discordSendRow"></div>
-
-          <button class="btn sm ghost" id="discordAnnounceBtn" type="button"
-            style="width:100%;justify-content:center;font-size:12px;gap:6px;">
-            <span style="color:#5865f2;">⌘</span> Discord Announcement
-          </button>
 
         </div>
 
@@ -923,6 +923,36 @@
     </section><!-- /ideasView -->
   </main>
 </section><!-- /app -->
+
+<section id="mobileComingSoon" class="mobile-coming-soon" aria-label="PostIQ mobile coming soon">
+  <div class="mobile-coming-card">
+    <h1>PostIQ mobile is coming soon</h1>
+    <p>PostIQ is currently built for desktop planning and publishing workflows. Want particular features on mobile? Tell the dev team what would actually help.</p>
+    <ul class="mobile-feature-ideas">
+      <li>Quick drafts</li><li>Thread Splitter</li><li>Calendar / week view</li><li>Snapshot links</li>
+      <li>Snippets</li><li>Buffer queue check</li><li>Discord posting</li><li>Social news / RSS ideas</li>
+    </ul>
+    <form name="mobile-feature-requests" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="mobile-feature-form">
+      <input type="hidden" name="form-name" value="mobile-feature-requests" />
+      <p hidden><label>Don’t fill this out: <input name="bot-field" /></label></p>
+      <label>Name (optional)<input type="text" name="name" class="input" /></label>
+      <label>Email (optional)<input type="email" name="email" class="input" /></label>
+      <fieldset>
+        <legend>Features</legend>
+        <label><input type="checkbox" name="features" value="Quick drafts"> Quick drafts</label>
+        <label><input type="checkbox" name="features" value="Thread Splitter"> Thread Splitter</label>
+        <label><input type="checkbox" name="features" value="Calendar / week view"> Calendar / week view</label>
+        <label><input type="checkbox" name="features" value="Snapshot links"> Snapshot links</label>
+        <label><input type="checkbox" name="features" value="Snippets"> Snippets</label>
+        <label><input type="checkbox" name="features" value="Buffer queue check"> Buffer queue check</label>
+        <label><input type="checkbox" name="features" value="Discord posting"> Discord posting</label>
+        <label><input type="checkbox" name="features" value="Social news / RSS ideas"> Social news / RSS ideas</label>
+      </fieldset>
+      <label>Notes<textarea name="notes" class="input" rows="4"></textarea></label>
+      <button type="submit" class="btn primary">Send feedback</button>
+    </form>
+  </div>
+</section>
           
 <!-- ── MODALS ── -->
 
