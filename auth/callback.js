@@ -119,27 +119,42 @@ async function handleCallback() {
   if (error === 'access_denied') {
     setScreen('cancelled', 'Connection cancelled', 'Buffer did not authorize the connection. If you never saw an approval screen, the authorization request may need adjustment.', technicalDetails);
     showActions('Back to PostIQ');
+    if (typeof gtag !== 'undefined') gtag('event', 'buffer_connect_error', {
+      error_type: 'callback_failure'
+    });
     return;
   }
   if (error) {
     setScreen('error', 'Buffer connection failed', errorDescription || error, technicalDetails);
     showActions('Back to PostIQ');
+    if (typeof gtag !== 'undefined') gtag('event', 'buffer_connect_error', {
+      error_type: 'callback_failure'
+    });
     return;
   }
 
   if (!state || !storedState || state !== storedState) {
     setScreen('error', 'Security check failed', 'The OAuth state was missing or invalid, so PostIQ stopped the connection for your safety.', technicalDetails);
     showActions('Try again');
+    if (typeof gtag !== 'undefined') gtag('event', 'buffer_connect_error', {
+      error_type: 'callback_failure'
+    });
     return;
   }
   if (!code) {
     setScreen('error', 'Missing authorization code', 'Buffer did not return the code PostIQ needs to finish connecting.', technicalDetails);
     showActions('Try again');
+    if (typeof gtag !== 'undefined') gtag('event', 'buffer_connect_error', {
+      error_type: 'callback_failure'
+    });
     return;
   }
   if (!verifier || !redirectUri) {
     setScreen('error', 'Session expired', 'The saved PKCE verifier or redirect URL is missing. Please start the Buffer connection again.', technicalDetails);
     showActions('Try again');
+    if (typeof gtag !== 'undefined') gtag('event', 'buffer_connect_error', {
+      error_type: 'callback_failure'
+    });
     return;
   }
 
@@ -150,12 +165,16 @@ async function handleCallback() {
     sessionStorage.removeItem('postiq_pkce_verifier');
     sessionStorage.removeItem('postiq_oauth_redirect_uri');
     setScreen('success', 'Buffer connected', 'Redirecting you back to PostIQ…');
+    if (typeof gtag !== 'undefined') gtag('event', 'buffer_connect_success');
     setTimeout(() => {
       location.href = `${APP_URL}?connected=buffer`;
     }, 700);
   } catch (err) {
     setScreen('error', 'Could not finish connecting', err.message || 'The token exchange failed. Please try again.', `${technicalDetails}\ntoken exchange error: ${err.message || 'unknown'}`);
     showActions('Try again');
+    if (typeof gtag !== 'undefined') gtag('event', 'buffer_connect_error', {
+      error_type: 'token_exchange_failed'
+    });
   }
 }
 

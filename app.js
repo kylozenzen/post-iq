@@ -1720,6 +1720,9 @@ async function syncBuffer({ force = false } = {}) {
     renderConnectionUI();
   initHomeView();
     showToast(`Loaded ${posts.length} posts`, 'success');
+    if (typeof gtag !== 'undefined') gtag('event', 'buffer_sync', {
+      post_count: posts.length
+    });
     window.dispatchEvent(new Event('postiq:synced'));
   } catch (e) {
     const msg = getErrorMessage(e, 'Sync failed.');
@@ -2319,6 +2322,9 @@ function shareSnapshot() {
   const linkInput = qs('shareLink'); if (linkInput) linkInput.value = link;
   shareState.dirty = false;
   shareState.lastLink = link;
+  if (typeof gtag !== 'undefined') gtag('event', 'snapshot_created', {
+    snapshot_range: qs('shareRange')?.value || 'month'
+  });
   const meta = qs('shareLinkMeta');
   if (meta) {
     meta.textContent = 'Anyone with this link can view the snapshot. No PostIQ account needed.';
@@ -2788,6 +2794,9 @@ async function composerSend(action) {
     }
     const msg = action === 'draft' ? 'Buffer draft saved.' : action === 'queue' ? 'Added to queue.' : 'Scheduled.';
     qs('composerStatus').textContent = msg; showToast(msg, 'success');
+    if (typeof gtag !== 'undefined') gtag('event', 'post_sent', {
+      send_action: action
+    });
 
     // Discord integration
     if (window.Discord) {
@@ -2952,7 +2961,9 @@ window.approvalGenerateLink = async function (safeId) {
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     setApprovalMeta(draftId, { ...meta, link_generated: true, locked: true, approval_uuid: data.id, approval_url: data.url });
-    showToast('Approval link generated!', 'success'); loadApprovals();
+    showToast('Approval link generated!', 'success');
+    if (typeof gtag !== 'undefined') gtag('event', 'approval_generated');
+    loadApprovals();
   } catch (e) {
     showToast('Failed: ' + e.message, 'error');
     if (btn) { btn.disabled = false; btn.textContent = '🔗 Generate Link'; }
@@ -3088,6 +3099,13 @@ window.submitReview = async function (uuid, action) {
 function activateView(viewId) {
   if (viewId === 'homeView' && !FEATURE_HOME_DASHBOARD) viewId = 'composerView';
   if (viewId === 'approvalsView' && !getFeatureFlag('approvals')) { showFeaturePaused('approvals'); return; }
+  if (document.body.dataset.gaReady && typeof gtag !== 'undefined') {
+    gtag('event', 'view_changed', {
+      view_name: viewId
+    });
+  }
+
+  document.body.dataset.gaReady = '1';
   currentViewId = viewId;
   document.querySelectorAll('[data-view]').forEach(x => x.classList.toggle('active', x.dataset.view === viewId));
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId));
@@ -3761,6 +3779,9 @@ function init() {
       threadParts = splitThreadText(text);
       renderThreadParts();
       showToast(`${threadParts.length} thread parts`, 'success');
+      if (typeof gtag !== 'undefined') gtag('event', 'thread_split', {
+        part_count: threadParts.length
+      });
     };
 
     qs('splitSampleBtn').onclick = () => {

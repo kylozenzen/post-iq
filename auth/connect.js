@@ -57,6 +57,9 @@ function showConnectError(message, originalError) {
   if (originalError) {
     console.error('[PostIQ OAuth] Failed to start Buffer OAuth', originalError);
   }
+  if (typeof gtag !== 'undefined') gtag('event', 'buffer_connect_error', {
+    error_type: String(message || 'unknown').slice(0, 100)
+  });
   if (connectError) {
     connectError.textContent = message;
     connectError.style.display = 'block';
@@ -121,6 +124,7 @@ async function startBufferOAuth() {
 
   console.info('[PostIQ OAuth] Starting Buffer OAuth', { redirectUri });
   console.info('[PostIQ OAuth] Redirecting to Buffer', authUrl.toString());
+  if (typeof gtag !== 'undefined') gtag('event', 'buffer_connect_start');
   window.location.assign(authUrl.toString());
 }
 
