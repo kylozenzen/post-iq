@@ -771,12 +771,51 @@ function clearComposer() {
     cancelable: true,
     inputType: 'deleteContentBackward'
   }));
+
+  // Status message
   const status = qs('composerStatus');
   if (status) status.textContent = '';
-  if (typeof clearMedia === 'function') clearMedia();
+
+  // Schedule panel — close and reset all fields
+  const schedulePanel = qs('schedulePanel');
+  if (schedulePanel) schedulePanel.classList.remove('open');
+  const scheduleToggle = qs('composerScheduleToggle');
+  if (scheduleToggle) scheduleToggle.style.display = 'inline-flex';
+  const scheduleDate = qs('scheduleDate');
+  if (scheduleDate) scheduleDate.value = new Date().toISOString().slice(0, 10);
+  const scheduleHour = qs('scheduleHour');
+  if (scheduleHour) scheduleHour.selectedIndex = 0;
+  const scheduleMin = qs('scheduleMin');
+  if (scheduleMin) scheduleMin.selectedIndex = 0;
+  const scheduleAmpm = qs('scheduleAmpm');
+  if (scheduleAmpm) {
+    const now = new Date();
+    scheduleAmpm.value = now.getHours() >= 12 ? 'PM' : 'AM';
+  }
+  const composerWhen = qs('composerWhen');
+  if (composerWhen) composerWhen.value = '';
+
+  // Approval checkbox
+  const needsApproval = qs('needsApprovalCheck');
+  if (needsApproval) needsApproval.checked = false;
+
+  // Reference pin
+  const refPin = qs('refPin');
+  if (refPin) refPin.style.display = 'none';
+  const refPinSourceLink = qs('refPinSourceLink');
+  if (refPinSourceLink) { refPinSourceLink.style.display = 'none'; refPinSourceLink.href = '#'; }
+
+  // Media
+  clearMedia();
+  closeMediaPanel();
+
+  // Draft transfer state if present
   if (typeof clearDraftTransferState === 'function') clearDraftTransferState();
+
   updateComposerClearButtonVisibility();
 }
+
+
 
 function useTemplateInEditor(template) {
   const editor = qs('composerEditor'); if (!editor) return;
