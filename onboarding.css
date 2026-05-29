@@ -27,8 +27,25 @@
   pointer-events: none;
 }
 
+/* Step 3 — Compose view: move to bottom-right so it clears the editor and send buttons */
+.onboarding-banner.ob-compose-mode {
+  top: auto;
+  bottom: 24px;
+  right: 24px;
+}
+
 @keyframes obIn  { from { opacity:0; transform:translateY(-10px) scale(.96); } to { opacity:1; transform:none; } }
 @keyframes obOut { to   { opacity:0; transform:translateY(-8px)  scale(.97); } }
+
+/* Step 3 / Compose view — shift banner left so it clears the editor buttons.
+   Slides from top-right to top-center of the main content area. */
+.onboarding-banner.ob-compose-mode {
+  right: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 480px;
+  transition: left .3s ease, right .3s ease, width .3s ease, transform .3s ease;
+}
 
 /* Brand accent line at top */
 .onboarding-banner::before {
