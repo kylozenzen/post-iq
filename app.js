@@ -758,19 +758,49 @@ function updateComposerClearButtonVisibility() {
 
 function clearComposer() {
   const editor = document.getElementById('composerEditor');
-  if (!editor) return;
-  editor.focus();
-  try {
-    document.execCommand('selectAll', false, null);
-    document.execCommand('removeFormat', false, null);
-  } catch {}
-  editor.innerHTML = '';
-  editor.textContent = '';
-  editor.dispatchEvent(new InputEvent('input', {
-    bubbles: true,
-    cancelable: true,
-    inputType: 'deleteContentBackward'
-  }));
+  if (editor) {
+    editor.innerHTML = '';
+    editor.innerText = '';
+    editor.textContent = '';
+    try { document.execCommand('selectAll', false, null); document.execCommand('delete', false, null); } catch {}
+    editor.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'deleteContentBackward' }));
+  }
+
+  const status = qs('composerStatus');
+  if (status) status.textContent = '';
+
+  const schedulePanel = qs('schedulePanel');
+  if (schedulePanel) schedulePanel.classList.remove('open');
+  const scheduleToggle = qs('composerScheduleToggle');
+  if (scheduleToggle) scheduleToggle.style.display = 'inline-flex';
+  const scheduleDate = qs('scheduleDate');
+  if (scheduleDate) scheduleDate.value = new Date().toISOString().slice(0, 10);
+  const scheduleHour = qs('scheduleHour');
+  if (scheduleHour) scheduleHour.selectedIndex = 0;
+  const scheduleMin = qs('scheduleMin');
+  if (scheduleMin) scheduleMin.selectedIndex = 0;
+  const scheduleAmpm = qs('scheduleAmpm');
+  if (scheduleAmpm) scheduleAmpm.value = new Date().getHours() >= 12 ? 'PM' : 'AM';
+  const composerWhen = qs('composerWhen');
+  if (composerWhen) composerWhen.value = '';
+
+  const needsApproval = qs('needsApprovalCheck');
+  if (needsApproval) needsApproval.checked = false;
+
+  const refPin = qs('refPin');
+  if (refPin) refPin.style.display = 'none';
+  const refPinSourceLink = qs('refPinSourceLink');
+  if (refPinSourceLink) { refPinSourceLink.style.display = 'none'; refPinSourceLink.href = '#'; }
+
+  clearMedia();
+  closeMediaPanel();
+
+  if (typeof clearDraftTransferState === 'function') clearDraftTransferState();
+
+  updateComposerClearButtonVisibility();
+}
+                                     
+                                     ));
 
   // Status message
   const status = qs('composerStatus');
@@ -816,24 +846,20 @@ function clearComposer() {
 }
 
 
-
 function useTemplateInEditor(template) {
-  const editor = qs('composerEditor'); if (!editor) return;
+  const editor = qs('composerEditor');
+  if (!editor) return;
   const body = template.body || '';
-  try {
-    const sel = window.getSelection();
-    if (sel && sel.rangeCount && editor.contains(sel.anchorNode)) {
-      sel.deleteFromDocument();
-      sel.getRangeAt(0).insertNode(document.createTextNode(body));
-    } else {
-      editor.innerText = editor.innerText ? `${editor.innerText}\n\n${body}` : body;
-    }
-  } catch { editor.innerText = editor.innerText ? `${editor.innerText}\n\n${body}` : body; }
+  editor.innerHTML = '';
+  editor.textContent = body;
   editor.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
   updateComposerClearButtonVisibility();
   editor.focus();
   showToast('Template inserted', 'success');
 }
+
+
+
 
 function openTemplateModal(id = null) {
   const templateModalTitle = qs('templateModalTitle');
