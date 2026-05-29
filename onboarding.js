@@ -103,6 +103,19 @@ window.PostIQOnboarding = (() => {
     document.body.appendChild(el);
     bannerEl = el;
     renderBanner();
+    avoidGlobalStatusBanner();
+  }
+
+  function avoidGlobalStatusBanner() {
+    if (!bannerEl) return;
+    const globalBanner = document.getElementById('globalStatusBanner');
+    if (globalBanner && !globalBanner.classList.contains('hidden')) {
+      // Push onboarding banner below the global status banner
+      const h = globalBanner.getBoundingClientRect().bottom;
+      bannerEl.style.top = (h + 8) + 'px';
+    } else {
+      bannerEl.style.top = '';
+    }
   }
 
   function renderBanner() {
@@ -284,6 +297,17 @@ window.PostIQOnboarding = (() => {
 
   // ── Events ────────────────────────────────
   function bindEvents() {
+    // Re-check position whenever global status banner is dismissed
+    const globalDismiss = document.getElementById('globalStatusDismiss');
+    if (globalDismiss) {
+      globalDismiss.addEventListener('click', () => {
+        setTimeout(avoidGlobalStatusBanner, 350);
+      });
+    }
+
+    // Also re-check after the auto-hide timeout (global banner hides after ~5-7s)
+    setTimeout(avoidGlobalStatusBanner, 7500);
+
     window.addEventListener('postiq:synced', () => {
       store(KEYS.synced, '1');
       refreshBanner();
@@ -307,6 +331,7 @@ window.PostIQOnboarding = (() => {
     if (typeof origActivate === 'function') {
       window.activateView = function(viewId, ...args) {
         origActivate.call(this, viewId, ...args);
+        if (bannerEl) bannerEl.classList.toggle('ob-compose-mode', viewId === 'composerView');
         showViewTooltip(viewId);
       };
     }
@@ -330,8 +355,22 @@ window.PostIQOnboarding = (() => {
   // ── Init ──────────────────────────────────
   function init() {
     bindEvents();
+
+    // If the user is already connected, they are not new.
+    // Skip the banner entirely — just run tooltips as they explore.
+    if (isConnected()) {
+      // Mark banner dismissed so tooltips are unblocked
+      store(KEYS.dismissed, '1');
+      return;
+    }
+
     if (!isBannerDismissed()) {
       buildBanner();
+      // If app launches directly into composerView, position accordingly
+      const activeView = document.querySelector('.view.active');
+      if (activeView && activeView.id === 'composerView' && bannerEl) {
+        bannerEl.classList.add('ob-compose-mode');
+      }
     }
     // Tooltips only fire after banner dismissed — no initial tooltip on load
   }
