@@ -1,0 +1,934 @@
+/* ═══════════════════════════════════════════════════════
+   DISPATCH THEME — Drop into PostIQ repo as dispatch-theme.css
+   Add to app.html head after app.css:
+   <link rel="stylesheet" href="./dispatch-theme.css" />
+
+   Also update app.html text nodes (see bottom of this file)
+   Zero changes to app.js or app.css required.
+═══════════════════════════════════════════════════════ */
+
+/* ── 1. FONT IMPORT ─────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&family=Barlow:wght@300;400;500;600&family=IBM+Plex+Mono:wght@300;400;500&display=swap');
+
+/* ── 2. DESIGN TOKENS — Override PostIQ vars ────────── */
+:root {
+  /* Core palette */
+  --bg:        #07080A;
+  --surface:   #0F1318;
+  --surface2:  #161C24;
+  --surface3:  #1F2733;
+  --border:    #1F2733;
+  --border2:   #2D3A4A;
+  --text:      #EDF0F4;
+  --muted:     #637080;
+  --subtle:    #3D4F63;
+  --ink:       #EDF0F4;
+
+  /* Brand — amber replaces indigo */
+  --brand:      #E9A320;
+  --brand-h:    #FFBA3C;
+  --brand-dim:  rgba(233,163,32,0.10);
+  --brand-mid:  rgba(233,163,32,0.18);
+  --brand-glow: rgba(233,163,32,0.28);
+
+  /* Semantic */
+  --accent:     #E03E3E;
+  --accent-dim: rgba(224,62,62,0.10);
+  --green:      #27B870;
+  --green-dim:  rgba(39,184,112,0.10);
+  --amber:      #E9A320;
+  --red:        #E03E3E;
+
+  /* Radius — sharper for ops aesthetic */
+  --r:  6px;
+  --r2: 4px;
+
+  /* Sidebar width stays same */
+  --sidebar: 248px;
+
+  /* Shadows — deeper on dark */
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+  --shadow:    0 4px 18px rgba(0,0,0,0.4), 0 1px 6px rgba(0,0,0,0.2);
+  --shadow-lg: 0 14px 48px rgba(0,0,0,0.5), 0 4px 14px rgba(0,0,0,0.3);
+
+  /* Retain PostIQ shadow shorthand aliases */
+  --sh0: var(--shadow-sm);
+  --sh1: var(--shadow);
+  --sh2: var(--shadow-lg);
+}
+
+/* ── 3. BODY & GLOBAL ───────────────────────────────── */
+body {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 300;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Replace dot-grid with Dispatch signal grid */
+body::before {
+  background-image:
+    linear-gradient(rgba(233,163,32,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(233,163,32,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  opacity: 1;
+}
+
+/* Amber glow top-right instead of indigo */
+body::after {
+  background: radial-gradient(ellipse, rgba(233,163,32,0.06) 0%, transparent 68%);
+}
+
+/* Scanlines */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 4px),
+    radial-gradient(ellipse 700px 400px at top right, rgba(233,163,32,0.06), transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── 4. TYPOGRAPHY ──────────────────────────────────── */
+
+/* Display headings → Barlow Condensed */
+.logo-mark,
+.page-title,
+.modal-title,
+.section-title,
+.cal-month-label,
+.conn-heading,
+.funnel-title,
+.snap-title,
+.reviewer-brand {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* Mono labels → IBM Plex Mono */
+.label,
+.brand-beta,
+.logo-beta,
+.nav-section-label,
+.conn-label,
+.conn-last-sync,
+.sync-meta span,
+.nav-tag,
+.status-pill,
+.chip,
+.char-count,
+.panel-card-title,
+.day-num,
+.day-count,
+.day-gap-indicator,
+.more-indicator,
+.gaps-title,
+.gap-chip,
+.filter-label,
+.filter-pill,
+.approval-status-badge,
+.approval-comment-time,
+.approval-comment-action,
+.template-card-tags,
+.snap-brand-badge,
+.snap-stat,
+.snap-cal-label,
+.snap-footer-copy strong,
+.type-filter-btn,
+.type-filter-count,
+.ideas-tab,
+.trending-src-tab,
+.trending-hn-tab,
+.cp-sidebar-title,
+.cp-usage-badge,
+.cp-seed-idx,
+.cp-health-msg,
+.cp-prog-label,
+.cp-layer-select,
+.cp-tone-select,
+.eyebrow,
+.eyebrow-dot,
+.funnel-step-num,
+.funnel-insp-pill,
+.funnel-dest-pill,
+.funnel-dest-label,
+.tool-tab,
+.split-card-sub,
+.split-col-label,
+.connect-right-feat,
+.connect-affiliate,
+.share-modal-stat-val,
+.ob-eyebrow,
+.ob-step-desc,
+.ob-progress-label,
+.ob-tip-body,
+.mob-tab,
+.home-kicker,
+.home-stat-lbl,
+.home-item-meta,
+.home-news-source,
+.home-action-copy,
+.tab-label {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* Body text → Barlow */
+.nav-btn,
+.btn,
+.tool-panel-copy p,
+.tool-panel-copy,
+.connect-left p,
+.hero-desc,
+.hero-trust,
+.faq-a,
+.settings-copy,
+.bio-desc,
+.cta-card p,
+.empty-desc,
+.ob-subtitle,
+.ob-tip-body,
+.conn-helper,
+.approval-comment-text,
+.approval-content-text,
+.reviewer-card,
+.cp-lesson-body,
+.cp-tip-text,
+.cp-gate-desc,
+.notebook-card-excerpt,
+.home-copy,
+.home-action-copy,
+.home-item-title,
+.ideas-panel-copy {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 300;
+}
+
+/* ── 5. SIDEBAR ─────────────────────────────────────── */
+.side {
+  background: #07080A;
+  border-right: 1px solid var(--border);
+}
+
+.side-logo {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+}
+
+/* Brand logotype */
+.logo-mark {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 18px;
+  color: var(--text);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Beta pill → SIGNAL style */
+.logo-beta,
+.brand-beta {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  background: var(--brand);
+  color: var(--bg);
+  border-radius: 2px;
+  padding: 3px 7px;
+}
+
+/* Connection card on sidebar */
+.connection-card {
+  background: var(--surface2) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r) !important;
+}
+
+.conn-dot.on {
+  background: var(--green);
+  box-shadow: 0 0 0 3px rgba(39,184,112,0.2);
+}
+
+/* Nav buttons */
+.nav-btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-radius: var(--r2);
+}
+
+.nav-btn:hover {
+  background: rgba(233,163,32,0.06);
+  color: var(--text);
+}
+
+.nav-btn.active {
+  background: rgba(233,163,32,0.10);
+  color: var(--brand);
+  border: 1px solid rgba(233,163,32,0.25);
+}
+
+.nav-btn.active .nav-icon { color: var(--brand); }
+
+.nav-icon svg { stroke: currentColor; }
+
+/* Nav section labels */
+.nav-section-label {
+  color: var(--subtle);
+  letter-spacing: 0.14em;
+}
+
+/* Nav tags */
+.nav-tag.needs {
+  background: rgba(224,62,62,0.12);
+  color: var(--red);
+}
+.nav-tag.free {
+  background: rgba(39,184,112,0.12);
+  color: var(--green);
+}
+
+/* Sync button */
+#syncBtn {
+  background: rgba(233,163,32,0.08);
+  border: 1px solid rgba(233,163,32,0.2);
+  color: var(--brand);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+#syncBtn:hover {
+  background: rgba(233,163,32,0.15);
+}
+
+/* ── 6. BUTTONS ─────────────────────────────────────── */
+.btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border-radius: var(--r2);
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--muted);
+}
+
+.btn:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+  background: var(--brand-dim);
+}
+
+.btn.primary {
+  background: var(--brand);
+  color: var(--bg);
+  border-color: transparent;
+  box-shadow: 0 2px 12px rgba(233,163,32,0.3);
+  font-weight: 500;
+}
+.btn.primary:hover {
+  background: var(--brand-h);
+  box-shadow: 0 4px 20px rgba(233,163,32,0.4);
+  color: var(--bg);
+}
+
+.btn.success {
+  background: var(--green);
+  color: var(--bg);
+  border-color: transparent;
+}
+.btn.success:hover { background: #1fa060; color: var(--bg); }
+
+.btn.danger {
+  background: var(--red);
+  color: #fff;
+  border-color: transparent;
+}
+
+.btn.ghost {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+}
+.btn.ghost:hover {
+  background: var(--surface2);
+  color: var(--text);
+  border-color: var(--border2);
+}
+
+/* ── 7. INPUTS ──────────────────────────────────────── */
+.input, textarea, select {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: 'Barlow', sans-serif;
+  border-radius: var(--r2);
+}
+.input:focus, textarea:focus, select:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(233,163,32,0.12);
+}
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23637080'/%3E%3C/svg%3E");
+}
+
+/* ── 8. CARDS ───────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── 9. PAGE HEADERS ────────────────────────────────── */
+.page-hdr {
+  border-bottom: 1px solid var(--border);
+}
+
+.page-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.page-desc { color: var(--muted); font-family: 'Barlow', sans-serif; }
+
+/* ── 10. STATUS PILLS ───────────────────────────────── */
+.status-pill { border-radius: 2px; }
+.status-pill.connected { color: var(--green); background: rgba(39,184,112,0.1); border-color: rgba(39,184,112,0.2); }
+.status-pill.needs     { color: var(--red);   background: rgba(224,62,62,0.1);  border-color: rgba(224,62,62,0.2); }
+.status-pill.free      { color: var(--brand); background: var(--brand-dim);    border-color: var(--brand-glow); }
+
+/* ── 11. SECTION TITLE ──────────────────────────────── */
+.section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+/* ── 12. CALENDAR ───────────────────────────────────── */
+.cal-month-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.dow-cell {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--subtle);
+}
+
+.cal-day {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  min-height: 88px;
+}
+.cal-day:hover { border-color: rgba(233,163,32,0.4); background: var(--surface2); }
+.cal-day.today { border-color: var(--brand) !important; }
+.cal-day.today .day-num { color: var(--brand); }
+.cal-day.has-gap { border-color: rgba(224,62,62,0.3); border-style: dashed; }
+
+.day-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.day-count {
+  background: var(--brand-dim);
+  color: var(--brand);
+  border: 1px solid rgba(233,163,32,0.2);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 8px;
+  border-radius: 2px;
+}
+
+.day-post-pill {
+  background: var(--brand-dim);
+  border: 1px solid rgba(233,163,32,0.2);
+  color: var(--brand);
+  border-radius: 2px;
+}
+
+/* Gap panel */
+.gaps-panel {
+  background: rgba(224,62,62,0.06);
+  border: 1px solid rgba(224,62,62,0.2);
+  border-radius: var(--r2);
+}
+.gaps-title { color: var(--red); }
+.gap-chip {
+  border: 1px solid rgba(224,62,62,0.25);
+  background: rgba(224,62,62,0.08);
+  color: var(--red);
+  border-radius: 2px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.gap-chip:hover { background: rgba(224,62,62,0.15); }
+
+/* ── 13. COMPOSER ───────────────────────────────────── */
+.editor-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+}
+
+.editor-toolbar {
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+
+.tb-btn {
+  color: var(--muted);
+  border-radius: 2px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.tb-btn:hover { background: var(--surface3); color: var(--text); }
+
+.rich-editor {
+  color: var(--text);
+  caret-color: var(--brand);
+  font-family: 'Barlow', sans-serif;
+}
+.rich-editor:empty::before { color: var(--subtle); }
+
+.editor-footer {
+  background: var(--surface2);
+  border-top: 1px solid var(--border);
+}
+
+.char-count { font-family: 'IBM Plex Mono', monospace; color: var(--muted); }
+.char-count.warn { color: var(--amber); }
+.char-count.over { color: var(--red); }
+
+.panel-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+}
+
+.panel-card-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Composer mode tabs */
+.composer-mode-tab {
+  font-family: 'IBM Plex Mono', monospace !important;
+  font-size: 10px !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+}
+
+/* ── 14. MODAL ──────────────────────────────────────── */
+.modal {
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(6px);
+}
+.modal-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-lg);
+}
+.modal-hdr {
+  border-bottom: 1px solid var(--border);
+}
+.modal-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+/* ── 15. SETTINGS TABS ──────────────────────────────── */
+.settings-tab {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-radius: var(--r2) var(--r2) 0 0;
+}
+.settings-tab:hover { color: var(--brand); background: var(--brand-dim); }
+.settings-tab.active, .settings-tab[aria-selected="true"] {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+  background: var(--surface2);
+}
+
+/* ── 16. APPROVALS ──────────────────────────────────── */
+.approval-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+}
+.approval-card:hover { box-shadow: var(--shadow); }
+.approval-card-header { background: var(--surface2); border-bottom: 1px solid var(--border); }
+
+.approval-status-badge.pending  { background: rgba(233,163,32,0.12); color: var(--amber); }
+.approval-status-badge.approved { background: rgba(39,184,112,0.12);  color: var(--green); }
+.approval-status-badge.changes  { background: rgba(224,62,62,0.12);   color: var(--red); }
+
+.approval-card-status-bar.pending   { background: var(--amber); }
+.approval-card-status-bar.approved  { background: var(--green); }
+.approval-card-status-bar.changes   { background: var(--red); }
+
+.approval-link-row {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+}
+.approval-link-url { color: var(--brand); font-family: 'IBM Plex Mono', monospace; }
+.approval-card-body { background: var(--surface); }
+.approval-footer { background: var(--surface2); border-top: 1px solid var(--border); }
+.approval-content-text { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r2); }
+
+/* ── 17. APPROVALS FILTER ───────────────────────────── */
+.filter-pill {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  border-radius: 2px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+}
+.filter-pill:hover { border-color: var(--brand); color: var(--brand); }
+.filter-pill.active { background: var(--brand-dim); border-color: rgba(233,163,32,0.3); color: var(--brand); }
+
+/* ── 18. IDEAS TABS ─────────────────────────────────── */
+.ideas-tab {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  border-radius: 2px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+.ideas-tab.active {
+  color: var(--brand);
+  border-color: rgba(233,163,32,0.3);
+  background: var(--brand-dim);
+}
+
+/* ── 19. CONTENT PILLARS ────────────────────────────── */
+.content-pillars-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.cp-gate-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+}
+.cp-gate-card:hover { border-color: rgba(233,163,32,0.4); }
+.cp-gate-card::before { background: var(--brand); }
+.cp-gate-title { color: var(--text); }
+.cp-gate-desc { color: var(--muted); }
+.cp-gate-cta { color: var(--brand); }
+
+.cp-lesson { border-left: 3px solid var(--brand); background: var(--surface); }
+.cp-lesson::before { background: var(--brand); }
+.cp-lesson-eyebrow { color: var(--brand); }
+
+.cp-pillar-card { background: var(--surface); border: 1px solid var(--border); }
+.cp-pillar-card:hover { box-shadow: var(--shadow); }
+.cp-pillar-name { color: var(--text); }
+.cp-pillar-promise { color: var(--muted); }
+.cp-seed-input { color: var(--text); }
+.cp-seed-btn.go { background: var(--brand); color: var(--bg); }
+.cp-seed-btn.go:hover { background: var(--brand-h); }
+
+.cp-sidebar-card { background: var(--surface); border: 1px solid var(--border); }
+.cp-health-fill { background: var(--brand); }
+.cp-health-fill.good { background: var(--green); }
+.cp-health-fill.warn { background: var(--amber); }
+
+.cp-prog-step.active .cp-prog-dot,
+.cp-prog-step.done .cp-prog-dot {
+  border-color: var(--brand);
+  background: var(--brand);
+}
+.cp-prog-step.done:not(:last-child)::after { background: var(--brand); }
+
+.cp-tag-pill { border: 1px solid var(--border2); color: var(--muted); background: var(--surface); border-radius: 2px; }
+.cp-tag-pill:hover { border-color: rgba(233,163,32,0.3); color: var(--brand); }
+.cp-tag-pill.selected { background: var(--brand-dim); border-color: rgba(233,163,32,0.3); color: var(--brand); }
+
+.cp-compact-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r2); }
+.cp-compact-card:hover { border-color: rgba(233,163,32,0.3); background: var(--brand-dim); }
+.cp-compact-name { color: var(--text); }
+
+/* ── 20. TEMPLATES ──────────────────────────────────── */
+.template-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+}
+.template-card:hover { border-color: rgba(233,163,32,0.3); }
+.template-card-title { color: var(--text); }
+
+.templates-sidebar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+}
+.type-filter-btn { color: var(--muted); }
+.type-filter-btn:hover { background: var(--surface2); color: var(--text); }
+.type-filter-btn.active { background: var(--brand-dim); color: var(--brand); }
+
+.template-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r2); }
+.template-item:hover { border-color: rgba(233,163,32,0.3); background: var(--brand-dim); }
+
+/* ── 21. NOTEBOOK ───────────────────────────────────── */
+.notebook-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); }
+.notebook-card:hover { border-color: var(--border2); }
+.notebook-type-badge { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); border-radius: 2px; }
+.notebook-type-badge.idea   { color: var(--brand); border-color: rgba(233,163,32,0.25); background: var(--brand-dim); }
+.notebook-type-badge.reddit { color: #ea580c; border-color: rgba(234,88,12,0.25); background: rgba(234,88,12,0.08); }
+.notebook-type-badge.hn     { color: #b45309; border-color: rgba(180,83,9,0.25);  background: rgba(180,83,9,0.08); }
+
+/* ── 22. SNAPSHOT / SHARED VIEW ─────────────────────── */
+.snap-hero {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.snap-hero::after { background: linear-gradient(90deg, var(--brand), rgba(233,163,32,0.1)); }
+.snap-brand { color: var(--text); }
+.snap-brand-badge { background: var(--brand); color: var(--bg); }
+.snap-title { color: var(--text); }
+.snap-stat { color: var(--muted); }
+.snap-stat strong { color: var(--text); }
+.snap-cal-label { color: var(--subtle); }
+.snap-footer { background: var(--surface); border-top: 1px solid var(--border); }
+.snap-footer-copy { color: var(--muted); }
+.snap-footer-copy strong { color: var(--text); }
+.snap-modal-post { border: 1px solid var(--border); background: var(--surface); border-radius: var(--r); }
+.snap-modal-post-hdr { background: var(--surface2); border-bottom: 1px solid var(--border); }
+.snap-modal-post-body { background: var(--surface); color: var(--text); }
+.snap-modal-post-copy { background: var(--surface2); border-top: 1px solid var(--border); }
+.snap-post-num { background: var(--brand-dim); color: var(--brand); border: 1px solid rgba(233,163,32,0.2); border-radius: 2px; }
+.snap-platform-badge { background: var(--surface); border: 1px solid var(--border2); color: var(--muted); border-radius: 2px; }
+
+#sharedGrid .cal-day.has-content:hover { border-color: rgba(233,163,32,0.4); background: var(--brand-dim); }
+
+/* ── 23. TOAST ──────────────────────────────────────── */
+.toast {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--brand);
+  border-radius: var(--r2);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+}
+.toast.success { border-left-color: var(--green); }
+.toast.error   { border-left-color: var(--red); }
+
+/* ── 24. EMPTY STATES ───────────────────────────────── */
+.empty-state { border: 1px dashed var(--border2); border-radius: var(--r); }
+.empty-title { color: var(--text); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.empty-desc  { color: var(--muted); font-family: 'Barlow', sans-serif; }
+
+/* ── 25. FIELD LABELS ───────────────────────────────── */
+.label {
+  font-family: 'IBM Plex Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+/* ── 26. DIVIDER ────────────────────────────────────── */
+.divider { background: var(--border); }
+
+/* ── 27. CHIPS ──────────────────────────────────────── */
+.chip { border: 1px solid var(--border2); color: var(--muted); border-radius: 2px; font-family: 'IBM Plex Mono', monospace; }
+.chip.brand { background: var(--brand-dim); border-color: rgba(233,163,32,0.2); color: var(--brand); }
+.chip.green { background: rgba(39,184,112,0.1); border-color: rgba(39,184,112,0.2); color: var(--green); }
+
+/* ── 28. GLOBAL STATUS BANNER ───────────────────────── */
+.global-status-banner {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+}
+.global-status-banner::before { background: var(--brand); }
+.global-status-banner.warning::before { background: var(--amber); }
+.global-status-banner.error::before   { background: var(--red); }
+.global-status-banner.success::before { background: var(--green); }
+.global-status-copy strong { color: var(--text); font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; }
+.global-status-copy span   { color: var(--muted); }
+.global-status-dismiss { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); border-radius: 2px; }
+.global-status-dismiss:hover { color: var(--text); }
+
+/* ── 29. REVIEWER PAGE ──────────────────────────────── */
+.reviewer-wrap { padding-top: 60px; }
+.reviewer-brand {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+}
+.reviewer-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+}
+.reviewer-btn.approve { background: var(--green); color: var(--bg); font-family: 'IBM Plex Mono', monospace; }
+.reviewer-btn.changes { background: var(--surface); border: 1px solid var(--border2); color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+.reviewer-btn.changes:hover { border-color: var(--red); color: var(--red); }
+
+/* ── 30. MOBILE NAV ─────────────────────────────────── */
+.mobile-tabs {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.mob-tab { color: var(--subtle); font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; }
+.mob-tab.active { color: var(--brand); }
+.mob-tab.active::before { background: var(--brand); }
+
+/* ── 31. MOBILE DRAWER ──────────────────────────────── */
+.mob-drawer { background: var(--surface); border-top: 1px solid var(--border); border-radius: var(--r) var(--r) 0 0; }
+.mob-drawer-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text); }
+
+/* ── 32. SHARE MODAL ────────────────────────────────── */
+.share-modal-stat { border-bottom: 1px solid var(--border); color: var(--text); }
+.share-modal-stat-label { color: var(--muted); }
+.share-modal-stat-val { color: var(--text); font-family: 'IBM Plex Mono', monospace; }
+
+.snap-link-row { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r2); }
+.snap-link-url { color: var(--brand); font-family: 'IBM Plex Mono', monospace; }
+.snap-link-copy { background: var(--brand); color: var(--bg); border-radius: 2px; }
+
+/* ── 33. ONBOARDING (re-skin to amber) ──────────────── */
+.onboarding-banner {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+}
+.onboarding-banner::before { background: linear-gradient(90deg, var(--brand), rgba(233,163,32,0.1)); }
+.ob-eyebrow { color: var(--brand); font-family: 'IBM Plex Mono', monospace; }
+.ob-title   { color: var(--text);  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; }
+.ob-subtitle { color: var(--muted); }
+.ob-step.ob-step-active { background: rgba(233,163,32,0.08); border-color: rgba(233,163,32,0.2); }
+.ob-step.ob-step-active .ob-step-num { background: var(--brand); color: var(--bg); border-color: transparent; }
+.ob-step.ob-step-done .ob-step-num   { background: var(--green); }
+.ob-step-label { color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+.ob-progress-bar { background: var(--brand); }
+.ob-cta { background: var(--brand); color: var(--bg); border-radius: var(--r2); font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.12em; text-transform: uppercase; }
+.ob-cta:hover { background: var(--brand-h); color: var(--bg); }
+.ob-cta.ob-cta-done { background: var(--surface2); color: var(--muted); }
+.ob-tooltip { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); }
+.ob-tooltip::before { background: var(--surface); border-color: var(--border); }
+.ob-tip-icon { font-size: 14px; }
+.ob-tip-title { color: var(--text); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; }
+.ob-tip-body { color: var(--muted); }
+.ob-tip-body strong { color: var(--text); }
+
+/* ── 34. HOME DASHBOARD ─────────────────────────────── */
+.home-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); }
+.home-hero-card { background: var(--surface2); border-color: rgba(233,163,32,0.15); }
+.home-kicker { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--brand); }
+.home-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px; text-transform: uppercase; letter-spacing: 0.02em; color: var(--text); }
+.home-copy  { color: var(--muted); }
+.home-stat  { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r2); }
+.home-stat-num { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; color: var(--text); }
+.home-stat-lbl { font-family: 'IBM Plex Mono', monospace; color: var(--subtle); text-transform: uppercase; letter-spacing: 0.08em; }
+.home-status-pill { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-family: 'IBM Plex Mono', monospace; border-radius: 2px; font-size: 9px; }
+.home-status-pill.connected { color: var(--green); background: rgba(39,184,112,0.08); border-color: rgba(39,184,112,0.2); }
+.home-status-pill.offline   { color: var(--amber); background: rgba(233,163,32,0.08); border-color: rgba(233,163,32,0.2); }
+.home-status-pill.gap       { color: var(--red);   background: rgba(224,62,62,0.08);  border-color: rgba(224,62,62,0.2); }
+.home-post-item, .home-item { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r2); }
+.home-item-meta   { color: var(--subtle); }
+.home-item-title  { color: var(--text); }
+.home-action-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r2); color: var(--text); }
+.home-action-card:hover { border-color: rgba(233,163,32,0.3); }
+.home-action-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.home-coverage-bar { background: var(--surface2); border: 1px solid var(--border); }
+.home-coverage-bar span { background: var(--brand); }
+.home-news-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r2); }
+.home-news-source { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.1em; border-radius: 2px; }
+.home-news-source.buffer { background: rgba(233,163,32,0.1); color: var(--brand); }
+.home-news-source.smt    { background: rgba(39,184,112,0.1); color: var(--green); }
+.home-dev-card { background: var(--surface2); border-color: rgba(233,163,32,0.12); }
+
+/* ── 35. SCROLLBAR ──────────────────────────────────── */
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+::selection { background: var(--brand-dim); }
+
+/* ── 36. SETTINGS PANELS ────────────────────────────── */
+.connection-settings-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); }
+.settings-section         { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); }
+.settings-section-title   { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text); }
+.settings-feature-item    { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r2); color: var(--text); }
+.settings-feature-status  { color: var(--green); background: rgba(39,184,112,0.1); }
+.settings-feature-status.is-paused { color: var(--amber); background: rgba(233,163,32,0.1); }
+.advanced-connection      { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); }
+.advanced-connection summary { color: var(--text); }
+
+/* ── 37. CONNECTION CARD ────────────────────────────── */
+.connection-card.api-live-pulse { animation: none; box-shadow: 0 0 0 1px rgba(233,163,32,0.15); }
+
+/* ── 38. MAIN CONTENT AREA ──────────────────────────── */
+.main { background: var(--bg); }
+.view { background: transparent; }
+
+/* ── 39. TRENDING ───────────────────────────────────── */
+.trend-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r2); }
+.trend-card:hover { border-color: var(--border2); }
+.trending-src-tab { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* ── 40. SNAP MODAL ─────────────────────────────────── */
+#sharedDayModal .modal-card { max-width: 640px; }
+
+/* ── DISPATCH — TITLE TEXT OVERRIDE ─────────────────────
+   Use JS snippet below OR replace directly in app.html:
+
+   In app.html find:
+     PostIQ <span class="logo-beta">Beta</span>
+   Replace with:
+     Dispatch
+
+   In app.html <title>:
+     PostIQ — Buffer Companion
+   Replace with:
+     Dispatch — Buffer Companion
+
+   In nav sidebar .logo-mark:
+     PostIQ <span class="logo-beta">Beta</span>
+   Replace with:
+     DISPATCH
+──────────────────────────────────────────────────────── */
