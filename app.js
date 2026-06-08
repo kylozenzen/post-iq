@@ -15,6 +15,9 @@ const TEMPLATE_KEY    = 'postiq_templates_v1';
 const CACHE_KEY       = 'postiq_buffer_cache_v1';
 const NOTEBOOK_KEY    = 'postiq_notebook_v1';
 const APPROVAL_PREFIX = 'postiq_approval_';
+const WORKSPACE_PREFERENCES_KEY = 'postiq.workspacePreferences';
+const WORKSPACE_DEFAULTS = Object.freeze({ planning: true, create: true, ideas: true, approvals: true });
+const WORKSPACE_VIEWS = Object.freeze({ planning: 'calendarView', create: 'composerView', ideas: 'ideasView', approvals: 'approvalsView' });
 
 const IMGUR_KEY    = '546c25a59c58ad7';
 const UNSPLASH_KEY = 'tBuaYCO5p-pJPjgF29hR2yJGtlQaG4d5HqdVivV0lbQ';
@@ -65,6 +68,7 @@ const LEGACY_NOTE_TYPES = {
 // ── STATE ──────────────────────────────────────────
 let bufferToken = '';
 let currentViewId = 'calendarView';
+let workspacePreferences = { ...WORKSPACE_DEFAULTS };
 let currentIdeasTab = 'notebook';
 let tokenPanelOpen = false;
 let modalCount = 0;
@@ -121,6 +125,88 @@ function safeTrack(callback) {
   try { if (typeof callback === 'function') callback(); }
   catch (error) { console.warn('GA4 tracking skipped:', error); }
 }
+function trackWorkspacePreference(eventName, params = {}) {
+  safeTrack(() => {
+    if (typeof window.gtag === 'function') window.gtag('event', eventName, params);
+  });
+}
+
+function normalizeWorkspacePreferences(value) {
+  const source = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+  const normalized = {};
+  Object.keys(WORKSPACE_DEFAULTS).forEach(workspace => {
+    normalized[workspace] = typeof source[workspace] === 'boolean' ? source[workspace] : WORKSPACE_DEFAULTS[workspace];
+  });
+  if (!Object.values(normalized).some(Boolean)) normalized.planning = true;
+  return normalized;
+}
+
+function getWorkspacePreferences() {
+  let parsed = null;
+  try { parsed = JSON.parse(localStorage.getItem(WORKSPACE_PREFERENCES_KEY) || 'null'); } catch {}
+  const normalized = normalizeWorkspacePreferences(parsed);
+  try {
+    if (JSON.stringify(parsed) !== JSON.stringify(normalized)) {
+      localStorage.setItem(WORKSPACE_PREFERENCES_KEY, JSON.stringify(normalized));
+    }
+  } catch {}
+  return normalized;
+}
+
+function getFirstEnabledWorkspace(preferences = workspacePreferences) {
+  return Object.keys(WORKSPACE_DEFAULTS).find(workspace => preferences[workspace]) || 'planning';
+}
+
+function getWorkspaceForView(viewId) {
+  return Object.keys(WORKSPACE_VIEWS).find(workspace => WORKSPACE_VIEWS[workspace] === viewId) || null;
+}
+
+function renderWorkspacePreferences() {
+  document.querySelectorAll('[data-workspace-nav]').forEach(el => {
+    el.hidden = !workspacePreferences[el.dataset.workspaceNav];
+  });
+  document.querySelectorAll('[data-workspace-toggle]').forEach(input => {
+    const workspace = input.dataset.workspaceToggle;
+    input.checked = !!workspacePreferences[workspace];
+  });
+}
+
+function ensureActiveWorkspaceVisible() {
+  const activeWorkspace = getWorkspaceForView(currentViewId);
+  if (activeWorkspace && !workspacePreferences[activeWorkspace]) {
+    activateView(WORKSPACE_VIEWS[getFirstEnabledWorkspace(workspacePreferences)], 'workspace_preferences');
+  }
+}
+
+function saveWorkspacePreferences(nextPreferences) {
+  workspacePreferences = normalizeWorkspacePreferences(nextPreferences);
+  try { localStorage.setItem(WORKSPACE_PREFERENCES_KEY, JSON.stringify(workspacePreferences)); } catch {}
+  renderWorkspacePreferences();
+  ensureActiveWorkspaceVisible();
+  return workspacePreferences;
+}
+
+function setWorkspacePreference(workspace, enabled) {
+  if (!(workspace in WORKSPACE_DEFAULTS)) return;
+  const note = qs('workspacePreferenceNote');
+  const enabledCount = Object.values(workspacePreferences).filter(Boolean).length;
+  if (!enabled && workspacePreferences[workspace] && enabledCount === 1) {
+    if (note) note.textContent = 'At least one workspace needs to stay on.';
+    renderWorkspacePreferences();
+    return;
+  }
+  if (note) note.textContent = '';
+  saveWorkspacePreferences({ ...workspacePreferences, [workspace]: !!enabled });
+  trackWorkspacePreference(`workspace_toggle_${workspace}`, { enabled: !!enabled });
+}
+
+function resetWorkspacePreferences() {
+  const note = qs('workspacePreferenceNote');
+  if (note) note.textContent = 'All workspaces are back on.';
+  saveWorkspacePreferences({ ...WORKSPACE_DEFAULTS });
+  trackWorkspacePreference('workspace_preferences_reset');
+}
+
 function getErrorType(error) {
   const status = error?.response?.status || error?.status;
   const message = error?.message?.toLowerCase?.() || '';
@@ -239,7 +325,6 @@ function setFeatureControlPaused(el, featureName, paused) {
 function applyFeatureFlags() {
   const flagControls = {
     snapshots: ['shareMonthBtn', 'shareMonthBtnMob', 'generateShare', 'copyShare'],
-    approvals: ['approvalsRefreshBtn', 'approvalsRefreshBtnMob'],
     uploads: ['uploadBrowseBtn', 'uploadReplaceBtn'],
     unsplash: ['unsplashSearchBtn'],
   };
@@ -249,7 +334,6 @@ function applyFeatureFlags() {
     ids.forEach(id => setFeatureControlPaused(qs(id), feature, paused));
   });
 
-  document.querySelectorAll('[data-view="approvalsView"]').forEach(el => setFeatureControlPaused(el, 'approvals', !getFeatureFlag('approvals')));
   document.querySelectorAll('[data-ideas-tab="trending"]').forEach(el => setFeatureControlPaused(el, 'trending', !getFeatureFlag('trending')));
   document.querySelectorAll('.media-tab[data-mtab="upload"], [data-mtabpanel="upload"] button, #uploadZone').forEach(el => setFeatureControlPaused(el, 'uploads', !getFeatureFlag('uploads')));
   document.querySelectorAll('.media-tab[data-mtab="unsplash"], [data-mtabpanel="unsplash"] button, [data-mtabpanel="unsplash"] input').forEach(el => setFeatureControlPaused(el, 'unsplash', !getFeatureFlag('unsplash')));
@@ -1203,7 +1287,8 @@ function setTokenPanelVisible(panel, open) {
 }
 
 function selectSettingsTab(tabName) {
-  const targetTab = tabName || 'connection';
+  const legacyCustomizeTabs = ['workspace', 'planning', 'notes'];
+  const targetTab = legacyCustomizeTabs.includes(tabName) ? 'customize' : (tabName || 'connection');
   document.querySelectorAll('.settings-tab').forEach(tab => {
     if (!tab) return;
     const active = tab.dataset.stab === targetTab;
@@ -3201,7 +3286,10 @@ window.submitReview = async function (uuid, action) {
 // ── VIEW NAVIGATION ──────────────────────────────────
 function activateView(viewId, source = 'navigation') {
   if (viewId === 'homeView' && !FEATURE_HOME_DASHBOARD) viewId = 'composerView';
-  if (viewId === 'approvalsView' && !getFeatureFlag('approvals')) { showFeaturePaused('approvals'); return; }
+  const requestedWorkspace = getWorkspaceForView(viewId);
+  if (requestedWorkspace && !workspacePreferences[requestedWorkspace]) {
+    viewId = WORKSPACE_VIEWS[getFirstEnabledWorkspace(workspacePreferences)];
+  }
   if (document.body.dataset.gaReady) safeTrack(() => GA4_System.viewChanged(viewId, source));
   safeTrack(() => {
     if (viewId === 'composerView') GA4_Composer.composerOpened(source);
@@ -3216,7 +3304,6 @@ function activateView(viewId, source = 'navigation') {
   document.querySelectorAll('.mob-tab[data-view]').forEach(t => t.classList.toggle('active', t.dataset.view === viewId));
   if (viewId === 'homeView' && FEATURE_HOME_DASHBOARD) renderHomeView();
   if (viewId === 'ideasView') setIdeasTab(currentIdeasTab || 'notebook');
-  if (viewId === 'approvalsView') loadApprovals();
 }
 window.activateView = activateView;
 
@@ -3491,7 +3578,14 @@ function init() {
   renderCalendar();
   renderPlanningSettings();
   renderNoteTypesSettings();
-  activateView('calendarView');
+  workspacePreferences = getWorkspacePreferences();
+  renderWorkspacePreferences();
+  activateView(WORKSPACE_VIEWS[getFirstEnabledWorkspace(workspacePreferences)]);
+
+  document.querySelectorAll('[data-workspace-toggle]').forEach(input => {
+    input.addEventListener('change', () => setWorkspacePreference(input.dataset.workspaceToggle, input.checked));
+  });
+  on('resetWorkspaceBtn', 'click', resetWorkspacePreferences);
 
   selectSettingsTab(document.querySelector('.settings-tab.active')?.dataset.stab || 'connection');
   document.querySelectorAll('.settings-tab').forEach(tab => {
