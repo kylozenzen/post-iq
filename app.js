@@ -1287,7 +1287,8 @@ function setTokenPanelVisible(panel, open) {
 }
 
 function selectSettingsTab(tabName) {
-  const targetTab = tabName || 'connection';
+  const legacyCustomizeTabs = ['workspace', 'planning', 'notes'];
+  const targetTab = legacyCustomizeTabs.includes(tabName) ? 'customize' : (tabName || 'connection');
   document.querySelectorAll('.settings-tab').forEach(tab => {
     if (!tab) return;
     const active = tab.dataset.stab === targetTab;

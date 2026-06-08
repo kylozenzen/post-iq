@@ -2025,7 +2025,7 @@
 .post-media-preview.is-broken .post-media-broken { display:block; }
 .post-media-link { align-self:flex-start; font-size:12px; font-family:'DM Mono',monospace; color:var(--brand); text-decoration:none; border:1px solid var(--brand-glow); background:var(--brand-dim); border-radius:6px; padding:6px 9px; }
 .settings-section { background:var(--surface2); border:1px solid var(--border); border-radius:var(--r); padding:16px; margin-bottom:14px; }
-.settings-section-title { font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:15px; margin-bottom:10px; color:var(--ink); }
+.settings-section-title { font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:15px; margin:0 0 10px; color:var(--ink); }
 .settings-check { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); cursor:pointer; }
 .settings-check input { accent-color: var(--brand); }
 .settings-day-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:8px; }
@@ -2322,6 +2322,11 @@ body::after {
 }
 
 /* Modular workspace preferences and Approvals placeholder */
+.customize-settings-panel{scrollbar-gutter:stable}
+.customize-settings-intro{padding:2px 2px 14px}
+.customize-settings-intro h2{margin:0 0 6px;font-family:'Bricolage Grotesque',sans-serif;font-size:18px;color:var(--ink)}
+.customize-settings-panel .settings-section:last-child{margin-bottom:2px}
+
 [data-workspace-nav][hidden]{display:none !important}
 .workspace-soon-tag,.workspace-badge{display:inline-flex;align-items:center;width:max-content;padding:3px 7px;border-radius:999px;background:rgba(245,158,11,.12);color:#9a3412;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
 .workspace-preference-list{display:grid;gap:10px;margin:16px 0 12px}

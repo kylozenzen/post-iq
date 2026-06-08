@@ -1091,9 +1091,7 @@
     <div class="settings-modal-body">
       <div class="settings-tabs" role="tablist" aria-label="Settings sections">
         <button class="settings-tab active" id="settingsTabConnection" type="button" role="tab" aria-selected="true" aria-controls="settingsPanelConnection" data-stab="connection">Connection</button>
-        <button class="settings-tab" id="settingsTabWorkspace" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelWorkspace" data-stab="workspace">Customize Workspace</button>
-        <button class="settings-tab" id="settingsTabPlanning" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelPlanning" data-stab="planning">Planning</button>
-        <button class="settings-tab" id="settingsTabNotes" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelNotes" data-stab="notes">Notes</button>
+        <button class="settings-tab" id="settingsTabCustomize" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelCustomize" data-stab="customize">Customize</button>
         <button class="settings-tab" id="settingsTabFeatures" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelFeatures" data-stab="features">Beta / Features</button>
         <button class="settings-tab" id="settingsTabAbout" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelAbout" data-stab="about">About</button>
         <button class="settings-tab" id="settingsTabDiscord" type="button" role="tab"
@@ -1132,11 +1130,15 @@
       </div>
 
 
-      <div id="settingsPanelWorkspace" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabWorkspace" tabindex="0">
-        <div class="settings-section">
-          <div class="settings-section-title">Customize Workspace</div>
-          <p class="settings-copy">Turn on the PostIQ workspaces you actually use. You can change this anytime.</p>
-          <p class="settings-copy">PostIQ is becoming workflow-based. This lets you keep your workspace focused without hiding features forever.</p>
+      <div id="settingsPanelCustomize" class="settings-panel customize-settings-panel" role="tabpanel" aria-labelledby="settingsTabCustomize" tabindex="0">
+        <div class="customize-settings-intro">
+          <h2>Customize</h2>
+          <p class="settings-copy">Shape PostIQ around how you actually work. Choose what appears in your sidebar, adjust your planning view, and fine-tune how notes support your content workflow.</p>
+        </div>
+
+        <section class="settings-section" aria-labelledby="customizeWorkspaceHeading">
+          <h3 class="settings-section-title" id="customizeWorkspaceHeading">Workspace</h3>
+          <p class="settings-copy">Choose which PostIQ workspaces show in your sidebar. Keep your dashboard focused on the parts of your workflow you actually use.</p>
           <div class="workspace-preference-list" id="workspacePreferenceList">
             <label class="workspace-preference-card">
               <span class="workspace-preference-copy"><strong>Planning</strong><small>Calendar, queue visibility, content gaps, and schedule notes.</small></span>
@@ -1156,27 +1158,23 @@
             </label>
           </div>
           <p class="workspace-preference-note" id="workspacePreferenceNote" role="status" aria-live="polite"></p>
-          <button class="btn sm ghost" id="resetWorkspaceBtn" type="button">Reset workspace</button>
-        </div>
-      </div>
+          <button class="btn sm ghost" id="resetWorkspaceBtn" type="button">Reset workspace visibility</button>
+        </section>
 
-      <div id="settingsPanelPlanning" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabPlanning" tabindex="0">
-        <div class="settings-section">
-          <div class="settings-section-title">Planning settings</div>
-          <p class="settings-copy">Control how the Plan / Calendar view highlights gaps in your Buffer queue.</p>
+        <section class="settings-section" aria-labelledby="customizePlanningHeading">
+          <h3 class="settings-section-title" id="customizePlanningHeading">Planning</h3>
+          <p class="settings-copy">Adjust how PostIQ helps you review your queue, spot gaps, and plan upcoming content.</p>
           <label class="settings-check mt12"><input type="checkbox" id="showQueueGapsSetting" /> Show queue gaps</label>
           <div class="label mt12">Posting schedule</div>
           <div id="postingDaysSettings" class="settings-day-grid"></div>
-        </div>
-      </div>
+        </section>
 
-      <div id="settingsPanelNotes" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabNotes" tabindex="0">
-        <div class="settings-section">
-          <div class="settings-section-title">Planning notes</div>
-          <p class="settings-copy">Customize the labels and colors used for notes on the Plan / Calendar. Existing notes keep their saved labels; unknown note types fall back to Note styling.</p>
+        <section class="settings-section" aria-labelledby="customizeNotesHeading">
+          <h3 class="settings-section-title" id="customizeNotesHeading">Notes</h3>
+          <p class="settings-copy">Customize how notes, reminders, ideas, and planning details appear across your workspace.</p>
           <div id="noteTypesSettings" class="note-types-settings mt12"></div>
           <button class="btn sm" id="addNoteTypeBtn" type="button">+ Add note type</button>
-        </div>
+        </section>
       </div>
 
       <div id="settingsPanelFeatures" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabFeatures" tabindex="0">
