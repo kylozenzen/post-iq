@@ -2320,3 +2320,26 @@ body::after {
     max-height: 360px;
   }
 }
+
+/* Modular workspace preferences and Approvals placeholder */
+[data-workspace-nav][hidden]{display:none !important}
+.workspace-soon-tag,.workspace-badge{display:inline-flex;align-items:center;width:max-content;padding:3px 7px;border-radius:999px;background:rgba(245,158,11,.12);color:#9a3412;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.workspace-preference-list{display:grid;gap:10px;margin:16px 0 12px}
+.workspace-preference-card{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 14px;border:1px solid var(--border);border-radius:var(--r2);background:var(--surface);cursor:pointer;transition:border-color .15s ease,box-shadow .15s ease}
+.workspace-preference-card:hover{border-color:var(--border2);box-shadow:var(--shadow-sm)}
+.workspace-preference-card input{width:18px;height:18px;flex:0 0 auto;accent-color:var(--brand);cursor:pointer}
+.workspace-preference-card input:disabled{cursor:not-allowed;opacity:.55}
+.workspace-preference-copy{display:flex;flex-direction:column;gap:4px;color:var(--ink)}
+.workspace-preference-copy small{font-size:12px;line-height:1.5;color:var(--muted)}
+.workspace-preference-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.workspace-preference-note{min-height:18px;margin:0 0 10px;color:#9a3412;font-size:12px;font-weight:600}
+.workspace-kicker{display:flex;align-items:center;gap:8px;margin-bottom:8px;color:var(--brand);font-family:'DM Mono',monospace;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+.approvals-coming-soon-card{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,.65fr);gap:28px;padding:28px;border:1px solid var(--border);border-radius:var(--r);background:linear-gradient(145deg,var(--surface),var(--surface2));box-shadow:var(--shadow-sm)}
+.approvals-coming-soon-card h2{margin:14px 0 16px;font-family:'Bricolage Grotesque',sans-serif;font-size:22px;color:var(--ink)}
+.approvals-coming-soon-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:var(--brand-dim);color:var(--brand);font-size:22px;font-weight:800}
+.approvals-coming-soon-list{display:grid;gap:12px;margin:0;padding:0;list-style:none;color:var(--text);font-size:13px;line-height:1.5}
+.approvals-coming-soon-list li{position:relative;padding-left:22px}
+.approvals-coming-soon-list li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:800}
+.approvals-beta-cta{align-self:start;padding:18px;border:1px solid var(--border);border-radius:var(--r2);background:var(--surface)}
+.approvals-beta-cta p{margin:12px 0 16px;color:var(--muted);font-size:13px;line-height:1.6}
+@media(max-width:900px){.approvals-coming-soon-card{grid-template-columns:1fr;padding:20px}.workspace-preference-card{align-items:flex-start}}

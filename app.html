@@ -62,17 +62,17 @@
   <button class="mob-tab active" data-view="homeView" data-home-feature="true">
     🏠 Home
   </button>
-  <button class="mob-tab" data-view="calendarView">
-    <svg><use href="#i-cal"/></svg>Plan
+  <button class="mob-tab" data-view="calendarView" data-workspace-nav="planning">
+    <svg><use href="#i-cal"/></svg>Planning
   </button>
-  <button class="mob-tab" data-view="composerView">
-    <svg><use href="#i-compose"/></svg>Compose
+  <button class="mob-tab" data-view="composerView" data-workspace-nav="create">
+    <svg><use href="#i-compose"/></svg>Create
   </button>
-  <button class="mob-tab" data-view="ideasView">
+  <button class="mob-tab" data-view="ideasView" data-workspace-nav="ideas">
     <svg><use href="#i-trending"/></svg>Ideas
   </button>
-  <button class="mob-tab" data-view="approvalsView">
-    <svg><use href="#i-check"/></svg>Approve
+  <button class="mob-tab" data-view="approvalsView" data-workspace-nav="approvals">
+    <svg><use href="#i-check"/></svg>Approvals
   </button>
   <button class="mob-tab" id="mobMoreBtn">
     <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
@@ -123,23 +123,23 @@
         <span class="nav-text">Home</span>
         
       </button>
-      <button class="nav-btn" data-view="calendarView">
+      <button class="nav-btn" data-view="calendarView" data-workspace-nav="planning">
         <span class="nav-icon"><svg><use href="#i-cal"/></svg></span>
-        <span class="nav-text">Plan</span>
+        <span class="nav-text">Planning</span>
         <span class="nav-tag needs" id="calNavTag">Sign in</span>
       </button>
-      <button class="nav-btn" data-view="composerView">
+      <button class="nav-btn" data-view="composerView" data-workspace-nav="create">
         <span class="nav-icon"><svg><use href="#i-compose"/></svg></span>
-        <span class="nav-text">Compose</span>
+        <span class="nav-text">Create</span>
       </button>
-      <button class="nav-btn" data-view="ideasView">
+      <button class="nav-btn" data-view="ideasView" data-workspace-nav="ideas">
         <span class="nav-icon"><svg><use href="#i-trending"/></svg></span>
         <span class="nav-text">Ideas</span>
       </button>
-      <button class="nav-btn" data-view="approvalsView">
+      <button class="nav-btn" data-view="approvalsView" data-workspace-nav="approvals">
         <span class="nav-icon"><svg><use href="#i-check"/></svg></span>
-        <span class="nav-text">Approve</span>
-        <span class="nav-tag needs" id="appNavTag">Sign in</span>
+        <span class="nav-text">Approvals</span>
+        <span class="nav-tag workspace-soon-tag">Soon</span>
       </button>
     </nav>
 
@@ -570,46 +570,37 @@
       </div><!-- /composer-layout -->
     </section>
 
-    <!-- ══════════ APPROVE (Approvals) ══════════ -->
+    <!-- ══════════ APPROVALS (Coming soon) ══════════ -->
     <section id="approvalsView" class="view">
-      <!-- Mobile header -->
       <div class="mob-view-hdr">
-        <span class="mob-view-title">✅ Approve</span>
-        <div class="mob-view-actions">
-          <button class="btn sm ghost" id="approvalsRefreshBtnMob">↻</button>
-          <button class="btn sm ghost" id="mobMenuBtnApprovals">
-            <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-          </button>
-        </div>
+        <span class="mob-view-title">✅ Approvals <span class="workspace-badge">Soon</span></span>
       </div>
-      <!-- Desktop header -->
       <div class="page-hdr">
         <div class="page-hdr-left">
-          <h1 class="page-title">Approve</h1>
-          <p class="page-desc">Route content through sign-off before it goes live. Generate a reviewer link, collect feedback, then publish when approved.</p>
-        </div>
-        <div class="page-actions">
-          <a class="btn ghost" href="/help/?article=share-content-for-review">Help</a>
-          <button class="btn" id="approvalsRefreshBtn">↻ Refresh</button>
+          <div class="workspace-kicker">Approvals workspace <span class="workspace-badge">Coming soon</span></div>
+          <h1 class="page-title">Approvals are coming to PostIQ.</h1>
+          <p class="page-desc">Soon, you’ll be able to send Buffer drafts for client feedback, collect comments, and keep posts moving before they go live.</p>
         </div>
       </div>
-
       <div class="view-content">
-      <div class="approvals-filter-row">
-        <span class="filter-label">Filter:</span>
-        <button class="filter-pill active" data-afilter="all">All</button>
-        <button class="filter-pill" data-afilter="pending">⏳ Pending</button>
-        <button class="filter-pill" data-afilter="approved">✓ Approved</button>
-        <button class="filter-pill" data-afilter="changes">✎ Changes</button>
+        <div class="approvals-coming-soon-card">
+          <div>
+            <div class="approvals-coming-soon-icon">✓</div>
+            <h2>Review content without leaving your workflow</h2>
+            <ul class="approvals-coming-soon-list">
+              <li>Share clean review links</li>
+              <li>Collect approve / request changes feedback</li>
+              <li>Keep approval notes connected to your content workflow</li>
+              <li>Built for creators, freelancers, and social media managers using Buffer</li>
+            </ul>
+          </div>
+          <div class="approvals-beta-cta">
+            <span class="workspace-badge">Public beta exploration</span>
+            <p>Approvals are being explored as part of PostIQ’s public beta.</p>
+            <a class="btn primary" href="/#beta">Join the approvals beta</a>
+          </div>
+        </div>
       </div>
-
-      <div id="approvalsEmpty" class="empty-state" style="display:none;">
-        <div class="empty-icon">✅</div>
-        <div class="empty-title">No pending approvals</div>
-        <div class="empty-desc">Save a Buffer draft with "Needs approval" checked in Compose, then come here to generate a reviewer link.</div>
-      </div>
-      <div id="approvalsList"></div>
-      </div><!-- /view-content -->
     </section>
 
     <!-- ══════════ IDEAS LIBRARY ══════════ -->
@@ -1005,7 +996,7 @@
   <!-- Quick links -->
   <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">↗ Open Buffer</a>
   <a class="btn ghost" href="/help/" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">❓ Help Center</a>
-  <button class="btn ghost" data-view="ideasView" id="mobDrawerIdeasBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">💡 Ideas</button>
+  <button class="btn ghost" data-view="ideasView" data-workspace-nav="ideas" id="mobDrawerIdeasBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">💡 Ideas</button>
   <button class="btn ghost" id="mobOpenSettings" type="button" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">⚙ Settings</button>
 </div>
 
@@ -1100,6 +1091,7 @@
     <div class="settings-modal-body">
       <div class="settings-tabs" role="tablist" aria-label="Settings sections">
         <button class="settings-tab active" id="settingsTabConnection" type="button" role="tab" aria-selected="true" aria-controls="settingsPanelConnection" data-stab="connection">Connection</button>
+        <button class="settings-tab" id="settingsTabWorkspace" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelWorkspace" data-stab="workspace">Customize Workspace</button>
         <button class="settings-tab" id="settingsTabPlanning" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelPlanning" data-stab="planning">Planning</button>
         <button class="settings-tab" id="settingsTabNotes" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelNotes" data-stab="notes">Notes</button>
         <button class="settings-tab" id="settingsTabFeatures" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelFeatures" data-stab="features">Beta / Features</button>
@@ -1137,6 +1129,35 @@
           </div>
           <div id="tokenMsg" class="connection-token-msg"></div>
         </details>
+      </div>
+
+
+      <div id="settingsPanelWorkspace" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabWorkspace" tabindex="0">
+        <div class="settings-section">
+          <div class="settings-section-title">Customize Workspace</div>
+          <p class="settings-copy">Turn on the PostIQ workspaces you actually use. You can change this anytime.</p>
+          <p class="settings-copy">PostIQ is becoming workflow-based. This lets you keep your workspace focused without hiding features forever.</p>
+          <div class="workspace-preference-list" id="workspacePreferenceList">
+            <label class="workspace-preference-card">
+              <span class="workspace-preference-copy"><strong>Planning</strong><small>Calendar, queue visibility, content gaps, and schedule notes.</small></span>
+              <input type="checkbox" data-workspace-toggle="planning" aria-label="Show Planning workspace" />
+            </label>
+            <label class="workspace-preference-card">
+              <span class="workspace-preference-copy"><strong>Create</strong><small>Composer, Thread Splitter, templates, and send-to-Buffer tools.</small></span>
+              <input type="checkbox" data-workspace-toggle="create" aria-label="Show Create workspace" />
+            </label>
+            <label class="workspace-preference-card">
+              <span class="workspace-preference-copy"><strong>Ideas</strong><small>Notebook, content pillars, trending feeds, and saved inspiration.</small></span>
+              <input type="checkbox" data-workspace-toggle="ideas" aria-label="Show Ideas workspace" />
+            </label>
+            <label class="workspace-preference-card">
+              <span class="workspace-preference-copy"><span class="workspace-preference-title"><strong>Approvals</strong><span class="workspace-badge">Coming soon</span></span><small>Client feedback and approval workflows. Coming soon.</small></span>
+              <input type="checkbox" data-workspace-toggle="approvals" aria-label="Show Approvals workspace" />
+            </label>
+          </div>
+          <p class="workspace-preference-note" id="workspacePreferenceNote" role="status" aria-live="polite"></p>
+          <button class="btn sm ghost" id="resetWorkspaceBtn" type="button">Reset workspace</button>
+        </div>
       </div>
 
       <div id="settingsPanelPlanning" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabPlanning" tabindex="0">
