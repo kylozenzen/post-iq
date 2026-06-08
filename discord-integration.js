@@ -16,6 +16,8 @@
   const dqs = (id) => document.getElementById(id);
   const isValidWebhookUrl = (url) => /^https:\/\/discord\.com\/api\/webhooks\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+/.test(String(url || ''));
   const uid = (prefix) => `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  const track = (callback) => { try { if (typeof callback === 'function') callback(); } catch (error) { console.warn('GA4 tracking skipped:', error); } };
+  const errorType = (error) => window.GA4?.getErrorType?.(error) || 'unknown';
   const status = (msg) => { const el = dqs('discordComposerStatus'); if (el) el.textContent = msg || ''; };
   const openDiscordSettings = () => {
     if (typeof window.selectSettingsTab === 'function') window.selectSettingsTab('discord');
@@ -122,8 +124,9 @@
       status('Posted to Discord.');
       if (dqs('discordComposerText')) dqs('discordComposerText').value = '';
       renderScheduledDiscordList();
+      track(() => window.GA4_Discord.discordAnnouncementSent('now'));
       setTimeout(() => status(''), 2200);
-    } catch (e) { status(`Failed to post: ${e.message || 'Unknown error'}`); }
+    } catch (e) { track(() => window.GA4_Discord.discordSendFailed(errorType(e))); track(() => window.GA4_System.applicationError(e, 'discord')); status(`Failed to post: ${e.message || 'Unknown error'}`); }
   }
 
   function scheduleDiscordAnnouncement() {
@@ -142,6 +145,7 @@
     status('Discord announcement scheduled.');
     dqs('discordComposerText').value = ''; dqs('discordScheduleDate').value = ''; dqs('discordScheduleTime').value = '';
     renderScheduledDiscordList();
+    track(() => window.GA4_Discord.discordAnnouncementScheduled({ minutesAhead: Math.max(0, Math.round((scheduledAt.getTime() - Date.now()) / 60000)) }));
   }
 
   function renderScheduledDiscordList() {

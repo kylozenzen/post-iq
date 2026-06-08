@@ -57,9 +57,8 @@ function showConnectError(message, originalError) {
   if (originalError) {
     console.error('[PostIQ OAuth] Failed to start Buffer OAuth', originalError);
   }
-  if (typeof gtag !== 'undefined') gtag('event', 'buffer_connect_error', {
-    error_type: String(message || 'unknown').slice(0, 100)
-  });
+  window.GA4_Auth?.signInFailed?.('oauth_start_failed');
+  window.GA4_System?.applicationError?.(originalError || new Error('oauth_start_failed'), 'authentication');
   if (connectError) {
     connectError.textContent = message;
     connectError.style.display = 'block';
@@ -71,6 +70,7 @@ function showConnectError(message, originalError) {
 }
 
 async function startBufferOAuth() {
+  window.GA4_Auth?.signInStarted?.();
   const CRYPTO_ERROR = 'We could not start Buffer sign-in. Please make sure this page is loaded over HTTPS or localhost, then try again.';
   const STORAGE_ERROR = 'Your browser blocked session storage, so Buffer sign-in cannot start. Try a normal browser window or adjust privacy settings for this site.';
 
@@ -124,7 +124,6 @@ async function startBufferOAuth() {
 
   console.info('[PostIQ OAuth] Starting Buffer OAuth', { redirectUri });
   console.info('[PostIQ OAuth] Redirecting to Buffer', authUrl.toString());
-  if (typeof gtag !== 'undefined') gtag('event', 'buffer_connect_start');
   window.location.assign(authUrl.toString());
 }
 
