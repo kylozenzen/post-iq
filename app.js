@@ -73,6 +73,8 @@ let globalStatusTimer = null;
 let lastGlobalErrorBannerAt = 0;
 let homeActionsBound = false;
 let homeDashboardWarned = false;
+let composerContentStartedTracked = false;
+const composerMilestonesTracked = new Set();
 let postiqConfig = {
   ...DEFAULT_POSTIQ_CONFIG,
   features: { ...DEFAULT_POSTIQ_CONFIG.features },
@@ -115,6 +117,21 @@ const monthLabel = d => d.toLocaleDateString(undefined, { month: 'long', year: '
 const monthStart = d => new Date(d.getFullYear(), d.getMonth(), 1);
 const safeText = v => String(v || '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
 const compact = (v, max = 80) => { const t = String(v || '').trim(); return t.length > max ? t.slice(0, max - 1) + '…' : t; };
+function safeTrack(callback) {
+  try { if (typeof callback === 'function') callback(); }
+  catch (error) { console.warn('GA4 tracking skipped:', error); }
+}
+function getErrorType(error) {
+  const status = error?.response?.status || error?.status;
+  const message = error?.message?.toLowerCase?.() || '';
+  if (status === 400) return 'validation_error';
+  if (status === 401 || status === 403) return 'auth_error';
+  if (status === 404) return 'not_found';
+  if (status === 429) return 'rate_limit';
+  if (status >= 500) return 'server_error';
+  if (message.includes('network') || message.includes('failed to fetch')) return 'network_error';
+  return 'unknown';
+}
 function toSafeExternalUrl(url) {
   if (!url) return '';
   const str = String(url).trim();
@@ -196,6 +213,7 @@ function getFeatureNotice(name) {
 }
 
 function showFeaturePaused(name) {
+  safeTrack(() => GA4_System.pausedFeatureAttempted(name));
   showGlobalStatus(getFeatureNotice(name), { title: 'Feature paused', type: 'warning', timeout: 6000 });
 }
 
@@ -294,10 +312,12 @@ function bindGlobalErrorHandlers() {
       column: event.colno,
       error: event.error,
     });
+    safeTrack(() => GA4_System.applicationError(event.error || new Error('window_error'), 'app_init'));
     showGlobalErrorBanner();
   });
   window.addEventListener('unhandledrejection', event => {
     console.error('[PostIQ unhandled rejection]', event.reason);
+    safeTrack(() => GA4_System.applicationError(event.reason, 'app_init'));
     showGlobalErrorBanner();
   });
 }
@@ -431,6 +451,7 @@ function showOAuthDebugPanel(details, continueUrl) {
 }
 
 async function startBufferOAuth() {
+  safeTrack(() => GA4_Auth.signInStarted());
   if (!window.isSecureContext && !['localhost', '127.0.0.1'].includes(location.hostname)) {
     showToast('OAuth needs a secure HTTPS page.', 'error');
     return;
@@ -812,6 +833,9 @@ function clearComposer() {
   // Draft transfer state if present
   if (typeof clearDraftTransferState === 'function') clearDraftTransferState();
 
+  composerContentStartedTracked = false;
+  composerMilestonesTracked.clear();
+  safeTrack(() => GA4_Composer.composerCleared());
   updateComposerClearButtonVisibility();
 }
 
@@ -833,6 +857,8 @@ function useTemplateInEditor(template) {
   updateComposerClearButtonVisibility();
   editor.focus();
   showToast('Template inserted', 'success');
+  safeTrack(() => GA4_Composer.templateInserted(template.type || 'custom'));
+  safeTrack(() => GA4_Templates.templateUsed(template.type || 'custom'));
 }
 
 function openTemplateModal(id = null) {
@@ -913,12 +939,14 @@ function saveTemplate() {
     state.templates = [payload, ...state.templates];
   }
   persistTemplates(); closeModal('templateModal'); renderTemplates(); showToast('Template saved', 'success');
+  safeTrack(() => editingId && prev ? GA4_Templates.templateEdited() : GA4_Templates.templateCreated(payload.type || 'custom'));
 }
 
 function deleteTemplate(id) {
   if (!confirm('Delete this template?')) return;
   state.templates = state.templates.filter(s => s.id !== id);
   persistTemplates(); renderTemplates(); showToast('Deleted');
+  safeTrack(() => GA4_Templates.templateDeleted());
 }
 
 function renderTemplatePicker() {
@@ -1071,6 +1099,7 @@ async function refreshBufferOAuthToken() {
   setStoredOAuthValue(OAUTH_EXPIRES_AT_KEY, expiresIn ? Date.now() + expiresIn * 1000 : '');
   renderConnectionUI();
   initHomeView();
+  safeTrack(() => GA4_Auth.tokenRefreshed('automatic'));
   return getStoredOAuthToken();
 }
 
@@ -1084,7 +1113,9 @@ async function getActiveBufferToken() {
     try {
       const refreshed = await refreshBufferOAuthToken();
       if (refreshed?.accessToken) return { token: refreshed.accessToken, source: 'oauth' };
-    } catch {
+    } catch (error) {
+      safeTrack(() => GA4_Auth.tokenRefreshFailed());
+      safeTrack(() => GA4_System.applicationError(error, 'authentication'));
       markBufferReconnectNeeded();
       return null;
     }
@@ -1560,6 +1591,8 @@ function disconnectBuffer() {
   initHomeView();
   showToast('Buffer disconnected.', 'success');
   setSyncStatus('idle', after.connected ? 'Connected with advanced setup.' : 'Buffer disconnected.');
+  safeTrack(() => GA4_Auth.signedOut());
+  safeTrack(() => GA4.clearUserIdentity());
   return true;
 }
 
@@ -1583,7 +1616,9 @@ async function checkBufferConnectionHealth() {
     clearReconnectNeeded();
     renderConnectionUI();
   initHomeView();
-    return getBufferConnectionState();
+    const connection = getBufferConnectionState();
+    safeTrack(() => GA4_Auth.connectionStatusChecked(connection.connected));
+    return connection;
   }
   if (oauthToken?.accessToken || oauthToken?.refreshToken) {
     try {
@@ -1593,11 +1628,15 @@ async function checkBufferConnectionHealth() {
     }
     renderConnectionUI();
   initHomeView();
-    return getBufferConnectionState();
+    const connection = getBufferConnectionState();
+    safeTrack(() => GA4_Auth.connectionStatusChecked(connection.connected));
+    return connection;
   }
   renderConnectionUI();
   initHomeView();
-  return getBufferConnectionState();
+  const connection = getBufferConnectionState();
+  safeTrack(() => GA4_Auth.connectionStatusChecked(connection.connected));
+  return connection;
 }
 
 function saveToken() {
@@ -1744,12 +1783,14 @@ async function syncBuffer({ force = false } = {}) {
   const oauthToken = getStoredOAuthToken();
   if (connection.reconnectNeeded) { renderConnectionUI(); setSyncStatus('failed', 'Reconnect Buffer to keep syncing.'); return; }
   if (!connection.connected && !oauthToken?.accessToken && !oauthToken?.refreshToken) { renderConnectionUI(); setSyncStatus('failed', 'Sign in with Buffer first.'); return; }
+  const syncStartTime = Date.now();
+  safeTrack(() => GA4_Auth.syncStarted());
   setSyncStatus('syncing', 'Syncing…');
   const btn = qs('syncBtn'); const orig = btn.innerHTML;
   btn.innerHTML = '↻ Syncing…'; btn.disabled = true;
   try {
     const orgId = await getOrgId({ force });
-    if (!orgId) { clearSyncedData(); setSyncStatus('failed', 'No organization found.'); return; }
+    if (!orgId) { clearSyncedData(); setSyncStatus('failed', 'No organization found.'); safeTrack(() => GA4_Auth.syncFailed('not_found')); return; }
     await getChannels({ force });
     const posts = await getScheduledPosts({ force });
     renderChannelSelects();
@@ -1759,15 +1800,17 @@ async function syncBuffer({ force = false } = {}) {
     renderConnectionUI();
   initHomeView();
     showToast(`Loaded ${posts.length} posts`, 'success');
-    if (typeof gtag !== 'undefined') gtag('event', 'buffer_sync', {
-      post_count: posts.length
-    });
+    safeTrack(() => GA4_Auth.syncComplete({ postCount: posts.length, channelCount: state.channels.length, syncTimeMs: Date.now() - syncStartTime, usedCache: false }));
+    safeTrack(() => GA4_System.performanceMetric('buffer_sync', Date.now() - syncStartTime));
+    if (state.organizationId) safeTrack(() => GA4.setUserIdentity(state.organizationId, { connected: true, channelCount: state.channels.length, queueDepth: state.scheduled.length, hasApprovals: getAllApprovalMetas().length > 0 }));
     window.dispatchEvent(new Event('postiq:synced'));
   } catch (e) {
     const msg = getErrorMessage(e, 'Sync failed.');
     if (isAuthError(e)) handleAuthFailure(msg);
     else setSyncStatus('failed', msg);
     showToast(msg, 'error');
+    safeTrack(() => GA4_Auth.syncFailed(getErrorType(e)));
+    safeTrack(() => GA4_System.applicationError(e, 'buffer_api'));
   } finally { btn.innerHTML = orig; btn.disabled = false; }
 }
 
@@ -2036,6 +2079,7 @@ function setCalendarView(view) {
   state.calendarView = view === 'week' ? 'week' : 'month';
   localStorage.setItem(CALENDAR_VIEW_KEY, state.calendarView);
   updateCalendarViewUI();
+  safeTrack(() => GA4_Calendar.viewModeChanged(state.calendarView));
 }
 function updateCalendarViewUI() {
   const isWeek = state.calendarView === 'week';
@@ -2152,6 +2196,7 @@ function saveNote() {
   activateView('calendarView');
 
   showToast(existingIdx >= 0 ? 'Note updated' : 'Note saved', 'success');
+  if (existingIdx < 0) safeTrack(() => GA4_Calendar.noteAdded(['note', 'idea', 'reminder'].includes(typeMeta.id) ? typeMeta.id : 'note'));
 }
 
 function deleteNote() {
@@ -2361,9 +2406,7 @@ function shareSnapshot() {
   const linkInput = qs('shareLink'); if (linkInput) linkInput.value = link;
   shareState.dirty = false;
   shareState.lastLink = link;
-  if (typeof gtag !== 'undefined') gtag('event', 'snapshot_created', {
-    snapshot_range: qs('shareRange')?.value || 'month'
-  });
+  safeTrack(() => GA4_Calendar.snapshotCreated({ range: qs('shareRange')?.value || 'month', channelCount: state.channels.length, postCount: state.scheduled.length }));
   const meta = qs('shareLinkMeta');
   if (meta) {
     meta.textContent = 'Anyone with this link can view the snapshot. No PostIQ account needed.';
@@ -2386,6 +2429,8 @@ async function copyCurrentShareLink() {
     if (btn) btn.textContent = 'Copied!';
     if (shareState.copyTimer) clearTimeout(shareState.copyTimer);
     shareState.copyTimer = setTimeout(() => { const nextBtn = qs('copyShare'); if (nextBtn) nextBtn.textContent = 'Copy'; }, 1800);
+    safeTrack(() => GA4_Calendar.snapshotLinkCopied());
+    safeTrack(() => GA4_Calendar.snapshotShared('copy_link'));
   } else {
     showShareCopyError();
   }
@@ -2650,6 +2695,7 @@ function composerFormat(cmd) {
 function applyMedia(url, source, thumbUrl = '') {
   const type = isVideo(url) ? 'video' : 'image';
   mediaState.url = url; mediaState.type = type; mediaState.source = source; mediaState.videoThumbUrl = thumbUrl;
+  if (source === 'url') safeTrack(() => GA4_Composer.mediaAttached(type, 'url'));
   const ton = qs('mediaToggleBtn'), toff = qs('mediaToggleOff'), tthumb = qs('mediaThumbPreview'), tlabel = qs('mediaToggleLabel');
   if (url) {
     ton.style.display = 'none'; toff.style.display = 'flex';
@@ -2689,6 +2735,9 @@ function logLocalModuleError(scope, err, details = {}) {
 }
 
 async function handleUploadFile(file) {
+  const uploadStartTime = Date.now();
+  const trackedMediaType = file?.type?.startsWith('video/') ? 'video' : 'image';
+  safeTrack(() => GA4_Media.uploadStarted(trackedMediaType));
   const st = qs('uploadStatus');
   const zone = qs('uploadZone');
   try {
@@ -2703,10 +2752,14 @@ async function handleUploadFile(file) {
     qs('uploadResult').style.display = 'flex';
     qs('uploadThumb').src = url; qs('uploadResultName').textContent = file.name || 'uploaded image'; qs('uploadResultUrl').textContent = url;
     st.textContent = ''; applyMedia(url, 'upload'); showToast('Image uploaded', 'success');
+    safeTrack(() => GA4_Media.uploadComplete({ type: trackedMediaType, sizeBytes: file.size, durationMs: Date.now() - uploadStartTime }));
+    safeTrack(() => GA4_Composer.mediaAttached(trackedMediaType, 'upload'));
   } catch (err) {
     if (zone) zone.style.display = 'block';
     if (st) st.textContent = 'Unable to upload image. Please try again.';
     logLocalModuleError('upload', err, { fileName: file?.name, fileType: file?.type, fileSize: file?.size });
+    safeTrack(() => GA4_Media.uploadFailed(getErrorType(err)));
+    safeTrack(() => GA4_System.applicationError(err, 'media_upload'));
     return;
   }
 }
@@ -2733,6 +2786,7 @@ async function runUnsplashSearch() {
     const data = await res.json();
     if (!data.results?.length) { status.textContent = `No results for "${q}".`; return; }
     status.textContent = `${data.total.toLocaleString()} results`;
+    safeTrack(() => GA4_Media.unsplashSearched(q ? 'has_query' : 'empty', (data.results || []).length));
     data.results.forEach(photo => {
       const item = document.createElement('div');
       item.style.cssText = 'position:relative;border-radius:6px;overflow:hidden;border:2px solid transparent;cursor:pointer;aspect-ratio:4/3;background:var(--surface2);transition:border-color .12s;';
@@ -2745,12 +2799,14 @@ async function runUnsplashSearch() {
       item.title = `Photo by ${photo.user.name}`;
       item.onmouseenter = () => { item.style.borderColor = 'var(--brand)'; };
       item.onmouseleave = () => { item.style.borderColor = 'transparent'; };
-      item.onclick = () => { const mediaUrl = toSafeExternalUrl(photo?.urls?.regular); if (!mediaUrl) return; applyMedia(mediaUrl, 'unsplash'); closeMediaPanel(); showToast(`Photo by ${photo.user.name} added`, 'success'); };
+      item.onclick = () => { const mediaUrl = toSafeExternalUrl(photo?.urls?.regular); if (!mediaUrl) return; applyMedia(mediaUrl, 'unsplash'); safeTrack(() => GA4_Media.unsplashImageSelected()); safeTrack(() => GA4_Composer.mediaAttached('image', 'unsplash')); closeMediaPanel(); showToast(`Photo by ${photo.user.name} added`, 'success'); };
       grid.appendChild(item);
     });
   } catch (err) {
     if (status) status.textContent = 'Unable to fetch images. Please try again.';
     logLocalModuleError('unsplash-search', err, { query: queryInput?.value?.trim() || '' });
+    safeTrack(() => GA4_Media.unsplashLoadFailed());
+    safeTrack(() => GA4_System.applicationError(err, 'media_upload'));
     return;
   }
 }
@@ -2833,9 +2889,9 @@ async function composerSend(action) {
     }
     const msg = action === 'draft' ? 'Buffer draft saved.' : action === 'queue' ? 'Added to queue.' : 'Scheduled.';
     qs('composerStatus').textContent = msg; showToast(msg, 'success');
-    if (typeof gtag !== 'undefined') gtag('event', 'post_sent', {
-      send_action: action
-    });
+    safeTrack(() => GA4_Composer.postSent({ action, charCount: text.length, hasMedia: !!imgUrl, mediaType: mediaState.type || 'none', channelCount: 1, isThread: false, threadPartCount: 1, needsApproval, daysAhead: 0 }));
+    composerContentStartedTracked = false;
+    composerMilestonesTracked.clear();
 
     // Discord integration
     if (window.Discord) {
@@ -2859,6 +2915,8 @@ async function composerSend(action) {
     if (isAuthError(e)) handleAuthFailure(msg);
     qs('composerStatus').textContent = `Failed: ${msg}`;
     showToast('Failed: ' + msg, 'error');
+    safeTrack(() => GA4_Composer.postSendFailed(getErrorType(e)));
+    safeTrack(() => GA4_System.applicationError(e, 'composer'));
   }
 }
 
@@ -3001,11 +3059,12 @@ window.approvalGenerateLink = async function (safeId) {
     if (data.error) throw new Error(data.error);
     setApprovalMeta(draftId, { ...meta, link_generated: true, locked: true, approval_uuid: data.id, approval_url: data.url });
     showToast('Approval link generated!', 'success');
-    if (typeof gtag !== 'undefined') gtag('event', 'approval_generated');
+    safeTrack(() => GA4_Approvals.approvalLinkGenerated({ reviewerCount: 1, isTeam: false }));
     loadApprovals();
   } catch (e) {
     showToast('Failed: ' + e.message, 'error');
     if (btn) { btn.disabled = false; btn.textContent = '🔗 Generate Link'; }
+    safeTrack(() => GA4_System.applicationError(e, 'approvals'));
   }
 };
 
@@ -3013,6 +3072,8 @@ window.approvalCopyLink = function (safeId) {
   const draftId = getApprovalDraftId(safeId); const meta = getApprovalMeta(draftId);
   if (!meta?.approval_url) { showToast('No link available', 'error'); return; }
   navigator.clipboard.writeText(meta.approval_url); showToast('Link copied!', 'success');
+  safeTrack(() => GA4_Approvals.approvalLinkCopied());
+  safeTrack(() => GA4_Approvals.approvalLinkShared('copy_link'));
 };
 
 window.approvalRemove = function (safeId) {
@@ -3022,6 +3083,7 @@ window.approvalRemove = function (safeId) {
   const card = document.querySelector(`[data-draft-id="${CSS.escape(draftId)}"]`);
   if (card) card.remove(); else loadApprovals();
   showToast('Removed');
+  safeTrack(() => GA4_Approvals.approvalArchived());
 };
 
 window.approvalToggleSchedule = function (safeId) {
@@ -3054,6 +3116,7 @@ window.approvalPublish = async function (safeId, action) {
     if (created?.post?.dueAt) { appendScheduled(created.post, input); renderCalendar(); }
     const card = document.querySelector(`[data-draft-id="${CSS.escape(draftId)}"]`);
     if (card) { card.style.opacity = '.4'; card.style.pointerEvents = 'none'; setTimeout(() => card.remove(), 600); }
+    safeTrack(() => GA4_Approvals.approvalPublished());
   } catch (e) {
     const msg = getErrorMessage(e, 'Failed.');
     if (isAuthError(e)) handleAuthFailure(msg);
@@ -3125,6 +3188,7 @@ window.submitReview = async function (uuid, action) {
     const isApproved = action === 'approved';
     qs('reviewerConfirmIcon').textContent = isApproved ? '✅' : '📝';
     qs('reviewerConfirmTitle').textContent = isApproved ? 'Approved!' : 'Feedback Sent';
+    safeTrack(() => GA4_Approvals.approvalReviewed(isApproved ? 'approved' : 'changes_requested'));
     qs('reviewerConfirmDesc').textContent = isApproved
       ? 'Approval recorded. The author can now publish.'
       : 'Feedback sent. The author will make revisions and share a new link if needed.';
@@ -3135,15 +3199,16 @@ window.submitReview = async function (uuid, action) {
 };
 
 // ── VIEW NAVIGATION ──────────────────────────────────
-function activateView(viewId) {
+function activateView(viewId, source = 'navigation') {
   if (viewId === 'homeView' && !FEATURE_HOME_DASHBOARD) viewId = 'composerView';
   if (viewId === 'approvalsView' && !getFeatureFlag('approvals')) { showFeaturePaused('approvals'); return; }
-  if (document.body.dataset.gaReady && typeof gtag !== 'undefined') {
-    gtag('event', 'view_changed', {
-      view_name: viewId
-    });
-  }
-
+  if (document.body.dataset.gaReady) safeTrack(() => GA4_System.viewChanged(viewId, source));
+  safeTrack(() => {
+    if (viewId === 'composerView') GA4_Composer.composerOpened(source);
+    if (viewId === 'calendarView') GA4_Calendar.calendarOpened();
+    if (viewId === 'ideasView') GA4_Ideas.ideasOpened();
+    if (viewId === 'approvalsView') GA4_Approvals.approvalsOpened();
+  });
   document.body.dataset.gaReady = '1';
   currentViewId = viewId;
   document.querySelectorAll('[data-view]').forEach(x => x.classList.toggle('active', x.dataset.view === viewId));
@@ -3159,6 +3224,9 @@ function setIdeasTab(tabId = 'notebook') {
   if (tabId === 'trending' && !getFeatureFlag('trending')) { showFeaturePaused('trending'); tabId = 'notebook'; }
   const tab = ['notebook', 'pillars', 'templates', 'trending'].includes(tabId) ? tabId : 'notebook';
   currentIdeasTab = tab;
+  safeTrack(() => GA4_Ideas.tabSwitched(tab));
+  if (tab === 'pillars') safeTrack(() => GA4_Pillars.builderOpened());
+  if (tab === 'trending') safeTrack(() => GA4_Trending.trendingOpened());
   document.querySelectorAll('.ideas-tab').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.ideasTab === tab);
   });
@@ -3406,9 +3474,11 @@ function init() {
   if (approveParam) { renderReviewerPage(approveParam); return; }
   if (renderSharedFromHash()) return;
 
-  markAppVisited();
+  const wasReturning = !!localStorage.getItem(BETA_BANNER_PERSIST_KEY) || !!localStorage.getItem(APP_VISITED_KEY);
   loadStoredToken();
   loadTemplates();
+  safeTrack(() => GA4_System.appInitialized({ isReturning: wasReturning, hasToken: !!getStoredValue(STORE_KEY) || !!getStoredOAuthToken()?.accessToken, hasData: !!localStorage.getItem(TEMPLATE_KEY) }));
+  markAppVisited();
   initTemplateSelectors();
   renderTemplates();
   buildTimePickers();
@@ -3444,6 +3514,7 @@ function init() {
   const manageTplBtn = qs('composerManageTemplatesBtn'); if (manageTplBtn) manageTplBtn.onclick = () => { activateView('ideasView'); setIdeasTab('templates'); };
   on('closeTemplatePicker', 'click', () => closeModal('templatePickerModal'));
   on('templateSearch', 'input', e => { state.templateSearch = e.target.value; renderTemplates(); });
+  on('templateSearch', 'change', e => safeTrack(() => GA4_Templates.templateSearched(e.target.value.trim() ? 'has_query' : 'empty')));
   on('templatePlatformFilter', 'change', e => { state.templatePlatform = e.target.value; renderTemplates(); });
   on('pickerSearch', 'input', renderTemplatePicker);
   on('pickerType', 'change', renderTemplatePicker);
@@ -3506,7 +3577,7 @@ function init() {
 
   document.querySelectorAll('[data-view]').forEach(b => {
     b.onclick = () => {
-      activateView(b.dataset.view);
+      activateView(b.dataset.view, b.classList.contains('mob-tab') ? 'mobile_tab' : 'navigation');
       if (b.dataset.view === 'ideasView' && b.dataset.ideasTab) setIdeasTab(b.dataset.ideasTab);
     };
   });
@@ -3562,6 +3633,8 @@ function init() {
       cc.textContent = `${text.length} chars`;
       cc.className = 'char-count' + (text.length > 500 ? ' warn' : '');
     }
+    if (!composerContentStartedTracked && text.trim().length > 0) { safeTrack(() => GA4_Composer.contentStarted()); composerContentStartedTracked = true; }
+    [100, 280, 500].forEach(milestone => { if (text.length >= milestone && !composerMilestonesTracked.has(milestone)) { safeTrack(() => GA4_Composer.contentLengthMilestone(milestone)); composerMilestonesTracked.add(milestone); } });
     updateComposerClearButtonVisibility();
   });
   const charCount = qs('charCount'); if (charCount) charCount.textContent = '0 chars';
@@ -3726,6 +3799,7 @@ function init() {
     if (support) support.style.display = mode === 'compose' ? 'grid' : 'none';
     if (mode === 'split') initSplitMode();
     if (mode === 'discord' && window.Discord) {
+      safeTrack(() => GA4_Discord.discordModeOpened());
       if (window.Discord.renderComposer) window.Discord.renderComposer();
       if (window.Discord.checkScheduledAnnouncements) window.Discord.checkScheduledAnnouncements();
     }
@@ -3784,7 +3858,7 @@ function init() {
           </div>
         </div>
         <textarea data-ti="${i}" style="min-height:80px;font-size:13px;">${safeText(p)}</textarea>`;
-      div.querySelector('[data-pi]').onclick = () => { navigator.clipboard.writeText(full); showToast('Part copied'); };
+      div.querySelector('[data-pi]').onclick = () => { navigator.clipboard.writeText(full); safeTrack(() => GA4_Composer.threadPartCopied(i + 1)); showToast('Part copied'); };
       div.querySelector('[data-ti]').addEventListener('input', e => {
         threadParts[+e.target.dataset.ti] = e.target.value;
         const span = e.target.closest('.card').querySelector('span[style*="DM Mono"]');
@@ -3818,9 +3892,7 @@ function init() {
       threadParts = splitThreadText(text);
       renderThreadParts();
       showToast(`${threadParts.length} thread parts`, 'success');
-      if (typeof gtag !== 'undefined') gtag('event', 'thread_split', {
-        part_count: threadParts.length
-      });
+      safeTrack(() => GA4_Composer.threadSplit(threadParts.length));
     };
 
     qs('splitSampleBtn').onclick = () => {
@@ -3955,9 +4027,9 @@ window.Notebook = (() => {
     document.body.style.overflow = '';
   }
 
-  function addCard(data={}) { const card={ id:`nb_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, type:String(data.type||'idea'), title:String(data.title||'Untitled idea').trim(), body:String(data.body||'').trim(), url:String(data.url||'').trim(), createdAt:Date.now() }; cards.unshift(card); save(); render(); return card; }
+  function addCard(data={}) { safeTrack(() => GA4_Ideas.notebookCardAdded()); const card={ id:`nb_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, type:String(data.type||'idea'), title:String(data.title||'Untitled idea').trim(), body:String(data.body||'').trim(), url:String(data.url||'').trim(), createdAt:Date.now() }; cards.unshift(card); save(); render(); return card; }
   function removeCard(id){ cards = cards.filter(c => c.id !== id); save(); render(); }
-  function composeCard(card){ pinReferenceToComposer({ title: card.title, body: card.body, url: card.url }); if (typeof window.activateView === 'function') window.activateView('composerView'); const ed = qs('composerText'); if (ed?.focus) ed.focus(); if (typeof showToast === 'function') showToast('Pinned as reference — write your take', 'success'); }
+  function composeCard(card){ safeTrack(() => GA4_Ideas.notebookCardUsed()); safeTrack(() => GA4_Composer.composerOpened('notebook')); pinReferenceToComposer({ title: card.title, body: card.body, url: card.url }); if (typeof window.activateView === 'function') window.activateView('composerView'); const ed = qs('composerText'); if (ed?.focus) ed.focus(); if (typeof showToast === 'function') showToast('Pinned as reference — write your take', 'success'); }
   function render(){ const {list,empty}=getEls(); if(!list||!empty) return; empty.style.display = cards.length ? 'none' : 'block'; list.innerHTML = cards.map(card => { const safeUrl = toSafeExternalUrl(card.url||''); return `<article class="notebook-card"><div class="notebook-card-hdr"><div class="notebook-card-meta"><span class="notebook-type-badge ${safeText(card.type)}">${safeText(card.type)}</span><span class="notebook-card-age">${safeText(age(card.createdAt))}</span></div></div><div class="notebook-card-body"><div class="notebook-card-title">${safeText(card.title)}</div>${card.body?`<div class="notebook-card-excerpt">${safeText(card.body)}</div>`:''}</div><div class="notebook-card-footer"><button class="btn sm" type="button" data-notebook-compose="${safeText(card.id)}">→ Compose</button>${safeUrl?`<a class="notebook-card-source-link" href="${safeText(safeUrl)}" target="_blank" rel="noopener">↗ Source</a>`:''}<button class="btn sm ghost" type="button" data-notebook-delete="${safeText(card.id)}">Delete</button></div></article>`; }).join('');
       list.querySelectorAll('[data-notebook-compose]').forEach(btn=>btn.onclick=()=>{ const c=cards.find(x=>x.id===btn.dataset.notebookCompose); if(c) composeCard(c); });
       list.querySelectorAll('[data-notebook-delete]').forEach(btn=>btn.onclick=()=>removeCard(btn.dataset.notebookDelete)); }
@@ -4111,10 +4183,13 @@ window.Notebook = (() => {
           </div>
         </div>`;
 
+      el.querySelector('a')?.addEventListener('click', () => safeTrack(() => GA4_Trending.trendingStoryViewed(sourceType)));
       el.onmouseenter = () => { el.style.borderColor = 'var(--border2)'; };
       el.onmouseleave = () => { el.style.borderColor = 'var(--border)'; };
 
       el.querySelector('[data-inspire]').onclick = () => {
+        safeTrack(() => GA4_Trending.trendingStoryUsedInCompose(sourceType));
+        safeTrack(() => GA4_Composer.composerOpened('trending'));
         pinReferenceToComposer({ title: item.title, body: tagline || '', url: safeSourceUrl });
         if (typeof window.activateView === 'function') window.activateView('composerView');
         showToast('Pinned as reference — write your take', 'success');
@@ -4125,6 +4200,7 @@ window.Notebook = (() => {
         saveBtn.onclick = () => {
           if (window.Notebook?.saveFromTrending) {
             window.Notebook.saveFromTrending({ ...item, source: sourceType });
+            safeTrack(() => GA4_Trending.trendingStorySaved(sourceType));
             saveBtn.textContent = '✓ Saved';
             saveBtn.disabled = true;
             if (typeof showToast === 'function') showToast('Saved to Notebook', 'success');
@@ -4152,13 +4228,14 @@ window.Notebook = (() => {
         color:${active ? 'var(--brand)' : 'var(--muted)'};
       `;
       btn.textContent = `r/${sub}`;
-      btn.onclick = () => { trendingState.sub = sub; renderSubPills(); loadReddit(); };
+      btn.onclick = () => { trendingState.sub = sub; safeTrack(() => GA4_Trending.redditSubredditBrowsed(sub)); renderSubPills(); loadReddit(); };
       wrap.appendChild(btn);
     });
   }
 
   // ── Reddit ──────────────────────────────────────────────────────
   async function loadReddit() {
+    const trendingStartTime = Date.now();
     const statusEl = qs('trendingRedditStatus');
     const listEl   = qs('trendingRedditList');
     if (!statusEl || !listEl) return;
@@ -4171,14 +4248,18 @@ window.Notebook = (() => {
       const posts = data.posts || [];
       statusEl.textContent = `${posts.length} posts from r/${data.subreddit || trendingState.sub}`;
       renderTrendingItems('trendingRedditList', posts, 'reddit');
+      safeTrack(() => GA4_Trending.trendingStoriesLoaded('reddit', Date.now() - trendingStartTime));
     } catch (err) {
       statusEl.textContent = `Failed to load r/${trendingState.sub} — ${err.message}`;
       renderTrendingItems('trendingRedditList', [], 'reddit');
+      safeTrack(() => GA4_Trending.trendingLoadFailed('reddit'));
+      safeTrack(() => GA4_System.applicationError(err, 'trending'));
     }
   }
 
   // ── Hacker News ─────────────────────────────────────────────────
   async function loadHN() {
+    const trendingStartTime = Date.now();
     const statusEl = qs('trendingHNStatus');
     const listEl   = qs('trendingHNList');
     if (!statusEl || !listEl) return;
@@ -4191,14 +4272,18 @@ window.Notebook = (() => {
       const posts = data.posts || [];
       statusEl.textContent = `${posts.length} stories from Hacker News`;
       renderTrendingItems('trendingHNList', posts, 'hn');
+      safeTrack(() => GA4_Trending.trendingStoriesLoaded('hn', Date.now() - trendingStartTime));
     } catch (err) {
       statusEl.textContent = `Failed to load Hacker News — ${err.message}`;
       renderTrendingItems('trendingHNList', [], 'hn');
+      safeTrack(() => GA4_Trending.trendingLoadFailed('hn'));
+      safeTrack(() => GA4_System.applicationError(err, 'trending'));
     }
   }
 
   // ── Product Hunt ────────────────────────────────────────────────
   async function loadProductHunt() {
+    const trendingStartTime = Date.now();
     const statusEl = qs('trendingPHStatus');
     const listEl   = qs('trendingPHList');
     if (!statusEl || !listEl) return;
@@ -4211,13 +4296,17 @@ window.Notebook = (() => {
       const posts = data.posts || [];
       statusEl.textContent = `${posts.length} launches from Product Hunt`;
       renderTrendingItems('trendingPHList', posts, 'producthunt');
+      safeTrack(() => GA4_Trending.trendingStoriesLoaded('producthunt', Date.now() - trendingStartTime));
     } catch (err) {
       statusEl.textContent = `Failed to load Product Hunt — ${err.message}`;
       renderTrendingItems('trendingPHList', [], 'producthunt');
+      safeTrack(() => GA4_Trending.trendingLoadFailed('producthunt'));
+      safeTrack(() => GA4_System.applicationError(err, 'trending'));
     }
   }
 
   async function loadRSS() {
+    const trendingStartTime = Date.now();
     const statusEl = qs('trendingRSSStatus');
     const listEl   = qs('trendingRSSList');
     if (!statusEl || !listEl) return;
@@ -4229,9 +4318,12 @@ window.Notebook = (() => {
       const posts = data.posts || [];
       statusEl.textContent = `${posts.length} stories from ${source.name}`;
       renderTrendingItems('trendingRSSList', posts, 'rss');
+      safeTrack(() => GA4_Trending.trendingStoriesLoaded(source.id, Date.now() - trendingStartTime));
     } catch (err) {
       statusEl.textContent = `Failed to load ${source.name} — ${err.message}`;
       renderTrendingItems('trendingRSSList', [], 'rss');
+      safeTrack(() => GA4_Trending.trendingLoadFailed(source.id));
+      safeTrack(() => GA4_System.applicationError(err, 'trending'));
     }
   }
 
@@ -4251,6 +4343,7 @@ window.Notebook = (() => {
         tab.style.borderBottomColor = 'var(--brand)';
 
         trendingState.src = tab.dataset.tsrc;
+        safeTrack(() => GA4_Trending.trendingSourceSwitched(trendingState.src));
 
         const panels = {
           reddit:       'trendingRedditPanel',
@@ -4730,6 +4823,8 @@ window.ContentPillars = (() => {
   }
 
   function ssmRunGenerate() {
+    const generationStartTime = Date.now();
+    window.__postiqSsmGenerationStart = generationStartTime;
     const brand    = (cpQs('ssm-brand')?.value    || '').trim() || 'Your Brand';
     const industry = cpQs('ssm-industry')?.value  || '';
     const audience = (cpQs('ssm-audience')?.value || '').trim() || 'your audience';
@@ -4743,6 +4838,8 @@ window.ContentPillars = (() => {
 
     const inp = { brand, industry, audience, offer, tone, goal, notes }
     cpState._ssmInputs = inp;
+    safeTrack(() => GA4_Pillars.ssmQuestionnaireComplete({ industry, tone, goal }));
+    safeTrack(() => GA4_Pillars.ssmGenerationStarted());
 
     // Show loading screen
     const form    = cpQs('ssmForm');
@@ -4771,6 +4868,8 @@ window.ContentPillars = (() => {
     // Set identity from inputs
     cpState.identity = `${inp.brand} — ${inp.audience} — ${inp.offer}${inp.notes ? ` — Context: ${inp.notes}` : ''}`;
     cpState.pillars  = result.pillars.map(cpNormalizePillar);
+    safeTrack(() => GA4_Pillars.ssmGenerationComplete(cpState.pillars.length));
+    safeTrack(() => GA4_System.performanceMetric('ssm_generation', Date.now() - (window.__postiqSsmGenerationStart || Date.now())));
     cpState._ssmInputs = inp;
 
     cpPersist();
@@ -4887,6 +4986,8 @@ window.ContentPillars = (() => {
         const seed = (pillar.seeds[si] || '').trim();
         if (!seed) { if (typeof showToast === 'function') showToast('Add a seed idea first', 'error'); return; }
         const tone = (pillar.tones && pillar.tones[si]) || 'Practical';
+        safeTrack(() => GA4_Pillars.seedIdeaStarted());
+        safeTrack(() => GA4_Composer.composerOpened('pillar_seed'));
         cpSendToComposer(cpBuildStarter(pillar, seed, tone));
         cpBumpUsage(pillar.id);
         cpRenderPillars();
@@ -4984,7 +5085,7 @@ window.ContentPillars = (() => {
 
     // Gate: SSM path
     const gN = cpQs('cpGateNew');
-    if (gN) gN.addEventListener('click', () => { cpShowStage('cpStageJourney'); ssmInit(); });
+    if (gN) gN.addEventListener('click', () => { safeTrack(() => GA4_Pillars.ssmQuestionnaireStarted()); cpShowStage('cpStageJourney'); ssmInit(); });
 
     // Gate: manual path
     const gE = cpQs('cpGateExperienced');
@@ -5006,7 +5107,9 @@ window.ContentPillars = (() => {
 
     const ap = cpQs('cpAddPillarBtn');
     if (ap) ap.addEventListener('click', () => {
-      cpState.pillars.push({ id: cpUid(), name: 'New Pillar', promise: 'The recurring promise this pillar makes…', layer: '', seeds: [''], tones: {}, hook: '', cta: '' });
+      const newPillar = { id: cpUid(), name: 'New Pillar', promise: 'The recurring promise this pillar makes…', layer: '', seeds: [''], tones: {}, hook: '', cta: '' };
+      cpState.pillars.push(newPillar);
+      safeTrack(() => GA4_Pillars.pillarCreated({ icon: 'none', seeds: newPillar.seeds.length, trustLayer: false }));
       cpRenderPillars(); cpPersist(); if (typeof showToast === 'function') showToast('Pillar added');
     });
 
