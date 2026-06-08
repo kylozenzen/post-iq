@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>PostIQ — A Smarter Planning Layer for Buffer</title>
-<meta name="description" content="PostIQ is a free public beta companion workspace for Buffer users. Plan your queue, compose posts, split threads, build content pillars, review content, and share clean snapshots before publishing." />
+<title>PostIQ — A Smarter Workspace for Buffer Users</title>
+<meta name="description" content="PostIQ is a free public beta workspace for Buffer users. Plan your queue, draft faster, spot content gaps, review posts, and prep better content before publishing through Buffer." />
 <meta name="theme-color" content="#f5f6fa" />
 <link rel="canonical" href="https://postiq.netlify.app/" />
-<meta property="og:title" content="PostIQ — A Smarter Planning Layer for Buffer" />
-<meta property="og:description" content="Plan, compose, split, review, and share clean snapshots before content goes out through Buffer." />
+<meta property="og:title" content="PostIQ — A Smarter Workspace for Buffer Users" />
+<meta property="og:description" content="A free public beta companion workspace to plan your Buffer queue, draft faster, spot gaps, and review posts before publishing." />
 <meta property="og:image" content="https://postiq.netlify.app/postiq-og.png" />
 <meta property="og:url" content="https://postiq.netlify.app/" />
 <meta property="og:type" content="website" />
@@ -743,6 +743,39 @@ h1 .line2{display:block;color:var(--ink);}
   text-align:center;line-height:1.6;padding:20px;
 }
 
+/* ─── VALUE CARDS / ROADMAP / BETA FORM ─────────────────────────────── */
+.value-section,.roadmap-section,.beta-section{padding:0 0 56px;position:relative;z-index:1;}
+.value-heading,.beta-heading{text-align:center;margin-bottom:28px;}
+.section-kicker{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--brand);margin-bottom:10px;}
+.section-heading{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(1.9rem,3.6vw,2.7rem);letter-spacing:-.045em;color:var(--ink);line-height:1.05;margin-bottom:10px;}
+.section-heading em{font-style:normal;color:var(--brand);}
+.section-desc{font-size:14px;color:var(--muted);line-height:1.75;max-width:58ch;margin:0 auto;}
+.value-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.value-card{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:24px;box-shadow:var(--sh0);}
+.value-icon{width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--brand-dim);border:1px solid var(--brand-glow);font-size:17px;margin-bottom:15px;}
+.value-card h3{font-family:'Bricolage Grotesque',sans-serif;font-size:17px;color:var(--ink);letter-spacing:-.02em;margin-bottom:6px;}
+.value-card p{font-size:13px;color:var(--muted);line-height:1.7;}
+.roadmap-card{display:grid;grid-template-columns:1fr auto;align-items:center;gap:28px;background:linear-gradient(135deg,var(--ink),#242878);border-radius:20px;padding:34px 38px;box-shadow:var(--sh2);color:#fff;overflow:hidden;position:relative;}
+.roadmap-card::after{content:'';position:absolute;width:260px;height:260px;border-radius:50%;right:-100px;top:-130px;background:rgba(117,120,255,.16);}
+.roadmap-card>*{position:relative;z-index:1;}
+.roadmap-badge{display:inline-flex;padding:4px 9px;border-radius:20px;border:1px solid rgba(180,183,255,.35);font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#bfc1ff;margin-bottom:12px;}
+.roadmap-card h2{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(1.6rem,3vw,2.2rem);line-height:1.08;letter-spacing:-.04em;margin-bottom:9px;}
+.roadmap-card p{font-size:13px;line-height:1.75;color:rgba(255,255,255,.72);max-width:64ch;}
+.beta-card{background:var(--surface);border:1px solid var(--border2);border-radius:22px;box-shadow:var(--sh2);padding:38px;max-width:860px;margin:0 auto;}
+.beta-form{display:grid;grid-template-columns:1fr 1fr;gap:18px 20px;}
+.form-field{display:flex;flex-direction:column;gap:6px;}
+.form-field.full{grid-column:1/-1;}
+.form-field>span,.checkbox-legend{font-size:12px;font-weight:700;color:var(--ink);}
+.beta-form input[type='text'],.beta-form input[type='email'],.beta-form select,.beta-form textarea{width:100%;border:1px solid var(--border2);border-radius:8px;padding:10px 12px;font-family:'Lato',sans-serif;font-size:14px;background:var(--surface2);color:var(--text);outline:none;transition:border-color .12s,box-shadow .12s;}
+.beta-form textarea{resize:vertical;min-height:110px;}
+.beta-form input:focus,.beta-form select:focus,.beta-form textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-dim);}
+.checkbox-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px;}
+.checkbox-option{display:flex;align-items:flex-start;gap:9px;padding:10px 11px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);font-size:12px;color:var(--muted);line-height:1.45;cursor:pointer;}
+.checkbox-option:hover{border-color:var(--brand-glow);background:var(--brand-dim);}
+.checkbox-option input{width:17px;height:17px;margin-top:1px;accent-color:var(--brand);flex-shrink:0;}
+.beta-submit{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:2px;}
+.beta-helper{font-size:11px;color:var(--subtle);line-height:1.6;max-width:48ch;}
+
 /* ─── TRUST / CONNECTION ─────────────────────────────── */
 .connect-section{
   padding:56px 0;
@@ -920,6 +953,8 @@ h1 .line2{display:block;color:var(--ink);}
   .split-col:first-child{border-right:none;border-bottom:1px solid var(--border);}
   .connect-card{grid-template-columns:1fr;}
   .connect-right{display:none;}
+  .value-grid{grid-template-columns:1fr;}
+  .roadmap-card{grid-template-columns:1fr;}
   .faq-grid{grid-template-columns:1fr;}
   .funnel-steps{grid-template-columns:1fr;}
   .funnel-step{border-right:none;border-bottom:1px solid var(--border);}
@@ -943,7 +978,12 @@ h1 .line2{display:block;color:var(--ink);}
   .tool-tabs{gap:4px;}
   .tool-tab{padding:6px 10px;font-size:12px;}
   .connect-left{padding:28px 22px;}
+  .beta-card{padding:26px 20px;}
+  .beta-form,.checkbox-grid{grid-template-columns:1fr;}
+  .roadmap-card{padding:28px 22px;}
+  .roadmap-card .btn{width:100%;}
 }
+
 
 /* Support modal */
 #supportModal{
@@ -1005,14 +1045,14 @@ h1 .line2{display:block;color:var(--ink);}
 
     <div class="hero-copy">
       <div class="eyebrow"><span class="eyebrow-dot"></span>Buffer companion · public beta</div>
-      <h1>Stop Guessing.<br><em>Start Planning.</em></h1>
-      <p class="hero-sub">The planning layer Buffer always needed.<br>Now that their API is open.</p>
-      <p class="hero-desc">PostIQ connects to your Buffer account so you can plan the calendar, draft posts, split threads, build content pillars, and publish — all from one focused workspace.</p>
+      <h1>A smarter workspace<br><em>for your Buffer queue.</em></h1>
+      <p class="hero-sub">Plan content, draft faster, spot gaps, and review posts before they go live through Buffer.</p>
+      <p class="hero-desc">PostIQ connects to your Buffer account so you can turn messy ideas into planned, reviewed, ready-to-send content — without juggling spreadsheets, notes apps, and scattered tabs.</p>
       <div class="hero-ctas">
-        <a href="/auth/connect.html?return=/app.html" class="btn primary lg">Sign in with Buffer →</a>
-        <a href="/app.html" class="btn ghost lg">Explore first</a>
+        <a href="#beta" class="btn primary lg">Join the Beta →</a>
+        <a href="/app.html" class="btn ghost lg">Explore PostIQ</a>
       </div>
-      <p class="hero-trust">Free public beta. No account required to explore. Connect Buffer when ready. PostIQ is independently built — not officially affiliated with Buffer unless noted. Need Buffer? <a href="https://join.buffer.com/ben-campbell" target="_blank" rel="noopener">Create an account →</a></p>
+      <p class="hero-trust">Free public beta. No account required to explore. Connect Buffer when you’re ready. Independently built — not officially affiliated with Buffer. Need Buffer? <a href="https://join.buffer.com/ben-campbell" target="_blank" rel="noopener">Create an account →</a></p>
     </div>
 
     <div class="hero-visual">
@@ -1080,6 +1120,22 @@ h1 .line2{display:block;color:var(--ink);}
   </div>
 </section>
 
+<!-- CORE VALUE -->
+<section class="value-section" id="value">
+  <div class="wrap">
+    <div class="value-heading reveal">
+      <div class="section-kicker"><span class="eyebrow-dot"></span>Before it hits the queue</div>
+      <h2 class="section-heading">Built for the messy middle of <em>social content.</em></h2>
+      <p class="section-desc">Buffer handles publishing. PostIQ gives you a focused workspace for everything that needs to happen first.</p>
+    </div>
+    <div class="value-grid reveal-group">
+      <article class="value-card reveal"><div class="value-icon">📅</div><h3>Plan before you publish</h3><p>See what’s scheduled, what’s missing, and where your Buffer queue needs attention.</p></article>
+      <article class="value-card reveal"><div class="value-icon">✍️</div><h3>Draft without tab chaos</h3><p>Turn ideas, notes, pillars, and templates into ready-to-send posts from one focused workspace.</p></article>
+      <article class="value-card reveal"><div class="value-icon">✓</div><h3>Review with confidence</h3><p>Prep content before it goes live, share snapshots, and keep approvals moving as the workflow grows.</p></article>
+    </div>
+  </div>
+</section>
+
 <!-- WORKFLOW FUNNEL -->
 <section class="funnel-section" id="how">
   <div class="wrap">
@@ -1128,7 +1184,7 @@ h1 .line2{display:block;color:var(--ink);}
           <div class="funnel-step-icon">✅</div>
           <div class="funnel-step-num">04</div>
           <div class="funnel-step-name">Review</div>
-          <div class="funnel-step-desc">Share snapshots or send approval links to clients</div>
+          <div class="funnel-step-desc">Share snapshots and prepare client feedback workflows</div>
         </div>
         <div class="funnel-step">
           <div class="funnel-step-icon">⚡</div>
@@ -1159,8 +1215,8 @@ h1 .line2{display:block;color:var(--ink);}
     <div class="tools-header reveal">
       <div class="tools-header-left">
         <div class="tools-eyebrow"><span class="eyebrow-dot"></span>The toolkit</div>
-        <h2>Seven tools. <em>One workflow.</em></h2>
-        <p>Each tool has one job. Together they replace the tabs, spreadsheets, and Slack threads that make social media planning feel like work.</p>
+        <h2>Choose the workflow <em>you need most.</em></h2>
+        <p>PostIQ gives Buffer users focused tools for the messy middle of content work: planning, drafting, reviewing, and organizing before anything gets published.</p>
       </div>
     </div>
 
@@ -1169,16 +1225,16 @@ h1 .line2{display:block;color:var(--ink);}
         <span class="tool-tab-icon">📅</span> Plan
       </button>
       <button class="tool-tab" data-tool="composer">
-        <span class="tool-tab-icon">✍️</span> Compose
-      </button>
-      <button class="tool-tab" data-tool="pillars">
-        <span class="tool-tab-icon">🧠</span> Content Pillars
+        <span class="tool-tab-icon">✍️</span> Draft
       </button>
       <button class="tool-tab" data-tool="snapshot">
-        <span class="tool-tab-icon">🔗</span> Snapshots
+        <span class="tool-tab-icon">🔎</span> Review
       </button>
       <button class="tool-tab" data-tool="approvals">
         <span class="tool-tab-icon">✅</span> Approvals
+      </button>
+      <button class="tool-tab" data-tool="pillars">
+        <span class="tool-tab-icon">💡</span> Ideas
       </button>
       <button class="tool-tab" data-tool="templates">
         <span class="tool-tab-icon">⚡</span> Templates
@@ -1414,13 +1470,12 @@ h1 .line2{display:block;color:var(--ink);}
         </div>
       </div>
       <div class="tool-panel-copy">
-        <h3>Client sign-off before it goes live.</h3>
-        <p>Generate a shareable reviewer link for any draft. Your client reads the post, leaves feedback, and approves or requests changes. You publish once it's cleared — no Buffer access needed on their end.</p>
+        <h3>Simple client feedback is being explored.</h3>
+        <p>Approval workflows are in beta exploration. The goal is to let clients review drafts, leave feedback, and signal approval without needing a PostIQ or Buffer login.</p>
         <div class="tool-feat-list">
-          <div class="tool-feat"><div class="tool-feat-check">✓</div>Reviewer-only link — no PostIQ account needed to review</div>
-          <div class="tool-feat"><div class="tool-feat-check">✓</div>Approve, reject, or request changes with a comment</div>
-          <div class="tool-feat"><div class="tool-feat-check">✓</div>Publish unlocks after approval — no accidental posting</div>
-          <div class="tool-feat"><div class="tool-feat-check">✓</div>Approval history tracked per draft</div>
+          <div class="tool-feat"><div class="tool-feat-check">✓</div>Share draft context without adding another client login</div>
+          <div class="tool-feat"><div class="tool-feat-check">✓</div>Collect beta interest in comments and approval signals</div>
+          <div class="tool-feat"><div class="tool-feat-check">✓</div>Keep the final Buffer send in your control</div>
         </div>
       </div>
     </div>
@@ -1531,6 +1586,50 @@ h1 .line2{display:block;color:var(--ink);}
   </div>
 </section>
 
+<!-- APPROVALS ROADMAP -->
+<section class="roadmap-section">
+  <div class="wrap">
+    <div class="roadmap-card reveal">
+      <div>
+        <div class="roadmap-badge">Coming next · beta interest</div>
+        <h2>Client approvals are next on the roadmap.</h2>
+        <p>PostIQ already helps you prep content before it reaches Buffer. Next, I’m exploring simple approval workflows so creators and social media managers can send drafts for feedback without forcing clients into another login.</p>
+      </div>
+      <a href="#beta" class="btn primary lg">Tell me you want approvals →</a>
+    </div>
+  </div>
+</section>
+
+<!-- BETA SIGNUP -->
+<section class="beta-section" id="beta">
+  <div class="wrap">
+    <div class="beta-heading reveal">
+      <div class="section-kicker"><span class="eyebrow-dot"></span>Free public beta</div>
+      <h2 class="section-heading">Help shape the next version of <em>PostIQ.</em></h2>
+      <p class="section-desc">Tell me where your content workflow gets messy, and get updates as the Buffer companion workspace improves.</p>
+    </div>
+    <div class="beta-card reveal">
+      <form name="postiq-beta" method="POST" data-netlify="true" class="beta-form">
+        <input type="hidden" name="form-name" value="postiq-beta" />
+        <label class="form-field"><span>Name</span><input type="text" name="name" autocomplete="name" required /></label>
+        <label class="form-field"><span>Email</span><input type="email" name="email" autocomplete="email" required /></label>
+        <label class="form-field full"><span>Role or use case</span><select name="role-or-use-case" required><option value="" selected disabled>Select the closest fit</option><option>Social media manager</option><option>Creator</option><option>Agency or freelancer</option><option>Small business or founder</option><option>Marketing team</option><option>Other</option></select></label>
+        <fieldset class="form-field full" style="border:0;"><legend class="checkbox-legend">Most interested workflows</legend><div class="checkbox-grid">
+          <label class="checkbox-option"><input type="checkbox" name="interested-workflows" value="Planning my Buffer queue" />Planning my Buffer queue</label>
+          <label class="checkbox-option"><input type="checkbox" name="interested-workflows" value="Drafting better posts" />Drafting better posts</label>
+          <label class="checkbox-option"><input type="checkbox" name="interested-workflows" value="Spotting content gaps" />Spotting content gaps</label>
+          <label class="checkbox-option"><input type="checkbox" name="interested-workflows" value="Reviewing content before publishing" />Reviewing content before publishing</label>
+          <label class="checkbox-option"><input type="checkbox" name="interested-workflows" value="Client approvals / feedback" />Client approvals / feedback</label>
+          <label class="checkbox-option"><input type="checkbox" name="interested-workflows" value="Trends and inspiration" />Trends and inspiration</label>
+          <label class="checkbox-option"><input type="checkbox" name="interested-workflows" value="Templates / repeatable formats" />Templates / repeatable formats</label>
+        </div></fieldset>
+        <label class="form-field full"><span>What are you hoping PostIQ helps with?</span><textarea name="hoping-postiq-helps-with" placeholder="A little context helps me prioritize what to improve next."></textarea></label>
+        <div class="form-field full beta-submit"><button type="submit" class="btn primary lg">Join the Beta →</button><p class="beta-helper">Free during public beta. I’m using these responses to decide what to improve next.</p></div>
+      </form>
+    </div>
+  </div>
+</section>
+
 <!-- LIVE THREAD SPLITTER DEMO -->
 <section class="split-section" id="try">
   <div class="wrap">
@@ -1577,8 +1676,8 @@ h1 .line2{display:block;color:var(--ink);}
       <div class="connect-left">
         <div>
           <div class="connect-left-eyebrow"><span class="eyebrow-dot"></span>Buffer connection</div>
-          <h2>One sign-in.<br><em>Full workflow.</em></h2>
-          <p>PostIQ works best when connected to Buffer. Sync your channels, see your queue, plan content, and publish — all from one workspace.</p>
+          <h2>Connect Buffer<br><em>when you’re ready.</em></h2>
+          <p>Explore PostIQ first, then securely connect Buffer when you want to sync channels and your queue or send finished content.</p>
           <div class="connect-steps">
             <div class="connect-step">
               <div class="connect-step-num">1</div>
@@ -1657,7 +1756,7 @@ h1 .line2{display:block;color:var(--ink);}
       </div>
       <div class="faq-item">
         <button class="faq-q"><span>What is the public beta?</span><span class="faq-icon">+</span></button>
-        <div class="faq-a">PostIQ is free during public beta. Some features may evolve as Buffer's API matures. The core workflow — plan, compose, split, snapshot, approve, and publish — is stable and ready to use.</div>
+        <div class="faq-a">PostIQ is free during public beta. Some features may evolve as Buffer's API matures. The core planning, drafting, reviewing, and Buffer connection workflows are ready to explore, while features such as approvals continue to evolve.</div>
       </div>
       <div class="faq-item">
         <button class="faq-q"><span>Is PostIQ made by Buffer?</span><span class="faq-icon">+</span></button>
@@ -1692,10 +1791,10 @@ h1 .line2{display:block;color:var(--ink);}
       <div style="display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--brand);margin-bottom:18px;">
         <span class="eyebrow-dot"></span>Ready when you are
       </div>
-      <h2>Your Buffer queue deserves<br>a <em>smarter planning layer.</em></h2>
-      <p>Open PostIQ, connect Buffer, and start planning, composing, splitting, and publishing from one focused workspace. Free during public beta.</p>
+      <h2>Ready to build a better<br><em>Buffer workflow?</em></h2>
+      <p>Join the PostIQ public beta and help shape a workspace built for planning, drafting, reviewing, and improving your content before it hits the queue.</p>
       <div class="cta-actions">
-        <a href="/auth/connect.html?return=/app.html" class="btn primary lg">Sign in with Buffer →</a>
+        <a href="#beta" class="btn primary lg">Join the Beta →</a>
         <a href="/app.html" class="btn ghost lg">Explore PostIQ</a>
       </div>
       <p class="cta-note">No account required to explore. Connect Buffer when ready. Partner link: <a href="https://join.buffer.com/ben-campbell" target="_blank" rel="noopener">Need a Buffer account?</a></p>
@@ -1819,11 +1918,11 @@ if('IntersectionObserver' in window){
 }
 
 /* CTA tracking */
-document.querySelectorAll('a[href*="/auth/connect"],a[href="/app.html"]').forEach(function(link){
+document.querySelectorAll('a[href*="/auth/connect"],a[href="/app.html"],a[href="#beta"]').forEach(function(link){
   link.addEventListener('click',function(){
     if(typeof gtag!=='undefined'){
       var loc=link.closest('.topbar')?'topbar':link.closest('.cta-card')?'final_cta':link.closest('.connect-left')?'connect_section':'other';
-      var flow=link.href.includes('/auth/')?'buffer_connect':'open_app';
+      var flow=link.getAttribute('href')==='#beta'?'beta_interest':link.href.includes('/auth/')?'buffer_connect':'open_app';
       gtag('event','landing_cta_click',{location:loc,flow:flow});
     }
   });
