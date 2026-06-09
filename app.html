@@ -502,7 +502,7 @@
           <article id="aiAssistGate" class="panel-card composer-support-card ai-beta-gate">
             <div class="ai-eyebrow">Invite only</div>
             <div class="panel-card-title">AI Assist Private Beta</div>
-            <p>Use your own OpenAI API key to rewrite, shorten, humanize, and adapt posts inside Compose. AI Assist is currently available to invited testers only.</p>
+            <p>Use your own Gemini API key to rewrite, shorten, humanize, and adapt posts inside Compose. AI Assist is currently available to invited testers only.</p>
             <label class="label" for="aiInviteCode">Invite code</label>
             <input class="input mono" id="aiInviteCode" type="text" autocomplete="off" placeholder="Enter invite code" />
             <div class="row mt8"><button class="btn primary" id="aiInviteUnlock" type="button">Unlock AI Assist</button><button class="btn ghost" id="aiWaitlistToggle" type="button">Join Waitlist</button></div>
@@ -519,13 +519,13 @@
           <article id="aiAssistMissingKey" class="panel-card composer-support-card ai-assist-panel" hidden>
             <div class="ai-eyebrow">Private beta unlocked</div>
             <div class="panel-card-title">AI Assist</div>
-            <p>AI Assist is unlocked. Add your OpenAI API key in AI Settings.</p>
+            <p>AI Assist is unlocked. Add your Gemini API key in AI Settings.</p>
             <button class="btn primary" id="openAISettingsMissingKey" type="button">Open AI Settings</button>
           </article>
 
           <article id="aiAssistPanel" class="panel-card composer-support-card ai-assist-panel" hidden>
             <div class="composer-support-hdr"><div><div class="ai-eyebrow">Private beta</div><div class="panel-card-title">AI Assist</div></div><button class="btn sm ghost" id="openAISettings" type="button">AI Settings →</button></div>
-            <p>Improve the current Compose draft using your own OpenAI API key.</p>
+            <p>Improve the current Compose draft using Gemini.</p>
             <div class="ai-action-grid">
               <button class="btn sm" type="button" data-ai-action="rewrite">Rewrite</button><button class="btn sm" type="button" data-ai-action="shorter">Make shorter</button><button class="btn sm" type="button" data-ai-action="punchier">Make punchier</button><button class="btn sm" type="button" data-ai-action="human">Make more human</button><button class="btn sm" type="button" data-ai-action="hooks">Generate hooks</button><button class="btn sm" type="button" data-ai-action="platforms">Create platform versions</button>
             </div>
@@ -1216,17 +1216,20 @@
         <div class="ai-loaded-marker" role="status">AI Settings loaded</div>
         <div id="aiSettingsLocked" class="settings-section ai-settings-locked">
           <div class="ai-eyebrow">Private beta</div>
+          <div class="settings-copy">Unlock status: Locked</div>
           <div class="settings-section-title">AI Settings</div>
-          <p class="settings-copy">AI Assist is currently in private beta. Unlock AI Assist in Compose to add your OpenAI API key.</p>
+          <p class="settings-copy">AI Assist is currently in private beta. Unlock AI Assist in Compose to add your Gemini API key.</p>
           <button class="btn sm primary mt12" id="aiSettingsOpenCompose" type="button">Go to Compose</button>
         </div>
         <div id="aiSettingsUnlocked" hidden>
           <div class="settings-section">
+            <div class="ai-eyebrow">Unlock status: Unlocked</div>
             <div class="settings-section-title">AI Settings</div>
-            <p class="settings-copy">Your OpenAI API key is stored locally in this browser and is used only to power your AI requests.</p>
-            <div class="field"><label class="label" for="aiApiKey">OpenAI API key</label><input class="input mono" id="aiApiKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-…" /></div>
-            <div class="field"><label class="label" for="aiModel">Model</label><select class="input" id="aiModel"><option value="gpt-4.1-mini">GPT-4.1 mini</option><option value="gpt-4o-mini">GPT-4o mini</option><option value="gpt-4.1">GPT-4.1</option></select></div>
-            <div class="row"><button class="btn sm primary" id="aiSaveKey" type="button">Save API Key</button><button class="btn sm" id="aiTestKey" type="button">Test Connection</button><button class="btn sm ghost" id="aiClearKey" type="button">Clear API Key</button></div>
+            <p class="settings-copy">Create a Gemini API key in Google AI Studio, then paste it here. Your key is stored locally in this browser and is used only to power AI Assist requests.</p>
+            <p class="settings-copy">Your Gemini API key is stored locally in this browser and is used only to power your AI Assist requests.</p>
+            <div class="field"><label class="label" for="aiApiKey">Gemini API key</label><input class="input mono" id="aiApiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Paste Gemini API key…" /></div>
+            <div class="field"><label class="label" for="aiModel">Gemini model</label><select class="input" id="aiModel"><option value="gemini-2.5-flash">Gemini 2.5 Flash</option><option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite</option><option value="gemini-2.5-pro">Gemini 2.5 Pro</option></select></div>
+            <div class="row"><button class="btn sm primary" id="aiSaveKey" type="button">Save Gemini API Key</button><button class="btn sm" id="aiTestKey" type="button">Test Gemini Connection</button><button class="btn sm ghost" id="aiClearKey" type="button">Clear Gemini API Key</button></div>
             <div id="aiSettingsStatus" class="ai-status" role="status" aria-live="polite"></div>
           </div>
           <div class="settings-section">
@@ -1284,16 +1287,19 @@
         <div class="ai-loaded-marker" role="status">AI Settings loaded</div>
         <div id="aiSettingsFallbackLocked">
           <div class="ai-eyebrow">Private beta</div>
+          <div class="settings-copy">Unlock status: Locked</div>
           <div class="settings-section-title" id="aiSettingsFallbackTitle">AI Settings</div>
-          <p class="settings-copy">AI Assist is currently in private beta. Unlock AI Assist in Compose to add your OpenAI API key.</p>
+          <p class="settings-copy">AI Assist is currently in private beta. Unlock AI Assist in Compose to add your Gemini API key.</p>
           <button class="btn sm primary mt12" id="aiSettingsFallbackOpenCompose" type="button">Go to Compose</button>
         </div>
         <div id="aiSettingsFallbackUnlocked" hidden>
+          <div class="ai-eyebrow">Unlock status: Unlocked</div>
           <div class="settings-section-title" id="aiSettingsFallbackUnlockedTitle">AI Settings</div>
-          <p class="settings-copy">Your OpenAI API key is stored locally in this browser. This fallback card remains visible from every Settings tab.</p>
-          <div class="field"><label class="label" for="aiApiKeyFallback">OpenAI API key</label><input class="input mono" id="aiApiKeyFallback" type="password" autocomplete="off" spellcheck="false" placeholder="sk-…" /></div>
-          <div class="field"><label class="label" for="aiModelFallback">Model</label><select class="input" id="aiModelFallback"><option value="gpt-4.1-mini">GPT-4.1 mini</option><option value="gpt-4o-mini">GPT-4o mini</option><option value="gpt-4.1">GPT-4.1</option></select></div>
-          <div class="row"><button class="btn sm primary" id="aiSaveKeyFallback" type="button">Save API Key</button><button class="btn sm" id="aiTestKeyFallback" type="button">Test Connection</button><button class="btn sm ghost" id="aiClearKeyFallback" type="button">Clear API Key</button></div>
+          <p class="settings-copy">Create a Gemini API key in Google AI Studio, then paste it here. Your key is stored locally in this browser and is used only to power AI Assist requests.</p>
+          <p class="settings-copy">Your Gemini API key is stored locally in this browser and is used only to power your AI Assist requests.</p>
+          <div class="field"><label class="label" for="aiApiKeyFallback">Gemini API key</label><input class="input mono" id="aiApiKeyFallback" type="password" autocomplete="off" spellcheck="false" placeholder="Paste Gemini API key…" /></div>
+          <div class="field"><label class="label" for="aiModelFallback">Gemini model</label><select class="input" id="aiModelFallback"><option value="gemini-2.5-flash">Gemini 2.5 Flash</option><option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite</option><option value="gemini-2.5-pro">Gemini 2.5 Pro</option></select></div>
+          <div class="row"><button class="btn sm primary" id="aiSaveKeyFallback" type="button">Save Gemini API Key</button><button class="btn sm" id="aiTestKeyFallback" type="button">Test Gemini Connection</button><button class="btn sm ghost" id="aiClearKeyFallback" type="button">Clear Gemini API Key</button></div>
           <div id="aiSettingsFallbackStatus" class="ai-status" role="status" aria-live="polite"></div>
         </div>
       </aside>

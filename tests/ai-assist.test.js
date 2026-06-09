@@ -55,7 +55,10 @@ async function testClientAccessState() {
       removeItem: key => stored.delete(key),
     },
     document: { getElementById: id => elements[id] || null, querySelectorAll: () => [] },
-    fetch: async (url, options) => { requests.push({ url, options }); return { ok: true, status: 200 }; },
+    fetch: async (url, options) => {
+      requests.push({ url, options });
+      return { ok: true, status: 200, json: async () => ({ candidates: [{ content: { parts: [{ text: 'OK' }] } }] }) };
+    },
   };
   context.window = context;
   context.window.addEventListener = () => {};
@@ -79,20 +82,44 @@ async function testClientAccessState() {
   assert.equal(elements.aiSettingsUnlocked.hidden, false);
   assert.equal(elements.aiSettingsFallbackLocked.hidden, true);
   assert.equal(elements.aiSettingsFallbackUnlocked.hidden, false);
-  assert.equal(elements.aiModel.value, 'gpt-4.1-mini');
+  assert.equal(elements.aiModel.value, 'gemini-2.5-flash');
 
-  stored.set('postiq_openai_api_key', 'test-key-never-logged');
+  stored.set('postiq_openai_api_key', 'old-key-must-be-ignored');
+  context.AIAssist.init();
+  assert.equal(elements.aiAssistMissingKey.hidden, false);
+  assert.equal(elements.aiAssistPanel.hidden, true);
+
+  stored.set('postiq_gemini_api_key', 'test-key-never-logged');
   context.AIAssist.init();
   assert.equal(elements.aiAssistMissingKey.hidden, true);
   assert.equal(elements.aiAssistPanel.hidden, false);
   assert.match(elements.aiApiKey.placeholder, /Saved/);
   assert.match(elements.aiApiKeyFallback.placeholder, /Saved/);
 
-  await context.AIAssist.testConnection('test-key-never-logged', 'gpt-4.1-mini');
-  assert.equal(requests[0].url, 'https://api.openai.com/v1/chat/completions');
+  await context.AIAssist.testConnection('test-key-never-logged', 'gemini-2.5-flash');
+  assert.equal(requests[0].url, 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=test-key-never-logged');
+  assert.deepEqual(Object.keys(requests[0].options.headers), ['Content-Type']);
   const body = JSON.parse(requests[0].options.body);
-  assert.equal(body.model, 'gpt-4.1-mini');
-  assert.equal(body.max_completion_tokens, 1);
+  assert.equal(body.contents[0].role, 'user');
+  assert.equal(body.contents[0].parts[0].text, 'Reply with OK.');
+  assert.equal(body.generationConfig.temperature, 0);
+
+  const generated = JSON.stringify({ results: [
+    { label: 'One', text: 'First rewrite' },
+    { label: 'Two', text: 'Second rewrite' },
+    { label: 'Three', text: 'Third rewrite' },
+  ] });
+  context.fetch = async (url, options) => {
+    requests.push({ url, options });
+    return { ok: true, status: 200, json: async () => ({ candidates: [{ content: { parts: [{ text: generated }] } }] }) };
+  };
+  const results = await context.AIAssist.callGemini({ draft: 'Rough idea', action: 'rewrite', apiKey: 'test-key-never-logged', model: 'gemini-2.5-flash', voice: { tone: 'Warm' } });
+  assert.equal(results.length, 3);
+  assert.equal(results[0].text, 'First rewrite');
+  const generateBody = JSON.parse(requests[1].options.body);
+  assert.match(generateBody.contents[0].parts[0].text, /Selected action: Rewrite/);
+  assert.match(generateBody.contents[0].parts[0].text, /Tone: Warm/);
+  assert.match(generateBody.contents[0].parts[0].text, /User's draft:\nRough idea/);
 }
 
 function testStaticIntegration() {
@@ -100,25 +127,32 @@ function testStaticIntegration() {
   const js = fs.readFileSync('ai-assist.js', 'utf8');
   const toml = fs.readFileSync('netlify.toml', 'utf8');
   assert.match(html, /id="aiAssistGate"[\s\S]*AI Assist Private Beta/);
-  assert.match(html, /id="aiAssistMissingKey"[^>]*hidden[\s\S]*AI Assist is unlocked\. Add your OpenAI API key in AI Settings\.[\s\S]*Open AI Settings/);
+  assert.match(html, /id="aiAssistMissingKey"[^>]*hidden[\s\S]*AI Assist is unlocked\. Add your Gemini API key in AI Settings\.[\s\S]*Open AI Settings/);
   assert.match(html, /id="aiAssistPanel"[^>]*hidden/);
   assert.match(html, /id="settingsTabAI"[^>]*>AI Settings<\/button>/);
   assert.doesNotMatch(html, /id="settingsTabAI"[^>]*hidden/);
-  assert.match(html, /id="aiSettingsLocked"[\s\S]*AI Assist is currently in private beta\. Unlock AI Assist in Compose to add your OpenAI API key\./);
-  assert.match(html, /id="aiSettingsUnlocked"[^>]*hidden[\s\S]*id="aiApiKey"[\s\S]*id="aiSaveKey"[\s\S]*id="aiTestKey"[\s\S]*id="aiClearKey"/);
+  assert.match(html, /id="aiSettingsLocked"[\s\S]*Unlock status: Locked[\s\S]*AI Assist is currently in private beta\. Unlock AI Assist in Compose to add your Gemini API key\./);
+  assert.match(html, /id="aiSettingsUnlocked"[^>]*hidden[\s\S]*Unlock status: Unlocked[\s\S]*id="aiApiKey"[^>]*type="password"[\s\S]*id="aiSaveKey"[\s\S]*id="aiTestKey"[\s\S]*id="aiClearKey"/);
+  assert.match(html, /Create a Gemini API key in Google AI Studio, then paste it here\./);
+  assert.match(html, /Your Gemini API key is stored locally in this browser and is used only to power your AI Assist requests\./);
   assert.match(html, /id="aiSettingsFallback"[\s\S]*AI Settings loaded[\s\S]*id="aiSettingsFallbackUnlocked"[^>]*hidden[\s\S]*id="aiApiKeyFallback"/);
-  assert.match(html, /id="aiModel"[\s\S]*value="gpt-4\.1-mini"[\s\S]*value="gpt-4o-mini"[\s\S]*value="gpt-4\.1"/);
+  assert.match(html, /id="aiModel"[\s\S]*value="gemini-2\.5-flash"[\s\S]*value="gemini-2\.5-flash-lite"[\s\S]*value="gemini-2\.5-pro"/);
   assert.match(html, /name="ai-assist-waitlist"[\s\S]*data-netlify="true"/);
+  assert.doesNotMatch(html, /OpenAI|openai|gpt-4/);
   assert.match(js, /postiq_ai_assist_beta_unlocked/);
-  assert.match(js, /postiq_openai_api_key/);
-  assert.match(js, /const DEFAULT_MODEL = 'gpt-4\.1-mini'/);
-  assert.match(js, /OpenAI connection looks good\./);
-  assert.match(js, /That key didn’t work\. Check your OpenAI API key and try again\./);
-  assert.match(js, /max_completion_tokens: 1/);
+  assert.match(js, /postiq_gemini_api_key/);
+  assert.match(js, /postiq_gemini_model/);
+  assert.doesNotMatch(js, /postiq_openai_api_key|postiq_ai_model|api\.openai\.com/);
+  assert.match(js, /const DEFAULT_MODEL = 'gemini-2\.5-flash'/);
+  assert.match(js, /Gemini connection looks good\./);
+  assert.match(js, /That Gemini key did not work\. Check your API key and model access\./);
+  assert.match(js, /candidates\?\.\[0\]\?\.content\?\.parts\?\.\[0\]\?\.text/);
+  assert.match(js, /generationConfig: \{ temperature \}/);
   assert.doesNotMatch(js, /settingsTabAI'\)\?\.toggleAttribute\('hidden'/);
   assert.match(js, /AI_ASSIST_INVITE_CODES|validate-ai-invite/);
   assert.doesNotMatch(js, /POSTIQ-AI-BETA|BEN-TEST-01|POSTIQ-FIRST-10/);
-  assert.match(toml, /connect-src 'self' https:\/\/api\.openai\.com/);
+  assert.match(toml, /connect-src 'self' https:\/\/generativelanguage\.googleapis\.com/);
+  assert.doesNotMatch(toml, /api\.openai\.com/);
 }
 
 (async () => {
