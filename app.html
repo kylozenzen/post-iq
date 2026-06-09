@@ -1119,7 +1119,7 @@
       <div class="settings-tabs" role="tablist" aria-label="Settings sections">
         <button class="settings-tab active" id="settingsTabConnection" type="button" role="tab" aria-selected="true" aria-controls="settingsPanelConnection" data-stab="connection">Connection</button>
         <button class="settings-tab" id="settingsTabCustomize" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelCustomize" data-stab="customize">Customize</button>
-        <button class="settings-tab" id="settingsTabAI" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelAI" data-stab="ai" hidden>AI Settings</button>
+        <button class="settings-tab" id="settingsTabAI" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelAI" data-stab="ai">AI Settings</button>
         <button class="settings-tab" id="settingsTabFeatures" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelFeatures" data-stab="features">Beta / Features</button>
         <button class="settings-tab" id="settingsTabAbout" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelAbout" data-stab="about">About</button>
         <button class="settings-tab" id="settingsTabDiscord" type="button" role="tab"
@@ -1205,21 +1205,29 @@
         </section>
       </div>
 
-      <div id="settingsPanelAI" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabAI" tabindex="0" hidden>
-        <div class="settings-section">
+      <div id="settingsPanelAI" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabAI" tabindex="0">
+        <div id="aiSettingsLocked" class="settings-section ai-settings-locked">
+          <div class="ai-eyebrow">Private beta</div>
           <div class="settings-section-title">AI Settings</div>
-          <p class="settings-copy">Your OpenAI API key is stored locally in this browser and is used only to power your AI requests.</p>
-          <div class="field"><label class="label" for="aiApiKey">OpenAI API key</label><input class="input mono" id="aiApiKey" type="password" autocomplete="off" placeholder="sk-…" /></div>
-          <div class="field"><label class="label" for="aiModel">Model</label><select class="input" id="aiModel"><option value="gpt-4o-mini">GPT-4o mini</option><option value="gpt-4.1-mini">GPT-4.1 mini</option><option value="gpt-4.1">GPT-4.1</option></select></div>
-          <div class="row"><button class="btn sm primary" id="aiSaveKey" type="button">Save API key</button><button class="btn sm" id="aiTestKey" type="button">Test connection</button><button class="btn sm ghost" id="aiClearKey" type="button">Clear API key</button></div>
+          <p class="settings-copy">AI Assist is currently in private beta. Unlock AI Assist in Compose to add your OpenAI API key.</p>
+          <button class="btn sm primary mt12" id="aiSettingsOpenCompose" type="button">Go to Compose</button>
         </div>
-        <div class="settings-section">
-          <div class="settings-section-title">Voice Settings <span class="ai-optional">optional</span></div>
-          <p class="settings-copy">Give AI Assist lightweight guidance about how you write. Empty fields are ignored.</p>
-          <div class="ai-settings-grid"><div class="field"><label class="label" for="aiVoiceName">Voice name</label><input class="input" id="aiVoiceName" placeholder="e.g. Ben's practical voice" /></div><div class="field"><label class="label" for="aiVoiceTone">Tone</label><input class="input" id="aiVoiceTone" placeholder="Direct, useful, conversational" /></div><div class="field"><label class="label" for="aiVoiceAudience">Audience</label><input class="input" id="aiVoiceAudience" placeholder="Early-stage founders" /></div><div class="field"><label class="label" for="aiVoiceAvoid">Avoid phrases</label><input class="input" id="aiVoiceAvoid" placeholder="Unlock, game-changer, delve" /></div></div>
-          <div class="field"><label class="label" for="aiVoiceNotes">Notes about writing style</label><textarea class="input" id="aiVoiceNotes" placeholder="Short paragraphs, strong opinions, no fluff…"></textarea></div>
-          <button class="btn sm primary" id="aiSaveVoice" type="button">Save voice settings</button>
-          <div id="aiSettingsStatus" class="ai-status" role="status" aria-live="polite"></div>
+        <div id="aiSettingsUnlocked" hidden>
+          <div class="settings-section">
+            <div class="settings-section-title">AI Settings</div>
+            <p class="settings-copy">Your OpenAI API key is stored locally in this browser and is used only to power your AI requests.</p>
+            <div class="field"><label class="label" for="aiApiKey">OpenAI API key</label><input class="input mono" id="aiApiKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-…" /></div>
+            <div class="field"><label class="label" for="aiModel">Model</label><select class="input" id="aiModel"><option value="gpt-4.1-mini">GPT-4.1 mini</option><option value="gpt-4o-mini">GPT-4o mini</option><option value="gpt-4.1">GPT-4.1</option></select></div>
+            <div class="row"><button class="btn sm primary" id="aiSaveKey" type="button">Save API Key</button><button class="btn sm" id="aiTestKey" type="button">Test Connection</button><button class="btn sm ghost" id="aiClearKey" type="button">Clear API Key</button></div>
+            <div id="aiSettingsStatus" class="ai-status" role="status" aria-live="polite"></div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">Voice Settings <span class="ai-optional">optional</span></div>
+            <p class="settings-copy">Give AI Assist lightweight guidance about how you write. Empty fields are ignored.</p>
+            <div class="ai-settings-grid"><div class="field"><label class="label" for="aiVoiceName">Voice name</label><input class="input" id="aiVoiceName" placeholder="e.g. Ben's practical voice" /></div><div class="field"><label class="label" for="aiVoiceTone">Tone</label><input class="input" id="aiVoiceTone" placeholder="Direct, useful, conversational" /></div><div class="field"><label class="label" for="aiVoiceAudience">Audience</label><input class="input" id="aiVoiceAudience" placeholder="Early-stage founders" /></div><div class="field"><label class="label" for="aiVoiceAvoid">Avoid phrases</label><input class="input" id="aiVoiceAvoid" placeholder="Unlock, game-changer, delve" /></div></div>
+            <div class="field"><label class="label" for="aiVoiceNotes">Notes about writing style</label><textarea class="input" id="aiVoiceNotes" placeholder="Short paragraphs, strong opinions, no fluff…"></textarea></div>
+            <button class="btn sm primary" id="aiSaveVoice" type="button">Save voice settings</button>
+          </div>
         </div>
       </div>
 

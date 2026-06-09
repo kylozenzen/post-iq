@@ -2366,3 +2366,4 @@ body::after {
 .ai-settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
 .ai-optional { color: var(--subtle); font: 10px 'DM Mono', monospace; text-transform: uppercase; }
 @media (max-width: 640px) { .ai-settings-grid, .ai-action-grid { grid-template-columns: 1fr; } }
+.ai-settings-locked { border-color: color-mix(in srgb, var(--brand) 35%, var(--border)); background: linear-gradient(145deg, color-mix(in srgb, var(--brand) 7%, var(--surface)), var(--surface)); }

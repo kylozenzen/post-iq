@@ -9,7 +9,7 @@ window.AIAssist = (() => {
     model: 'postiq_ai_model',
     voice: 'postiq_ai_voice_settings',
   };
-  const DEFAULT_MODEL = 'gpt-4o-mini';
+  const DEFAULT_MODEL = 'gpt-4.1-mini';
   const ACTIONS = {
     rewrite: { label: 'Rewrite', instruction: 'Improve clarity, flow, and impact while keeping the same overall meaning.', count: 3 },
     shorter: { label: 'Make shorter', instruction: 'Condense the post while preserving the strongest idea.', count: 3 },
@@ -25,7 +25,7 @@ window.AIAssist = (() => {
   const el = id => document.getElementById(id);
   const read = key => { try { return localStorage.getItem(key) || ''; } catch (_) { return ''; } };
   const write = (key, value) => { try { localStorage.setItem(key, value); return true; } catch (_) { return false; } };
-  const remove = key => { try { localStorage.removeItem(key); } catch (_) {} };
+  const remove = key => { try { localStorage.removeItem(key); return true; } catch (_) { return false; } };
   const escapeHtml = value => String(value || '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
 
   function isDevEnabled() {
@@ -40,10 +40,11 @@ window.AIAssist = (() => {
   }
 
   function unlock() {
-    write(KEYS.unlocked, 'true');
-    write(KEYS.unlockedAt, new Date().toISOString());
+    const saved = write(KEYS.unlocked, 'true');
+    if (saved) write(KEYS.unlockedAt, new Date().toISOString());
     renderAccess();
-    window.dispatchEvent(new CustomEvent('postiq:ai-assist-unlocked'));
+    if (saved) window.dispatchEvent(new CustomEvent('postiq:ai-assist-unlocked'));
+    return saved;
   }
 
   function lock() {
@@ -126,10 +127,16 @@ window.AIAssist = (() => {
   async function testConnection(apiKey, model) {
     if (!apiKey) throw new Error('Add an OpenAI API key first.');
     let response;
-    try { response = await fetch(`https://api.openai.com/v1/models/${encodeURIComponent(model)}`, { headers: { 'Authorization': `Bearer ${apiKey}` } }); }
-    catch (_) { throw new Error('Could not reach OpenAI. Check your connection and try again.'); }
-    if (response.status === 401) throw new Error('That OpenAI API key was not accepted.');
-    if (!response.ok) throw new Error('Could not access that model with this API key.');
+    try {
+      response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: model || DEFAULT_MODEL, max_completion_tokens: 1, messages: [{ role: 'user', content: 'Reply OK.' }] }),
+      });
+    } catch (_) {
+      throw new Error('That key didn’t work. Check your OpenAI API key and try again.');
+    }
+    if (!response.ok) throw new Error('That key didn’t work. Check your OpenAI API key and try again.');
     return true;
   }
 
@@ -142,7 +149,8 @@ window.AIAssist = (() => {
     const unlocked = isUnlocked();
     el('aiAssistGate')?.toggleAttribute('hidden', unlocked);
     el('aiAssistPanel')?.toggleAttribute('hidden', !unlocked);
-    el('settingsTabAI')?.toggleAttribute('hidden', !unlocked);
+    el('aiSettingsLocked')?.toggleAttribute('hidden', unlocked);
+    el('aiSettingsUnlocked')?.toggleAttribute('hidden', !unlocked);
     if (unlocked) renderSettings();
   }
 
@@ -184,7 +192,9 @@ window.AIAssist = (() => {
       try {
         const result = await validateInvite(code);
         if (!result.valid) return setStatus('aiInviteStatus', 'That invite code didn’t work. Check it and try again.', 'error');
-        input.value = ''; setStatus('aiInviteStatus', 'AI Assist unlocked.', 'success'); unlock();
+        input.value = '';
+        if (!unlock()) return setStatus('aiInviteStatus', 'AI Assist could not save unlock access in this browser. Check browser storage settings and try again.', 'error');
+        setStatus('aiInviteStatus', 'AI Assist unlocked.', 'success');
       } catch (error) { setStatus('aiInviteStatus', error.message, 'error'); }
       finally { button.disabled = false; button.textContent = 'Unlock AI Assist'; }
     });
@@ -195,16 +205,21 @@ window.AIAssist = (() => {
     el('aiSaveKey')?.addEventListener('click', () => {
       const input = el('aiApiKey'); const key = input?.value.trim();
       if (!key) return setStatus('aiSettingsStatus', 'Enter an OpenAI API key first.', 'error');
-      write(KEYS.apiKey, key); input.value = ''; renderSettings(); setStatus('aiSettingsStatus', 'OpenAI API key saved locally.', 'success');
+      if (!write(KEYS.apiKey, key)) return setStatus('aiSettingsStatus', 'Could not save the OpenAI API key. Check browser storage settings and try again.', 'error');
+      input.value = ''; renderSettings(); setStatus('aiSettingsStatus', 'OpenAI API key saved locally.', 'success');
     });
-    el('aiClearKey')?.addEventListener('click', () => { remove(KEYS.apiKey); renderSettings(); setStatus('aiSettingsStatus', 'OpenAI API key cleared.', 'success'); });
+    el('aiClearKey')?.addEventListener('click', () => {
+      if (!remove(KEYS.apiKey)) return setStatus('aiSettingsStatus', 'Could not clear the OpenAI API key. Check browser storage settings and try again.', 'error');
+      renderSettings(); setStatus('aiSettingsStatus', 'OpenAI API key cleared.', 'success');
+    });
     el('aiTestKey')?.addEventListener('click', async () => {
       const button = el('aiTestKey'); button.disabled = true; setStatus('aiSettingsStatus', 'Testing connection…', 'loading');
-      try { await testConnection(el('aiApiKey')?.value.trim() || read(KEYS.apiKey), el('aiModel')?.value || DEFAULT_MODEL); setStatus('aiSettingsStatus', 'OpenAI connection works.', 'success'); }
+      try { await testConnection(read(KEYS.apiKey), el('aiModel')?.value || DEFAULT_MODEL); setStatus('aiSettingsStatus', 'OpenAI connection looks good.', 'success'); }
       catch (error) { setStatus('aiSettingsStatus', error.message, 'error'); }
       finally { button.disabled = false; }
     });
     el('aiModel')?.addEventListener('change', event => write(KEYS.model, event.target.value));
+    el('aiSettingsOpenCompose')?.addEventListener('click', () => { if (typeof window.closeModal === 'function') window.closeModal('settingsModal'); if (typeof window.activateView === 'function') window.activateView('composerView'); });
     el('aiSaveVoice')?.addEventListener('click', () => {
       const voice = { name: el('aiVoiceName')?.value.trim(), tone: el('aiVoiceTone')?.value.trim(), audience: el('aiVoiceAudience')?.value.trim(), avoid: el('aiVoiceAvoid')?.value.trim(), notes: el('aiVoiceNotes')?.value.trim() };
       write(KEYS.voice, JSON.stringify(voice)); setStatus('aiSettingsStatus', 'Voice settings saved.', 'success');
@@ -224,6 +239,9 @@ window.AIAssist = (() => {
     el('openAISettings')?.addEventListener('click', () => { if (typeof window.selectSettingsTab === 'function') window.selectSettingsTab('ai'); if (typeof window.openModal === 'function') window.openModal('settingsModal'); });
   }
 
-  function init() { bindGate(); bindSettings(); bindPanel(); renderAccess(); }
+  function init() {
+    bindGate(); bindSettings(); bindPanel(); renderAccess();
+    window.addEventListener('storage', event => { if ([KEYS.unlocked, KEYS.apiKey, KEYS.model, KEYS.voice].includes(event.key)) renderAccess(); });
+  }
   return { init, isUnlocked, unlock, lock, validateInvite, callOpenAI, testConnection, KEYS };
 })();
