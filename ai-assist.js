@@ -147,18 +147,24 @@ window.AIAssist = (() => {
 
   function renderAccess() {
     const unlocked = isUnlocked();
+    const hasApiKey = !!read(KEYS.apiKey);
     el('aiAssistGate')?.toggleAttribute('hidden', unlocked);
-    el('aiAssistPanel')?.toggleAttribute('hidden', !unlocked);
+    el('aiAssistMissingKey')?.toggleAttribute('hidden', !unlocked || hasApiKey);
+    el('aiAssistPanel')?.toggleAttribute('hidden', !unlocked || !hasApiKey);
     el('aiSettingsLocked')?.toggleAttribute('hidden', unlocked);
     el('aiSettingsUnlocked')?.toggleAttribute('hidden', !unlocked);
+    el('aiSettingsFallbackLocked')?.toggleAttribute('hidden', unlocked);
+    el('aiSettingsFallbackUnlocked')?.toggleAttribute('hidden', !unlocked);
     if (unlocked) renderSettings();
   }
 
   function renderSettings() {
     const key = read(KEYS.apiKey);
-    const keyInput = el('aiApiKey');
-    if (keyInput) { keyInput.value = ''; keyInput.placeholder = key ? `Saved ••••${key.slice(-4)}` : 'sk-…'; }
-    if (el('aiModel')) el('aiModel').value = read(KEYS.model) || DEFAULT_MODEL;
+    ['aiApiKey', 'aiApiKeyFallback'].forEach(id => {
+      const keyInput = el(id);
+      if (keyInput) { keyInput.value = ''; keyInput.placeholder = key ? `Saved ••••${key.slice(-4)}` : 'sk-…'; }
+    });
+    ['aiModel', 'aiModelFallback'].forEach(id => { if (el(id)) el(id).value = read(KEYS.model) || DEFAULT_MODEL; });
     const voice = getVoiceSettings();
     Object.entries({ aiVoiceName: 'name', aiVoiceTone: 'tone', aiVoiceAudience: 'audience', aiVoiceAvoid: 'avoid', aiVoiceNotes: 'notes' }).forEach(([id, keyName]) => { if (el(id)) el(id).value = voice[keyName] || ''; });
   }
@@ -202,24 +208,30 @@ window.AIAssist = (() => {
   }
 
   function bindSettings() {
-    el('aiSaveKey')?.addEventListener('click', () => {
-      const input = el('aiApiKey'); const key = input?.value.trim();
-      if (!key) return setStatus('aiSettingsStatus', 'Enter an OpenAI API key first.', 'error');
-      if (!write(KEYS.apiKey, key)) return setStatus('aiSettingsStatus', 'Could not save the OpenAI API key. Check browser storage settings and try again.', 'error');
-      input.value = ''; renderSettings(); setStatus('aiSettingsStatus', 'OpenAI API key saved locally.', 'success');
-    });
-    el('aiClearKey')?.addEventListener('click', () => {
-      if (!remove(KEYS.apiKey)) return setStatus('aiSettingsStatus', 'Could not clear the OpenAI API key. Check browser storage settings and try again.', 'error');
-      renderSettings(); setStatus('aiSettingsStatus', 'OpenAI API key cleared.', 'success');
-    });
-    el('aiTestKey')?.addEventListener('click', async () => {
-      const button = el('aiTestKey'); button.disabled = true; setStatus('aiSettingsStatus', 'Testing connection…', 'loading');
-      try { await testConnection(read(KEYS.apiKey), el('aiModel')?.value || DEFAULT_MODEL); setStatus('aiSettingsStatus', 'OpenAI connection looks good.', 'success'); }
-      catch (error) { setStatus('aiSettingsStatus', error.message, 'error'); }
+    const saveKey = (inputId, statusId) => {
+      const input = el(inputId); const key = input?.value.trim();
+      if (!key) return setStatus(statusId, 'Enter an OpenAI API key first.', 'error');
+      if (!write(KEYS.apiKey, key)) return setStatus(statusId, 'Could not save the OpenAI API key. Check browser storage settings and try again.', 'error');
+      input.value = ''; renderAccess(); setStatus(statusId, 'OpenAI API key saved locally.', 'success');
+    };
+    const clearKey = statusId => {
+      if (!remove(KEYS.apiKey)) return setStatus(statusId, 'Could not clear the OpenAI API key. Check browser storage settings and try again.', 'error');
+      renderAccess(); setStatus(statusId, 'OpenAI API key cleared.', 'success');
+    };
+    const testKey = async (buttonId, modelId, statusId) => {
+      const button = el(buttonId); button.disabled = true; setStatus(statusId, 'Testing connection…', 'loading');
+      try { await testConnection(read(KEYS.apiKey), el(modelId)?.value || DEFAULT_MODEL); setStatus(statusId, 'OpenAI connection looks good.', 'success'); }
+      catch (error) { setStatus(statusId, error.message, 'error'); }
       finally { button.disabled = false; }
-    });
-    el('aiModel')?.addEventListener('change', event => write(KEYS.model, event.target.value));
-    el('aiSettingsOpenCompose')?.addEventListener('click', () => { if (typeof window.closeModal === 'function') window.closeModal('settingsModal'); if (typeof window.activateView === 'function') window.activateView('composerView'); });
+    };
+    el('aiSaveKey')?.addEventListener('click', () => saveKey('aiApiKey', 'aiSettingsStatus'));
+    el('aiSaveKeyFallback')?.addEventListener('click', () => saveKey('aiApiKeyFallback', 'aiSettingsFallbackStatus'));
+    el('aiClearKey')?.addEventListener('click', () => clearKey('aiSettingsStatus'));
+    el('aiClearKeyFallback')?.addEventListener('click', () => clearKey('aiSettingsFallbackStatus'));
+    el('aiTestKey')?.addEventListener('click', () => testKey('aiTestKey', 'aiModel', 'aiSettingsStatus'));
+    el('aiTestKeyFallback')?.addEventListener('click', () => testKey('aiTestKeyFallback', 'aiModelFallback', 'aiSettingsFallbackStatus'));
+    ['aiModel', 'aiModelFallback'].forEach(id => el(id)?.addEventListener('change', event => { write(KEYS.model, event.target.value); renderSettings(); }));
+    ['aiSettingsOpenCompose', 'aiSettingsFallbackOpenCompose'].forEach(id => el(id)?.addEventListener('click', () => { if (typeof window.closeModal === 'function') window.closeModal('settingsModal'); if (typeof window.activateView === 'function') window.activateView('composerView'); }));
     el('aiSaveVoice')?.addEventListener('click', () => {
       const voice = { name: el('aiVoiceName')?.value.trim(), tone: el('aiVoiceTone')?.value.trim(), audience: el('aiVoiceAudience')?.value.trim(), avoid: el('aiVoiceAvoid')?.value.trim(), notes: el('aiVoiceNotes')?.value.trim() };
       write(KEYS.voice, JSON.stringify(voice)); setStatus('aiSettingsStatus', 'Voice settings saved.', 'success');
@@ -236,7 +248,7 @@ window.AIAssist = (() => {
       if (button.dataset.aiResult === 'copy') { await navigator.clipboard.writeText(result.text); setStatus('aiAssistStatus', 'Result copied.', 'success'); }
       if (button.dataset.aiResult === 'draft') { setDraft(result.text); el('composerDraft')?.click(); }
     });
-    el('openAISettings')?.addEventListener('click', () => { if (typeof window.selectSettingsTab === 'function') window.selectSettingsTab('ai'); if (typeof window.openModal === 'function') window.openModal('settingsModal'); });
+    ['openAISettings', 'openAISettingsMissingKey'].forEach(id => el(id)?.addEventListener('click', () => { if (typeof window.selectSettingsTab === 'function') window.selectSettingsTab('ai'); if (typeof window.openModal === 'function') window.openModal('settingsModal'); }));
   }
 
   function init() {

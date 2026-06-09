@@ -40,7 +40,7 @@ async function testClientAccessState() {
   const vm = require('node:vm');
   const source = fs.readFileSync('ai-assist.js', 'utf8');
   const stored = new Map();
-  const elements = Object.fromEntries(['aiAssistGate', 'aiAssistPanel', 'aiSettingsLocked', 'aiSettingsUnlocked', 'aiApiKey', 'aiModel'].map(id => [id, {
+  const elements = Object.fromEntries(['aiAssistGate', 'aiAssistMissingKey', 'aiAssistPanel', 'aiSettingsLocked', 'aiSettingsUnlocked', 'aiSettingsFallbackLocked', 'aiSettingsFallbackUnlocked', 'aiApiKey', 'aiApiKeyFallback', 'aiModel', 'aiModelFallback'].map(id => [id, {
     id, hidden: false, value: '', placeholder: '',
     toggleAttribute(name, force) { if (name === 'hidden') this.hidden = force; },
     addEventListener() {},
@@ -73,10 +73,20 @@ async function testClientAccessState() {
   assert.equal(stored.get('postiq_ai_assist_beta_unlocked'), 'true');
   assert.ok(stored.get('postiq_ai_assist_beta_unlocked_at'));
   assert.equal(elements.aiAssistGate.hidden, true);
-  assert.equal(elements.aiAssistPanel.hidden, false);
+  assert.equal(elements.aiAssistMissingKey.hidden, false);
+  assert.equal(elements.aiAssistPanel.hidden, true);
   assert.equal(elements.aiSettingsLocked.hidden, true);
   assert.equal(elements.aiSettingsUnlocked.hidden, false);
+  assert.equal(elements.aiSettingsFallbackLocked.hidden, true);
+  assert.equal(elements.aiSettingsFallbackUnlocked.hidden, false);
   assert.equal(elements.aiModel.value, 'gpt-4.1-mini');
+
+  stored.set('postiq_openai_api_key', 'test-key-never-logged');
+  context.AIAssist.init();
+  assert.equal(elements.aiAssistMissingKey.hidden, true);
+  assert.equal(elements.aiAssistPanel.hidden, false);
+  assert.match(elements.aiApiKey.placeholder, /Saved/);
+  assert.match(elements.aiApiKeyFallback.placeholder, /Saved/);
 
   await context.AIAssist.testConnection('test-key-never-logged', 'gpt-4.1-mini');
   assert.equal(requests[0].url, 'https://api.openai.com/v1/chat/completions');
@@ -90,11 +100,13 @@ function testStaticIntegration() {
   const js = fs.readFileSync('ai-assist.js', 'utf8');
   const toml = fs.readFileSync('netlify.toml', 'utf8');
   assert.match(html, /id="aiAssistGate"[\s\S]*AI Assist Private Beta/);
+  assert.match(html, /id="aiAssistMissingKey"[^>]*hidden[\s\S]*AI Assist is unlocked\. Add your OpenAI API key in AI Settings\.[\s\S]*Open AI Settings/);
   assert.match(html, /id="aiAssistPanel"[^>]*hidden/);
   assert.match(html, /id="settingsTabAI"[^>]*>AI Settings<\/button>/);
   assert.doesNotMatch(html, /id="settingsTabAI"[^>]*hidden/);
   assert.match(html, /id="aiSettingsLocked"[\s\S]*AI Assist is currently in private beta\. Unlock AI Assist in Compose to add your OpenAI API key\./);
   assert.match(html, /id="aiSettingsUnlocked"[^>]*hidden[\s\S]*id="aiApiKey"[\s\S]*id="aiSaveKey"[\s\S]*id="aiTestKey"[\s\S]*id="aiClearKey"/);
+  assert.match(html, /id="aiSettingsFallback"[\s\S]*AI Settings loaded[\s\S]*id="aiSettingsFallbackUnlocked"[^>]*hidden[\s\S]*id="aiApiKeyFallback"/);
   assert.match(html, /id="aiModel"[\s\S]*value="gpt-4\.1-mini"[\s\S]*value="gpt-4o-mini"[\s\S]*value="gpt-4\.1"/);
   assert.match(html, /name="ai-assist-waitlist"[\s\S]*data-netlify="true"/);
   assert.match(js, /postiq_ai_assist_beta_unlocked/);

@@ -516,6 +516,13 @@
             </form>
           </article>
 
+          <article id="aiAssistMissingKey" class="panel-card composer-support-card ai-assist-panel" hidden>
+            <div class="ai-eyebrow">Private beta unlocked</div>
+            <div class="panel-card-title">AI Assist</div>
+            <p>AI Assist is unlocked. Add your OpenAI API key in AI Settings.</p>
+            <button class="btn primary" id="openAISettingsMissingKey" type="button">Open AI Settings</button>
+          </article>
+
           <article id="aiAssistPanel" class="panel-card composer-support-card ai-assist-panel" hidden>
             <div class="composer-support-hdr"><div><div class="ai-eyebrow">Private beta</div><div class="panel-card-title">AI Assist</div></div><button class="btn sm ghost" id="openAISettings" type="button">AI Settings →</button></div>
             <p>Improve the current Compose draft using your own OpenAI API key.</p>
@@ -1206,6 +1213,7 @@
       </div>
 
       <div id="settingsPanelAI" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabAI" tabindex="0">
+        <div class="ai-loaded-marker" role="status">AI Settings loaded</div>
         <div id="aiSettingsLocked" class="settings-section ai-settings-locked">
           <div class="ai-eyebrow">Private beta</div>
           <div class="settings-section-title">AI Settings</div>
@@ -1271,6 +1279,24 @@
         aria-labelledby="settingsTabDiscord" tabindex="0">
         <!-- Filled by Discord.renderSettings() on tab open -->
       </div>
+
+      <aside id="aiSettingsFallback" class="settings-section ai-settings-fallback" aria-labelledby="aiSettingsFallbackTitle">
+        <div class="ai-loaded-marker" role="status">AI Settings loaded</div>
+        <div id="aiSettingsFallbackLocked">
+          <div class="ai-eyebrow">Private beta</div>
+          <div class="settings-section-title" id="aiSettingsFallbackTitle">AI Settings</div>
+          <p class="settings-copy">AI Assist is currently in private beta. Unlock AI Assist in Compose to add your OpenAI API key.</p>
+          <button class="btn sm primary mt12" id="aiSettingsFallbackOpenCompose" type="button">Go to Compose</button>
+        </div>
+        <div id="aiSettingsFallbackUnlocked" hidden>
+          <div class="settings-section-title" id="aiSettingsFallbackUnlockedTitle">AI Settings</div>
+          <p class="settings-copy">Your OpenAI API key is stored locally in this browser. This fallback card remains visible from every Settings tab.</p>
+          <div class="field"><label class="label" for="aiApiKeyFallback">OpenAI API key</label><input class="input mono" id="aiApiKeyFallback" type="password" autocomplete="off" spellcheck="false" placeholder="sk-…" /></div>
+          <div class="field"><label class="label" for="aiModelFallback">Model</label><select class="input" id="aiModelFallback"><option value="gpt-4.1-mini">GPT-4.1 mini</option><option value="gpt-4o-mini">GPT-4o mini</option><option value="gpt-4.1">GPT-4.1</option></select></div>
+          <div class="row"><button class="btn sm primary" id="aiSaveKeyFallback" type="button">Save API Key</button><button class="btn sm" id="aiTestKeyFallback" type="button">Test Connection</button><button class="btn sm ghost" id="aiClearKeyFallback" type="button">Clear API Key</button></div>
+          <div id="aiSettingsFallbackStatus" class="ai-status" role="status" aria-live="polite"></div>
+        </div>
+      </aside>
     </div>
   </div>
 </div>

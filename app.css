@@ -2367,3 +2367,7 @@ body::after {
 .ai-optional { color: var(--subtle); font: 10px 'DM Mono', monospace; text-transform: uppercase; }
 @media (max-width: 640px) { .ai-settings-grid, .ai-action-grid { grid-template-columns: 1fr; } }
 .ai-settings-locked { border-color: color-mix(in srgb, var(--brand) 35%, var(--border)); background: linear-gradient(145deg, color-mix(in srgb, var(--brand) 7%, var(--surface)), var(--surface)); }
+
+/* AI Settings is intentionally mounted outside the tab panels as a visible fallback. */
+.ai-settings-fallback { margin: 18px 0 0; border: 2px solid color-mix(in srgb, var(--brand) 38%, var(--border)); background: linear-gradient(145deg, color-mix(in srgb, var(--brand) 7%, var(--surface)), var(--surface)); }
+.ai-loaded-marker { display: inline-flex; width: max-content; margin: 0 0 10px; padding: 3px 7px; border-radius: 999px; background: var(--green-dim); color: var(--green); font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
