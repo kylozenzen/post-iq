@@ -1339,6 +1339,10 @@ function openModal(id) {
   return true;
 }
 
+// Explicitly expose real Settings navigation for cross-file UI entry points such as AI Assist.
+window.selectSettingsTab = selectSettingsTab;
+window.openModal = openModal;
+
 function closeModal(id) {
   const modal = document.getElementById(id);
   if (!modal) {
@@ -5303,4 +5307,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   try { init(); applyFeatureFlags(); } catch (e) { console.error('[PostIQ] init() crashed:', e); showGlobalErrorBanner(); }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(error => console.warn('[PostIQ] Service worker registration failed:', error));
+  }
 });
