@@ -1289,7 +1289,6 @@ function setTokenPanelVisible(panel, open) {
 function selectSettingsTab(tabName) {
   const legacyCustomizeTabs = ['workspace', 'planning', 'notes'];
   let targetTab = legacyCustomizeTabs.includes(tabName) ? 'customize' : (tabName || 'connection');
-  if (targetTab === 'ai' && !window.AIAssist?.isUnlocked()) targetTab = 'connection';
   document.querySelectorAll('.settings-tab').forEach(tab => {
     if (!tab) return;
     const active = tab.dataset.stab === targetTab;
