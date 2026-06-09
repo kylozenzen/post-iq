@@ -1296,16 +1296,21 @@ function selectSettingsTab(tabName) {
     tab.setAttribute('aria-selected', active ? 'true' : 'false');
     tab.tabIndex = active ? 0 : -1;
   });
-  const panel = 'settingsPanel' + targetTab.charAt(0).toUpperCase() + targetTab.slice(1);
-  document.querySelectorAll('.settings-panel').forEach(p => {
-    if (!p) return;
-    const active = p.id === panel;
+const panel = ('settingspanel' + targetTab).toLowerCase();
+document.querySelectorAll('.settings-panel').forEach(p => {
+  if (!p) return;
+  const active = p.id.toLowerCase() === panel;
     p.classList.toggle('active', active);
     p.hidden = !active;
   });
   if (targetTab === 'features') renderSettingsFeatureStatus();
   if (targetTab === 'discord' && window.Discord) window.Discord.renderSettings();
 }
+
+
+
+
+
 
 function renderSettingsFeatureStatus() {
   document.querySelectorAll('[data-settings-feature]').forEach(el => {
