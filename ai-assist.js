@@ -5,11 +5,11 @@ window.AIAssist = (() => {
   const KEYS = {
     unlocked: 'postiq_ai_assist_beta_unlocked',
     unlockedAt: 'postiq_ai_assist_beta_unlocked_at',
-    apiKey: 'postiq_openai_api_key',
-    model: 'postiq_ai_model',
+    apiKey: 'postiq_gemini_api_key',
+    model: 'postiq_gemini_model',
     voice: 'postiq_ai_voice_settings',
   };
-  const DEFAULT_MODEL = 'gpt-4.1-mini';
+  const DEFAULT_MODEL = 'gemini-2.5-flash';
   const ACTIONS = {
     rewrite: { label: 'Rewrite', instruction: 'Improve clarity, flow, and impact while keeping the same overall meaning.', count: 3 },
     shorter: { label: 'Make shorter', instruction: 'Condense the post while preserving the strongest idea.', count: 3 },
@@ -92,26 +92,37 @@ window.AIAssist = (() => {
     return lines.length ? `\nUse these optional voice settings:\n${lines.join('\n')}` : '';
   }
 
-  async function callOpenAI({ draft, action, apiKey, model, voice }) {
-    const config = ACTIONS[action];
-    const platformRule = action === 'platforms' ? ` Use these labels exactly: ${PLATFORM_LABELS.join(', ')}.` : '';
-    const system = `You are an expert social media strategist and editor. Preserve the user's core idea. Avoid generic, overly corporate language, excessive emojis, and hashtags unless the original uses them or platform versions benefit from them. Keep the tone clear, useful, and human. Return only valid JSON with a top-level "results" array. Each item must have "label" and "text" strings. Do not add explanations or markdown tables.${voicePrompt(voice)}`;
-    const user = `${config.instruction}${platformRule} Return exactly ${config.count} results.\n\nDraft:\n${draft}`;
+  function geminiEndpoint(model, apiKey) {
+    return `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model || DEFAULT_MODEL)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  }
+
+  async function requestGemini({ apiKey, model, prompt, temperature = 0.7 }) {
     let response;
     try {
-      response = await fetch('https://api.openai.com/v1/chat/completions', {
+      response = await fetch(geminiEndpoint(model, apiKey), {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model, temperature: 0.8, response_format: { type: 'json_object' }, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: { temperature },
+        }),
       });
     } catch (_) {
-      throw new Error('AI Assist could not reach OpenAI. Check your connection and try again.');
+      throw new Error('AI Assist could not reach Gemini. Check your connection and try again.');
     }
-    if (response.status === 401) throw new Error('That OpenAI API key was not accepted. Check it in AI Settings.');
-    if (!response.ok) throw new Error('OpenAI could not generate results right now. Please try again.');
-    const data = await response.json();
+    if (!response.ok) throw new Error('Gemini could not complete that request. Check your API key and model access.');
+    let data;
+    try { data = await response.json(); } catch (_) { throw new Error('Gemini returned an unexpected result. Please try again.'); }
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!String(text || '').trim()) throw new Error('Gemini returned an unexpected result. Please try again.');
+    return String(text).trim();
+  }
+
+  function parseResults(text, action) {
+    const config = ACTIONS[action];
     try {
-      const parsed = JSON.parse(data.choices?.[0]?.message?.content || '{}');
+      const jsonText = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+      const parsed = JSON.parse(jsonText);
       if (!Array.isArray(parsed.results) || parsed.results.length < config.count) throw new Error();
       const cleaned = parsed.results.slice(0, config.count).map((item, index) => ({
         label: action === 'platforms' ? PLATFORM_LABELS[index] : (item.label || `${config.label} ${index + 1}`),
@@ -120,24 +131,43 @@ window.AIAssist = (() => {
       if (cleaned.length !== config.count) throw new Error();
       return cleaned;
     } catch (_) {
-      throw new Error('OpenAI returned an unexpected result. Please try that action again.');
+      throw new Error('Gemini returned an unexpected result. Please try that action again.');
     }
   }
 
+  async function callGemini({ draft, action, apiKey, model, voice }) {
+    const config = ACTIONS[action];
+    const platformRule = action === 'platforms' ? ` Use these labels exactly and in this order: ${PLATFORM_LABELS.join(', ')}.` : '';
+    const prompt = `You are an expert social media strategist and editor.
+
+Global rules:
+- Preserve the user's core idea.
+- Avoid sounding generic or overly corporate.
+- Avoid excessive emojis.
+- Avoid hashtags unless the original draft uses them or the action asks for platform versions.
+- Keep the tone clear, useful, and human.
+- Return only the requested results.
+- Do not include explanations before or after the results.
+- Do not include markdown tables.
+- Return valid JSON only, with a top-level "results" array. Each item must have "label" and "text" strings.${voicePrompt(voice)}
+
+Selected action: ${config.label}
+Editor instruction: ${config.instruction}${platformRule}
+Return exactly ${config.count} results.
+
+User's draft:
+${draft}`;
+    return parseResults(await requestGemini({ apiKey, model, prompt }), action);
+  }
+
   async function testConnection(apiKey, model) {
-    if (!apiKey) throw new Error('Add an OpenAI API key first.');
-    let response;
+    if (!apiKey) throw new Error('That Gemini key did not work. Check your API key and model access.');
     try {
-      response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: model || DEFAULT_MODEL, max_completion_tokens: 1, messages: [{ role: 'user', content: 'Reply OK.' }] }),
-      });
+      await requestGemini({ apiKey, model: model || DEFAULT_MODEL, prompt: 'Reply with OK.', temperature: 0 });
+      return true;
     } catch (_) {
-      throw new Error('That key didn’t work. Check your OpenAI API key and try again.');
+      throw new Error('That Gemini key did not work. Check your API key and model access.');
     }
-    if (!response.ok) throw new Error('That key didn’t work. Check your OpenAI API key and try again.');
-    return true;
   }
 
   function setStatus(id, message, type = '') {
@@ -162,7 +192,7 @@ window.AIAssist = (() => {
     const key = read(KEYS.apiKey);
     ['aiApiKey', 'aiApiKeyFallback'].forEach(id => {
       const keyInput = el(id);
-      if (keyInput) { keyInput.value = ''; keyInput.placeholder = key ? `Saved ••••${key.slice(-4)}` : 'sk-…'; }
+      if (keyInput) { keyInput.value = ''; keyInput.placeholder = key ? `Saved ••••${key.slice(-4)}` : 'Paste Gemini API key…'; }
     });
     ['aiModel', 'aiModelFallback'].forEach(id => { if (el(id)) el(id).value = read(KEYS.model) || DEFAULT_MODEL; });
     const voice = getVoiceSettings();
@@ -171,7 +201,7 @@ window.AIAssist = (() => {
 
   function renderResults() {
     const container = el('aiAssistResults'); if (!container) return;
-    container.innerHTML = results.map((result, index) => `<article class="ai-result-card"><div class="ai-result-label">${escapeHtml(result.label)}</div><div class="ai-result-text">${escapeHtml(result.text)}</div><div class="ai-result-actions"><button class="btn sm primary" type="button" data-ai-result="replace" data-index="${index}">Replace</button><button class="btn sm" type="button" data-ai-result="insert" data-index="${index}">Insert below</button><button class="btn sm ghost" type="button" data-ai-result="copy" data-index="${index}">Copy</button><button class="btn sm ghost" type="button" data-ai-result="draft" data-index="${index}">Save Buffer draft</button></div></article>`).join('');
+    container.innerHTML = results.map((result, index) => `<article class="ai-result-card"><div class="ai-result-label">${escapeHtml(result.label)}</div><div class="ai-result-text">${escapeHtml(result.text)}</div><div class="ai-result-actions"><button class="btn sm primary" type="button" data-ai-result="replace" data-index="${index}">Replace</button><button class="btn sm" type="button" data-ai-result="insert" data-index="${index}">Insert below</button><button class="btn sm ghost" type="button" data-ai-result="copy" data-index="${index}">Copy</button><button class="btn sm ghost" type="button" data-ai-result="draft" data-index="${index}">Save as Draft</button></div></article>`).join('');
   }
 
   async function runAction(action) {
@@ -179,12 +209,12 @@ window.AIAssist = (() => {
     const draft = getDraft();
     const apiKey = read(KEYS.apiKey);
     if (!draft) return setStatus('aiAssistStatus', 'Add a rough draft first, then AI Assist can help improve it.', 'error');
-    if (!apiKey) return setStatus('aiAssistStatus', 'Add your OpenAI API key in AI Settings to use AI Assist.', 'error');
+    if (!apiKey) return setStatus('aiAssistStatus', 'Add your Gemini API key in AI Settings to use AI Assist.', 'error');
     generating = true;
     document.querySelectorAll('[data-ai-action]').forEach(button => { button.disabled = true; });
     setStatus('aiAssistStatus', `${ACTIONS[action].label} in progress…`, 'loading');
     try {
-      results = await callOpenAI({ draft, action, apiKey, model: read(KEYS.model) || DEFAULT_MODEL, voice: getVoiceSettings() });
+      results = await callGemini({ draft, action, apiKey, model: read(KEYS.model) || DEFAULT_MODEL, voice: getVoiceSettings() });
       renderResults(); setStatus('aiAssistStatus', `${results.length} results ready.`, 'success');
     } catch (error) { setStatus('aiAssistStatus', error.message, 'error'); }
     finally { generating = false; document.querySelectorAll('[data-ai-action]').forEach(button => { button.disabled = false; }); }
@@ -210,17 +240,17 @@ window.AIAssist = (() => {
   function bindSettings() {
     const saveKey = (inputId, statusId) => {
       const input = el(inputId); const key = input?.value.trim();
-      if (!key) return setStatus(statusId, 'Enter an OpenAI API key first.', 'error');
-      if (!write(KEYS.apiKey, key)) return setStatus(statusId, 'Could not save the OpenAI API key. Check browser storage settings and try again.', 'error');
-      input.value = ''; renderAccess(); setStatus(statusId, 'OpenAI API key saved locally.', 'success');
+      if (!key) return setStatus(statusId, 'Enter a Gemini API key first.', 'error');
+      if (!write(KEYS.apiKey, key)) return setStatus(statusId, 'Could not save the Gemini API key. Check browser storage settings and try again.', 'error');
+      input.value = ''; renderAccess(); setStatus(statusId, 'Gemini API key saved locally.', 'success');
     };
     const clearKey = statusId => {
-      if (!remove(KEYS.apiKey)) return setStatus(statusId, 'Could not clear the OpenAI API key. Check browser storage settings and try again.', 'error');
-      renderAccess(); setStatus(statusId, 'OpenAI API key cleared.', 'success');
+      if (!remove(KEYS.apiKey)) return setStatus(statusId, 'Could not clear the Gemini API key. Check browser storage settings and try again.', 'error');
+      renderAccess(); setStatus(statusId, 'Gemini API key cleared.', 'success');
     };
     const testKey = async (buttonId, modelId, statusId) => {
       const button = el(buttonId); button.disabled = true; setStatus(statusId, 'Testing connection…', 'loading');
-      try { await testConnection(read(KEYS.apiKey), el(modelId)?.value || DEFAULT_MODEL); setStatus(statusId, 'OpenAI connection looks good.', 'success'); }
+      try { await testConnection(read(KEYS.apiKey), el(modelId)?.value || DEFAULT_MODEL); setStatus(statusId, 'Gemini connection looks good.', 'success'); }
       catch (error) { setStatus(statusId, error.message, 'error'); }
       finally { button.disabled = false; }
     };
@@ -255,5 +285,5 @@ window.AIAssist = (() => {
     bindGate(); bindSettings(); bindPanel(); renderAccess();
     window.addEventListener('storage', event => { if ([KEYS.unlocked, KEYS.apiKey, KEYS.model, KEYS.voice].includes(event.key)) renderAccess(); });
   }
-  return { init, isUnlocked, unlock, lock, validateInvite, callOpenAI, testConnection, KEYS };
+  return { init, isUnlocked, unlock, lock, validateInvite, callGemini, testConnection, KEYS };
 })();
