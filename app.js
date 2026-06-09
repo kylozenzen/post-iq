@@ -1288,7 +1288,8 @@ function setTokenPanelVisible(panel, open) {
 
 function selectSettingsTab(tabName) {
   const legacyCustomizeTabs = ['workspace', 'planning', 'notes'];
-  const targetTab = legacyCustomizeTabs.includes(tabName) ? 'customize' : (tabName || 'connection');
+  let targetTab = legacyCustomizeTabs.includes(tabName) ? 'customize' : (tabName || 'connection');
+  if (targetTab === 'ai' && !window.AIAssist?.isUnlocked()) targetTab = 'connection';
   document.querySelectorAll('.settings-tab').forEach(tab => {
     if (!tab) return;
     const active = tab.dataset.stab === targetTab;
@@ -3592,7 +3593,7 @@ function init() {
     tab.onclick = () => selectSettingsTab(tab.dataset.stab);
     tab.addEventListener('keydown', e => {
       if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
-      const tabs = [...document.querySelectorAll('.settings-tab')];
+      const tabs = [...document.querySelectorAll('.settings-tab:not([hidden])')];
       const current = tabs.indexOf(tab);
       let next = current;
       if (e.key === 'ArrowLeft') next = Math.max(0, current - 1);
@@ -3612,6 +3613,12 @@ function init() {
   on('templatePlatformFilter', 'change', e => { state.templatePlatform = e.target.value; renderTemplates(); });
   on('pickerSearch', 'input', renderTemplatePicker);
   on('pickerType', 'change', renderTemplatePicker);
+
+  try {
+    if (window.AIAssist?.init) window.AIAssist.init();
+  } catch (e) {
+    console.error('[PostIQ] AIAssist.init() failed:', e);
+  }
 
   try {
     if (window.ContentPillars?.init) window.ContentPillars.init();
