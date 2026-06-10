@@ -1296,10 +1296,10 @@ function selectSettingsTab(tabName) {
     tab.setAttribute('aria-selected', active ? 'true' : 'false');
     tab.tabIndex = active ? 0 : -1;
   });
-const panel = ('settingspanel' + targetTab).toLowerCase();
-document.querySelectorAll('.settings-panel').forEach(p => {
-  if (!p) return;
-  const active = p.id.toLowerCase() === panel;
+  const panel = ('settingspanel' + targetTab).toLowerCase();
+  document.querySelectorAll('.settings-panel').forEach(p => {
+    if (!p) return;
+    const active = p.id.toLowerCase() === panel;
     p.classList.toggle('active', active);
     p.hidden = !active;
   });
@@ -3615,6 +3615,12 @@ function init() {
   });
 
   const manageTplBtn = qs('composerManageTemplatesBtn'); if (manageTplBtn) manageTplBtn.onclick = () => { activateView('ideasView'); setIdeasTab('templates'); };
+  document.querySelectorAll('.support-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.support-tab').forEach(t => t.classList.toggle('active', t === tab));
+      document.querySelectorAll('.support-panel').forEach(p => p.classList.toggle('active', p.dataset.stoolPanel === tab.dataset.stool));
+    });
+  });
   on('closeTemplatePicker', 'click', () => closeModal('templatePickerModal'));
   on('templateSearch', 'input', e => { state.templateSearch = e.target.value; renderTemplates(); });
   on('templateSearch', 'change', e => safeTrack(() => GA4_Templates.templateSearched(e.target.value.trim() ? 'has_query' : 'empty')));
