@@ -5287,6 +5287,24 @@ window.ContentPillars = (() => {
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Sidebar collapse toggle
+  const appEl = document.getElementById('app');
+  const sidebarToggleBtn = document.getElementById('sidebarToggle');
+  if (appEl && sidebarToggleBtn) {
+    const COLLAPSED_KEY = 'sidebar_collapsed';
+    const applyCollapsed = (collapsed) => {
+      appEl.classList.toggle('sidebar-collapsed', collapsed);
+      sidebarToggleBtn.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+      sidebarToggleBtn.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+    };
+    applyCollapsed(localStorage.getItem(COLLAPSED_KEY) === '1');
+    sidebarToggleBtn.addEventListener('click', () => {
+      const next = !appEl.classList.contains('sidebar-collapsed');
+      applyCollapsed(next);
+      localStorage.setItem(COLLAPSED_KEY, next ? '1' : '0');
+    });
+  }
+
   bindGlobalStatusDismiss();
   bindGlobalErrorHandlers();
   bindModalActionDelegates();
