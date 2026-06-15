@@ -15,6 +15,7 @@ const METRIC_NAME_ALIASES = {
 };
 const METRIC_OUTPUT_FIELDS = Object.keys(METRIC_NAME_ALIASES);
 const SENT_STATUSES = ['sent', 'published'];
+const METRICS_PERMISSION_NOTICE = 'Performance metrics need an updated Buffer connection. Reconnect Buffer to enable analytics.';
 
 function buildSentPostsQuery(status, extraNodeFields = '') {
   return `
@@ -125,6 +126,18 @@ function buildMetricSelection(postMetricFields) {
   const safeFields = (postMetricFields || [])
     .filter(field => /^[_A-Za-z][_0-9A-Za-z]*$/.test(field));
   return safeFields.length ? `metrics { ${safeFields.join(' ')} }` : '';
+}
+
+function isBufferPermissionError(err) {
+  const haystack = JSON.stringify({
+    error: err?.error || err?.message || '',
+    code: err?.code || '',
+    status: err?.status || '',
+    details: err?.details || err?.errors || '',
+  }).toLowerCase();
+  return err?.status === 401
+    || err?.status === 403
+    || /unauthorized|forbidden|permission|permissions|scope|scopes|insights:read|not authorized|access denied|authentication|auth/i.test(haystack);
 }
 
 function normalizeBufferError(status, text, data) {
@@ -270,6 +283,7 @@ async function probeAnalyticsSafely({ token, organizationId, posts, status, samp
     bufferErrorBodies: [],
     samplePostShape: samplePostShape || [],
     sampleMetricsShape: [],
+    metricsPermissionError: false,
   };
 
   if (!posts.length) {
@@ -310,7 +324,8 @@ query ProbePostMetricFields {
     debug.postTypeFields = fields.filter(field => /analytics|metric|insight|impression|reaction|engagement|reach|click|comment|stat|status/i.test(field));
   } catch (err) {
     lastError = err;
-    debug.metricsError = err.error || err.message || null;
+    if (isBufferPermissionError(err)) debug.metricsPermissionError = true;
+    debug.metricsError = debug.metricsPermissionError ? METRICS_PERMISSION_NOTICE : (err.error || err.message || null);
     if (err.bufferErrorBody) debug.bufferErrorBodies.push(err.bufferErrorBody);
   }
 
@@ -323,7 +338,8 @@ query ProbePostMetricFields {
     metricSelection = buildMetricSelection(fields.filter(isSelectableMetricField).map(field => field.name).sort());
   } catch (err) {
     lastError = err;
-    debug.metricsError = err.error || err.message || null;
+    if (isBufferPermissionError(err)) debug.metricsPermissionError = true;
+    debug.metricsError = debug.metricsPermissionError ? METRICS_PERMISSION_NOTICE : (err.error || err.message || null);
     if (err.bufferErrorBody) debug.bufferErrorBodies.push(err.bufferErrorBody);
   }
 
@@ -350,6 +366,7 @@ query ProbePostMetricFields {
     return { posts: merged, metricsSource: result.source, debug };
   } catch (err) {
     lastError = err;
+    if (isBufferPermissionError(err)) debug.metricsPermissionError = true;
     if (err.bufferErrorBody) debug.bufferErrorBodies.push(err.bufferErrorBody);
     console.warn('[buffer-library] Metrics query unavailable', {
       source,
@@ -360,7 +377,9 @@ query ProbePostMetricFields {
   }
 
   debug.metricsAvailable = false;
-  debug.metricsError = lastError?.error || lastError?.message || 'Buffer metrics are unavailable for this account or API schema.';
+  debug.metricsError = debug.metricsPermissionError
+    ? METRICS_PERMISSION_NOTICE
+    : (lastError?.error || lastError?.message || 'Buffer metrics are unavailable for this account or API schema.');
 
   return { posts: posts.map(post => ({ ...post, metrics: null })), metricsSource: 'unsupported', debug };
 }
@@ -411,6 +430,7 @@ exports.handler = async function (event) {
                   postMetricFields: [],
                   metricsAvailable: false,
                   metricsError: null,
+                  metricsPermissionError: false,
                   bufferErrorBodies: [],
                   samplePostShape: result.samplePostShape || [],
                   sampleMetricsShape: [],
@@ -425,6 +445,7 @@ exports.handler = async function (event) {
             metricsAvailable: metricsResult.debug.metricsAvailable,
             metricsSource: metricsResult.metricsSource,
             metricsError: metricsResult.debug.metricsError,
+            metricsPermissionError: !!metricsResult.debug.metricsPermissionError,
           };
           if (includeDebug) body.debug = metricsResult.debug;
           return {
@@ -453,7 +474,8 @@ exports.handler = async function (event) {
           metricsAvailable: false,
           metricsSource: 'none',
           metricsError: null,
-          ...(includeDebug ? { debug: { attemptedQueries: [], postTypeFields: [], postMetricFields: [], metricsAvailable: false, metricsError: 'No sent posts were returned.', bufferErrorBodies: [], samplePostShape: [], sampleMetricsShape: [] } } : {}),
+          metricsPermissionError: false,
+          ...(includeDebug ? { debug: { attemptedQueries: [], postTypeFields: [], postMetricFields: [], metricsAvailable: false, metricsError: 'No sent posts were returned.', metricsPermissionError: false, bufferErrorBodies: [], samplePostShape: [], sampleMetricsShape: [] } } : {}),
         }),
       };
     }
