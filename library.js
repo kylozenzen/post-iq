@@ -269,15 +269,19 @@ window.PostIQLibrary = (() => {
       </div>`;
   }
 
-  function renderEmpty(msg) {
-    const list = qs('libraryPostList');
-    if (!list) return;
-    list.innerHTML = `
+  function emptyStateHtml(msg) {
+    return `
       <div class="empty-state" style="margin-top:24px;">
         <div class="empty-icon">📚</div>
         <div class="empty-title">No posts found</div>
         <div class="empty-desc">${safeText(msg)}</div>
       </div>`;
+  }
+
+  function renderEmpty(msg) {
+    const list = qs('libraryPostList');
+    if (!list) return;
+    list.innerHTML = emptyStateHtml(msg);
   }
 
   function metricBadgeHtml(metrics) {
@@ -294,6 +298,14 @@ window.PostIQLibrary = (() => {
     if (cm)  parts.push(`<span class="lib-metric-badge">💬 ${safeText(cm)}</span>`);
     if (rh)  parts.push(`<span class="lib-metric-badge">reach ${safeText(rh)}</span>`);
     return parts.slice(0, 3).join('');
+  }
+
+  function metricsNoticeHtml() {
+    if (metricsMeta.available || !posts.length) return '';
+    return `
+      <div class="lib-metrics-notice" role="note">
+        Performance metrics aren’t available from Buffer for these posts yet. You can still search, star, and repurpose your sent posts.
+      </div>`;
   }
 
   function postCardHtml(post) {
@@ -323,7 +335,7 @@ window.PostIQLibrary = (() => {
 
         <div class="lib-post-text">${safeText(compact(post.text, 280))}</div>
 
-        ${hasMetrics ? `<div class="lib-metrics-row">${metricBadgeHtml(post.metrics)}</div>` : '<div class="lib-metrics-row"><span class="lib-metric-badge">metrics unavailable</span></div>'}
+        ${hasMetrics && metricBadgeHtml(post.metrics) ? `<div class="lib-metrics-row">${metricBadgeHtml(post.metrics)}</div>` : ''}
 
         <div class="lib-post-actions">
           <button class="btn sm primary" data-action="repurpose" data-post-id="${safeId}">→ Repurpose</button>
@@ -341,16 +353,16 @@ window.PostIQLibrary = (() => {
     const filtered = filteredPosts();
     if (!filtered.length) {
       const msgs = {
-        top: metricsMeta.available ? 'No posts with engagement data yet. Metrics may take time to appear.' : 'Metrics unavailable — top performers need Buffer analytics.',
-        reuse: metricsMeta.available ? `No high-performing posts older than ${REPURPOSE_DAYS} days found.` : 'Metrics unavailable — ready-to-reuse suggestions need Buffer analytics.',
+        top: metricsMeta.available && posts.some(hasMetricValue) ? 'No posts with engagement data yet. Metrics may take time to appear.' : 'No performance metrics available yet.',
+        reuse: metricsMeta.available && posts.some(hasMetricValue) ? `No high-performing posts older than ${REPURPOSE_DAYS} days found.` : 'Metrics unavailable, so reuse suggestions are paused.',
         starred: 'No starred posts yet. Star any post to save it here.',
         all: searchQuery ? 'No posts match that search.' : 'No sent posts found.',
       };
-      renderEmpty(msgs[activeTab] || msgs.all);
+      list.innerHTML = metricsNoticeHtml() + emptyStateHtml(msgs[activeTab] || msgs.all);
       return;
     }
 
-    list.innerHTML = filtered.map(postCardHtml).join('');
+    list.innerHTML = metricsNoticeHtml() + filtered.map(postCardHtml).join('');
 
     // Bind card actions
     list.querySelectorAll('[data-action]').forEach(btn => {
