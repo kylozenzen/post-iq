@@ -1,4 +1,4 @@
-const CACHE = 'postiq-v4-library';
+const CACHE = 'postiq-v5-hotfix';
 const SHELL = [
   '/',
   '/index.html',
@@ -13,8 +13,6 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-
-
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key))))
@@ -23,13 +21,33 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin) || event.request.url.includes('netlify/functions')) return;
+  const request = event.request;
+  const url = new URL(request.url);
 
-  // App assets must update from the network so production cannot remain stuck on stale UI files.
-  event.respondWith(
-    fetch(event.request).then(response => {
-      if (response.ok) caches.open(CACHE).then(cache => cache.put(event.request, response.clone()));
-      return response;
-    }).catch(() => caches.match(event.request))
-  );
+  // Never intercept non-GET requests, cross-origin requests, or Netlify functions.
+  // Functions must always hit the network so POST bodies are not consumed/cached by the SW.
+  if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.includes('/.netlify/functions/')) {
+    return;
+  }
+
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE);
+
+    try {
+      const networkResponse = await fetch(request);
+
+      // Clone once for cache before the browser consumes the response body.
+      if (networkResponse && networkResponse.ok) {
+        cache.put(request, networkResponse.clone()).catch(err => {
+          console.warn('[PostIQ SW] cache put failed:', err);
+        });
+      }
+
+      return networkResponse;
+    } catch (err) {
+      const cached = await cache.match(request);
+      if (cached) return cached;
+      throw err;
+    }
+  })());
 });
