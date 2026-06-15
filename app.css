@@ -2757,6 +2757,17 @@ body::after {
   border-radius: var(--r2);
 }
 
+/* Metrics notice */
+.lib-metrics-notice {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 10px 12px;
+}
+
 /* Metrics row */
 .lib-metrics-row {
   display: flex;
