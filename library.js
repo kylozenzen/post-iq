@@ -35,7 +35,12 @@ window.PostIQLibrary = (() => {
   function logDiagnostic(message, details) { console.warn(`[PostIQ Library] ${message}`, details || ''); }
   function hasMetricValue(post) {
     const metrics = post?.metrics;
-    return !!metrics && Object.values(metrics).some(value => value != null);
+    return !!metrics && ['reactions', 'comments', 'impressions', 'reach', 'engagementRate'].some(key => metrics[key] != null);
+  }
+
+  function hasRawMetrics(post) {
+    const raw = post?.metrics?.raw;
+    return !!raw && typeof raw === 'object' && Object.keys(raw).length > 0;
   }
 
   function hasPositiveMetric(post, key) {
@@ -142,6 +147,10 @@ window.PostIQLibrary = (() => {
       };
       if (data.debug) {
         console.info('[PostIQ Library] Buffer analytics probe debug', data.debug);
+      }
+      const postsWithRawMetrics = (data.posts || []).filter(hasRawMetrics);
+      if (postsWithRawMetrics.length) {
+        console.info('[PostIQ Library] Raw Buffer metrics available for inspection', postsWithRawMetrics.map(post => ({ id: post.id, metrics: post.metrics.raw })));
       }
       if (metricsMeta.available) {
         console.info('[PostIQ Library] Buffer metrics returned', metricsMeta);
@@ -303,6 +312,11 @@ window.PostIQLibrary = (() => {
     return parts.slice(0, 3).join('');
   }
 
+  function rawMetricsIndicatorHtml(post) {
+    if (hasMetricValue(post) || !hasRawMetrics(post)) return '';
+    return '<span class="lib-metric-badge lib-metric-raw" title="Raw Buffer metrics are available in the console debug output">metrics available</span>';
+  }
+
   function metricsNoticeHtml() {
     return '';
   }
@@ -312,7 +326,8 @@ window.PostIQLibrary = (() => {
     const channelLabel = getChannelLabel(post);
     const service = getChannelService(post);
     const age = daysAgo(post.sentAt);
-    const hasMetrics = hasMetricValue(post);
+    const badges = metricBadgeHtml(post.metrics);
+    const rawIndicator = rawMetricsIndicatorHtml(post);
     const isTopPerformer = hasPositiveMetric(post, 'engagementRate') && (post.metrics?.engagementRate || 0) > 0.02; // >2% engagement
     const isOld = age >= REPURPOSE_DAYS;
     const safeId = safeText(post.id);
@@ -334,7 +349,7 @@ window.PostIQLibrary = (() => {
 
         <div class="lib-post-text">${safeText(compact(post.text, 280))}</div>
 
-        ${hasMetrics && metricBadgeHtml(post.metrics) ? `<div class="lib-metrics-row">${metricBadgeHtml(post.metrics)}</div>` : ''}
+        ${badges || rawIndicator ? `<div class="lib-metrics-row">${badges || rawIndicator}</div>` : ''}
 
         <div class="lib-post-actions">
           <button class="btn sm primary" data-action="repurpose" data-post-id="${safeId}">→ Repurpose</button>
@@ -385,7 +400,7 @@ window.PostIQLibrary = (() => {
     if (!statsEl) return;
 
     const total = posts.length;
-    const withMetrics = posts.filter(hasMetricValue).length;
+    const withMetrics = posts.filter(post => hasMetricValue(post) || hasRawMetrics(post)).length;
     const top = topPerformers().slice(0, 1)[0];
     const topEr = top ? pct(top.metrics?.engagementRate) : null;
     const syncAge = lastFetchAt ? Math.floor((Date.now() - lastFetchAt) / 60000) : null;
