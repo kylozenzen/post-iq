@@ -31,6 +31,11 @@ window.PostIQLibrary = (() => {
   const fmtNum    = v => v != null && v > 0 ? Number(v).toLocaleString() : null;
 
   function track(cb) { try { if (typeof cb === 'function') cb(); } catch {} }
+  function logDiagnostic(message, details) { console.warn(`[PostIQ Library] ${message}`, details || ''); }
+
+  function getChannels() {
+    return typeof window.getPostIQChannels === 'function' ? (window.getPostIQChannels() || []) : [];
+  }
 
   // ── Persistence ────────────────────────────────
   function loadStarred() {
@@ -70,13 +75,16 @@ window.PostIQLibrary = (() => {
       : async () => null;
     const tokenResult = await getToken();
     if (!tokenResult?.token) {
+      logDiagnostic('missing token');
       renderEmpty('Connect Buffer to load your post library.');
       return;
     }
 
-    // Get org ID from app state
-    const orgId = window.state?.organizationId || null;
+    const orgId = typeof window.getPostIQOrganizationId === 'function'
+      ? window.getPostIQOrganizationId()
+      : null;
     if (!orgId) {
+      logDiagnostic('missing organizationId');
       renderEmpty('Sync Buffer first to load your post library.');
       return;
     }
@@ -91,10 +99,19 @@ window.PostIQLibrary = (() => {
         body: JSON.stringify({ token: tokenResult.token, organizationId: orgId, maxPosts: 150 }),
       });
 
-      const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        logDiagnostic('function HTTP failure', { status: res.status, statusText: res.statusText, body: data });
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+      if (data.errors?.length) {
+        logDiagnostic('Buffer GraphQL errors', data.errors);
+        throw new Error(data.errors[0]?.message || 'Buffer GraphQL error');
+      }
+      if (data.error) throw new Error(data.error);
 
       posts = data.posts || [];
+      if (!posts.length) logDiagnostic('zero posts returned', { organizationId: orgId });
       lastFetchAt = Date.now();
       saveCache();
       render();
@@ -109,13 +126,13 @@ window.PostIQLibrary = (() => {
 
   // ── Filtering / sorting ────────────────────────
   function getChannelLabel(post) {
-    const channels = window.state?.channels || [];
+    const channels = getChannels();
     const ch = channels.find(c => c.id === post.channelId);
     return ch?.displayName || ch?.name || post.channelId || '';
   }
 
   function getChannelService(post) {
-    const channels = window.state?.channels || [];
+    const channels = getChannels();
     const ch = channels.find(c => c.id === post.channelId);
     return ch?.service || '';
   }
@@ -388,8 +405,9 @@ window.PostIQLibrary = (() => {
       refreshBtn.addEventListener('click', () => fetchPosts({ force: true }));
     }
 
-    // Load when view activates
+    // Load when view activates, and retry after a Buffer sync supplies token/org state.
     window.addEventListener('postiq:library-activated', () => fetchPosts());
+    window.addEventListener('postiq:synced', () => fetchPosts({ force: true }));
 
     // Auto-load if cache available
     if (loadCache() && posts.length) render();
