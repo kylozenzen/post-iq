@@ -6,11 +6,14 @@
 
 const BUFFER_GRAPHQL_ENDPOINT = 'https://api.buffer.com';
 const BASIC_POST_FIELDS = 'id text dueAt channelId';
-const METRIC_FIELD_SETS = [
-  { source: 'probe.posts.metrics.full', selection: 'metrics { type name value unit }' },
-  { source: 'probe.posts.metrics.core', selection: 'metrics { type name value unit }' },
-  { source: 'probe.posts.metrics.impressions', selection: 'metrics { type name value unit }' },
-];
+const METRIC_NAME_ALIASES = {
+  reactions: ['reactions', 'reactionCount', 'likes', 'likeCount', 'favorites', 'favoriteCount'],
+  comments: ['comments', 'commentCount', 'replies', 'replyCount'],
+  impressions: ['impressions', 'impressionCount', 'views', 'viewCount'],
+  reach: ['reach', 'reachCount'],
+  engagementRate: ['engagementRate', 'engagement_rate', 'engagementPercentage', 'engagementPercent'],
+};
+const METRIC_OUTPUT_FIELDS = Object.keys(METRIC_NAME_ALIASES);
 const SENT_STATUSES = ['sent', 'published'];
 
 function buildSentPostsQuery(status, extraNodeFields = '') {
@@ -58,6 +61,14 @@ function firstNonNull(...values) {
   return null;
 }
 
+function pickMetricValue(raw, aliases) {
+  if (!raw || typeof raw !== 'object') return null;
+  for (const key of aliases) {
+    if (Object.prototype.hasOwnProperty.call(raw, key)) return raw[key];
+  }
+  return null;
+}
+
 function normalizeEngagementRate(value, engagements, impressions) {
   const direct = Number(value);
   if (Number.isFinite(direct)) return direct > 1 ? direct / 100 : direct;
@@ -70,20 +81,50 @@ function normalizeEngagementRate(value, engagements, impressions) {
 }
 
 function normalizeMetrics(raw) {
-  if (!Array.isArray(raw) || !raw.length) return null;
+  if (!raw || (Array.isArray(raw) && !raw.length)) return null;
 
-  const byType = {};
-  raw.forEach(m => {
-    if (m?.type) byType[m.type.toLowerCase()] = m.value ?? null;
-  });
+  if (Array.isArray(raw)) {
+    const byType = {};
+    raw.forEach(m => {
+      if (m?.type) byType[String(m.type).toLowerCase()] = m.value ?? null;
+      if (m?.name) byType[String(m.name).toLowerCase()] = m.value ?? null;
+    });
+    return {
+      reactions: firstNonNull(byType.reactions, byType.likes, byType.favorites),
+      comments: firstNonNull(byType.comments, byType.replies),
+      impressions: firstNonNull(byType.impressions, byType.views),
+      reach: firstNonNull(byType.reach),
+      engagementRate: normalizeEngagementRate(byType.engagement_rate ?? byType.engagementrate, null, null),
+      raw,
+    };
+  }
 
-  return {
-    reactions: byType['reactions'] ?? byType['likes'] ?? byType['favorites'] ?? null,
-    comments: byType['comments'] ?? byType['replies'] ?? null,
-    impressions: byType['impressions'] ?? null,
-    reach: byType['reach'] ?? null,
-    engagementRate: byType['engagement_rate'] ?? byType['engagementrate'] ?? null,
+  const normalized = {
+    reactions: firstNonNull(pickMetricValue(raw, METRIC_NAME_ALIASES.reactions)),
+    comments: firstNonNull(pickMetricValue(raw, METRIC_NAME_ALIASES.comments)),
+    impressions: firstNonNull(pickMetricValue(raw, METRIC_NAME_ALIASES.impressions)),
+    reach: firstNonNull(pickMetricValue(raw, METRIC_NAME_ALIASES.reach)),
+    engagementRate: normalizeEngagementRate(pickMetricValue(raw, METRIC_NAME_ALIASES.engagementRate), null, null),
+    raw,
   };
+
+  return normalized;
+}
+
+function hasNormalizedMetricValue(metrics) {
+  return !!metrics && METRIC_OUTPUT_FIELDS.some(field => metrics[field] != null);
+}
+
+function isSelectableMetricField(field) {
+  const kind = field?.type?.kind;
+  const ofTypeKind = field?.type?.ofType?.kind;
+  return ['SCALAR', 'ENUM'].includes(kind) || ['SCALAR', 'ENUM'].includes(ofTypeKind);
+}
+
+function buildMetricSelection(postMetricFields) {
+  const safeFields = (postMetricFields || [])
+    .filter(field => /^[_A-Za-z][_0-9A-Za-z]*$/.test(field));
+  return safeFields.length ? `metrics { ${safeFields.join(' ')} }` : '';
 }
 
 function normalizeBufferError(status, text, data) {
@@ -202,8 +243,8 @@ async function fetchPostsForStatus({ token, organizationId, limit, status }) {
   return { posts: all, pages, samplePostShape };
 }
 
-async function fetchMetricsProbe({ token, organizationId, status, metricFieldSet }) {
-  const query = buildSentPostsQuery(status, metricFieldSet.selection);
+async function fetchMetricsProbe({ token, organizationId, status, selection, source }) {
+  const query = buildSentPostsQuery(status, selection);
   const variables = { organizationId, first: 3 };
   const data = await callBuffer(token, query, variables);
   const edges = data?.data?.posts?.edges || [];
@@ -212,7 +253,7 @@ async function fetchMetricsProbe({ token, organizationId, status, metricFieldSet
     .filter(node => node?.id)
     .map(node => normalizePost(node, status));
 
-  return { posts, source: metricFieldSet.source };
+  return { posts, source };
 }
 
 function debugQueryAttempt(source, query, variables) {
@@ -222,10 +263,13 @@ function debugQueryAttempt(source, query, variables) {
 async function probeAnalyticsSafely({ token, organizationId, posts, status, samplePostShape }) {
   const debug = {
     attemptedQueries: [],
+    postTypeFields: [],
+    postMetricFields: [],
     metricsAvailable: false,
     metricsError: null,
     bufferErrorBodies: [],
     samplePostShape: samplePostShape || [],
+    sampleMetricsShape: [],
   };
 
   if (!posts.length) {
@@ -234,47 +278,85 @@ async function probeAnalyticsSafely({ token, organizationId, posts, status, samp
   }
 
   let lastError = null;
-  const introspectionQuery = `
+  const postIntrospectionQuery = `
 query ProbePostAnalyticsFields {
   __type(name: "Post") {
     name
     fields { name type { kind name ofType { kind name } } }
   }
 }`;
+  const postMetricIntrospectionQuery = `
+query ProbePostMetricFields {
+  __type(name: "PostMetric") {
+    name
+    fields {
+      name
+      type {
+        kind
+        name
+        ofType {
+          kind
+          name
+        }
+      }
+    }
+  }
+}`;
 
-  debug.attemptedQueries.push(debugQueryAttempt('probe.introspection.postFields', introspectionQuery, {}));
+  debug.attemptedQueries.push(debugQueryAttempt('probe.introspection.postFields', postIntrospectionQuery, {}));
   try {
-    const data = await callBuffer(token, introspectionQuery, {});
+    const data = await callBuffer(token, postIntrospectionQuery, {});
     const fields = data?.data?.__type?.fields?.map(field => field.name).sort() || [];
-    debug.postTypeFields = fields.filter(field => /analytics|metric|insight|impression|reaction|engagement|reach|click|comment|stat/i.test(field));
+    debug.postTypeFields = fields.filter(field => /analytics|metric|insight|impression|reaction|engagement|reach|click|comment|stat|status/i.test(field));
   } catch (err) {
     lastError = err;
+    debug.metricsError = err.error || err.message || null;
     if (err.bufferErrorBody) debug.bufferErrorBodies.push(err.bufferErrorBody);
   }
 
-  for (const metricFieldSet of METRIC_FIELD_SETS) {
-    const query = buildSentPostsQuery(status, metricFieldSet.selection);
-    const variables = { organizationId, first: 3 };
-    debug.attemptedQueries.push(debugQueryAttempt(metricFieldSet.source, query, variables));
-    try {
-      const result = await fetchMetricsProbe({ token, organizationId, status, metricFieldSet });
-      const metricsById = new Map(result.posts.map(post => [post.id, post.metrics]));
-      const merged = posts.map(post => ({ ...post, metrics: metricsById.get(post.id) || null }));
-      const metricsAvailable = merged.some(post => post.metrics && Object.values(post.metrics).some(value => value != null));
+  let metricSelection = '';
+  debug.attemptedQueries.push(debugQueryAttempt('probe.introspection.postMetricFields', postMetricIntrospectionQuery, {}));
+  try {
+    const data = await callBuffer(token, postMetricIntrospectionQuery, {});
+    const fields = data?.data?.__type?.fields || [];
+    debug.postMetricFields = fields.map(field => field.name).sort();
+    metricSelection = buildMetricSelection(fields.filter(isSelectableMetricField).map(field => field.name).sort());
+  } catch (err) {
+    lastError = err;
+    debug.metricsError = err.error || err.message || null;
+    if (err.bufferErrorBody) debug.bufferErrorBodies.push(err.bufferErrorBody);
+  }
 
-      debug.metricsAvailable = metricsAvailable;
-      debug.metricsError = metricsAvailable ? null : 'Buffer returned the metrics field but no metric values were present.';
-      return { posts: merged, metricsSource: result.source, debug };
-    } catch (err) {
-      lastError = err;
-      if (err.bufferErrorBody) debug.bufferErrorBodies.push(err.bufferErrorBody);
-      console.warn('[buffer-library] Metrics query unavailable', {
-        source: metricFieldSet.source,
-        error: err.error || err.message,
-        code: err.code,
-        status: err.status,
-      });
-    }
+  if (!metricSelection) {
+    debug.metricsAvailable = false;
+    debug.metricsError = debug.metricsError || 'Buffer PostMetric fields could not be introspected, so metrics were not queried.';
+    return { posts: posts.map(post => ({ ...post, metrics: null })), metricsSource: 'unsupported', debug };
+  }
+
+  const source = 'probe.posts.metrics.introspected';
+  const query = buildSentPostsQuery(status, metricSelection);
+  const variables = { organizationId, first: 3 };
+  debug.attemptedQueries.push(debugQueryAttempt(source, query, variables));
+  try {
+    const result = await fetchMetricsProbe({ token, organizationId, status, selection: metricSelection, source });
+    const metricsById = new Map(result.posts.map(post => [post.id, post.metrics]));
+    const merged = posts.map(post => ({ ...post, metrics: metricsById.get(post.id) || null }));
+    const firstRawMetrics = merged.map(post => post.metrics?.raw).find(Boolean);
+    debug.sampleMetricsShape = firstRawMetrics && typeof firstRawMetrics === 'object' ? Object.keys(firstRawMetrics).sort() : [];
+    const metricsAvailable = merged.some(post => hasNormalizedMetricValue(post.metrics) || !!post.metrics?.raw);
+
+    debug.metricsAvailable = metricsAvailable;
+    debug.metricsError = metricsAvailable ? null : 'Buffer returned the metrics field but no metric values were present.';
+    return { posts: merged, metricsSource: result.source, debug };
+  } catch (err) {
+    lastError = err;
+    if (err.bufferErrorBody) debug.bufferErrorBodies.push(err.bufferErrorBody);
+    console.warn('[buffer-library] Metrics query unavailable', {
+      source,
+      error: err.error || err.message,
+      code: err.code,
+      status: err.status,
+    });
   }
 
   debug.metricsAvailable = false;
@@ -325,10 +407,13 @@ exports.handler = async function (event) {
                 metricsSource: 'not_requested',
                 debug: {
                   attemptedQueries: [],
+                  postTypeFields: [],
+                  postMetricFields: [],
                   metricsAvailable: false,
                   metricsError: null,
                   bufferErrorBodies: [],
                   samplePostShape: result.samplePostShape || [],
+                  sampleMetricsShape: [],
                 },
               };
           const body = {
@@ -368,7 +453,7 @@ exports.handler = async function (event) {
           metricsAvailable: false,
           metricsSource: 'none',
           metricsError: null,
-          ...(includeDebug ? { debug: { attemptedQueries: [], metricsAvailable: false, metricsError: 'No sent posts were returned.', bufferErrorBodies: [], samplePostShape: [] } } : {}),
+          ...(includeDebug ? { debug: { attemptedQueries: [], postTypeFields: [], postMetricFields: [], metricsAvailable: false, metricsError: 'No sent posts were returned.', bufferErrorBodies: [], samplePostShape: [], sampleMetricsShape: [] } } : {}),
         }),
       };
     }
