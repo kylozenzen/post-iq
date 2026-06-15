@@ -7,9 +7,9 @@
 const BUFFER_GRAPHQL_ENDPOINT = 'https://api.buffer.com';
 const BASIC_POST_FIELDS = 'id text dueAt channelId';
 const METRIC_FIELD_SETS = [
-  { source: 'probe.posts.metrics.full', selection: 'metrics { reactions comments impressions reach engagementRate engagements likes favorites replies engagement clicks }' },
-  { source: 'probe.posts.metrics.core', selection: 'metrics { reactions comments impressions reach engagementRate }' },
-  { source: 'probe.posts.metrics.impressions', selection: 'metrics { impressions }' },
+  { source: 'probe.posts.metrics.full', selection: 'metrics { type name value unit }' },
+  { source: 'probe.posts.metrics.core', selection: 'metrics { type name value unit }' },
+  { source: 'probe.posts.metrics.impressions', selection: 'metrics { type name value unit }' },
 ];
 const SENT_STATUSES = ['sent', 'published'];
 
@@ -70,21 +70,19 @@ function normalizeEngagementRate(value, engagements, impressions) {
 }
 
 function normalizeMetrics(raw) {
-  if (!raw || typeof raw !== 'object') return null;
+  if (!Array.isArray(raw) || !raw.length) return null;
 
-  const reactions = firstNonNull(raw.reactions, raw.likes, raw.favorites);
-  const comments = firstNonNull(raw.comments, raw.replies);
-  const impressions = firstNonNull(raw.impressions);
-  const reach = firstNonNull(raw.reach);
-  const engagements = firstNonNull(raw.engagements, raw.engagement, raw.clicks, reactions, comments);
-  const engagementRate = normalizeEngagementRate(raw.engagementRate, engagements, impressions);
+  const byType = {};
+  raw.forEach(m => {
+    if (m?.type) byType[m.type.toLowerCase()] = m.value ?? null;
+  });
 
   return {
-    reactions,
-    comments,
-    impressions,
-    reach,
-    engagementRate,
+    reactions: byType['reactions'] ?? byType['likes'] ?? byType['favorites'] ?? null,
+    comments: byType['comments'] ?? byType['replies'] ?? null,
+    impressions: byType['impressions'] ?? null,
+    reach: byType['reach'] ?? null,
+    engagementRate: byType['engagement_rate'] ?? byType['engagementrate'] ?? null,
   };
 }
 
