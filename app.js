@@ -1214,6 +1214,34 @@ async function getActiveBufferToken() {
   return manualToken ? { token: manualToken, source: 'manual' } : null;
 }
 
+function getPostIQOrganizationId() {
+  if (state.organizationId) return state.organizationId;
+  if (cache.orgId.value) return cache.orgId.value;
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return parsed?.orgId?.value || null;
+  } catch {
+    return null;
+  }
+}
+
+function getPostIQChannels() {
+  if (Array.isArray(state.channels) && state.channels.length) return state.channels;
+  if (Array.isArray(cache.channels.value) && cache.channels.value.length) return cache.channels.value;
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed?.channels?.value) ? parsed.channels.value : [];
+  } catch {
+    return [];
+  }
+}
+
+window.getPostIQOrganizationId = getPostIQOrganizationId;
+window.getPostIQChannels = getPostIQChannels;
+window.getActiveBufferToken = getActiveBufferToken;
+
 function clearOAuthConnection() {
   [sessionStorage, localStorage].forEach(store => {
     store.removeItem(OAUTH_ACCESS_TOKEN_KEY);
