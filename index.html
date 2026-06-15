@@ -840,11 +840,12 @@ h1 .line2{display:block;color:var(--ink);}
 .faq-item.open{border-color:var(--brand-glow);}
 .faq-q{
   width:100%;display:flex;align-items:center;justify-content:space-between;
-  gap:12px;padding:14px 16px;background:transparent;border:none;
+  gap:12px;padding:14px 16px;min-height:44px;background:transparent;border:none;
   color:var(--ink);font-family:'Lato',sans-serif;font-size:13px;font-weight:600;
   cursor:pointer;text-align:left;transition:background .12s;line-height:1.4;
 }
 .faq-q:hover{background:var(--surface2);}
+.faq-q:focus-visible{outline:2px solid var(--brand);outline-offset:-2px;border-radius:var(--r2);}
 .faq-icon{font-family:'DM Mono',monospace;font-size:18px;color:var(--brand);flex-shrink:0;transition:transform .2s;}
 .faq-item.open .faq-icon{transform:rotate(45deg);}
 .faq-a{
@@ -852,7 +853,7 @@ h1 .line2{display:block;color:var(--ink);}
   padding:0 16px;font-size:13px;color:var(--muted);line-height:1.7;
 }
 .faq-a a{color:var(--brand);font-weight:600;text-decoration:none;}
-.faq-item.open .faq-a{max-height:220px;padding:0 16px 15px;}
+.faq-item.open .faq-a{max-height:400px;padding:0 16px 15px;}
 
 /* ─── CTA ─────────────────────────────── */
 .cta-section{padding:0 0 72px;position:relative;z-index:1;}
@@ -1644,28 +1645,32 @@ h1 .line2{display:block;color:var(--ink);}
     </div>
     <div class="faq-grid reveal">
       <div class="faq-item open">
-        <button class="faq-q"><span>Do I need a Buffer account?</span><span class="faq-icon">+</span></button>
+        <button class="faq-q" aria-expanded="true"><span>Do I need a Buffer account?</span><span class="faq-icon">+</span></button>
         <div class="faq-a">You'll get the most from PostIQ with Buffer connected — sync channels, see your queue, and publish. You can explore the app before connecting, but Buffer is required to send posts.</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q"><span>What does Buffer's open API mean for me?</span><span class="faq-icon">+</span></button>
-        <div class="faq-a">Buffer recently opened their API to independent developers. That's what makes PostIQ possible — it's the first companion app built on that API, giving Buffer users a purpose-built planning layer that didn't exist before.</div>
+        <button class="faq-q" aria-expanded="false"><span>I already use Buffer's queue. What does PostIQ actually add?</span><span class="faq-icon">+</span></button>
+        <div class="faq-a">PostIQ adds the planning layer that comes before the queue: content pillars to guide what you write, a calendar view to spot gaps, AI-assisted starters to beat blank-page paralysis, a thread splitter for long-form content, and a snapshot and approval flow for teams. Buffer handles scheduling and publishing — PostIQ handles everything that happens before you hit send.</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q"><span>Will PostIQ post to my accounts automatically?</span><span class="faq-icon">+</span></button>
+        <button class="faq-q" aria-expanded="false"><span>Is my Buffer account safe when I connect?</span><span class="faq-icon">+</span></button>
+        <div class="faq-a">PostIQ only reads your channels and queue, and creates content when you explicitly choose a Buffer action — Draft, Queue, or Schedule. It uses Buffer's official OAuth, the same flow you'd use with any trusted Buffer integration. You can revoke access from Buffer's own account settings at any time, independently of PostIQ.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false"><span>Will PostIQ post to my accounts automatically?</span><span class="faq-icon">+</span></button>
         <div class="faq-a">No. Nothing publishes unless you explicitly choose a Buffer action — Draft, Queue, or Schedule. PostIQ never touches your accounts without your direct instruction.</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q"><span>What is the public beta?</span><span class="faq-icon">+</span></button>
+        <button class="faq-q" aria-expanded="false"><span>How long does it take to get started?</span><span class="faq-icon">+</span></button>
+        <div class="faq-a">Under five minutes. Connect your Buffer account via OAuth and PostIQ pulls in your channels automatically. From there you can start composing, queueing, or scheduling straight away — no setup calls, no onboarding forms.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" aria-expanded="false"><span>What is the public beta?</span><span class="faq-icon">+</span></button>
         <div class="faq-a">PostIQ is free during public beta. Some features may evolve as Buffer's API matures. The core workflow — plan, compose, split, snapshot, approve, and publish — is stable and ready to use.</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q"><span>Is PostIQ made by Buffer?</span><span class="faq-icon">+</span></button>
+        <button class="faq-q" aria-expanded="false"><span>Is PostIQ made by Buffer?</span><span class="faq-icon">+</span></button>
         <div class="faq-a">No. PostIQ is independently built by Ben Campbell, a social media strategist. It is not officially affiliated with or endorsed by Buffer unless otherwise stated.</div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q"><span>Can I disconnect Buffer later?</span><span class="faq-icon">+</span></button>
-        <div class="faq-a">Yes, anytime. Open Settings → Connection in PostIQ and click Disconnect. You can also revoke access directly from your Buffer account settings.</div>
       </div>
     </div>
   </div>
@@ -1761,7 +1766,8 @@ document.querySelectorAll('.tool-tab').forEach(function(tab){
 document.querySelectorAll('.faq-q').forEach(function(btn){
   btn.addEventListener('click',function(){
     var item=btn.closest('.faq-item');
-    item.classList.toggle('open');
+    var isOpen=item.classList.toggle('open');
+    btn.setAttribute('aria-expanded',isOpen?'true':'false');
   });
 });
 
