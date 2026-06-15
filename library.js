@@ -121,7 +121,7 @@ window.PostIQLibrary = (() => {
       const res = await fetch('/.netlify/functions/buffer-library', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: tokenResult.token, organizationId: orgId, maxPosts: 150 }),
+        body: JSON.stringify({ token: tokenResult.token, organizationId: orgId, maxPosts: 150, includeDebug: true }),
       });
 
       const data = await res.json().catch(() => ({}));
@@ -140,6 +140,9 @@ window.PostIQLibrary = (() => {
         source: data.metricsSource || 'unknown',
         error: data.metricsError || null,
       };
+      if (data.debug) {
+        console.info('[PostIQ Library] Buffer analytics probe debug', data.debug);
+      }
       if (metricsMeta.available) {
         console.info('[PostIQ Library] Buffer metrics returned', metricsMeta);
       } else if (metricsMeta.error) {
@@ -301,11 +304,7 @@ window.PostIQLibrary = (() => {
   }
 
   function metricsNoticeHtml() {
-    if (metricsMeta.available || !posts.length) return '';
-    return `
-      <div class="lib-metrics-notice" role="note">
-        Performance metrics aren’t available from Buffer for these posts yet. You can still search, star, and repurpose your sent posts.
-      </div>`;
+    return '';
   }
 
   function postCardHtml(post) {
@@ -353,8 +352,8 @@ window.PostIQLibrary = (() => {
     const filtered = filteredPosts();
     if (!filtered.length) {
       const msgs = {
-        top: metricsMeta.available && posts.some(hasMetricValue) ? 'No posts with engagement data yet. Metrics may take time to appear.' : 'No performance metrics available yet.',
-        reuse: metricsMeta.available && posts.some(hasMetricValue) ? `No high-performing posts older than ${REPURPOSE_DAYS} days found.` : 'Metrics unavailable, so reuse suggestions are paused.',
+        top: metricsMeta.available && posts.some(hasMetricValue) ? 'No posts with engagement data yet. Metrics may take time to appear.' : 'No top performers yet.',
+        reuse: metricsMeta.available && posts.some(hasMetricValue) ? `No high-performing posts older than ${REPURPOSE_DAYS} days found.` : 'No reuse suggestions yet.',
         starred: 'No starred posts yet. Star any post to save it here.',
         all: searchQuery ? 'No posts match that search.' : 'No sent posts found.',
       };
@@ -393,7 +392,7 @@ window.PostIQLibrary = (() => {
 
     statsEl.innerHTML = `
       <div class="lib-stat"><span class="lib-stat-num">${total}</span><span class="lib-stat-lbl">sent posts</span></div>
-      <div class="lib-stat"><span class="lib-stat-num">${metricsMeta.available ? withMetrics : '—'}</span><span class="lib-stat-lbl">${metricsMeta.available ? 'with metrics' : 'metrics unavailable'}</span></div>
+      <div class="lib-stat"><span class="lib-stat-num">${metricsMeta.available ? withMetrics : '—'}</span><span class="lib-stat-lbl">${metricsMeta.available ? 'with metrics' : 'analytics'}</span></div>
       ${topEr ? `<div class="lib-stat"><span class="lib-stat-num">${safeText(topEr)}</span><span class="lib-stat-lbl">best eng. rate</span></div>` : ''}
       ${syncAge != null ? `<div class="lib-stat lib-stat-muted"><span class="lib-stat-num">${syncAge}m</span><span class="lib-stat-lbl">ago</span></div>` : ''}
     `;

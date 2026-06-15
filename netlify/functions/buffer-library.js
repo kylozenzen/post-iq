@@ -7,9 +7,9 @@
 const BUFFER_GRAPHQL_ENDPOINT = 'https://api.buffer.com';
 const BASIC_POST_FIELDS = 'id text dueAt channelId';
 const METRIC_FIELD_SETS = [
-  { source: 'posts.metrics.full', selection: 'metrics { reactions comments impressions reach engagementRate engagements }' },
-  { source: 'posts.metrics.core', selection: 'metrics { reactions impressions engagementRate }' },
-  { source: 'posts.metrics.impressions', selection: 'metrics { impressions }' },
+  { source: 'probe.posts.metrics.full', selection: 'metrics { reactions comments impressions reach engagementRate engagements likes favorites replies engagement clicks }' },
+  { source: 'probe.posts.metrics.core', selection: 'metrics { reactions comments impressions reach engagementRate }' },
+  { source: 'probe.posts.metrics.impressions', selection: 'metrics { impressions }' },
 ];
 const SENT_STATUSES = ['sent', 'published'];
 
@@ -148,11 +148,11 @@ async function callBuffer(token, query, variables) {
   if (!res.ok) {
     const formatted = normalizeBufferError(res.status, text, data);
     console.error('[buffer-library] Buffer HTTP error', formatted);
-    const err = Object.assign(new Error(formatted.error), formatted);
+    const err = Object.assign(new Error(formatted.error), formatted, { bufferErrorBody: text });
     throw err;
   }
 
-  if (data?.errors?.length && !data.data) {
+  if (data?.errors?.length) {
     const first = data.errors[0] || {};
     const formatted = {
       error: first.message || 'Buffer GraphQL error',
@@ -163,7 +163,7 @@ async function callBuffer(token, query, variables) {
       retryable: false,
     };
     console.error('[buffer-library] Buffer GraphQL error', formatted);
-    const err = Object.assign(new Error(formatted.error), formatted);
+    const err = Object.assign(new Error(formatted.error), formatted, { bufferErrorBody: text });
     throw err;
   }
 
@@ -172,6 +172,7 @@ async function callBuffer(token, query, variables) {
 
 async function fetchPostsForStatus({ token, organizationId, limit, status }) {
   const all = [];
+  let samplePostShape = [];
   let after = null;
   let hasNext = true;
   let pages = 0;
@@ -187,7 +188,10 @@ async function fetchPostsForStatus({ token, organizationId, limit, status }) {
     const edges = block?.edges || [];
 
     edges.forEach(e => {
-      if (e?.node?.id) all.push(normalizePost(e.node, status));
+      if (e?.node?.id) {
+        if (!samplePostShape.length) samplePostShape = Object.keys(e.node).sort();
+        all.push(normalizePost(e.node, status));
+      }
     });
 
     hasNext = !!block?.pageInfo?.hasNextPage;
@@ -197,61 +201,75 @@ async function fetchPostsForStatus({ token, organizationId, limit, status }) {
     if (!block?.pageInfo) break;
   }
 
-  return { posts: all, pages };
+  return { posts: all, pages, samplePostShape };
 }
 
-
-async function fetchMetricsForStatus({ token, organizationId, limit, status, metricFieldSet }) {
-  const all = [];
-  let after = null;
-  let hasNext = true;
-  let pages = 0;
-  const maxPages = 5;
+async function fetchMetricsProbe({ token, organizationId, status, metricFieldSet }) {
   const query = buildSentPostsQuery(status, metricFieldSet.selection);
+  const variables = { organizationId, first: 3 };
+  const data = await callBuffer(token, query, variables);
+  const edges = data?.data?.posts?.edges || [];
+  const posts = edges
+    .map(e => e?.node)
+    .filter(node => node?.id)
+    .map(node => normalizePost(node, status));
 
-  while (hasNext && all.length < limit && pages < maxPages) {
-    const variables = { organizationId, first: Math.min(50, limit - all.length) };
-    if (after) variables.after = after;
-
-    const data = await callBuffer(token, query, variables);
-    const block = data?.data?.posts;
-    const edges = block?.edges || [];
-
-    edges.forEach(e => {
-      if (e?.node?.id) all.push(normalizePost(e.node, status));
-    });
-
-    hasNext = !!block?.pageInfo?.hasNextPage;
-    after = block?.pageInfo?.endCursor || null;
-    pages++;
-
-    if (!block?.pageInfo) break;
-  }
-
-  return { posts: all, pages, source: metricFieldSet.source };
+  return { posts, source: metricFieldSet.source };
 }
 
-async function attachMetricsSafely({ token, organizationId, posts, status, limit }) {
+function debugQueryAttempt(source, query, variables) {
+  return { source, query, variables };
+}
+
+async function probeAnalyticsSafely({ token, organizationId, posts, status, samplePostShape }) {
+  const debug = {
+    attemptedQueries: [],
+    metricsAvailable: false,
+    metricsError: null,
+    bufferErrorBodies: [],
+    samplePostShape: samplePostShape || [],
+  };
+
   if (!posts.length) {
-    return { posts, metricsAvailable: false, metricsSource: 'none', metricsError: null };
+    debug.metricsError = 'No sent posts were returned, so analytics probes were skipped.';
+    return { posts, metricsSource: 'none', debug };
   }
 
   let lastError = null;
+  const introspectionQuery = `
+query ProbePostAnalyticsFields {
+  __type(name: "Post") {
+    name
+    fields { name type { kind name ofType { kind name } } }
+  }
+}`;
+
+  debug.attemptedQueries.push(debugQueryAttempt('probe.introspection.postFields', introspectionQuery, {}));
+  try {
+    const data = await callBuffer(token, introspectionQuery, {});
+    const fields = data?.data?.__type?.fields?.map(field => field.name).sort() || [];
+    debug.postTypeFields = fields.filter(field => /analytics|metric|insight|impression|reaction|engagement|reach|click|comment|stat/i.test(field));
+  } catch (err) {
+    lastError = err;
+    if (err.bufferErrorBody) debug.bufferErrorBodies.push(err.bufferErrorBody);
+  }
+
   for (const metricFieldSet of METRIC_FIELD_SETS) {
+    const query = buildSentPostsQuery(status, metricFieldSet.selection);
+    const variables = { organizationId, first: 3 };
+    debug.attemptedQueries.push(debugQueryAttempt(metricFieldSet.source, query, variables));
     try {
-      const result = await fetchMetricsForStatus({ token, organizationId, limit, status, metricFieldSet });
+      const result = await fetchMetricsProbe({ token, organizationId, status, metricFieldSet });
       const metricsById = new Map(result.posts.map(post => [post.id, post.metrics]));
       const merged = posts.map(post => ({ ...post, metrics: metricsById.get(post.id) || null }));
       const metricsAvailable = merged.some(post => post.metrics && Object.values(post.metrics).some(value => value != null));
 
-      return {
-        posts: merged,
-        metricsAvailable,
-        metricsSource: result.source,
-        metricsError: metricsAvailable ? null : 'Buffer returned the metrics field but no metric values were present.',
-      };
+      debug.metricsAvailable = metricsAvailable;
+      debug.metricsError = metricsAvailable ? null : 'Buffer returned the metrics field but no metric values were present.';
+      return { posts: merged, metricsSource: result.source, debug };
     } catch (err) {
       lastError = err;
+      if (err.bufferErrorBody) debug.bufferErrorBodies.push(err.bufferErrorBody);
       console.warn('[buffer-library] Metrics query unavailable', {
         source: metricFieldSet.source,
         error: err.error || err.message,
@@ -261,12 +279,10 @@ async function attachMetricsSafely({ token, organizationId, posts, status, limit
     }
   }
 
-  return {
-    posts: posts.map(post => ({ ...post, metrics: null })),
-    metricsAvailable: false,
-    metricsSource: 'unsupported',
-    metricsError: lastError?.error || lastError?.message || 'Buffer metrics are unavailable for this account or API schema.',
-  };
+  debug.metricsAvailable = false;
+  debug.metricsError = lastError?.error || lastError?.message || 'Buffer metrics are unavailable for this account or API schema.';
+
+  return { posts: posts.map(post => ({ ...post, metrics: null })), metricsSource: 'unsupported', debug };
 }
 
 exports.handler = async function (event) {
@@ -284,7 +300,7 @@ exports.handler = async function (event) {
     return { statusCode: 400, headers: corsHeaders(), body: JSON.stringify({ error: 'Invalid request body' }) };
   }
 
-  const { token, organizationId, maxPosts = 100 } = payload;
+  const { token, organizationId, maxPosts = 100, includeDebug = false } = payload;
 
   if (!token) {
     return { statusCode: 401, headers: corsHeaders(), body: JSON.stringify({ error: 'No Buffer token provided', code: 'MISSING_TOKEN' }) };
@@ -304,20 +320,34 @@ exports.handler = async function (event) {
       try {
         const result = await fetchPostsForStatus({ token, organizationId, limit, status });
         if (result.posts.length) {
-          const metricsResult = await attachMetricsSafely({ token, organizationId, posts: result.posts, status, limit });
+          const metricsResult = includeDebug
+            ? await probeAnalyticsSafely({ token, organizationId, posts: result.posts, status, samplePostShape: result.samplePostShape })
+            : {
+                posts: result.posts.map(post => ({ ...post, metrics: null })),
+                metricsSource: 'not_requested',
+                debug: {
+                  attemptedQueries: [],
+                  metricsAvailable: false,
+                  metricsError: null,
+                  bufferErrorBodies: [],
+                  samplePostShape: result.samplePostShape || [],
+                },
+              };
+          const body = {
+            posts: metricsResult.posts,
+            total: metricsResult.posts.length,
+            pages: result.pages,
+            statusUsed: status,
+            attemptedStatuses,
+            metricsAvailable: metricsResult.debug.metricsAvailable,
+            metricsSource: metricsResult.metricsSource,
+            metricsError: metricsResult.debug.metricsError,
+          };
+          if (includeDebug) body.debug = metricsResult.debug;
           return {
             statusCode: 200,
             headers: corsHeaders(),
-            body: JSON.stringify({
-              posts: metricsResult.posts,
-              total: metricsResult.posts.length,
-              pages: result.pages,
-              statusUsed: status,
-              attemptedStatuses,
-              metricsAvailable: metricsResult.metricsAvailable,
-              metricsSource: metricsResult.metricsSource,
-              metricsError: metricsResult.metricsError,
-            }),
+            body: JSON.stringify(body),
           };
         }
         emptyResults.push({ status, pages: result.pages });
@@ -340,6 +370,7 @@ exports.handler = async function (event) {
           metricsAvailable: false,
           metricsSource: 'none',
           metricsError: null,
+          ...(includeDebug ? { debug: { attemptedQueries: [], metricsAvailable: false, metricsError: 'No sent posts were returned.', bufferErrorBodies: [], samplePostShape: [] } } : {}),
         }),
       };
     }
