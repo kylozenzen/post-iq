@@ -20,7 +20,7 @@ window.PostIQLibrary = (() => {
   let sortBy       = 'date';
   let loading      = false;
   let lastFetchAt  = 0;
-  let metricsMeta  = { available: false, source: 'unknown', error: null };
+  let metricsMeta  = { available: false, source: 'unknown', error: null, permissionError: false };
 
   // ── Utilities ──────────────────────────────────
   const qs        = id => document.getElementById(id);
@@ -84,7 +84,7 @@ window.PostIQLibrary = (() => {
       if (!raw || !Array.isArray(raw.posts) || !raw.ts) return false;
       if (Date.now() - raw.ts > CACHE_TTL) return false;
       posts = raw.posts;
-      metricsMeta = raw.metricsMeta || { available: posts.some(hasMetricValue), source: 'cache', error: null };
+      metricsMeta = raw.metricsMeta || { available: posts.some(hasMetricValue), source: 'cache', error: null, permissionError: false };
       lastFetchAt = raw.ts;
       return true;
     } catch { return false; }
@@ -144,6 +144,7 @@ window.PostIQLibrary = (() => {
         available: !!data.metricsAvailable,
         source: data.metricsSource || 'unknown',
         error: data.metricsError || null,
+        permissionError: !!data.metricsPermissionError,
       };
       if (data.debug) {
         console.info('[PostIQ Library] Buffer analytics probe debug', data.debug);
@@ -318,7 +319,11 @@ window.PostIQLibrary = (() => {
   }
 
   function metricsNoticeHtml() {
-    return '';
+    if (!metricsMeta.permissionError) return '';
+    return `
+      <div class="lib-analytics-notice" role="status" style="margin:0 0 14px;padding:12px 14px;border:1px solid rgba(245,158,11,.28);border-radius:14px;background:rgba(245,158,11,.10);color:var(--ink);font-size:13px;line-height:1.5;">
+        ${safeText('Performance metrics need an updated Buffer connection. Reconnect Buffer to enable analytics.')}
+      </div>`;
   }
 
   function postCardHtml(post) {

@@ -10,7 +10,7 @@ assert.ok(start >= 0 && end > start, 'Could not locate Buffer OAuth helpers in a
 const oauthSource = source.slice(start, end);
 
 assert.match(oauthSource, /const BUFFER_AUTHORIZATION_ENDPOINT = 'https:\/\/auth\.buffer\.com\/auth';/);
-assert.match(oauthSource, /const BUFFER_OAUTH_SCOPE = 'posts:write posts:read account:read offline_access';/);
+assert.match(oauthSource, /const BUFFER_OAUTH_SCOPE = 'posts:write posts:read account:read offline_access insights:read';/);
 assert.match(oauthSource, /const BUFFER_OAUTH_DEBUG_KEY = 'postiq_oauth_debug';/);
 assert.match(oauthSource, /\? 'http:\/\/localhost:8888\/auth\/callback\.html'\s*: 'https:\/\/postiq\.netlify\.app\/auth\/callback\.html'/);
 assert.match(oauthSource, /sessionStorage\.setItem\('postiq_oauth_state', oauthState\);/);
@@ -21,7 +21,7 @@ assert.match(oauthSource, /return base64UrlEncode\(await sha256\(verifier\)\);/)
 assert.match(oauthSource, /code_challenge_method: 'S256'/);
 assert.match(oauthSource, /response_type: 'code'/);
 assert.ok(!oauthSource.toLowerCase().includes(['client', 'secret'].join('_')));
-assert.doesNotMatch(oauthSource, /prompt:\s*['"]consent['"]/);
+assert.match(oauthSource, /prompt:\s*['"]consent['"]/);
 
 const paramsBlockMatch = oauthSource.match(/const params = new URLSearchParams\(\{([\s\S]*?)\n  \}\);/);
 assert.ok(paramsBlockMatch, 'Could not locate authorization URLSearchParams block');
@@ -34,9 +34,10 @@ assert.deepEqual(paramNames, [
   'state',
   'code_challenge',
   'code_challenge_method',
+  'prompt',
 ]);
 
-const encoded = new URLSearchParams({ scope: 'posts:write posts:read account:read offline_access' }).toString();
-assert.equal(encoded, 'scope=posts%3Awrite+posts%3Aread+account%3Aread+offline_access');
+const encoded = new URLSearchParams({ scope: 'posts:write posts:read account:read offline_access insights:read' }).toString();
+assert.equal(encoded, 'scope=posts%3Awrite+posts%3Aread+account%3Aread+offline_access+insights%3Aread');
 
 console.log('Buffer OAuth start flow tests passed');
