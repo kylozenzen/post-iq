@@ -20,6 +20,7 @@ window.PostIQLibrary = (() => {
   let sortBy       = 'date';
   let loading      = false;
   let lastFetchAt  = 0;
+  let metricsMeta  = { available: false, source: 'unknown', error: null };
 
   // ── Utilities ──────────────────────────────────
   const qs        = id => document.getElementById(id);
@@ -32,6 +33,16 @@ window.PostIQLibrary = (() => {
 
   function track(cb) { try { if (typeof cb === 'function') cb(); } catch {} }
   function logDiagnostic(message, details) { console.warn(`[PostIQ Library] ${message}`, details || ''); }
+  function hasMetricValue(post) {
+    const metrics = post?.metrics;
+    return !!metrics && Object.values(metrics).some(value => value != null);
+  }
+
+  function hasPositiveMetric(post, key) {
+    const value = Number(post?.metrics?.[key]);
+    return Number.isFinite(value) && value > 0;
+  }
+
   function formatLibraryError(data, res) {
     const first = data?.errors?.[0] || null;
     const detail = data?.details || first?.details || null;
@@ -68,13 +79,14 @@ window.PostIQLibrary = (() => {
       if (!raw || !Array.isArray(raw.posts) || !raw.ts) return false;
       if (Date.now() - raw.ts > CACHE_TTL) return false;
       posts = raw.posts;
+      metricsMeta = raw.metricsMeta || { available: posts.some(hasMetricValue), source: 'cache', error: null };
       lastFetchAt = raw.ts;
       return true;
     } catch { return false; }
   }
 
   function saveCache() {
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ posts, ts: Date.now() })); } catch {}
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ posts, metricsMeta, ts: Date.now() })); } catch {}
   }
 
   // ── Data fetching ──────────────────────────────
@@ -123,6 +135,18 @@ window.PostIQLibrary = (() => {
       }
       if (data.error) throw new Error(formatLibraryError(data, res));
       if (data.message) logDiagnostic(data.message, { statusUsed: data.statusUsed, attemptedStatuses: data.attemptedStatuses });
+      metricsMeta = {
+        available: !!data.metricsAvailable,
+        source: data.metricsSource || 'unknown',
+        error: data.metricsError || null,
+      };
+      if (metricsMeta.available) {
+        console.info('[PostIQ Library] Buffer metrics returned', metricsMeta);
+      } else if (metricsMeta.error) {
+        console.info('[PostIQ Library] Buffer metrics unavailable; rendering posts without analytics', metricsMeta);
+      } else {
+        console.info('[PostIQ Library] No Buffer metrics returned for this library response', metricsMeta);
+      }
 
       posts = (data.posts || []).sort((a, b) => new Date(b.sentAt || b.dueAt || 0) - new Date(a.sentAt || a.dueAt || 0));
       if (!posts.length) logDiagnostic('zero posts returned', { organizationId: orgId });
@@ -152,7 +176,7 @@ window.PostIQLibrary = (() => {
   }
 
   function topPerformers() {
-    return posts.filter(p => p.metrics?.engagementRate > 0).sort((a, b) => (b.metrics?.engagementRate || 0) - (a.metrics?.engagementRate || 0));
+    return posts.filter(p => hasPositiveMetric(p, 'engagementRate')).sort((a, b) => (b.metrics?.engagementRate || 0) - (a.metrics?.engagementRate || 0));
   }
 
   function readyToRepurpose() {
@@ -262,9 +286,13 @@ window.PostIQLibrary = (() => {
     const er = pct(metrics.engagementRate);
     const rc = fmtNum(metrics.reactions);
     const im = fmtNum(metrics.impressions);
+    const cm = fmtNum(metrics.comments);
+    const rh = fmtNum(metrics.reach);
     if (er)  parts.push(`<span class="lib-metric-badge lib-metric-er">${safeText(er)} eng</span>`);
     if (rc)  parts.push(`<span class="lib-metric-badge lib-metric-rc">♥ ${safeText(rc)}</span>`);
     if (im)  parts.push(`<span class="lib-metric-badge lib-metric-im">👁 ${safeText(im)}</span>`);
+    if (cm)  parts.push(`<span class="lib-metric-badge">💬 ${safeText(cm)}</span>`);
+    if (rh)  parts.push(`<span class="lib-metric-badge">reach ${safeText(rh)}</span>`);
     return parts.slice(0, 3).join('');
   }
 
@@ -273,8 +301,8 @@ window.PostIQLibrary = (() => {
     const channelLabel = getChannelLabel(post);
     const service = getChannelService(post);
     const age = daysAgo(post.sentAt);
-    const hasMetrics = post.metrics && (post.metrics.engagementRate > 0 || post.metrics.reactions > 0 || post.metrics.impressions > 0);
-    const isTopPerformer = (post.metrics?.engagementRate || 0) > 0.02; // >2% engagement
+    const hasMetrics = hasMetricValue(post);
+    const isTopPerformer = hasPositiveMetric(post, 'engagementRate') && (post.metrics?.engagementRate || 0) > 0.02; // >2% engagement
     const isOld = age >= REPURPOSE_DAYS;
     const safeId = safeText(post.id);
 
@@ -295,7 +323,7 @@ window.PostIQLibrary = (() => {
 
         <div class="lib-post-text">${safeText(compact(post.text, 280))}</div>
 
-        ${hasMetrics ? `<div class="lib-metrics-row">${metricBadgeHtml(post.metrics)}</div>` : ''}
+        ${hasMetrics ? `<div class="lib-metrics-row">${metricBadgeHtml(post.metrics)}</div>` : '<div class="lib-metrics-row"><span class="lib-metric-badge">metrics unavailable</span></div>'}
 
         <div class="lib-post-actions">
           <button class="btn sm primary" data-action="repurpose" data-post-id="${safeId}">→ Repurpose</button>
@@ -313,8 +341,8 @@ window.PostIQLibrary = (() => {
     const filtered = filteredPosts();
     if (!filtered.length) {
       const msgs = {
-        top: 'No posts with engagement data yet. Metrics may take time to appear.',
-        reuse: `No high-performing posts older than ${REPURPOSE_DAYS} days found.`,
+        top: metricsMeta.available ? 'No posts with engagement data yet. Metrics may take time to appear.' : 'Metrics unavailable — top performers need Buffer analytics.',
+        reuse: metricsMeta.available ? `No high-performing posts older than ${REPURPOSE_DAYS} days found.` : 'Metrics unavailable — ready-to-reuse suggestions need Buffer analytics.',
         starred: 'No starred posts yet. Star any post to save it here.',
         all: searchQuery ? 'No posts match that search.' : 'No sent posts found.',
       };
@@ -346,14 +374,14 @@ window.PostIQLibrary = (() => {
     if (!statsEl) return;
 
     const total = posts.length;
-    const withMetrics = posts.filter(p => p.metrics?.engagementRate > 0).length;
+    const withMetrics = posts.filter(hasMetricValue).length;
     const top = topPerformers().slice(0, 1)[0];
     const topEr = top ? pct(top.metrics?.engagementRate) : null;
     const syncAge = lastFetchAt ? Math.floor((Date.now() - lastFetchAt) / 60000) : null;
 
     statsEl.innerHTML = `
       <div class="lib-stat"><span class="lib-stat-num">${total}</span><span class="lib-stat-lbl">sent posts</span></div>
-      <div class="lib-stat"><span class="lib-stat-num">${withMetrics}</span><span class="lib-stat-lbl">with metrics</span></div>
+      <div class="lib-stat"><span class="lib-stat-num">${metricsMeta.available ? withMetrics : '—'}</span><span class="lib-stat-lbl">${metricsMeta.available ? 'with metrics' : 'metrics unavailable'}</span></div>
       ${topEr ? `<div class="lib-stat"><span class="lib-stat-num">${safeText(topEr)}</span><span class="lib-stat-lbl">best eng. rate</span></div>` : ''}
       ${syncAge != null ? `<div class="lib-stat lib-stat-muted"><span class="lib-stat-num">${syncAge}m</span><span class="lib-stat-lbl">ago</span></div>` : ''}
     `;

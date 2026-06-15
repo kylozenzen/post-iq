@@ -6,9 +6,14 @@
 
 const BUFFER_GRAPHQL_ENDPOINT = 'https://api.buffer.com';
 const BASIC_POST_FIELDS = 'id text dueAt channelId';
+const METRIC_FIELD_SETS = [
+  { source: 'posts.metrics.full', selection: 'metrics { reactions comments impressions reach engagementRate engagements }' },
+  { source: 'posts.metrics.core', selection: 'metrics { reactions impressions engagementRate }' },
+  { source: 'posts.metrics.impressions', selection: 'metrics { impressions }' },
+];
 const SENT_STATUSES = ['sent', 'published'];
 
-function buildSentPostsQuery(status) {
+function buildSentPostsQuery(status, extraNodeFields = '') {
   return `
 query GetLibraryPosts($organizationId: OrganizationId!, $first: Int!, $after: String) {
   posts(
@@ -20,7 +25,7 @@ query GetLibraryPosts($organizationId: OrganizationId!, $first: Int!, $after: St
     }
   ) {
     edges {
-      node { ${BASIC_POST_FIELDS} }
+      node { ${BASIC_POST_FIELDS}${extraNodeFields ? ` ${extraNodeFields}` : ''} }
     }
     pageInfo {
       hasNextPage
@@ -43,6 +48,44 @@ function toIntOrNull(value) {
   if (value == null) return null;
   const num = Number(value);
   return Number.isFinite(num) ? num : null;
+}
+
+function firstNonNull(...values) {
+  for (const value of values) {
+    const num = toIntOrNull(value);
+    if (num != null) return num;
+  }
+  return null;
+}
+
+function normalizeEngagementRate(value, engagements, impressions) {
+  const direct = Number(value);
+  if (Number.isFinite(direct)) return direct > 1 ? direct / 100 : direct;
+
+  const engagementCount = toIntOrNull(engagements);
+  const impressionCount = toIntOrNull(impressions);
+  if (engagementCount != null && impressionCount > 0) return engagementCount / impressionCount;
+
+  return null;
+}
+
+function normalizeMetrics(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+
+  const reactions = firstNonNull(raw.reactions, raw.likes, raw.favorites);
+  const comments = firstNonNull(raw.comments, raw.replies);
+  const impressions = firstNonNull(raw.impressions);
+  const reach = firstNonNull(raw.reach);
+  const engagements = firstNonNull(raw.engagements, raw.engagement, raw.clicks, reactions, comments);
+  const engagementRate = normalizeEngagementRate(raw.engagementRate, engagements, impressions);
+
+  return {
+    reactions,
+    comments,
+    impressions,
+    reach,
+    engagementRate,
+  };
 }
 
 function normalizeBufferError(status, text, data) {
@@ -76,8 +119,10 @@ function isInvalidSentPostQuery(data, status) {
 }
 
 function normalizePost(node, status) {
+  const { metrics, ...post } = node || {};
   return {
-    ...node,
+    ...post,
+    metrics: normalizeMetrics(metrics),
     status,
     // The library UI historically uses sentAt. Buffer's known-good scheduled
     // query exposes dueAt, so map dueAt as the best available date without
@@ -155,6 +200,75 @@ async function fetchPostsForStatus({ token, organizationId, limit, status }) {
   return { posts: all, pages };
 }
 
+
+async function fetchMetricsForStatus({ token, organizationId, limit, status, metricFieldSet }) {
+  const all = [];
+  let after = null;
+  let hasNext = true;
+  let pages = 0;
+  const maxPages = 5;
+  const query = buildSentPostsQuery(status, metricFieldSet.selection);
+
+  while (hasNext && all.length < limit && pages < maxPages) {
+    const variables = { organizationId, first: Math.min(50, limit - all.length) };
+    if (after) variables.after = after;
+
+    const data = await callBuffer(token, query, variables);
+    const block = data?.data?.posts;
+    const edges = block?.edges || [];
+
+    edges.forEach(e => {
+      if (e?.node?.id) all.push(normalizePost(e.node, status));
+    });
+
+    hasNext = !!block?.pageInfo?.hasNextPage;
+    after = block?.pageInfo?.endCursor || null;
+    pages++;
+
+    if (!block?.pageInfo) break;
+  }
+
+  return { posts: all, pages, source: metricFieldSet.source };
+}
+
+async function attachMetricsSafely({ token, organizationId, posts, status, limit }) {
+  if (!posts.length) {
+    return { posts, metricsAvailable: false, metricsSource: 'none', metricsError: null };
+  }
+
+  let lastError = null;
+  for (const metricFieldSet of METRIC_FIELD_SETS) {
+    try {
+      const result = await fetchMetricsForStatus({ token, organizationId, limit, status, metricFieldSet });
+      const metricsById = new Map(result.posts.map(post => [post.id, post.metrics]));
+      const merged = posts.map(post => ({ ...post, metrics: metricsById.get(post.id) || null }));
+      const metricsAvailable = merged.some(post => post.metrics && Object.values(post.metrics).some(value => value != null));
+
+      return {
+        posts: merged,
+        metricsAvailable,
+        metricsSource: result.source,
+        metricsError: metricsAvailable ? null : 'Buffer returned the metrics field but no metric values were present.',
+      };
+    } catch (err) {
+      lastError = err;
+      console.warn('[buffer-library] Metrics query unavailable', {
+        source: metricFieldSet.source,
+        error: err.error || err.message,
+        code: err.code,
+        status: err.status,
+      });
+    }
+  }
+
+  return {
+    posts: posts.map(post => ({ ...post, metrics: null })),
+    metricsAvailable: false,
+    metricsSource: 'unsupported',
+    metricsError: lastError?.error || lastError?.message || 'Buffer metrics are unavailable for this account or API schema.',
+  };
+}
+
 exports.handler = async function (event) {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders(), body: '' };
@@ -190,15 +304,19 @@ exports.handler = async function (event) {
       try {
         const result = await fetchPostsForStatus({ token, organizationId, limit, status });
         if (result.posts.length) {
+          const metricsResult = await attachMetricsSafely({ token, organizationId, posts: result.posts, status, limit });
           return {
             statusCode: 200,
             headers: corsHeaders(),
             body: JSON.stringify({
-              posts: result.posts,
-              total: result.posts.length,
+              posts: metricsResult.posts,
+              total: metricsResult.posts.length,
               pages: result.pages,
               statusUsed: status,
               attemptedStatuses,
+              metricsAvailable: metricsResult.metricsAvailable,
+              metricsSource: metricsResult.metricsSource,
+              metricsError: metricsResult.metricsError,
             }),
           };
         }
@@ -219,6 +337,9 @@ exports.handler = async function (event) {
           pages: emptyResults.reduce((sum, result) => sum + (result.pages || 0), 0),
           attemptedStatuses,
           message: 'Buffer API did not return sent posts with the current query. Check supported post status/filter fields.',
+          metricsAvailable: false,
+          metricsSource: 'none',
+          metricsError: null,
         }),
       };
     }
