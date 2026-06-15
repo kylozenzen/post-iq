@@ -446,7 +446,8 @@ const maskToken = t => !t ? '—' : t.length <= 8 ? '••••' : `${t.slice(
 
 // ── BUFFER OAUTH (PUBLIC CLIENT + PKCE) ─────────────
 const BUFFER_AUTHORIZATION_ENDPOINT = 'https://auth.buffer.com/auth';
-const BUFFER_OAUTH_SCOPE = 'posts:write posts:read account:read offline_access';
+// Users who connected before insights:read was added must disconnect and reconnect Buffer for metrics access.
+const BUFFER_OAUTH_SCOPE = 'posts:write posts:read account:read offline_access insights:read';
 const BUFFER_OAUTH_DEBUG_KEY = 'postiq_oauth_debug';
 
 function generateRandomString(length) {
