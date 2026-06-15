@@ -1,4 +1,4 @@
-const CACHE = 'postiq-v3-ai-settings';
+const CACHE = 'postiq-v4-library';
 const SHELL = [
   '/',
   '/index.html',
@@ -12,6 +12,8 @@ self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));
   self.skipWaiting();
 });
+
+
 
 self.addEventListener('activate', event => {
   event.waitUntil(
