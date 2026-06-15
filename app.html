@@ -74,6 +74,10 @@
   <button class="mob-tab" data-view="approvalsView" data-workspace-nav="approvals">
     <svg><use href="#i-check"/></svg>Approvals
   </button>
+  <button class="mob-tab" data-view="libraryView">
+    <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    Library
+  </button>
   <button class="mob-tab" id="mobMoreBtn">
     <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
     More
@@ -160,6 +164,18 @@
       <button class="nav-btn" id="openSettings" type="button" data-tooltip="Settings">
         <span class="nav-icon" style="opacity:.5;"><svg><use href="#i-settings"/></svg></span>
         <span class="nav-text">Settings</span>
+      </button>
+    </div>
+    <!-- Library — bottom-pinned reference tool -->
+    <div class="side-library">
+      <button class="nav-btn" data-view="libraryView" data-tooltip="Library" data-workspace-nav="library">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+        </span>
+        <span class="nav-text">Library</span>
       </button>
     </div>
   </aside>
@@ -640,6 +656,55 @@
       </div>
     </section>
 
+    <!-- ══════════ LIBRARY (Post Library) ══════════ -->
+    <section id="libraryView" class="view">
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">📚 Library</span>
+        <div class="mob-view-actions">
+          <button class="btn sm ghost" id="libraryRefreshBtnMob">↻</button>
+        </div>
+      </div>
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Post Library</h1>
+          <p class="page-desc">Your sent posts with performance data. Find what worked, repurpose top performers, or re-schedule content that did well.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn ghost" id="libraryRefreshBtn">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="lib-content">
+        <div class="lib-stats-strip" id="libraryStats">
+          <div class="lib-stat">
+            <span class="lib-stat-num">—</span>
+            <span class="lib-stat-lbl">sent posts</span>
+          </div>
+        </div>
+        <div class="lib-toolbar">
+          <input id="librarySearch" class="input lib-search" type="search" placeholder="Search posts…" autocomplete="off" />
+          <select id="librarySort" class="input lib-sort">
+            <option value="date">Sort: most recent</option>
+            <option value="engagement">Sort: engagement rate</option>
+            <option value="reactions">Sort: reactions</option>
+            <option value="impressions">Sort: impressions</option>
+          </select>
+        </div>
+        <div class="lib-tabs" role="tablist" aria-label="Library filters">
+          <button class="lib-tab active" data-lib-tab="all" type="button">All posts <span class="lib-tab-count" id="libTabCount-all"></span></button>
+          <button class="lib-tab" data-lib-tab="top" type="button">⭐ Top performers <span class="lib-tab-count" id="libTabCount-top"></span></button>
+          <button class="lib-tab" data-lib-tab="reuse" type="button">↺ Ready to reuse <span class="lib-tab-count" id="libTabCount-reuse"></span></button>
+          <button class="lib-tab" data-lib-tab="starred" type="button">★ Starred <span class="lib-tab-count" id="libTabCount-starred"></span></button>
+        </div>
+        <div id="libraryPostList" class="lib-post-list">
+          <div class="empty-state" style="margin-top:24px;">
+            <div class="empty-icon">📚</div>
+            <div class="empty-title">Your sent posts will appear here</div>
+            <div class="empty-desc">Connect Buffer and activate this view to load your post history with performance data.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ══════════ IDEAS LIBRARY ══════════ -->
     <section id="ideasView" class="view">
       <div class="mob-view-hdr">
@@ -1091,6 +1156,7 @@
   <script src="./ai-assist.js" defer></script>
   <script src="./app.js" defer></script>
 <script src="./discord-integration.js" defer></script>
+<script src="./library.js" defer></script>
 <script src="./onboarding.js" defer></script>
 
 
