@@ -32,6 +32,19 @@ window.PostIQLibrary = (() => {
 
   function track(cb) { try { if (typeof cb === 'function') cb(); } catch {} }
   function logDiagnostic(message, details) { console.warn(`[PostIQ Library] ${message}`, details || ''); }
+  function formatLibraryError(data, res) {
+    const first = data?.errors?.[0] || null;
+    const detail = data?.details || first?.details || null;
+    const detailText = typeof detail === 'string'
+      ? detail
+      : detail
+        ? JSON.stringify(detail)
+        : '';
+    const message = data?.error || first?.message || `HTTP ${res.status}`;
+    return detailText && !String(message).includes(detailText)
+      ? `${message} — ${detailText.slice(0, 600)}`
+      : message;
+  }
 
   function getChannels() {
     return typeof window.getPostIQChannels === 'function' ? (window.getPostIQChannels() || []) : [];
@@ -102,15 +115,16 @@ window.PostIQLibrary = (() => {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         logDiagnostic('function HTTP failure', { status: res.status, statusText: res.statusText, body: data });
-        throw new Error(data.error || `HTTP ${res.status}`);
+        throw new Error(formatLibraryError(data, res));
       }
       if (data.errors?.length) {
         logDiagnostic('Buffer GraphQL errors', data.errors);
-        throw new Error(data.errors[0]?.message || 'Buffer GraphQL error');
+        throw new Error(formatLibraryError(data, res) || 'Buffer GraphQL error');
       }
-      if (data.error) throw new Error(data.error);
+      if (data.error) throw new Error(formatLibraryError(data, res));
+      if (data.message) logDiagnostic(data.message, { statusUsed: data.statusUsed, attemptedStatuses: data.attemptedStatuses });
 
-      posts = data.posts || [];
+      posts = (data.posts || []).sort((a, b) => new Date(b.sentAt || b.dueAt || 0) - new Date(a.sentAt || a.dueAt || 0));
       if (!posts.length) logDiagnostic('zero posts returned', { organizationId: orgId });
       lastFetchAt = Date.now();
       saveCache();
