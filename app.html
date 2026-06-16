@@ -130,16 +130,14 @@
 
     <!-- Nav -->
     <nav class="side-nav">
-      <div class="nav-section-label">Workflow</div>
+      <div class="nav-section-label">Workspace</div>
       <button class="nav-btn active" data-view="homeView" data-home-feature="true" data-tooltip="Home">
         <span class="nav-icon">🏠</span>
         <span class="nav-text">Home</span>
-
       </button>
       <button class="nav-btn" data-view="calendarView" data-workspace-nav="planning" data-tooltip="Planning">
         <span class="nav-icon"><svg><use href="#i-cal"/></svg></span>
         <span class="nav-text">Planning</span>
-        <span class="nav-tag needs" id="calNavTag">Sign in</span>
       </button>
       <button class="nav-btn" data-view="composerView" data-workspace-nav="create" data-tooltip="Create">
         <span class="nav-icon"><svg><use href="#i-compose"/></svg></span>
@@ -154,24 +152,7 @@
         <span class="nav-text">Approvals</span>
         <span class="nav-tag workspace-soon-tag">Soon</span>
       </button>
-    </nav>
-
-    <div class="side-bottom">
-      <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener" data-tooltip="Open Buffer">
-        <span class="nav-icon" style="opacity:.5;"><svg><use href="#i-buffer"/></svg></span>
-        <span class="nav-text">Open Buffer</span>
-      </a>
-      <a class="nav-btn" href="/help/" data-tooltip="Help Center">
-        <span class="nav-icon" style="opacity:.5;">❓</span>
-        <span class="nav-text">Help Center</span>
-      </a>
-      <button class="nav-btn" id="openSettings" type="button" data-tooltip="Settings">
-        <span class="nav-icon" style="opacity:.5;"><svg><use href="#i-settings"/></svg></span>
-        <span class="nav-text">Settings</span>
-      </button>
-    </div>
-    <!-- Anchored tools -->
-    <div class="side-library" aria-label="Anchored tools">
+      <div class="nav-section-label">Tools</div>
       <button class="nav-btn" data-view="libraryView" data-tooltip="Library">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -185,6 +166,21 @@
         <span class="nav-icon">〰️</span>
         <span class="nav-text">Pulse</span>
       </button>
+    </nav>
+
+    <div class="side-bottom">
+      <a class="nav-btn" href="https://publish.buffer.com/" target="_blank" rel="noopener" data-tooltip="Open Buffer">
+        <span class="nav-icon" style="opacity:.5;"><svg><use href="#i-buffer"/></svg></span>
+        <span class="nav-text">Open Buffer</span>
+      </a>
+      <button class="nav-btn" id="openSettings" type="button" data-tooltip="Settings">
+        <span class="nav-icon" style="opacity:.5;"><svg><use href="#i-settings"/></svg></span>
+        <span class="nav-text">Settings</span>
+      </button>
+      <a class="nav-btn" href="/help/" data-tooltip="Help Center">
+        <span class="nav-icon" style="opacity:.5;">❓</span>
+        <span class="nav-text">Help Center</span>
+      </a>
     </div>
   </aside>
 
@@ -1137,9 +1133,9 @@
 
   <!-- Quick links -->
   <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">↗ Open Buffer</a>
-  <a class="btn ghost" href="/help/" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">❓ Help Center</a>
   <button class="btn ghost" data-view="ideasView" data-workspace-nav="ideas" id="mobDrawerIdeasBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">💡 Ideas</button>
-  <button class="btn ghost" id="mobOpenSettings" type="button" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">⚙ Settings</button>
+  <button class="btn ghost" id="mobOpenSettings" type="button" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">⚙ Settings</button>
+  <a class="btn ghost" href="/help/" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">❓ Help Center</a>
 </div>
 
 
