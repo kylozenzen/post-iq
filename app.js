@@ -180,7 +180,11 @@ function getWorkspaceForView(viewId) {
 
 function renderWorkspacePreferences() {
   document.querySelectorAll('[data-workspace-nav]').forEach(el => {
-    el.hidden = !workspacePreferences[el.dataset.workspaceNav];
+    const feature = el.dataset.feature;
+    const featureEnabled = !feature || isFeatureEnabled(feature);
+    const visible = !!workspacePreferences[el.dataset.workspaceNav] && featureEnabled;
+    el.hidden = !visible;
+    el.style.display = visible ? '' : 'none';
   });
   document.querySelectorAll('[data-workspace-toggle]').forEach(input => {
     const workspace = input.dataset.workspaceToggle;
@@ -345,19 +349,27 @@ function setFeatureControlPaused(el, featureName, paused) {
 }
 
 function applyInternalFeatureFlags() {
-  // Internal beta feature flags hide entire modules/views. These are not user-facing settings.
+  // Internal beta feature flags hide every marked module entry point (nav + views).
+  // These are not user-facing paused controls, so disabled items should disappear entirely.
   document.querySelectorAll('[data-feature]').forEach(el => {
     const feature = el.dataset.feature;
     const enabled = isFeatureEnabled(feature);
     el.hidden = !enabled;
+    el.style.display = enabled ? '' : 'none';
     el.setAttribute('aria-hidden', enabled ? 'false' : 'true');
     if (!enabled) {
-      el.classList.remove('active');
+      el.classList.remove('active', 'feature-paused');
+      el.removeAttribute('aria-disabled');
       if ('disabled' in el) el.disabled = true;
     } else if ('disabled' in el) {
       el.disabled = false;
     }
   });
+
+  const activeFeature = getFeatureForView(currentViewId);
+  if (activeFeature && !isFeatureEnabled(activeFeature)) {
+    activateView(getSafeFeatureFallbackView(), 'feature_flag');
+  }
 }
 
 function getFeatureForView(viewId) {
