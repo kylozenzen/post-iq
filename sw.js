@@ -5,7 +5,7 @@ const SHELL = [
   '/app.html',
   '/app.css',
   '/app.js',
-  '/ai-assist.js'
+  '/js/ai-assist.js'
 ];
 
 self.addEventListener('install', event => {
