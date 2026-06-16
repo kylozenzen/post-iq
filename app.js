@@ -18,6 +18,23 @@ const APPROVAL_PREFIX = 'postiq_approval_';
 const WORKSPACE_PREFERENCES_KEY = 'postiq.workspacePreferences';
 const WORKSPACE_DEFAULTS = Object.freeze({ planning: true, create: true, ideas: true, approvals: true });
 const WORKSPACE_VIEWS = Object.freeze({ planning: 'calendarView', create: 'composerView', ideas: 'ideasView', approvals: 'approvalsView' });
+// Internal beta feature flags for safely rolling modules on/off. These are not user-facing settings.
+const FEATURE_FLAGS = {
+  planning: true,
+  create: true,
+  ideas: true,
+  approvals: false,
+  library: true,
+  pulse: true
+};
+const FEATURE_VIEWS = Object.freeze({
+  planning: 'calendarView',
+  create: 'composerView',
+  ideas: 'ideasView',
+  approvals: 'approvalsView',
+  library: 'libraryView',
+  pulse: 'pulseView'
+});
 
 const IMGUR_KEY    = '546c25a59c58ad7';
 const UNSPLASH_KEY = 'tBuaYCO5p-pJPjgF29hR2yJGtlQaG4d5HqdVivV0lbQ';
@@ -289,6 +306,11 @@ function mergePostiqConfig(base, override) {
   };
 }
 
+function isFeatureEnabled(featureName) {
+  return FEATURE_FLAGS[featureName] === true;
+}
+window.isPostIQFeatureEnabled = isFeatureEnabled;
+
 function getFeatureFlag(name) {
   if (!name) return true;
   return postiqConfig?.features?.[name] !== false;
@@ -322,7 +344,34 @@ function setFeatureControlPaused(el, featureName, paused) {
   }
 }
 
+function applyInternalFeatureFlags() {
+  // Internal beta feature flags hide entire modules/views. These are not user-facing settings.
+  document.querySelectorAll('[data-feature]').forEach(el => {
+    const feature = el.dataset.feature;
+    const enabled = isFeatureEnabled(feature);
+    el.hidden = !enabled;
+    el.setAttribute('aria-hidden', enabled ? 'false' : 'true');
+    if (!enabled) {
+      el.classList.remove('active');
+      if ('disabled' in el) el.disabled = true;
+    } else if ('disabled' in el) {
+      el.disabled = false;
+    }
+  });
+}
+
+function getFeatureForView(viewId) {
+  return Object.keys(FEATURE_VIEWS).find(feature => FEATURE_VIEWS[feature] === viewId) || null;
+}
+
+function getSafeFeatureFallbackView() {
+  if (isFeatureEnabled('planning')) return 'calendarView';
+  if (isFeatureEnabled('create')) return 'composerView';
+  return 'composerView';
+}
+
 function applyFeatureFlags() {
+  applyInternalFeatureFlags();
   const flagControls = {
     snapshots: ['shareMonthBtn', 'shareMonthBtnMob', 'generateShare', 'copyShare'],
     uploads: ['uploadBrowseBtn', 'uploadReplaceBtn'],
@@ -3331,6 +3380,10 @@ window.submitReview = async function (uuid, action) {
 // ── VIEW NAVIGATION ──────────────────────────────────
 function activateView(viewId, source = 'navigation') {
   if (viewId === 'homeView' && !FEATURE_HOME_DASHBOARD) viewId = 'composerView';
+  const requestedFeature = getFeatureForView(viewId);
+  if (requestedFeature && !isFeatureEnabled(requestedFeature)) {
+    viewId = getSafeFeatureFallbackView();
+  }
   const requestedWorkspace = getWorkspaceForView(viewId);
   if (requestedWorkspace && !workspacePreferences[requestedWorkspace]) {
     viewId = WORKSPACE_VIEWS[getFirstEnabledWorkspace(workspacePreferences)];
@@ -3342,8 +3395,8 @@ function activateView(viewId, source = 'navigation') {
     if (viewId === 'ideasView') GA4_Ideas.ideasOpened();
     if (viewId === 'approvalsView') GA4_Approvals.approvalsOpened();
   });
-  if (viewId === 'libraryView' && window.PostIQLibrary) window.PostIQLibrary.activate();
-  if (viewId === 'pulseView' && window.PostIQPulse) window.PostIQPulse.activate();
+  if (viewId === 'libraryView' && isFeatureEnabled('library') && window.PostIQLibrary) window.PostIQLibrary.activate();
+  if (viewId === 'pulseView' && isFeatureEnabled('pulse') && window.PostIQPulse) window.PostIQPulse.activate();
   document.body.dataset.gaReady = '1';
   currentViewId = viewId;
   document.querySelectorAll('[data-view]').forEach(x => x.classList.toggle('active', x.dataset.view === viewId));
@@ -3627,6 +3680,7 @@ function init() {
   renderNoteTypesSettings();
   workspacePreferences = getWorkspacePreferences();
   renderWorkspacePreferences();
+  applyInternalFeatureFlags();
   activateView(WORKSPACE_VIEWS[getFirstEnabledWorkspace(workspacePreferences)]);
 
   document.querySelectorAll('[data-workspace-toggle]').forEach(input => {
@@ -3685,13 +3739,13 @@ function init() {
   }
 
   try {
-    if (window.PostIQLibrary?.init) window.PostIQLibrary.init();
+    if (isFeatureEnabled('library') && window.PostIQLibrary?.init) window.PostIQLibrary.init();
   } catch (e) {
     console.error('[PostIQ] PostIQLibrary.init() failed:', e);
   }
 
   try {
-    if (window.PostIQPulse?.init) window.PostIQPulse.init();
+    if (isFeatureEnabled('pulse') && window.PostIQPulse?.init) window.PostIQPulse.init();
   } catch (e) {
     console.error('[PostIQ] PostIQPulse.init() failed:', e);
   }

@@ -127,8 +127,12 @@ window.PostIQPulse = (() => {
     fetchPulse();
   }
 
+  function isEnabled() {
+    return window.isPostIQFeatureEnabled?.('pulse') === true;
+  }
+
   function init() {
-    if (!qs('pulseView')) return;
+    if (!isEnabled() || !qs('pulseView')) return;
     document.querySelectorAll('[data-pulse-days]').forEach(btn => btn.addEventListener('click', () => setRange(btn.dataset.pulseDays)));
     ['pulseRefreshBtn', 'pulseRefreshBtnMob'].forEach(id => { const btn = qs(id); if (btn) btn.addEventListener('click', () => fetchPulse({ force: true })); });
     window.addEventListener('postiq:synced', () => fetchPulse({ force: true }));
@@ -136,5 +140,5 @@ window.PostIQPulse = (() => {
     if (cached?.payload) { data = cached.payload; lastLoadedAt = cached.ts; renderPulse(data); }
   }
 
-  return { init, activate: () => fetchPulse(), refresh: () => fetchPulse({ force: true }) };
+  return { init, activate: () => { if (isEnabled()) return fetchPulse(); }, refresh: () => { if (isEnabled()) return fetchPulse({ force: true }); } };
 })();
