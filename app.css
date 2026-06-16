@@ -2460,48 +2460,6 @@ body::after {
    comment in app.css
    ═══════════════════════════════════════════ */
 
-/* ── Sidebar: anchored tools ── */
-.side-library {
-  padding: 0 10px 10px;
-  border-top: 1px solid rgba(255,255,255,.07);
-  padding-top: 10px;
-}
-
-.side-library .nav-btn {
-  color: rgba(255,255,255,.38);
-  font-size: 12px;
-  margin-bottom: 2px;
-}
-
-.side-library .nav-btn:last-child { margin-bottom: 0; }
-
-.side-library .nav-btn:hover {
-  color: rgba(255,255,255,.7);
-  background: rgba(255,255,255,.06);
-}
-
-.side-library .nav-btn.active {
-  background: rgba(58,63,255,.2);
-  color: #fff;
-  border: 1px solid rgba(58,63,255,.35);
-}
-
-.side-library .nav-btn.active .nav-icon {
-  color: var(--brand);
-  opacity: 1;
-}
-
-/* Collapsed sidebar: anchored tools */
-.app.sidebar-collapsed .side-library {
-  padding: 8px 6px 8px;
-}
-
-.app.sidebar-collapsed .side-library .nav-btn {
-  justify-content: center;
-  padding: 10px;
-  width: 40px;
-}
-
 /* ── Library view ── */
 #libraryView {
   padding: 28px 0 40px;
