@@ -7,7 +7,7 @@
 window.PostIQLibrary = (() => {
 
   // ── Constants ──────────────────────────────────
-  const CACHE_KEY      = 'postiq_library_cache_v2';
+  const CACHE_KEY      = 'postiq_library_cache_v3';
   const STARRED_KEY    = 'postiq_library_starred_v1';
   const CACHE_TTL      = 10 * 60 * 1000; // 10 minutes
   const REPURPOSE_DAYS = 30;             // "ready to reuse" threshold
@@ -136,6 +136,7 @@ window.PostIQLibrary = (() => {
       metricsMeta = raw.metricsMeta || { available: posts.some(hasUsableMetrics), source: 'cache', error: null, permissionError: false, postMetricFields: [] };
       logFetchSummary({ cacheHit: true, organizationIdPresent: !!raw.organizationId });
       console.log('[PostIQ Library] metrics status summary', metricStatusSummary(posts));
+      logLibraryFetchSummary({ requestedLimit: raw.limit || 50, metricsQueriedFor: raw.debug?.metricsQueriedFor || raw.limit || posts.length });
       lastFetchAt = raw.ts;
       return true;
     } catch { return false; }
@@ -143,7 +144,7 @@ window.PostIQLibrary = (() => {
 
   function saveCache() {
     const orgId = getCurrentOrganizationIdSync();
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ posts, metricsMeta, organizationId: orgId || null, ts: Date.now() })); } catch {}
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ posts, metricsMeta, organizationId: orgId || null, limit: 50, ts: Date.now() })); } catch {}
   }
 
   function getCurrentOrganizationIdSync() {
@@ -181,13 +182,25 @@ window.PostIQLibrary = (() => {
   function logFetchSummary({ cacheHit = false, organizationIdPresent = false } = {}) {
     const withMetricsObject = posts.filter(post => !!post?.metrics).length;
     const withUsableMetrics = posts.filter(hasUsableMetrics).length;
-    console.info('[PostIQ Library] fetch summary', {
+    console.info('[PostIQ Library] diagnostics', {
       totalPosts: posts.length,
       postsWithMetricsObject: withMetricsObject,
       postsWithUsableMetrics: withUsableMetrics,
       metricStatusSummary: metricStatusSummary(posts),
       organizationIdPresent,
       cacheHit,
+    });
+  }
+
+  function logLibraryFetchSummary({ requestedLimit = 50, metricsQueriedFor = 0 } = {}) {
+    console.log('[PostIQ Library] fetch summary', {
+      loadedPosts: posts.length,
+      requestedLimit,
+      metricsQueriedFor,
+      postsWithMetricsObject: posts.filter(post => !!post?.metrics).length,
+      postsWithUsableMetrics: posts.filter(hasUsableMetrics).length,
+      metricsAvailable: !!metricsMeta.available,
+      metricsError: metricsMeta.error || null,
     });
   }
 
@@ -244,7 +257,7 @@ window.PostIQLibrary = (() => {
       const res = await fetch('/.netlify/functions/buffer-library', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: tokenResult.token, organizationId: orgId, maxPosts: 150, includeDebug: true }),
+        body: JSON.stringify({ token: tokenResult.token, organizationId: orgId, maxPosts: 50, includeDebug: true }),
       });
 
       const data = await res.json().catch(() => ({}));
@@ -270,7 +283,7 @@ window.PostIQLibrary = (() => {
       }
       const postsWithRawMetrics = (data.posts || []).filter(hasRawMetrics);
       if (postsWithRawMetrics.length) {
-        console.info('[PostIQ Library] Raw Buffer metrics available for inspection', postsWithRawMetrics.map(post => ({ id: post.id, metrics: post.metrics.raw })));
+        console.info('[PostIQ Library] Raw Buffer metrics available for inspection', postsWithRawMetrics.slice(0, 5).map(post => ({ id: post.id, metrics: post.metrics.raw })));
       }
       if (metricsMeta.available) {
         console.info('[PostIQ Library] Buffer metrics returned', metricsMeta);
@@ -283,6 +296,7 @@ window.PostIQLibrary = (() => {
       posts = (data.posts || []).sort((a, b) => new Date(b.sentAt || b.dueAt || 0) - new Date(a.sentAt || a.dueAt || 0));
       if (!posts.length) logDiagnostic('zero posts returned', { organizationId: orgId });
       logMetricsDiagnostics(data, orgId);
+      logLibraryFetchSummary({ requestedLimit: data.limit || 50, metricsQueriedFor: data.debug?.metricsQueriedFor || data.metricsSummary?.total || 0 });
       lastFetchAt = Date.now();
       saveCache();
       render();
@@ -333,7 +347,7 @@ window.PostIQLibrary = (() => {
 
   function filteredPosts() {
     let pool;
-    if (activeTab === 'top')       pool = topPerformers();
+    if (activeTab === 'top')       pool = topPerformers().length >= 3 ? topPerformers() : [];
     else if (activeTab === 'reuse') pool = readyToRepurpose();
     else if (activeTab === 'starred') pool = posts.filter(p => starred.has(p.id));
     else pool = [...posts];
@@ -519,7 +533,7 @@ window.PostIQLibrary = (() => {
     const filtered = filteredPosts();
     if (!filtered.length) {
       const msgs = {
-        top: 'No performance metrics available yet.',
+        top: topPerformers().length ? 'Not enough metrics available yet.' : 'No performance metrics available yet.',
         reuse: 'No recent posts to revisit yet.',
         starred: 'No starred posts yet. Star any post to save it here.',
         all: searchQuery ? 'No posts match that search.' : 'No sent posts found.',
@@ -560,7 +574,7 @@ window.PostIQLibrary = (() => {
     const syncAge = lastFetchAt ? Math.floor((Date.now() - lastFetchAt) / 60000) : null;
 
     statsEl.innerHTML = `
-      <div class="lib-stat"><span class="lib-stat-num">${total}</span><span class="lib-stat-lbl">sent posts</span></div>
+      <div class="lib-stat"><span class="lib-stat-num">${total}</span><span class="lib-stat-lbl">sent posts loaded</span></div>
       <div class="lib-stat"><span class="lib-stat-num">${withMetrics}</span><span class="lib-stat-lbl">metrics available</span></div>
       <div class="lib-stat"><span class="lib-stat-num">${pendingOrUnsupported}</span><span class="lib-stat-lbl">pending / unsupported</span></div>
       ${topEr ? `<div class="lib-stat"><span class="lib-stat-num">${safeText(topEr)}</span><span class="lib-stat-lbl">best eng. rate</span></div>` : ''}
@@ -571,7 +585,7 @@ window.PostIQLibrary = (() => {
   function renderTabCounts() {
     const counts = {
       all:     posts.length,
-      top:     topPerformers().length,
+      top:     topPerformers().length >= 3 ? topPerformers().length : 0,
       reuse:   readyToRepurpose().length,
       starred: [...starred].filter(id => posts.some(p => p.id === id)).length,
     };
