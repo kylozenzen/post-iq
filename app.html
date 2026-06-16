@@ -71,14 +71,14 @@
   <button class="mob-tab" data-view="ideasView" data-workspace-nav="ideas">
     <svg><use href="#i-trending"/></svg>Ideas
   </button>
-  <button class="mob-tab" data-view="approvalsView" data-workspace-nav="approvals">
+  <button class="mob-tab" data-view="approvalsView" data-workspace-nav="approvals" data-feature="approvals">
     <svg><use href="#i-check"/></svg>Approvals
   </button>
-  <button class="mob-tab" data-view="libraryView">
+  <button class="mob-tab" data-view="libraryView" data-feature="library">
     <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
     Library
   </button>
-  <button class="mob-tab" data-view="pulseView">
+  <button class="mob-tab" data-view="pulseView" data-feature="pulse">
     <span aria-hidden="true">〰️</span>
     Pulse
   </button>
@@ -147,13 +147,13 @@
         <span class="nav-icon"><svg><use href="#i-trending"/></svg></span>
         <span class="nav-text">Ideas</span>
       </button>
-      <button class="nav-btn" data-view="approvalsView" data-workspace-nav="approvals" data-tooltip="Approvals">
+      <button class="nav-btn" data-view="approvalsView" data-workspace-nav="approvals" data-feature="approvals" data-tooltip="Approvals">
         <span class="nav-icon"><svg><use href="#i-check"/></svg></span>
         <span class="nav-text">Approvals</span>
         <span class="nav-tag workspace-soon-tag">Soon</span>
       </button>
       <div class="nav-section-label">Tools</div>
-      <button class="nav-btn" data-view="libraryView" data-tooltip="Library">
+      <button class="nav-btn" data-view="libraryView" data-feature="library" data-tooltip="Library">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
@@ -162,7 +162,7 @@
         </span>
         <span class="nav-text">Library</span>
       </button>
-      <button class="nav-btn" data-view="pulseView" data-tooltip="Pulse">
+      <button class="nav-btn" data-view="pulseView" data-feature="pulse" data-tooltip="Pulse">
         <span class="nav-icon">〰️</span>
         <span class="nav-text">Pulse</span>
       </button>
@@ -628,7 +628,7 @@
     </section>
 
     <!-- ══════════ APPROVALS (Coming soon) ══════════ -->
-    <section id="approvalsView" class="view">
+    <section id="approvalsView" class="view" data-feature="approvals">
       <div class="mob-view-hdr">
         <span class="mob-view-title">✅ Approvals <span class="workspace-badge">Soon</span></span>
       </div>
@@ -661,7 +661,7 @@
     </section>
 
     <!-- ══════════ LIBRARY (Post Library) ══════════ -->
-    <section id="libraryView" class="view">
+    <section id="libraryView" class="view" data-feature="library">
       <div class="mob-view-hdr">
         <span class="mob-view-title">📚 Library</span>
         <div class="mob-view-actions">
@@ -712,7 +712,7 @@
 
 
     <!-- ══════════ PULSE ══════════ -->
-    <section id="pulseView" class="view">
+    <section id="pulseView" class="view" data-feature="pulse">
       <div class="mob-view-hdr">
         <span class="mob-view-title">〰️ Pulse</span>
         <div class="mob-view-actions">

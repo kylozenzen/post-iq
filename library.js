@@ -607,7 +607,12 @@ window.PostIQLibrary = (() => {
   }
 
   // ── Init ──────────────────────────────────────
+  function isEnabled() {
+    return window.isPostIQFeatureEnabled?.('library') === true;
+  }
+
   function init() {
+    if (!isEnabled()) return;
     loadStarred();
 
     // Fetch on first view activation
@@ -656,8 +661,8 @@ window.PostIQLibrary = (() => {
 
   return {
     init,
-    refresh: () => fetchPosts({ force: true }),
-    activate: () => fetchPosts(),
+    refresh: () => { if (isEnabled()) return fetchPosts({ force: true }); },
+    activate: () => { if (isEnabled()) return fetchPosts(); },
   };
 
 })();
