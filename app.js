@@ -3343,6 +3343,7 @@ function activateView(viewId, source = 'navigation') {
     if (viewId === 'approvalsView') GA4_Approvals.approvalsOpened();
   });
   if (viewId === 'libraryView' && window.PostIQLibrary) window.PostIQLibrary.activate();
+  if (viewId === 'pulseView' && window.PostIQPulse) window.PostIQPulse.activate();
   document.body.dataset.gaReady = '1';
   currentViewId = viewId;
   document.querySelectorAll('[data-view]').forEach(x => x.classList.toggle('active', x.dataset.view === viewId));
@@ -3687,6 +3688,12 @@ function init() {
     if (window.PostIQLibrary?.init) window.PostIQLibrary.init();
   } catch (e) {
     console.error('[PostIQ] PostIQLibrary.init() failed:', e);
+  }
+
+  try {
+    if (window.PostIQPulse?.init) window.PostIQPulse.init();
+  } catch (e) {
+    console.error('[PostIQ] PostIQPulse.init() failed:', e);
   }
 
   try {

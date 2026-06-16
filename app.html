@@ -78,6 +78,10 @@
     <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
     Library
   </button>
+  <button class="mob-tab" data-view="pulseView">
+    <span aria-hidden="true">〰️</span>
+    Pulse
+  </button>
   <button class="mob-tab" id="mobMoreBtn">
     <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
     More
@@ -166,8 +170,8 @@
         <span class="nav-text">Settings</span>
       </button>
     </div>
-    <!-- Library — bottom-pinned reference tool -->
-    <div class="side-library">
+    <!-- Anchored tools -->
+    <div class="side-library" aria-label="Anchored tools">
       <button class="nav-btn" data-view="libraryView" data-tooltip="Library">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -176,6 +180,10 @@
           </svg>
         </span>
         <span class="nav-text">Library</span>
+      </button>
+      <button class="nav-btn" data-view="pulseView" data-tooltip="Pulse">
+        <span class="nav-icon">〰️</span>
+        <span class="nav-text">Pulse</span>
       </button>
     </div>
   </aside>
@@ -705,6 +713,38 @@
       </div>
     </section>
 
+
+
+    <!-- ══════════ PULSE ══════════ -->
+    <section id="pulseView" class="view">
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">〰️ Pulse</span>
+        <div class="mob-view-actions">
+          <button class="btn sm ghost" id="pulseRefreshBtnMob">↻</button>
+        </div>
+      </div>
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Pulse</h1>
+          <p class="page-desc">A quick look at what’s working lately.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn ghost" id="pulseRefreshBtn">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="pulse-content">
+        <div class="pulse-toolbar" role="group" aria-label="Pulse time range">
+          <button class="pulse-range" data-pulse-days="7" type="button">7 days</button>
+          <button class="pulse-range" data-pulse-days="14" type="button">14 days</button>
+          <button class="pulse-range active" data-pulse-days="30" type="button">30 days</button>
+          <span id="pulseStatus" class="pulse-status"></span>
+        </div>
+        <div class="pulse-grid" id="pulseCards"></div>
+        <div id="pulseBody" class="pulse-body">
+          <div class="pulse-note">Connect Buffer to view your Pulse.</div>
+        </div>
+      </div>
+    </section>
     <!-- ══════════ IDEAS LIBRARY ══════════ -->
     <section id="ideasView" class="view">
       <div class="mob-view-hdr">
@@ -1157,6 +1197,7 @@
   <script src="./app.js" defer></script>
 <script src="./discord-integration.js" defer></script>
 <script src="./library.js" defer></script>
+<script src="./pulse.js" defer></script>
 <script src="./onboarding.js" defer></script>
 
 
