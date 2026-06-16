@@ -7,7 +7,7 @@
 window.PostIQLibrary = (() => {
 
   // ── Constants ──────────────────────────────────
-  const CACHE_KEY      = 'postiq_library_cache_v1';
+  const CACHE_KEY      = 'postiq_library_cache_v2';
   const STARRED_KEY    = 'postiq_library_starred_v1';
   const CACHE_TTL      = 10 * 60 * 1000; // 10 minutes
   const REPURPOSE_DAYS = 30;             // "ready to reuse" threshold
@@ -20,7 +20,8 @@ window.PostIQLibrary = (() => {
   let sortBy       = 'date';
   let loading      = false;
   let lastFetchAt  = 0;
-  let metricsMeta  = { available: false, source: 'unknown', error: null, permissionError: false };
+  let metricsMeta  = { available: false, source: 'unknown', error: null, permissionError: false, postMetricFields: [] };
+  let missingOrgWarned = false;
 
   // ── Utilities ──────────────────────────────────
   const qs        = id => document.getElementById(id);
@@ -36,6 +37,23 @@ window.PostIQLibrary = (() => {
   function hasMetricValue(post) {
     const metrics = post?.metrics;
     return !!metrics && ['reactions', 'comments', 'impressions', 'reach', 'engagementRate'].some(key => metrics[key] != null);
+  }
+
+  function hasUsableMetrics(post) {
+    const metrics = post?.metrics;
+    if (!metrics) return false;
+
+    const values = [];
+
+    function collectNumbers(value) {
+      if (typeof value === 'number' && Number.isFinite(value)) values.push(value);
+      else if (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))) values.push(Number(value));
+      else if (Array.isArray(value)) value.forEach(collectNumbers);
+      else if (value && typeof value === 'object') Object.values(value).forEach(collectNumbers);
+    }
+
+    collectNumbers(metrics);
+    return values.some(value => value > 0);
   }
 
   function hasRawMetrics(post) {
@@ -84,19 +102,83 @@ window.PostIQLibrary = (() => {
       if (!raw || !Array.isArray(raw.posts) || !raw.ts) return false;
       if (Date.now() - raw.ts > CACHE_TTL) return false;
       posts = raw.posts;
-      metricsMeta = raw.metricsMeta || { available: posts.some(hasMetricValue), source: 'cache', error: null, permissionError: false };
+      metricsMeta = raw.metricsMeta || { available: posts.some(hasUsableMetrics), source: 'cache', error: null, permissionError: false, postMetricFields: [] };
+      logFetchSummary({ cacheHit: true, organizationIdPresent: !!raw.organizationId });
       lastFetchAt = raw.ts;
       return true;
     } catch { return false; }
   }
 
   function saveCache() {
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ posts, metricsMeta, ts: Date.now() })); } catch {}
+    const orgId = getCurrentOrganizationIdSync();
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ posts, metricsMeta, organizationId: orgId || null, ts: Date.now() })); } catch {}
+  }
+
+  function getCurrentOrganizationIdSync() {
+    if (typeof window.getPostIQOrganizationId !== 'function') return null;
+    try {
+      const value = window.getPostIQOrganizationId();
+      return typeof value === 'string' ? value : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async function getOrganizationId({ force = false } = {}) {
+    if (typeof window.getPostIQOrganizationId !== 'function') return null;
+    try {
+      const value = window.getPostIQOrganizationId({ force });
+      return await Promise.resolve(value);
+    } catch {
+      return getCurrentOrganizationIdSync();
+    }
+  }
+
+  function serviceKey(post) {
+    return getChannelService(post) || (getChannelLabel(post) ? 'unknown-service' : 'unknown-channel');
+  }
+
+  function breakdownByService(items) {
+    return items.reduce((acc, post) => {
+      const key = serviceKey(post);
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+  }
+
+  function logFetchSummary({ cacheHit = false, organizationIdPresent = false } = {}) {
+    const withMetricsObject = posts.filter(post => !!post?.metrics).length;
+    const withUsableMetrics = posts.filter(hasUsableMetrics).length;
+    console.info('[PostIQ Library] fetch summary', {
+      totalPosts: posts.length,
+      postsWithMetricsObject: withMetricsObject,
+      postsWithUsableMetrics: withUsableMetrics,
+      organizationIdPresent,
+      cacheHit,
+    });
+  }
+
+  function logMetricsDiagnostics(data, orgId) {
+    const withMetrics = posts.filter(post => !!post?.metrics);
+    const withoutMetrics = posts.filter(post => !post?.metrics);
+    logFetchSummary({ cacheHit: false, organizationIdPresent: !!orgId });
+    console.info('[PostIQ Library] metrics diagnostics', {
+      totalPosts: posts.length,
+      postsWithMetricsObject: withMetrics.length,
+      postsWithUsableMetrics: posts.filter(hasUsableMetrics).length,
+      sampleMetricsObjects: withMetrics.slice(0, 5).map(post => ({ channelId: post.channelId, service: serviceKey(post), metrics: post.metrics })),
+      channelServiceBreakdownWithMetrics: breakdownByService(withMetrics),
+      channelServiceBreakdownWithoutMetrics: breakdownByService(withoutMetrics),
+      metricsAvailable: !!data.metricsAvailable,
+      metricsError: data.metricsError || null,
+      postMetricFields: data.debug?.postMetricFields || metricsMeta.postMetricFields || [],
+    });
   }
 
   // ── Data fetching ──────────────────────────────
   async function fetchPosts({ force = false } = {}) {
     if (loading) return;
+    if (force) { try { localStorage.removeItem(CACHE_KEY); } catch {} }
     if (!force && loadCache() && posts.length) { render(); return; }
 
     // Need active token + org ID
@@ -110,14 +192,16 @@ window.PostIQLibrary = (() => {
       return;
     }
 
-    const orgId = typeof window.getPostIQOrganizationId === 'function'
-      ? window.getPostIQOrganizationId()
-      : null;
+    const orgId = await getOrganizationId({ force });
     if (!orgId) {
-      logDiagnostic('missing organizationId');
+      if (!posts.length && !missingOrgWarned) {
+        missingOrgWarned = true;
+        logDiagnostic('missing organizationId');
+      }
       renderEmpty('Sync Buffer first to load your post library.');
       return;
     }
+    missingOrgWarned = false;
 
     loading = true;
     renderLoading();
@@ -145,6 +229,7 @@ window.PostIQLibrary = (() => {
         source: data.metricsSource || 'unknown',
         error: data.metricsError || null,
         permissionError: !!data.metricsPermissionError,
+        postMetricFields: data.debug?.postMetricFields || [],
       };
       if (data.debug) {
         console.info('[PostIQ Library] Buffer analytics probe debug', data.debug);
@@ -163,6 +248,7 @@ window.PostIQLibrary = (() => {
 
       posts = (data.posts || []).sort((a, b) => new Date(b.sentAt || b.dueAt || 0) - new Date(a.sentAt || a.dueAt || 0));
       if (!posts.length) logDiagnostic('zero posts returned', { organizationId: orgId });
+      logMetricsDiagnostics(data, orgId);
       lastFetchAt = Date.now();
       saveCache();
       render();
@@ -179,21 +265,31 @@ window.PostIQLibrary = (() => {
   function getChannelLabel(post) {
     const channels = getChannels();
     const ch = channels.find(c => c.id === post.channelId);
-    return ch?.displayName || ch?.name || post.channelId || '';
+    return ch?.displayName || ch?.name || post.channelName || post.profileName || '';
   }
 
   function getChannelService(post) {
     const channels = getChannels();
     const ch = channels.find(c => c.id === post.channelId);
-    return ch?.service || '';
+    return ch?.service || post.service || post.network || '';
   }
 
   function topPerformers() {
-    return posts.filter(p => hasPositiveMetric(p, 'engagementRate')).sort((a, b) => (b.metrics?.engagementRate || 0) - (a.metrics?.engagementRate || 0));
+    return posts.filter(hasUsableMetrics).sort((a, b) => (Number(b.metrics?.engagementRate) || 0) - (Number(a.metrics?.engagementRate) || 0));
+  }
+
+  function measuredRepurposeCandidates() {
+    return topPerformers().filter(p => daysAgo(p.sentAt) >= REPURPOSE_DAYS);
+  }
+
+  function isReuseFallbackActive() {
+    return activeTab === 'reuse' && !measuredRepurposeCandidates().length && posts.length > 0;
   }
 
   function readyToRepurpose() {
-    return topPerformers().filter(p => daysAgo(p.sentAt) >= REPURPOSE_DAYS);
+    const usable = measuredRepurposeCandidates();
+    if (usable.length) return usable;
+    return [...posts].sort((a, b) => new Date(b.sentAt || b.dueAt || 0) - new Date(a.sentAt || a.dueAt || 0)).slice(0, 12);
   }
 
   function filteredPosts() {
@@ -315,15 +411,22 @@ window.PostIQLibrary = (() => {
 
   function rawMetricsIndicatorHtml(post) {
     if (hasMetricValue(post) || !hasRawMetrics(post)) return '';
-    return '<span class="lib-metric-badge lib-metric-raw" title="Raw Buffer metrics are available in the console debug output">metrics available</span>';
+    return '<span class="lib-metric-badge lib-metric-raw">metrics available</span>';
   }
 
   function metricsNoticeHtml() {
-    if (!metricsMeta.permissionError) return '';
-    return `
+    const notices = [];
+    if (metricsMeta.permissionError) {
+      notices.push('Performance metrics need an updated Buffer connection. Reconnect Buffer to enable analytics.');
+    }
+    if (isReuseFallbackActive()) {
+      notices.push('No older high-performing posts have usable metrics yet, so Ready to Reuse is showing recent sent posts as inspiration.');
+    }
+    if (!notices.length) return '';
+    return notices.map(message => `
       <div class="lib-analytics-notice" role="status" style="margin:0 0 14px;padding:12px 14px;border:1px solid rgba(245,158,11,.28);border-radius:14px;background:rgba(245,158,11,.10);color:var(--ink);font-size:13px;line-height:1.5;">
-        ${safeText('Performance metrics need an updated Buffer connection. Reconnect Buffer to enable analytics.')}
-      </div>`;
+        ${safeText(message)}
+      </div>`).join('');
   }
 
   function postCardHtml(post) {
@@ -333,7 +436,7 @@ window.PostIQLibrary = (() => {
     const age = daysAgo(post.sentAt);
     const badges = metricBadgeHtml(post.metrics);
     const rawIndicator = rawMetricsIndicatorHtml(post);
-    const isTopPerformer = hasPositiveMetric(post, 'engagementRate') && (post.metrics?.engagementRate || 0) > 0.02; // >2% engagement
+    const isTopPerformer = hasUsableMetrics(post) && hasPositiveMetric(post, 'engagementRate') && (post.metrics?.engagementRate || 0) > 0.02; // >2% engagement
     const isOld = age >= REPURPOSE_DAYS;
     const safeId = safeText(post.id);
 
@@ -343,7 +446,9 @@ window.PostIQLibrary = (() => {
           <div class="lib-post-meta">
             ${channelLabel ? `<span class="lib-channel-badge">${safeText(channelLabel)}</span>` : ''}
             ${service ? `<span class="lib-service-badge">${safeText(service)}</span>` : ''}
+            ${post.status ? `<span class="lib-status-badge">${safeText(post.status)}</span>` : ''}
             <span class="lib-date">${fmtDate(post.sentAt)}</span>
+            ${post.metricsUpdatedAt ? `<span class="lib-date">metrics ${fmtDate(post.metricsUpdatedAt)}</span>` : ''}
             ${isTopPerformer ? '<span class="lib-top-badge">⭐ Top</span>' : ''}
             ${isOld && isTopPerformer ? '<span class="lib-reuse-badge">↺ Ready to reuse</span>' : ''}
           </div>
@@ -372,8 +477,8 @@ window.PostIQLibrary = (() => {
     const filtered = filteredPosts();
     if (!filtered.length) {
       const msgs = {
-        top: metricsMeta.available && posts.some(hasMetricValue) ? 'No posts with engagement data yet. Metrics may take time to appear.' : 'No top performers yet.',
-        reuse: metricsMeta.available && posts.some(hasMetricValue) ? `No high-performing posts older than ${REPURPOSE_DAYS} days found.` : 'No reuse suggestions yet.',
+        top: metricsMeta.available && posts.some(hasUsableMetrics) ? 'No posts with usable engagement data yet. Metrics may take time to appear.' : 'No top performers yet.',
+        reuse: metricsMeta.available && posts.some(hasUsableMetrics) ? `No high-performing posts older than ${REPURPOSE_DAYS} days found. Showing recent posts instead.` : 'No measured reuse suggestions yet. Showing recent posts instead.',
         starred: 'No starred posts yet. Star any post to save it here.',
         all: searchQuery ? 'No posts match that search.' : 'No sent posts found.',
       };
@@ -405,14 +510,14 @@ window.PostIQLibrary = (() => {
     if (!statsEl) return;
 
     const total = posts.length;
-    const withMetrics = posts.filter(post => hasMetricValue(post) || hasRawMetrics(post)).length;
+    const withMetrics = posts.filter(hasUsableMetrics).length;
     const top = topPerformers().slice(0, 1)[0];
     const topEr = top ? pct(top.metrics?.engagementRate) : null;
     const syncAge = lastFetchAt ? Math.floor((Date.now() - lastFetchAt) / 60000) : null;
 
     statsEl.innerHTML = `
       <div class="lib-stat"><span class="lib-stat-num">${total}</span><span class="lib-stat-lbl">sent posts</span></div>
-      <div class="lib-stat"><span class="lib-stat-num">${metricsMeta.available ? withMetrics : '—'}</span><span class="lib-stat-lbl">${metricsMeta.available ? 'with metrics' : 'analytics'}</span></div>
+      <div class="lib-stat"><span class="lib-stat-num">${withMetrics}</span><span class="lib-stat-lbl">with usable metrics</span></div>
       ${topEr ? `<div class="lib-stat"><span class="lib-stat-num">${safeText(topEr)}</span><span class="lib-stat-lbl">best eng. rate</span></div>` : ''}
       ${syncAge != null ? `<div class="lib-stat lib-stat-muted"><span class="lib-stat-num">${syncAge}m</span><span class="lib-stat-lbl">ago</span></div>` : ''}
     `;
@@ -479,7 +584,6 @@ window.PostIQLibrary = (() => {
     }
 
     // Load when view activates, and retry after a Buffer sync supplies token/org state.
-    window.addEventListener('postiq:library-activated', () => fetchPosts());
     window.addEventListener('postiq:synced', () => fetchPosts({ force: true }));
 
     // Auto-load if cache available
@@ -489,7 +593,7 @@ window.PostIQLibrary = (() => {
   return {
     init,
     refresh: () => fetchPosts({ force: true }),
-    activate: () => { fetchPosts(); window.dispatchEvent(new Event('postiq:library-activated')); },
+    activate: () => fetchPosts(),
   };
 
 })();

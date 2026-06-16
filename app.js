@@ -1215,13 +1215,20 @@ async function getActiveBufferToken() {
   return manualToken ? { token: manualToken, source: 'manual' } : null;
 }
 
-function getPostIQOrganizationId() {
-  if (state.organizationId) return state.organizationId;
-  if (cache.orgId.value) return cache.orgId.value;
+function getPostIQOrganizationId(options = {}) {
+  const force = !!options?.force;
+  if (!force && state.organizationId) return state.organizationId;
+  if (!force && cache.orgId.value) return cache.orgId.value;
+  if (force) return getOrgId({ force: true });
   try {
     const raw = localStorage.getItem(CACHE_KEY);
     const parsed = raw ? JSON.parse(raw) : null;
-    return parsed?.orgId?.value || null;
+    const cachedOrgId = parsed?.orgId?.value || null;
+    if (cachedOrgId) {
+      state.organizationId = cachedOrgId;
+      cache.orgId = { value: cachedOrgId, ts: parsed?.orgId?.ts || Date.now() };
+    }
+    return cachedOrgId;
   } catch {
     return null;
   }
