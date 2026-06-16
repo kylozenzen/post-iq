@@ -15,6 +15,7 @@ const METRIC_NAME_ALIASES = {
 };
 const METRIC_OUTPUT_FIELDS = Object.keys(METRIC_NAME_ALIASES);
 const SENT_STATUSES = ['sent', 'published'];
+const LIBRARY_POST_LIMIT = 50;
 const METRICS_PERMISSION_NOTICE = 'Performance metrics need an updated Buffer connection. Reconnect Buffer to enable analytics.';
 
 function buildSentPostsQuery(status, extraNodeFields = '') {
@@ -183,6 +184,26 @@ function normalizePost(node, status) {
   };
 }
 
+function sortPostsNewestFirst(items) {
+  return [...items].sort((a, b) => new Date(b.sentAt || b.dueAt || 0) - new Date(a.sentAt || a.dueAt || 0));
+}
+
+function buildMetricsSummary(posts) {
+  return posts.reduce((summary, post) => {
+    if (post?.metrics) summary.postsWithMetricsObject += 1;
+    if (hasNormalizedMetricValue(post?.metrics)) summary.postsWithUsableMetrics += 1;
+    if (post?.metricsUpdatedAt) summary.withMetricsUpdatedAt += 1;
+    else summary.withoutMetricsUpdatedAt += 1;
+    return summary;
+  }, {
+    total: posts.length,
+    postsWithMetricsObject: 0,
+    postsWithUsableMetrics: 0,
+    withMetricsUpdatedAt: 0,
+    withoutMetricsUpdatedAt: 0,
+  });
+}
+
 async function callBuffer(token, query, variables) {
   const res = await fetch(BUFFER_GRAPHQL_ENDPOINT, {
     method: 'POST',
@@ -253,27 +274,44 @@ async function fetchPostsForStatus({ token, organizationId, limit, status }) {
     if (!block?.pageInfo) break;
   }
 
-  return { posts: all, pages, samplePostShape };
+  return { posts: sortPostsNewestFirst(all).slice(0, limit), pages, samplePostShape };
 }
 
-async function fetchMetricsProbe({ token, organizationId, status, selection, source }) {
+async function fetchMetricsProbe({ token, organizationId, status, selection, source, limit }) {
   const query = buildSentPostsQuery(status, selection);
-  const variables = { organizationId, first: 3 };
-  const data = await callBuffer(token, query, variables);
-  const edges = data?.data?.posts?.edges || [];
-  const posts = edges
-    .map(e => e?.node)
-    .filter(node => node?.id)
-    .map(node => normalizePost(node, status));
+  const all = [];
+  let after = null;
+  let hasNext = true;
+  let pages = 0;
+  const maxPages = 5;
 
-  return { posts, source };
+  while (hasNext && all.length < limit && pages < maxPages) {
+    const variables = { organizationId, first: Math.min(LIBRARY_POST_LIMIT, limit - all.length) };
+    if (after) variables.after = after;
+    const data = await callBuffer(token, query, variables);
+    const block = data?.data?.posts;
+    const edges = block?.edges || [];
+
+    edges
+      .map(e => e?.node)
+      .filter(node => node?.id)
+      .forEach(node => all.push(normalizePost(node, status)));
+
+    hasNext = !!block?.pageInfo?.hasNextPage;
+    after = block?.pageInfo?.endCursor || null;
+    pages++;
+
+    if (!block?.pageInfo) break;
+  }
+
+  return { posts: sortPostsNewestFirst(all).slice(0, limit), source, pages };
 }
 
 function debugQueryAttempt(source, query, variables) {
   return { source, query, variables };
 }
 
-async function probeAnalyticsSafely({ token, organizationId, posts, status, samplePostShape }) {
+async function probeAnalyticsSafely({ token, organizationId, posts, status, samplePostShape, limit }) {
   const debug = {
     attemptedQueries: [],
     postTypeFields: [],
@@ -284,6 +322,8 @@ async function probeAnalyticsSafely({ token, organizationId, posts, status, samp
     samplePostShape: samplePostShape || [],
     sampleMetricsShape: [],
     metricsPermissionError: false,
+    requestedLimit: limit,
+    metricsQueriedFor: 0,
   };
 
   if (!posts.length) {
@@ -292,6 +332,7 @@ async function probeAnalyticsSafely({ token, organizationId, posts, status, samp
   }
 
   let lastError = null;
+  let postFields = [];
   const postIntrospectionQuery = `
 query ProbePostAnalyticsFields {
   __type(name: "Post") {
@@ -321,6 +362,7 @@ query ProbePostMetricFields {
   try {
     const data = await callBuffer(token, postIntrospectionQuery, {});
     const fields = data?.data?.__type?.fields?.map(field => field.name).sort() || [];
+    postFields = fields;
     debug.postTypeFields = fields.filter(field => /analytics|metric|insight|impression|reaction|engagement|reach|click|comment|stat|status/i.test(field));
   } catch (err) {
     lastError = err;
@@ -350,13 +392,19 @@ query ProbePostMetricFields {
   }
 
   const source = 'probe.posts.metrics.introspected';
-  const query = buildSentPostsQuery(status, metricSelection);
-  const variables = { organizationId, first: 3 };
+  const metricsUpdatedAtSelection = postFields.includes('metricsUpdatedAt') ? 'metricsUpdatedAt' : '';
+  const postMetricSelection = [metricsUpdatedAtSelection, metricSelection].filter(Boolean).join(' ');
+  const query = buildSentPostsQuery(status, postMetricSelection);
+  const variables = { organizationId, first: limit };
   debug.attemptedQueries.push(debugQueryAttempt(source, query, variables));
   try {
-    const result = await fetchMetricsProbe({ token, organizationId, status, selection: metricSelection, source });
-    const metricsById = new Map(result.posts.map(post => [post.id, post.metrics]));
-    const merged = posts.map(post => ({ ...post, metrics: metricsById.get(post.id) || null }));
+    const result = await fetchMetricsProbe({ token, organizationId, status, selection: postMetricSelection, source, limit });
+    debug.metricsQueriedFor = result.posts.length;
+    const metricsById = new Map(result.posts.map(post => [post.id, { metrics: post.metrics, metricsUpdatedAt: post.metricsUpdatedAt || null }]));
+    const merged = posts.map(post => {
+      const found = metricsById.get(post.id);
+      return found ? { ...post, metrics: found.metrics || null, metricsUpdatedAt: found.metricsUpdatedAt || post.metricsUpdatedAt || null } : { ...post, metrics: null };
+    });
     const firstRawMetrics = merged.map(post => post.metrics?.raw).find(Boolean);
     debug.sampleMetricsShape = firstRawMetrics && typeof firstRawMetrics === 'object' ? Object.keys(firstRawMetrics).sort() : [];
     const metricsAvailable = merged.some(post => hasNormalizedMetricValue(post.metrics) || !!post.metrics?.raw);
@@ -399,7 +447,7 @@ exports.handler = async function (event) {
     return { statusCode: 400, headers: corsHeaders(), body: JSON.stringify({ error: 'Invalid request body' }) };
   }
 
-  const { token, organizationId, maxPosts = 100, includeDebug = false } = payload;
+  const { token, organizationId, maxPosts = LIBRARY_POST_LIMIT, includeDebug = false } = payload;
 
   if (!token) {
     return { statusCode: 401, headers: corsHeaders(), body: JSON.stringify({ error: 'No Buffer token provided', code: 'MISSING_TOKEN' }) };
@@ -408,7 +456,8 @@ exports.handler = async function (event) {
     return { statusCode: 400, headers: corsHeaders(), body: JSON.stringify({ error: 'organizationId is required', code: 'MISSING_ORG_ID' }) };
   }
 
-  const limit = Math.min(Number(maxPosts) || 100, 200);
+  const requestedLimit = Number(maxPosts) || LIBRARY_POST_LIMIT;
+  const limit = Math.min(Math.max(requestedLimit, 1), LIBRARY_POST_LIMIT);
   const attemptedStatuses = [];
   const failures = [];
   const emptyResults = [];
@@ -420,7 +469,7 @@ exports.handler = async function (event) {
         const result = await fetchPostsForStatus({ token, organizationId, limit, status });
         if (result.posts.length) {
           const metricsResult = includeDebug
-            ? await probeAnalyticsSafely({ token, organizationId, posts: result.posts, status, samplePostShape: result.samplePostShape })
+            ? await probeAnalyticsSafely({ token, organizationId, posts: result.posts, status, samplePostShape: result.samplePostShape, limit })
             : {
                 posts: result.posts.map(post => ({ ...post, metrics: null })),
                 metricsSource: 'not_requested',
@@ -431,20 +480,25 @@ exports.handler = async function (event) {
                   metricsAvailable: false,
                   metricsError: null,
                   metricsPermissionError: false,
+                  requestedLimit: limit,
+                  metricsQueriedFor: 0,
                   bufferErrorBodies: [],
                   samplePostShape: result.samplePostShape || [],
                   sampleMetricsShape: [],
                 },
               };
+          const metricsSummary = buildMetricsSummary(metricsResult.posts);
           const body = {
             posts: metricsResult.posts,
             total: metricsResult.posts.length,
+            limit,
             pages: result.pages,
             statusUsed: status,
             attemptedStatuses,
             metricsAvailable: metricsResult.debug.metricsAvailable,
             metricsSource: metricsResult.metricsSource,
             metricsError: metricsResult.debug.metricsError,
+            metricsSummary,
             metricsPermissionError: !!metricsResult.debug.metricsPermissionError,
           };
           if (includeDebug) body.debug = metricsResult.debug;
@@ -468,12 +522,14 @@ exports.handler = async function (event) {
         body: JSON.stringify({
           posts: [],
           total: 0,
+          limit,
           pages: emptyResults.reduce((sum, result) => sum + (result.pages || 0), 0),
           attemptedStatuses,
           message: 'Buffer API did not return sent posts with the current query. Check supported post status/filter fields.',
           metricsAvailable: false,
           metricsSource: 'none',
           metricsError: null,
+          metricsSummary: buildMetricsSummary([]),
           metricsPermissionError: false,
           ...(includeDebug ? { debug: { attemptedQueries: [], postTypeFields: [], postMetricFields: [], metricsAvailable: false, metricsError: 'No sent posts were returned.', metricsPermissionError: false, bufferErrorBodies: [], samplePostShape: [], sampleMetricsShape: [] } } : {}),
         }),

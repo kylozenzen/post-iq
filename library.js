@@ -7,7 +7,7 @@
 window.PostIQLibrary = (() => {
 
   // ── Constants ──────────────────────────────────
-  const CACHE_KEY      = 'postiq_library_cache_v2';
+  const CACHE_KEY      = 'postiq_library_cache_v3';
   const STARRED_KEY    = 'postiq_library_starred_v1';
   const CACHE_TTL      = 10 * 60 * 1000; // 10 minutes
   const REPURPOSE_DAYS = 30;             // "ready to reuse" threshold
@@ -31,6 +31,7 @@ window.PostIQLibrary = (() => {
   const daysAgo   = d => { try { return Math.floor((Date.now() - new Date(d).getTime()) / 86400000); } catch { return 0; } };
   const pct       = v => v != null ? (Number(v) * 100).toFixed(1) + '%' : null;
   const fmtNum    = v => v != null && v > 0 ? Number(v).toLocaleString() : null;
+  const sentTime  = post => new Date(post?.sentAt || post?.dueAt || 0).getTime();
 
   function track(cb) { try { if (typeof cb === 'function') cb(); } catch {} }
   function logDiagnostic(message, details) { console.warn(`[PostIQ Library] ${message}`, details || ''); }
@@ -43,17 +44,40 @@ window.PostIQLibrary = (() => {
     const metrics = post?.metrics;
     if (!metrics) return false;
 
-    const values = [];
+    return ['reactions', 'comments', 'impressions', 'reach', 'engagementRate'].some(key => {
+      const value = metrics[key];
+      if (typeof value === 'number') return Number.isFinite(value);
+      if (typeof value === 'string' && value.trim() !== '') return Number.isFinite(Number(value));
+      return false;
+    });
+  }
 
-    function collectNumbers(value) {
-      if (typeof value === 'number' && Number.isFinite(value)) values.push(value);
-      else if (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))) values.push(Number(value));
-      else if (Array.isArray(value)) value.forEach(collectNumbers);
-      else if (value && typeof value === 'object') Object.values(value).forEach(collectNumbers);
-    }
+  function getMetricStatus(post) {
+    if (hasUsableMetrics(post)) return 'available';
+    if (post?.metricsUpdatedAt) return 'unavailable';
 
-    collectNumbers(metrics);
-    return values.some(value => value > 0);
+    const postedAt = sentTime(post);
+    if (!Number.isFinite(postedAt) || postedAt <= 0) return 'unavailable';
+
+    const ageHours = (Date.now() - postedAt) / 3600000;
+    return ageHours >= 0 && ageHours <= 48 ? 'pending' : 'unavailable';
+  }
+
+  function metricStatusSummary(items = posts) {
+    return items.reduce((acc, post) => {
+      const status = getMetricStatus(post);
+      acc[status] = (acc[status] || 0) + 1;
+      if (post?.metricsUpdatedAt) acc.withMetricsUpdatedAt += 1;
+      else acc.withoutMetricsUpdatedAt += 1;
+      return acc;
+    }, {
+      total: items.length,
+      available: 0,
+      pending: 0,
+      unavailable: 0,
+      withMetricsUpdatedAt: 0,
+      withoutMetricsUpdatedAt: 0,
+    });
   }
 
   function hasRawMetrics(post) {
@@ -61,9 +85,16 @@ window.PostIQLibrary = (() => {
     return !!raw && typeof raw === 'object' && Object.keys(raw).length > 0;
   }
 
+  function metricNumber(post, key) {
+    const value = post?.metrics?.[key];
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value))) return Number(value);
+    return null;
+  }
+
   function hasPositiveMetric(post, key) {
-    const value = Number(post?.metrics?.[key]);
-    return Number.isFinite(value) && value > 0;
+    const value = metricNumber(post, key);
+    return value != null && value > 0;
   }
 
   function formatLibraryError(data, res) {
@@ -104,6 +135,8 @@ window.PostIQLibrary = (() => {
       posts = raw.posts;
       metricsMeta = raw.metricsMeta || { available: posts.some(hasUsableMetrics), source: 'cache', error: null, permissionError: false, postMetricFields: [] };
       logFetchSummary({ cacheHit: true, organizationIdPresent: !!raw.organizationId });
+      console.log('[PostIQ Library] metrics status summary', metricStatusSummary(posts));
+      logLibraryFetchSummary({ requestedLimit: raw.limit || 50, metricsQueriedFor: raw.debug?.metricsQueriedFor || raw.limit || posts.length });
       lastFetchAt = raw.ts;
       return true;
     } catch { return false; }
@@ -111,7 +144,7 @@ window.PostIQLibrary = (() => {
 
   function saveCache() {
     const orgId = getCurrentOrganizationIdSync();
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ posts, metricsMeta, organizationId: orgId || null, ts: Date.now() })); } catch {}
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ posts, metricsMeta, organizationId: orgId || null, limit: 50, ts: Date.now() })); } catch {}
   }
 
   function getCurrentOrganizationIdSync() {
@@ -149,12 +182,25 @@ window.PostIQLibrary = (() => {
   function logFetchSummary({ cacheHit = false, organizationIdPresent = false } = {}) {
     const withMetricsObject = posts.filter(post => !!post?.metrics).length;
     const withUsableMetrics = posts.filter(hasUsableMetrics).length;
-    console.info('[PostIQ Library] fetch summary', {
+    console.info('[PostIQ Library] diagnostics', {
       totalPosts: posts.length,
       postsWithMetricsObject: withMetricsObject,
       postsWithUsableMetrics: withUsableMetrics,
+      metricStatusSummary: metricStatusSummary(posts),
       organizationIdPresent,
       cacheHit,
+    });
+  }
+
+  function logLibraryFetchSummary({ requestedLimit = 50, metricsQueriedFor = 0 } = {}) {
+    console.log('[PostIQ Library] fetch summary', {
+      loadedPosts: posts.length,
+      requestedLimit,
+      metricsQueriedFor,
+      postsWithMetricsObject: posts.filter(post => !!post?.metrics).length,
+      postsWithUsableMetrics: posts.filter(hasUsableMetrics).length,
+      metricsAvailable: !!metricsMeta.available,
+      metricsError: metricsMeta.error || null,
     });
   }
 
@@ -162,6 +208,7 @@ window.PostIQLibrary = (() => {
     const withMetrics = posts.filter(post => !!post?.metrics);
     const withoutMetrics = posts.filter(post => !post?.metrics);
     logFetchSummary({ cacheHit: false, organizationIdPresent: !!orgId });
+    console.log('[PostIQ Library] metrics status summary', metricStatusSummary(posts));
     console.info('[PostIQ Library] metrics diagnostics', {
       totalPosts: posts.length,
       postsWithMetricsObject: withMetrics.length,
@@ -210,7 +257,7 @@ window.PostIQLibrary = (() => {
       const res = await fetch('/.netlify/functions/buffer-library', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: tokenResult.token, organizationId: orgId, maxPosts: 150, includeDebug: true }),
+        body: JSON.stringify({ token: tokenResult.token, organizationId: orgId, maxPosts: 50, includeDebug: true }),
       });
 
       const data = await res.json().catch(() => ({}));
@@ -236,7 +283,7 @@ window.PostIQLibrary = (() => {
       }
       const postsWithRawMetrics = (data.posts || []).filter(hasRawMetrics);
       if (postsWithRawMetrics.length) {
-        console.info('[PostIQ Library] Raw Buffer metrics available for inspection', postsWithRawMetrics.map(post => ({ id: post.id, metrics: post.metrics.raw })));
+        console.info('[PostIQ Library] Raw Buffer metrics available for inspection', postsWithRawMetrics.slice(0, 5).map(post => ({ id: post.id, metrics: post.metrics.raw })));
       }
       if (metricsMeta.available) {
         console.info('[PostIQ Library] Buffer metrics returned', metricsMeta);
@@ -249,6 +296,7 @@ window.PostIQLibrary = (() => {
       posts = (data.posts || []).sort((a, b) => new Date(b.sentAt || b.dueAt || 0) - new Date(a.sentAt || a.dueAt || 0));
       if (!posts.length) logDiagnostic('zero posts returned', { organizationId: orgId });
       logMetricsDiagnostics(data, orgId);
+      logLibraryFetchSummary({ requestedLimit: data.limit || 50, metricsQueriedFor: data.debug?.metricsQueriedFor || data.metricsSummary?.total || 0 });
       lastFetchAt = Date.now();
       saveCache();
       render();
@@ -275,7 +323,9 @@ window.PostIQLibrary = (() => {
   }
 
   function topPerformers() {
-    return posts.filter(hasUsableMetrics).sort((a, b) => (Number(b.metrics?.engagementRate) || 0) - (Number(a.metrics?.engagementRate) || 0));
+    return posts
+      .filter(post => getMetricStatus(post) === 'available')
+      .sort((a, b) => (metricNumber(b, 'engagementRate') ?? -Infinity) - (metricNumber(a, 'engagementRate') ?? -Infinity));
   }
 
   function measuredRepurposeCandidates() {
@@ -283,18 +333,21 @@ window.PostIQLibrary = (() => {
   }
 
   function isReuseFallbackActive() {
-    return activeTab === 'reuse' && !measuredRepurposeCandidates().length && posts.length > 0;
+    return activeTab === 'reuse' && measuredRepurposeCandidates().length < 3 && posts.length > 0;
   }
 
   function readyToRepurpose() {
     const usable = measuredRepurposeCandidates();
-    if (usable.length) return usable;
-    return [...posts].sort((a, b) => new Date(b.sentAt || b.dueAt || 0) - new Date(a.sentAt || a.dueAt || 0)).slice(0, 12);
+    if (usable.length >= 3) return usable;
+    const recent = [...posts].sort((a, b) => sentTime(b) - sentTime(a));
+    const combined = [...usable];
+    recent.forEach(post => { if (!combined.includes(post) && combined.length < 12) combined.push(post); });
+    return combined;
   }
 
   function filteredPosts() {
     let pool;
-    if (activeTab === 'top')       pool = topPerformers();
+    if (activeTab === 'top')       pool = topPerformers().length >= 3 ? topPerformers() : [];
     else if (activeTab === 'reuse') pool = readyToRepurpose();
     else if (activeTab === 'starred') pool = posts.filter(p => starred.has(p.id));
     else pool = [...posts];
@@ -305,11 +358,11 @@ window.PostIQLibrary = (() => {
     }
 
     if (sortBy === 'engagement') {
-      pool = pool.sort((a, b) => (b.metrics?.engagementRate || 0) - (a.metrics?.engagementRate || 0));
+      pool = pool.sort((a, b) => (metricNumber(b, 'engagementRate') ?? -Infinity) - (metricNumber(a, 'engagementRate') ?? -Infinity));
     } else if (sortBy === 'reactions') {
-      pool = pool.sort((a, b) => (b.metrics?.reactions || 0) - (a.metrics?.reactions || 0));
+      pool = pool.sort((a, b) => (metricNumber(b, 'reactions') ?? -Infinity) - (metricNumber(a, 'reactions') ?? -Infinity));
     } else if (sortBy === 'impressions') {
-      pool = pool.sort((a, b) => (b.metrics?.impressions || 0) - (a.metrics?.impressions || 0));
+      pool = pool.sort((a, b) => (metricNumber(b, 'impressions') ?? -Infinity) - (metricNumber(a, 'impressions') ?? -Infinity));
     }
     // default: date order (already sorted from API)
 
@@ -420,7 +473,7 @@ window.PostIQLibrary = (() => {
       notices.push('Performance metrics need an updated Buffer connection. Reconnect Buffer to enable analytics.');
     }
     if (isReuseFallbackActive()) {
-      notices.push('No older high-performing posts have usable metrics yet, so Ready to Reuse is showing recent sent posts as inspiration.');
+      notices.push('Recent posts to revisit: not enough older posts have available metrics yet, so this section includes recent sent posts as inspiration.');
     }
     if (!notices.length) return '';
     return notices.map(message => `
@@ -434,11 +487,13 @@ window.PostIQLibrary = (() => {
     const channelLabel = getChannelLabel(post);
     const service = getChannelService(post);
     const age = daysAgo(post.sentAt);
-    const badges = metricBadgeHtml(post.metrics);
-    const rawIndicator = rawMetricsIndicatorHtml(post);
-    const isTopPerformer = hasUsableMetrics(post) && hasPositiveMetric(post, 'engagementRate') && (post.metrics?.engagementRate || 0) > 0.02; // >2% engagement
+    const metricStatus = getMetricStatus(post);
+    const badges = metricStatus === 'available' ? metricBadgeHtml(post.metrics) : '';
+    const rawIndicator = metricStatus === 'available' ? rawMetricsIndicatorHtml(post) : '';
+    const metricStatusText = metricStatus === 'pending' ? 'Metrics pending' : metricStatus === 'unavailable' && activeTab === 'top' ? 'Metrics unavailable for this post type' : '';
+    const isTopPerformer = metricStatus === 'available' && hasPositiveMetric(post, 'engagementRate') && (post.metrics?.engagementRate || 0) > 0.02; // >2% engagement
     const isOld = age >= REPURPOSE_DAYS;
-    const safeId = safeText(post.id);
+    const safeId = safeText(String(posts.indexOf(post)));
 
     return `
       <article class="lib-post-card" data-post-id="${safeId}">
@@ -460,6 +515,7 @@ window.PostIQLibrary = (() => {
         <div class="lib-post-text">${safeText(compact(post.text, 280))}</div>
 
         ${badges || rawIndicator ? `<div class="lib-metrics-row">${badges || rawIndicator}</div>` : ''}
+        ${metricStatusText ? `<div class="lib-metrics-subtle" style="font-size:12px;color:var(--subtle);margin-top:8px;">${safeText(metricStatusText)}</div>` : ''}
 
         <div class="lib-post-actions">
           <button class="btn sm primary" data-action="repurpose" data-post-id="${safeId}">→ Repurpose</button>
@@ -477,8 +533,8 @@ window.PostIQLibrary = (() => {
     const filtered = filteredPosts();
     if (!filtered.length) {
       const msgs = {
-        top: metricsMeta.available && posts.some(hasUsableMetrics) ? 'No posts with usable engagement data yet. Metrics may take time to appear.' : 'No top performers yet.',
-        reuse: metricsMeta.available && posts.some(hasUsableMetrics) ? `No high-performing posts older than ${REPURPOSE_DAYS} days found. Showing recent posts instead.` : 'No measured reuse suggestions yet. Showing recent posts instead.',
+        top: topPerformers().length ? 'Not enough metrics available yet.' : 'No performance metrics available yet.',
+        reuse: 'No recent posts to revisit yet.',
         starred: 'No starred posts yet. Star any post to save it here.',
         all: searchQuery ? 'No posts match that search.' : 'No sent posts found.',
       };
@@ -492,7 +548,7 @@ window.PostIQLibrary = (() => {
     list.querySelectorAll('[data-action]').forEach(btn => {
       btn.addEventListener('click', () => {
         const postId = btn.dataset.postId;
-        const post = posts.find(p => p.id === postId);
+        const post = posts[Number(postId)];
         if (!post) return;
         if (btn.dataset.action === 'repurpose')  repurposePost(post);
         if (btn.dataset.action === 'reschedule') reschedulePost(post);
@@ -501,7 +557,7 @@ window.PostIQLibrary = (() => {
     });
 
     list.querySelectorAll('[data-star]').forEach(btn => {
-      btn.addEventListener('click', () => toggleStar(btn.dataset.star));
+      btn.addEventListener('click', () => { const post = posts[Number(btn.dataset.star)]; if (post) toggleStar(post.id); });
     });
   }
 
@@ -510,14 +566,17 @@ window.PostIQLibrary = (() => {
     if (!statsEl) return;
 
     const total = posts.length;
-    const withMetrics = posts.filter(hasUsableMetrics).length;
+    const statusSummary = metricStatusSummary(posts);
+    const withMetrics = statusSummary.available;
+    const pendingOrUnsupported = statusSummary.pending + statusSummary.unavailable;
     const top = topPerformers().slice(0, 1)[0];
     const topEr = top ? pct(top.metrics?.engagementRate) : null;
     const syncAge = lastFetchAt ? Math.floor((Date.now() - lastFetchAt) / 60000) : null;
 
     statsEl.innerHTML = `
-      <div class="lib-stat"><span class="lib-stat-num">${total}</span><span class="lib-stat-lbl">sent posts</span></div>
-      <div class="lib-stat"><span class="lib-stat-num">${withMetrics}</span><span class="lib-stat-lbl">with usable metrics</span></div>
+      <div class="lib-stat"><span class="lib-stat-num">${total}</span><span class="lib-stat-lbl">sent posts loaded</span></div>
+      <div class="lib-stat"><span class="lib-stat-num">${withMetrics}</span><span class="lib-stat-lbl">metrics available</span></div>
+      <div class="lib-stat"><span class="lib-stat-num">${pendingOrUnsupported}</span><span class="lib-stat-lbl">pending / unsupported</span></div>
       ${topEr ? `<div class="lib-stat"><span class="lib-stat-num">${safeText(topEr)}</span><span class="lib-stat-lbl">best eng. rate</span></div>` : ''}
       ${syncAge != null ? `<div class="lib-stat lib-stat-muted"><span class="lib-stat-num">${syncAge}m</span><span class="lib-stat-lbl">ago</span></div>` : ''}
     `;
@@ -526,10 +585,15 @@ window.PostIQLibrary = (() => {
   function renderTabCounts() {
     const counts = {
       all:     posts.length,
-      top:     topPerformers().length,
+      top:     topPerformers().length >= 3 ? topPerformers().length : 0,
       reuse:   readyToRepurpose().length,
       starred: [...starred].filter(id => posts.some(p => p.id === id)).length,
     };
+    const reuseTab = document.querySelector('[data-lib-tab="reuse"]');
+    if (reuseTab) {
+      const countHtml = '<span class="lib-tab-count" id="libTabCount-reuse"></span>';
+      reuseTab.innerHTML = `${isReuseFallbackActive() ? '↺ Recent posts to revisit' : '↺ Ready to reuse'} ${countHtml}`;
+    }
     Object.entries(counts).forEach(([tab, count]) => {
       const el = qs(`libTabCount-${tab}`);
       if (el) el.textContent = count > 0 ? count : '';
