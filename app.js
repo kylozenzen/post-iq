@@ -25,7 +25,7 @@ const FEATURE_FLAGS = {
   ideas: true,
   approvals: false,
   library: true,
-  pulse: true
+  pulse: false
 };
 const FEATURE_VIEWS = Object.freeze({
   planning: 'calendarView',
