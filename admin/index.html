@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>PostIQ Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Lato:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0d0f1f;
+      --surface: #141629;
+      --surface2:#1c1f38;
+      --border:  #2a2d4a;
+      --border2: #343760;
+      --brand:   #3a3fff;
+      --brand-h: #5b5fff;
+      --text:    #e8eaf6;
+      --muted:   #7b7fa8;
+      --success: #22c55e;
+      --warn:    #f59e0b;
+      --danger:  #ef4444;
+      --font-sans: 'Bricolage Grotesque', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+      --font-body: 'Lato', sans-serif;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── Login ─────────────────────────────────────────────── */
+    #loginScreen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px 40px;
+      width: 360px;
+      text-align: center;
+    }
+    .login-card .wordmark {
+      font-family: var(--font-sans);
+      font-weight: 800;
+      font-size: 26px;
+      color: var(--brand);
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+    .login-card .sub {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      margin-bottom: 32px;
+    }
+    .login-card input[type="password"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      outline: none;
+      margin-bottom: 12px;
+      transition: border-color 0.15s;
+    }
+    .login-card input[type="password"]:focus { border-color: var(--brand); }
+    .login-card .btn-primary {
+      width: 100%;
+      padding: 12px;
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font-sans);
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .login-card .btn-primary:hover { background: var(--brand-h); }
+    #loginError {
+      margin-top: 12px;
+      color: var(--danger);
+      font-size: 13px;
+      min-height: 20px;
+    }
+
+    /* ── App Shell ─────────────────────────────────────────── */
+    #app { display: none; height: 100vh; }
+    #app.visible { display: flex; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 0;
+      overflow-y: auto;
+    }
+    .sidebar .wordmark {
+      font-family: var(--font-sans);
+      font-weight: 800;
+      font-size: 20px;
+      color: var(--brand);
+      padding: 0 24px 4px;
+      letter-spacing: -0.3px;
+    }
+    .sidebar .sub {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      padding: 0 24px 28px;
+    }
+    .sidebar nav { flex: 1; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 24px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      border-left: 3px solid transparent;
+      transition: all 0.12s;
+      user-select: none;
+    }
+    .nav-item:hover { color: var(--text); background: var(--surface2); }
+    .nav-item.active { color: var(--brand); border-left-color: var(--brand); background: rgba(58,63,255,.08); }
+    .nav-item svg { flex-shrink: 0; }
+    .sidebar-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+    }
+    .btn-logout {
+      background: none;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-family: var(--font-body);
+      padding: 6px 14px;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.12s;
+    }
+    .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* Main content */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .topbar {
+      padding: 20px 36px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .page-title {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: 20px;
+    }
+    .save-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    #saveStatus {
+      font-size: 13px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      min-width: 160px;
+      text-align: right;
+    }
+    #saveStatus.ok    { color: var(--success); }
+    #saveStatus.error { color: var(--danger); }
+    .btn-save {
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 22px;
+      font-family: var(--font-sans);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-save:hover { background: var(--brand-h); }
+    .btn-save:disabled { opacity: 0.5; cursor: default; }
+
+    /* Panels */
+    .panel { display: none; padding: 36px; }
+    .panel.active { display: block; }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-family: var(--font-sans);
+      font-weight: 600;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+    .card-desc {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    /* Feature Flags */
+    .flag-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .flag-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+    .flag-label {
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+
+    /* Toggle switch */
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: var(--border2);
+      border-radius: 11px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle input:checked + .toggle-track { background: var(--brand); }
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s;
+    }
+    .toggle input:checked + .toggle-track::after { transform: translateX(18px); }
+
+    /* Notices */
+    .notice-grid { display: grid; gap: 12px; }
+    .notice-row { display: flex; flex-direction: column; gap: 4px; }
+    .notice-row label { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+    .notice-row input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .notice-row input:focus { border-color: var(--brand); }
+
+    /* Beta Banner */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
+    .field input, .field textarea {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 14px;
+      outline: none;
+      resize: vertical;
+      transition: border-color 0.15s;
+    }
+    .field input:focus, .field textarea:focus { border-color: var(--brand); }
+
+    /* Invite Codes */
+    .codes-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .code-tag {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+    .code-tag span { font-family: var(--font-mono); font-size: 13px; }
+    .btn-remove {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 16px;
+      line-height: 1;
+      transition: color 0.12s;
+    }
+    .btn-remove:hover { color: var(--danger); }
+    .add-code-row {
+      display: flex;
+      gap: 8px;
+    }
+    .add-code-row input {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .add-code-row input:focus { border-color: var(--brand); }
+    .btn-add {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 10px 18px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .btn-add:hover { border-color: var(--brand); color: var(--brand); }
+
+    /* Stats */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-value {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: 28px;
+      color: var(--brand);
+    }
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      margin-top: 4px;
+    }
+    .recent-list { display: flex; flex-direction: column; gap: 8px; }
+    .recent-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 16px;
+      gap: 12px;
+    }
+    .recent-title { font-size: 13px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .badge.pending          { background: rgba(245,158,11,.15); color: var(--warn); }
+    .badge.approved         { background: rgba(34,197,94,.15);  color: var(--success); }
+    .badge.changes_requested{ background: rgba(239,68,68,.15);  color: var(--danger); }
+    .badge.other            { background: var(--surface);       color: var(--muted); border: 1px solid var(--border); }
+    .recent-date { font-family: var(--font-mono); font-size: 11px; color: var(--muted); flex-shrink: 0; }
+
+    /* Environment */
+    .env-grid { display: grid; gap: 10px; }
+    .env-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+    .env-key { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+    .env-val { font-family: var(--font-mono); font-size: 13px; }
+    .env-val.good { color: var(--success); }
+    .env-val.bad  { color: var(--danger); }
+    .env-val.neutral { color: var(--text); }
+
+    /* Loading / empty states */
+    .loading-msg {
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 24px 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Login ──────────────────────────────────────────────── -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="wordmark">PostIQ</div>
+    <div class="sub">Admin Panel</div>
+    <input type="password" id="tokenInput" placeholder="Admin token" autocomplete="current-password" />
+    <button class="btn-primary" id="loginBtn">Sign in</button>
+    <div id="loginError"></div>
+  </div>
+</div>
+
+<!-- ── App ────────────────────────────────────────────────── -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="wordmark">PostIQ</div>
+    <div class="sub">Admin Panel</div>
+    <nav>
+      <div class="nav-item active" data-panel="flags">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+        Feature Flags
+      </div>
+      <div class="nav-item" data-panel="notices">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Notices
+      </div>
+      <div class="nav-item" data-panel="banner">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Beta Banner
+      </div>
+      <div class="nav-item" data-panel="codes">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        AI Invite Codes
+      </div>
+      <div class="nav-item" data-panel="stats">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Usage Stats
+      </div>
+      <div class="nav-item" data-panel="env">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        Environment
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" id="logoutBtn">Sign out</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="panelTitle">Feature Flags</div>
+      <div class="save-bar">
+        <span id="saveStatus"></span>
+        <button class="btn-save" id="saveBtn" data-only-panels="flags notices banner codes">Save changes</button>
+      </div>
+    </div>
+
+    <!-- Feature Flags -->
+    <div class="panel active" id="panel-flags">
+      <div class="card">
+        <div class="card-title">Feature Flags</div>
+        <div class="card-desc">Toggle features on or off. Changes take effect immediately without a redeploy.</div>
+        <div class="flag-grid" id="flagGrid">
+          <div class="loading-msg">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notices -->
+    <div class="panel" id="panel-notices">
+      <div class="card">
+        <div class="card-title">Feature Notices</div>
+        <div class="card-desc">Custom message shown to users when a feature is disabled. Leave blank for the default message.</div>
+        <div class="notice-grid" id="noticeGrid">
+          <div class="loading-msg">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Beta Banner -->
+    <div class="panel" id="panel-banner">
+      <div class="card">
+        <div class="card-title">Beta Banner</div>
+        <div class="card-desc">Message shown once per session at the top of the app.</div>
+        <div class="field">
+          <label>Message</label>
+          <textarea id="betaMessage" rows="3" placeholder="PostIQ is in public beta…"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Invite Codes -->
+    <div class="panel" id="panel-codes">
+      <div class="card">
+        <div class="card-title">AI Invite Codes</div>
+        <div class="card-desc">Codes that unlock AI Assist access. Case-insensitive.</div>
+        <div class="codes-list" id="codesList"></div>
+        <div class="add-code-row">
+          <input type="text" id="newCodeInput" placeholder="Add a new invite code…" />
+          <button class="btn-add" id="addCodeBtn">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Usage Stats -->
+    <div class="panel" id="panel-stats">
+      <div class="card">
+        <div class="card-title">Approval Counts</div>
+        <div class="card-desc">Live data from Upstash Redis.</div>
+        <div class="stat-grid" id="statGrid"><div class="loading-msg">Loading…</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Recent Approvals</div>
+        <div class="card-desc">Last 5 approval requests by update time.</div>
+        <div class="recent-list" id="recentList"><div class="loading-msg">Loading…</div></div>
+      </div>
+    </div>
+
+    <!-- Environment -->
+    <div class="panel" id="panel-env">
+      <div class="card">
+        <div class="card-title">Service Status</div>
+        <div class="card-desc">Which services are wired up in this deployment.</div>
+        <div class="env-grid" id="envGrid"><div class="loading-msg">Loading…</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const FEATURES = ['calendar','composer','ideas','contentPillars','trending','approvals','snapshots','library','pulse','uploads','unsplash'];
+  const FEATURE_LABELS = {
+    calendar:'Calendar', composer:'Composer', ideas:'Ideas',
+    contentPillars:'Content Pillars', trending:'Trending', approvals:'Approvals',
+    snapshots:'Snapshots', library:'Library', pulse:'Pulse',
+    uploads:'Uploads', unsplash:'Unsplash',
+  };
+
+  const PANEL_TITLES = {
+    flags:'Feature Flags', notices:'Notices', banner:'Beta Banner',
+    codes:'AI Invite Codes', stats:'Usage Stats', env:'Environment',
+  };
+
+  let adminToken = '';
+  let config = null;   // { betaMessage, features, notices, inviteCodes }
+  let inviteCodes = [];
+
+  // ── DOM refs ──────────────────────────────────────────────
+  const loginScreen  = document.getElementById('loginScreen');
+  const appShell     = document.getElementById('app');
+  const tokenInput   = document.getElementById('tokenInput');
+  const loginBtn     = document.getElementById('loginBtn');
+  const loginError   = document.getElementById('loginError');
+  const logoutBtn    = document.getElementById('logoutBtn');
+  const saveBtn      = document.getElementById('saveBtn');
+  const saveStatus   = document.getElementById('saveStatus');
+  const panelTitle   = document.getElementById('panelTitle');
+
+  // ── Auth ──────────────────────────────────────────────────
+  tokenInput.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  loginBtn.addEventListener('click', doLogin);
+  logoutBtn.addEventListener('click', () => { adminToken = ''; config = null; appShell.classList.remove('visible'); loginScreen.style.display = 'flex'; tokenInput.value = ''; });
+
+  async function doLogin() {
+    const t = tokenInput.value.trim();
+    if (!t) { loginError.textContent = 'Enter your admin token.'; return; }
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Signing in…';
+    loginError.textContent = '';
+    try {
+      const res = await fetch('/.netlify/functions/admin-config', { headers: { 'X-Admin-Token': t } });
+      if (res.status === 401) { loginError.textContent = 'Invalid token.'; return; }
+      if (!res.ok) { loginError.textContent = 'Server error — try again.'; return; }
+      adminToken = t;
+      config = await res.json();
+      inviteCodes = Array.isArray(config.inviteCodes) ? [...config.inviteCodes] : [];
+      loginScreen.style.display = 'none';
+      appShell.classList.add('visible');
+      populateAll();
+    } catch {
+      loginError.textContent = 'Network error — check your connection.';
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Sign in';
+    }
+  }
+
+  // ── Navigation ────────────────────────────────────────────
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const panel = item.dataset.panel;
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      item.classList.add('active');
+      document.getElementById('panel-' + panel).classList.add('active');
+      panelTitle.textContent = PANEL_TITLES[panel] || panel;
+
+      const saveOnly = saveBtn.dataset.onlyPanels.split(' ');
+      saveBtn.style.display = saveOnly.includes(panel) ? '' : 'none';
+
+      if (panel === 'stats' || panel === 'env') loadStats();
+    });
+  });
+
+  // ── Populate ──────────────────────────────────────────────
+  function populateAll() {
+    populateFlags();
+    populateNotices();
+    populateBanner();
+    populateCodes();
+    saveStatus.textContent = '';
+  }
+
+  function populateFlags() {
+    const grid = document.getElementById('flagGrid');
+    grid.innerHTML = '';
+    FEATURES.forEach(key => {
+      const enabled = config.features ? !!config.features[key] : true;
+      const row = document.createElement('div');
+      row.className = 'flag-row';
+      row.innerHTML = `
+        <span class="flag-label">${FEATURE_LABELS[key]}</span>
+        <label class="toggle">
+          <input type="checkbox" data-flag="${key}" ${enabled ? 'checked' : ''} />
+          <div class="toggle-track"></div>
+        </label>`;
+      grid.appendChild(row);
+    });
+  }
+
+  function populateNotices() {
+    const grid = document.getElementById('noticeGrid');
+    grid.innerHTML = '';
+    FEATURES.forEach(key => {
+      const val = (config.notices && config.notices[key]) || '';
+      const row = document.createElement('div');
+      row.className = 'notice-row';
+      row.innerHTML = `<label>${FEATURE_LABELS[key]}</label><input type="text" data-notice="${key}" value="${escHtml(val)}" placeholder="Message shown when ${FEATURE_LABELS[key]} is off…" />`;
+      grid.appendChild(row);
+    });
+  }
+
+  function populateBanner() {
+    document.getElementById('betaMessage').value = config.betaMessage || '';
+  }
+
+  function populateCodes() {
+    renderCodesList();
+  }
+
+  function renderCodesList() {
+    const list = document.getElementById('codesList');
+    list.innerHTML = '';
+    if (inviteCodes.length === 0) {
+      list.innerHTML = '<div class="loading-msg" style="padding:12px 0;">No invite codes yet.</div>';
+      return;
+    }
+    inviteCodes.forEach((code, i) => {
+      const el = document.createElement('div');
+      el.className = 'code-tag';
+      el.innerHTML = `<span>${escHtml(code)}</span><button class="btn-remove" data-index="${i}" title="Remove">×</button>`;
+      list.appendChild(el);
+    });
+    list.querySelectorAll('.btn-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        inviteCodes.splice(Number(btn.dataset.index), 1);
+        renderCodesList();
+      });
+    });
+  }
+
+  document.getElementById('addCodeBtn').addEventListener('click', addCode);
+  document.getElementById('newCodeInput').addEventListener('keydown', e => { if (e.key === 'Enter') addCode(); });
+  function addCode() {
+    const input = document.getElementById('newCodeInput');
+    const val = input.value.trim().toLowerCase();
+    if (!val) return;
+    if (!inviteCodes.includes(val)) {
+      inviteCodes.push(val);
+      renderCodesList();
+    }
+    input.value = '';
+    input.focus();
+  }
+
+  // ── Save ──────────────────────────────────────────────────
+  saveBtn.addEventListener('click', saveConfig);
+
+  async function saveConfig() {
+    saveBtn.disabled = true;
+    saveStatus.className = '';
+    saveStatus.textContent = 'Saving…';
+
+    const features = {};
+    document.querySelectorAll('[data-flag]').forEach(el => { features[el.dataset.flag] = el.checked; });
+
+    const notices = {};
+    document.querySelectorAll('[data-notice]').forEach(el => { notices[el.dataset.notice] = el.value.trim(); });
+
+    const payload = {
+      betaMessage: document.getElementById('betaMessage').value.trim(),
+      features,
+      notices,
+      inviteCodes,
+    };
+
+    try {
+      const res = await fetch('/.netlify/functions/admin-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Token': adminToken },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) { const { error } = await res.json(); throw new Error(error || res.status); }
+      config = { ...payload };
+      saveStatus.className = 'ok';
+      saveStatus.textContent = '✓ Saved';
+      setTimeout(() => { saveStatus.textContent = ''; saveStatus.className = ''; }, 3000);
+    } catch (err) {
+      saveStatus.className = 'error';
+      saveStatus.textContent = '✗ ' + (err.message || 'Save failed');
+    } finally {
+      saveBtn.disabled = false;
+    }
+  }
+
+  // ── Stats ─────────────────────────────────────────────────
+  let statsLoaded = false;
+  async function loadStats() {
+    if (statsLoaded) return;
+    statsLoaded = true;
+    try {
+      const res = await fetch('/.netlify/functions/admin-stats', { headers: { 'X-Admin-Token': adminToken } });
+      const data = await res.json();
+      renderStats(data);
+      renderEnv(data.env);
+    } catch (err) {
+      document.getElementById('statGrid').innerHTML = `<div class="loading-msg">Error: ${escHtml(err.message)}</div>`;
+    }
+  }
+
+  function renderStats(data) {
+    const grid = document.getElementById('statGrid');
+    const list = document.getElementById('recentList');
+
+    if (!data.approvals || data.approvals.error) {
+      const msg = data.approvals?.error || 'Redis not configured.';
+      grid.innerHTML = `<div class="loading-msg">${escHtml(msg)}</div>`;
+      list.innerHTML = '';
+      return;
+    }
+
+    const { counts, recent } = data.approvals;
+    const statDefs = [
+      { label:'Total',   value: counts.total },
+      { label:'Pending', value: counts.pending },
+      { label:'Approved',value: counts.approved },
+      { label:'Changes', value: counts.changes_requested },
+    ];
+    grid.innerHTML = statDefs.map(s => `
+      <div class="stat-box">
+        <div class="stat-value">${s.value}</div>
+        <div class="stat-label">${s.label}</div>
+      </div>`).join('');
+
+    if (!recent || recent.length === 0) {
+      list.innerHTML = '<div class="loading-msg">No recent approvals.</div>';
+      return;
+    }
+    list.innerHTML = recent.map(r => {
+      const badgeClass = ['pending','approved','changes_requested'].includes(r.status) ? r.status : 'other';
+      const date = r.updatedAt ? new Date(r.updatedAt).toLocaleDateString() : '—';
+      return `<div class="recent-item">
+        <span class="recent-title">${escHtml(r.title)}</span>
+        <span class="badge ${badgeClass}">${escHtml(r.status || 'unknown')}</span>
+        <span class="recent-date">${date}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function renderEnv(env) {
+    if (!env) return;
+    const grid = document.getElementById('envGrid');
+    const rows = [
+      { key:'Upstash Redis',   val: env.hasRedis    ? '✓ Connected'    : '✗ Not configured', cls: env.hasRedis    ? 'good' : 'bad' },
+      { key:'Admin Token',     val: env.hasAdminToken ? '✓ Set'         : '✗ Not set',        cls: env.hasAdminToken ? 'good' : 'bad' },
+      { key:'Netlify Context', val: env.netlifyContext, cls: 'neutral' },
+      { key:'Deploy ID',       val: env.deployId,       cls: 'neutral' },
+    ];
+    grid.innerHTML = rows.map(r => `
+      <div class="env-row">
+        <span class="env-key">${escHtml(r.key)}</span>
+        <span class="env-val ${r.cls}">${escHtml(r.val)}</span>
+      </div>`).join('');
+  }
+
+  // ── Helpers ───────────────────────────────────────────────
+  function escHtml(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+})();
+</script>
+</body>
+</html>
