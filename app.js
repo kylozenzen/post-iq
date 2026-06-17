@@ -20,16 +20,16 @@ const WORKSPACE_DEFAULTS = Object.freeze({ planning: true, create: true, ideas: 
 const WORKSPACE_VIEWS = Object.freeze({ planning: 'calendarView', create: 'composerView', ideas: 'ideasView', approvals: 'approvalsView' });
 // Internal beta feature flags for safely rolling modules on/off. These are not user-facing settings.
 const FEATURE_FLAGS = {
-  planning: true,
-  create: true,
+  calendar: true,
+  composer: true,
   ideas: true,
   approvals: false,
   library: true,
   pulse: true
 };
 const FEATURE_VIEWS = Object.freeze({
-  planning: 'calendarView',
-  create: 'composerView',
+  calendar: 'calendarView',
+  composer: 'composerView',
   ideas: 'ideasView',
   approvals: 'approvalsView',
   library: 'libraryView',
@@ -186,6 +186,15 @@ function getWorkspaceForView(viewId) {
   return Object.keys(WORKSPACE_VIEWS).find(workspace => WORKSPACE_VIEWS[workspace] === viewId) || null;
 }
 
+function syncNavSectionVisibility() {
+  const hasVisibleTools = Array.from(document.querySelectorAll('[data-feature="library"], [data-feature="pulse"]'))
+    .some(el => !el.hidden && el.style.display !== 'none');
+  document.querySelectorAll('[data-tools-section]').forEach(el => {
+    el.hidden = !hasVisibleTools;
+    if (el.style) el.style.display = hasVisibleTools ? '' : 'none';
+  });
+}
+
 function renderWorkspacePreferences() {
   document.querySelectorAll('[data-workspace-nav]').forEach(el => {
     const feature = el.dataset.feature;
@@ -198,6 +207,7 @@ function renderWorkspacePreferences() {
     const workspace = input.dataset.workspaceToggle;
     input.checked = !!workspacePreferences[workspace];
   });
+  syncNavSectionVisibility();
 }
 
 function ensureActiveWorkspaceVisible() {
@@ -318,15 +328,17 @@ function mergePostiqConfig(base, override) {
   };
 }
 
-function isFeatureEnabled(featureName) {
-  return FEATURE_FLAGS[featureName] === true;
-}
-window.isPostIQFeatureEnabled = isFeatureEnabled;
-
 function getFeatureFlag(name) {
   if (!name) return true;
   return postiqConfig?.features?.[name] !== false;
 }
+
+function isFeatureEnabled(featureName) {
+  if (!featureName) return true;
+  if (Object.prototype.hasOwnProperty.call(FEATURE_FLAGS, featureName) && FEATURE_FLAGS[featureName] === false) return false;
+  return getFeatureFlag(featureName);
+}
+window.isPostIQFeatureEnabled = isFeatureEnabled;
 
 function getFeatureNotice(name) {
   return String(postiqConfig?.notices?.[name] || defaultFeaturePausedMessage);
@@ -374,6 +386,8 @@ function applyInternalFeatureFlags() {
     }
   });
 
+  syncNavSectionVisibility();
+
   const activeFeature = getFeatureForView(currentViewId);
   if (activeFeature && !isFeatureEnabled(activeFeature)) {
     activateView(getSafeFeatureFallbackView(), 'feature_flag');
@@ -385,8 +399,8 @@ function getFeatureForView(viewId) {
 }
 
 function getSafeFeatureFallbackView() {
-  if (isFeatureEnabled('planning')) return 'calendarView';
-  if (isFeatureEnabled('create')) return 'composerView';
+  if (isFeatureEnabled('calendar')) return 'calendarView';
+  if (isFeatureEnabled('composer')) return 'composerView';
   return 'composerView';
 }
 

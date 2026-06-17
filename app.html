@@ -62,13 +62,13 @@
   <button class="mob-tab active" data-view="homeView" data-home-feature="true">
     🏠 Home
   </button>
-  <button class="mob-tab" data-view="calendarView" data-workspace-nav="planning">
+  <button class="mob-tab" data-view="calendarView" data-workspace-nav="planning" data-feature="calendar">
     <svg><use href="#i-cal"/></svg>Planning
   </button>
-  <button class="mob-tab" data-view="composerView" data-workspace-nav="create">
+  <button class="mob-tab" data-view="composerView" data-workspace-nav="create" data-feature="composer">
     <svg><use href="#i-compose"/></svg>Create
   </button>
-  <button class="mob-tab" data-view="ideasView" data-workspace-nav="ideas">
+  <button class="mob-tab" data-view="ideasView" data-workspace-nav="ideas" data-feature="ideas">
     <svg><use href="#i-trending"/></svg>Ideas
   </button>
   <button class="mob-tab" data-view="approvalsView" data-workspace-nav="approvals" data-feature="approvals">
@@ -135,15 +135,15 @@
         <span class="nav-icon">🏠</span>
         <span class="nav-text">Home</span>
       </button>
-      <button class="nav-btn" data-view="calendarView" data-workspace-nav="planning" data-tooltip="Planning">
+      <button class="nav-btn" data-view="calendarView" data-workspace-nav="planning" data-feature="calendar" data-tooltip="Planning">
         <span class="nav-icon"><svg><use href="#i-cal"/></svg></span>
         <span class="nav-text">Planning</span>
       </button>
-      <button class="nav-btn" data-view="composerView" data-workspace-nav="create" data-tooltip="Create">
+      <button class="nav-btn" data-view="composerView" data-workspace-nav="create" data-feature="composer" data-tooltip="Create">
         <span class="nav-icon"><svg><use href="#i-compose"/></svg></span>
         <span class="nav-text">Create</span>
       </button>
-      <button class="nav-btn" data-view="ideasView" data-workspace-nav="ideas" data-tooltip="Ideas">
+      <button class="nav-btn" data-view="ideasView" data-workspace-nav="ideas" data-feature="ideas" data-tooltip="Ideas">
         <span class="nav-icon"><svg><use href="#i-trending"/></svg></span>
         <span class="nav-text">Ideas</span>
       </button>
@@ -152,7 +152,7 @@
         <span class="nav-text">Approvals</span>
         <span class="nav-tag workspace-soon-tag">Soon</span>
       </button>
-      <div class="nav-section-label">Tools</div>
+      <div class="nav-section-label" data-tools-section>Tools</div>
       <button class="nav-btn" data-view="libraryView" data-feature="library" data-tooltip="Library">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -207,7 +207,7 @@
     </section>
 
     <!-- ══════════ PLAN (Calendar) ══════════ -->
-    <section id="calendarView" class="view active">
+    <section id="calendarView" class="view active" data-feature="calendar">
       <!-- Mobile header -->
       <div class="mob-view-hdr">
         <span class="mob-view-title">📅 Plan</span>
@@ -287,7 +287,7 @@
     </section>
 
     <!-- ══════════ COMPOSE (Composer) ══════════ -->
-    <section id="composerView" class="view">
+    <section id="composerView" class="view" data-feature="composer">
       <!-- Mobile header -->
       <div class="mob-view-hdr">
         <span class="mob-view-title">✍️ Compose</span>
@@ -742,7 +742,7 @@
       </div>
     </section>
     <!-- ══════════ IDEAS LIBRARY ══════════ -->
-    <section id="ideasView" class="view">
+    <section id="ideasView" class="view" data-feature="ideas">
       <div class="mob-view-hdr">
         <span class="mob-view-title">💡 Ideas</span>
       </div>
@@ -1133,7 +1133,7 @@
 
   <!-- Quick links -->
   <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">↗ Open Buffer</a>
-  <button class="btn ghost" data-view="ideasView" data-workspace-nav="ideas" id="mobDrawerIdeasBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">💡 Ideas</button>
+  <button class="btn ghost" data-view="ideasView" data-workspace-nav="ideas" data-feature="ideas" id="mobDrawerIdeasBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">💡 Ideas</button>
   <button class="btn ghost" id="mobOpenSettings" type="button" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">⚙ Settings</button>
   <a class="btn ghost" href="/help/" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">❓ Help Center</a>
 </div>
