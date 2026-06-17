@@ -1,6 +1,6 @@
 'use strict';
 
-const { getStore } = require('@netlify/blobs');
+const { connectLambda, getStore } = require('@netlify/blobs');
 
 const STORE = 'postiq-admin';
 const KEY   = 'config';
@@ -48,6 +48,8 @@ function envDefaults() {
 }
 
 exports.handler = async function handler(event) {
+  connectLambda(event);
+
   const token = process.env.POSTIQ_ADMIN_TOKEN;
   if (!token || event.headers['x-admin-token'] !== token) return authError();
 
