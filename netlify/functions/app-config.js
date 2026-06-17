@@ -1,6 +1,6 @@
 'use strict';
 
-const { getStore } = require('@netlify/blobs');
+const { connectLambda, getStore } = require('@netlify/blobs');
 
 function readBooleanEnv(name, fallback) {
   const raw = process.env[name];
@@ -35,7 +35,9 @@ function envDefaults() {
   };
 }
 
-exports.handler = async function handler() {
+exports.handler = async function handler(event) {
+  connectLambda(event);
+
   const defaults = envDefaults();
 
   try {

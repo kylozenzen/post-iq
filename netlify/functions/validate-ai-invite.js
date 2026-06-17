@@ -1,6 +1,6 @@
 'use strict';
 
-const { getStore } = require('@netlify/blobs');
+const { connectLambda, getStore } = require('@netlify/blobs');
 
 const headers = {
   'Access-Control-Allow-Origin': '*',
@@ -13,7 +13,9 @@ function response(statusCode, valid, message) {
   return { statusCode, headers, body: JSON.stringify({ valid, message }) };
 }
 
-async function getValidCodes() {
+async function getValidCodes(event) {
+  connectLambda(event);
+
   // Try Blobs config first, fall back to env var
   try {
     const store = getStore('postiq-admin');
@@ -38,7 +40,7 @@ exports.handler = async function handler(event) {
     const { code } = JSON.parse(event.body || '{}');
     if (typeof code !== 'string' || !code.trim()) return response(400, false, 'Enter an invite code.');
 
-    const validCodes = await getValidCodes();
+    const validCodes = await getValidCodes(event);
     if (validCodes.length === 0) return response(500, false, 'AI Assist beta access is not configured yet.');
 
     const valid = validCodes.includes(code.trim().toLowerCase());

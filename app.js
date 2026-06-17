@@ -25,7 +25,7 @@ const FEATURE_FLAGS = {
   ideas: true,
   approvals: false,
   library: true,
-  pulse: false
+  pulse: true
 };
 const FEATURE_VIEWS = Object.freeze({
   planning: 'calendarView',
@@ -60,12 +60,20 @@ const DEFAULT_POSTIQ_CONFIG = {
     trending: true,
     approvals: true,
     snapshots: true,
+    library: true,
+    pulse: true,
     uploads: true,
     unsplash: true,
   },
   notices: {
+    calendar: '',
+    composer: '',
+    ideas: '',
+    contentPillars: '',
     approvals: '',
     trending: '',
+    library: '',
+    pulse: '',
     uploads: '',
     snapshots: ''
   }
@@ -184,7 +192,7 @@ function renderWorkspacePreferences() {
     const featureEnabled = !feature || isFeatureEnabled(feature);
     const visible = !!workspacePreferences[el.dataset.workspaceNav] && featureEnabled;
     el.hidden = !visible;
-    el.style.display = visible ? '' : 'none';
+    if (el.style) el.style.display = visible ? '' : 'none';
   });
   document.querySelectorAll('[data-workspace-toggle]').forEach(input => {
     const workspace = input.dataset.workspaceToggle;
