@@ -19,6 +19,8 @@
   const track = (callback) => { try { if (typeof callback === 'function') callback(); } catch (error) { console.warn('GA4 tracking skipped:', error); } };
   const errorType = (error) => window.GA4?.getErrorType?.(error) || 'unknown';
   const status = (msg) => { const el = dqs('discordComposerStatus'); if (el) el.textContent = msg || ''; };
+  const escapeHtml = (value) => String(value || '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+  const safeAttr = escapeHtml;
   const openDiscordSettings = () => {
     if (typeof window.selectSettingsTab === 'function') window.selectSettingsTab('discord');
     if (typeof window.openModal === 'function') window.openModal('settingsModal');
@@ -72,7 +74,7 @@
       <div class="row"><button class="btn sm primary" id="discordAddWebhookBtn" type="button">Save destination</button></div>
       <div id="discordHookStatus" style="font-size:12px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;min-height:16px;"></div>
       <div id="discordWebhookList" class="mt12"></div></div>`;
-    dqs('discordWebhookList').innerHTML = ws.length ? ws.map((w) => `<div class="row" style="justify-content:space-between;border:1px solid var(--border2);padding:8px;border-radius:8px;margin-bottom:8px;"><span style="font-size:12px;">${w.name}${active?.id===w.id?' (default)':''}</span><div style="display:flex;gap:6px;"><button class="btn sm ghost" data-dset="${w.id}">Set default</button><button class="btn sm ghost" data-ddel="${w.id}">Delete</button></div></div>`).join('') : '<div style="font-size:12px;color:var(--subtle);">No Discord destinations saved.</div>';
+    dqs('discordWebhookList').innerHTML = ws.length ? ws.map((w) => `<div class="row" style="justify-content:space-between;border:1px solid var(--border2);padding:8px;border-radius:8px;margin-bottom:8px;"><span style="font-size:12px;">${escapeHtml(w.name)}${active?.id===w.id?' (default)':''}</span><div style="display:flex;gap:6px;"><button class="btn sm ghost" data-dset="${safeAttr(w.id)}">Set default</button><button class="btn sm ghost" data-ddel="${safeAttr(w.id)}">Delete</button></div></div>`).join('') : '<div style="font-size:12px;color:var(--subtle);">No Discord destinations saved.</div>';
     dqs('discordAddWebhookBtn')?.addEventListener('click', () => {
       const name = (dqs('discordWorkspaceName')?.value || '').trim(); const webhookUrl = (dqs('discordWebhookUrl')?.value || '').trim(); const st = dqs('discordHookStatus');
       if (!name || !webhookUrl) return st && (st.textContent = 'Enter destination name + webhook URL.');
@@ -97,7 +99,7 @@
     }
     const activeId = ws.some(w => w.id === config.activeWorkspaceId) ? config.activeWorkspaceId : ws[0].id;
     if (activeId !== config.activeWorkspaceId) { config.activeWorkspaceId = activeId; save(); }
-    select.innerHTML = ws.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
+    select.innerHTML = ws.map(w => `<option value="${safeAttr(w.id)}">${escapeHtml(w.name)}</option>`).join('');
     select.value = activeId;
     const start = dqs('discordComposerGetStarted');
     if (start) start.style.display = 'none';
@@ -152,7 +154,7 @@
     const el = dqs('discordScheduledList'); if (!el) return;
     const pending = getSchedules().filter(i => i.status === 'scheduled').sort((a,b) => new Date(a.scheduledAt) - new Date(b.scheduledAt));
     if (!pending.length) { el.innerHTML = '<div class="discord-scheduled-empty">No scheduled Discord announcements.</div>'; return; }
-    el.innerHTML = pending.map(i => `<div class="discord-scheduled-item" data-sid="${i.id}"><div class="discord-scheduled-meta"><strong>${i.destinationName}</strong> · ${new Date(i.scheduledAt).toLocaleString()}</div><div class="discord-scheduled-msg">${i.message.slice(0, 180)}</div><div class="row"><button class="btn sm" data-send-now="${i.id}" type="button">Send now</button><button class="btn sm ghost" data-cancel="${i.id}" type="button">Cancel</button></div></div>`).join('');
+    el.innerHTML = pending.map(i => `<div class="discord-scheduled-item" data-sid="${safeAttr(i.id)}"><div class="discord-scheduled-meta"><strong>${escapeHtml(i.destinationName)}</strong> · ${escapeHtml(new Date(i.scheduledAt).toLocaleString())}</div><div class="discord-scheduled-msg">${escapeHtml(i.message.slice(0, 180))}</div><div class="row"><button class="btn sm" data-send-now="${safeAttr(i.id)}" type="button">Send now</button><button class="btn sm ghost" data-cancel="${safeAttr(i.id)}" type="button">Cancel</button></div></div>`).join('');
     el.querySelectorAll('[data-send-now]').forEach(btn => btn.addEventListener('click', async () => { const id = btn.getAttribute('data-send-now'); await sendScheduledNow(id); }));
     el.querySelectorAll('[data-cancel]').forEach(btn => btn.addEventListener('click', () => { const id = btn.getAttribute('data-cancel'); saveSchedules(getSchedules().filter(i => i.id !== id)); renderScheduledDiscordList(); status('Scheduled announcement canceled.'); }));
   }

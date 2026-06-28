@@ -1,4 +1,4 @@
-const CACHE = 'postiq-v5-hotfix';
+const CACHE = 'postiq-v6-quality-pass';
 const SHELL = [
   '/',
   '/index.html',
@@ -9,7 +9,7 @@ const SHELL = [
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL).catch(err => console.warn('[PostIQ SW] shell cache failed:', err))));
   self.skipWaiting();
 });
 
@@ -26,7 +26,7 @@ self.addEventListener('fetch', event => {
 
   // Never intercept non-GET requests, cross-origin requests, or Netlify functions.
   // Functions must always hit the network so POST bodies are not consumed/cached by the SW.
-  if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.includes('/.netlify/functions/')) {
+  if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.includes('/.netlify/functions/') || request.cache === 'only-if-cached') {
     return;
   }
 
@@ -37,7 +37,7 @@ self.addEventListener('fetch', event => {
       const networkResponse = await fetch(request);
 
       // Clone once for cache before the browser consumes the response body.
-      if (networkResponse && networkResponse.ok) {
+      if (networkResponse && networkResponse.ok && networkResponse.type === 'basic') {
         cache.put(request, networkResponse.clone()).catch(err => {
           console.warn('[PostIQ SW] cache put failed:', err);
         });
@@ -47,6 +47,10 @@ self.addEventListener('fetch', event => {
     } catch (err) {
       const cached = await cache.match(request);
       if (cached) return cached;
+      if (request.mode === 'navigate') {
+        const appShell = await cache.match('/app.html') || await cache.match('/index.html');
+        if (appShell) return appShell;
+      }
       throw err;
     }
   })());
