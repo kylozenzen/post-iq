@@ -14,6 +14,16 @@ function toIntOrNull(value) {
   return Number.isFinite(num) ? num : null;
 }
 
+async function fetchWithTimeout(url, options = {}, timeoutMs = 20000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 exports.handler = async function(event) {
   const corsHeaders = {
     "Content-Type": "application/json",
@@ -39,11 +49,19 @@ exports.handler = async function(event) {
 
   const { token, query, variables } = payload;
 
-  if (!query) {
+  if (typeof query !== "string" || !query.trim()) {
     return {
       statusCode: 400,
       headers: corsHeaders,
       body: JSON.stringify(formatProxyError("No query provided", { code: "BAD_REQUEST", status: 400, retryable: false })),
+    };
+  }
+
+  if (query.length > 50000) {
+    return {
+      statusCode: 413,
+      headers: corsHeaders,
+      body: JSON.stringify(formatProxyError("Buffer query is too large", { code: "QUERY_TOO_LARGE", status: 413, retryable: false })),
     };
   }
 
@@ -56,7 +74,7 @@ exports.handler = async function(event) {
   }
 
   try {
-    const res = await fetch("https://api.buffer.com", {
+    const res = await fetchWithTimeout("https://api.buffer.com", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -114,12 +132,13 @@ exports.handler = async function(event) {
       body: JSON.stringify(data),
     };
   } catch (err) {
+    const isAbort = err && err.name === "AbortError";
     return {
       statusCode: 502,
       headers: corsHeaders,
       body: JSON.stringify(
-        formatProxyError(err.message || "Proxy error", {
-          code: "PROXY_NETWORK_ERROR",
+        formatProxyError(isAbort ? "Buffer request timed out" : (err.message || "Proxy error"), {
+          code: isAbort ? "PROXY_TIMEOUT" : "PROXY_NETWORK_ERROR",
           status: 502,
           retryable: true,
         })
