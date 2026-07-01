@@ -1,6 +1,7 @@
 const BUFFER_AUTHORIZATION_ENDPOINT = 'https://auth.buffer.com/auth';
-// Users who connected before insights:read was added must disconnect and reconnect Buffer for metrics access.
-const BUFFER_OAUTH_SCOPE = 'posts:write posts:read account:read offline_access insights:read';
+// insights:read is not permitted for OAuth App Clients (Buffer restricts it to Personal API Keys and MCP clients);
+// requesting it makes Buffer reject the whole authorization request with invalid_scope.
+const BUFFER_OAUTH_SCOPE = 'posts:write posts:read account:read offline_access';
 // Confirm this public Buffer OAuth client ID matches the app/callback configuration before deploying.
 const BUFFER_CLIENT_ID = 'ijzu75qv_CAcO0qMelb93HjOVh1EwEanezilfgBiOEG';
 

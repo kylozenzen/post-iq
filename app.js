@@ -529,8 +529,9 @@ const maskToken = t => !t ? '—' : t.length <= 8 ? '••••' : `${t.slice(
 
 // ── BUFFER OAUTH (PUBLIC CLIENT + PKCE) ─────────────
 const BUFFER_AUTHORIZATION_ENDPOINT = 'https://auth.buffer.com/auth';
-// Users who connected before insights:read was added must disconnect and reconnect Buffer for metrics access.
-const BUFFER_OAUTH_SCOPE = 'posts:write posts:read account:read offline_access insights:read';
+// insights:read is not permitted for OAuth App Clients (Buffer restricts it to Personal API Keys and MCP clients);
+// requesting it makes Buffer reject the whole authorization request with invalid_scope.
+const BUFFER_OAUTH_SCOPE = 'posts:write posts:read account:read offline_access';
 const BUFFER_OAUTH_DEBUG_KEY = 'postiq_oauth_debug';
 
 function generateRandomString(length) {

@@ -10,7 +10,7 @@ assert.ok(start >= 0 && end > start, 'Could not locate Buffer OAuth helpers in a
 const oauthSource = source.slice(start, end);
 
 assert.match(oauthSource, /const BUFFER_AUTHORIZATION_ENDPOINT = 'https:\/\/auth\.buffer\.com\/auth';/);
-assert.match(oauthSource, /const BUFFER_OAUTH_SCOPE = 'posts:write posts:read account:read offline_access insights:read';/);
+assert.match(oauthSource, /const BUFFER_OAUTH_SCOPE = 'posts:write posts:read account:read offline_access';/);
 assert.match(oauthSource, /const BUFFER_OAUTH_DEBUG_KEY = 'postiq_oauth_debug';/);
 assert.match(oauthSource, /\? 'http:\/\/localhost:8888\/auth\/callback\.html'\s*: 'https:\/\/postiq\.netlify\.app\/auth\/callback\.html'/);
 assert.match(oauthSource, /sessionStorage\.setItem\('postiq_oauth_state', oauthState\);/);
@@ -37,7 +37,7 @@ assert.deepEqual(paramNames, [
   'prompt',
 ]);
 
-const encoded = new URLSearchParams({ scope: 'posts:write posts:read account:read offline_access insights:read' }).toString();
-assert.equal(encoded, 'scope=posts%3Awrite+posts%3Aread+account%3Aread+offline_access+insights%3Aread');
+const encoded = new URLSearchParams({ scope: 'posts:write posts:read account:read offline_access' }).toString();
+assert.equal(encoded, 'scope=posts%3Awrite+posts%3Aread+account%3Aread+offline_access');
 
 console.log('Buffer OAuth start flow tests passed');
