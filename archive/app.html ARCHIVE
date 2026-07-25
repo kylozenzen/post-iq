@@ -1423,12 +1423,10 @@
 
     /* Zen overlay */
     body.zen-active {
-      background: radial-gradient(circle at top, rgba(58,63,255,.08), transparent 35%), #0f0f12;
+      background: #0f0f12;
     }
     body.zen-active .side,
     body.zen-active .mobile-tabs,
-    body.zen-active #composerModeTabs,
-    body.zen-active #splitModePanel,
     body.zen-active .page-hdr,
     body.zen-active .mob-view-hdr,
     body.zen-active .composer-panel,
@@ -1442,7 +1440,7 @@
     body.zen-active .app { grid-template-columns: 1fr; }
     body.zen-active .main { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
     body.zen-active #composerView {
-      width: min(760px, 92vw);
+      width: min(680px, 92vw);
       padding: 0 0 40px !important;
       margin: 0 auto;
     }
@@ -1552,8 +1550,8 @@
   <button class="mob-tab" data-view="composerView">
     <svg><use href="#i-compose"/></svg>Draft
   </button>
-  <button class="mob-tab" data-view="contentBucketsView">
-    <svg><use href="#i-templates"/></svg>Buckets
+  <button class="mob-tab" data-view="trendingView">
+    <svg><use href="#i-trending"/></svg>Inspire
   </button>
   <button class="mob-tab" data-view="approvalsView">
     <svg><use href="#i-check"/></svg>Approve
@@ -1631,11 +1629,6 @@
         <span class="nav-tag needs" id="appNavTag">Needs key</span>
       </button>
       <div class="nav-section-label">Tools</div>
-      <button class="nav-btn" data-view="contentBucketsView">
-        <span class="nav-icon"><svg><use href="#i-templates"/></svg></span>
-        <span class="nav-text">Content Buckets</span>
-        <span class="nav-tag free">Free</span>
-      </button>
       <button class="nav-btn" data-view="trendingView">
         <span class="nav-icon"><svg><use href="#i-trending"/></svg></span>
         <span class="nav-text">Trending</span>
@@ -1748,7 +1741,7 @@
       <div class="page-hdr">
         <div class="page-hdr-left">
           <h1 class="page-title">Draft</h1>
-          <p class="page-desc" id="composerDesc">Write, organize bucket ideas, attach media, then send to Buffer as a draft, queued post, or scheduled post.</p>
+          <p class="page-desc" id="composerDesc">Write your post, attach media, then send to Buffer as a draft, queued post, or scheduled post.</p>
         </div>
         <div class="page-actions">
           <button class="btn ghost" id="composerClearBtn" style="display:none;">Clear ✕</button>
@@ -1935,18 +1928,6 @@
             <div style="font-size:11px;color:var(--subtle);margin-top:8px;line-height:1.55;">Save as draft first — then generate an approval link from the Approve tab.</div>
           </div>
 
-          <!-- Content buckets quick-pick -->
-          <div class="panel-card">
-            <div class="panel-card-title" style="margin-bottom:8px;">Content buckets</div>
-            <div id="composerBucketsList" style="display:flex;flex-direction:column;gap:6px;">
-              <div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;">Build your first buckets in the Tools section.</div>
-            </div>
-            <div class="row" style="margin-top:8px;">
-              <button class="btn sm" style="flex:1;justify-content:center;" id="composerOpenBucketsBtn">Open builder</button>
-              <button class="btn sm ghost" style="flex:1;justify-content:center;" id="composerInsertBucketsBtn">→ Draft ideas</button>
-            </div>
-          </div>
-
           <!-- Templates quick-pick -->
           <div class="panel-card">
             <div class="panel-card-title" style="margin-bottom:8px;">Templates</div>
@@ -2048,54 +2029,6 @@
       </div>
       <div id="approvalsList"></div>
       </div><!-- /view-content -->
-    </section>
-
-    <!-- ══════════ CONTENT BUCKETS ══════════ -->
-    <section id="contentBucketsView" class="view">
-      <div class="mob-view-hdr">
-        <span class="mob-view-title">🧠 Content Buckets</span>
-        <div class="mob-view-actions">
-          <button class="btn sm ghost" id="contentBucketsResetMob">Reset</button>
-        </div>
-      </div>
-      <div class="page-hdr">
-        <div class="page-hdr-left">
-          <h1 class="page-title">Content Buckets</h1>
-          <p class="page-desc">Find repeatable content lanes, save them locally, then pull ideas straight into Draft. This tool works without a Buffer key.</p>
-        </div>
-        <div class="page-actions">
-          <span class="status-pill free">No key required</span>
-          <button class="btn ghost" id="contentBucketsResetBtn">Reset</button>
-        </div>
-      </div>
-      <div class="view-content">
-        <div class="card" style="margin-bottom:16px;">
-          <div class="cols2">
-            <div class="field">
-              <label class="label">Role / lens</label>
-              <select id="bucketRoleSelect" class="input"></select>
-            </div>
-            <div class="field">
-              <label class="label">Audience</label>
-              <input id="bucketAudienceInput" class="input" placeholder="Who are you trying to help or reach?" />
-            </div>
-          </div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.65;">Start with five simple content types: <strong>Teach</strong>, <strong>Share</strong>, <strong>Show</strong>, <strong>Tell</strong>, and <strong>Prove</strong>. Use the examples below to name your own buckets and save starter ideas.</div>
-        </div>
-
-        <div id="bucketCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;"></div>
-
-        <div class="card mt16">
-          <div class="section-hdr">
-            <div class="section-title">Your saved lanes</div>
-            <div class="row">
-              <button class="btn sm" id="bucketComposeAllBtn">→ Send all to Draft</button>
-              <button class="btn sm ghost" id="bucketCopyPromptBtn">Copy AI prompt</button>
-            </div>
-          </div>
-          <div id="bucketSavedSummary" style="display:flex;flex-direction:column;gap:8px;"></div>
-        </div>
-      </div>
     </section>
 
     <!-- ══════════ TEMPLATES ══════════ -->
@@ -2348,7 +2281,6 @@
       <label style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer;font-size:13px;color:var(--muted);">
         <input type="checkbox" id="includeNotes" checked /> Include planning notes
       </label>
-      <div style="font-size:12px;color:var(--subtle);margin-top:8px;line-height:1.55;">Shared snapshots now carry the full post text and full planning notes. Recipients can click a day to open the details.</div>
     </div>
     <div class="row mt8">
       <button class="btn primary" id="generateShare">Generate link</button>
@@ -2400,7 +2332,6 @@
 
   <!-- Quick links -->
   <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">↗ Open Buffer</a>
-  <button class="btn ghost" data-view="contentBucketsView" id="mobDrawerBucketsBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">🧠 Content Buckets</button>
   <button class="btn ghost" data-view="trendingView" id="mobDrawerTrendingBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">📈 Trending</button>
   <button class="btn ghost" data-view="templatesView" id="mobDrawerTemplatesBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">⚡ Templates</button>
   <button class="btn ghost" id="mobOpenSettings" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">⚙ Settings &amp; Help</button>
@@ -2417,23 +2348,13 @@
   <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;margin-bottom:20px;color:var(--ink);">PostIQ</div>
   <div id="sharedBanner" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;font-size:13px;color:var(--muted);margin-bottom:20px;"></div>
   <h2 id="sharedMonthTitle" style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:22px;margin-bottom:16px;"></h2>
-  <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">Read-only planning snapshot. Click any shared day to open the full post text and notes.</p>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">Read-only planning snapshot.</p>
   <div class="cal-dow">
     <div class="dow-cell">Sun</div><div class="dow-cell">Mon</div><div class="dow-cell">Tue</div>
     <div class="dow-cell">Wed</div><div class="dow-cell">Thu</div><div class="dow-cell">Fri</div><div class="dow-cell">Sat</div>
   </div>
   <div id="sharedGrid" class="cal-grid" style="margin-top:4px;"></div>
 </section>
-
-<div id="sharedDayModal" class="modal">
-  <div class="modal-card lg">
-    <div class="modal-hdr">
-      <span class="modal-title" id="sharedDayTitle">Snapshot details</span>
-      <button class="btn sm ghost" id="closeSharedDay">Close</button>
-    </div>
-    <div id="sharedDayBody" style="display:flex;flex-direction:column;gap:10px;"></div>
-  </div>
-</div>
 
 <!-- Reviewer page -->
 <div id="reviewerPage">
@@ -2471,7 +2392,6 @@
 const STORE_KEY       = 'postiq_buffer_token';
 const NOTE_KEY        = 'postiq_calendar_notes_v2';
 const TEMPLATE_KEY    = 'postiq_templates_v1';
-const BUCKET_KEY      = 'postiq_content_buckets_v1';
 const CACHE_KEY       = 'postiq_buffer_cache_v1';
 const APPROVAL_PREFIX = 'postiq_approval_';
 
@@ -2499,9 +2419,6 @@ const state = {
   templateSearch: '',
   editingTemplateId: null,
   organizationId: null,
-  bucketRole: 'creator',
-  bucketAudience: '',
-  contentBuckets: [],
 };
 
 const mediaState = { url: '', type: '', videoThumbUrl: '', source: '' };
@@ -2771,239 +2688,14 @@ function useTemplateInEditor(template) {
       sel.deleteFromDocument();
       sel.getRangeAt(0).insertNode(document.createTextNode(body));
     } else {
-      editor.innerText = editor.innerText ? `${editor.innerText}
-
-${body}` : body;
+      editor.innerText = editor.innerText ? `${editor.innerText}\n\n${body}` : body;
     }
-  } catch { editor.innerText = editor.innerText ? `${editor.innerText}
-
-${body}` : body; }
+  } catch { editor.innerText = editor.innerText ? `${editor.innerText}\n\n${body}` : body; }
   editor.dispatchEvent(new Event('input'));
   editor.focus();
   showToast('Template inserted', 'success');
 }
 
-
-
-const BUCKET_GUIDES = {
-  creator: {
-    label: 'Creator',
-    examples: {
-      Teach: ['How you approach content planning without burning out','Mistakes creators make when they only chase trends','Simple ways to turn one idea into a week of posts'],
-      Share: ['Platform shifts you are noticing','What content is getting ignored that deserves more love','Resources or tools you actually use'],
-      Show: ['How you capture ideas before they disappear','Your rough drafting workflow','Behind the scenes of building content'],
-      Tell: ['A lesson you learned from a post that flopped','Why you create in the first place','A hot take about creator culture'],
-      Prove: ['A win you are proud of','Feedback from a client or community member','Numbers or outcomes that show your work matters']
-    }
-  },
-  founder: {
-    label: 'Founder',
-    examples: {
-      Teach: ['What customers misunderstand about your product category','Lessons from building in public','How you make decisions with limited time'],
-      Share: ['Patterns you are seeing in your market','Useful resources for early builders','What people should know before buying'],
-      Show: ['What shipping a feature actually looks like','Your weekly planning process','How you capture customer feedback'],
-      Tell: ['Why you started the company','A mistake that changed your thinking','What building while uncertain feels like'],
-      Prove: ['Customer wins','Product traction moments','Testimonials, screenshots, or milestones']
-    }
-  },
-  small_business_owner: {
-    label: 'Small Business Owner',
-    examples: {
-      Teach: ['What customers should know before hiring you','Common mistakes in your industry','Small tips that save people time or money'],
-      Share: ['Seasonal reminders','Helpful local info','What customers often overlook'],
-      Show: ['Behind the scenes of a normal workday','What goes into your service','Prep, tools, and routines'],
-      Tell: ['Why you started the business','What quality means to you','A memorable customer story'],
-      Prove: ['Reviews and testimonials','Before-and-after stories','Wins you are proud of']
-    }
-  },
-  freelancer: {
-    label: 'Freelancer / Consultant',
-    examples: {
-      Teach: ['Mistakes clients make before hiring help','How good strategy actually works','What you wish more people knew before a project starts'],
-      Share: ['Trends in your niche','Helpful tools and frameworks','Questions clients should ask sooner'],
-      Show: ['Your workflow from kickoff to delivery','How you organize projects','What your week actually looks like'],
-      Tell: ['Why you chose freelance life','Lessons learned the hard way','A project that changed how you work'],
-      Prove: ['Case-study style results','Client praise','Repeat business and outcomes']
-    }
-  },
-  nurse: {
-    label: 'Nurse',
-    examples: {
-      Teach: ['What patients should know before appointments','Common health myths','Questions people should ask more often'],
-      Share: ['Helpful resources families miss','What people misunderstand about healthcare','Trends you notice in patient care'],
-      Show: ['What a shift really looks like','Tools and routines that keep you organized','What people never see behind the scenes'],
-      Tell: ['Why you became a nurse','A lesson the job taught you','A moment that changed your perspective'],
-      Prove: ['Skills and certifications','Positive feedback','Moments where your care made a difference']
-    }
-  }
-};
-const BUCKET_TYPES = [
-  { key:'Teach', desc:'What can you help people understand or do better?', prompt:'What do people ask you about all the time?' },
-  { key:'Share', desc:'What should people know, notice, or pay attention to?', prompt:'What trends, resources, or reminders do you keep coming back to?' },
-  { key:'Show', desc:'What does your work or process actually look like?', prompt:'What does your behind-the-scenes reality look like?' },
-  { key:'Tell', desc:'What stories, opinions, or lessons can you share?', prompt:'What experience shaped how you do things now?' },
-  { key:'Prove', desc:'What builds trust and shows your work matters?', prompt:'What results, reviews, or wins can you point to?' }
-];
-
-function loadBuckets() {
-  try {
-    const raw = localStorage.getItem(BUCKET_KEY);
-    if (!raw) return;
-    const parsed = JSON.parse(raw);
-    if (parsed?.role) state.bucketRole = parsed.role;
-    if (parsed?.audience) state.bucketAudience = parsed.audience;
-    if (Array.isArray(parsed?.buckets)) state.contentBuckets = parsed.buckets;
-  } catch {}
-}
-function persistBuckets() {
-  try { localStorage.setItem(BUCKET_KEY, JSON.stringify({ role: state.bucketRole, audience: state.bucketAudience, buckets: state.contentBuckets })); } catch {}
-}
-function defaultBucketsForRole(role) {
-  const guide = BUCKET_GUIDES[role] || BUCKET_GUIDES.creator;
-  return BUCKET_TYPES.map(t => ({
-    type: t.key,
-    title: t.key,
-    ideas: (guide.examples[t.key] || []).slice(0,3),
-    notes: ''
-  }));
-}
-function ensureBuckets() {
-  if (!state.contentBuckets.length) state.contentBuckets = defaultBucketsForRole(state.bucketRole);
-}
-function populateBucketRoleSelect() {
-  const sel = qs('bucketRoleSelect'); if (!sel) return;
-  sel.innerHTML = '';
-  Object.entries(BUCKET_GUIDES).forEach(([key,val]) => {
-    const o=document.createElement('option'); o.value=key; o.textContent=val.label; if (state.bucketRole===key) o.selected=true; sel.appendChild(o);
-  });
-  const aud = qs('bucketAudienceInput'); if (aud) aud.value = state.bucketAudience || '';
-}
-function buildBucketPrompt() {
-  ensureBuckets();
-  const roleLabel = BUCKET_GUIDES[state.bucketRole]?.label || state.bucketRole;
-  return `I'm building content buckets for my brand.
-
-My role: ${roleLabel}
-My audience: ${state.bucketAudience || 'General audience'}
-
-Here are my current buckets:
-${state.contentBuckets.map(b => `- ${b.title}: ${(b.ideas||[]).join('; ') || 'No starter ideas yet'}`).join('
-')}
-
-Using the five content types Teach, Share, Show, Tell, and Prove, help me refine these into stronger repeatable content lanes. Give me 5 fresh ideas per bucket. Keep them specific, practical, and not overly corporate.`;
-}
-function bucketIdeasToText(bucket) {
-  return `${bucket.title}
-${(bucket.ideas||[]).map((idea,i)=>`${i+1}. ${idea}`).join('
-')}`;
-}
-function sendBucketsToComposer(which='all') {
-  ensureBuckets();
-  const editor = qs('composerEditor'); if (!editor) return;
-  const buckets = which==='all' ? state.contentBuckets : state.contentBuckets.filter(b => b.type===which || b.title===which);
-  const block = buckets.map(bucketIdeasToText).join('
-
-');
-  if (!block.trim()) { showToast('No bucket ideas yet', 'error'); return; }
-  const existing = editorToText(editor.innerHTML);
-  editor.innerText = existing ? `${existing}
-
-${block}` : block;
-  editor.dispatchEvent(new Event('input'));
-  activateView('composerView');
-  showToast(which==='all' ? 'Buckets sent to Draft' : 'Bucket sent to Draft', 'success');
-}
-function renderBuckets() {
-  ensureBuckets();
-  populateBucketRoleSelect();
-  const wrap = qs('bucketCards'); if (!wrap) return;
-  const guide = BUCKET_GUIDES[state.bucketRole] || BUCKET_GUIDES.creator;
-  wrap.innerHTML = '';
-  state.contentBuckets.forEach((bucket, idx) => {
-    const meta = BUCKET_TYPES.find(t => t.key === bucket.type) || BUCKET_TYPES[idx];
-    const examples = (guide.examples[bucket.type] || []).slice(0,5);
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
-        <div>
-          <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px;color:var(--ink);">${safeText(bucket.type)}</div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.55;">${safeText(meta?.desc || '')}</div>
-        </div>
-        <span class="chip brand">Free</span>
-      </div>
-      <div class="field" style="margin-bottom:10px;">
-        <label class="label">Your bucket name</label>
-        <input class="input" data-bucket-title="${idx}" value="${safeText(bucket.title)}" placeholder="Rename this lane…" />
-      </div>
-      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Ask yourself</div>
-      <div style="font-size:12px;color:var(--text);line-height:1.6;margin-bottom:10px;">${safeText(meta?.prompt || '')}</div>
-      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Example ideas for ${safeText(guide.label)}</div>
-      <ul style="padding-left:18px;margin:0 0 10px;color:var(--muted);font-size:12px;line-height:1.65;">${examples.map(x=>`<li>${safeText(x)}</li>`).join('')}</ul>
-      <div class="field" style="margin-bottom:10px;">
-        <label class="label">Starter ideas</label>
-        <textarea data-bucket-ideas="${idx}" style="min-height:120px;">${safeText((bucket.ideas||[]).join('
-'))}</textarea>
-      </div>
-      <div class="row">
-        <button class="btn sm" data-bucket-send="${idx}">→ Draft</button>
-        <button class="btn sm ghost" data-bucket-copy="${idx}">Copy AI prompt</button>
-      </div>`;
-    wrap.appendChild(card);
-  });
-  wrap.querySelectorAll('[data-bucket-title]').forEach(inp => inp.addEventListener('input', e => { state.contentBuckets[+e.target.dataset.bucketTitle].title = e.target.value; persistBuckets(); renderBucketSummary(); renderComposerBuckets(); }));
-  wrap.querySelectorAll('[data-bucket-ideas]').forEach(inp => inp.addEventListener('input', e => { state.contentBuckets[+e.target.dataset.bucketIdeas].ideas = e.target.value.split('
-').map(x=>x.trim()).filter(Boolean); persistBuckets(); renderBucketSummary(); renderComposerBuckets(); }));
-  wrap.querySelectorAll('[data-bucket-send]').forEach(btn => btn.onclick = () => sendBucketsToComposer(state.contentBuckets[+btn.dataset.bucketSend].title));
-  wrap.querySelectorAll('[data-bucket-copy]').forEach(btn => btn.onclick = () => {
-    const bucket = state.contentBuckets[+btn.dataset.bucketCopy];
-    const roleLabel = BUCKET_GUIDES[state.bucketRole]?.label || state.bucketRole;
-    const prompt = `I'm building content around this bucket.
-
-My role: ${roleLabel}
-My audience: ${state.bucketAudience || 'General audience'}
-Bucket name: ${bucket.title}
-Current ideas:
-${(bucket.ideas||[]).map(x=>`- ${x}`).join('
-')}
-
-Give me 15 more practical social post ideas for this bucket. Mix educational, story-driven, opinion-based, and proof-driven angles. Avoid generic advice.`;
-    navigator.clipboard.writeText(prompt); showToast('AI prompt copied', 'success');
-  });
-}
-function renderBucketSummary() {
-  const wrap = qs('bucketSavedSummary'); if (!wrap) return;
-  ensureBuckets();
-  wrap.innerHTML = '';
-  state.contentBuckets.forEach(bucket => {
-    const row = document.createElement('div');
-    row.style.cssText='padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);';
-    row.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;"><strong style="font-size:13px;color:var(--ink);">${safeText(bucket.title)}</strong><button class="btn sm ghost" data-saved-send="${safeText(bucket.title)}">→ Draft</button></div><div style="font-size:12px;color:var(--muted);line-height:1.6;">${safeText(compact((bucket.ideas||[]).join(' • '), 180) || 'No starter ideas yet.')}</div>`;
-    wrap.appendChild(row);
-  });
-  wrap.querySelectorAll('[data-saved-send]').forEach(btn => btn.onclick = () => sendBucketsToComposer(btn.dataset.savedSend));
-}
-function renderComposerBuckets() {
-  const wrap = qs('composerBucketsList'); if (!wrap) return;
-  ensureBuckets();
-  wrap.innerHTML = '';
-  state.contentBuckets.slice(0,4).forEach(bucket => {
-    const item = document.createElement('div');
-    item.className = 'template-item';
-    item.innerHTML = `<div class="template-item-title">${safeText(bucket.title)}</div><div class="template-item-preview">${safeText(compact((bucket.ideas||[]).join(' • '), 110) || 'No ideas yet.')}</div>`;
-    item.onclick = () => sendBucketsToComposer(bucket.title);
-    wrap.appendChild(item);
-  });
-  if (!state.contentBuckets.length) wrap.innerHTML = `<div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;">Build your first buckets in the Tools section.</div>`;
-}
-function resetBuckets() {
-  state.contentBuckets = defaultBucketsForRole(state.bucketRole);
-  persistBuckets();
-  renderBuckets();
-  renderBucketSummary();
-  renderComposerBuckets();
-  showToast('Buckets reset');
-}
 function openTemplateModal(id = null) {
   state.editingTemplateId = id;
   const s = id ? state.templates.find(x => x.id === id) : null;
@@ -3430,11 +3122,8 @@ function sendNoteToDraft() {
   if (!text) { qs('noteStatus').textContent = 'Add a note first.'; return; }
   const [, label] = qs('noteTag').value.split('|');
   const editor = qs('composerEditor');
-  const payload = `[${label}] ${fmtDate(state.selectedDate)}
-${text}`;
-  editor.innerText = editor.innerText ? `${editor.innerText}
-
-${payload}` : payload;
+  const payload = `[${label}] ${fmtDate(state.selectedDate)}\n${text}`;
+  editor.innerText = editor.innerText ? `${editor.innerText}\n\n${payload}` : payload;
   editor.dispatchEvent(new Event('input'));
   closeModal('noteModal'); activateView('composerView');
   showToast('Note sent to Draft');
@@ -3483,7 +3172,7 @@ function shareSnapshot() {
   const monthNotes = Object.entries(allNotes).filter(([k]) => { const d = new Date(k + 'T00:00:00'); return d.getFullYear() === state.month.getFullYear() && d.getMonth() === state.month.getMonth(); }).map(([date, val]) => ({ date, ...val }));
   qs('shareMonthName').textContent = monthLabel(state.month);
   qs('sharePostCount').textContent = posts.length;
-  const payload = { month: monthLabel(state.month), includeNotes: include, posts: posts.map(p => ({ dueAt: p.dueAt, text: p.text, noteText: p.note || '', channelName: p.channelName || p.channel || '' })), notes: include ? monthNotes : [] };
+  const payload = { month: monthLabel(state.month), includeNotes: include, posts: posts.map(p => ({ dueAt: p.dueAt, text: p.text })), notes: include ? monthNotes : [] };
   qs('shareLink').value = location.origin + location.pathname + '#share=' + btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
 }
 
@@ -3496,40 +3185,19 @@ function renderSharedFromHash() {
     qs('sharedBanner').textContent = `Read-only snapshot · ${snap.posts.length} scheduled posts · Notes ${snap.includeNotes ? 'included' : 'excluded'}`;
     const grid = qs('sharedGrid'); grid.innerHTML = '';
     const map = {};
-    snap.posts.forEach(p => { const k = p.dueAt.slice(0, 10); if (!map[k]) map[k] = { posts: [], notes: [] }; map[k].posts.push(p); });
+    snap.posts.forEach(p => { const k = p.dueAt.slice(0, 10); if (!map[k]) map[k] = { posts: [], notes: [] }; map[k].posts.push(p.text); });
     (snap.notes || []).forEach(n => { if (!map[n.date]) map[n.date] = { posts: [], notes: [] }; map[n.date].notes.push(n); });
     Object.keys(map).sort().forEach(k => {
-      const d = document.createElement('div'); d.className = 'cal-day'; d.style.cursor = 'pointer';
+      const d = document.createElement('div'); d.className = 'cal-day'; d.style.cursor = 'default';
       const data = map[k];
       let html = `<div class="day-num">${k.slice(8)}</div>`;
       if (data.posts.length) html += `<div class="day-count">${data.posts.length}</div>`;
-      data.posts.slice(0, 2).forEach(p => { html += `<div class="day-post-pill">${safeText(compact(p.text || p, 60))}</div>`; });
+      data.posts.slice(0, 2).forEach(t => { html += `<div class="day-post-pill">${safeText(compact(t, 60))}</div>`; });
       data.notes.slice(0, 1).forEach(n => { html += `<div class="day-note-pill ${n.tag || 'gold'}">${safeText(compact(n.text, 50))}</div>`; });
-      d.innerHTML = html;
-      d.onclick = () => openSharedDay(k, data);
-      grid.appendChild(d);
+      d.innerHTML = html; grid.appendChild(d);
     });
     return true;
   } catch { return false; }
-}
-
-function openSharedDay(key, data) {
-  qs('sharedDayTitle').textContent = new Date(key + 'T00:00:00').toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
-  const body = qs('sharedDayBody');
-  body.innerHTML = '';
-  if (data.posts?.length) {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `<div style="font-size:11px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px;">Scheduled posts</div>` + data.posts.map((p, i) => `<div style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);margin-bottom:8px;"><div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--brand);margin-bottom:6px;">Post ${i+1}${p.channelName ? ' · ' + safeText(p.channelName) : ''}</div><div style="white-space:pre-wrap;font-size:13px;line-height:1.65;color:var(--text);">${safeText(p.text || p)}</div>${p.noteText ? `<div style="margin-top:8px;font-size:12px;color:var(--muted);white-space:pre-wrap;">Notes: ${safeText(p.noteText)}</div>` : ''}</div>`).join('');
-    body.appendChild(card);
-  }
-  if (data.notes?.length) {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `<div style="font-size:11px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px;">Planning notes</div>` + data.notes.map(n => `<div class="day-note-pill ${n.tag || 'gold'}" style="display:block;margin-bottom:8px;padding:10px 12px;border-radius:8px;white-space:pre-wrap;">${safeText(n.text)}</div>`).join('');
-    body.appendChild(card);
-  }
-  openModal('sharedDayModal');
 }
 
 // ── COMPOSER ──────────────────────────────────────
@@ -3538,26 +3206,17 @@ function editorToText(html) {
   const walk = node => {
     if (node.nodeType === Node.TEXT_NODE) return node.textContent;
     const tag = (node.tagName || '').toLowerCase();
-    if (tag === 'br') return '
-';
+    if (tag === 'br') return '\n';
     if (tag === 'strong' || tag === 'b') return `**${[...node.childNodes].map(walk).join('')}**`;
     if (tag === 'em' || tag === 'i') return `*${[...node.childNodes].map(walk).join('')}*`;
     if (tag === 'li') return [...node.childNodes].map(walk).join('');
-    if (tag === 'ul') return [...node.children].map(li => `• ${walk(li)}`).join('
-') + '
-';
-    if (tag === 'ol') return [...node.children].map((li, i) => `${i+1}. ${walk(li)}`).join('
-') + '
-';
+    if (tag === 'ul') return [...node.children].map(li => `• ${walk(li)}`).join('\n') + '\n';
+    if (tag === 'ol') return [...node.children].map((li, i) => `${i+1}. ${walk(li)}`).join('\n') + '\n';
     const inner = [...node.childNodes].map(walk).join('');
-    if (['p','div'].includes(tag)) return inner + '
-';
+    if (['p','div'].includes(tag)) return inner + '\n';
     return inner;
   };
-  return [...root.childNodes].map(walk).join('').replace(/
-{3,}/g, '
-
-').trim();
+  return [...root.childNodes].map(walk).join('').replace(/\n{3,}/g, '\n\n').trim();
 }
 
 function composerFormat(cmd) {
@@ -4046,8 +3705,6 @@ function init() {
 
   loadStoredToken();
   loadTemplates();
-  loadBuckets();
-  ensureBuckets();
   initTemplateSelectors();
   renderTemplates();
   buildTimePickers();
@@ -4078,19 +3735,6 @@ function init() {
   document.querySelectorAll('[data-view]').forEach(b => {
     b.onclick = () => activateView(b.dataset.view);
   });
-  populateBucketRoleSelect();
-  renderBuckets();
-  renderBucketSummary();
-  renderComposerBuckets();
-  qs('bucketRoleSelect').onchange = e => { state.bucketRole = e.target.value; state.contentBuckets = defaultBucketsForRole(state.bucketRole); persistBuckets(); renderBuckets(); renderBucketSummary(); renderComposerBuckets(); };
-  qs('bucketAudienceInput').addEventListener('input', e => { state.bucketAudience = e.target.value; persistBuckets(); });
-  qs('bucketComposeAllBtn').onclick = () => sendBucketsToComposer('all');
-  qs('bucketCopyPromptBtn').onclick = () => { navigator.clipboard.writeText(buildBucketPrompt()); showToast('AI prompt copied', 'success'); };
-  qs('contentBucketsResetBtn').onclick = resetBuckets;
-  const cbrm = qs('contentBucketsResetMob'); if (cbrm) cbrm.onclick = resetBuckets;
-  qs('composerOpenBucketsBtn').onclick = () => activateView('contentBucketsView');
-  qs('composerInsertBucketsBtn').onclick = () => sendBucketsToComposer('all');
-  qs('closeSharedDay').onclick = () => closeModal('sharedDayModal');
 
   // Calendar
   qs('prevMonth').onclick = () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() - 1, 1); renderCalendar(); detectQueueGaps(); };
@@ -4247,7 +3891,6 @@ function init() {
 
   function enterZen() {
     zenActive = true;
-    if (typeof setComposerMode === 'function') setComposerMode('compose');
     document.body.classList.add('zen-active');
     activateView('composerView');
     // Sync the zen channel select with the main one
@@ -4403,8 +4046,7 @@ function init() {
   function splitThreadText(text, max = 280) {
     const parts = []; let left = text.trim();
     while (left.length > max) {
-      let cut = left.lastIndexOf('
-', max);
+      let cut = left.lastIndexOf('\n', max);
       if (cut < 80) cut = left.lastIndexOf(' ', max);
       if (cut < 80) cut = max;
       parts.push(left.slice(0, cut).trim()); left = left.slice(cut).trim();
@@ -4488,9 +4130,7 @@ function init() {
 
     qs('copyAllPartsBtn').onclick = () => {
       if (!threadParts.length) return;
-      const text = threadParts.map((p,i) => threadNumbered ? `${i+1}/${threadParts.length} ${p}` : p).join('
-
-');
+      const text = threadParts.map((p,i) => threadNumbered ? `${i+1}/${threadParts.length} ${p}` : p).join('\n\n');
       navigator.clipboard.writeText(text); showToast('All parts copied', 'success');
     };
 
@@ -4683,20 +4323,16 @@ function init() {
   window.activateView = function(viewId) {
     origActivateView(viewId);
     if (viewId === 'trendingView' && !trendingInited) { trendingInited = true; initTrending(); }
-    if (viewId === 'contentBucketsView') { renderBuckets(); renderBucketSummary(); }
   };
 
   // Also update settings guide entry
   const guidePanel = qs('settingsPanelGuide');
   if (guidePanel && !guidePanel.querySelector('[data-guide-trending]')) {
-    const bucketsEntry = document.createElement('div');
-    bucketsEntry.innerHTML = `<div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">🧠 Content Buckets</div><p style="font-size:13px;color:var(--muted);line-height:1.65;">Build repeatable content lanes using the five-part framework: Teach, Share, Show, Tell, and Prove. Save your buckets locally, then push their starter ideas straight into Draft whenever you need a spark.</p>`;
     const trendingEntry = document.createElement('div');
     trendingEntry.dataset.guideTrending = '1';
     trendingEntry.innerHTML = `<div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">📈 Trending</div><p style="font-size:13px;color:var(--muted);line-height:1.65;">Browse hot Reddit posts by subreddit or Hacker News stories for post inspiration. Click "Draft from this" on any story to pin it as a reference above your Composer editor.</p>`;
     const threadEntry = document.createElement('div');
     threadEntry.innerHTML = `<div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-bottom:6px;">🧵 Split into thread</div><p style="font-size:13px;color:var(--muted);line-height:1.65;">Inside Draft, switch to the Split tab. Paste long-form content, hit Split Thread, and PostIQ breaks it into numbered parts. Edit each part, then queue or schedule the whole thread to Buffer natively.</p>`;
-    guidePanel.querySelector('div').appendChild(bucketsEntry);
     guidePanel.querySelector('div').appendChild(trendingEntry);
     guidePanel.querySelector('div').appendChild(threadEntry);
   }

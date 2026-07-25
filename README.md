@@ -1,45 +1,182 @@
-# PostIQ
+# PostIQ — The Planning Layer for Buffer
 
-PostIQ is a modular shelf of focused tools for Buffer users. People can enable
-only the utilities they want while keeping one shared Buffer connection and
-consistent app shell.
+Buffer just opened their API. PostIQ is the first companion app built on it.
 
-## Current tools
+PostIQ is a free public beta workspace for Buffer users. It gives your content workflow a planning layer to clean up your pre-content creation workflow — calendar planning, composing, thread splitting, content pillars, client approvals, and clean snapshot sharing. Buffer stays your publishing home. PostIQ is everything before the publish button.
 
-- Post Composer
-- Thread Splitter
-- Content Calendar
-- Trending
-- Snippets
-- Approvals
+→ **[Open PostIQ](https://postiq.netlify.app)**
 
-Open **Tools & Settings → My Tools** to enable or hide utilities. Preferences
-are stored locally in the browser under `postiq_enabled_tools_v1`.
+---
 
-## Local development
+## Why this exists
 
-Use the Netlify CLI so the serverless functions are available:
+I've spent years running social media for brands — including growing a single account to 6M+ followers and 470M+ impressions. The one thing that never got easier was the planning layer.
 
-```bash
-npx netlify dev
+Buffer is great at publishing. It was never built to answer "what should I post, and is my queue healthy this week?" That's the gap PostIQ fills. When Buffer opened their API, I connected the internal tools I'd been using into something other creators and teams can actually use.
+
+It's independently built. Not affiliated with Buffer. Just someone who needed this badly enough to build it.
+
+— Ben Campbell · [bencampbell.netlify.app](https://bencampbell.netlify.app)
+
+---
+
+## What it does
+
+```
+Ideas → Plan → Compose → Review → Buffer
 ```
 
-The static pages can also be previewed with any local server, but Buffer,
-approval, and Unsplash requests require the functions.
+### 📅 Plan
+Monthly calendar view of your Buffer queue. Queue gaps surface automatically so you always know where the holes are. Add color-coded planning notes to any day — ideas, reminders, revision flags, campaign markers. Share a read-only snapshot link with your team or client without requiring a PostIQ account.
+
+### 🧠 Content Pillars
+Define your repeatable content themes with seed ideas and tone angles. The Pillar Plan Builder walks you through 6 questions and generates a full pillar system — 5 content pillars, trust layer tags, seed ideas, hooks, and series starters. Hit Start on any seed to drop a post starter directly into Compose.
+
+### ✍️ Compose
+Focused writing workspace with rich text formatting, media attachment (URL, upload, or Unsplash), and template insertion. Send to Buffer as a draft, queue it, or schedule it for a specific time. Nothing publishes until you choose a Buffer action.
+
+### ✂️ Thread Splitter
+Paste any long-form content. PostIQ splits it into 280-character thread parts. Edit each part, then queue the whole thread to Buffer natively.
+
+### 💡 Ideas Library
+Three tools in one tab:
+- **Notebook** — save raw references, angles, and inspiration cards. Pin any card above your Compose editor as a writing reference.
+- **Trending** — browse Reddit, Hacker News, and Product Hunt for timely ideas. Click any story to compose from it.
+- **Templates** — save and reuse your best hooks, CTAs, announcements, and engagement questions.
+
+### ✅ Approvals *(beta)*
+Generate a shareable reviewer link for any Buffer draft. Your client reads the post, leaves feedback, and approves or requests changes — no PostIQ account needed. Publishing unlocks after approval.
+
+### 🔗 Snapshots
+Turn any week or month of planned content into a static, shareable link. Recipients see a clean read-only calendar view with full post text. No login required.
+
+---
+
+## How it connects to Buffer
+
+PostIQ uses Buffer's public API with OAuth (PKCE flow). When you sign in:
+
+- PostIQ loads your channels and scheduled queue
+- You can create drafts, queue posts, or schedule content through Buffer
+- Nothing publishes automatically — every Buffer action is your choice
+- You can disconnect anytime from Settings → Connection
+
+```
+Sign in with Buffer → Sync channels + queue → Plan → Compose → Send to Buffer
+```
+
+---
+
+## Tech stack
+
+| Layer | What |
+|---|---|
+| Frontend | Static HTML / CSS / JS — no build step |
+| Functions | Netlify Functions (Node.js) |
+| Auth | Buffer OAuth 2.0 with PKCE (public client) |
+| Approvals | Upstash Redis (serverless) |
+| Deployment | Netlify |
+| Storage | Browser `localStorage` / `sessionStorage` |
+
+Primary files:
+
+```
+index.html              # Public landing page
+app.html                # App shell
+app.css                 # App styles
+app.js                  # All product logic
+manifest.json           # PWA manifest
+sw.js                   # Service worker
+netlify/functions/      # Buffer proxy, token exchange, approvals, trending, config
+```
+
+---
+
+## Running locally
+
+No build step. Serve static files from the repo root.
+
+```sh
+# Static only (no Netlify Functions)
+npx serve .
+
+# Full stack including functions
+netlify dev
+```
+
+---
 
 ## Environment variables
 
-Configure these in Netlify:
+Set these in Netlify → Site configuration → Environment variables.
 
-- `UPSTASH_REDIS_REST_URL`
-- `UPSTASH_REDIS_REST_TOKEN`
-- `UNSPLASH_ACCESS_KEY`
+```env
+# Approvals feature (required for approval links)
+UPSTASH_REDIS_REST_URL=...
+UPSTASH_REDIS_REST_TOKEN=...
 
-The Buffer token is supplied by each user. It passes transiently through the
-Buffer proxy and is not persisted by the function.
+# Feature flags (all default to true except uploads)
+POSTIQ_FEATURE_SNAPSHOTS=true
+POSTIQ_FEATURE_APPROVALS=true
+POSTIQ_FEATURE_TRENDING=true
+POSTIQ_FEATURE_UPLOADS=false
+POSTIQ_FEATURE_UNSPLASH=true
 
-## Validation
-
-```bash
-npm run check
+# Beta banner message
+POSTIQ_BETA_MESSAGE="PostIQ is in public beta. Some tools may change as Buffer's API evolves."
 ```
+
+To pause the approvals feature cleanly (shows a user-facing notice instead of a 503):
+```env
+POSTIQ_FEATURE_APPROVALS=false
+```
+
+---
+
+## Deployment
+
+Netlify static site with Functions.
+
+```toml
+[build]
+  publish = "."
+  functions = "netlify/functions"
+```
+
+After changing environment variables, redeploy so Netlify Functions pick up the new config.
+
+---
+
+## Public beta notes
+
+- Some features may change as Buffer's API evolves
+- Snapshot links are static — anyone with the link can view included content
+- Browser storage is used for local planning data, templates, and settings
+- The OAuth client is public PKCE — no client secrets in the browser
+- Media previews depend on available post data from Buffer
+
+---
+
+## Feedback
+
+PostIQ is in public beta. If something feels off, broken, or missing:
+
+- Use the thumbs-down flow inside the app
+- Open an issue on this repo
+- Or reach out directly at [bencampbell.netlify.app](https://bencampbell.netlify.app)
+
+---
+
+## Links
+
+| | |
+|---|---|
+| App | [postiq.netlify.app/app.html](https://postiq.netlify.app/app.html) |
+| Sign in | [postiq.netlify.app/auth/connect.html](https://postiq.netlify.app/auth/connect.html) |
+| Help Center | [postiq.netlify.app/help/](https://postiq.netlify.app/help/) |
+| Privacy | [postiq.netlify.app/privacy.html](https://postiq.netlify.app/privacy.html) |
+| Portfolio | [bencampbell.netlify.app](https://bencampbell.netlify.app) |
+
+---
+
+*PostIQ is independently built and is not officially affiliated with or endorsed by Buffer.*

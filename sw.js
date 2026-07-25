@@ -1,55 +1,57 @@
-const CACHE_NAME = 'postiq-shell-v2';
-const APP_SHELL = [
+const CACHE = 'postiq-v6-quality-pass';
+const SHELL = [
   '/',
   '/index.html',
   '/app.html',
-  '/manifest.json',
-  '/icons/postiq-icon.svg',
-  '/assets/css/app.css',
-  '/assets/css/landing.css',
-  '/assets/css/tool-manager.css',
-  '/assets/js/app.js',
-  '/assets/js/landing.js',
-  '/assets/js/tool-registry.js',
-  '/assets/js/tools/trending-view.js'
+  '/app.css',
+  '/app.js',
+  '/js/ai-assist.js'
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(APP_SHELL))
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL).catch(err => console.warn('[PostIQ SW] shell cache failed:', err))));
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(
-        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
-      ))
-      .then(() => self.clients.claim())
+    caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key))))
   );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', event => {
   const request = event.request;
-  if (request.method !== 'GET') return;
-
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin || url.pathname.startsWith('/.netlify/functions/')) return;
 
-  event.respondWith(
-    caches.match(request).then(cached => {
-      const refreshed = fetch(request).then(response => {
-        if (response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-        }
-        return response;
-      }).catch(() => cached);
+  // Never intercept non-GET requests, cross-origin requests, or Netlify functions.
+  // Functions must always hit the network so POST bodies are not consumed/cached by the SW.
+  if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.includes('/.netlify/functions/') || request.cache === 'only-if-cached') {
+    return;
+  }
 
-      return cached || refreshed;
-    })
-  );
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE);
+
+    try {
+      const networkResponse = await fetch(request);
+
+      // Clone once for cache before the browser consumes the response body.
+      if (networkResponse && networkResponse.ok && networkResponse.type === 'basic') {
+        cache.put(request, networkResponse.clone()).catch(err => {
+          console.warn('[PostIQ SW] cache put failed:', err);
+        });
+      }
+
+      return networkResponse;
+    } catch (err) {
+      const cached = await cache.match(request);
+      if (cached) return cached;
+      if (request.mode === 'navigate') {
+        const appShell = await cache.match('/app.html') || await cache.match('/index.html');
+        if (appShell) return appShell;
+      }
+      throw err;
+    }
+  })());
 });

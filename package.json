@@ -1,12 +1,6 @@
 {
-  "name": "postiq",
-  "version": "0.2.0",
   "private": true,
-  "scripts": {
-    "check": "node scripts/check-project.js",
-    "test:smoke": "node scripts/smoke-browser.js"
-  },
-  "devDependencies": {
-    "jsdom": "^27.0.0"
+  "dependencies": {
+    "@netlify/blobs": "^10.0.8"
   }
 }
