@@ -2,6 +2,11 @@
 // Accepts the Buffer token from the client request body.
 // The token is never stored — it's forwarded directly to Buffer's API.
 
+const BUFFER_API_URL = "https://api.buffer.com";
+const MAX_BODY_BYTES = 120000;
+const MAX_QUERY_LENGTH = 50000;
+const REQUEST_TIMEOUT_MS = 20000;
+
 function formatProxyError(message, extras = {}) {
   return {
     errors: [{ message, ...extras }],
@@ -14,16 +19,6 @@ function toIntOrNull(value) {
   return Number.isFinite(num) ? num : null;
 }
 
-async function fetchWithTimeout(url, options = {}, timeoutMs = 20000) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, { ...options, signal: controller.signal });
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
 exports.handler = async function(event) {
   const corsHeaders = {
     "Content-Type": "application/json",
@@ -33,7 +28,23 @@ exports.handler = async function(event) {
   };
 
   if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 200, headers: corsHeaders, body: "" };
+    return { statusCode: 204, headers: corsHeaders, body: "" };
+  }
+
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      headers: corsHeaders,
+      body: JSON.stringify(formatProxyError("Method not allowed", { code: "METHOD_NOT_ALLOWED", status: 405, retryable: false })),
+    };
+  }
+
+  if (Buffer.byteLength(event.body || "", "utf8") > MAX_BODY_BYTES) {
+    return {
+      statusCode: 413,
+      headers: corsHeaders,
+      body: JSON.stringify(formatProxyError("Request body is too large", { code: "PAYLOAD_TOO_LARGE", status: 413, retryable: false })),
+    };
   }
 
   let payload;
@@ -49,19 +60,11 @@ exports.handler = async function(event) {
 
   const { token, query, variables } = payload;
 
-  if (typeof query !== "string" || !query.trim()) {
+  if (typeof query !== "string" || !query.trim() || query.length > MAX_QUERY_LENGTH) {
     return {
       statusCode: 400,
       headers: corsHeaders,
-      body: JSON.stringify(formatProxyError("No query provided", { code: "BAD_REQUEST", status: 400, retryable: false })),
-    };
-  }
-
-  if (query.length > 50000) {
-    return {
-      statusCode: 413,
-      headers: corsHeaders,
-      body: JSON.stringify(formatProxyError("Buffer query is too large", { code: "QUERY_TOO_LARGE", status: 413, retryable: false })),
+      body: JSON.stringify(formatProxyError("A valid Buffer query is required", { code: "BAD_REQUEST", status: 400, retryable: false })),
     };
   }
 
@@ -73,14 +76,18 @@ exports.handler = async function(event) {
     };
   }
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
   try {
-    const res = await fetchWithTimeout("https://api.buffer.com", {
+    const res = await fetch(BUFFER_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
       },
       body: JSON.stringify({ query, variables: variables || {} }),
+      signal: controller.signal,
     });
 
     const text = await res.text();
@@ -132,17 +139,19 @@ exports.handler = async function(event) {
       body: JSON.stringify(data),
     };
   } catch (err) {
-    const isAbort = err && err.name === "AbortError";
+    const timedOut = err?.name === "AbortError";
     return {
-      statusCode: 502,
+      statusCode: timedOut ? 504 : 502,
       headers: corsHeaders,
       body: JSON.stringify(
-        formatProxyError(isAbort ? "Buffer request timed out" : (err.message || "Proxy error"), {
-          code: isAbort ? "PROXY_TIMEOUT" : "PROXY_NETWORK_ERROR",
-          status: 502,
+        formatProxyError(timedOut ? "Buffer request timed out" : (err.message || "Proxy error"), {
+          code: timedOut ? "PROXY_TIMEOUT" : "PROXY_NETWORK_ERROR",
+          status: timedOut ? 504 : 502,
           retryable: true,
         })
       ),
     };
+  } finally {
+    clearTimeout(timeout);
   }
 };

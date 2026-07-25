@@ -1,0 +1,141 @@
+.tool-manager-intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 2px 0 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tool-manager-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.tool-toggle {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  transition: border-color .16s ease, background .16s ease, opacity .16s ease;
+}
+
+.tool-toggle:hover {
+  border-color: var(--border2);
+  background: var(--surface2);
+}
+
+.tool-toggle.is-disabled {
+  opacity: .68;
+}
+
+.tool-toggle-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border2);
+  border-radius: 9px;
+  color: var(--amber);
+  background: var(--amber-dim);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tool-toggle-copy {
+  min-width: 0;
+}
+
+.tool-toggle-title {
+  display: block;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tool-toggle-desc {
+  display: block;
+  margin-top: 3px;
+  color: var(--subtle);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.tool-switch {
+  position: relative;
+  display: inline-flex;
+  width: 42px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.tool-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tool-switch-track {
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--border2);
+  border-radius: 999px;
+  background: var(--surface3);
+  transition: background .16s ease, border-color .16s ease;
+}
+
+.tool-switch-track::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform .16s ease, background .16s ease;
+}
+
+.tool-switch input:checked + .tool-switch-track {
+  border-color: rgba(245, 183, 49, .65);
+  background: var(--amber-dim);
+}
+
+.tool-switch input:checked + .tool-switch-track::after {
+  transform: translateX(18px);
+  background: var(--amber);
+}
+
+.tool-switch input:focus-visible + .tool-switch-track {
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
+}
+
+.tool-manager-summary {
+  margin-top: 14px;
+  color: var(--subtle);
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+}
+
+[data-tool-hidden='true'] {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .tool-manager-intro {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tool-manager-intro .btn {
+    align-self: flex-start;
+  }
+}

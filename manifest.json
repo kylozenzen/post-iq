@@ -1,17 +1,18 @@
 {
   "name": "PostIQ — Buffer Power Tools",
   "short_name": "PostIQ",
-  "description": "Thread Splitter, Content Calendar, Composer, Snippets and Trending for Buffer.",
+  "description": "A modular shelf of focused tools for Buffer users.",
   "start_url": "/app.html",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#f5f6fa",
-  "theme_color": "#3a3fff",
-  "orientation": "portrait-primary",
+  "background_color": "#0b0d12",
+  "theme_color": "#f5b731",
   "icons": [
-    { "src": "/images/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/images/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/images/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
-    { "src": "/images/favicon-32.png", "sizes": "32x32", "type": "image/png" },
-    { "src": "/images/favicon-16.png", "sizes": "16x16", "type": "image/png" }
+    {
+      "src": "/icons/postiq-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
   ]
 }
