@@ -16,6 +16,8 @@ const CACHE_KEY       = 'postiq_buffer_cache_v1';
 const NOTEBOOK_KEY    = 'postiq_notebook_v1';
 const APPROVAL_PREFIX = 'postiq_approval_';
 const WORKSPACE_PREFERENCES_KEY = 'postiq.workspacePreferences';
+const THEME_PREFERENCE_KEY = 'postiq.theme';
+const THEMES = Object.freeze(['default', 'neon', 'editorial', 'studio', 'evergreen']);
 const WORKSPACE_DEFAULTS = Object.freeze({ planning: true, create: true, ideas: true, approvals: true });
 const WORKSPACE_VIEWS = Object.freeze({ planning: 'calendarView', create: 'composerView', ideas: 'ideasView', approvals: 'approvalsView' });
 // Internal beta feature flags for safely rolling modules on/off. These are not user-facing settings.
@@ -153,6 +155,34 @@ function safeTrack(callback) {
 function trackWorkspacePreference(eventName, params = {}) {
   safeTrack(() => {
     if (typeof window.gtag === 'function') window.gtag('event', eventName, params);
+  });
+}
+
+function applyTheme(theme, persist = true) {
+  const normalized = THEMES.includes(theme) ? theme : 'default';
+  document.documentElement.dataset.theme = normalized;
+  document.querySelectorAll('[data-theme-choice]').forEach(button => {
+    const selected = button.dataset.themeChoice === normalized;
+    button.classList.toggle('selected', selected);
+    button.setAttribute('aria-checked', String(selected));
+  });
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = normalized === 'neon' ? '#080b12' : normalized === 'editorial' ? '#f2efe6' : normalized === 'studio' ? '#fff5ea' : normalized === 'evergreen' ? '#edf3ec' : '#f5f6fa';
+  if (persist) {
+    try { localStorage.setItem(THEME_PREFERENCE_KEY, normalized); } catch {}
+    const note = qs('themePreferenceNote');
+    if (note) note.textContent = 'Theme saved.';
+    trackWorkspacePreference('workspace_theme_changed', { theme: normalized });
+  }
+  return normalized;
+}
+
+function initThemePicker() {
+  let saved = 'default';
+  try { saved = localStorage.getItem(THEME_PREFERENCE_KEY) || 'default'; } catch {}
+  applyTheme(saved, false);
+  document.querySelectorAll('[data-theme-choice]').forEach(button => {
+    button.addEventListener('click', () => applyTheme(button.dataset.themeChoice));
   });
 }
 
@@ -5426,6 +5456,7 @@ window.ContentPillars = (() => {
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
+  initThemePicker();
   // Sidebar collapse toggle
   const appEl = document.getElementById('app');
   const sidebarToggleBtn = document.getElementById('sidebarToggle');
