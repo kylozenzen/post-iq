@@ -94,6 +94,21 @@ body::after{
   position:relative;z-index:1;
 }
 
+/* ─── PERSONAL WORKSPACE ────────────────── */
+.personalize-section{padding:34px 0 78px;position:relative;z-index:1}
+.personalize-card{position:relative;overflow:hidden;display:grid;grid-template-columns:.9fr 1.1fr;gap:46px;align-items:center;padding:42px;border:1px solid var(--border);border-radius:24px;background:var(--surface);box-shadow:var(--sh1)}
+.personalize-card::after{content:'';position:absolute;width:300px;height:300px;right:-130px;top:-160px;border-radius:50%;background:var(--brand-dim);pointer-events:none}
+.personalize-kicker{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--brand);margin-bottom:12px}
+.personalize-copy h2{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(2rem,4vw,3rem);line-height:1;letter-spacing:-.05em;color:var(--ink);margin-bottom:16px}
+.personalize-copy h2 em{font-style:normal;color:var(--brand)}
+.personalize-copy p{color:var(--muted);max-width:48ch}
+.hub-demo{position:relative;z-index:1;border:1px solid var(--border);border-radius:16px;background:var(--surface2);padding:18px;box-shadow:var(--sh0)}
+.hub-demo-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}.hub-demo-head strong{font-family:'Bricolage Grotesque',sans-serif;color:var(--ink)}.hub-demo-head span{font-family:'DM Mono',monospace;font-size:9px;color:var(--green)}
+.hub-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}.hub-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px;border:1px solid var(--border);border-radius:9px;background:var(--surface);font-size:12px;font-weight:700;color:var(--text)}
+.demo-switch{width:32px;height:18px;border-radius:999px;background:var(--brand);padding:3px;display:flex;justify-content:flex-end}.demo-switch::after{content:'';width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}.demo-switch.off{background:var(--border2);justify-content:flex-start}
+.theme-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:14px}.theme-chip{height:34px;border:3px solid var(--surface);outline:1px solid var(--border);border-radius:8px}.theme-chip:nth-child(1){background:linear-gradient(90deg,#f5f6fa 50%,#3a3fff 50%)}.theme-chip:nth-child(2){background:linear-gradient(90deg,#080b12 50%,#24f4c7 50%)}.theme-chip:nth-child(3){background:linear-gradient(90deg,#f2efe6 50%,#b52c20 50%)}.theme-chip:nth-child(4){background:linear-gradient(90deg,#fff5ea 50%,#e45c3a 50%)}.theme-chip:nth-child(5){background:linear-gradient(90deg,#edf3ec 50%,#267a55 50%)}
+@media(max-width:760px){.personalize-card{grid-template-columns:1fr;padding:28px;gap:28px}.hub-list{grid-template-columns:1fr}}
+
 /* ─── TOPBAR ─────────────────────────────── */
 .topbar{
   position:sticky;top:0;z-index:30;
@@ -1034,7 +1049,7 @@ h1 .line2{display:block;color:var(--ink);}
         </div>
         <div class="mini-cal-wrap">
           <div class="mini-cal-month">
-            <span>June 2025</span>
+            <span>August 2026</span>
             <div style="display:flex;gap:4px;">
               <div class="mini-cal-month-btn">‹</div>
               <div class="mini-cal-month-btn">›</div>
@@ -1078,6 +1093,31 @@ h1 .line2{display:block;color:var(--ink);}
       </div>
     </div>
 
+  </div>
+</section>
+
+<!-- PERSONAL WORKSPACE -->
+<section class="personalize-section" id="personalize">
+  <div class="wrap">
+    <div class="personalize-card reveal">
+      <div class="personalize-copy">
+        <div class="personalize-kicker">Your workspace, your rules</div>
+        <h2>Turn hubs on.<br><em>Turn noise off.</em></h2>
+        <p>PostIQ now adapts to the way you work. Keep Planning, Create, Ideas, and Approvals in your sidebar—or switch off the hubs you do not need. Then make it yours with five distinct workspace looks, including a dark neon control room.</p>
+      </div>
+      <div class="hub-demo" aria-label="Workspace customization preview">
+        <div class="hub-demo-head"><strong>Customize your workspace</strong><span>Saved locally ✓</span></div>
+        <div class="hub-list">
+          <div class="hub-row"><span>📅 Planning</span><span class="demo-switch" aria-hidden="true"></span></div>
+          <div class="hub-row"><span>✍️ Create</span><span class="demo-switch" aria-hidden="true"></span></div>
+          <div class="hub-row"><span>💡 Ideas</span><span class="demo-switch" aria-hidden="true"></span></div>
+          <div class="hub-row"><span>✅ Approvals</span><span class="demo-switch off" aria-hidden="true"></span></div>
+        </div>
+        <div class="theme-strip" aria-label="PostIQ, After Dark, Editorial, Studio, and Evergreen theme previews">
+          <span class="theme-chip" title="PostIQ"></span><span class="theme-chip" title="After Dark"></span><span class="theme-chip" title="Editorial"></span><span class="theme-chip" title="Studio"></span><span class="theme-chip" title="Evergreen"></span>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1160,8 +1200,8 @@ h1 .line2{display:block;color:var(--ink);}
     <div class="tools-header reveal">
       <div class="tools-header-left">
         <div class="tools-eyebrow"><span class="eyebrow-dot"></span>The toolkit</div>
-        <h2>Seven tools. <em>One workflow.</em></h2>
-        <p>Each tool has one job. Together they replace the tabs, spreadsheets, and Slack threads that make social media planning feel like work.</p>
+        <h2>Your connected toolkit. <em>One workflow.</em></h2>
+        <p>From planning and creation to your post library and performance pulse, each tool has one job. Switch whole hubs on or off so the workspace only shows what matters to you.</p>
       </div>
     </div>
 
@@ -1196,7 +1236,7 @@ h1 .line2{display:block;color:var(--ink);}
           <span class="demo-toolbar-dot ui-dot-r"></span>
           <span class="demo-toolbar-dot ui-dot-y"></span>
           <span class="demo-toolbar-dot ui-dot-g"></span>
-          <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--subtle);margin-left:8px;">Plan — June 2025</span>
+          <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--subtle);margin-left:8px;">Plan — August 2026</span>
         </div>
         <div class="cal-demo-grid">
           <div class="cal-demo-dow">S</div><div class="cal-demo-dow">M</div><div class="cal-demo-dow">T</div>

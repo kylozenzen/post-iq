@@ -29,6 +29,9 @@ Ideas → Plan → Compose → Review → Buffer
 ### 📅 Plan
 Monthly calendar view of your Buffer queue. Queue gaps surface automatically so you always know where the holes are. Add color-coded planning notes to any day — ideas, reminders, revision flags, campaign markers. Share a read-only snapshot link with your team or client without requiring a PostIQ account.
 
+### 🎛️ Custom Workspaces
+Turn the Planning, Create, Ideas, and Approvals hubs on or off from Customize settings so the sidebar matches your workflow. Choose from the original PostIQ look plus four distinct themes: After Dark, Editorial, Studio, and Evergreen. Workspace and theme preferences are saved locally in your browser.
+
 ### 🧠 Content Pillars
 Define your repeatable content themes with seed ideas and tone angles. The Pillar Plan Builder walks you through 6 questions and generates a full pillar system — 5 content pillars, trust layer tags, seed ideas, hooks, and series starters. Hit Start on any seed to drop a post starter directly into Compose.
 

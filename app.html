@@ -13,6 +13,10 @@
   <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png" />
   <meta name="description" content="PostIQ is a free public beta companion workspace for Buffer users. Plan your queue, compose posts, review content, and share clean snapshots before publishing." />
+  <script>
+    // Apply the saved palette before styles load to avoid a flash of the default theme.
+    try { document.documentElement.dataset.theme = localStorage.getItem('postiq.theme') || 'default'; } catch {}
+  </script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-5RV57M7J0K"></script>
   <script>
   window.dataLayer=window.dataLayer||[];
@@ -1301,6 +1305,34 @@
           </div>
           <p class="workspace-preference-note" id="workspacePreferenceNote" role="status" aria-live="polite"></p>
           <button class="btn sm ghost" id="resetWorkspaceBtn" type="button">Reset workspace visibility</button>
+        </section>
+
+        <section class="settings-section" aria-labelledby="customizeThemeHeading">
+          <h3 class="settings-section-title" id="customizeThemeHeading">Theme</h3>
+          <p class="settings-copy">Give your workspace a distinct atmosphere. Your choice stays with this browser.</p>
+          <div class="theme-picker" id="themePicker" role="radiogroup" aria-label="Workspace theme">
+            <button class="theme-card" type="button" data-theme-choice="default" role="radio" aria-checked="false">
+              <span class="theme-swatch theme-swatch-default" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span><strong>PostIQ</strong><small>Crisp indigo</small></span>
+            </button>
+            <button class="theme-card" type="button" data-theme-choice="neon" role="radio" aria-checked="false">
+              <span class="theme-swatch theme-swatch-neon" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span><strong>After Dark</strong><small>Neon control room</small></span>
+            </button>
+            <button class="theme-card" type="button" data-theme-choice="editorial" role="radio" aria-checked="false">
+              <span class="theme-swatch theme-swatch-editorial" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span><strong>Editorial</strong><small>Ink &amp; paper</small></span>
+            </button>
+            <button class="theme-card" type="button" data-theme-choice="studio" role="radio" aria-checked="false">
+              <span class="theme-swatch theme-swatch-studio" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span><strong>Studio</strong><small>Warm creative desk</small></span>
+            </button>
+            <button class="theme-card" type="button" data-theme-choice="evergreen" role="radio" aria-checked="false">
+              <span class="theme-swatch theme-swatch-evergreen" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span><strong>Evergreen</strong><small>Quiet focus</small></span>
+            </button>
+          </div>
+          <p class="workspace-preference-note" id="themePreferenceNote" role="status" aria-live="polite"></p>
         </section>
 
         <section class="settings-section" aria-labelledby="customizePlanningHeading">
