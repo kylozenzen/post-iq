@@ -2217,6 +2217,31 @@ function postPlatformLabel(p) {
   const ch = state.channels.find(c => c.id === (p?.channelId || p?.channel_id));
   return p?.platform || p?.service || ch?.service || '';
 }
+function platformIdentity(post) {
+  const raw = String(postPlatformLabel(post) || postChannelLabel(post) || 'Social post').trim();
+  const key = raw.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const platforms = [
+    { match: ['twitter', 'x', 'xcom'], key: 'x', label: 'X', mark: 'X' },
+    { match: ['linkedin'], key: 'linkedin', label: 'LinkedIn', mark: 'in' },
+    { match: ['instagram'], key: 'instagram', label: 'Instagram', mark: '◎' },
+    { match: ['facebook', 'facebookpage'], key: 'facebook', label: 'Facebook', mark: 'f' },
+    { match: ['threads', 'threadsnet'], key: 'threads', label: 'Threads', mark: '@' },
+    { match: ['tiktok'], key: 'tiktok', label: 'TikTok', mark: '♪' },
+    { match: ['youtube', 'youtubeshorts'], key: 'youtube', label: 'YouTube', mark: '▶' },
+    { match: ['pinterest'], key: 'pinterest', label: 'Pinterest', mark: 'P' },
+    { match: ['bluesky'], key: 'bluesky', label: 'Bluesky', mark: '◇' },
+    { match: ['mastodon'], key: 'mastodon', label: 'Mastodon', mark: 'M' }
+  ];
+  return platforms.find(item => item.match.includes(key)) || { key: 'social', label: raw || 'Social post', mark: '•' };
+}
+function platformLogoHtml(post) {
+  const platform = platformIdentity(post);
+  return `<span class="platform-logo platform-${platform.key}" role="img" aria-label="${safeText(platform.label)}" title="${safeText(platform.label)}"><span aria-hidden="true">${safeText(platform.mark)}</span></span>`;
+}
+function calendarPostPillHtml(post, dataAttribute, dateKey, limit) {
+  const platform = platformIdentity(post);
+  return `<button type="button" class="day-post-pill" ${dataAttribute}="${safeText(dateKey)}" title="${safeText(platform.label)} · ${safeText(compact(post.text, 120))}">${platformLogoHtml(post)}<span class="day-post-copy">${safeText(compact(post.text, limit))}</span></button>`;
+}
 function snapshotPostPayload(p) {
   return {
     dueAt: p.dueAt, text: p.text || '', status: p.status || 'scheduled',
@@ -2254,7 +2279,7 @@ function renderCalendar() {
 
     let html = `<div class="day-header"><div class="day-num">${d.getDate()}</div><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add note for ${safeText(formatDateWithYear(d))}">+</button></div>`;
     if (dayPosts.length) html += `<div class="day-count">${dayPosts.length}</div>`;
-    dayPosts.slice(0, 2).forEach(p => { html += `<button type="button" class="day-post-pill" data-post-detail="${key}">${safeText(compact(p.text, 60))}</button>`; });
+    dayPosts.slice(0, 2).forEach(p => { html += calendarPostPillHtml(p, 'data-post-detail', key, 60); });
     if (dayPosts.length > 2) html += `<div class="more-indicator">+${dayPosts.length - 2} more</div>`;
     dayNotes.slice(0, 2).forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="day-note-pill" data-note-detail="${safeText(note.id)}" style="${notePillStyle(meta)}" aria-label="Edit note for ${safeText(formatDateWithYear(d))}">${safeText(compact(note.text, 50))}</button>`; });
     if (dayNotes.length > 2) html += `<div class="more-indicator">+${dayNotes.length - 2} notes</div>`;
@@ -2296,10 +2321,10 @@ function renderWeekView() {
     const dayPosts = calendarFilterAllowsPosts() ? allDayPosts : [];
     const dayNotes = calendarFilterNotes(allDayNotes);
     const card = document.createElement('div');
-    card.className = 'cal-week-day';
-    let html = `<div class="cal-week-day-title"><span class="cal-week-day-name">${d.toLocaleDateString(undefined,{ weekday:'short'})}</span><div class="cal-week-day-title-right"><strong class="cal-week-day-date">${d.toLocaleDateString(undefined,{ month:'short', day:'numeric'})}</strong><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add note for ${safeText(formatDateWithYear(d))}">+</button></div></div>`;
+    card.className = `cal-week-day${key === fmtDate(new Date()) ? ' today' : ''}${dayPosts.length ? ' has-posts' : ''}`;
+    let html = `<div class="cal-week-day-title"><span class="cal-week-day-name">${d.toLocaleDateString(undefined,{ weekday:'short'})}</span><div class="cal-week-day-title-right"><strong class="cal-week-day-date">${d.toLocaleDateString(undefined,{ month:'short', day:'numeric'})}</strong><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add note for ${safeText(formatDateWithYear(d))}">+</button></div></div><div class="cal-week-day-summary">${dayPosts.length ? `${dayPosts.length} post${dayPosts.length === 1 ? '' : 's'}` : 'Open day'}${dayNotes.length ? ` · ${dayNotes.length} note${dayNotes.length === 1 ? '' : 's'}` : ''}</div>`;
     if (!dayPosts.length && !dayNotes.length) html += `<div class="cal-week-empty">No posts or notes</div>`;
-    dayPosts.forEach(p => { html += `<button type="button" class="day-post-pill" data-week-post="${key}">${safeText(compact(p.text, 80))}</button>`; });
+    dayPosts.forEach(p => { html += calendarPostPillHtml(p, 'data-week-post', key, 110); });
     dayNotes.forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="day-note-pill" data-week-note="${safeText(note.id)}" style="${notePillStyle(meta)}">${safeText(compact(note.text, 70))}</button>`; });
     card.innerHTML = html;
     card.querySelectorAll('[data-week-post]').forEach(el => el.addEventListener('click', ev => { ev.stopPropagation(); openCalendarPostDetails(key, allDayPosts, allDayNotes); }));
@@ -2333,7 +2358,7 @@ function updateCalendarViewUI() {
     calendarRoot.classList.toggle('is-month-view', !isWeek);
   }
   qs('calGrid')?.style.setProperty('display', isWeek ? 'none' : 'grid');
-  qs('calWeek')?.style.setProperty('display', isWeek ? 'block' : 'none');
+  qs('calWeek')?.style.setProperty('display', isWeek ? 'grid' : 'none');
   qs('calendarViewMonthBtn')?.classList.toggle('active', !isWeek);
   qs('calendarViewWeekBtn')?.classList.toggle('active', isWeek);
 }
