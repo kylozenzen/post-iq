@@ -1,0 +1,30 @@
+name: Fix Complete Week detail copy
+
+on:
+  push:
+    branches:
+      - agent/show-published-posts-in-planning
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/show-published-posts-in-planning
+      - name: Fix planner detail labels
+        run: >-
+          python -c "from pathlib import Path; p=Path('app.js'); s=p.read_text(); s=s.replace(\"${posts.length} Post${posts.length > 1 ? 's' : ''}\", \"${posts.length} post${posts.length > 1 ? 's' : ''}\"); s=s.replace(\"${data.posts.length} Scheduled post${data.posts.length > 1 ? 's' : ''}\", \"${data.posts.length} post${data.posts.length > 1 ? 's' : ''}\"); s=s.replace('This shared view does not include scheduled posts or planning notes for the selected range.', 'This shared view does not include posts or planning notes for the selected range.'); p.write_text(s)"
+      - name: Validate JavaScript syntax
+        run: node --check app.js
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.js
+          git commit -m "fix planner detail labels"
+          git push origin HEAD:agent/show-published-posts-in-planning
