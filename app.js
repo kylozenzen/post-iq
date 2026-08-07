@@ -115,6 +115,7 @@ let postiqConfig = {
 const state = {
   channels: [],
   scheduled: [],
+  published: [],
   month: new Date(),
   selectedDate: null,
   editingNoteId: null,
@@ -137,13 +138,21 @@ const cache = {
   orgId:     { value: null, ts: 0 },
   channels:  { value: [], ts: 0 },
   scheduled: { value: [], ts: 0 },
+  published: { value: [], ts: 0 },
 };
-const CACHE_TTL = { orgId: 86400000, channels: 86400000, scheduled: 600000 };
+const CACHE_TTL = { orgId: 86400000, channels: 86400000, scheduled: 600000, published: 600000 };
 
 // ── UTILITIES ──────────────────────────────────────
 const qs = id => document.getElementById(id);
 const on = (id, evt, handler, opts) => { const el = qs(id); if (!el) return null; el.addEventListener(evt, handler, opts); return el; };
-const fmtDate = d => d.toISOString().slice(0, 10);
+const fmtDate = value => {
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
 const monthLabel = d => d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 const monthStart = d => new Date(d.getFullYear(), d.getMonth(), 1);
 const safeText = v => String(v || '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
@@ -1911,9 +1920,10 @@ function hydrateFromCache() {
   if (cache.orgId.value) state.organizationId = cache.orgId.value;
   if (Array.isArray(cache.channels.value) && cache.channels.value.length) state.channels = cache.channels.value;
   if (Array.isArray(cache.scheduled.value) && cache.scheduled.value.length) state.scheduled = cache.scheduled.value;
+  if (Array.isArray(cache.published.value)) state.published = cache.published.value;
 }
 function clearSyncedData() {
-  state.channels = []; state.scheduled = []; state.organizationId = null;
+  state.channels = []; state.scheduled = []; state.published = []; state.organizationId = null;
   Object.keys(cache).forEach(k => { cache[k] = { value: Array.isArray(cache[k]?.value) ? [] : null, ts: 0 }; });
   try { localStorage.removeItem(CACHE_KEY); } catch {}
   renderChannelSelects(); renderCalendar();
@@ -2022,6 +2032,78 @@ function getScheduledBounds() {
   return { start, end };
 }
 
+function isPublishedPost(post) {
+  return ['sent', 'published'].includes(String(post?.status || '').toLowerCase());
+}
+
+function getPostPlanningAt(post) {
+  return isPublishedPost(post)
+    ? (post?.sentAt || post?.publishedAt || post?.dueAt || post?.createdAt || null)
+    : (post?.dueAt || post?.scheduledAt || post?.createdAt || null);
+}
+
+function getPlannerPosts() {
+  const byId = new Map();
+  [...(state.published || []), ...(state.scheduled || [])].forEach((post, index) => {
+    if (!post) return;
+    const fallback = `${getPostPlanningAt(post) || ''}|${post.channelId || ''}|${post.text || ''}|${index}`;
+    const key = String(post.id || fallback);
+    const existing = byId.get(key);
+    if (!existing || (!isPublishedPost(existing) && isPublishedPost(post))) byId.set(key, post);
+  });
+  return [...byId.values()].sort((a, b) => new Date(getPostPlanningAt(a) || 0) - new Date(getPostPlanningAt(b) || 0));
+}
+
+function postsForDateKey(dateKey) {
+  return getPlannerPosts().filter(post => fmtDate(getPostPlanningAt(post)) === dateKey);
+}
+
+function plannerDaySummary(posts = []) {
+  const published = posts.filter(isPublishedPost).length;
+  const scheduled = posts.length - published;
+  const parts = [];
+  if (published) parts.push(`${published} published`);
+  if (scheduled) parts.push(`${scheduled} scheduled`);
+  return parts.join(' · ') || 'Open day';
+}
+
+async function getPublishedPosts({ force = false } = {}) {
+  if (!force && isCacheFresh('published')) return state.published || [];
+  const orgId = await getOrgId({ force });
+  if (!orgId) return [];
+  const bounds = getScheduledBounds();
+  let all = [], after = null, hasNext = true, fetched = 0;
+  const seen = new Set();
+  const q = 'query SentPosts($organizationId: OrganizationId!, $after: String, $first: Int!) { posts(first:$first,after:$after,input:{organizationId:$organizationId,filter:{status:[sent]},sort:[{field:createdAt,direction:desc}]}){edges{node{id text createdAt sentAt channelId externalLink assets{thumbnail mimeType source}}} pageInfo{hasNextPage endCursor}} }';
+  while (hasNext && fetched < 500) {
+    const page = await callBuffer(q, { organizationId: orgId, after, first: 100 });
+    const block = page?.data?.posts;
+    const edges = block?.edges || [];
+    edges.forEach(edge => {
+      const post = edge?.node;
+      if (!post?.id || seen.has(post.id)) return;
+      const sentAt = post.sentAt || post.createdAt;
+      const sent = new Date(sentAt || 0);
+      if (!Number.isNaN(sent.getTime()) && sent >= bounds.start && sent <= bounds.end) {
+        seen.add(post.id);
+        all.push({ ...post, dueAt: sentAt, status: 'sent' });
+      }
+    });
+    fetched += edges.length;
+    hasNext = !!block?.pageInfo?.hasNextPage;
+    after = block?.pageInfo?.endCursor || null;
+    if (!block?.pageInfo || !edges.length) break;
+    const oldest = edges[edges.length - 1]?.node;
+    const oldestAt = new Date(oldest?.sentAt || oldest?.createdAt || 0);
+    if (!Number.isNaN(oldestAt.getTime()) && oldestAt < bounds.start) break;
+  }
+  all.sort((a, b) => new Date(getPostPlanningAt(a) || 0) - new Date(getPostPlanningAt(b) || 0));
+  state.published = all;
+  cache.published = { value: all, ts: Date.now() };
+  saveCacheState();
+  return all;
+}
+
 async function syncBuffer({ force = false } = {}) {
   const connection = syncBufferTokenFromState();
   const oauthToken = getStoredOAuthToken();
@@ -2036,15 +2118,19 @@ async function syncBuffer({ force = false } = {}) {
     const orgId = await getOrgId({ force });
     if (!orgId) { clearSyncedData(); setSyncStatus('failed', 'No organization found.'); safeTrack(() => GA4_Auth.syncFailed('not_found')); return; }
     await getChannels({ force });
-    const posts = await getScheduledPosts({ force });
+    const [scheduledPosts, publishedPosts] = await Promise.all([
+      getScheduledPosts({ force }),
+      getPublishedPosts({ force })
+    ]);
+    const plannerPosts = getPlannerPosts();
     renderChannelSelects();
     renderCalendar();
     detectQueueGaps();
-    setSyncStatus('success', `${posts.length} scheduled posts loaded.`);
+    setSyncStatus('success', `${scheduledPosts.length} scheduled · ${publishedPosts.length} published.`);
     renderConnectionUI();
   initHomeView();
-    showToast(`Loaded ${posts.length} posts`, 'success');
-    safeTrack(() => GA4_Auth.syncComplete({ postCount: posts.length, channelCount: state.channels.length, syncTimeMs: Date.now() - syncStartTime, usedCache: false }));
+    showToast(`Loaded ${plannerPosts.length} planner posts`, 'success');
+    safeTrack(() => GA4_Auth.syncComplete({ postCount: plannerPosts.length, channelCount: state.channels.length, syncTimeMs: Date.now() - syncStartTime, usedCache: false }));
     safeTrack(() => GA4_System.performanceMetric('buffer_sync', Date.now() - syncStartTime));
     if (state.organizationId) safeTrack(() => GA4.setUserIdentity(state.organizationId, { connected: true, channelCount: state.channels.length, queueDepth: state.scheduled.length, hasApprovals: getAllApprovalMetas().length > 0 }));
     window.dispatchEvent(new Event('postiq:synced'));
@@ -2240,11 +2326,15 @@ function platformLogoHtml(post) {
 }
 function calendarPostPillHtml(post, dataAttribute, dateKey, limit) {
   const platform = platformIdentity(post);
-  return `<button type="button" class="day-post-pill" ${dataAttribute}="${safeText(dateKey)}" title="${safeText(platform.label)} · ${safeText(compact(post.text, 120))}">${platformLogoHtml(post)}<span class="day-post-copy">${safeText(compact(post.text, limit))}</span></button>`;
+  const published = isPublishedPost(post);
+  const statusLabel = published ? 'Published' : 'Scheduled';
+  return `<button type="button" class="day-post-pill${published ? ' is-published' : ''}" ${dataAttribute}="${safeText(dateKey)}" title="${safeText(statusLabel)} · ${safeText(platform.label)} · ${safeText(compact(post.text, 120))}">${platformLogoHtml(post)}<span class="day-post-status" aria-hidden="true">${published ? '✓' : '◷'}</span><span class="day-post-copy">${safeText(compact(post.text, limit))}</span></button>`;
 }
 function snapshotPostPayload(p) {
+  const planningAt = getPostPlanningAt(p);
   return {
-    dueAt: p.dueAt, text: p.text || '', status: p.status || 'scheduled',
+    dueAt: planningAt, dateKey: fmtDate(planningAt), sentAt: p.sentAt || null, externalLink: p.externalLink || '',
+    text: p.text || '', status: isPublishedPost(p) ? 'sent' : 'scheduled',
     channelName: postChannelLabel(p), platform: postPlatformLabel(p), channelId: p.channelId || '',
     mediaUrls: getPostMediaUrls(p)
   };
@@ -2263,7 +2353,7 @@ function renderCalendar() {
     const d = new Date(start); d.setDate(start.getDate() + i);
     const key = fmtDate(d);
     const inMonth = d.getMonth() === state.month.getMonth();
-    const allDayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
+    const allDayPosts = postsForDateKey(key);
     const allDayNotes = getNotesForDate(key, notes);
     const dayPosts = calendarFilterAllowsPosts() ? allDayPosts : [];
     const dayNotes = calendarFilterNotes(allDayNotes);
@@ -2316,13 +2406,13 @@ function renderWeekView() {
   for (let i = 0; i < 7; i++) {
     const d = new Date(start); d.setDate(start.getDate() + i);
     const key = fmtDate(d);
-    const allDayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
+    const allDayPosts = postsForDateKey(key);
     const allDayNotes = getNotesForDate(key, notes);
     const dayPosts = calendarFilterAllowsPosts() ? allDayPosts : [];
     const dayNotes = calendarFilterNotes(allDayNotes);
     const card = document.createElement('div');
     card.className = `cal-week-day${key === fmtDate(new Date()) ? ' today' : ''}${dayPosts.length ? ' has-posts' : ''}`;
-    let html = `<div class="cal-week-day-title"><span class="cal-week-day-name">${d.toLocaleDateString(undefined,{ weekday:'short'})}</span><div class="cal-week-day-title-right"><strong class="cal-week-day-date">${d.toLocaleDateString(undefined,{ month:'short', day:'numeric'})}</strong><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add note for ${safeText(formatDateWithYear(d))}">+</button></div></div><div class="cal-week-day-summary">${dayPosts.length ? `${dayPosts.length} post${dayPosts.length === 1 ? '' : 's'}` : 'Open day'}${dayNotes.length ? ` · ${dayNotes.length} note${dayNotes.length === 1 ? '' : 's'}` : ''}</div>`;
+    let html = `<div class="cal-week-day-title"><span class="cal-week-day-name">${d.toLocaleDateString(undefined,{ weekday:'short'})}</span><div class="cal-week-day-title-right"><strong class="cal-week-day-date">${d.toLocaleDateString(undefined,{ month:'short', day:'numeric'})}</strong><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add note for ${safeText(formatDateWithYear(d))}">+</button></div></div><div class="cal-week-day-summary">${dayPosts.length ? plannerDaySummary(dayPosts) : 'Open day'}${dayNotes.length ? ` · ${dayNotes.length} note${dayNotes.length === 1 ? '' : 's'}` : ''}</div>`;
     if (!dayPosts.length && !dayNotes.length) html += `<div class="cal-week-empty">No posts or notes</div>`;
     dayPosts.forEach(p => { html += calendarPostPillHtml(p, 'data-week-post', key, 110); });
     dayNotes.forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="day-note-pill" data-week-note="${safeText(note.id)}" style="${notePillStyle(meta)}">${safeText(compact(note.text, 70))}</button>`; });
@@ -2397,9 +2487,9 @@ function populateNoteModal(date, existing = null) {
   qs('noteDateLabel').textContent = `${date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })} · ${existing ? 'Edit note' : 'Add note'}`;
   qs('noteText').value = existing ? existing.text || '' : '';
   renderNoteTypeOptions(existing ? getNoteTypeMeta(existing).id : getDefaultNoteType().id);
-  const dayPosts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
+  const dayPosts = postsForDateKey(key);
   const noteCount = getNotesForDate(key).length;
-  qs('dayPostPreview').innerHTML = `<div style="font-size:12px;color:var(--subtle);margin-bottom:8px;">${dayPosts.length} scheduled post${dayPosts.length === 1 ? '' : 's'} · ${noteCount} existing note${noteCount === 1 ? '' : 's'}</div>`;
+  qs('dayPostPreview').innerHTML = `<div style="font-size:12px;color:var(--subtle);margin-bottom:8px;">${dayPosts.length} post${dayPosts.length === 1 ? '' : 's'} · ${noteCount} existing note${noteCount === 1 ? '' : 's'}</div>`;
   qs('noteStatus').textContent = '';
   openModal('noteModal');
 }
@@ -2506,7 +2596,7 @@ function renderAgenda() {
   nav.innerHTML = `<div class="cal-month-label" style="font-size:18px;">${monthLabel(state.month)}</div>`;
   agenda.appendChild(nav);
   const map = {};
-  state.scheduled.forEach(p => { const k = fmtDate(new Date(p.dueAt)); if (!map[k]) map[k] = { posts: [], notes: [] }; map[k].posts.push(p); });
+  getPlannerPosts().forEach(p => { const k = fmtDate(getPostPlanningAt(p)); if (!k) return; if (!map[k]) map[k] = { posts: [], notes: [] }; map[k].posts.push(p); });
   Object.entries(notes).forEach(([k, list]) => {
     if (!map[k]) map[k] = { posts: [], notes: [] };
     map[k].notes = getNotesForDate(k, notes);
@@ -2526,7 +2616,7 @@ function renderAgenda() {
     dayEl.style.cssText = `border:1px solid ${isToday ? 'var(--brand)' : 'var(--border)'};border-radius:10px;padding:12px;margin-bottom:8px;background:var(--surface);cursor:pointer;`;
     const dateLabel = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
     let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-family:'${dmMono}',monospace;font-size:11px;font-weight:600;color:${isToday ? 'var(--brand)' : 'var(--muted)'};">${dateLabel}</span>${posts.length ? `<span style="font-size:9px;font-family:'${dmMono}',monospace;background:var(--brand-dim);color:var(--brand);border:1px solid var(--brand-glow);padding:1px 5px;border-radius:3px;">${posts.length} post${posts.length > 1 ? 's' : ''}</span>` : ''}</div>`;
-    posts.slice(0, 2).forEach(p => { html += `<button type="button" class="day-post-preview-btn" data-agenda-post="${key}">${safeText(compact(p.text, 80))}</button>`; });
+    posts.slice(0, 2).forEach(p => { const published = isPublishedPost(p); html += `<button type="button" class="day-post-preview-btn${published ? ' is-published' : ''}" data-agenda-post="${key}">${published ? '✓ ' : ''}${safeText(compact(p.text, 80))}</button>`; });
     if (posts.length > 2) html += `<div style="font-size:10px;color:var(--subtle);margin-bottom:4px;">+${posts.length - 2} more</div>`;
     filteredNotes.slice(0, 2).forEach(note => { const meta = getNoteTypeMeta(note); html += `<div class="day-note-pill" style="display:block;border-radius:5px;margin-top:4px;${notePillStyle(meta)}">${safeText(compact(note.text, 60))}</div>`; });
     if (filteredNotes.length > 2) html += `<div style="font-size:10px;color:var(--subtle);margin-top:4px;">+${filteredNotes.length - 2} notes</div>`;
@@ -2536,7 +2626,7 @@ function renderAgenda() {
     agenda.appendChild(dayEl);
   });
   if (!Object.keys(map).length) {
-    const empty = document.createElement('div'); empty.className = 'empty-state'; empty.innerHTML = '<div class="empty-icon">📅</div><div class="empty-title">Nothing scheduled</div><div class="empty-desc">Connect Buffer and sync to load your upcoming posts.</div>';
+    const empty = document.createElement('div'); empty.className = 'empty-state'; empty.innerHTML = '<div class="empty-icon">📅</div><div class="empty-title">Nothing planned</div><div class="empty-desc">Connect Buffer and sync to load published and upcoming posts.</div>';
     agenda.appendChild(empty);
   }
 }
@@ -2626,7 +2716,7 @@ function buildSnapshotPayload() {
     if (range === 'week') return d >= bounds.start && d <= bounds.end;
     return d.getFullYear() === state.month.getFullYear() && d.getMonth() === state.month.getMonth();
   };
-  const posts = state.scheduled.filter(p => inRange(p.dueAt));
+  const posts = getPlannerPosts().filter(p => inRange(getPostPlanningAt(p)));
   const allNotes   = getNotes();
   const rangeNotes = Object.entries(allNotes)
     .filter(([k]) => inRange(k + 'T12:00:00'))
@@ -2675,7 +2765,7 @@ function shareSnapshot() {
   const linkInput = qs('shareLink'); if (linkInput) linkInput.value = link;
   shareState.dirty = false;
   shareState.lastLink = link;
-  safeTrack(() => GA4_Calendar.snapshotCreated({ range: qs('shareRange')?.value || 'month', channelCount: state.channels.length, postCount: state.scheduled.length }));
+  safeTrack(() => GA4_Calendar.snapshotCreated({ range: qs('shareRange')?.value || 'month', channelCount: state.channels.length, postCount: getPlannerPosts().length }));
   const meta = qs('shareLinkMeta');
   if (meta) {
     meta.textContent = 'Anyone with this link can view the snapshot. No PostIQ account needed.';
@@ -2710,21 +2800,24 @@ function postDetailCardsHtml(posts) {
   return posts.map((p, idx) => {
     const platform = postPlatformLabel(p) || postChannelLabel(p);
     const channel = postChannelLabel(p);
-    const status = p.status || 'scheduled';
-    return `<div class="snap-modal-post">
+    const published = isPublishedPost(p);
+    const statusLabel = published ? 'Published' : 'Scheduled';
+    const externalLink = toSafeExternalUrl(p.externalLink);
+    return `<div class="snap-modal-post${published ? ' is-published' : ''}">
       <div class="snap-modal-post-hdr">
         <div class="snap-modal-post-meta">
           <span class="snap-post-num">Post ${idx + 1}</span>
           ${platform ? '<span class="snap-platform-badge">' + safeText(platform) + '</span>' : ''}
           ${channel && channel !== platform ? '<span class="snap-platform-badge">' + safeText(channel) + '</span>' : ''}
-          ${status ? '<span class="snap-platform-badge">' + safeText(status) + '</span>' : ''}
+          <span class="snap-platform-badge${published ? ' is-published' : ''}">${statusLabel}</span>
         </div>
-        <span class="snap-scheduled-time">${safeText(formatDateTime(p.dueAt))}</span>
+        <span class="snap-scheduled-time">${safeText(formatDateTime(getPostPlanningAt(p)))}</span>
       </div>
       <div class="snap-modal-post-body">${safeText(p.text || '(no copy)')}</div>
       ${mediaPreviewHtml(p)}
       <div class="snap-modal-post-copy">
         <button class="btn sm ghost" data-copy="${safeText(p.text || '')}">Copy post</button>
+        ${externalLink ? `<a class="btn sm ghost" href="${safeText(externalLink)}" target="_blank" rel="noopener">View post ↗</a>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -2752,14 +2845,14 @@ function editableNoteCardsHtml(notes, noteTypes = getNoteTypes()) {
 }
 function openCalendarDayDetails(date) {
   const key = fmtDate(date);
-  const posts = state.scheduled.filter(p => fmtDate(new Date(p.dueAt)) === key);
+  const posts = postsForDateKey(key);
   const notes = getNotesForDate(key);
   const titleEl = qs('sharedDayTitle');
   const bodyEl = qs('sharedDayBody');
   if (!titleEl || !bodyEl) return;
   titleEl.textContent = formatDateOnly(key);
   const sections = [];
-  if (posts.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${posts.length} Scheduled post${posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(posts)}</div>`);
+  if (posts.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${posts.length} post${posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(posts)}</div>`);
   if (notes.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${notes.length} Planning note${notes.length > 1 ? 's' : ''}</div>${editableNoteCardsHtml(notes)}</div>`);
   if (!posts.length && !notes.length) sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No plans yet</div><div class="empty-desc">Add a planning note or draft content for this day.</div></div>');
   sections.push('<div class="row mt8"><button class="btn primary" data-add-note>Add planning note</button></div>');
@@ -2779,9 +2872,9 @@ function openPostDetails(key, data, options = {}) {
   titleEl.textContent = options.title || formatDateOnly(key);
   const sections = [];
   if (data.posts && data.posts.length) {
-    sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${data.posts.length} Scheduled post${data.posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(data.posts)}</div>`);
+    sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${data.posts.length} post${data.posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(data.posts)}</div>`);
   } else {
-    sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No post scheduled</div><div class="empty-desc">This day does not have a scheduled post in this calendar.</div></div>');
+    sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No post on this day</div><div class="empty-desc">This day does not have a published or scheduled post in this calendar.</div></div>');
   }
   if (data.notes && data.notes.length) {
     sections.push(`<div><div class="post-detail-label">Planning notes</div>${noteCardsHtml(data.notes, options.noteTypes || getNoteTypes())}</div>`);
@@ -2824,7 +2917,7 @@ function renderSharedDayCell(grid, key, date, data, snap, { inMonth = true } = {
   let inner = '<div class="day-num">' + date.getDate() + '</div>';
   if (data.posts.length) {
     inner += '<div class="day-count">' + data.posts.length + '</div>';
-    data.posts.slice(0,2).forEach(post => { inner += '<div class="day-post-pill">' + safeText((post.text||'').slice(0,60)) + '</div>'; });
+    data.posts.slice(0,2).forEach(post => { const published = isPublishedPost(post); inner += '<div class="day-post-pill' + (published ? ' is-published' : '') + '">' + (published ? '✓ ' : '') + safeText((post.text||'').slice(0,60)) + '</div>'; });
     if (data.posts.length > 2) inner += '<div class="more-indicator">+' + (data.posts.length - 2) + ' more</div>';
   }
   if (visibleNotes.length) {
@@ -2891,7 +2984,7 @@ function renderSharedFromHash() {
     const countEl = qs('sharedPostCount');
     if (countEl) {
       countEl.textContent = posts.length;
-      if (countEl.parentElement) countEl.parentElement.innerHTML = '<strong id="sharedPostCount">' + posts.length + '</strong> scheduled post' + (posts.length === 1 ? '' : 's');
+      if (countEl.parentElement) countEl.parentElement.innerHTML = '<strong id="sharedPostCount">' + posts.length + '</strong> post' + (posts.length === 1 ? '' : 's');
     }
     const noteEl = qs('sharedSnapshotNote');
     if (noteEl) {
@@ -2900,7 +2993,7 @@ function renderSharedFromHash() {
       } else if (!hasPosts && hasNotes) {
         noteEl.textContent = 'This snapshot mainly contains planning notes for the selected range.';
       } else if (!hasPosts) {
-        noteEl.textContent = 'This shared view does not include scheduled posts or planning notes for the selected range.';
+        noteEl.textContent = 'This shared view does not include posts or planning notes for the selected range.';
       } else {
         noteEl.textContent = '';
       }
@@ -2923,7 +3016,7 @@ function renderSharedFromHash() {
     }
     const closeBtn = qs('closeSharedDay'); if (closeBtn) closeBtn.onclick = () => closeModal('sharedDayModal');
     const map = {};
-    posts.forEach(p => { const k = String(p.dueAt || '').slice(0,10); if (!k) return; if (!map[k]) map[k]={posts:[],notes:[]}; map[k].posts.push(p); });
+    posts.forEach(p => { const k = p.dateKey || fmtDate(p.dueAt); if (!k) return; if (!map[k]) map[k]={posts:[],notes:[]}; map[k].posts.push(p); });
     notes.forEach(n => { if (!n.date) return; if (!map[n.date]) map[n.date]={posts:[],notes:[]}; map[n.date].notes.push(n); });
     renderSharedCalendarGrid({ ...snap, posts, notes }, map);
     return true;

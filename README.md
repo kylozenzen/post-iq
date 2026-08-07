@@ -27,7 +27,7 @@ Ideas → Plan → Compose → Review → Buffer
 ```
 
 ### 📅 Plan
-Monthly calendar view of your Buffer queue. Queue gaps surface automatically so you always know where the holes are. Add color-coded planning notes to any day — ideas, reminders, revision flags, campaign markers. Share a read-only snapshot link with your team or client without requiring a PostIQ account.
+Monthly and weekly calendar views of your Buffer activity, combining recently published posts with the upcoming queue. Queue gaps surface automatically so you always know where the holes are. Add color-coded planning notes to any day — ideas, reminders, revision flags, campaign markers. Share a read-only snapshot link with your team or client without requiring a PostIQ account.
 
 ### 🎛️ Custom Workspaces
 Turn the Planning, Create, Ideas, and Approvals hubs on or off from Customize settings so the sidebar matches your workflow. Choose from the original PostIQ look plus four distinct themes: After Dark, Editorial, Studio, and Evergreen. Workspace and theme preferences are saved locally in your browser.
@@ -59,7 +59,7 @@ Turn any week or month of planned content into a static, shareable link. Recipie
 
 PostIQ uses Buffer's public API with OAuth (PKCE flow). When you sign in:
 
-- PostIQ loads your channels and scheduled queue
+- PostIQ loads your channels, scheduled queue, and recent published posts
 - You can create drafts, queue posts, or schedule content through Buffer
 - Nothing publishes automatically — every Buffer action is your choice
 - You can disconnect anytime from Settings → Connection
