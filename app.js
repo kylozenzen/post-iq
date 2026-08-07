@@ -2852,7 +2852,7 @@ function openCalendarDayDetails(date) {
   if (!titleEl || !bodyEl) return;
   titleEl.textContent = formatDateOnly(key);
   const sections = [];
-  if (posts.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${posts.length} Post${posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(posts)}</div>`);
+  if (posts.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${posts.length} post${posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(posts)}</div>`);
   if (notes.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${notes.length} Planning note${notes.length > 1 ? 's' : ''}</div>${editableNoteCardsHtml(notes)}</div>`);
   if (!posts.length && !notes.length) sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No plans yet</div><div class="empty-desc">Add a planning note or draft content for this day.</div></div>');
   sections.push('<div class="row mt8"><button class="btn primary" data-add-note>Add planning note</button></div>');
@@ -2872,7 +2872,7 @@ function openPostDetails(key, data, options = {}) {
   titleEl.textContent = options.title || formatDateOnly(key);
   const sections = [];
   if (data.posts && data.posts.length) {
-    sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${data.posts.length} Scheduled post${data.posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(data.posts)}</div>`);
+    sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${data.posts.length} post${data.posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(data.posts)}</div>`);
   } else {
     sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No post on this day</div><div class="empty-desc">This day does not have a published or scheduled post in this calendar.</div></div>');
   }
@@ -2993,7 +2993,7 @@ function renderSharedFromHash() {
       } else if (!hasPosts && hasNotes) {
         noteEl.textContent = 'This snapshot mainly contains planning notes for the selected range.';
       } else if (!hasPosts) {
-        noteEl.textContent = 'This shared view does not include scheduled posts or planning notes for the selected range.';
+        noteEl.textContent = 'This shared view does not include posts or planning notes for the selected range.';
       } else {
         noteEl.textContent = '';
       }
