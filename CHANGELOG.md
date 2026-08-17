@@ -1,5 +1,20 @@
 # Changelog
 
+## Focused Writing Space
+
+### Added
+
+- Distraction-free Focus Mode for Compose
+- Local draft autosave and safe restoration after refresh
+- Collapsible writing-tools rail on desktop
+- Writing-tools bottom sheet and sticky Buffer actions on mobile
+
+### Improved
+
+- Larger, calmer editor dimensions across screen sizes
+- Mobile toolbar scrolling and keyboard-safe use of dynamic viewport units
+- Accessible writing-tool state, focus return, and Escape-key behavior
+
 ## Public Beta Launch Prep
 
 ### Added

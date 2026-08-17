@@ -106,12 +106,31 @@ function init() {
   });
 
   const manageTplBtn = qs('composerManageTemplatesBtn'); if (manageTplBtn) manageTplBtn.onclick = () => { activateView('ideasView'); setIdeasTab('templates'); };
-  document.querySelectorAll('.support-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.support-tab').forEach(t => t.classList.toggle('active', t === tab));
-      document.querySelectorAll('.support-panel').forEach(p => p.classList.toggle('active', p.dataset.stoolPanel === tab.dataset.stool));
+  const supportTabs = [...document.querySelectorAll('.support-tab')];
+  const selectSupportTab = tab => {
+    supportTabs.forEach(t => {
+      const selected = t === tab;
+      t.classList.toggle('active', selected);
+      t.setAttribute('aria-selected', String(selected));
+      t.tabIndex = selected ? 0 : -1;
+    });
+    document.querySelectorAll('.support-panel').forEach(p => p.classList.toggle('active', p.dataset.stoolPanel === tab.dataset.stool));
+  };
+  supportTabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => selectSupportTab(tab));
+    tab.addEventListener('keydown', event => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      let next = index;
+      if (event.key === 'ArrowLeft') next = (index - 1 + supportTabs.length) % supportTabs.length;
+      if (event.key === 'ArrowRight') next = (index + 1) % supportTabs.length;
+      if (event.key === 'Home') next = 0;
+      if (event.key === 'End') next = supportTabs.length - 1;
+      event.preventDefault();
+      selectSupportTab(supportTabs[next]);
+      supportTabs[next].focus();
     });
   });
+  if (supportTabs.length) selectSupportTab(supportTabs.find(tab => tab.classList.contains('active')) || supportTabs[0]);
   on('closeTemplatePicker', 'click', () => closeModal('templatePickerModal'));
   on('templateSearch', 'input', e => { state.templateSearch = e.target.value; renderTemplates(); });
   on('templateSearch', 'change', e => safeTrack(() => GA4_Templates.templateSearched(e.target.value.trim() ? 'has_query' : 'empty')));
@@ -257,6 +276,7 @@ function init() {
   });
   const charCount = qs('charCount'); if (charCount) charCount.textContent = '0 chars';
   on('composerChannel', 'change', updateComposerButtonStates);
+  initComposerWorkspace(editor);
 
   on('composerClearBtn', 'click', clearComposer);
 
@@ -405,6 +425,10 @@ function init() {
 
   // ── COMPOSER MODE TABS ──
   function setComposerMode(mode) {
+    if (mode !== 'compose') {
+      setComposerResourcesOpen(false);
+      setComposerFocusMode(false, false);
+    }
     document.querySelectorAll('.composer-mode-tab').forEach(t => {
       const isActive = t.dataset.cmode === mode;
       t.style.color = isActive ? 'var(--brand)' : 'var(--muted)';

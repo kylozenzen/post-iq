@@ -42,11 +42,25 @@
       /* ── Composer ── */
       #composerView { padding: 0 0 72px !important; max-width: 100%; }
       .composer-layout { display: flex; flex-direction: column; gap: 0; }
+      #composerModeTabs { margin: 0 12px 12px !important; overflow-x: auto; scrollbar-width: none; }
+      #composerModeTabs::-webkit-scrollbar { display: none; }
+      .composer-mode-tab { flex: 0 0 auto; padding-inline: 14px !important; }
       /* Editor full-width, no side padding */
       .editor-wrap { border-radius: 0; border-left: none; border-right: none; }
-      .rich-editor { min-height: 160px; font-size: 15px; padding: 14px 16px; }
-      .editor-toolbar { padding: 8px 10px; gap: 3px; flex-wrap: wrap; }
+      .rich-editor { min-height: clamp(240px, 42dvh, 520px); font-size: 16px; padding: 16px; }
+      .editor-toolbar {
+        padding: 8px 10px;
+        gap: 3px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      .editor-toolbar::-webkit-scrollbar { display: none; }
+      .editor-toolbar .tb-btn { flex: 0 0 auto; }
       .editor-footer { padding: 8px 14px; flex-wrap: wrap; gap: 6px; }
+      .editor-footer #composerChannel { width: 100%; max-width: none !important; flex-basis: 100% !important; }
+      .editor-footer .composer-draft-status { margin-left: 0; }
       /* Media controls — padded since they sit below full-width editor */
       .media-toggle-btn, #mediaToggleOff {
         margin: 8px 16px 0;
@@ -55,11 +69,78 @@
       #mediaSummary    { margin: 8px 16px 0; }
       #composerStatus  { padding: 0 16px; font-size: 12px; }
       #refPin          { margin: 0 16px 14px; }
-      /* Right-panel card becomes a section below the editor */
-      .composer-panel  { padding: 14px 16px 0; display: flex; flex-direction: column; gap: 12px; }
-      .composer-support { grid-template-columns: 1fr; gap: 10px; padding: 0 16px; margin-top: 10px; }
-      .send-actions    { display: flex; flex-direction: column; gap: 8px; }
-      .send-actions .btn { height: 44px; font-size: 15px; justify-content: center; }
+      /* Buffer actions become a thumb-friendly dock. */
+      .composer-panel {
+        position: sticky;
+        bottom: calc(60px + env(safe-area-inset-bottom));
+        z-index: 4;
+        padding: 8px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        background: linear-gradient(to bottom, transparent, var(--bg) 22%);
+      }
+      .composer-panel:has(.schedule-row.open) { position: static; }
+      .composer-panel .panel-card { padding: 9px; border-color: var(--border2); border-radius: 12px; }
+      .composer-panel .panel-card-title { display: none; }
+      .send-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+      .send-actions .btn { width: auto; min-width: 0; height: 44px; padding-inline: 6px; font-size: 12px; line-height: 1.15; justify-content: center; }
+
+      /* Writing tools use the same content as a mobile bottom sheet. */
+      body.composer-resources-open { overflow: hidden; }
+      .composer-support {
+        top: auto;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: min(78dvh, 720px);
+        padding: 0;
+        margin: 0;
+        transform: translateY(calc(100% + 20px));
+      }
+      .composer-support.open { transform: translateY(0); }
+      .composer-support .support-tools-card {
+        border-radius: 22px 22px 0 0;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+      }
+      .resource-drawer-head { padding: 20px 16px 14px; }
+      .resource-drawer-head::before {
+        content: '';
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        width: 42px;
+        height: 4px;
+        border-radius: 99px;
+        background: var(--border2);
+        transform: translateX(-50%);
+      }
+      .composer-support .support-tabs { padding-inline: 8px; }
+      .composer-support .support-tab { flex: 1 0 auto; justify-content: center; padding-inline: 10px; }
+      .composer-support .support-panel { padding: 14px 16px; }
+
+      .composer-focus-bar {
+        margin: 8px 10px 12px;
+        padding: 9px 10px;
+        top: 8px;
+        border-radius: 12px;
+      }
+      .composer-focus-brand { font-size: 15px; }
+      .composer-focus-actions { margin-left: auto; }
+      .composer-focus-actions .btn { padding-inline: 9px; }
+      body.composer-focus-mode #composerView { padding: 0 0 calc(72px + env(safe-area-inset-bottom)) !important; }
+      body.composer-focus-mode .rich-editor { min-height: clamp(320px, 58dvh, 680px); }
+      body.composer-focus-mode .composer-panel { bottom: env(safe-area-inset-bottom); }
+
+      @media (max-width: 460px) {
+        .composer-focus-bar > .composer-draft-status { display: none; }
+        .composer-focus-badge { display: none; }
+        .composer-mobile-action { padding-inline: 8px; }
+      }
 
       /* ── Templates ── */
       .templates-layout { display: flex; flex-direction: column; gap: 0; }

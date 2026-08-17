@@ -54,8 +54,8 @@ window.PostIQOnboarding = (() => {
     },
     composerView: {
       icon: '✍️',
-      title: 'Write here — publish through Buffer',
-      body: 'Compose posts, attach media, and choose a Buffer action. <strong>Nothing goes live</strong> until you hit Draft, Queue, or Schedule.',
+      title: 'A writing space that keeps the useful stuff close',
+      body: 'Your draft autosaves locally. Use <strong>Focus mode</strong> to quiet the interface or open Writing tools for templates, pillars, and AI Assist. Nothing goes live until you choose a Buffer action.',
       anchor: '.editor-wrap',
     },
     ideasView: {

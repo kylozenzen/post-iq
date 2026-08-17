@@ -1,4 +1,4 @@
-const CACHE = 'postiq-v7-organized-assets';
+const CACHE = 'postiq-v8-focused-writing';
 const SHELL = [
   '/',
   '/index.html',

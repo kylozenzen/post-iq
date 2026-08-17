@@ -17,7 +17,7 @@ assert.match(proxySource, /QUERY_TOO_LARGE/);
 assert.match(proxySource, /PROXY_TIMEOUT/);
 
 const swSource = fs.readFileSync('sw.js', 'utf8');
-assert.match(swSource, /postiq-v7-organized-assets/);
+assert.match(swSource, /postiq-v8-focused-writing/);
 assert.match(swSource, /request\.cache === 'only-if-cached'/);
 assert.match(swSource, /request\.mode === 'navigate'/);
 assert.match(swSource, /cache\.match\('\/app\.html'\)/);

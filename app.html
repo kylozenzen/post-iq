@@ -307,8 +307,9 @@
       <div class="mob-view-hdr">
         <span class="mob-view-title">✍️ Compose</span>
         <div class="mob-view-actions">
-          <button class="btn sm ghost" id="composerClearBtnMob" style="display:none;">Clear ✕</button>
-          <button class="btn sm ghost" id="mobMenuBtnDraft">
+          <button class="btn sm ghost composer-mobile-action" type="button" data-composer-resources-toggle aria-controls="composerSupportSection" aria-expanded="false" aria-label="Open writing tools">Tools</button>
+          <button class="btn sm ghost composer-mobile-action" type="button" data-composer-focus-toggle aria-pressed="false" aria-label="Enter focus mode"><span class="composer-focus-label">Focus</span></button>
+          <button class="btn sm ghost composer-mobile-action" id="mobMenuBtnDraft" type="button" aria-label="Open Compose menu">
             <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
           </button>
         </div>
@@ -320,8 +321,22 @@
           <p class="page-desc" id="composerDesc">Write your post, attach media, then choose a Buffer action when you’re ready.</p>
         </div>
         <div class="page-actions">
+          <button class="btn ghost" type="button" data-composer-resources-toggle aria-controls="composerSupportSection" aria-expanded="false">Writing tools</button>
+          <button class="btn" type="button" data-composer-focus-toggle aria-pressed="false"><span class="composer-focus-label">Focus mode</span></button>
           <a class="btn ghost" href="/help/?article=write-split-send-posts">Help</a>
           <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
+        </div>
+      </div>
+
+      <div class="composer-focus-bar" id="composerFocusBar" hidden>
+        <div class="composer-focus-identity">
+          <span class="composer-focus-brand">PostIQ</span>
+          <span class="composer-focus-badge">Focus mode</span>
+        </div>
+        <span class="composer-draft-status" data-composer-draft-status data-state="empty" aria-hidden="true">Draft autosaves locally</span>
+        <div class="composer-focus-actions">
+          <button class="btn sm ghost" type="button" data-composer-resources-toggle aria-controls="composerSupportSection" aria-expanded="false">Writing tools</button>
+          <button class="btn sm" type="button" data-composer-focus-toggle aria-pressed="true"><span class="composer-focus-label">Exit focus</span></button>
         </div>
       </div>
 
@@ -365,6 +380,7 @@
             <div class="editor-footer">
               <select id="composerChannel" class="input" style="flex:1;max-width:280px;height:30px;padding:0 30px 0 10px;font-size:12px;"></select>
               <span id="composerNoChannels" style="font-size:12px;color:var(--subtle);display:none;">↻ Sync to see channels</span>
+              <span class="composer-draft-status" data-composer-draft-status data-state="empty" aria-live="polite">Draft autosaves locally</span>
               <span class="char-count" id="charCount">0 chars</span>
             </div>
           </div>
@@ -458,9 +474,9 @@
           <div class="panel-card">
             <div class="panel-card-title">Send to Buffer</div>
             <div class="send-actions">
-              <button class="btn" id="composerDraft">Save Buffer draft</button>
-              <button class="btn success" id="composerQueue">Add to queue</button>
-              <button class="btn primary" id="composerScheduleToggle">📅 Schedule…</button>
+              <button class="btn" id="composerDraft" aria-label="Save as a Buffer draft">Save draft</button>
+              <button class="btn success" id="composerQueue" aria-label="Add post to the Buffer queue">Queue</button>
+              <button class="btn primary" id="composerScheduleToggle" aria-label="Schedule post in Buffer">Schedule</button>
             </div>
             <div class="schedule-row" id="schedulePanel">
               <div class="field" style="margin-bottom:8px;">
@@ -529,14 +545,21 @@
           </div>
         </div>
 
-        <section id="composerSupportSection" class="composer-support" aria-label="Compose support tools">
+        <aside id="composerSupportSection" class="composer-support" aria-label="Writing tools" aria-hidden="true" inert>
           <div class="panel-card support-tools-card">
-            <div class="support-tabs" role="tablist" aria-label="Compose tools">
-              <button class="support-tab active" type="button" data-stool="templates">Templates</button>
-              <button class="support-tab" type="button" data-stool="pillars">Pillars</button>
-              <button class="support-tab" type="button" data-stool="ai">AI Assist <span class="support-tab-chip">Beta</span></button>
+            <div class="resource-drawer-head">
+              <div>
+                <div class="resource-drawer-kicker">Bring ideas into the draft</div>
+                <div class="resource-drawer-title">Writing tools</div>
+              </div>
+              <button class="btn sm ghost resource-drawer-close" id="composerResourcesClose" type="button" aria-label="Close writing tools">✕</button>
             </div>
-            <div class="support-panel active" data-stool-panel="templates">
+            <div class="support-tabs" role="tablist" aria-label="Compose tools">
+              <button class="support-tab active" type="button" role="tab" aria-selected="true" data-stool="templates">Templates</button>
+              <button class="support-tab" type="button" role="tab" aria-selected="false" data-stool="pillars">Pillars</button>
+              <button class="support-tab" type="button" role="tab" aria-selected="false" data-stool="ai">AI Assist <span class="support-tab-chip">Beta</span></button>
+            </div>
+            <div class="support-panel active" role="tabpanel" data-stool-panel="templates">
               <div class="composer-support-hdr">
               <div class="panel-card-title" style="margin-bottom:0;">Templates</div>
               <button class="btn sm ghost" type="button" id="composerManageTemplatesBtn">Manage templates →</button>
@@ -545,7 +568,7 @@
               <div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;">No templates yet.</div>
               </div>
             </div>
-            <div class="support-panel" data-stool-panel="pillars">
+            <div class="support-panel" role="tabpanel" data-stool-panel="pillars">
               <div class="composer-support-hdr">
               <div class="panel-card-title" style="margin-bottom:0;">Pillars</div>
               <button class="btn sm ghost" type="button" data-view="ideasView" data-ideas-tab="pillars">Open builder →</button>
@@ -554,7 +577,7 @@
               <div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;">Build your pillars to see quick starters here.</div>
               </div>
             </div>
-            <div class="support-panel" data-stool-panel="ai">
+            <div class="support-panel" role="tabpanel" data-stool-panel="ai">
             <article id="aiAssistGate" class="panel-card composer-support-card ai-beta-gate" style="border:none;background:transparent;padding:0;">
               <div class="ai-eyebrow">Invite only</div>
               <div class="panel-card-title">AI Assist Private Beta</div>
@@ -590,7 +613,8 @@
             </article>
             </div>
           </div>
-        </section>
+        </aside>
+        <button class="composer-resource-backdrop" id="composerResourceBackdrop" type="button" tabindex="-1" aria-label="Close writing tools"></button>
 
         <!-- ── SPLIT MODE (Thread Splitter) ── -->
         <div id="splitModePanel" style="display:none;grid-column:1/-1;">

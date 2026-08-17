@@ -90,6 +90,7 @@ async function composerSend(action) {
     }
     if (created?.post?.dueAt) { appendScheduled(created.post, input); renderCalendar(); }
     qs('composerEditor').innerHTML = '';
+    if (typeof clearStoredComposerDraft === 'function') clearStoredComposerDraft();
     qs('composerEditor').dispatchEvent(new Event('input'));
     qs('composerWhen').value = '';
     if (qs('needsApprovalCheck')) qs('needsApprovalCheck').checked = false;

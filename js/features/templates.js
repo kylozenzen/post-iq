@@ -90,7 +90,10 @@ function renderComposerTemplateSidebar() {
 
 function updateComposerClearButtonVisibility() {
   const editor = document.getElementById('composerEditor');
-  const hasContent = !!editor && editor.innerText.trim().length > 0;
+  const editorText = typeof getComposerEditorText === 'function'
+    ? getComposerEditorText(editor)
+    : String(editor?.innerText ?? editor?.textContent ?? '').trim();
+  const hasContent = !!editorText;
   const ccBtn = document.getElementById('composerClearBtn');
   const ccBtnMob = document.getElementById('composerClearBtnMob');
   if (ccBtn) ccBtn.style.display = hasContent ? 'inline-flex' : 'none';
@@ -107,6 +110,7 @@ function clearComposer() {
   } catch {}
   editor.innerHTML = '';
   editor.textContent = '';
+  if (typeof clearStoredComposerDraft === 'function') clearStoredComposerDraft();
   editor.dispatchEvent(new InputEvent('input', {
     bubbles: true,
     cancelable: true,
