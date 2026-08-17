@@ -1,0 +1,184 @@
+    /* ════════════════════════════════════
+       VIEW: APPROVALS (Approve)
+       ════════════════════════════════════ */
+    .approvals-filter-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+      align-items: center;
+    }
+    .filter-label {
+      font-size: 10px;
+      font-family: 'DM Mono', monospace;
+      color: var(--subtle);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-right: 2px;
+    }
+    .filter-pill {
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--border2);
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      cursor: pointer;
+      transition: all .12s;
+      box-shadow: var(--shadow-sm);
+    }
+    .filter-pill:hover { border-color: var(--brand-glow); color: var(--brand); }
+    .filter-pill.active { background: var(--brand-dim); border-color: var(--brand-glow); color: var(--brand); font-weight: 600; }
+
+    /* Approval card */
+    .approval-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      margin-bottom: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow .15s;
+    }
+    .approval-card:hover { box-shadow: var(--shadow); }
+    .approval-card-status-bar {
+      height: 3px;
+      background: var(--border);
+    }
+    .approval-card-status-bar.pending   { background: var(--amber); }
+    .approval-card-status-bar.approved  { background: var(--green); }
+    .approval-card-status-bar.changes   { background: var(--accent); }
+
+    .approval-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+    .approval-card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .approval-status-badge {
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .approval-status-badge.pending  { background: rgba(245,158,11,.12); color: var(--amber); }
+    .approval-status-badge.approved { background: var(--green-dim); color: var(--green); }
+    .approval-status-badge.changes  { background: var(--accent-dim); color: var(--accent); }
+
+    .approval-card-body { padding: 16px; }
+    .approval-content-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding: 12px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      margin-bottom: 12px;
+    }
+
+    .approval-link-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: var(--r2);
+      margin-bottom: 10px;
+    }
+    .approval-link-url {
+      flex: 1;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--brand);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .approval-comments { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .approval-comment {
+      padding: 10px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      margin-bottom: 6px;
+    }
+    .approval-comment-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+    .approval-comment-author { font-weight: 600; font-size: 12px; }
+    .approval-comment-time { font-size: 10px; color: var(--subtle); font-family: 'DM Mono', monospace; }
+    .approval-comment-action { font-size: 10px; font-weight: 700; font-family: 'DM Mono', monospace; padding: 1px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: .04em; }
+    .approval-comment-action.approved { background: var(--green-dim); color: var(--green); }
+    .approval-comment-action.changes  { background: var(--accent-dim); color: var(--accent); }
+    .approval-comment-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+
+    .approval-footer {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      background: var(--surface2);
+    }
+
+    /* Reviewer page */
+    #reviewerPage { display: none; min-height: 100vh; background: var(--bg); }
+    #reviewerPage.active { display: block; }
+    .reviewer-wrap { max-width: 620px; margin: 0 auto; padding: 40px 20px 80px; }
+    .reviewer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      color: var(--ink);
+    }
+    .reviewer-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+    .reviewer-form-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: 'DM Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .reviewer-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .reviewer-btn {
+      flex: 1;
+      min-width: 130px;
+      padding: 13px 20px;
+      border-radius: 10px;
+      border: none;
+      font-family: 'Lato', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .reviewer-btn.approve { background: var(--green); color: #fff; }
+    .reviewer-btn.approve:hover { background: #0b8f62; transform: translateY(-1px); }
+    .reviewer-btn.changes { background: var(--surface); border: 1.5px solid var(--border2); color: var(--text); }
+    .reviewer-btn.changes:hover { border-color: var(--accent); color: var(--accent); }
+    .reviewer-btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }

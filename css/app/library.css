@@ -1,0 +1,352 @@
+/* ── Library view ── */
+#libraryView {
+  padding: 28px 0 40px;
+}
+
+#libraryView .page-hdr {
+  margin-left: 32px;
+  margin-right: 32px;
+}
+
+.lib-content {
+  padding: 0 32px 40px;
+}
+
+/* Stats strip */
+.lib-stats-strip {
+  display: flex;
+  gap: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.lib-stat {
+  flex: 1;
+  padding: 12px 16px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lib-stat:last-child { border-right: none; }
+
+.lib-stat-num {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--ink);
+  letter-spacing: -.03em;
+  line-height: 1;
+}
+
+.lib-stat-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--subtle);
+}
+
+.lib-stat-muted .lib-stat-num { color: var(--subtle); font-size: 16px; }
+
+/* Toolbar */
+.lib-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.lib-search {
+  flex: 1;
+  min-width: 180px;
+  max-width: 320px;
+  height: 32px;
+  font-size: 13px;
+  padding: 0 12px;
+}
+
+.lib-sort {
+  height: 32px;
+  font-size: 12px;
+  width: auto;
+  padding: 0 28px 0 10px;
+  min-width: 140px;
+}
+
+/* Tabs */
+.lib-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 18px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.lib-tabs::-webkit-scrollbar { display: none; }
+
+.lib-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Lato', sans-serif;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all .12s;
+  white-space: nowrap;
+}
+
+.lib-tab:hover { color: var(--brand); background: var(--brand-dim); }
+
+.lib-tab.active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+  background: var(--surface);
+}
+
+.lib-tab-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  min-width: 18px;
+  text-align: center;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--surface3);
+  color: var(--subtle);
+}
+
+.lib-tab.active .lib-tab-count {
+  background: var(--brand-dim);
+  color: var(--brand);
+}
+
+/* Post cards */
+.lib-post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lib-post-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color .12s, box-shadow .12s, transform .1s;
+}
+
+.lib-post-card:hover {
+  border-color: var(--border2);
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+.lib-post-card-hdr {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.lib-post-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.lib-channel-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  color: var(--muted);
+}
+
+.lib-service-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--brand-dim);
+  border: 1px solid var(--brand-glow);
+  color: var(--brand);
+}
+
+.lib-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--subtle);
+}
+
+.lib-top-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(245,158,11,.1);
+  border: 1px solid rgba(245,158,11,.25);
+  color: #92600a;
+}
+
+.lib-reuse-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--green-dim);
+  border: 1px solid rgba(15,166,114,.2);
+  color: var(--green);
+}
+
+/* Star button */
+.lib-star-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: var(--subtle);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color .12s, background .12s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.lib-star-btn:hover { color: var(--amber); background: rgba(245,158,11,.08); }
+.lib-star-btn.starred { color: var(--amber); }
+
+/* Post text */
+.lib-post-text {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+}
+
+/* Metrics notice */
+.lib-metrics-notice {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 10px 12px;
+}
+
+/* Metrics row */
+.lib-metrics-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.lib-metric-badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.lib-metric-er {
+  background: var(--brand-dim);
+  border: 1px solid var(--brand-glow);
+  color: var(--brand);
+}
+
+.lib-metric-rc {
+  background: rgba(255,79,106,.08);
+  border: 1px solid rgba(255,79,106,.2);
+  color: var(--accent);
+}
+
+.lib-metric-im {
+  background: var(--green-dim);
+  border: 1px solid rgba(15,166,114,.2);
+  color: var(--green);
+}
+
+/* Post actions */
+.lib-post-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Spin keyframe (reused from onboarding) */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  #libraryView {
+    padding: 0 0 72px;
+  }
+
+  .lib-content {
+    padding: 14px 16px;
+  }
+
+  .lib-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lib-search,
+  .lib-sort {
+    max-width: none;
+    width: 100%;
+  }
+
+  .lib-stats-strip {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .lib-post-actions {
+    gap: 5px;
+  }
+
+  .lib-post-actions .btn {
+    font-size: 11px;
+    height: 30px;
+  }
+}

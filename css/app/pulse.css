@@ -1,0 +1,53 @@
+/* Pulse */
+.pulse-content { max-width: 980px; }
+.pulse-toolbar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+.pulse-range { border:1px solid var(--border); background:var(--surface); color:var(--muted); border-radius:999px; padding:8px 12px; font:600 12px 'Lato', sans-serif; cursor:pointer; transition:all .12s; }
+.pulse-range:hover { color:var(--brand); border-color:var(--brand-glow); background:var(--brand-dim); }
+.pulse-range.active { color:var(--brand); border-color:var(--brand-glow); background:var(--brand-dim); }
+.pulse-status { margin-left:auto; color:var(--subtle); font-family:'DM Mono', monospace; font-size:11px; }
+.pulse-grid { display:grid; grid-template-columns:repeat(5, minmax(130px, 1fr)); gap:12px; margin-bottom:14px; }
+.pulse-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:16px; box-shadow:var(--shadow-sm); min-height:104px; display:flex; flex-direction:column; justify-content:space-between; }
+.pulse-card-label { font-family:'DM Mono', monospace; font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+.pulse-card-value { font-family:'Bricolage Grotesque', sans-serif; font-size:28px; line-height:1; color:var(--ink); letter-spacing:-.04em; margin:10px 0 6px; }
+.pulse-card-note { font-size:12px; color:var(--subtle); line-height:1.35; }
+.pulse-body { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:16px; box-shadow:var(--shadow-sm); }
+.pulse-note { color:var(--muted); font-size:13px; line-height:1.6; }
+.pulse-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; text-align:center; padding:32px 20px; color:var(--muted); max-width:520px; margin:0 auto; }
+.pulse-empty .empty-icon { margin:0 auto; }
+.pulse-empty .empty-title, .pulse-empty .empty-desc { text-align:center; }
+.pulse-empty .empty-desc { max-width:44ch; }
+.pulse-empty.compact { padding:18px 12px; }
+@media (max-width: 900px) { .pulse-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); } .pulse-status { width:100%; margin-left:0; } }
+@media (max-width: 560px) { .pulse-grid { grid-template-columns:1fr; } }
+
+
+/* Complete Week: published planner states */
+.day-post-pill.is-published {
+  background: var(--green-dim);
+  border-color: rgba(15,166,114,.24);
+  color: var(--muted);
+  opacity: .9;
+}
+.day-post-pill.is-published:hover,
+.day-post-pill.is-published:focus-visible {
+  background: var(--green-dim);
+  border-color: var(--green);
+  opacity: 1;
+}
+.day-post-status {
+  flex: 0 0 auto;
+  font: 700 10px/1 'DM Mono', monospace;
+  color: var(--brand);
+}
+.day-post-pill.is-published .day-post-status { color: var(--green); }
+.day-post-preview-btn.is-published {
+  background: var(--green-dim);
+  border-color: rgba(15,166,114,.24);
+  color: var(--green);
+}
+.snap-modal-post.is-published { border-color: rgba(15,166,114,.24); }
+.snap-platform-badge.is-published {
+  background: var(--green-dim);
+  border-color: rgba(15,166,114,.24);
+  color: var(--green);
+}

@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-const source = fs.readFileSync('app.js', 'utf8');
+const source = fs.readFileSync('js/core/runtime.js', 'utf8');
 const constants = source.slice(
   source.indexOf("const WORKSPACE_PREFERENCES_KEY"),
   source.indexOf("const IMGUR_KEY")
@@ -56,7 +56,7 @@ assert.equal(nav.hidden, true);
 assert.equal(toggle.checked, false);
 
 const html = fs.readFileSync('app.html', 'utf8');
-const css = fs.readFileSync('app.css', 'utf8');
+const css = fs.readFileSync('css/app/ideas-settings.css', 'utf8');
 assert.match(html, /data-stab="customize">Customize<\/button>/);
 assert.doesNotMatch(html, /data-stab="(?:workspace|planning|notes)"/);
 assert.match(html, /id="settingsPanelCustomize"[\s\S]*id="customizeWorkspaceHeading">Workspace<[\s\S]*id="customizePlanningHeading">Planning<[\s\S]*id="customizeNotesHeading">Notes</);

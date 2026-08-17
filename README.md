@@ -84,13 +84,16 @@ Sign in with Buffer → Sync channels + queue → Plan → Compose → Send to B
 Primary files:
 
 ```
-index.html              # Public landing page
-app.html                # App shell
-app.css                 # App styles
-app.js                  # All product logic
-manifest.json           # PWA manifest
-sw.js                   # Service worker
-netlify/functions/      # Buffer proxy, token exchange, approvals, trending, config
+index.html               # Public landing page
+app.html                 # App shell and ordered asset entry points
+css/app/                 # App styles grouped by workspace and responsibility
+js/core/                 # Shared runtime, navigation, bootstrap, and startup
+js/integrations/         # Buffer auth/API and post creation boundaries
+js/features/             # Calendar, composer, media, templates, approvals, pillars
+js/*.js                  # Standalone modules (AI Assist, Library, Pulse, onboarding)
+manifest.json            # PWA manifest
+sw.js                    # Service worker and app-shell cache manifest
+netlify/functions/       # Buffer proxy, token exchange, approvals, trending, config
 ```
 
 ---
@@ -105,6 +108,9 @@ npx serve .
 
 # Full stack including functions
 netlify dev
+
+# Verify local asset references, JavaScript syntax, and bundle size guardrails
+node scripts/check-project.js
 ```
 
 ---
