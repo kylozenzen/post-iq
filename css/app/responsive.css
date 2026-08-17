@@ -1,0 +1,185 @@
+/* ── MOBILE ── */
+    @media (max-width: 768px) {
+
+      /* ── Core layout ── */
+      .side { display: none; }
+      .app { grid-template-columns: 1fr; }
+      .view { padding: 0 0 72px; max-width: 100%; }
+      .page-hdr { display: none !important; }
+
+      /* ── Mobile view header ── */
+      .mob-view-hdr {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px 12px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        margin-bottom: 0;
+      }
+      .mob-view-title {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-weight: 700;
+        font-size: 19px;
+        color: var(--ink);
+        letter-spacing: -.2px;
+      }
+      .mob-view-actions { display: flex; gap: 6px; align-items: center; }
+
+      /* ── View content areas ── */
+      .view-content { padding: 14px 16px; }
+      .cal-header { padding: 0; }
+      .gaps-panel { margin-bottom: 14px; }
+
+      /* ── Calendar ── */
+      .cal-grid { display: none; }
+      .cal-dow  { display: none; }
+      .cal-agenda { display: block !important; }
+
+      /* ── Composer ── */
+      #composerView { padding: 0 0 72px !important; max-width: 100%; }
+      .composer-layout { display: flex; flex-direction: column; gap: 0; }
+      /* Editor full-width, no side padding */
+      .editor-wrap { border-radius: 0; border-left: none; border-right: none; }
+      .rich-editor { min-height: 160px; font-size: 15px; padding: 14px 16px; }
+      .editor-toolbar { padding: 8px 10px; gap: 3px; flex-wrap: wrap; }
+      .editor-footer { padding: 8px 14px; flex-wrap: wrap; gap: 6px; }
+      /* Media controls — padded since they sit below full-width editor */
+      .media-toggle-btn, #mediaToggleOff {
+        margin: 8px 16px 0;
+        width: calc(100% - 32px) !important;
+      }
+      #mediaSummary    { margin: 8px 16px 0; }
+      #composerStatus  { padding: 0 16px; font-size: 12px; }
+      #refPin          { margin: 0 16px 14px; }
+      /* Right-panel card becomes a section below the editor */
+      .composer-panel  { padding: 14px 16px 0; display: flex; flex-direction: column; gap: 12px; }
+      .composer-support { grid-template-columns: 1fr; gap: 10px; padding: 0 16px; margin-top: 10px; }
+      .send-actions    { display: flex; flex-direction: column; gap: 8px; }
+      .send-actions .btn { height: 44px; font-size: 15px; justify-content: center; }
+
+      /* ── Templates ── */
+      .templates-layout { display: flex; flex-direction: column; gap: 0; }
+      .templates-sidebar {
+        position: static;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        padding: 0 0 12px;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 12px;
+        box-shadow: none;
+      }
+      .type-filter-btn {
+        width: auto;
+        padding: 5px 12px;
+        border-radius: 20px;
+        border: 1px solid var(--border2);
+        background: var(--surface);
+        font-size: 12px;
+        justify-content: center;
+      }
+      .type-filter-btn .type-filter-count { display: none; }
+      .templates-grid { grid-template-columns: 1fr; }
+      .ideas-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: thin;
+      }
+      .ideas-tab { flex: 0 0 auto; }
+      .ideas-panel-hdr {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .ideas-panel-hdr .page-actions { display: flex; justify-content: flex-start; }
+      .ideas-mobile-only { display: inline-flex; }
+      .ideas-desktop-only { display: none; }
+
+      /* ── Approvals ── */
+      .approval-card {
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        margin-bottom: 8px;
+      }
+
+      /* ── Misc ── */
+      .cols2 { grid-template-columns: 1fr; }
+
+      /* ── Bottom nav ── */
+      .mobile-tabs {
+        display: flex;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        height: 60px;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        z-index: 100;
+        align-items: stretch;
+        padding-bottom: env(safe-area-inset-bottom);
+        box-shadow: 0 -2px 12px rgba(20,22,42,.06);
+      }
+      .mob-tab {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        background: transparent;
+        border: none;
+        color: var(--subtle);
+        font-size: 10px;
+        font-family: 'DM Mono', monospace;
+        cursor: pointer;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        transition: color .12s;
+        -webkit-tap-highlight-color: transparent;
+        position: relative;
+      }
+      .mob-tab.active { color: var(--brand); }
+      .mob-tab.active::before {
+        content: '';
+        position: absolute;
+        top: 5px; left: 50%;
+        transform: translateX(-50%);
+        width: 4px; height: 4px;
+        border-radius: 50%;
+        background: var(--brand);
+      }
+      .mob-tab svg {
+        width: 18px; height: 18px;
+        stroke: currentColor; fill: none;
+        stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+      }
+
+      /* ── Modals sheet up ── */
+      .modal { align-items: flex-end; padding: 0; }
+      .modal-card {
+        max-width: 100%; width: 100%;
+        border-radius: 20px 20px 0 0;
+        max-height: 88vh;
+        padding: 20px 16px 40px;
+        animation: sheetUp .28s cubic-bezier(.34,1.1,.64,1);
+      }
+      @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+      /* Prevent iOS zoom */
+      input, select, textarea { font-size: 16px !important; }
+    }
+
+    @media (min-width: 1440px) {
+      .view { padding-left: 48px; padding-right: 48px; }
+    }
+
+    @media (max-width: 960px) {
+      :root { --sidebar: 220px; }
+      .composer-layout { grid-template-columns: 1fr; }
+    }

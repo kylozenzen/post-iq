@@ -4,10 +4,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-const source = fs.readFileSync('app.js', 'utf8');
+const source = fs.readFileSync('js/integrations/buffer-oauth.js', 'utf8');
 const start = source.indexOf('// ── BUFFER ASSET NORMALIZATION');
-const end = source.indexOf('function showToast', start);
-assert.ok(start >= 0 && end > start, 'Could not locate Buffer asset normalization helpers in app.js');
+const end = source.length;
+assert.ok(start >= 0, 'Could not locate Buffer asset normalization helpers');
 
 const sandbox = { console, warnings: [] };
 vm.createContext(sandbox);

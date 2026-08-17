@@ -3,10 +3,10 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
-const source = fs.readFileSync('app.js', 'utf8');
+const source = fs.readFileSync('js/integrations/buffer-oauth.js', 'utf8');
 const start = source.indexOf('// ── BUFFER OAUTH (PUBLIC CLIENT + PKCE)');
 const end = source.indexOf('// ── BUFFER ASSET NORMALIZATION', start);
-assert.ok(start >= 0 && end > start, 'Could not locate Buffer OAuth helpers in app.js');
+assert.ok(start >= 0 && end > start, 'Could not locate Buffer OAuth helpers');
 const oauthSource = source.slice(start, end);
 
 assert.match(oauthSource, /const BUFFER_AUTHORIZATION_ENDPOINT = 'https:\/\/auth\.buffer\.com\/auth';/);

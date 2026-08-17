@@ -1,78 +1,90 @@
-# PostIQ modular architecture
+# PostIQ application architecture
 
-## What changed in this pass
+PostIQ is a static HTML/CSS/JavaScript application with Netlify Functions. It
+does not require a frontend build step. `app.html` is the source of truth for
+the active stylesheets and scripts, and loads them in dependency order.
 
-The original single-file prototype mixed 2,900+ lines of CSS, application
-logic, tool-specific logic, and markup in `app.html`. It has been separated
-into:
+## Active frontend layout
 
-- `app.html`: app shell, views, and dialogs
-- `assets/css/app.css`: existing application styles
-- `assets/css/tool-manager.css`: tool shelf preferences
-- `assets/js/app.js`: shared state and current feature behavior
-- `assets/js/tool-registry.js`: tool metadata, preferences, and availability
-- `assets/js/tools/trending-view.js`: the first extracted tool view
-- `netlify/functions/*`: Buffer, approval, and image-search boundaries
-
-The user-facing tool registry is the migration seam. A tool is identified by a
-stable `id` and `viewId`; navigation, views, and guide content are all filtered
-from that single definition.
-
-## Next code-splitting target
-
-The next pass should move one tool at a time from `assets/js/app.js` into a
-module with this shape:
-
-```js
-export default {
-  id: 'snippets',
-  viewId: 'snippetsView',
-  async mount(context) {},
-  async activate(context) {},
-  async deactivate(context) {},
-  destroy() {}
-};
+```text
+app.html
+├── css/app/                 shared tokens plus workspace-specific styles
+├── css/onboarding.css       onboarding flow
+├── js/core/                 state, utilities, navigation, bootstrap, startup
+├── js/integrations/         Buffer OAuth, API access, and post creation
+├── js/features/             product workspaces and feature behavior
+│   └── approvals/           approval metadata, owner UI, reviewer UI
+└── js/*.js                  independently maintained feature modules
 ```
 
-`context` should expose only stable shared services:
+The old root `app.js` and `app.css` bundles were split without changing their
+source order. Each resulting JavaScript file remains a classic deferred script
+and starts in strict mode. This preserves the current shared global bindings
+while making ownership and future extraction clearer.
 
-- `buffer.query(document, variables)`
-- `storage.get/set/remove`
-- `ui.toast/openModal/activateView`
-- `events.on/emit`
-- read-only channel and organization state
+## JavaScript load order
 
-That keeps a new mini-tool from reaching into every global variable in the
-app. Disabled modules can then be loaded with dynamic `import()` only when a
-user enables or opens them.
+1. `js/ai-assist.js`
+2. `js/core/runtime.js`
+3. Buffer auth and approval metadata
+4. templates and Buffer connection/API services
+5. calendar, composer, media, post creation, and approvals
+6. navigation and bootstrap bindings
+7. content pillars and startup
+8. Discord, Library, Pulse, and onboarding modules
 
-## Recommended extraction order
+Do not alphabetize these tags. Earlier files provide bindings consumed by later
+files, and `js/core/startup.js` registers the main `DOMContentLoaded` handler.
 
-1. Snippets — local-only and low risk.
-2. Trending — already has a separate view builder and limited shared state.
-3. Calendar — mostly reads shared scheduled-post state.
-4. Approvals — define a dedicated approval store before extraction.
-5. Thread Splitter — share a small content-drafting service with Composer.
-6. Composer — keep last because it currently owns the most cross-tool behavior.
+## CSS order
 
-## Product rules
+`css/app/tokens-layout.css` defines design tokens and the shell first. Component
+and workspace styles follow, then responsive rules, polish/overrides, and the
+Library and Pulse additions. The order in `app.html` matches the former bundle
+exactly, so the cascade remains unchanged.
 
-- Default all existing tools to enabled so current users lose nothing.
-- Require at least one enabled tool.
-- Keep settings, Buffer connection, and account state in the shell.
-- Give each new tool a direct URL such as `app.html?view=threadView`.
-- Treat disabled as a preference, not deletion; local data remains intact.
-- A tool must declare dependencies instead of silently assuming another view is
-  enabled.
+## Responsibilities
 
-## Data migration
+- `js/core/runtime.js`: constants, shared state, storage helpers, UI utilities,
+  workspace preferences, feature configuration, and common error handling.
+- `js/integrations/`: communication with Buffer and normalization of Buffer
+  payloads.
+- `js/features/`: behavior owned by a visible PostIQ workspace or feature.
+- `js/core/bootstrap.js`: DOM wiring that still crosses multiple workspaces.
+  New feature behavior should not be added here when it can live with its owner.
+- `js/core/startup.js`: final startup registration only.
 
-Keep existing local-storage keys stable during extraction:
+## Modular product behavior
 
-- `postiq_buffer_token`
-- `postiq_calendar_notes_v2`
-- `postiq_snippets_v1`
-- `postiq_approval_*`
+The product-level modular foundation already exists. Planning, Create, Ideas,
+and Approvals are user-configurable workspaces, and internal feature flags can
+pause individual capabilities. Keep these concerns separate:
 
-Version new schemas and migrate on read. Do not clear stored content when a
-tool is disabled.
+- Workspace preferences control what the user chooses to see.
+- Feature flags control rollout and operational availability.
+- Neither should delete browser-stored user data when disabled.
+
+## Guardrails
+
+Run `node scripts/check-project.js` after changing frontend assets. It verifies:
+
+- every local JavaScript and CSS reference in `app.html` exists;
+- every referenced JavaScript file parses;
+- expected workspace views remain in the shell;
+- the removed root bundles are not reintroduced; and
+- active JavaScript/CSS files stay below 80 KB.
+
+Focused regression tests live in `tests/`. When moving code again, update a test
+to read the owning module instead of recreating a combined bundle.
+
+## Next extraction seam
+
+This organization pass intentionally preserves classic scripts and behavior.
+Future passes can move one responsibility at a time behind explicit interfaces
+or ES modules. Start with low-coupling areas such as templates or media, then
+reduce the cross-workspace DOM wiring in `js/core/bootstrap.js`. Keep local
+storage keys and Buffer payload contracts stable during those migrations.
+
+The `assets/` tree is not loaded by the current `app.html`; it is retained as a
+legacy modular prototype until it can be audited and removed in a dedicated
+cleanup.

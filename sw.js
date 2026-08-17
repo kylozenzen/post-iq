@@ -1,11 +1,43 @@
-const CACHE = 'postiq-v6-quality-pass';
+const CACHE = 'postiq-v7-organized-assets';
 const SHELL = [
   '/',
   '/index.html',
   '/app.html',
-  '/app.css',
-  '/app.js',
-  '/js/ai-assist.js'
+  '/css/app/tokens-layout.css',
+  '/css/app/components.css',
+  '/css/app/calendar.css',
+  '/css/app/composer.css',
+  '/css/app/approvals.css',
+  '/css/app/ideas-settings.css',
+  '/css/app/content-pillars.css',
+  '/css/app/responsive.css',
+  '/css/app/polish.css',
+  '/css/app/preferences-ai.css',
+  '/css/app/library.css',
+  '/css/app/pulse.css',
+  '/css/onboarding.css',
+  '/js/analytics.js',
+  '/js/ai-assist.js',
+  '/js/core/runtime.js',
+  '/js/integrations/buffer-oauth.js',
+  '/js/features/approvals/metadata.js',
+  '/js/features/templates.js',
+  '/js/integrations/buffer-connection.js',
+  '/js/integrations/buffer-api.js',
+  '/js/features/calendar.js',
+  '/js/features/composer.js',
+  '/js/features/media.js',
+  '/js/integrations/post-creation.js',
+  '/js/features/approvals/index.js',
+  '/js/features/approvals/reviewer.js',
+  '/js/core/navigation.js',
+  '/js/core/bootstrap.js',
+  '/js/features/content-pillars.js',
+  '/js/core/startup.js',
+  '/js/discord-integration.js',
+  '/js/library.js',
+  '/js/pulse.js',
+  '/js/onboarding.js'
 ];
 
 self.addEventListener('install', event => {
