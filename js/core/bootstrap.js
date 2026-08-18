@@ -105,32 +105,6 @@ function init() {
     });
   });
 
-  const manageTplBtn = qs('composerManageTemplatesBtn'); if (manageTplBtn) manageTplBtn.onclick = () => { activateView('ideasView'); setIdeasTab('templates'); };
-  const supportTabs = [...document.querySelectorAll('.support-tab')];
-  const selectSupportTab = tab => {
-    supportTabs.forEach(t => {
-      const selected = t === tab;
-      t.classList.toggle('active', selected);
-      t.setAttribute('aria-selected', String(selected));
-      t.tabIndex = selected ? 0 : -1;
-    });
-    document.querySelectorAll('.support-panel').forEach(p => p.classList.toggle('active', p.dataset.stoolPanel === tab.dataset.stool));
-  };
-  supportTabs.forEach((tab, index) => {
-    tab.addEventListener('click', () => selectSupportTab(tab));
-    tab.addEventListener('keydown', event => {
-      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-      let next = index;
-      if (event.key === 'ArrowLeft') next = (index - 1 + supportTabs.length) % supportTabs.length;
-      if (event.key === 'ArrowRight') next = (index + 1) % supportTabs.length;
-      if (event.key === 'Home') next = 0;
-      if (event.key === 'End') next = supportTabs.length - 1;
-      event.preventDefault();
-      selectSupportTab(supportTabs[next]);
-      supportTabs[next].focus();
-    });
-  });
-  if (supportTabs.length) selectSupportTab(supportTabs.find(tab => tab.classList.contains('active')) || supportTabs[0]);
   on('closeTemplatePicker', 'click', () => closeModal('templatePickerModal'));
   on('templateSearch', 'input', e => { state.templateSearch = e.target.value; renderTemplates(); });
   on('templateSearch', 'change', e => safeTrack(() => GA4_Templates.templateSearched(e.target.value.trim() ? 'has_query' : 'empty')));
@@ -277,6 +251,7 @@ function init() {
   const charCount = qs('charCount'); if (charCount) charCount.textContent = '0 chars';
   on('composerChannel', 'change', updateComposerButtonStates);
   initComposerWorkspace(editor);
+  window.PostIQComposerResources?.init?.();
 
   on('composerClearBtn', 'click', clearComposer);
 
@@ -614,6 +589,7 @@ function init() {
     }
     refPin.style.display = 'block';
   }
+  window.pinReferenceToComposer = pinReferenceToComposer;
 
 window.Notebook = (() => {
   let cards = [];
@@ -628,7 +604,10 @@ window.Notebook = (() => {
     type: qs('notecardType'),
   });
 
-  const save = () => { try { localStorage.setItem(NOTEBOOK_KEY, JSON.stringify(cards)); } catch {} };
+  const save = () => {
+    try { localStorage.setItem(NOTEBOOK_KEY, JSON.stringify(cards)); } catch {}
+    window.dispatchEvent(new CustomEvent('postiq:notebook-changed'));
+  };
   const load = () => { try { const parsed = JSON.parse(localStorage.getItem(NOTEBOOK_KEY) || '[]'); cards = Array.isArray(parsed) ? parsed : []; } catch { cards = []; } };
   const age = ts => { const n = Date.now() - Number(ts || 0); const m=Math.floor(n/60000); if(m<60) return `${Math.max(1,m)}m ago`; const h=Math.floor(m/60); if(h<24) return `${h}h ago`; return `${Math.floor(h/24)}d ago`; };
 

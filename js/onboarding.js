@@ -55,7 +55,7 @@ window.PostIQOnboarding = (() => {
     composerView: {
       icon: '✍️',
       title: 'A writing space that keeps the useful stuff close',
-      body: 'Your draft autosaves locally. Use <strong>Focus mode</strong> to quiet the interface or open Writing tools for templates, pillars, and AI Assist. Nothing goes live until you choose a Buffer action.',
+      body: 'Your draft autosaves locally. Use <strong>Focus mode</strong> to quiet the interface or open Writing tools for Notebook ideas, proven hooks, hashtag sets, templates, pillars, and AI Assist. Nothing goes live until you choose a Buffer action.',
       anchor: '.editor-wrap',
     },
     ideasView: {

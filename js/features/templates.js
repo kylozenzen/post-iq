@@ -19,7 +19,10 @@ function loadTemplates() {
     }));
   } catch { state.templates = []; }
 }
-function persistTemplates() { try { localStorage.setItem(TEMPLATE_KEY, JSON.stringify(state.templates)); } catch {} }
+function persistTemplates() {
+  try { localStorage.setItem(TEMPLATE_KEY, JSON.stringify(state.templates)); } catch {}
+  window.dispatchEvent(new CustomEvent('postiq:templates-changed'));
+}
 
 function filteredTemplates(search = state.templateSearch, type = state.templateType, platform = state.templatePlatform) {
   const q = search.trim().toLowerCase();
@@ -74,6 +77,10 @@ function renderTemplates() {
 }
 
 function renderComposerTemplateSidebar() {
+  if (window.PostIQComposerResources?.refresh) {
+    window.PostIQComposerResources.refresh();
+    return;
+  }
   const list = qs('composerTemplateList'); if (!list) return;
   const items = state.templates.slice(0, 8);
   if (!items.length) { list.innerHTML = "<div style=\"font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;\">No templates yet.</div>"; return; }

@@ -5,6 +5,7 @@ const fs = require('node:fs');
 
 const html = fs.readFileSync('app.html', 'utf8');
 const composer = fs.readFileSync('js/features/composer.js', 'utf8');
+const composerResources = fs.readFileSync('js/features/composer-resources.js', 'utf8');
 const bootstrap = fs.readFileSync('js/core/bootstrap.js', 'utf8');
 const navigation = fs.readFileSync('js/core/navigation.js', 'utf8');
 const css = fs.readFileSync('css/app/composer.css', 'utf8');
@@ -23,6 +24,8 @@ assert.match(composer, /localStorage\.removeItem\(COMPOSER_DRAFT_KEY/);
 assert.match(composer, /function setComposerFocusMode/);
 assert.match(composer, /function setComposerResourcesOpen/);
 assert.match(composer, /event\.key !== 'Escape'/);
+assert.match(composer, /PostIQComposerResources\?\.refresh/);
+assert.match(composerResources, /window\.PostIQComposerResources/);
 assert.match(bootstrap, /initComposerWorkspace\(editor\)/);
 assert.match(navigation, /new CustomEvent\('postiq:view-changed'/);
 

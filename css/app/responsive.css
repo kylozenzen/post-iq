@@ -122,6 +122,9 @@
       .composer-support .support-tabs { padding-inline: 8px; }
       .composer-support .support-tab { flex: 1 0 auto; justify-content: center; padding-inline: 10px; }
       .composer-support .support-panel { padding: 14px 16px; }
+      .resource-drawer-search { padding: 10px 14px; }
+      .composer-resource-card { padding: 12px 13px; }
+      .composer-resource-actions .btn { flex: 1 1 auto; min-height: 40px; justify-content: center; }
 
       .composer-focus-bar {
         margin: 8px 10px 12px;
@@ -140,6 +143,8 @@
         .composer-focus-bar > .composer-draft-status { display: none; }
         .composer-focus-badge { display: none; }
         .composer-mobile-action { padding-inline: 8px; }
+        .composer-support-hdr { align-items: flex-start; flex-wrap: wrap; }
+        .composer-support-hdr > .btn { margin-left: auto; }
       }
 
       /* ── Templates ── */

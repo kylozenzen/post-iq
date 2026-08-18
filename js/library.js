@@ -125,6 +125,7 @@ window.PostIQLibrary = (() => {
 
   function saveStarred() {
     try { localStorage.setItem(STARRED_KEY, JSON.stringify([...starred])); } catch {}
+    window.dispatchEvent(new CustomEvent('postiq:library-changed'));
   }
 
   function loadCache() {
@@ -145,6 +146,7 @@ window.PostIQLibrary = (() => {
   function saveCache() {
     const orgId = getCurrentOrganizationIdSync();
     try { localStorage.setItem(CACHE_KEY, JSON.stringify({ posts, metricsMeta, organizationId: orgId || null, limit: 50, ts: Date.now() })); } catch {}
+    window.dispatchEvent(new CustomEvent('postiq:library-changed'));
   }
 
   function getCurrentOrganizationIdSync() {

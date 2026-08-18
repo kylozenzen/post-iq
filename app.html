@@ -554,21 +554,47 @@
               </div>
               <button class="btn sm ghost resource-drawer-close" id="composerResourcesClose" type="button" aria-label="Close writing tools">✕</button>
             </div>
+            <div class="resource-drawer-search" id="composerResourceSearchWrap">
+              <label class="sr-only" for="composerResourceSearch">Search writing tools</label>
+              <input class="input" id="composerResourceSearch" type="search" autocomplete="off" placeholder="Search Notebook" />
+            </div>
             <div class="support-tabs" role="tablist" aria-label="Compose tools">
-              <button class="support-tab active" type="button" role="tab" aria-selected="true" data-stool="templates">Templates</button>
-              <button class="support-tab" type="button" role="tab" aria-selected="false" data-stool="pillars">Pillars</button>
-              <button class="support-tab" type="button" role="tab" aria-selected="false" data-stool="ai">AI Assist <span class="support-tab-chip">Beta</span></button>
+              <button class="support-tab active" id="composerToolTabNotebook" type="button" role="tab" aria-selected="true" aria-controls="composerToolPanelNotebook" data-stool="notebook">Notebook <span class="support-tab-count" data-resource-count="notebook" hidden></span></button>
+              <button class="support-tab" id="composerToolTabHooks" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelHooks" data-stool="hooks">Hooks <span class="support-tab-count" data-resource-count="hooks" hidden></span></button>
+              <button class="support-tab" id="composerToolTabHashtags" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelHashtags" data-stool="hashtags">Hashtags <span class="support-tab-count" data-resource-count="hashtags" hidden></span></button>
+              <button class="support-tab" id="composerToolTabTemplates" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelTemplates" data-stool="templates">Templates <span class="support-tab-count" data-resource-count="templates" hidden></span></button>
+              <button class="support-tab" id="composerToolTabPillars" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelPillars" data-stool="pillars">Pillars <span class="support-tab-count" data-resource-count="pillars" hidden></span></button>
+              <button class="support-tab" id="composerToolTabAi" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelAi" data-stool="ai">AI Assist <span class="support-tab-chip">Beta</span></button>
             </div>
-            <div class="support-panel active" role="tabpanel" data-stool-panel="templates">
+            <div class="support-panel active" id="composerToolPanelNotebook" role="tabpanel" aria-labelledby="composerToolTabNotebook" data-stool-panel="notebook">
               <div class="composer-support-hdr">
-              <div class="panel-card-title" style="margin-bottom:0;">Templates</div>
-              <button class="btn sm ghost" type="button" id="composerManageTemplatesBtn">Manage templates →</button>
+                <div><div class="panel-card-title" style="margin-bottom:2px;">Notebook</div><div class="resource-panel-copy">Pin an idea beside your draft or insert its notes.</div></div>
+                <button class="btn sm ghost" type="button" data-resource-manage="notebook">Open Notebook →</button>
               </div>
-              <div class="template-list" id="composerTemplateList">
-              <div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;">No templates yet.</div>
-              </div>
+              <div class="composer-resource-list" id="composerNotebookResources"></div>
             </div>
-            <div class="support-panel" role="tabpanel" data-stool-panel="pillars">
+            <div class="support-panel" id="composerToolPanelHooks" role="tabpanel" aria-labelledby="composerToolTabHooks" data-stool-panel="hooks" hidden>
+              <div class="composer-support-hdr">
+                <div><div class="panel-card-title" style="margin-bottom:2px;">Hooks</div><div class="resource-panel-copy">Saved hooks plus openings from starred and top posts.</div></div>
+                <button class="btn sm ghost" type="button" data-resource-manage="library">Open Library →</button>
+              </div>
+              <div class="composer-resource-list" id="composerHookResources"></div>
+            </div>
+            <div class="support-panel" id="composerToolPanelHashtags" role="tabpanel" aria-labelledby="composerToolTabHashtags" data-stool-panel="hashtags" hidden>
+              <div class="composer-support-hdr">
+                <div><div class="panel-card-title" style="margin-bottom:2px;">Hashtag sets</div><div class="resource-panel-copy">Append a reusable set without leaving the draft.</div></div>
+                <button class="btn sm ghost" type="button" data-resource-new-template="Hashtag Sets">+ New set</button>
+              </div>
+              <div class="composer-resource-list" id="composerHashtagResources"></div>
+            </div>
+            <div class="support-panel" id="composerToolPanelTemplates" role="tabpanel" aria-labelledby="composerToolTabTemplates" data-stool-panel="templates" hidden>
+              <div class="composer-support-hdr">
+                <div><div class="panel-card-title" style="margin-bottom:2px;">Templates</div><div class="resource-panel-copy">Reusable starters, CTAs, announcements, and prompts.</div></div>
+                <button class="btn sm ghost" type="button" id="composerManageTemplatesBtn" data-resource-manage="templates">Manage →</button>
+              </div>
+              <div class="composer-resource-list template-list" id="composerTemplateList"></div>
+            </div>
+            <div class="support-panel" id="composerToolPanelPillars" role="tabpanel" aria-labelledby="composerToolTabPillars" data-stool-panel="pillars" hidden>
               <div class="composer-support-hdr">
               <div class="panel-card-title" style="margin-bottom:0;">Pillars</div>
               <button class="btn sm ghost" type="button" data-view="ideasView" data-ideas-tab="pillars">Open builder →</button>
@@ -577,7 +603,7 @@
               <div style="font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;">Build your pillars to see quick starters here.</div>
               </div>
             </div>
-            <div class="support-panel" role="tabpanel" data-stool-panel="ai">
+            <div class="support-panel" id="composerToolPanelAi" role="tabpanel" aria-labelledby="composerToolTabAi" data-stool-panel="ai" hidden>
             <article id="aiAssistGate" class="panel-card composer-support-card ai-beta-gate" style="border:none;background:transparent;padding:0;">
               <div class="ai-eyebrow">Invite only</div>
               <div class="panel-card-title">AI Assist Private Beta</div>
@@ -1237,6 +1263,7 @@
   <script src="./js/integrations/buffer-api.js" defer></script>
   <script src="./js/features/calendar.js" defer></script>
   <script src="./js/features/composer.js" defer></script>
+  <script src="./js/features/composer-resources.js" defer></script>
   <script src="./js/features/media.js" defer></script>
   <script src="./js/integrations/post-creation.js" defer></script>
   <script src="./js/features/approvals/index.js" defer></script>

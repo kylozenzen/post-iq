@@ -415,11 +415,165 @@
       letter-spacing: -.02em;
     }
     .resource-drawer-close { width: 34px; height: 34px; justify-content: center; padding: 0; flex-shrink: 0; }
+    .sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+    .resource-drawer-search {
+      flex: 0 0 auto;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .resource-drawer-search .input {
+      min-height: 38px;
+      border-radius: 10px;
+      background: var(--surface2);
+    }
     .composer-support .support-tabs { flex: 0 0 auto; overflow-x: auto; scrollbar-width: none; }
     .composer-support .support-tabs::-webkit-scrollbar { display: none; }
+    .support-tab-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: var(--surface2);
+      color: var(--subtle);
+      font: 600 9px 'DM Mono', monospace;
+    }
+    .support-tab.active .support-tab-count { background: var(--brand-dim); color: var(--brand); }
     .composer-support .support-panel.active { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
     .composer-support .template-list,
     .composer-support .composer-pillars-compact { max-height: none; }
+
+    .composer-support-hdr > div { min-width: 0; }
+    .resource-panel-copy {
+      color: var(--subtle);
+      font-size: 11px;
+      line-height: 1.4;
+    }
+    .composer-resource-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .resource-list-label {
+      margin: 8px 2px 0;
+      color: var(--subtle);
+      font: 600 9px 'DM Mono', monospace;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .resource-list-label:first-child { margin-top: 0; }
+    .composer-resource-card {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      transition: border-color .12s ease, background .12s ease, transform .12s ease;
+    }
+    .composer-resource-card:hover {
+      border-color: var(--brand-glow);
+      background: color-mix(in srgb, var(--surface) 94%, var(--brand) 6%);
+      transform: translateY(-1px);
+    }
+    .composer-resource-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 7px;
+      color: var(--subtle);
+      font: 500 9px 'DM Mono', monospace;
+      letter-spacing: .02em;
+    }
+    .resource-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 19px;
+      padding: 2px 6px;
+      border: 1px solid var(--border2);
+      border-radius: 999px;
+      background: var(--surface2);
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .resource-chip.starred {
+      border-color: color-mix(in srgb, var(--amber) 40%, var(--border));
+      background: color-mix(in srgb, var(--amber) 10%, var(--surface));
+      color: var(--amber);
+    }
+    .composer-resource-title {
+      margin-bottom: 5px;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+    .composer-resource-preview,
+    .composer-resource-quote,
+    .composer-resource-hashtags {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+    .composer-resource-quote {
+      padding-left: 10px;
+      border-left: 2px solid var(--brand-glow);
+      color: var(--ink);
+      font-size: 13px;
+    }
+    .composer-resource-hashtags {
+      color: var(--brand);
+      font-family: 'DM Mono', monospace;
+      white-space: pre-wrap;
+    }
+    .composer-resource-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .resource-empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 220px;
+      padding: 28px 18px;
+      border: 1px dashed var(--border2);
+      border-radius: 14px;
+      background: var(--surface2);
+      text-align: center;
+    }
+    .resource-empty-icon {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      margin-bottom: 10px;
+      border-radius: 12px;
+      background: var(--brand-dim);
+      color: var(--brand);
+      font: 700 18px 'DM Mono', monospace;
+    }
+    .resource-empty-title { color: var(--ink); font-size: 14px; font-weight: 700; }
+    .resource-empty-copy { max-width: 31ch; margin-top: 5px; color: var(--subtle); font-size: 12px; line-height: 1.5; }
+    .resource-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 14px; }
 
     body.composer-focus-mode #app { grid-template-columns: 1fr; }
     body.composer-focus-mode .side,

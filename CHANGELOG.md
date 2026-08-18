@@ -8,12 +8,17 @@
 - Local draft autosave and safe restoration after refresh
 - Collapsible writing-tools rail on desktop
 - Writing-tools bottom sheet and sticky Buffer actions on mobile
+- Searchable Notebook, Hooks, Hashtags, Templates, Pillars, and AI Assist tabs
+- One-click Notebook pinning or note insertion inside Compose
+- Saved hooks plus openings from starred and top-performing Library posts
+- Reusable hashtag sets that append directly to the active draft
 
 ### Improved
 
 - Larger, calmer editor dimensions across screen sizes
 - Mobile toolbar scrolling and keyboard-safe use of dynamic viewport units
 - Accessible writing-tool state, focus return, and Escape-key behavior
+- Live resource counts and automatic updates when Notebook, Template, or Library data changes
 
 ## Public Beta Launch Prep
 

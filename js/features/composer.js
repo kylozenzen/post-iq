@@ -177,6 +177,7 @@ function setComposerResourcesOpen(open, trigger = null) {
   updateComposerResourceToggles(shouldOpen);
 
   if (shouldOpen) {
+    window.PostIQComposerResources?.refresh?.();
     requestAnimationFrame(() => qs('composerResourcesClose')?.focus());
   } else if (composerResourceReturnFocus && document.contains(composerResourceReturnFocus)) {
     composerResourceReturnFocus.focus();
