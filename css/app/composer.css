@@ -43,7 +43,8 @@
     .tb-sep { width: 1px; height: 16px; background: var(--border2); margin: 0 6px; flex-shrink: 0; }
 
     .rich-editor {
-      min-height: 220px;
+      min-height: 300px;
+      min-height: clamp(300px, 42dvh, 540px);
       padding: 16px;
       outline: none;
       font-size: 14px;
@@ -283,4 +284,313 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    /* Focused writing workspace */
+    .composer-mobile-action { min-width: 34px; justify-content: center; }
+    .composer-mobile-action svg { flex-shrink: 0; }
+
+    .composer-focus-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      background: var(--surface);
+      background: color-mix(in srgb, var(--surface) 92%, var(--brand) 8%);
+      border: 1px solid var(--brand-glow);
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+      position: sticky;
+      top: 10px;
+      z-index: 8;
+    }
+    .composer-focus-identity { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    .composer-focus-brand {
+      color: var(--ink);
+      font: 800 16px 'Bricolage Grotesque', sans-serif;
+      letter-spacing: -.02em;
+    }
+    .composer-focus-badge,
+    .resource-drawer-kicker {
+      color: var(--brand);
+      font: 600 9px 'DM Mono', monospace;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .composer-focus-badge {
+      padding: 3px 7px;
+      border: 1px solid var(--brand-glow);
+      border-radius: 999px;
+      background: var(--brand-dim);
+      white-space: nowrap;
+    }
+    .composer-focus-actions { display: flex; align-items: center; gap: 6px; }
+
+    .composer-draft-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--subtle);
+      font: 500 10px 'DM Mono', monospace;
+      white-space: nowrap;
+      margin-left: auto;
+    }
+    .composer-draft-status::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--border2);
+      flex-shrink: 0;
+    }
+    .composer-draft-status[data-state="saving"]::before { background: var(--amber); animation: draftPulse .9s ease infinite; }
+    .composer-draft-status[data-state="saved"]::before,
+    .composer-draft-status[data-state="restored"]::before { background: var(--green); }
+    .composer-draft-status[data-state="error"] { color: var(--red); }
+    .composer-draft-status[data-state="error"]::before { background: var(--red); }
+    @keyframes draftPulse { 50% { opacity: .35; } }
+
+    .composer-resource-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 69;
+      border: 0;
+      padding: 0;
+      background: rgba(8, 10, 28, .34);
+      backdrop-filter: blur(2px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity .18s ease, visibility .18s ease;
+    }
+    body.composer-resources-open .composer-resource-backdrop {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .composer-support {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      bottom: 16px;
+      width: min(400px, calc(100vw - 32px));
+      z-index: 70;
+      margin: 0;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateX(calc(100% + 28px));
+      transition: transform .22s cubic-bezier(.2,.8,.2,1), opacity .18s ease, visibility .22s ease;
+    }
+    .composer-support.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateX(0);
+    }
+    .support-tools-card {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      border-color: var(--border2);
+      border-radius: 16px;
+      box-shadow: 0 24px 80px rgba(8, 10, 28, .24);
+    }
+    .resource-drawer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .resource-drawer-kicker { margin-bottom: 4px; }
+    .resource-drawer-title {
+      color: var(--ink);
+      font: 700 19px 'Bricolage Grotesque', sans-serif;
+      letter-spacing: -.02em;
+    }
+    .resource-drawer-close { width: 34px; height: 34px; justify-content: center; padding: 0; flex-shrink: 0; }
+    .sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+    .resource-drawer-search {
+      flex: 0 0 auto;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .resource-drawer-search .input {
+      min-height: 38px;
+      border-radius: 10px;
+      background: var(--surface2);
+    }
+    .composer-support .support-tabs { flex: 0 0 auto; overflow-x: auto; scrollbar-width: none; }
+    .composer-support .support-tabs::-webkit-scrollbar { display: none; }
+    .support-tab-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: var(--surface2);
+      color: var(--subtle);
+      font: 600 9px 'DM Mono', monospace;
+    }
+    .support-tab.active .support-tab-count { background: var(--brand-dim); color: var(--brand); }
+    .composer-support .support-panel.active { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+    .composer-support .template-list,
+    .composer-support .composer-pillars-compact { max-height: none; }
+
+    .composer-support-hdr > div { min-width: 0; }
+    .resource-panel-copy {
+      color: var(--subtle);
+      font-size: 11px;
+      line-height: 1.4;
+    }
+    .composer-resource-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .resource-list-label {
+      margin: 8px 2px 0;
+      color: var(--subtle);
+      font: 600 9px 'DM Mono', monospace;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .resource-list-label:first-child { margin-top: 0; }
+    .composer-resource-card {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      transition: border-color .12s ease, background .12s ease, transform .12s ease;
+    }
+    .composer-resource-card:hover {
+      border-color: var(--brand-glow);
+      background: color-mix(in srgb, var(--surface) 94%, var(--brand) 6%);
+      transform: translateY(-1px);
+    }
+    .composer-resource-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 7px;
+      color: var(--subtle);
+      font: 500 9px 'DM Mono', monospace;
+      letter-spacing: .02em;
+    }
+    .resource-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 19px;
+      padding: 2px 6px;
+      border: 1px solid var(--border2);
+      border-radius: 999px;
+      background: var(--surface2);
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .resource-chip.starred {
+      border-color: color-mix(in srgb, var(--amber) 40%, var(--border));
+      background: color-mix(in srgb, var(--amber) 10%, var(--surface));
+      color: var(--amber);
+    }
+    .composer-resource-title {
+      margin-bottom: 5px;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+    .composer-resource-preview,
+    .composer-resource-quote,
+    .composer-resource-hashtags {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+    .composer-resource-quote {
+      padding-left: 10px;
+      border-left: 2px solid var(--brand-glow);
+      color: var(--ink);
+      font-size: 13px;
+    }
+    .composer-resource-hashtags {
+      color: var(--brand);
+      font-family: 'DM Mono', monospace;
+      white-space: pre-wrap;
+    }
+    .composer-resource-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .resource-empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 220px;
+      padding: 28px 18px;
+      border: 1px dashed var(--border2);
+      border-radius: 14px;
+      background: var(--surface2);
+      text-align: center;
+    }
+    .resource-empty-icon {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      margin-bottom: 10px;
+      border-radius: 12px;
+      background: var(--brand-dim);
+      color: var(--brand);
+      font: 700 18px 'DM Mono', monospace;
+    }
+    .resource-empty-title { color: var(--ink); font-size: 14px; font-weight: 700; }
+    .resource-empty-copy { max-width: 31ch; margin-top: 5px; color: var(--subtle); font-size: 12px; line-height: 1.5; }
+    .resource-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 14px; }
+
+    body.composer-focus-mode #app { grid-template-columns: 1fr; }
+    body.composer-focus-mode .side,
+    body.composer-focus-mode .mobile-tabs,
+    body.composer-focus-mode #composerView > .page-hdr,
+    body.composer-focus-mode #composerView > .mob-view-hdr { display: none !important; }
+    body.composer-focus-mode #composerView {
+      max-width: 1180px;
+      min-height: 100dvh;
+      padding-top: 16px;
+    }
+    body.composer-focus-mode .composer-focus-bar { display: flex; }
+    body.composer-focus-mode #composerModeTabs { display: none !important; }
+    body.composer-focus-mode .rich-editor { min-height: clamp(380px, 58dvh, 680px); font-size: 16px; line-height: 1.78; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .composer-support,
+      .composer-resource-backdrop { transition: none; }
+      .composer-draft-status[data-state="saving"]::before { animation: none; }
     }

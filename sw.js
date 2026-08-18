@@ -1,4 +1,4 @@
-const CACHE = 'postiq-v7-organized-assets';
+const CACHE = 'postiq-v9-writing-resources';
 const SHELL = [
   '/',
   '/index.html',
@@ -26,6 +26,7 @@ const SHELL = [
   '/js/integrations/buffer-api.js',
   '/js/features/calendar.js',
   '/js/features/composer.js',
+  '/js/features/composer-resources.js',
   '/js/features/media.js',
   '/js/integrations/post-creation.js',
   '/js/features/approvals/index.js',

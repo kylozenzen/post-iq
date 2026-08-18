@@ -105,13 +105,6 @@ function init() {
     });
   });
 
-  const manageTplBtn = qs('composerManageTemplatesBtn'); if (manageTplBtn) manageTplBtn.onclick = () => { activateView('ideasView'); setIdeasTab('templates'); };
-  document.querySelectorAll('.support-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.support-tab').forEach(t => t.classList.toggle('active', t === tab));
-      document.querySelectorAll('.support-panel').forEach(p => p.classList.toggle('active', p.dataset.stoolPanel === tab.dataset.stool));
-    });
-  });
   on('closeTemplatePicker', 'click', () => closeModal('templatePickerModal'));
   on('templateSearch', 'input', e => { state.templateSearch = e.target.value; renderTemplates(); });
   on('templateSearch', 'change', e => safeTrack(() => GA4_Templates.templateSearched(e.target.value.trim() ? 'has_query' : 'empty')));
@@ -257,6 +250,8 @@ function init() {
   });
   const charCount = qs('charCount'); if (charCount) charCount.textContent = '0 chars';
   on('composerChannel', 'change', updateComposerButtonStates);
+  initComposerWorkspace(editor);
+  window.PostIQComposerResources?.init?.();
 
   on('composerClearBtn', 'click', clearComposer);
 
@@ -405,6 +400,10 @@ function init() {
 
   // ── COMPOSER MODE TABS ──
   function setComposerMode(mode) {
+    if (mode !== 'compose') {
+      setComposerResourcesOpen(false);
+      setComposerFocusMode(false, false);
+    }
     document.querySelectorAll('.composer-mode-tab').forEach(t => {
       const isActive = t.dataset.cmode === mode;
       t.style.color = isActive ? 'var(--brand)' : 'var(--muted)';
@@ -590,6 +589,7 @@ function init() {
     }
     refPin.style.display = 'block';
   }
+  window.pinReferenceToComposer = pinReferenceToComposer;
 
 window.Notebook = (() => {
   let cards = [];
@@ -604,7 +604,10 @@ window.Notebook = (() => {
     type: qs('notecardType'),
   });
 
-  const save = () => { try { localStorage.setItem(NOTEBOOK_KEY, JSON.stringify(cards)); } catch {} };
+  const save = () => {
+    try { localStorage.setItem(NOTEBOOK_KEY, JSON.stringify(cards)); } catch {}
+    window.dispatchEvent(new CustomEvent('postiq:notebook-changed'));
+  };
   const load = () => { try { const parsed = JSON.parse(localStorage.getItem(NOTEBOOK_KEY) || '[]'); cards = Array.isArray(parsed) ? parsed : []; } catch { cards = []; } };
   const age = ts => { const n = Date.now() - Number(ts || 0); const m=Math.floor(n/60000); if(m<60) return `${Math.max(1,m)}m ago`; const h=Math.floor(m/60); if(h<24) return `${h}h ago`; return `${Math.floor(h/24)}d ago`; };
 

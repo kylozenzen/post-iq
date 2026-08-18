@@ -19,7 +19,10 @@ function loadTemplates() {
     }));
   } catch { state.templates = []; }
 }
-function persistTemplates() { try { localStorage.setItem(TEMPLATE_KEY, JSON.stringify(state.templates)); } catch {} }
+function persistTemplates() {
+  try { localStorage.setItem(TEMPLATE_KEY, JSON.stringify(state.templates)); } catch {}
+  window.dispatchEvent(new CustomEvent('postiq:templates-changed'));
+}
 
 function filteredTemplates(search = state.templateSearch, type = state.templateType, platform = state.templatePlatform) {
   const q = search.trim().toLowerCase();
@@ -74,6 +77,10 @@ function renderTemplates() {
 }
 
 function renderComposerTemplateSidebar() {
+  if (window.PostIQComposerResources?.refresh) {
+    window.PostIQComposerResources.refresh();
+    return;
+  }
   const list = qs('composerTemplateList'); if (!list) return;
   const items = state.templates.slice(0, 8);
   if (!items.length) { list.innerHTML = "<div style=\"font-size:12px;color:var(--subtle);padding:8px 0;font-family:'DM Mono',monospace;\">No templates yet.</div>"; return; }
@@ -90,7 +97,10 @@ function renderComposerTemplateSidebar() {
 
 function updateComposerClearButtonVisibility() {
   const editor = document.getElementById('composerEditor');
-  const hasContent = !!editor && editor.innerText.trim().length > 0;
+  const editorText = typeof getComposerEditorText === 'function'
+    ? getComposerEditorText(editor)
+    : String(editor?.innerText ?? editor?.textContent ?? '').trim();
+  const hasContent = !!editorText;
   const ccBtn = document.getElementById('composerClearBtn');
   const ccBtnMob = document.getElementById('composerClearBtnMob');
   if (ccBtn) ccBtn.style.display = hasContent ? 'inline-flex' : 'none';
@@ -107,6 +117,7 @@ function clearComposer() {
   } catch {}
   editor.innerHTML = '';
   editor.textContent = '';
+  if (typeof clearStoredComposerDraft === 'function') clearStoredComposerDraft();
   editor.dispatchEvent(new InputEvent('input', {
     bubbles: true,
     cancelable: true,

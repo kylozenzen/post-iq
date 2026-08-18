@@ -27,6 +27,7 @@ function activateView(viewId, source = 'navigation') {
   document.querySelectorAll('.mob-tab[data-view]').forEach(t => t.classList.toggle('active', t.dataset.view === viewId));
   if (viewId === 'homeView' && FEATURE_HOME_DASHBOARD) renderHomeView();
   if (viewId === 'ideasView') setIdeasTab(currentIdeasTab || 'notebook');
+  window.dispatchEvent(new CustomEvent('postiq:view-changed', { detail: { viewId, source } }));
 }
 window.activateView = activateView;
 
