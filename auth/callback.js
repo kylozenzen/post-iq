@@ -1,4 +1,5 @@
 const APP_URL = '/app.html';
+const BUFFER_CLIENT_ID = 'ijzu75qv_CAcO0qMelb93HjOVh1EwEanezilfgBiOEG';
 const TOKEN_ENDPOINT = '/.netlify/functions/buffer-token';
 const SHARED_CONNECTION_SRC = '/js/shared/connection.js';
 const SHARED_OAUTH_SRC = '/js/shared/oauth.js';
@@ -26,6 +27,7 @@ function setScreen(kind, title, message, detailText = '') {
 function clearOAuthSession() {
   ['postiq_oauth_state', 'postiq_oauth_verifier', 'postiq_pkce_verifier', 'postiq_oauth_redirect_uri', 'postiq_oauth_return_to']
     .forEach(key => sessionStorage.removeItem(key));
+  try { localStorage.removeItem('postiq_oauth_transaction'); } catch {}
 }
 
 function showActions(primaryText = 'Return to PostIQ') {
@@ -38,6 +40,10 @@ function showActions(primaryText = 'Return to PostIQ') {
 
 function yesNo(value) { return value ? 'yes' : 'no'; }
 
+function hasFallbackTransaction() {
+  try { return !!localStorage.getItem('postiq_oauth_transaction'); } catch { return false; }
+}
+
 function buildOAuthTechnicalDetails() {
   const params = new URLSearchParams(location.search);
   return [
@@ -47,6 +53,7 @@ function buildOAuthTechnicalDetails() {
     `returned state present: ${yesNo(params.get('state'))}`,
     `stored state present: ${yesNo(sessionStorage.getItem('postiq_oauth_state'))}`,
     `stored verifier present: ${yesNo(sessionStorage.getItem('postiq_oauth_verifier') || sessionStorage.getItem('postiq_pkce_verifier'))}`,
+    `fallback transaction present: ${yesNo(hasFallbackTransaction())}`,
     `code present: ${yesNo(params.get('code'))}`,
     `current origin: ${location.origin}`,
   ].join('\n');
@@ -67,7 +74,7 @@ async function ensureSharedBufferModules() {
   if (!window.BufferConnection) await loadScript(SHARED_CONNECTION_SRC);
   if (!window.BufferOAuth) await loadScript(SHARED_OAUTH_SRC);
   if (!window.BufferConnection || !window.BufferOAuth) throw new Error('Shared Buffer modules did not initialize');
-  window.BufferConnection.init({ prefix: 'postiq', tokenEndpoint: TOKEN_ENDPOINT, refreshSkewMs: 5 * 60 * 1000 });
+  window.BufferConnection.init({ prefix: 'postiq', clientId: BUFFER_CLIENT_ID, tokenEndpoint: TOKEN_ENDPOINT, refreshSkewMs: 5 * 60 * 1000 });
 }
 
 function safeReturnUrl(returnTo) {
@@ -85,7 +92,7 @@ async function handleCallback() {
   const technicalDetails = buildOAuthTechnicalDetails();
   try {
     await ensureSharedBufferModules();
-    const result = await window.BufferOAuth.handleCallback({ prefix: 'postiq', tokenEndpoint: TOKEN_ENDPOINT });
+    const result = await window.BufferOAuth.handleCallback({ prefix: 'postiq', tokenEndpoint: TOKEN_ENDPOINT, clientId: BUFFER_CLIENT_ID });
 
     if (!result.ok) {
       const kind = result.reason === 'cancelled' ? 'cancelled' : 'error';
@@ -93,6 +100,7 @@ async function handleCallback() {
         : result.reason === 'state_mismatch' ? 'Security check failed'
         : result.reason === 'missing_code' ? 'Missing authorization code'
         : result.reason === 'session_expired' ? 'Session expired'
+        : result.reason === 'missing_client_id' ? 'OAuth app not configured'
         : 'Buffer connection failed';
       setScreen(kind, title, result.message || 'Could not connect Buffer.', technicalDetails);
       showActions(result.reason === 'cancelled' ? 'Back to PostIQ' : 'Try again');

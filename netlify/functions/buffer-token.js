@@ -2,8 +2,9 @@
 // Netlify function: exchanges an OAuth authorization code (or refresh token)
 // for Buffer access/refresh tokens. Used only by apps on the OAuth+PKCE path.
 //
-// Required env var: BUFFER_CLIENT_ID (public OAuth client id — not secret,
-// but keep it in env so it's one place to change per app/environment).
+// The OAuth client id is public app metadata, not a secret. Each app sends its
+// own client_id with the PKCE exchange/refresh request so this shared function
+// stays reusable and does not require per-app Netlify credential configuration.
 
 const { corsHeaders, fetchWithTimeout } = require('./_shared');
 
@@ -20,16 +21,16 @@ exports.handler = async function handler(event) {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'method_not_allowed' }) };
   }
 
-  const clientId = process.env.BUFFER_CLIENT_ID;
-  if (!clientId) {
-    return { statusCode: 500, headers, body: JSON.stringify({ error: 'server_missing_client_id' }) };
-  }
-
   let payload = {};
   try {
     payload = JSON.parse(event.body || '{}');
   } catch {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'invalid_json' }) };
+  }
+
+  const clientId = String(payload.client_id || '').trim();
+  if (!clientId) {
+    return { statusCode: 400, headers, body: JSON.stringify({ error: 'missing_required_fields', required: ['client_id'] }) };
   }
 
   const grantType = payload.grant_type === 'refresh_token' ? 'refresh_token' : 'authorization_code';
