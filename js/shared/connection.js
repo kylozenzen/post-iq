@@ -1,10 +1,10 @@
 // connection.js
 // Client-side token storage + refresh for apps on the OAuth+PKCE path
 // (adapted from PostIQ's buffer-connection.js, generalized so the storage
-// key prefix and token endpoint are configurable per app).
+// key prefix, public OAuth client id, and token endpoint are configurable per app).
 //
 // Usage:
-//   BufferConnection.init({ prefix: 'postiq', tokenEndpoint: '/.netlify/functions/buffer-token' });
+//   BufferConnection.init({ prefix: 'postiq', clientId: 'public-client-id', tokenEndpoint: '/.netlify/functions/buffer-token' });
 //   const token = await BufferConnection.getValidAccessToken(); // auto-refreshes if needed
 //   if (!token) { /* prompt user to connect */ }
 
@@ -92,10 +92,13 @@
     if (!token || !token.refreshToken) {
       throw Object.assign(new Error('No Buffer refresh token'), { code: 'MISSING_REFRESH_TOKEN' });
     }
+    if (!cfg.clientId) {
+      throw Object.assign(new Error('Missing Buffer OAuth client ID'), { code: 'MISSING_CLIENT_ID' });
+    }
     const res = await fetch(cfg.tokenEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: token.refreshToken }),
+      body: JSON.stringify({ client_id: cfg.clientId, grant_type: 'refresh_token', refresh_token: token.refreshToken }),
     });
     const data = await res.json().catch(() => null);
     if (!res.ok || !data || !data.access_token) {
