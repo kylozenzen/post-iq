@@ -6,9 +6,14 @@
   'use strict';
 
   const AUTHORIZATION_ENDPOINT = 'https://auth.buffer.com/auth';
+  const TRANSACTION_TTL_MS = 15 * 60 * 1000;
 
   function sessionKey(prefix, name) {
     return `${prefix}_oauth_${name}`;
+  }
+
+  function transactionKey(prefix) {
+    return `${prefix}_oauth_transaction`;
   }
 
   function generateRandomString(length) {
@@ -41,6 +46,46 @@
     }
   }
 
+  function canUseLocalStorage() {
+    try {
+      const k = '__buffer_oauth_local_storage_test__';
+      localStorage.setItem(k, '1');
+      localStorage.removeItem(k);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function saveFallbackTransaction(prefix, transaction) {
+    if (!canUseLocalStorage()) return;
+    try {
+      localStorage.setItem(transactionKey(prefix), JSON.stringify(transaction));
+    } catch {}
+  }
+
+  function readFallbackTransaction(prefix) {
+    if (!canUseLocalStorage()) return null;
+    try {
+      const raw = localStorage.getItem(transactionKey(prefix));
+      if (!raw) return null;
+      const transaction = JSON.parse(raw);
+      const createdAt = Number(transaction?.createdAt || 0);
+      if (!createdAt || Date.now() - createdAt > TRANSACTION_TTL_MS) {
+        localStorage.removeItem(transactionKey(prefix));
+        return null;
+      }
+      return transaction;
+    } catch {
+      try { localStorage.removeItem(transactionKey(prefix)); } catch {}
+      return null;
+    }
+  }
+
+  function clearFallbackTransaction(prefix) {
+    try { localStorage.removeItem(transactionKey(prefix)); } catch {}
+  }
+
   async function startAuthorization({ prefix, clientId, redirectUri, scope, returnTo }) {
     if (!prefix || !clientId || !redirectUri || !scope) {
       throw new Error('BufferOAuth.startAuthorization requires { prefix, clientId, redirectUri, scope }');
@@ -66,6 +111,19 @@
     sessionStorage.setItem(sessionKey(prefix, 'redirect_uri'), redirectUri);
     if (returnTo) sessionStorage.setItem(sessionKey(prefix, 'return_to'), returnTo);
 
+    // Some private-browsing flows recreate the top-level browsing context while
+    // returning from the identity provider, which can drop sessionStorage even
+    // though the app returns to the same origin. Keep a short-lived, same-origin
+    // fallback transaction so PKCE can finish, then delete it immediately.
+    saveFallbackTransaction(prefix, {
+      state: oauthState,
+      verifier,
+      redirectUri,
+      returnTo: returnTo || null,
+      clientId,
+      createdAt: Date.now(),
+    });
+
     const params = new URLSearchParams({
       client_id: clientId,
       redirect_uri: redirectUri,
@@ -82,7 +140,7 @@
     window.location.assign(authUrl.toString());
   }
 
-  async function handleCallback({ prefix, tokenEndpoint }) {
+  async function handleCallback({ prefix, tokenEndpoint, clientId }) {
     if (!prefix || !tokenEndpoint) {
       throw new Error('BufferOAuth.handleCallback requires { prefix, tokenEndpoint }');
     }
@@ -95,18 +153,23 @@
     const state = params.get('state');
     const error = params.get('error');
     const errorDescription = params.get('error_description');
-    const storedState = sessionStorage.getItem(sessionKey(prefix, 'state'));
+    const fallback = readFallbackTransaction(prefix);
+    const storedState = sessionStorage.getItem(sessionKey(prefix, 'state')) || fallback?.state || null;
     // Shared key is `${prefix}_oauth_verifier`. During migration, also accept
-    // PostIQ's legacy `${prefix}_pkce_verifier` so an in-flight redirect
-    // across a deploy can still finish cleanly.
+    // PostIQ's legacy `${prefix}_pkce_verifier`. A short-lived local fallback
+    // handles private-browsing contexts that lose sessionStorage on redirect.
     const verifier = sessionStorage.getItem(sessionKey(prefix, 'verifier'))
-      || sessionStorage.getItem(`${prefix}_pkce_verifier`);
-    const redirectUri = sessionStorage.getItem(sessionKey(prefix, 'redirect_uri'));
-    const returnTo = sessionStorage.getItem(sessionKey(prefix, 'return_to')) || null;
+      || sessionStorage.getItem(`${prefix}_pkce_verifier`)
+      || fallback?.verifier
+      || null;
+    const redirectUri = sessionStorage.getItem(sessionKey(prefix, 'redirect_uri')) || fallback?.redirectUri || null;
+    const returnTo = sessionStorage.getItem(sessionKey(prefix, 'return_to')) || fallback?.returnTo || null;
+    const resolvedClientId = clientId || fallback?.clientId || null;
 
     function cleanup() {
       [sessionKey(prefix, 'state'), sessionKey(prefix, 'verifier'), sessionKey(prefix, 'redirect_uri'), sessionKey(prefix, 'return_to'), `${prefix}_pkce_verifier`]
         .forEach(k => sessionStorage.removeItem(k));
+      clearFallbackTransaction(prefix);
     }
 
     if (error === 'access_denied') { cleanup(); return { ok: false, reason: 'cancelled', message: errorDescription || 'Connection cancelled', returnTo }; }
@@ -114,12 +177,13 @@
     if (!state || !storedState || state !== storedState) { cleanup(); return { ok: false, reason: 'state_mismatch', message: 'Security check failed — please try connecting again.', returnTo }; }
     if (!code) { cleanup(); return { ok: false, reason: 'missing_code', message: 'Buffer did not return an authorization code.', returnTo }; }
     if (!verifier || !redirectUri) { cleanup(); return { ok: false, reason: 'session_expired', message: 'The connection session expired — please try again.', returnTo }; }
+    if (!resolvedClientId) { cleanup(); return { ok: false, reason: 'missing_client_id', message: 'This app is missing its Buffer OAuth client ID.', returnTo }; }
 
     try {
       const res = await fetch(tokenEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, redirect_uri: redirectUri, code_verifier: verifier }),
+        body: JSON.stringify({ client_id: resolvedClientId, code, redirect_uri: redirectUri, code_verifier: verifier }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data || !data.access_token) {
