@@ -11,13 +11,14 @@ assert.match(discordSource, /\$\{escapeHtml\(i\.message\.slice\(0, 180\)\)\}/);
 assert.doesNotMatch(discordSource, /\$\{i\.message\.slice\(0, 180\)\}/);
 
 const proxySource = fs.readFileSync('netlify/functions/buffer-proxy.js', 'utf8');
-assert.match(proxySource, /async function fetchWithTimeout/);
-assert.match(proxySource, /typeof query !== "string" \|\| !query\.trim\(\)/);
+const sharedSource = fs.readFileSync('netlify/functions/_shared.js', 'utf8');
+assert.match(sharedSource, /async function fetchWithTimeout/);
+assert.match(proxySource, /typeof query !== 'string' \|\| !query\.trim\(\)/);
 assert.match(proxySource, /QUERY_TOO_LARGE/);
 assert.match(proxySource, /PROXY_TIMEOUT/);
 
 const swSource = fs.readFileSync('sw.js', 'utf8');
-assert.match(swSource, /postiq-v9-writing-resources/);
+assert.match(swSource, /postiq-v10-content-flow/);
 assert.match(swSource, /request\.cache === 'only-if-cached'/);
 assert.match(swSource, /request\.mode === 'navigate'/);
 assert.match(swSource, /cache\.match\('\/app\.html'\)/);

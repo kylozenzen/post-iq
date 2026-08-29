@@ -7,6 +7,7 @@ const vm = require('node:vm');
 const html = fs.readFileSync('app.html', 'utf8');
 const resourcesSource = fs.readFileSync('js/features/composer-resources.js', 'utf8');
 const bootstrap = fs.readFileSync('js/core/bootstrap.js', 'utf8');
+const contentFlow = fs.readFileSync('js/features/content-flow.js', 'utf8');
 const templates = fs.readFileSync('js/features/templates.js', 'utf8');
 const library = fs.readFileSync('js/library.js', 'utf8');
 const sw = fs.readFileSync('sw.js', 'utf8');
@@ -33,11 +34,11 @@ assert.match(resourcesSource, /createTextFragment/);
 assert.match(resourcesSource, /editor\.insertBefore\(fragment, editor\.firstChild\)/);
 
 assert.match(bootstrap, /PostIQComposerResources\?\.init/);
-assert.match(bootstrap, /postiq:notebook-changed/);
+assert.match(contentFlow, /postiq:notebook-changed/);
 assert.match(bootstrap, /window\.pinReferenceToComposer = pinReferenceToComposer/);
 assert.match(templates, /postiq:templates-changed/);
 assert.match(library, /postiq:library-changed/);
-assert.match(sw, /postiq-v9-writing-resources/);
+assert.match(sw, /postiq-v10-content-flow/);
 assert.match(sw, /\/js\/features\/composer-resources\.js/);
 
 const context = { window: {}, console };

@@ -1,4 +1,4 @@
-const CACHE = 'postiq-v9-writing-resources';
+const CACHE = 'postiq-v10-content-flow';
 const SHELL = [
   '/',
   '/index.html',
@@ -9,6 +9,7 @@ const SHELL = [
   '/css/app/composer.css',
   '/css/app/approvals.css',
   '/css/app/ideas-settings.css',
+  '/css/app/content-flow.css',
   '/css/app/content-pillars.css',
   '/css/app/responsive.css',
   '/css/app/polish.css',
@@ -24,9 +25,11 @@ const SHELL = [
   '/js/features/templates.js',
   '/js/integrations/buffer-connection.js',
   '/js/integrations/buffer-api.js',
+  '/js/integrations/content-items.js',
   '/js/features/calendar.js',
   '/js/features/composer.js',
   '/js/features/composer-resources.js',
+  '/js/features/content-flow.js',
   '/js/features/media.js',
   '/js/integrations/post-creation.js',
   '/js/features/approvals/index.js',
