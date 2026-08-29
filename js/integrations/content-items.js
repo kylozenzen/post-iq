@@ -38,10 +38,10 @@
   }
 
   function contentItemError(payload, fallback) {
-    const nested = payload?.error || payload?.errors?.[0] || payload;
+    const details = Array.isArray(payload?.errors) ? payload.errors : [];
+    const nested = details[0] || payload;
     const typename = String(nested?.__typename || payload?.__typename || 'MutationError');
-    const details = nested?.errors || nested?.validationErrors || payload?.errors || [];
-    const error = new Error(nested?.message || details[0]?.message || payload?.message || fallback);
+    const error = new Error(payload?.message || nested?.message || fallback);
     error.code = typename === 'ContentItemStateError' ? 'CONTENT_ITEM_STATE_ERROR' : typename.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase();
     error.typename = typename;
     error.validationErrors = details.map(detail => ({
@@ -65,7 +65,7 @@
   async function getContentItems(options = {}) {
     requireEnabled();
     const organizationId = options.organizationId || await getOrgId();
-    const query = `query ContentItems($organizationId:OrganizationId!,$first:Int!,$after:String){contentItems(first:$first,after:$after,input:{organizationId:$organizationId}){edges{node{id title targetDate ${CONTENT_BODY}}pageInfo{hasNextPage endCursor}}}`;
+    const query = `query ContentItems($organizationId:OrganizationId!,$first:Int!,$after:String){contentItems(first:$first,after:$after,input:{organizationId:$organizationId}){edges{node{id title targetDate ${CONTENT_BODY}}}pageInfo{hasNextPage endCursor}}}`;
     const response = await callBuffer(query, { organizationId, first: options.first || 50, after: options.after || null });
     const connection = response?.data?.contentItems;
     return { items: nodes(connection).map(normalizeContentItem), pageInfo: connection?.pageInfo || {} };
@@ -81,26 +81,26 @@
 
   async function createContentItemDraft(input) {
     requireEnabled();
-    const mutation = `mutation CreateContentItemDraft($input:CreateContentItemDraftInput!){createContentItemDraft(input:$input){__typename ... on CreateContentItemDraftSuccess{contentItem{id title targetDate ${DRAFT_BODY}}} ... on CreateContentItemDraftFailure{error{__typename ... on InvalidInputError{message} ... on MutationError{message}}}}}`;
+    const mutation = `mutation CreateContentItemDraft($input:CreateContentItemDraftInput!){createContentItemDraft(input:$input){__typename ... on CreateContentItemDraftSuccess{contentItem{id title targetDate ${DRAFT_BODY}}} ... on CreateContentItemDraftFailure{message errors{message}}}}`;
     return unwrapMutation(await callBuffer(mutation, { input }), 'createContentItemDraft');
   }
 
   async function updateContentItemDraft(input) {
     requireEnabled();
-    const mutation = `mutation UpdateContentItemDraft($input:UpdateContentItemDraftInput!){updateContentItemDraft(input:$input){__typename ... on UpdateContentItemDraftSuccess{contentItem{id title targetDate ${DRAFT_BODY}}} ... on UpdateContentItemDraftFailure{error{__typename ... on ContentItemStateError{message} ... on InvalidInputError{message} ... on MutationError{message}}}}}`;
+    const mutation = `mutation UpdateContentItemDraft($input:UpdateContentItemDraftInput!){updateContentItemDraft(input:$input){__typename ... on UpdateContentItemDraftSuccess{contentItem{id title targetDate ${DRAFT_BODY}}} ... on UpdateContentItemDraftFailure{message errors{... on ContentItemStateError{message} ... on InvalidInputError{message}}}}}`;
     return unwrapMutation(await callBuffer(mutation, { input }), 'updateContentItemDraft');
   }
 
   async function updateContentItem(input) {
     requireEnabled();
-    const mutation = `mutation UpdateContentItem($input:UpdateContentItemInput!){updateContentItem(input:$input){__typename ... on UpdateContentItemSuccess{contentItem{id title targetDate ${DRAFT_BODY}}} ... on UpdateContentItemFailure{error{__typename ... on ContentItemStateError{message} ... on InvalidInputError{message} ... on MutationError{message}}}}}`;
+    const mutation = `mutation UpdateContentItem($input:UpdateContentItemInput!){updateContentItem(input:$input){__typename ... on UpdateContentItemSuccess{contentItem{id title targetDate ${DRAFT_BODY}}} ... on UpdateContentItemFailure{message errors{message}}}}`;
     return unwrapMutation(await callBuffer(mutation, { input }), 'updateContentItem');
   }
 
   async function promoteContentItemDraft(input) {
     requireEnabled();
     if (!PROMOTION_SUPPORTS_SAVE_TO_DRAFT) throw Object.assign(new Error("Buffer's experimental Content Items API cannot currently save channel versions as Buffer drafts safely."), { code: 'DRAFT_PROMOTION_UNSUPPORTED' });
-    const mutation = `mutation PromoteContentItemDraftToPosts($input:PromoteContentItemDraftToPostsInput!){promoteContentItemDraftToPosts(input:$input){__typename ... on PromoteContentItemDraftToPostsSuccess{contentItem{id title targetDate ${POST_BODY}}} ... on PromoteContentItemDraftToPostsFailure{error{__typename ... on ContentItemStateError{message} ... on PostChannelNotFoundError{message} ... on PostInvalidInputError{message} ... on PostLimitReachedError{message} ... on MutationError{message}}}}}`;
+    const mutation = `mutation PromoteContentItemDraftToPosts($input:PromoteContentItemDraftToPostsInput!){promoteContentItemDraftToPosts(input:$input){__typename ... on PromoteContentItemDraftToPostsSuccess{contentItem{id title targetDate ${POST_BODY}}} ... on PromoteContentItemDraftToPostsFailure{message errors{... on ContentItemStateError{message} ... on PostChannelNotFoundError{channelId message} ... on PostInvalidInputError{channelId message} ... on PostLimitReachedError{channelId message} ... on MutationError{message}}}}}`;
     return unwrapMutation(await callBuffer(mutation, { input }), 'promoteContentItemDraftToPosts', 'Buffer could not create the channel drafts.');
   }
 
