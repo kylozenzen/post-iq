@@ -1,0 +1,12 @@
+.content-source-card{border-left:3px solid var(--brand)}
+.content-status,.buffer-synced,.content-target{font-family:'DM Mono',monospace;font-size:10px}
+.content-status{text-transform:uppercase;letter-spacing:.06em;padding:3px 7px;border-radius:999px;background:var(--surface2);color:var(--muted)}
+.status-developing{background:rgba(245,158,11,.12);color:var(--amber)}.status-ready{background:rgba(15,166,114,.12);color:#0b8b60}
+.buffer-synced{color:#0b8b60}.content-target{color:var(--subtle);margin-top:8px}
+.content-flow-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.content-flow-fields .field{margin-bottom:0}
+.remix-card{max-height:90vh;overflow:auto}.remix-subtitle{font-size:12px;color:var(--muted);margin-top:3px}
+.remix-source-wrap{padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;margin-bottom:16px}.remix-source{white-space:pre-wrap;font-size:13px;line-height:1.55;max-height:140px;overflow:auto}
+.remix-channels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0 12px}.remix-channel{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:9px 11px;border:1px solid var(--border);border-radius:10px;cursor:pointer}.remix-channel small{color:var(--subtle)}
+.remix-variants{display:grid;gap:12px;margin-top:16px}.remix-variant{padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}.remix-variant-title{font-weight:700;margin-bottom:8px}.remix-variant textarea{min-height:120px}.remix-schedule{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.variant-error{color:var(--red);font-size:11px;margin-top:6px}
+.remix-actions{position:sticky;bottom:-1px;background:var(--surface);border-top:1px solid var(--border);padding:12px 0 2px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:12px}.remix-actions span{font-size:11px;color:var(--subtle)}
+@media(max-width:640px){.content-flow-fields,.remix-channels,.remix-schedule{grid-template-columns:1fr}.remix-actions{align-items:stretch;flex-direction:column}}

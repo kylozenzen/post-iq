@@ -35,6 +35,7 @@
   <link rel="stylesheet" href="./css/app/composer.css" />
   <link rel="stylesheet" href="./css/app/approvals.css" />
   <link rel="stylesheet" href="./css/app/ideas-settings.css" />
+  <link rel="stylesheet" href="./css/app/content-flow.css" />
   <link rel="stylesheet" href="./css/app/content-pillars.css" />
   <link rel="stylesheet" href="./css/app/responsive.css" />
   <link rel="stylesheet" href="./css/app/polish.css" />
@@ -835,9 +836,9 @@
         
         <section class="ideas-panel active" id="ideasNotebookPanel" data-ideas-panel="notebook">
           <div class="ideas-panel-hdr">
-            <p class="ideas-panel-copy">Your saved inspiration — Reddit threads, articles, raw ideas. Hit Compose on any card to pin it above your editor and write your take.</p>
+            <p class="ideas-panel-copy">Capture an idea, develop the source, then remix editable versions for your Buffer channels. Your original source always stays in PostIQ.</p>
             <div class="page-actions">
-              <button class="btn sm primary" id="newNotecardBtn" type="button">+ Add note</button>
+              <button class="btn sm primary" id="newNotecardBtn" type="button">+ Capture idea</button>
             </div>
           </div>
           <div id="notebookEmpty" class="empty-state">
@@ -1261,9 +1262,11 @@
   <script src="./js/features/templates.js" defer></script>
   <script src="./js/integrations/buffer-connection.js" defer></script>
   <script src="./js/integrations/buffer-api.js" defer></script>
+  <script src="./js/integrations/content-items.js" defer></script>
   <script src="./js/features/calendar.js" defer></script>
   <script src="./js/features/composer.js" defer></script>
   <script src="./js/features/composer-resources.js" defer></script>
+  <script src="./js/features/content-flow.js" defer></script>
   <script src="./js/features/media.js" defer></script>
   <script src="./js/integrations/post-creation.js" defer></script>
   <script src="./js/features/approvals/index.js" defer></script>
@@ -1636,8 +1639,13 @@
       <input id="notecardTitle" class="input" placeholder="Card title" />
     </div>
     <div class="field">
-      <label class="label">Body / context</label>
-      <textarea id="notecardBody" class="input" style="min-height:120px;" placeholder="Capture the idea, quote, or angle..."></textarea>
+      <label class="label">Source content</label>
+      <textarea id="notecardBody" class="input" style="min-height:160px;" placeholder="Develop the original idea in your own words..."></textarea>
+    </div>
+    <div class="content-flow-fields">
+      <div class="field"><label class="label">Target date</label><input id="notecardTargetDate" class="input" type="date" /></div>
+      <div class="field"><label class="label">Status</label><select id="notecardStatus" class="input"><option value="idea">Idea</option><option value="developing">Developing</option><option value="ready">Ready</option></select></div>
+      <div class="field"><label class="label">Content pillar</label><select id="notecardPillar" class="input"><option value="">No pillar</option></select></div>
     </div>
     <div class="field">
       <label class="label">Source URL</label>
@@ -1653,6 +1661,17 @@
       <button class="btn primary" id="saveNotecardBtn" type="button">Save</button>
       <button class="btn ghost" id="cancelNotecardBtn" type="button">Cancel</button>
     </div>
+  </div>
+</div>
+
+<div id="remixModal" class="modal" aria-hidden="true">
+  <div class="modal-card lg remix-card">
+    <div class="modal-hdr"><div><span class="modal-title">Remix to Channels</span><div class="remix-subtitle">Create and review each version before anything is sent.</div></div><button class="btn sm ghost" id="remixClose" type="button">Close</button></div>
+    <div class="remix-source-wrap"><div class="label">Source</div><div id="remixSource" class="remix-source"></div></div>
+    <div class="label">Channels</div><div id="remixChannels" class="remix-channels"></div>
+    <button class="btn primary" id="remixGenerate" type="button">Generate editable versions</button>
+    <div id="remixVariants" class="remix-variants"></div>
+    <div class="remix-actions"><span>Versions are saved locally as you continue.</span><button class="btn primary" id="remixPromote" type="button">Send versions to Buffer</button></div>
   </div>
 </div>
 

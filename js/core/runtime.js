@@ -27,7 +27,8 @@ const FEATURE_FLAGS = {
   ideas: true,
   approvals: false,
   library: true,
-  pulse: true
+  pulse: true,
+  contentItems: true
 };
 const FEATURE_VIEWS = Object.freeze({
   calendar: 'calendarView',
@@ -66,6 +67,7 @@ const DEFAULT_POSTIQ_CONFIG = {
     pulse: true,
     uploads: true,
     unsplash: true,
+    contentItems: true,
   },
   notices: {
     calendar: '',
@@ -77,7 +79,8 @@ const DEFAULT_POSTIQ_CONFIG = {
     library: '',
     pulse: '',
     uploads: '',
-    snapshots: ''
+    snapshots: '',
+    contentItems: ''
   }
 };
 const BETA_BANNER_SESSION_KEY = 'postiq_beta_banner_seen';

@@ -36,7 +36,10 @@ async function callBuffer(query, variables = {}) {
   try { data = await res.json(); } catch { throw Object.assign(new Error('Invalid proxy response'), { code: 'PROXY_BAD_RESPONSE' }); }
   if (data.errors?.length && !data.data) {
     const first = data.errors[0] || {};
-    if (activeToken.source === 'oauth' && (first.status === 401 || first.status === 403 || /unauthorized|invalid|forbidden|expired/i.test(String(first.message || '')))) markBufferReconnectNeeded();
+    // Experimental schema/field authorization errors are not proof that the
+    // OAuth session expired. Only transport status or an explicit auth code may
+    // invalidate the shared Buffer connection.
+    if (activeToken.source === 'oauth' && (first.status === 401 || first.status === 403 || ['AUTH_ERROR', 'UNAUTHENTICATED'].includes(String(first.code || '').toUpperCase()))) markBufferReconnectNeeded();
     throw Object.assign(new Error(first.message || 'Buffer request failed'), { code: first.code || 'BUFFER_ERROR', status: first.status, retryable: !!first.retryable, retryAfter: first.retryAfter });
   }
   handleBufferWarnings(data);
