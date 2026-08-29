@@ -1136,7 +1136,7 @@
         <button class="btn sm ghost content-detail-back" id="contentDetailBack" type="button">← Back to Ideas</button>
         <header class="content-detail-header">
           <div><div class="content-detail-kicker">Content workspace</div><h1 id="contentDetailTitle" class="page-title"></h1><div id="contentDetailMeta" class="content-detail-meta"></div></div>
-          <div class="content-detail-actions"><button class="btn" id="contentDetailSync" type="button">Save Draft to Buffer</button><button class="btn primary" id="contentDetailRemix" type="button">Create Channel Drafts</button></div>
+          <div class="content-detail-actions"><button class="btn" id="contentDetailSync" type="button">Sync Source to Buffer</button><button class="btn primary" id="contentDetailRemix" type="button">Create Platform Drafts</button></div>
         </header>
         <div id="contentDetailBody"></div>
       </div>
@@ -1270,6 +1270,7 @@
     const BUFFER_CLIENT_ID = "ijzu75qv_CAcO0qMelb93HjOVh1EwEanezilfgBiOEG";
   </script>
   <!-- Main app -->
+  <script src="./js/features/platform-guidance.js" defer></script>
   <script src="./js/ai-assist.js" defer></script>
   <script src="./js/core/runtime.js" defer></script>
   <script src="./js/integrations/buffer-oauth.js" defer></script>
@@ -1683,12 +1684,12 @@
 
 <div id="remixModal" class="modal" aria-hidden="true">
   <div class="modal-card lg remix-card">
-    <div class="modal-hdr"><div><span class="modal-title">Create Channel Drafts</span><div class="remix-subtitle">Create and review an editable draft for each channel.</div></div><button class="btn sm ghost" id="remixClose" type="button">Close</button></div>
+    <div class="modal-hdr"><div><span class="modal-title">Create Platform Drafts</span><div class="remix-subtitle">Create an editable version tailored to each selected platform.</div></div><button class="btn sm ghost" id="remixClose" type="button">Close</button></div>
     <div class="remix-source-wrap"><div class="label">Source</div><div id="remixSource" class="remix-source"></div></div>
-    <div class="label">Channels</div><div id="remixChannels" class="remix-channels"></div>
-    <button class="btn primary" id="remixGenerate" type="button">Generate editable versions</button>
+    <div class="label">Platforms</div><div id="remixChannels" class="remix-channels"></div>
+    <button class="btn primary" id="remixGenerate" type="button">Generate Platform Drafts</button><div id="remixStatus" class="remix-status" aria-live="polite"></div>
     <div id="remixVariants" class="remix-variants"></div>
-    <div class="remix-actions"><span>Draft only — nothing will be scheduled or published.</span><button class="btn primary" id="remixPromote" type="button">Send Drafts to Buffer</button></div>
+    <div class="remix-actions"><span><strong>Buffer platform sync unavailable</strong><br>Platform drafts stay safely in PostIQ for now. Buffer's experimental Content Items API does not currently support creating these as draft posts safely.</span><button class="btn" id="remixPromote" type="button" disabled>Buffer platform sync unavailable</button></div>
   </div>
 </div>
 

@@ -160,6 +160,26 @@ ${draft}`;
     return parseResults(await requestGemini({ apiKey, model, prompt }), action);
   }
 
+  async function generatePlatformDrafts({ source, platforms, apiKey, model, voice }) {
+    const requested = [...new Set((platforms || []).map(service => window.PlatformGuidance.key(service)))];
+    if (!requested.length) return [];
+    const definitions = requested.map(key => ({ key, ...window.PlatformGuidance.get(key) }));
+    const instructions = definitions.map(platform => `\n${platform.key} (${platform.label}):\n- ${platform.guidance.join('\n- ')}`).join('\n');
+    const prompt = `You are an expert social media editor. Adapt the source into exactly one genuinely platform-specific draft for every requested platform.
+Preserve the core idea and author's natural voice. Do not schedule or publish anything. Do not invent extra platforms. Return valid JSON only as {"results":[{"platform":"platform-key","text":"draft"}]}.
+Requested platform keys, each required exactly once:${instructions}
+
+Source:
+${source}`;
+    const raw = await requestGemini({ apiKey, model: model || DEFAULT_MODEL, prompt });
+    let parsed;
+    try { parsed = JSON.parse(raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()); } catch (_) { throw new Error('Gemini returned an unexpected platform remix. Please try again.'); }
+    if (!Array.isArray(parsed.results) || parsed.results.length !== requested.length) throw new Error('Gemini did not return every selected platform. Please try again.');
+    const byPlatform = new Map(parsed.results.map(item => [window.PlatformGuidance.key(item.platform), String(item.text || '').trim()]));
+    if (byPlatform.size !== requested.length || requested.some(key => !byPlatform.get(key))) throw new Error('Gemini did not return every selected platform. Please try again.');
+    return requested.map(key => ({ platform: key, label: window.PlatformGuidance.label(key), text: byPlatform.get(key) }));
+  }
+
   async function testConnection(apiKey, model) {
     if (!apiKey) throw new Error('That Gemini key did not work. Check your API key and model access.');
     try {
@@ -285,5 +305,5 @@ ${draft}`;
     bindGate(); bindSettings(); bindPanel(); renderAccess();
     window.addEventListener('storage', event => { if ([KEYS.unlocked, KEYS.apiKey, KEYS.model, KEYS.voice].includes(event.key)) renderAccess(); });
   }
-  return { init, isUnlocked, unlock, lock, validateInvite, callGemini, testConnection, KEYS };
+  return { init, isUnlocked, unlock, lock, validateInvite, callGemini, generatePlatformDrafts, testConnection, KEYS };
 })();

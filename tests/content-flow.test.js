@@ -20,9 +20,13 @@ assert.equal(variants.length, 2); assert.notStrictEqual(variants[0], variants[1]
 assert.ok(variants.every(variant => variant.mode === 'draft' && !variant.dueAt), 'Content Flow channel versions are always local drafts');
 
 const html = fs.readFileSync('app.html', 'utf8');
-for (const copy of ['Save Draft to Buffer', 'Create Channel Drafts', 'Send Drafts to Buffer', 'Draft only — nothing will be scheduled or published.']) assert.match(html, new RegExp(copy));
+for (const copy of ['Sync Source to Buffer', 'Create Platform Drafts', 'Generate Platform Drafts', 'Buffer platform sync unavailable']) assert.match(html, new RegExp(copy));
+assert.match(html, /id="remixPromote"[^>]*disabled/, 'unsafe Buffer platform sync is disabled');
 const flow = fs.readFileSync('js/features/content-flow.js', 'utf8');
 assert.match(flow, /promotionSupportsSaveToDraft/); assert.match(flow, /cannot currently save these as Buffer drafts safely/);
+assert.match(flow, /getContentItem\(result\.id\)/, 'mutation is followed by read-back verification');
+assert.match(flow, /verified: false/); assert.match(flow, /verified: true/);
+assert.match(flow, /Buffer sync could not be verified\. Your PostIQ source is safe\./);
 
 assert.equal(window.ContentItems.enabled(), false, 'feature can be disabled without touching local source data');
 assert.match(fs.readFileSync('js/integrations/post-creation.js', 'utf8'), /async function createPost\(/, 'legacy Composer post creation remains intact');
