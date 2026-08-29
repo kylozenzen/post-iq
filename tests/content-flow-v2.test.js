@@ -31,4 +31,10 @@ assert.match(detail, /content_source_edited/); assert.match(detail, /content_var
 assert.match(detail, /map\(\(variant, i\) => i === index \? \{ \.\.\.variant, text: value/, 'variant edits clone and change only one execution');
 assert.match(fs.readFileSync('js/features/calendar.js', 'utf8'), /isContentCalendarMode\(\)/, 'Posts mode remains the default and Content mode is explicit');
 assert.match(fs.readFileSync('js/integrations/post-creation.js', 'utf8'), /async function createPost\(/, 'Composer publishing remains intact');
+const flow = fs.readFileSync('js/features/content-flow.js', 'utf8');
+assert.match(flow, /updateContentItemDraft\(\{ id: card\.buffer\.contentItemId,/);
+assert.match(flow, /updateContentItem\(\{ id: card\.buffer\.contentItemId,/);
+assert.match(flow, /promoteContentItemDraft\(\{ id: card\.buffer\.contentItemId, posts:/);
+assert.doesNotMatch(flow, /(?:updateContentItemDraft|updateContentItem|promoteContentItemDraft)\(\{ contentItemId:/);
+assert.match(flow, /promotionSupportsSaveToDraft/, 'promotion remains guarded by draft-safe capability detection');
 console.log('Content Flow v2 lifecycle, relationships, calendar grouping, and isolation tests passed');

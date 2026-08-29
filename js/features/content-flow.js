@@ -82,8 +82,8 @@
       let result;
       if (card.buffer?.contentItemId && card.buffer?.state !== 'posts') {
         const fullDraft = draftInput(card);
-        result = await ContentItems.updateContentItemDraft({ contentItemId: card.buffer.contentItemId, draft: fullDraft.draft });
-        await ContentItems.updateContentItem({ contentItemId: card.buffer.contentItemId, title: card.title, targetDate: card.targetDate || null });
+        result = await ContentItems.updateContentItemDraft({ id: card.buffer.contentItemId, draft: fullDraft.draft });
+        await ContentItems.updateContentItem({ id: card.buffer.contentItemId, title: card.title, targetDate: card.targetDate || null });
       } else if (!card.buffer?.contentItemId) result = await ContentItems.createContentItemDraft(draftInput(card));
       else return showToast?.('This Buffer content is already channel-specific. Your source edits remain safe in PostIQ.', 'error');
       updateCard(card.id, { buffer: { ...card.buffer, contentItemId: result.id, state: result.state || 'draft', syncedAt: new Date().toISOString() } });
@@ -131,7 +131,7 @@
     if (!ContentItems.promotionSupportsSaveToDraft?.()) return showToast?.("Channel drafts are ready in PostIQ, but Buffer's experimental Content Items API cannot currently save these as Buffer drafts safely.", 'error');
     track('content_item_promotion_attempted', { channel_count: card.variants.length });
     try {
-      const result = await ContentItems.promoteContentItemDraft({ contentItemId: card.buffer.contentItemId, posts: card.variants.map(variant => ContentItems.draftPromotionPost(variant)) });
+      const result = await ContentItems.promoteContentItemDraft({ id: card.buffer.contentItemId, posts: card.variants.map(variant => ContentItems.draftPromotionPost(variant)) });
       const byChannel = new Map(result.posts.map(post => [post.channelId, post]));
       updateCard(card.id, { buffer: { ...card.buffer, state: 'posts', syncedAt: new Date().toISOString(), postIds: result.posts.map(post => post.id) }, variants: card.variants.map(variant => { const post = byChannel.get(variant.channelId); return { ...variant, mode: 'draft', dueAt: '', postId: post?.id || null, buffer: { ...variant.buffer, postId: post?.id || null, status: 'draft' }, error: '' }; }) });
       renderVariants(getCard(card.id)); window.dispatchEvent(new Event('postiq:content-promoted')); track('content_item_promotion_succeeded', { channel_count: result.posts.length }); showToast?.('Channel drafts sent to Buffer', 'success');
