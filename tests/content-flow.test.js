@@ -17,6 +17,12 @@ assert.equal(promoted.sourceText, 'Original legacy copy', 'promotion metadata ne
 
 const variants = window.Notebook.generateVariants(promoted, [{ id: 'li', service: 'linkedin', name: 'LinkedIn' }, { id: 'th', service: 'threads', name: 'Threads' }]);
 assert.equal(variants.length, 2); assert.notStrictEqual(variants[0], variants[1]); variants[0].text = 'edited independently'; assert.equal(variants[1].text, 'Original legacy copy');
+assert.ok(variants.every(variant => variant.mode === 'draft' && !variant.dueAt), 'Content Flow channel versions are always local drafts');
+
+const html = fs.readFileSync('app.html', 'utf8');
+for (const copy of ['Save Draft to Buffer', 'Create Channel Drafts', 'Send Drafts to Buffer', 'Draft only — nothing will be scheduled or published.']) assert.match(html, new RegExp(copy));
+const flow = fs.readFileSync('js/features/content-flow.js', 'utf8');
+assert.match(flow, /promotionSupportsSaveToDraft/); assert.match(flow, /cannot currently save these as Buffer drafts safely/);
 
 assert.equal(window.ContentItems.enabled(), false, 'feature can be disabled without touching local source data');
 assert.match(fs.readFileSync('js/integrations/post-creation.js', 'utf8'), /async function createPost\(/, 'legacy Composer post creation remains intact');

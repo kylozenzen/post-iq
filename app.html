@@ -1136,7 +1136,7 @@
         <button class="btn sm ghost content-detail-back" id="contentDetailBack" type="button">← Back to Ideas</button>
         <header class="content-detail-header">
           <div><div class="content-detail-kicker">Content workspace</div><h1 id="contentDetailTitle" class="page-title"></h1><div id="contentDetailMeta" class="content-detail-meta"></div></div>
-          <div class="content-detail-actions"><button class="btn" id="contentDetailSync" type="button">Save to Buffer</button><button class="btn primary" id="contentDetailRemix" type="button">Remix to Channels</button></div>
+          <div class="content-detail-actions"><button class="btn" id="contentDetailSync" type="button">Save Draft to Buffer</button><button class="btn primary" id="contentDetailRemix" type="button">Create Channel Drafts</button></div>
         </header>
         <div id="contentDetailBody"></div>
       </div>
@@ -1683,12 +1683,12 @@
 
 <div id="remixModal" class="modal" aria-hidden="true">
   <div class="modal-card lg remix-card">
-    <div class="modal-hdr"><div><span class="modal-title">Remix to Channels</span><div class="remix-subtitle">Create and review each version before anything is sent.</div></div><button class="btn sm ghost" id="remixClose" type="button">Close</button></div>
+    <div class="modal-hdr"><div><span class="modal-title">Create Channel Drafts</span><div class="remix-subtitle">Create and review an editable draft for each channel.</div></div><button class="btn sm ghost" id="remixClose" type="button">Close</button></div>
     <div class="remix-source-wrap"><div class="label">Source</div><div id="remixSource" class="remix-source"></div></div>
     <div class="label">Channels</div><div id="remixChannels" class="remix-channels"></div>
     <button class="btn primary" id="remixGenerate" type="button">Generate editable versions</button>
     <div id="remixVariants" class="remix-variants"></div>
-    <div class="remix-actions"><span>Versions are saved locally as you continue.</span><button class="btn primary" id="remixPromote" type="button">Send versions to Buffer</button></div>
+    <div class="remix-actions"><span>Draft only — nothing will be scheduled or published.</span><button class="btn primary" id="remixPromote" type="button">Send Drafts to Buffer</button></div>
   </div>
 </div>
 

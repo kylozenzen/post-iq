@@ -87,11 +87,12 @@
       } else if (!card.buffer?.contentItemId) result = await ContentItems.createContentItemDraft(draftInput(card));
       else return showToast?.('This Buffer content is already channel-specific. Your source edits remain safe in PostIQ.', 'error');
       updateCard(card.id, { buffer: { ...card.buffer, contentItemId: result.id, state: result.state || 'draft', syncedAt: new Date().toISOString() } });
-      track('content_item_draft_sync_succeeded', { update: !!card.buffer?.contentItemId }); showToast?.('Saved to Buffer', 'success');
+      track('content_item_draft_sync_succeeded', { update: !!card.buffer?.contentItemId }); showToast?.('Draft saved to Buffer', 'success');
     } catch (error) {
       if (error.code === 'CONTENT_ITEM_STATE_ERROR') updateCard(card.id, { buffer: { ...card.buffer, state: 'posts', syncedAt: new Date().toISOString() } });
       track('content_item_draft_sync_failed', { error_type: GA4?.getErrorType?.(error) || 'schema_error' });
-      showToast?.(error.code === 'CONTENT_ITEM_STATE_ERROR' ? 'Buffer has already turned this into channel versions. Your source edits are still saved here.' : `Buffer draft sync unavailable: ${error.message}`, 'error');
+      console.error('[PostIQ] Buffer Content Items draft sync failed.', error);
+      showToast?.(error.code === 'CONTENT_ITEM_STATE_ERROR' ? 'Buffer has already turned this into channel versions. Your source edits are still saved here.' : 'Buffer draft sync is temporarily unavailable. Your PostIQ draft is safe.', 'error');
     }
   }
 
@@ -102,10 +103,10 @@
     renderVariants(card); el('remixModal')?.classList.add('open'); track('remix_opened', { existing_variants: card.variants.length });
   }
   function renderVariants(card) {
-    el('remixVariants').innerHTML = card.variants.map((variant, index) => `<div class="remix-variant" data-variant-index="${index}"><div class="remix-variant-title">${safeText(variant.channelName || variant.service || 'Channel')}</div><textarea class="input" data-variant-text="${index}">${safeText(variant.text)}</textarea><div class="remix-schedule"><select class="input" data-variant-mode="${index}"><option value="queue" ${variant.mode === 'queue' ? 'selected' : ''}>Add to queue</option><option value="schedule" ${variant.mode === 'schedule' ? 'selected' : ''}>Schedule</option><option value="draft" ${variant.mode === 'draft' ? 'selected' : ''}>Buffer draft</option></select><input class="input" type="datetime-local" data-variant-due="${index}" value="${safeText(variant.dueAt || '')}"></div><div class="variant-error">${safeText(variant.error || '')}</div></div>`).join('');
+    el('remixVariants').innerHTML = card.variants.map((variant, index) => `<div class="remix-variant" data-variant-index="${index}"><div class="remix-variant-title">${safeText(variant.channelName || variant.service || 'Channel')} draft</div><textarea class="input" data-variant-text="${index}">${safeText(variant.text)}</textarea><div class="variant-error">${safeText(variant.error || '')}</div></div>`).join('');
   }
   function persistVariantEdits(card) {
-    const variants = card.variants.map((variant, index) => ({ ...variant, text: el('remixVariants')?.querySelector(`[data-variant-text="${index}"]`)?.value ?? variant.text, mode: el('remixVariants')?.querySelector(`[data-variant-mode="${index}"]`)?.value || variant.mode, dueAt: el('remixVariants')?.querySelector(`[data-variant-due="${index}"]`)?.value || '' }));
+    const variants = card.variants.map((variant, index) => ({ ...variant, text: el('remixVariants')?.querySelector(`[data-variant-text="${index}"]`)?.value ?? variant.text, mode: 'draft', dueAt: '' }));
     return updateCard(card.id, { variants });
   }
   async function generateVariants() {
@@ -118,25 +119,22 @@
       if (apiKey && window.AIAssist?.isUnlocked?.()) aiVersions = await window.AIAssist.callGemini({ draft: card.sourceText, action: 'platforms', apiKey, model: localStorage.getItem(window.AIAssist.KEYS.model) || undefined });
     } catch (error) { console.warn('[PostIQ] AI remix unavailable; editable source copies were created instead.', error); }
     const findAIText = channel => { const service = String(channel.service || '').toLowerCase(); const label = service.includes('linkedin') ? 'linkedin' : service.includes('thread') ? 'threads' : service.includes('instagram') ? 'instagram' : service.includes('twitter') || service === 'x' ? 'x/twitter' : ''; return label ? aiVersions.find(version => String(version.label).toLowerCase().includes(label))?.text || '' : ''; };
-    const additions = selected.filter(channelId => !existing.has(channelId)).map(channelId => { const channel = state.channels.find(item => item.id === channelId) || {}; return { channelId, service: channel.service || '', channelName: channelLabel(channel), text: findAIText(channel) || card.sourceText, dueAt: '', schedulingType: 'automatic', mode: 'queue', postId: null, buffer: {} }; });
+    const additions = selected.filter(channelId => !existing.has(channelId)).map(channelId => { const channel = state.channels.find(item => item.id === channelId) || {}; return { channelId, service: channel.service || '', channelName: channelLabel(channel), text: findAIText(channel) || card.sourceText, dueAt: '', mode: 'draft', postId: null, buffer: {} }; });
     const variants = [...card.variants.map(variant => ({ ...variant })), ...additions];
     updateCard(card.id, { variants, status: variants.length ? 'ready' : card.status }); renderVariants(getCard(card.id));
     track('remix_channels_selected', { channel_count: selected.length }); track('variants_generated', { channel_count: variants.length });
-  }
-  function promotionPost(variant) {
-    const post = { channelId: variant.channelId, text: variant.text, schedulingType: variant.mode === 'queue' ? 'automatic' : variant.mode === 'draft' ? 'draft' : 'scheduled' };
-    if (variant.mode === 'schedule' && variant.dueAt) post.dueAt = new Date(variant.dueAt).toISOString(); return post;
   }
   async function promote() {
     let card = getCard(remixId); if (!card) return; card = persistVariantEdits(card);
     if (!card.buffer?.contentItemId || card.buffer.state === 'posts') return showToast?.('Save this source to Buffer as a draft before sending channel versions.', 'error');
     if (!card.variants.length) return showToast?.('Choose channels and generate versions first.', 'error');
+    if (!ContentItems.promotionSupportsSaveToDraft?.()) return showToast?.("Channel drafts are ready in PostIQ, but Buffer's experimental Content Items API cannot currently save these as Buffer drafts safely.", 'error');
     track('content_item_promotion_attempted', { channel_count: card.variants.length });
     try {
-      const result = await ContentItems.promoteContentItemDraft({ contentItemId: card.buffer.contentItemId, posts: card.variants.map(promotionPost) });
+      const result = await ContentItems.promoteContentItemDraft({ contentItemId: card.buffer.contentItemId, posts: card.variants.map(variant => ContentItems.draftPromotionPost(variant)) });
       const byChannel = new Map(result.posts.map(post => [post.channelId, post]));
-      updateCard(card.id, { buffer: { ...card.buffer, state: 'posts', syncedAt: new Date().toISOString(), postIds: result.posts.map(post => post.id) }, variants: card.variants.map(variant => { const post = byChannel.get(variant.channelId); return { ...variant, postId: post?.id || null, buffer: { ...variant.buffer, postId: post?.id || null, status: post?.status || (variant.mode === 'draft' ? 'draft' : 'scheduled') }, error: '' }; }) });
-      renderVariants(getCard(card.id)); window.dispatchEvent(new Event('postiq:content-promoted')); track('content_item_promotion_succeeded', { channel_count: result.posts.length }); showToast?.('Channel versions sent to Buffer', 'success');
+      updateCard(card.id, { buffer: { ...card.buffer, state: 'posts', syncedAt: new Date().toISOString(), postIds: result.posts.map(post => post.id) }, variants: card.variants.map(variant => { const post = byChannel.get(variant.channelId); return { ...variant, mode: 'draft', dueAt: '', postId: post?.id || null, buffer: { ...variant.buffer, postId: post?.id || null, status: 'draft' }, error: '' }; }) });
+      renderVariants(getCard(card.id)); window.dispatchEvent(new Event('postiq:content-promoted')); track('content_item_promotion_succeeded', { channel_count: result.posts.length }); showToast?.('Channel drafts sent to Buffer', 'success');
     } catch (error) {
       const failures = new Map((error.validationErrors || []).map(item => [item.channelId, item.message]));
       updateCard(card.id, { variants: card.variants.map(variant => ({ ...variant, error: failures.get(variant.channelId) || '' })) }); renderVariants(getCard(card.id));
@@ -146,7 +144,7 @@
 
   function render() {
     const list = el('notebookList'), empty = el('notebookEmpty'); if (!list || !empty) return; empty.style.display = cards.length ? 'none' : 'block';
-    list.innerHTML = cards.map(card => { const lifecycle = window.ContentModel?.lifecycle(card) || card.status; return `<article class="notebook-card content-source-card" data-content-open="${safeText(card.id)}" tabindex="0"><div class="notebook-card-meta"><span class="content-status status-${safeText(lifecycle)}">${safeText(lifecycle)}</span>${card.buffer?.contentItemId ? `<span class="buffer-synced">✓ ${card.buffer.state === 'posts' ? 'Sent to channels' : 'Saved to Buffer'}</span>` : ''}</div><div class="notebook-card-body"><div class="notebook-card-title">${safeText(card.title)}</div><div class="content-target">${card.targetDate ? safeText(card.targetDate) : 'No target date'}${card.pillarId ? ' · Content pillar' : ''}</div><div class="content-target">${card.variants.length} channel version${card.variants.length === 1 ? '' : 's'}</div></div><div class="notebook-card-footer"><button class="btn sm primary" data-content-detail="${safeText(card.id)}">Develop</button><button class="btn sm ghost" data-notebook-compose="${safeText(card.id)}">Quick compose</button><button class="btn sm ghost" data-notebook-delete="${safeText(card.id)}">Delete</button></div></article>`; }).join('');
+    list.innerHTML = cards.map(card => { const lifecycle = window.ContentModel?.lifecycle(card) || card.status; return `<article class="notebook-card content-source-card" data-content-open="${safeText(card.id)}" tabindex="0"><div class="notebook-card-meta"><span class="content-status status-${safeText(lifecycle)}">${safeText(lifecycle)}</span>${card.buffer?.contentItemId ? `<span class="buffer-synced">✓ ${card.buffer.state === 'posts' ? 'Buffer drafts' : 'Draft saved to Buffer'}</span>` : ''}</div><div class="notebook-card-body"><div class="notebook-card-title">${safeText(card.title)}</div><div class="content-target">${card.targetDate ? safeText(card.targetDate) : 'No target date'}${card.pillarId ? ' · Content pillar' : ''}</div><div class="content-target">${card.variants.length} channel draft${card.variants.length === 1 ? '' : 's'}</div></div><div class="notebook-card-footer"><button class="btn sm primary" data-content-detail="${safeText(card.id)}">Develop</button><button class="btn sm ghost" data-notebook-compose="${safeText(card.id)}">Quick compose</button><button class="btn sm ghost" data-notebook-delete="${safeText(card.id)}">Delete</button></div></article>`; }).join('');
     list.querySelectorAll('[data-content-detail]').forEach(button => button.onclick = event => { event.stopPropagation(); window.ContentDetail?.open(button.dataset.contentDetail, 'ideasView'); });
     list.querySelectorAll('[data-content-open]').forEach(card => { card.onclick = event => { if (!event.target.closest('button,a')) window.ContentDetail?.open(card.dataset.contentOpen, 'ideasView'); }; card.onkeydown = event => { if (event.key === 'Enter') window.ContentDetail?.open(card.dataset.contentOpen, 'ideasView'); }; });
     list.querySelectorAll('[data-content-sync]').forEach(button => button.onclick = () => syncDraft(getCard(button.dataset.contentSync)));
@@ -166,5 +164,5 @@
     render(); window.ContentDetail?.init?.();
   }
   function saveFromTrending(item = {}) { return addCard({ title: item.title || 'Untitled', sourceText: item.tagline || item.selftext || '', url: item.url || item.permalink || '', type: item.source === 'reddit' ? 'reddit' : item.source === 'hn' ? 'hn' : 'idea' }); }
-  window.Notebook = { init, render, addCard, normalizeIdea, updateCard, getCard, getCards: () => cards.map(card => normalizeIdea(card)), openModal, openRemix, syncDraft, saveFromTrending, generateVariants: (card, channels) => channels.map(channel => ({ channelId: channel.id, service: channel.service || '', channelName: channelLabel(channel), text: card.sourceText, dueAt: '', schedulingType: 'automatic', mode: 'queue', buffer: {} })) };
+  window.Notebook = { init, render, addCard, normalizeIdea, updateCard, getCard, getCards: () => cards.map(card => normalizeIdea(card)), openModal, openRemix, syncDraft, saveFromTrending, generateVariants: (card, channels) => channels.map(channel => ({ channelId: channel.id, service: channel.service || '', channelName: channelLabel(channel), text: card.sourceText, dueAt: '', mode: 'draft', buffer: {} })) };
 })(window);
