@@ -269,6 +269,10 @@
         </div>
 
         <div class="cal-toolbar-right">
+          <div class="cal-view-toggle content-calendar-toggle" role="tablist" aria-label="Calendar items">
+            <button class="btn sm ghost active" id="calendarPostsModeBtn" type="button">Posts</button>
+            <button class="btn sm ghost" id="calendarContentModeBtn" type="button">Content</button>
+          </div>
           <select id="calendarFilter" class="input" style="max-width:150px;font-size:12px;height:30px;padding:0 28px 0 8px;"></select>
           <div class="cal-view-toggle" role="tablist" aria-label="Calendar view mode">
             <button class="btn sm ghost active" id="calendarViewMonthBtn" type="button" data-calendar-view="month">Month</button>
@@ -1126,6 +1130,17 @@
        </section><!-- /ideasTrendingPanel -->
       </div><!-- /view-content -->
     </section><!-- /ideasView -->
+
+    <section id="contentDetailView" class="view" aria-labelledby="contentDetailTitle">
+      <div class="content-detail-shell">
+        <button class="btn sm ghost content-detail-back" id="contentDetailBack" type="button">← Back to Ideas</button>
+        <header class="content-detail-header">
+          <div><div class="content-detail-kicker">Content workspace</div><h1 id="contentDetailTitle" class="page-title"></h1><div id="contentDetailMeta" class="content-detail-meta"></div></div>
+          <div class="content-detail-actions"><button class="btn" id="contentDetailSync" type="button">Save to Buffer</button><button class="btn primary" id="contentDetailRemix" type="button">Remix to Channels</button></div>
+        </header>
+        <div id="contentDetailBody"></div>
+      </div>
+    </section>
   </main>
 </section><!-- /app -->
 
@@ -1263,10 +1278,12 @@
   <script src="./js/integrations/buffer-connection.js" defer></script>
   <script src="./js/integrations/buffer-api.js" defer></script>
   <script src="./js/integrations/content-items.js" defer></script>
+  <script src="./js/features/content-model.js" defer></script>
   <script src="./js/features/calendar.js" defer></script>
   <script src="./js/features/composer.js" defer></script>
   <script src="./js/features/composer-resources.js" defer></script>
   <script src="./js/features/content-flow.js" defer></script>
+  <script src="./js/features/content-detail.js" defer></script>
   <script src="./js/features/media.js" defer></script>
   <script src="./js/integrations/post-creation.js" defer></script>
   <script src="./js/features/approvals/index.js" defer></script>
