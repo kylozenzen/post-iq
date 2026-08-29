@@ -195,6 +195,8 @@ function init() {
   document.querySelectorAll('[data-home-feature="true"]').forEach(el => { if (!FEATURE_HOME_DASHBOARD) el.style.display = 'none'; });
   on('calendarViewMonthBtn', 'click', () => setCalendarView('month'));
   on('calendarViewWeekBtn', 'click', () => setCalendarView('week'));
+  on('calendarPostsModeBtn', 'click', () => setContentCalendarMode('posts'));
+  on('calendarContentModeBtn', 'click', () => setContentCalendarMode('content'));
   document.querySelectorAll('.ideas-tab').forEach(tabBtn => {
     tabBtn.onclick = () => setIdeasTab(tabBtn.dataset.ideasTab);
   });

@@ -196,7 +196,41 @@ function snapshotPostPayload(p) {
   };
 }
 
+function isContentCalendarMode() { return localStorage.getItem('postiq_content_calendar_mode') === 'content' && window.ContentItems?.enabled?.() !== false; }
+function contentCalendarEntries() { return (window.Notebook?.getCards?.() || []).map(window.ContentModel.calendarEntry).filter(entry => entry.date); }
+function contentCalendarPill(entry) {
+  const services = [...new Set(entry.variants.map(variant => variant.service || variant.channelName).filter(Boolean))];
+  const range = entry.dates.length > 1 ? `${entry.dates[0].slice(5)}–${entry.dateEnd.slice(5)}` : '';
+  return `<button class="day-post-pill content-calendar-pill" type="button" data-calendar-content="${safeText(entry.content.id)}"><span class="day-post-copy"><strong>${safeText(compact(entry.content.title, 55))}</strong><small>${safeText(services.join(' · ') || 'Source')}${range ? ` · ${safeText(range)}` : ''}</small></span><span class="content-status status-${safeText(entry.lifecycle)}">${safeText(entry.lifecycle)}</span></button>`;
+}
+function bindContentCalendar(root) {
+  root.querySelectorAll('[data-calendar-content]').forEach(button => button.addEventListener('click', event => { event.stopPropagation(); window.ContentDetail?.open(button.dataset.calendarContent, 'calendarView'); try { window.GA4?.track('content_calendar_item_opened', {}); } catch {} }));
+}
+function renderContentCalendar() {
+  qs('monthLabel').textContent = monthLabel(state.month);
+  const entries = contentCalendarEntries(); const grid = qs('calGrid'); const week = qs('calWeek');
+  grid.innerHTML = ''; week.innerHTML = '';
+  const first = monthStart(state.month); const start = new Date(first); start.setDate(1 - first.getDay()); const today = fmtDate(new Date());
+  for (let i = 0; i < 42; i++) {
+    const date = new Date(start); date.setDate(start.getDate() + i); const key = fmtDate(date); const items = entries.filter(entry => entry.date === key);
+    const day = document.createElement('div'); day.className = `cal-day${date.getMonth() === state.month.getMonth() ? '' : ' other-month'}${key === today ? ' today' : ''}${items.length ? ' has-posts' : ''}`;
+    day.innerHTML = `<div class="day-header"><div class="day-num">${date.getDate()}</div></div>${items.slice(0, 2).map(contentCalendarPill).join('')}${items.length > 2 ? `<div class="more-indicator">+${items.length - 2} more</div>` : ''}`; bindContentCalendar(day); grid.appendChild(day);
+  }
+  const startWeek = weekStart(state.month); for (let i = 0; i < 7; i++) { const date = new Date(startWeek); date.setDate(startWeek.getDate() + i); const key = fmtDate(date); const items = entries.filter(entry => entry.date === key); const day = document.createElement('div'); day.className = 'cal-week-day'; day.innerHTML = `<div class="cal-week-day-title"><strong>${date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</strong></div>${items.map(contentCalendarPill).join('') || '<div class="cal-week-empty">No planned content</div>'}`; bindContentCalendar(day); week.appendChild(day); }
+  qs('calendarFilter').style.display = 'none'; qs('gapsPanel').style.display = 'none'; qs('calDesc').textContent = 'Plan each logical piece of content once, across all of its channel versions.';
+  qs('calendarPostsModeBtn')?.classList.remove('active'); qs('calendarContentModeBtn')?.classList.add('active');
+  updateCalendarViewUI();
+}
+function setContentCalendarMode(mode) {
+  localStorage.setItem('postiq_content_calendar_mode', mode === 'content' ? 'content' : 'posts');
+  try { window.GA4?.track('content_calendar_view_selected', { mode }); } catch {}
+  renderCalendar();
+}
+
 function renderCalendar() {
+  if (isContentCalendarMode()) return renderContentCalendar();
+  qs('calendarFilter')?.style.removeProperty('display'); qs('calDesc').textContent = 'Your Buffer queue in a monthly view. Spot gaps and add planning notes before you compose.';
+  qs('calendarPostsModeBtn')?.classList.add('active'); qs('calendarContentModeBtn')?.classList.remove('active');
   qs('monthLabel').textContent = monthLabel(state.month);
   renderCalendarFilter();
   const grid = qs('calGrid'); grid.innerHTML = '';
