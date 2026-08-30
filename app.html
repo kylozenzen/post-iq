@@ -1689,7 +1689,18 @@
     <div class="label">Platforms</div><div id="remixChannels" class="remix-channels"></div>
     <button class="btn primary" id="remixGenerate" type="button">Generate Platform Drafts</button><div id="remixStatus" class="remix-status" aria-live="polite"></div>
     <div id="remixVariants" class="remix-variants"></div>
-    <div class="remix-actions"><span><strong>Buffer platform sync unavailable</strong><br>Platform drafts stay safely in PostIQ for now. Buffer's experimental Content Items API does not currently support creating these as draft posts safely.</span><button class="btn" id="remixPromote" type="button" disabled>Buffer platform sync unavailable</button></div>
+    <div class="remix-actions"><span><strong>Send Drafts to Buffer</strong><br>Creates draft Posts in Buffer. Nothing will be scheduled or published.</span><button class="btn" id="remixPromote" type="button">Send Drafts to Buffer</button></div>
+  </div>
+</div>
+
+<div id="bufferDraftConfirm" class="modal" aria-hidden="true" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="bufferDraftConfirmTitle">
+    <div class="modal-hdr"><span class="modal-title" id="bufferDraftConfirmTitle">Create Buffer drafts?</span></div>
+    <p>This will convert this Content Item into channel-specific Buffer Posts using saveToDraft. They should remain drafts and will not be scheduled or published.</p>
+    <div class="row">
+      <button class="btn ghost" id="cancelBufferDrafts" type="button">Cancel</button>
+      <button class="btn primary" id="confirmBufferDrafts" type="button">Create Buffer Drafts</button>
+    </div>
   </div>
 </div>
 

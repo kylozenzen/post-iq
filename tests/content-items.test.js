@@ -54,12 +54,11 @@ const api = sandbox.window.ContentItems;
   await api.getContentItem('ci_4');
   assert.match(calls.at(-1).query, /contentItem\(input:\{id:\$id\}\)/); assert.doesNotMatch(calls.at(-1).query, /contentItem\(id:/); assert.equal(calls.at(-1).variables.id, 'ci_4');
 
-  assert.equal(api.promotionSupportsSaveToDraft(), false, 'live Content Items promotion input does not document saveToDraft');
-  assert.equal(api.draftPromotionPost({ channelId: 'li', text: 'Draft' }), null, 'unsupported promotion cannot produce a schedulable input');
-  assert.deepEqual({ ...api.draftPromotionPost({ channelId: 'li', text: 'Draft' }, true) }, { channelId: 'li', text: 'Draft', mode: 'addToQueue', saveToDraft: true });
-  const before = calls.length;
-  await assert.rejects(api.promoteContentItemDraft({ id: 'ci_3', posts: [] }), error => error.code === 'DRAFT_PROMOTION_UNSUPPORTED');
-  assert.equal(calls.length, before, 'unsupported draft promotion never calls Buffer');
+  const promotionPost = { ...api.draftPromotionPost({ channelId: 'li', text: 'Draft', dueAt: '2026-09-01', shareNow: true }) };
+  assert.deepEqual(promotionPost, { channelId: 'li', text: 'Draft', schedulingType: 'automatic', mode: 'addToQueue', saveToDraft: true });
+  assert.equal(Object.hasOwn(promotionPost, 'dueAt'), false); assert.equal(Object.hasOwn(promotionPost, 'shareNow'), false);
+  assert.equal(api.promotionPostsAreDrafts([{ id: 'p1', status: 'draft' }]), true);
+  assert.equal(api.promotionPostsAreDrafts([{ id: 'p1', status: 'scheduled' }]), false);
 
   const integration = fs.readFileSync('js/integrations/content-items.js', 'utf8');
   assert.match(integration, /PromoteContentItemDraftToPostsSuccess/); assert.match(integration, /PromoteContentItemDraftToPostsFailure/);
@@ -70,5 +69,7 @@ const api = sandbox.window.ContentItems;
   assert.throws(() => api.unwrapMutation(failure, 'promoteContentItemDraftToPosts'), error => error.typename === 'PostChannelNotFoundError' && error.validationErrors[0].channelId === 'gone');
   const success = { data: { promoteContentItemDraftToPosts: { __typename: 'PromoteContentItemDraftToPostsSuccess', contentItem: { id: 'ci_5', body: { __typename: 'PostContent', posts: [{ id: 'p5', text: 'Draft', status: 'draft', channel: { id: 'li', name: 'LinkedIn' } }] } } } } };
   assert.equal(api.unwrapMutation(success, 'promoteContentItemDraftToPosts').posts[0].status, 'draft');
+  sandbox.response = success; await api.promoteContentItemDraft({ id: 'ci_5', posts: [promotionPost] });
+  assert.match(calls.at(-1).query, /posts\{id text status dueAt channel\{id name\}\}/, 'promotion success requests status for verification');
   console.log('Content Items live schema, normalization, failures, and draft-safety tests passed');
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -144,18 +144,34 @@
     let card = getCard(remixId); if (!card) return; card = persistVariantEdits(card);
     if (!card.buffer?.contentItemId || card.buffer.state === 'posts') return showToast?.('Save this source to Buffer as a draft before sending channel versions.', 'error');
     if (!card.variants.length) return showToast?.('Choose channels and generate versions first.', 'error');
-    if (!ContentItems.promotionSupportsSaveToDraft?.()) return showToast?.("Channel drafts are ready in PostIQ, but Buffer's experimental Content Items API cannot currently save these as Buffer drafts safely.", 'error');
     track('content_item_promotion_attempted', { channel_count: card.variants.length });
     try {
       const result = await ContentItems.promoteContentItemDraft({ id: card.buffer.contentItemId, posts: card.variants.map(variant => ContentItems.draftPromotionPost(variant)) });
+      if (!ContentItems.promotionPostsAreDrafts(result.posts)) {
+        console.error('[PostIQ] Buffer Content Item promotion returned non-draft Posts.', result.posts);
+        track('content_item_promotion_unexpected_state', { channel_count: result.posts.length });
+        showToast?.('Buffer returned an unexpected post state. Check Buffer before continuing.', 'error');
+        return;
+      }
       const byChannel = new Map(result.posts.map(post => [post.channelId, post]));
       updateCard(card.id, { buffer: { ...card.buffer, state: 'posts', syncedAt: new Date().toISOString(), postIds: result.posts.map(post => post.id) }, variants: card.variants.map(variant => { const post = byChannel.get(variant.channelId); return { ...variant, mode: 'draft', dueAt: '', postId: post?.id || null, buffer: { ...variant.buffer, postId: post?.id || null, status: 'draft' }, error: '' }; }) });
-      renderVariants(getCard(card.id)); window.dispatchEvent(new Event('postiq:content-promoted')); track('content_item_promotion_succeeded', { channel_count: result.posts.length }); showToast?.('Channel drafts sent to Buffer', 'success');
+      renderVariants(getCard(card.id)); window.dispatchEvent(new Event('postiq:content-promoted')); track('content_item_promotion_succeeded', { channel_count: result.posts.length }); showToast?.('Buffer drafts created', 'success');
     } catch (error) {
       const failures = new Map((error.validationErrors || []).map(item => [item.channelId, item.message]));
       updateCard(card.id, { variants: card.variants.map(variant => ({ ...variant, error: failures.get(variant.channelId) || '' })) }); renderVariants(getCard(card.id));
       track('content_item_promotion_failed', { channel_count: card.variants.length }); showToast?.(`Nothing was sent. ${error.message}`, 'error');
     }
+  }
+
+  function openPromotionConfirmation() {
+    const modal = el('bufferDraftConfirm');
+    modal?.classList.add('open');
+    if (modal) { modal.hidden = false; modal.setAttribute('aria-hidden', 'false'); }
+  }
+  function closePromotionConfirmation() {
+    const modal = el('bufferDraftConfirm');
+    modal?.classList.remove('open');
+    if (modal) { modal.hidden = true; modal.setAttribute('aria-hidden', 'true'); }
   }
 
   function render() {
@@ -173,6 +189,9 @@
     load(); if (initialized) return render(); initialized = true;
     el('newNotecardBtn')?.addEventListener('click', () => openModal()); el('closeNotecardModal')?.addEventListener('click', closeModal); el('cancelNotecardBtn')?.addEventListener('click', closeModal); el('saveNotecardBtn')?.addEventListener('click', saveModal);
     el('remixClose')?.addEventListener('click', () => el('remixModal')?.classList.remove('open')); el('remixGenerate')?.addEventListener('click', generateVariants);
+    el('remixPromote')?.addEventListener('click', openPromotionConfirmation);
+    el('cancelBufferDrafts')?.addEventListener('click', closePromotionConfirmation);
+    el('confirmBufferDrafts')?.addEventListener('click', () => { closePromotionConfirmation(); promote(); });
     // Persist review edits before any Buffer call (and as the user types), so a
     // failed request or closed modal never costs independently edited variants.
     el('remixVariants')?.addEventListener('input', () => { const card = getCard(remixId); if (card) persistVariantEdits(card); });
