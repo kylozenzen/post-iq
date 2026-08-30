@@ -3,9 +3,6 @@
 // Buffer Content Items are experimental. All schema-dependent GraphQL lives in
 // this file so the rest of PostIQ only handles stable, normalized objects.
 (function initializeContentItems(window) {
-  // The documented PromoteContentItemDraftToPosts posts input currently has no
-  // saveToDraft field. Keep this false until Buffer documents that field.
-  const PROMOTION_SUPPORTS_SAVE_TO_DRAFT = false;
   const enabled = () => window.isPostIQFeatureEnabled?.('contentItems') !== false;
   const requireEnabled = () => {
     if (!enabled()) throw Object.assign(new Error('Content Flow sync is currently disabled. Your source is still saved in PostIQ.'), { code: 'CONTENT_ITEMS_DISABLED' });
@@ -99,15 +96,15 @@
 
   async function promoteContentItemDraft(input) {
     requireEnabled();
-    if (!PROMOTION_SUPPORTS_SAVE_TO_DRAFT) throw Object.assign(new Error("Buffer's experimental Content Items API cannot currently save channel versions as Buffer drafts safely."), { code: 'DRAFT_PROMOTION_UNSUPPORTED' });
     const mutation = `mutation PromoteContentItemDraftToPosts($input:PromoteContentItemDraftToPostsInput!){promoteContentItemDraftToPosts(input:$input){__typename ... on PromoteContentItemDraftToPostsSuccess{contentItem{id title targetDate ${POST_BODY}}} ... on PromoteContentItemDraftToPostsFailure{message errors{... on ContentItemStateError{message} ... on PostChannelNotFoundError{channelId message} ... on PostInvalidInputError{channelId message} ... on PostLimitReachedError{channelId message} ... on MutationError{message}}}}}`;
     return unwrapMutation(await callBuffer(mutation, { input }), 'promoteContentItemDraftToPosts', 'Buffer could not create the channel drafts.');
   }
 
-  function draftPromotionPost(variant, supported = PROMOTION_SUPPORTS_SAVE_TO_DRAFT) {
-    if (!supported) return null;
-    return { channelId: variant.channelId, text: variant.text, mode: 'addToQueue', saveToDraft: true };
+  function draftPromotionPost(variant) {
+    return { channelId: variant.channelId, text: variant.text, schedulingType: 'automatic', mode: 'addToQueue', saveToDraft: true };
   }
 
-  window.ContentItems = { enabled, promotionSupportsSaveToDraft: () => PROMOTION_SUPPORTS_SAVE_TO_DRAFT, draftPromotionPost, normalizePost, normalizeContentItem, unwrapMutation, getContentItems, getContentItem, createContentItemDraft, updateContentItemDraft, updateContentItem, promoteContentItemDraft };
+  const promotionPostsAreDrafts = posts => Array.isArray(posts) && posts.length > 0 && posts.every(post => post?.status === 'draft');
+
+  window.ContentItems = { enabled, draftPromotionPost, promotionPostsAreDrafts, normalizePost, normalizeContentItem, unwrapMutation, getContentItems, getContentItem, createContentItemDraft, updateContentItemDraft, updateContentItem, promoteContentItemDraft };
 })(window);

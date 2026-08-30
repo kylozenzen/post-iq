@@ -20,10 +20,12 @@ assert.equal(variants.length, 2); assert.notStrictEqual(variants[0], variants[1]
 assert.ok(variants.every(variant => variant.mode === 'draft' && !variant.dueAt), 'Content Flow channel versions are always local drafts');
 
 const html = fs.readFileSync('app.html', 'utf8');
-for (const copy of ['Sync Source to Buffer', 'Create Platform Drafts', 'Generate Platform Drafts', 'Buffer platform sync unavailable']) assert.match(html, new RegExp(copy));
-assert.match(html, /id="remixPromote"[^>]*disabled/, 'unsafe Buffer platform sync is disabled');
+for (const copy of ['Sync Source to Buffer', 'Create Platform Drafts', 'Generate Platform Drafts', 'Send Drafts to Buffer', 'Creates draft Posts in Buffer. Nothing will be scheduled or published.', 'Create Buffer drafts?', 'Create Buffer Drafts']) assert.match(html, new RegExp(copy.replace(/[?]/g, '\\?')));
+assert.doesNotMatch(html, /id="remixPromote"[^>]*disabled/, 'experimental draft promotion action is enabled');
 const flow = fs.readFileSync('js/features/content-flow.js', 'utf8');
-assert.match(flow, /promotionSupportsSaveToDraft/); assert.match(flow, /cannot currently save these as Buffer drafts safely/);
+assert.match(flow, /promotionPostsAreDrafts\(result\.posts\)/); assert.match(flow, /Buffer returned an unexpected post state\. Check Buffer before continuing\./);
+assert.match(flow, /showToast\?\.\('Buffer drafts created', 'success'\)/);
+assert.ok(flow.indexOf('promotionPostsAreDrafts(result.posts)') < flow.indexOf("showToast?.('Buffer drafts created', 'success')"), 'normal success follows returned-status verification');
 assert.match(flow, /getContentItem\(result\.id\)/, 'mutation is followed by read-back verification');
 assert.match(flow, /verified: false/); assert.match(flow, /verified: true/);
 assert.match(flow, /Buffer sync could not be verified\. Your PostIQ source is safe\./);

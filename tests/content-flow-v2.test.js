@@ -36,5 +36,5 @@ assert.match(flow, /updateContentItemDraft\(\{ id: card\.buffer\.contentItemId,/
 assert.match(flow, /updateContentItem\(\{ id: card\.buffer\.contentItemId,/);
 assert.match(flow, /promoteContentItemDraft\(\{ id: card\.buffer\.contentItemId, posts:/);
 assert.doesNotMatch(flow, /(?:updateContentItemDraft|updateContentItem|promoteContentItemDraft)\(\{ contentItemId:/);
-assert.match(flow, /promotionSupportsSaveToDraft/, 'promotion remains guarded by draft-safe capability detection');
+assert.match(flow, /promotionPostsAreDrafts\(result\.posts\)/, 'promotion verifies every returned Post is a draft');
 console.log('Content Flow v2 lifecycle, relationships, calendar grouping, and isolation tests passed');
