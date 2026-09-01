@@ -1,0 +1,29 @@
+'use strict';
+(function initializeDevelop(window) {
+  const text = value => String(value || '').trim();
+  const id = prefix => `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const fields = ['coreThought', 'tension', 'whyItMatters', 'audience', 'goal', 'notes'];
+  const proofTypes = ['example', 'link', 'quote', 'data', 'experience', 'note'];
+  const angleTypes = ['pov', 'story', 'educational', 'funny', 'contrarian', 'conversation', 'custom'];
+  function normalizeDevelopment(value = {}) {
+    const d = value && typeof value === 'object' ? value : {};
+    return { coreThought: text(d.coreThought), tension: text(d.tension), whyItMatters: text(d.whyItMatters), audience: text(d.audience), goal: text(d.goal), notes: text(d.notes),
+      proof: Array.isArray(d.proof) ? d.proof.map(item => ({ id: text(item?.id) || id('proof'), type: proofTypes.includes(item?.type) ? item.type : 'note', text: text(item?.text), url: text(item?.url) })) : [],
+      angles: Array.isArray(d.angles) ? d.angles.map(item => ({ id: text(item?.id) || id('angle'), type: angleTypes.includes(item?.type) ? item.type : 'custom', title: text(item?.title), description: text(item?.description), selected: !!item?.selected })) : [], updatedAt: d.updatedAt || null };
+  }
+  function normalizeDistribution(value) {
+    return Array.isArray(value) ? value.map(item => ({ service: window.PlatformGuidance?.key?.(item?.service) || text(item?.service) || 'platform', fit: ['strong', 'possible', 'weak'].includes(item?.fit) ? item.fit : 'possible', angle: text(item?.angle), reason: text(item?.reason) || 'Possible — review manually.', approach: text(item?.approach), selected: !!item?.selected, accountIds: Array.isArray(item?.accountIds) ? item.accountIds.map(String) : [] })) : [];
+  }
+  function readiness(input) {
+    const d = normalizeDevelopment(input?.development || input); const core = text(d.coreThought); const substance = [d.tension, d.whyItMatters, d.audience, d.notes].filter(text).length + d.proof.filter(item => text(item.text) || text(item.url)).length; const angle = d.angles.some(item => item.selected || text(item.title));
+    if (core && (text(d.tension) || angle) && substance >= 2) return { state: 'ready', label: 'Ready to distribute', explanation: 'You have enough here to start planning distribution.' };
+    if (core && substance) return { state: 'shaping', label: 'Taking shape', explanation: d.proof.length ? 'The idea is taking shape. Choose an angle when one feels strong.' : 'Strong point of view, but an example would make this more convincing.' };
+    return { state: 'rough', label: 'Rough idea', explanation: 'Start with the thought underneath the idea; you can leave everything else blank.' };
+  }
+  function fallbackQuestion(content) { const d = normalizeDevelopment(content?.development); if (!d.coreThought) return "What's the opinion or observation underneath this idea?"; if (!d.tension) return "What's the tension between what people expect and what actually happens?"; if (!d.proof.length) return "What's an example or experience that made you notice this?"; if (!d.audience) return 'Who specifically needs to hear this?'; if (!d.whyItMatters) return 'Why should that person care about this now?'; return 'What would someone reasonably disagree with here?'; }
+  // A proposal is returned instead of mutating populated user text.
+  function proposeAnswer(development, suggestion = {}) { const d = normalizeDevelopment(development); const target = fields.includes(suggestion.target) ? suggestion.target : 'notes'; const value = text(suggestion.value); const populated = !!text(d[target]); return { target, value, requiresConfirmation: populated, development: populated || !value ? d : { ...d, [target]: value, updatedAt: new Date().toISOString() } }; }
+  function fallbackAngles(content) { const subject = text(content?.development?.coreThought) || text(content?.sourceText) || text(content?.title) || 'this idea'; return [{ type: 'pov', title: 'The point of view', description: `State the clearest opinion behind ${subject} and support it with one concrete example.` }, { type: 'story', title: 'The moment it became real', description: 'Open with a specific experience, then reveal what it changed about your thinking.' }, { type: 'educational', title: 'What this teaches us', description: 'Turn the insight into a short, practical explanation with useful takeaways.' }, { type: 'conversation', title: 'Invite the disagreement', description: 'Share the central tension plainly and ask people how it shows up for them.' }].map(angle => ({ ...angle, id: id('angle'), selected: false })); }
+  function planDistribution(content, channels = []) { const existing = new Map(normalizeDistribution(content?.distributionPlan).map(item => [item.service, item])); return [...new Set(channels.map(channel => window.PlatformGuidance?.key?.(channel.service) || text(channel.service)).filter(Boolean))].map(service => { if (existing.has(service)) return existing.get(service); const strategy = window.PlatformGuidance?.get?.(service); const known = !!window.PlatformGuidance?.platforms?.[service]; const fit = service === 'instagram' ? 'weak' : ['linkedin', 'threads'].includes(service) ? 'strong' : 'possible'; return { service, fit: known ? fit : 'possible', angle: service === 'threads' ? 'Conversation starter' : service === 'linkedin' ? 'POV + supporting example' : 'Single clear idea', reason: known ? strategy.distributionReason : 'Possible — review manually.', approach: known ? strategy.distributionApproach : 'Review the format and audience before creating a draft.', selected: false, accountIds: [] }; }); }
+  window.Develop = { normalizeDevelopment, normalizeDistribution, readiness, fallbackQuestion, proposeAnswer, fallbackAngles, planDistribution, newId: id };
+})(window);

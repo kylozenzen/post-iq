@@ -180,6 +180,19 @@ ${source}`;
     return requested.map(key => ({ platform: key, label: window.PlatformGuidance.label(key), text: byPlatform.get(key) }));
   }
 
+  async function developJSON({ content, task, answer = '', apiKey, model, voice }) {
+    const prompt = `You are PostIQ's creative thinking assistant. Help develop an idea before it becomes social posts. Never write a finished post. Return valid JSON only.${voicePrompt(voice || {})}
+Task: ${task}
+For "question", return {"question":"one useful question"}. Choose what is missing; do not use a fixed sequence.
+For "classify", return {"target":"coreThought|tension|whyItMatters|audience|proof|notes|angle","value":"the user's answer, lightly cleaned"}.
+For "angles", return {"angles":[3-5 objects with "type","title","description"]}; treatments must be genuinely different.
+Idea context: ${JSON.stringify(content)}
+${answer ? `User answer: ${answer}` : ''}`;
+    const raw = await requestGemini({ apiKey, model: model || DEFAULT_MODEL, prompt });
+    try { return JSON.parse(raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()); }
+    catch (_) { throw new Error('Gemini returned an unexpected development suggestion. Please try again.'); }
+  }
+
   async function testConnection(apiKey, model) {
     if (!apiKey) throw new Error('That Gemini key did not work. Check your API key and model access.');
     try {
@@ -305,5 +318,5 @@ ${source}`;
     bindGate(); bindSettings(); bindPanel(); renderAccess();
     window.addEventListener('storage', event => { if ([KEYS.unlocked, KEYS.apiKey, KEYS.model, KEYS.voice].includes(event.key)) renderAccess(); });
   }
-  return { init, isUnlocked, unlock, lock, validateInvite, callGemini, generatePlatformDrafts, testConnection, KEYS };
+  return { init, isUnlocked, unlock, lock, validateInvite, callGemini, generatePlatformDrafts, developJSON, getVoiceSettings, testConnection, KEYS };
 })();

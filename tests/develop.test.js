@@ -1,0 +1,12 @@
+'use strict';
+const assert=require('node:assert/strict');const fs=require('node:fs');const vm=require('node:vm');
+const window={};vm.runInNewContext(fs.readFileSync('js/features/platform-guidance.js','utf8'),{window});vm.runInNewContext(fs.readFileSync('js/features/develop.js','utf8'),{window});const d=window.Develop;
+const old=d.normalizeDevelopment();assert.equal(old.coreThought,'');assert.deepEqual([...old.proof],[]);assert.deepEqual([...d.normalizeDistribution()],[]);
+assert.equal(d.readiness(old).state,'rough');assert.equal(d.readiness({coreThought:'Point',tension:'Unexpected'}).state,'shaping');assert.equal(d.readiness({coreThought:'Point',tension:'Unexpected',proof:[{text:'Example'}]}).state,'ready');
+const original={coreThought:'My words'};const proposal=d.proposeAnswer(original,{target:'coreThought',value:'AI words'});assert.equal(proposal.requiresConfirmation,true);assert.equal(proposal.development.coreThought,'My words');
+const added=d.proposeAnswer(original,{target:'tension',value:'Useful tension'});assert.equal(added.requiresConfirmation,false);assert.equal(added.development.tension,'Useful tension');
+const normalized=d.normalizeDevelopment({proof:[{type:'experience',text:'Real'}],angles:[{type:'pov',title:'Take',selected:true}]});assert.equal(normalized.proof[0].text,'Real');assert.equal(normalized.angles[0].selected,true);
+const channels=[{id:'a1',service:'linkedin',name:'Same'},{id:'a2',service:'linkedin',name:'Same'},{id:'b',service:'mystery'}];const plan=d.planDistribution({},channels);assert.equal(plan.length,2);assert.equal(plan[0].selected,false);assert.equal(plan[1].reason,'Possible — review manually.');
+const roundtrip=JSON.parse(JSON.stringify({development:normalized,distributionPlan:plan,sourceText:'Original'}));assert.equal(roundtrip.sourceText,'Original');assert.equal(roundtrip.development.angles[0].title,'Take');assert.equal(roundtrip.distributionPlan.length,2);
+const detail=fs.readFileSync('js/features/content-detail.js','utf8');assert.match(detail,/filter\(ch=>ids\.has\(String\(ch\.id\)\)\)/,'only selected account ids make drafts');assert.match(detail,/AI is unavailable\. You can keep developing manually/);assert.match(fs.readFileSync('js/integrations/content-items.js','utf8'),/saveToDraft: true/);assert.match(fs.readFileSync('js/integrations/post-creation.js','utf8'),/async function createPost\(/);
+console.log('Develop model, readiness, preservation, distribution, and fallback tests passed');

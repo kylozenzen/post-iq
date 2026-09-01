@@ -20,7 +20,7 @@
       type: String(card.type || 'idea'), title: String(card.title || 'Untitled idea'),
       body: String(card.body ?? sourceText), sourceText, targetDate: card.targetDate || '',
       status: STATUS.includes(card.status) ? card.status : 'idea', pillarId: card.pillarId || '',
-      aiAssisted: !!card.aiAssisted, buffer: card.buffer && typeof card.buffer === 'object' ? { ...card.buffer } : {},
+      aiAssisted: !!card.aiAssisted, development: window.Develop?.normalizeDevelopment(card.development) || card.development || {}, distributionPlan: window.Develop?.normalizeDistribution(card.distributionPlan) || [], buffer: card.buffer && typeof card.buffer === 'object' ? { ...card.buffer } : {},
       variants: Array.isArray(card.variants) ? card.variants.map(variant => ({ ...variant, buffer: variant.buffer && typeof variant.buffer === 'object' ? { ...variant.buffer } : (variant.postId ? { postId: variant.postId } : {}) })) : [],
       createdAt: Number(card.createdAt || Date.now())
     };
