@@ -1,0 +1,40 @@
+'use strict';
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const window = {};
+vm.runInNewContext(fs.readFileSync('js/features/content-model.js', 'utf8'), { window });
+const workflow = window.ContentModel.workflow;
+const status = (content, step) => workflow(content).steps.find(item => item.id === step).status;
+
+const idea = { title: 'A rough idea', variants: [] };
+assert.equal(workflow(idea).current, 'develop', 'a saved idea advances beyond Idea');
+const developed = { ...idea, development: { coreThought: 'A clear point', tension: 'A useful tension' } };
+assert.equal(workflow(developed).current, 'angle');
+const angled = { ...developed, development: { ...developed.development, angles: [{ type: 'pov', title: 'Contrarian POV', selected: true }] } };
+assert.equal(workflow(angled).current, 'distribution');
+const distributed = { ...angled, distributionPlan: [{ service: 'linkedin', selected: true, accountIds: ['li'] }] };
+assert.equal(workflow(distributed).current, 'drafts');
+const drafted = { ...distributed, variants: [{ channelId: 'li', service: 'linkedin', text: 'Local draft' }] };
+assert.equal(workflow(drafted).current, 'buffer');
+const buffered = { ...drafted, variants: [{ channelId: 'li', text: 'Draft', postId: 'p1', buffer: { status: 'draft' } }] };
+assert.equal(status(buffered, 'buffer'), 'complete'); assert.equal(workflow(buffered).current, 'scheduled');
+const queued = { ...buffered, variants: [{ channelId: 'li', text: 'Draft', postId: 'p1', buffer: { status: 'queued' } }] };
+assert.equal(workflow(queued).steps.find(step => step.id === 'scheduled').complete, true);
+const unknown = { ...buffered, variants: [{ channelId: 'li', text: 'Draft', postId: 'p1', buffer: { status: 'unknown' } }] };
+assert.equal(workflow(unknown).steps.find(step => step.id === 'scheduled').complete, false, 'PostIQ never infers scheduling from an id');
+
+const nonlinear = workflow({ title: 'Migrated', variants: [{ channelId: 'x', text: 'Existing draft', postId: 'p2', buffer: { status: 'draft' } }] });
+assert.equal(nonlinear.steps.find(step => step.id === 'drafts').complete, true);
+assert.equal(nonlinear.steps.find(step => step.id === 'buffer').complete, true);
+assert.equal(nonlinear.steps.find(step => step.id === 'develop').complete, false);
+
+const detail = fs.readFileSync('js/features/content-detail.js', 'utf8');
+assert.match(detail, /aria-label="Content workflow"/); assert.match(detail, /aria-current="step"/);
+assert.match(detail, /Step \$\{activeIndex \+ 1\} of 7:/, 'mobile label includes current position');
+assert.match(detail, /class="active-workspace"/); assert.match(detail, /workflow-summary/);
+assert.match(detail, /flush\(\).*viewedStep=step/s, 'navigation flushes DOM state before changing the viewed step');
+assert.match(detail, /content_workflow_step_viewed/); assert.match(detail, /content_workflow_backtracked/); assert.match(detail, /content_workflow_next_clicked/);
+assert.match(detail, /Nothing will be scheduled or published/);
+assert.match(fs.readFileSync('js/integrations/content-items.js', 'utf8'), /saveToDraft: true/);
+console.log('Guided content workflow derivation, nonlinear state, accessibility, persistence, and Buffer safety tests passed');
