@@ -148,6 +148,9 @@ function init() {
     console.error('[PostIQ] Notebook.init() failed:', e);
   }
 
+  try { window.Articles?.init?.(); window.Longform?.init?.(); }
+  catch (e) { console.error('[PostIQ] Longform/Articles init failed:', e); }
+
   on('manageTokenBtn', 'click', () => {
     const connection = getBufferConnectionState();
     if (connection.connected) syncBuffer({ force: true });
@@ -281,7 +284,7 @@ function init() {
     const body = qs('templateBody'); if (body) body.value = text; openTemplateModal();
   });
 
-  on('refPinDismiss', 'click', () => { const refPin = qs('refPin'); const link = qs('refPinSourceLink'); if (refPin) refPin.style.display = 'none'; if (link) { link.style.display = 'none'; link.href = '#'; } });
+  on('refPinDismiss', 'click', () => { const refPin = qs('refPin'); const link = qs('refPinSourceLink'); if (refPin) refPin.style.display = 'none'; window.PostIQActiveReference = null; if (link) { link.style.display = 'none'; link.href = '#'; } });
 
   on('mediaToggleBtn', 'click', () => { qs('mediaPanel')?.classList.contains('open') ? closeMediaPanel() : openMediaPanel(); });
   on('mediaToggleOff', 'click', () => { qs('mediaPanel')?.classList.contains('open') ? closeMediaPanel() : openMediaPanel(); });
@@ -590,6 +593,7 @@ function init() {
       }
     }
     refPin.style.display = 'block';
+    window.PostIQActiveReference = { ...data, body: String(data.body || '').slice(0, 6000) };
   }
   window.pinReferenceToComposer = pinReferenceToComposer;
 

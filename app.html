@@ -42,6 +42,7 @@
   <link rel="stylesheet" href="./css/app/preferences-ai.css" />
   <link rel="stylesheet" href="./css/app/library.css" />
   <link rel="stylesheet" href="./css/app/pulse.css" />
+  <link rel="stylesheet" href="./css/app/longform.css" />
   <link rel="stylesheet" href="./css/onboarding.css" />
 
 </head>
@@ -87,6 +88,7 @@
   <button class="mob-tab" data-view="ideasView" data-workspace-nav="ideas" data-feature="ideas">
     <svg><use href="#i-trending"/></svg>Ideas
   </button>
+  <button class="mob-tab" data-view="articlesView"><span aria-hidden="true">▤</span>Articles</button>
   <button class="mob-tab" data-view="approvalsView" data-workspace-nav="approvals" data-feature="approvals">
     <svg><use href="#i-check"/></svg>Approvals
   </button>
@@ -162,6 +164,9 @@
       <button class="nav-btn" data-view="ideasView" data-workspace-nav="ideas" data-feature="ideas" data-tooltip="Ideas">
         <span class="nav-icon"><svg><use href="#i-trending"/></svg></span>
         <span class="nav-text">Ideas</span>
+      </button>
+      <button class="nav-btn" data-view="articlesView" data-tooltip="Articles">
+        <span class="nav-icon">▤</span><span class="nav-text">Articles</span>
       </button>
       <button class="nav-btn" data-view="approvalsView" data-workspace-nav="approvals" data-feature="approvals" data-tooltip="Approvals">
         <span class="nav-icon"><svg><use href="#i-check"/></svg></span>
@@ -565,6 +570,7 @@
             </div>
             <div class="support-tabs" role="tablist" aria-label="Compose tools">
               <button class="support-tab active" id="composerToolTabNotebook" type="button" role="tab" aria-selected="true" aria-controls="composerToolPanelNotebook" data-stool="notebook">Notebook <span class="support-tab-count" data-resource-count="notebook" hidden></span></button>
+              <button class="support-tab" id="composerToolTabArticles" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelArticles" data-stool="articles">Articles <span class="support-tab-count" data-resource-count="articles" hidden></span></button>
               <button class="support-tab" id="composerToolTabHooks" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelHooks" data-stool="hooks">Hooks <span class="support-tab-count" data-resource-count="hooks" hidden></span></button>
               <button class="support-tab" id="composerToolTabHashtags" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelHashtags" data-stool="hashtags">Hashtags <span class="support-tab-count" data-resource-count="hashtags" hidden></span></button>
               <button class="support-tab" id="composerToolTabTemplates" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelTemplates" data-stool="templates">Templates <span class="support-tab-count" data-resource-count="templates" hidden></span></button>
@@ -578,6 +584,7 @@
               </div>
               <div class="composer-resource-list" id="composerNotebookResources"></div>
             </div>
+            <div class="support-panel" id="composerToolPanelArticles" role="tabpanel" aria-labelledby="composerToolTabArticles" data-stool-panel="articles" hidden><div class="composer-support-hdr"><div><div class="panel-card-title">Recent Articles</div><div class="resource-panel-copy">Pin published longform as focused writing context.</div></div><button class="btn sm ghost" type="button" data-resource-manage="articles">Open Articles →</button></div><div class="composer-resource-list" id="composerArticleResources"></div></div>
             <div class="support-panel" id="composerToolPanelHooks" role="tabpanel" aria-labelledby="composerToolTabHooks" data-stool-panel="hooks" hidden>
               <div class="composer-support-hdr">
                 <div><div class="panel-card-title" style="margin-bottom:2px;">Hooks</div><div class="resource-panel-copy">Saved hooks plus openings from starred and top posts.</div></div>
@@ -1131,12 +1138,31 @@
       </div><!-- /view-content -->
     </section><!-- /ideasView -->
 
+    <section id="articlesView" class="view">
+      <div class="mob-view-hdr"><span class="mob-view-title">▤ Articles</span><button class="btn sm primary" data-new-article>+ Save</button></div>
+      <div class="view-content article-library-shell">
+        <header class="page-hdr"><div><h1 class="page-title">Article Library</h1><p class="page-desc">Published long-form work you can reference, promote, and turn into your next post.</p></div><button class="btn primary" data-new-article>+ Save Published Article</button></header>
+        <section class="recent-articles"><div class="row"><div class="grow"><div class="panel-card-title">Longform drafts</div><p class="page-desc">Develop an idea through angle, outline, draft, polish, and export.</p></div><button class="btn" id="newLongformBtn" type="button">+ Create Longform</button></div><div id="longformDraftList" class="article-actions"></div></section>
+        <div class="article-toolbar"><input id="articleSearch" class="input" type="search" placeholder="Search articles or topics…"><select id="articlePlatformFilter" class="input"><option value="">All platforms</option></select><select id="articleSort" class="input"><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></div>
+        <div id="articleEmpty" class="empty-state"><div class="empty-icon">▤</div><div class="empty-title">Your published thinking belongs here</div><div class="empty-desc">Paste a URL and article text once. PostIQ will keep it ready for references and repurposing.</div><button class="btn primary" data-new-article>Save your first article</button></div>
+        <div id="articleList" class="article-grid"></div>
+      </div>
+    </section>
+
+    <section id="longformView" class="view">
+      <div class="longform-shell">
+        <header class="longform-header"><button class="btn sm ghost" id="longformBack" type="button">← Back</button><div><div class="content-detail-kicker">Develop · Longform</div><h1 class="page-title" id="longformHeading">Untitled longform</h1><div class="longform-save-state" id="longformSaveState">Saved locally</div></div><button class="btn sm" id="longformLibraryBtn" type="button">Article Library</button></header>
+        <nav id="longformProgress" class="longform-progress" aria-label="Longform progress"></nav>
+        <main id="longformEditor"></main>
+      </div>
+    </section>
+
     <section id="contentDetailView" class="view" aria-labelledby="contentDetailTitle">
       <div class="content-detail-shell">
         <button class="btn sm ghost content-detail-back" id="contentDetailBack" type="button">← Back to Ideas</button>
         <header class="content-detail-header">
           <div><div class="content-detail-kicker">Content workspace</div><h1 id="contentDetailTitle" class="page-title"></h1><div id="contentDetailMeta" class="content-detail-meta"></div></div>
-          <div class="content-detail-actions"><button class="btn" id="contentDetailSync" type="button">Sync Source to Buffer</button><button class="btn primary" id="contentDetailRemix" type="button">Create Platform Drafts</button></div>
+          <div class="content-detail-actions"><button class="btn" id="contentDetailLongform" type="button">Create Longform</button><button class="btn" id="contentDetailSync" type="button">Sync Source to Buffer</button><button class="btn primary" id="contentDetailRemix" type="button">Create Platform Drafts</button></div>
         </header>
         <div id="contentDetailWorkflow"></div>
         <div id="contentDetailBody"></div>
@@ -1286,6 +1312,8 @@
   <script src="./js/features/composer.js" defer></script>
   <script src="./js/features/composer-resources.js" defer></script>
   <script src="./js/features/content-flow.js" defer></script>
+  <script src="./js/features/longform.js" defer></script>
+  <script src="./js/features/articles.js" defer></script>
   <script src="./js/features/content-detail.js" defer></script>
   <script src="./js/features/media.js" defer></script>
   <script src="./js/integrations/post-creation.js" defer></script>
@@ -1647,6 +1675,10 @@
   </div>
 </div>
 
+
+<div id="articleModal" class="modal" aria-hidden="true" hidden><div class="modal-card lg article-modal-card" role="dialog" aria-modal="true" aria-labelledby="articleModalTitle"><div class="modal-hdr"><div><div class="content-detail-kicker">Article published?</div><span class="modal-title" id="articleModalTitle">Save Published Article</span></div><button class="btn sm ghost" data-close-article>Close</button></div><form id="articleForm"><input type="hidden" id="articleId"><div class="article-form-grid"><div class="field span2"><label class="label" for="articleUrl">Published URL</label><input class="input" id="articleUrl" type="url" placeholder="https://…"></div><div class="field"><label class="label" for="articlePlatform">Platform</label><select class="input" id="articlePlatform"></select></div><div class="field"><label class="label" for="articlePublishedAt">Published</label><input class="input" id="articlePublishedAt" type="date"></div><div class="field span2"><label class="label" for="articleTitle">Article title</label><input class="input" id="articleTitle" required placeholder="What did you publish?"></div><div class="field span2"><label class="label" for="articleContent">Article content</label><textarea class="input" id="articleContent" required placeholder="Paste the full article here…"></textarea></div><details class="span2 optional-fields"><summary>Summary, topics, and source draft</summary><div class="field"><label class="label" for="articleSummary">Short summary</label><textarea class="input" id="articleSummary"></textarea></div><div class="field"><label class="label" for="articleTags">Topics</label><input class="input" id="articleTags" placeholder="strategy, community, brand voice"></div></details></div><div class="row"><button class="btn primary" type="submit">Save Article</button><button class="btn ghost" type="button" data-close-article>Cancel</button></div></form></div></div>
+
+<div id="repurposeModal" class="modal" aria-hidden="true" hidden><div class="modal-card lg"><div class="modal-hdr"><div><div class="content-detail-kicker">One idea, many directions</div><span class="modal-title" id="repurposeTitle">Repurpose Article</span></div><button class="btn sm ghost" data-close-repurpose>Close</button></div><p class="page-desc">Choose a useful next piece. It opens in Compose as an editable draft and is never sent automatically.</p><div id="repurposeOptions" class="repurpose-options"></div></div></div>
 
 <div id="notecardModal" class="modal">
   <div class="modal-card">

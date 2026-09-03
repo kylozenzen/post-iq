@@ -9,9 +9,10 @@ window.PostIQComposerResources = (() => {
   const LIBRARY_CACHE_KEY = 'postiq_library_cache_v3';
   const LIBRARY_STARRED_KEY = 'postiq_library_starred_v1';
   const LAST_TAB_KEY = 'postiq_composer_resource_tab_v1';
-  const SEARCHABLE_TABS = new Set(['notebook', 'hooks', 'hashtags', 'templates']);
+  const SEARCHABLE_TABS = new Set(['notebook', 'articles', 'hooks', 'hashtags', 'templates']);
   const TAB_LABELS = {
     notebook: 'Notebook',
+    articles: 'articles',
     hooks: 'hooks',
     hashtags: 'hashtag sets',
     templates: 'templates',
@@ -22,6 +23,7 @@ window.PostIQComposerResources = (() => {
   let searchQuery = '';
   let resources = {
     notebook: [],
+    articles: [],
     hookTemplates: [],
     libraryHooks: [],
     hashtags: [],
@@ -150,6 +152,7 @@ window.PostIQComposerResources = (() => {
     const templates = readTemplates();
     resources = {
       notebook: readNotebook(),
+      articles: window.Articles?.getAll?.() || [],
       hookTemplates: templates.filter(template => template.type === 'Hooks'),
       libraryHooks: readLibraryHooks(),
       hashtags: templates.filter(template => template.type === 'Hashtag Sets'),
@@ -214,6 +217,13 @@ window.PostIQComposerResources = (() => {
         <button class="btn sm" type="button" data-resource-action="pin-library-post" data-resource-id="${escapeHtml(hook.id)}">Pin full post</button>
       </div>
     </article>`;
+  }
+
+  function renderArticles() {
+    const list = byId('composerArticleResources'); if (!list) return;
+    const items = resources.articles.filter(article => matchesSearch(article.title, article.summary, article.content, article.tags)).slice(0, 8);
+    if (!items.length) { list.innerHTML = emptyState('▤', searchQuery ? 'No articles match' : 'No published articles yet', searchQuery ? 'Try another search.' : 'Save an article once, then reuse it across future content.', '<button class="btn sm primary" type="button" data-resource-manage="articles">Open Articles</button>'); return; }
+    list.innerHTML = items.map(article => `<article class="composer-resource-card"><div class="composer-resource-meta"><span class="resource-chip">${escapeHtml(article.platform)}</span><span>${escapeHtml(article.publishedAt || '')}</span></div><div class="composer-resource-title">${escapeHtml(article.title)}</div><div class="composer-resource-preview">${escapeHtml(compact(article.summary || article.content, 220))}</div><div class="composer-resource-actions"><button class="btn sm primary" type="button" data-resource-action="pin-article" data-resource-id="${escapeHtml(article.id)}">Pin reference</button>${article.url ? `<a class="btn sm ghost" href="${escapeHtml(safeExternalUrl(article.url))}" target="_blank" rel="noopener noreferrer">Open ↗</a>` : ''}</div></article>`).join('');
   }
 
   function renderHooks() {
@@ -288,6 +298,7 @@ window.PostIQComposerResources = (() => {
   function updateCounts() {
     const counts = {
       notebook: resources.notebook.length,
+      articles: resources.articles.length,
       hooks: resources.hookTemplates.length + resources.libraryHooks.length,
       hashtags: resources.hashtags.length,
       templates: resources.templates.length,
@@ -303,6 +314,7 @@ window.PostIQComposerResources = (() => {
   function refresh() {
     loadResources();
     renderNotebook();
+    renderArticles();
     renderHooks();
     renderHashtags();
     renderTemplates();
@@ -374,6 +386,7 @@ window.PostIQComposerResources = (() => {
 
   function navigateToResource(destination) {
     if (typeof window.setComposerResourcesOpen === 'function') window.setComposerResourcesOpen(false);
+    if (destination === 'articles') { window.activateView?.('articlesView'); return; }
     if (destination === 'library') {
       window.activateView?.('libraryView');
       return;
@@ -394,6 +407,7 @@ window.PostIQComposerResources = (() => {
   function handleResourceAction(button) {
     const action = button.dataset.resourceAction;
     const id = String(button.dataset.resourceId || '');
+    if (action === 'pin-article') { const article = resources.articles.find(item => item.id === id); if (!article) return; window.Articles?.useReference?.(article); finishAction('Article pinned beside your draft'); return; }
     if (action === 'pin-notebook' || action === 'insert-notebook') {
       const card = resources.notebook.find(item => item.id === id);
       if (!card) return;
@@ -489,9 +503,9 @@ window.PostIQComposerResources = (() => {
     });
 
     window.addEventListener('storage', event => {
-      if ([NOTEBOOK_STORAGE_KEY, TEMPLATE_STORAGE_KEY, LIBRARY_CACHE_KEY, LIBRARY_STARRED_KEY].includes(event.key)) refresh();
+      if ([NOTEBOOK_STORAGE_KEY, TEMPLATE_STORAGE_KEY, LIBRARY_CACHE_KEY, LIBRARY_STARRED_KEY, window.Articles?.STORAGE_KEY].includes(event.key)) refresh();
     });
-    ['postiq:notebook-changed', 'postiq:templates-changed', 'postiq:library-changed'].forEach(eventName => {
+    ['postiq:notebook-changed', 'postiq:articles-changed', 'postiq:templates-changed', 'postiq:library-changed'].forEach(eventName => {
       window.addEventListener(eventName, refresh);
     });
 

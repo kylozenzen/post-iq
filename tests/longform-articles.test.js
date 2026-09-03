@@ -1,0 +1,15 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const storage = new Map();
+const window = {};
+const base = { window, location: { origin: 'https://postiq.test' }, localStorage: { getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v) }, CustomEvent: class {}, document: { getElementById:()=>null,querySelectorAll:()=>[] }, console, URL, Date, Math, setTimeout, clearTimeout };
+vm.runInNewContext(fs.readFileSync('js/features/articles.js','utf8'),base);
+const article = window.Articles.normalize({ title:'A useful article', platform:'LinkedIn', url:'javascript:alert(1)', content:'x'.repeat(7000), tags:'strategy, voice' });
+assert.equal(article.url,''); assert.deepEqual([...article.tags],['strategy','voice']);
+const context = window.Articles.context(article); assert.ok(context.body.length < article.content.length); assert.match(context.body,/shortened/);
+vm.runInNewContext(fs.readFileSync('js/features/longform.js','utf8'),base);
+const legacy = window.Longform.normalize({ title:'Draft', body:'Legacy body', status:'ready', ideaId:'idea_1' });
+assert.equal(legacy.content,'Legacy body'); assert.equal(legacy.ideaId,'idea_1'); assert.equal(legacy.stage,'angle');
+assert.match(fs.readFileSync('js/features/longform.js','utf8'),/STAGES=\['angle','outline','draft','polish','publish','repurpose'\]/);
+console.log('Longform and Article Library model, URL safety, context limit, and migration tests passed');
