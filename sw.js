@@ -1,4 +1,4 @@
-const CACHE = 'postiq-v10-content-flow';
+const CACHE = 'postiq-v10-content-flow-longform-v1';
 const SHELL = [
   '/',
   '/index.html',
@@ -16,6 +16,7 @@ const SHELL = [
   '/css/app/preferences-ai.css',
   '/css/app/library.css',
   '/css/app/pulse.css',
+  '/css/app/longform.css',
   '/css/onboarding.css',
   '/js/analytics.js',
   '/js/ai-assist.js',
@@ -30,6 +31,8 @@ const SHELL = [
   '/js/features/composer.js',
   '/js/features/composer-resources.js',
   '/js/features/content-flow.js',
+  '/js/features/longform.js',
+  '/js/features/articles.js',
   '/js/features/media.js',
   '/js/integrations/post-creation.js',
   '/js/features/approvals/index.js',

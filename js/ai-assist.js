@@ -239,9 +239,11 @@ ${answer ? `User answer: ${answer}` : ''}`;
 
   async function runAction(action) {
     if (generating) return;
-    const draft = getDraft();
+    const rawDraft = getDraft();
+    const reference = window.PostIQActiveReference;
+    const draft = reference ? `${rawDraft}\n\nOptional reference context (use selectively; do not copy wholesale):\n${JSON.stringify(reference)}` : rawDraft;
     const apiKey = read(KEYS.apiKey);
-    if (!draft) return setStatus('aiAssistStatus', 'Add a rough draft first, then AI Assist can help improve it.', 'error');
+    if (!rawDraft) return setStatus('aiAssistStatus', 'Add a rough draft first, then AI Assist can help improve it.', 'error');
     if (!apiKey) return setStatus('aiAssistStatus', 'Add your Gemini API key in AI Settings to use AI Assist.', 'error');
     generating = true;
     document.querySelectorAll('[data-ai-action]').forEach(button => { button.disabled = true; });
