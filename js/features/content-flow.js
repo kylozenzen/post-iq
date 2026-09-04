@@ -72,20 +72,31 @@
     editingId ? updateCard(editingId, data) : addCard(data); closeModal(); showToast?.('Source saved in PostIQ', 'success');
   }
 
-  function draftInput(card) {
-    return { organizationId: state.organizationId, title: card.title, targetDate: card.targetDate || null, draft: { text: card.sourceText, aiAssisted: !!card.aiAssisted, assets: [] } };
+  function draftInput(card, organizationId) {
+    return { organizationId, title: card.title, targetDate: card.targetDate || null, draft: { text: card.sourceText, aiAssisted: !!card.aiAssisted, assets: [] } };
+  }
+  // Buffer requires a non-null organizationId. Reading state.organizationId
+  // directly sent null whenever this tab had not synced yet, and Buffer's
+  // "got invalid value null" reply used to be reported as a bad token.
+  async function resolveOrganizationId() {
+    return state.organizationId
+      || window.getPostIQOrganizationId?.()
+      || (typeof getOrgId === 'function' ? await getOrgId() : null);
   }
   async function syncDraft(card) {
     if (!contentEnabled()) return showToast?.('Buffer source sync is paused. Your source is saved locally.', 'error');
     if (!connected()) return showToast?.('Sign in with Buffer to sync this source.', 'error');
     track('content_item_draft_sync_attempted', { update: !!card.buffer?.contentItemId });
     let result;
+    let organizationId = null;
+    try { organizationId = await resolveOrganizationId(); } catch (error) { console.error('[PostIQ] Could not resolve the Buffer organization.', error); }
+    if (!organizationId) return showToast?.('Sync Buffer first so PostIQ knows which organization to save into.', 'error');
     try {
       if (card.buffer?.contentItemId && card.buffer?.state !== 'posts') {
-        const fullDraft = draftInput(card);
+        const fullDraft = draftInput(card, organizationId);
         result = await ContentItems.updateContentItemDraft({ id: card.buffer.contentItemId, draft: fullDraft.draft });
         result = await ContentItems.updateContentItem({ id: card.buffer.contentItemId, title: card.title, targetDate: card.targetDate || null });
-      } else if (!card.buffer?.contentItemId) result = await ContentItems.createContentItemDraft(draftInput(card));
+      } else if (!card.buffer?.contentItemId) result = await ContentItems.createContentItemDraft(draftInput(card, organizationId));
       else return showToast?.('This Buffer content is already channel-specific. Your source edits remain safe in PostIQ.', 'error');
       const attemptedAt = new Date().toISOString();
       updateCard(card.id, { buffer: { ...card.buffer, contentItemId: result.id, state: result.state || 'draft', syncAttemptedAt: attemptedAt, syncedAt: attemptedAt, verified: false } });
@@ -101,7 +112,9 @@
       if (error.code === 'CONTENT_ITEM_STATE_ERROR') updateCard(card.id, { buffer: { ...card.buffer, state: 'posts', syncedAt: new Date().toISOString() } });
       track('content_item_draft_sync_failed', { error_type: GA4?.getErrorType?.(error) || 'schema_error' });
       console.error('[PostIQ] Buffer Content Items draft sync failed.', error);
-      showToast?.(error.code === 'CONTENT_ITEM_STATE_ERROR' ? 'Buffer has already turned this into platform versions. Your source edits are still saved here.' : 'Buffer sync is temporarily unavailable. Your PostIQ source is safe.', 'error');
+      showToast?.(error.code === 'CONTENT_ITEM_STATE_ERROR'
+        ? 'Buffer has already turned this into platform versions. Your source edits are still saved here.'
+        : `Buffer did not save this source: ${window.getErrorMessage?.(error, error.message || 'reason unknown') || error.message || 'reason unknown'}. Your PostIQ copy is safe.`, 'error');
     }
   }
 

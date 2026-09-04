@@ -62,7 +62,7 @@ function syncComposerWhen() {
   const d = dateEl.value; if (!d) { whenEl.value = ''; return; }
   let h = parseInt(hourEl.value); const m = parseInt(minEl.value); const ap = ampmEl.value;
   if (ap === 'PM' && h !== 12) h += 12; if (ap === 'AM' && h === 12) h = 0;
-  whenEl.value = `${d}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00.000Z`;
+  whenEl.value = localWallClockToISO(d, h, m);
 }
 
 

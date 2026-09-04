@@ -1,26 +1,46 @@
 'use strict';
 
 // ── POST CREATION ──────────────────────────────────
+// createPost/editPost answer with a PostActionPayload union, so __typename is
+// always the concrete member (LimitReachedError, InvalidInputError, ...) and
+// never the literal "MutationError" interface name. Carrying that member
+// through as the error code is what lets the UI say "your queue is full"
+// instead of blaming the Buffer connection.
+const POST_ACTION_FALLBACK_MESSAGES = {
+  LimitReachedError: 'Buffer plan limit reached. This channel’s queue is full — clear space in Buffer and try again.',
+  NotFoundError: 'Buffer could not find that channel. Sync channels and try again.',
+  UnauthorizedError: 'Buffer sign-in expired. Reconnect Buffer.',
+  InvalidInputError: 'Buffer rejected this post’s content or schedule.',
+};
+
+function postActionErrorCode(typename) {
+  return String(typename || 'MUTATION_ERROR').replace(/([a-z0-9])([A-Z])/g, '$1_$2').toUpperCase();
+}
+
+function unwrapPostAction(result, fallback = 'Buffer rejected this post.') {
+  if (!result) throw new Error('Empty mutation response.');
+  if (result.__typename === 'PostActionSuccess') return result;
+  const typename = String(result.__typename || '');
+  const message = result.message || POST_ACTION_FALLBACK_MESSAGES[typename] || fallback;
+  throw Object.assign(new Error(message), {
+    code: postActionErrorCode(typename),
+    typename,
+    status: typename === 'UnauthorizedError' ? 401 : undefined,
+  });
+}
+
 async function createPost(input) {
   const mutation = `mutation CreatePost($input:CreatePostInput!){createPost(input:$input){__typename ... on PostActionSuccess{post{id dueAt text channelId}} ... on MutationError{message}}}`;
   const normalizedInput = normalizeBufferPostInput(input);
   const res = await callBuffer(mutation, { input: normalizedInput });
-  const result = res?.data?.createPost;
-  if (!result) throw new Error('Empty mutation response.');
-  if (result.__typename === 'MutationError') throw new Error(result.message || 'Buffer rejected this post.');
-  if (result.__typename !== 'PostActionSuccess') throw Object.assign(new Error(result.message || `Unexpected result: ${result.__typename}`), { code: 'MUTATION_ERROR' });
-  return result;
+  return unwrapPostAction(res?.data?.createPost);
 }
 
 async function editPost(input, options = {}) {
   const mutation = `mutation EditPost($input:EditPostInput!){editPost(input:$input){__typename ... on PostActionSuccess{post{id dueAt text channelId}} ... on MutationError{message}}}`;
   const normalizedInput = normalizeBufferPostInput(input, { clearAssets: !!options.clearAssets });
   const res = await callBuffer(mutation, { input: normalizedInput });
-  const result = res?.data?.editPost;
-  if (!result) throw new Error('Empty mutation response.');
-  if (result.__typename === 'MutationError') throw new Error(result.message || 'Buffer rejected this post.');
-  if (result.__typename !== 'PostActionSuccess') throw Object.assign(new Error(result.message || `Unexpected result: ${result.__typename}`), { code: 'MUTATION_ERROR' });
-  return result;
+  return unwrapPostAction(res?.data?.editPost, 'Buffer rejected this edit.');
 }
 
 function appendScheduled(post, sourceInput = {}) {

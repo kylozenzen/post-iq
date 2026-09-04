@@ -26,7 +26,26 @@ function clearSyncedData() {
 }
 
 // ── BUFFER API ──────────────────────────────────────
-async function callBuffer(query, variables = {}) {
+// Only a transport status or an explicit auth code proves the Buffer session is
+// dead. Error *text* never decides: Buffer says "invalid" about post input,
+// "expired" about media links, and "forbidden" about fields the experimental
+// schema gates, and reading those as auth failures asks people to reconnect a
+// key that works perfectly well.
+const AUTH_ERROR_CODES = ['AUTH_ERROR', 'UNAUTHENTICATED', 'UNAUTHORIZED', 'UNAUTHORIZED_ERROR'];
+const NON_AUTH_ERROR_CODES = [
+  'ORIGIN_NOT_ALLOWED', 'BAD_REQUEST', 'QUERY_TOO_LARGE', 'RATE_LIMIT',
+  'PROXY_NETWORK_ERROR', 'PROXY_TIMEOUT', 'PROXY_BAD_RESPONSE',
+  'BUFFER_NON_JSON', 'BUFFER_SERVER_ERROR', 'REFRESH_NETWORK_ERROR',
+];
+
+function isAuthError(err) {
+  const code = String(err?.code || '').toUpperCase();
+  if (AUTH_ERROR_CODES.includes(code)) return true;
+  if (NON_AUTH_ERROR_CODES.includes(code)) return false;
+  return err?.status === 401 || err?.status === 403;
+}
+
+async function callBuffer(query, variables = {}, options = {}) {
   const activeToken = await getActiveBufferToken();
   if (!activeToken?.token) throw Object.assign(new Error(hasReconnectNeeded() ? 'Buffer connection expired' : 'No Buffer token'), { code: hasReconnectNeeded() ? 'AUTH_ERROR' : 'MISSING_TOKEN', status: hasReconnectNeeded() ? 401 : undefined });
   let res;
@@ -36,11 +55,21 @@ async function callBuffer(query, variables = {}) {
   try { data = await res.json(); } catch { throw Object.assign(new Error('Invalid proxy response'), { code: 'PROXY_BAD_RESPONSE' }); }
   if (data.errors?.length && !data.data) {
     const first = data.errors[0] || {};
-    // Experimental schema/field authorization errors are not proof that the
-    // OAuth session expired. Only transport status or an explicit auth code may
-    // invalidate the shared Buffer connection.
-    if (activeToken.source === 'oauth' && (first.status === 401 || first.status === 403 || ['AUTH_ERROR', 'UNAUTHENTICATED'].includes(String(first.code || '').toUpperCase()))) markBufferReconnectNeeded();
-    throw Object.assign(new Error(first.message || 'Buffer request failed'), { code: first.code || 'BUFFER_ERROR', status: first.status, retryable: !!first.retryable, retryAfter: first.retryAfter });
+    const error = Object.assign(new Error(first.message || 'Buffer request failed'), { code: first.code || 'BUFFER_ERROR', status: first.status, retryable: !!first.retryable, retryAfter: first.retryAfter });
+    if (activeToken.source === 'oauth' && isAuthError(error)) {
+      // An access token can age out between two calls. Refresh once and replay
+      // before telling anyone their connection is gone.
+      if (!options.isRetry && getStoredOAuthToken()?.refreshToken) {
+        try {
+          await refreshBufferOAuthToken();
+          return await callBuffer(query, variables, { ...options, isRetry: true });
+        } catch (refreshError) {
+          if (refreshError?.retryable) throw refreshError;
+        }
+      }
+      markBufferReconnectNeeded();
+    }
+    throw error;
   }
   handleBufferWarnings(data);
   return data;
@@ -51,15 +80,10 @@ function getErrorMessage(err, fallback = 'Request failed. Please try again.') {
   const msg  = String(err?.message || '');
   if (code === 'MISSING_TOKEN') return 'Sign in with Buffer first.';
   if (code === 'RATE_LIMIT' || err?.status === 429) return `Buffer rate limit hit.${err?.retryAfter ? ` Retry in ${err.retryAfter}s.` : ''}`;
-  if (code === 'AUTH_ERROR' || /unauthorized|invalid|forbidden|expired/i.test(msg)) return 'Token appears invalid or expired. Reconnect Buffer.';
-  if (code === 'PROXY_NETWORK_ERROR') return 'Network issue reaching Buffer. Check connection and retry.';
+  if (isAuthError(err)) return 'Buffer sign-in expired. Reconnect Buffer.';
+  if (code === 'LIMIT_REACHED_ERROR') return msg || 'Buffer plan limit reached. Clear space in the queue and try again.';
+  if (code === 'PROXY_NETWORK_ERROR' || code === 'PROXY_TIMEOUT' || code === 'REFRESH_NETWORK_ERROR') return 'Network issue reaching Buffer. Check connection and retry.';
   return msg || fallback;
-}
-
-function isAuthError(err) {
-  return ['AUTH_ERROR'].includes(String(err?.code || '').toUpperCase())
-    || err?.status === 401 || err?.status === 403
-    || /unauthorized|invalid token|forbidden|expired/i.test(String(err?.message || ''));
 }
 
 function handleAuthFailure(msg) {
