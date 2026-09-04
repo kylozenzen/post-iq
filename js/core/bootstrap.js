@@ -528,6 +528,9 @@ function init() {
       navigator.clipboard.writeText(text); showToast('All parts copied', 'success');
     };
 
+    // Only these Buffer services accept a native thread payload.
+    const THREAD_METADATA_KEYS = { twitter: 'twitter', threads: 'threads', bluesky: 'bluesky', mastodon: 'mastodon' };
+
     async function sendThread(action) {
       if (!threadParts.length) { qs('threadStatus').textContent = 'Split content first.'; return; }
       const channelId = qs('threadChannel')?.value;
@@ -536,14 +539,24 @@ function init() {
       const when = qs('threadWhen')?.value;
       const ch = state.channels.find(c => c.id === channelId);
       const svc = (ch?.service||'').toLowerCase();
-      const isThreads = svc.includes('thread');
-      const metadata = parts.length > 1 ? { metadata: { [isThreads?'threads':'twitter']: isThreads ? { type:'thread', thread: parts.slice(1).map(t=>({text:t})) } : { thread: parts.slice(1).map(t=>({text:t})) } } } : {};
+      // Buffer keys thread metadata by the channel's own service. Sending a
+      // twitter thread to a Bluesky or Mastodon channel is rejected as invalid
+      // input, and no channel outside this map accepts threads at all.
+      const threadKey = THREAD_METADATA_KEYS[svc] || '';
+      if (parts.length > 1 && !threadKey) {
+        qs('threadStatus').textContent = `${ch?.displayName || ch?.name || 'This channel'} does not support threads on Buffer. Pick a threaded channel, or send one part at a time.`;
+        return;
+      }
+      const rest = parts.slice(1).map(t=>({text:t}));
+      const metadata = parts.length > 1 ? { metadata: { [threadKey]: threadKey === 'threads' ? { type:'thread', thread: rest } : { thread: rest } } } : {};
       const input = { channelId, text: parts[0], schedulingType: 'automatic', ...metadata };
       if (action === 'draft')    { input.mode = 'addToQueue'; input.saveToDraft = true; }
       if (action === 'queue')    { input.mode = 'addToQueue'; }
       if (action === 'schedule') {
         if (!when) { qs('threadStatus').textContent = 'Set a date/time first.'; const row = qs('threadWhenRow'); if (row) row.style.display = 'block'; return; }
-        input.mode = 'customScheduled'; input.dueAt = when;
+        const dueAt = datetimeLocalToISO(when);
+        if (!dueAt) { qs('threadStatus').textContent = 'That date and time could not be read. Pick it again.'; return; }
+        input.mode = 'customScheduled'; input.dueAt = dueAt;
       }
       qs('threadStatus').textContent = 'Sending…';
       try {

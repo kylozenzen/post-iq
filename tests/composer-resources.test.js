@@ -38,7 +38,7 @@ assert.match(contentFlow, /postiq:notebook-changed/);
 assert.match(bootstrap, /window\.pinReferenceToComposer = pinReferenceToComposer/);
 assert.match(templates, /postiq:templates-changed/);
 assert.match(library, /postiq:library-changed/);
-assert.match(sw, /postiq-v10-content-flow/);
+assert.match(sw, /postiq-v11-buffer-save-queue/);
 assert.match(sw, /\/js\/features\/composer-resources\.js/);
 
 const context = { window: {}, console };

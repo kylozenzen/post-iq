@@ -557,6 +557,20 @@ function formatDateWithYear(date) {
   if (Number.isNaN(d.getTime())) return String(date || 'this date');
   return d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
 }
+// Schedule pickers collect a local wall-clock time, but Buffer's dueAt is an
+// absolute instant. Build the Date in local time and let toISOString convert
+// it — stamping a literal "Z" onto the typed digits schedules the post in the
+// wrong hour, and often in the past, which Buffer then rejects outright.
+function localWallClockToISO(dateValue, hours, minutes) {
+  const [year, month, day] = String(dateValue || '').split('-').map(Number);
+  if (!year || !month || !day) return '';
+  const when = new Date(year, month - 1, day, Number(hours) || 0, Number(minutes) || 0, 0, 0);
+  return Number.isNaN(when.getTime()) ? '' : when.toISOString();
+}
+function datetimeLocalToISO(value) {
+  const parts = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})/.exec(String(value || ''));
+  return parts ? localWallClockToISO(parts[1], Number(parts[2]), Number(parts[3])) : '';
+}
 const normTags = v => Array.isArray(v) ? v.map(x => String(x).trim()).filter(Boolean) : String(v || '').split(',').map(x => x.trim()).filter(Boolean);
 const isVideo = url => /\.(mp4|mov|webm|avi|mkv|m4v)(\?|$)/i.test(String(url || ''));
 const isImageUrl = url => /\.(jpe?g|png|webp|gif)(\?|#|$)/i.test(String(url || ''));

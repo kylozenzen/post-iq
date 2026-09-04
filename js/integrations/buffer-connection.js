@@ -46,12 +46,20 @@ function getStoredOAuthToken() {
 function isOAuthTokenExpired(bufferMs = 5 * 60 * 1000) {
   const token = getStoredOAuthToken();
   if (!token?.accessToken) return false;
-  if (!token.expiresAt) return true;
+  // A missing expiry is not evidence of expiry — Buffer does not always return
+  // expires_in. Treating "unknown" as "expired" forced a refresh on every call
+  // and turned any refresh hiccup into a reconnect prompt for a working token.
+  // Buffer answers with a 401 if the token really is dead; that drives refresh.
+  if (!token.expiresAt) return false;
   return Date.now() >= token.expiresAt - bufferMs;
 }
 
 function hasReconnectNeeded() {
-  return getStoredValue(OAUTH_RECONNECT_NEEDED_KEY) === '1';
+  if (getStoredValue(OAUTH_RECONNECT_NEEDED_KEY) !== '1') return false;
+  // A flag left behind by an earlier failure must not outlive a working token.
+  const token = getStoredOAuthToken();
+  if (token?.accessToken && !isOAuthTokenExpired(0)) { clearReconnectNeeded(); return false; }
+  return true;
 }
 
 function clearReconnectNeeded() {
@@ -60,7 +68,11 @@ function clearReconnectNeeded() {
 }
 
 function markBufferReconnectNeeded() {
-  // Reconnect state is used when refresh fails, so the main UI can ask users to sign in again.
+  // Reconnect state is used when Buffer rejects the grant, so the main UI can
+  // ask users to sign in again. The rejected access token goes with it —
+  // otherwise a stale flag and a stale token disagree with each other forever.
+  sessionStorage.removeItem(OAUTH_ACCESS_TOKEN_KEY);
+  localStorage.removeItem(OAUTH_ACCESS_TOKEN_KEY);
   const store = getOAuthStorageForKey(OAUTH_REFRESH_TOKEN_KEY) || sessionStorage;
   store.setItem(OAUTH_RECONNECT_NEEDED_KEY, '1');
   bufferToken = '';
@@ -69,34 +81,36 @@ function markBufferReconnectNeeded() {
   setSyncStatus('failed', 'Reconnect Buffer to keep syncing.');
 }
 
+const BUFFER_TOKEN_ENDPOINT = '/.netlify/functions/buffer-token';
+
 async function refreshBufferOAuthToken() {
   const token = getStoredOAuthToken();
   if (!token?.refreshToken) throw Object.assign(new Error('No Buffer refresh token'), { code: 'MISSING_REFRESH_TOKEN' });
 
-  // Public OAuth clients refresh without a browser secret; the refresh token keeps users connected.
-  const body = new URLSearchParams({
-    client_id: BUFFER_CLIENT_ID,
-    grant_type: 'refresh_token',
-    refresh_token: token.refreshToken,
-  });
-
+  // Public OAuth clients refresh without a browser secret, but Buffer's token
+  // endpoint is not callable from page JavaScript, so the refresh goes through
+  // PostIQ's own Netlify function — the same exchange the OAuth callback uses.
+  // Calling auth.buffer.com directly from the browser made every refresh throw,
+  // which surfaced as "expired key, reconnect" on a perfectly healthy grant.
   let response;
   try {
-    response = await fetch('https://auth.buffer.com/token', {
+    response = await fetch(BUFFER_TOKEN_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString(),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_id: BUFFER_CLIENT_ID, grant_type: 'refresh_token', refresh_token: token.refreshToken }),
     });
   } catch (err) {
-    markBufferReconnectNeeded();
-    throw Object.assign(new Error('Could not refresh Buffer connection'), { code: 'AUTH_ERROR', status: 401, cause: err });
+    // The network failed; the grant is untouched. Do not force a reconnect.
+    throw Object.assign(new Error('Could not reach Buffer to refresh the connection'), { code: 'REFRESH_NETWORK_ERROR', retryable: true, cause: err });
   }
 
   let data = null;
   try { data = await response.json(); } catch {}
+  if (!response.ok && response.status >= 500) {
+    throw Object.assign(new Error(data?.error_description || data?.error || 'Buffer could not refresh the connection right now'), { code: 'REFRESH_NETWORK_ERROR', retryable: true, status: response.status });
+  }
   if (!response.ok || !data?.access_token) {
-    sessionStorage.removeItem(OAUTH_ACCESS_TOKEN_KEY);
-    localStorage.removeItem(OAUTH_ACCESS_TOKEN_KEY);
+    // Buffer rejected the grant itself. This is the one case that needs a new sign-in.
     markBufferReconnectNeeded();
     throw Object.assign(new Error(data?.error_description || data?.error || 'Could not refresh Buffer connection'), { code: 'AUTH_ERROR', status: response.status || 401 });
   }
@@ -117,26 +131,34 @@ async function refreshBufferOAuthToken() {
 
 async function getActiveBufferToken() {
   const oauthToken = getStoredOAuthToken();
-  if (oauthToken?.accessToken) {
-    if (!isOAuthTokenExpired()) {
-      clearReconnectNeeded();
-      return { token: oauthToken.accessToken, source: 'oauth' };
-    }
+
+  if (oauthToken?.accessToken && !isOAuthTokenExpired()) {
+    clearReconnectNeeded();
+    return { token: oauthToken.accessToken, source: 'oauth' };
+  }
+
+  // A refresh token is a working connection even when the access token is gone
+  // or stale, so spend it before asking anyone to sign in again.
+  if (oauthToken?.refreshToken) {
     try {
       const refreshed = await refreshBufferOAuthToken();
       if (refreshed?.accessToken) return { token: refreshed.accessToken, source: 'oauth' };
     } catch (error) {
       safeTrack(() => GA4_Auth.tokenRefreshFailed());
       safeTrack(() => GA4_System.applicationError(error, 'authentication'));
+      // A transient failure is not a dead grant: keep whatever token we still
+      // hold and let Buffer be the one to reject it.
+      if (error?.retryable) return oauthToken.accessToken ? { token: oauthToken.accessToken, source: 'oauth' } : null;
       markBufferReconnectNeeded();
       return null;
     }
   }
 
-  if (oauthToken?.refreshToken || hasReconnectNeeded()) {
-    markBufferReconnectNeeded();
-    return null;
+  if (oauthToken?.accessToken) {
+    clearReconnectNeeded();
+    return { token: oauthToken.accessToken, source: 'oauth' };
   }
+  if (hasReconnectNeeded()) return null;
 
   const manualToken = getManualBufferToken().trim();
   return manualToken ? { token: manualToken, source: 'manual' } : null;
