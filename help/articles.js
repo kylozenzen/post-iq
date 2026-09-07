@@ -33,7 +33,6 @@ const HELP_CATEGORIES = [
   "Notebook",
   "Trending",
   "Snapshots",
-  "Approvals",
   "Troubleshooting",
   "Privacy & Data"
 ];
@@ -55,7 +54,7 @@ window.POSTIQ_HELP_ARTICLES = [
       <li><strong>Connect Buffer</strong> so PostIQ can load your channels and queue context.</li>
       <li><strong>Plan</strong> in calendar view to spot gaps and capture notes.</li>
       <li><strong>Compose</strong> drafts, media, or threads in PostIQ.</li>
-      <li><strong>Review</strong> with Snapshots and Approvals where needed.</li>
+      <li><strong>Review</strong> with Snapshots where needed.</li>
       <li><strong>Send to Buffer</strong> only when you pick a Buffer action.</li>
     </ol>
     <h2>What does not happen automatically</h2>
@@ -119,7 +118,7 @@ window.POSTIQ_HELP_ARTICLES = [
       <li>Use snapshot sharing for stakeholder visibility.</li>
     </ol>
     <h2>When to use Snapshot sharing</h2>
-    <p>Use snapshots when you need to share a read-only plan quickly. Snapshot links are ideal for alignment, not for collecting line-by-line approval comments.</p>
+    <p>Use snapshots when you need to share a read-only plan quickly. Snapshot links are ideal for alignment, not for collecting line-by-line feedback.</p>
     <h3>Good to know</h3>
     <ul>
       <li>Snapshots are static views, so re-share after major updates.</li>
@@ -182,27 +181,27 @@ window.POSTIQ_HELP_ARTICLES = [
   {
     slug: 'share-content-for-review',
     title: 'Share Content for Review',
-    category: 'Approvals',
-    summary: 'Learn when to use Snapshots, when to use Approvals, and what reviewers can see.',
-    tags: ['approvals', 'review', 'snapshot', 'stakeholders', 'feedback'],
+    category: 'Snapshots',
+    summary: 'Learn when to use Snapshots for plan visibility and what reviewers can see.',
+    tags: ['review', 'snapshot', 'stakeholders', 'feedback'],
     featured: false,
     relatedArticles: ['plan-content-calendar', 'write-split-send-posts', 'troubleshooting'],
-    body: `<p>PostIQ supports two review paths: Snapshots for plan visibility and Approvals for draft-level sign-off.</p>
-    <h2>Snapshot vs Approvals</h2>
+    body: `<p>Snapshots share a read-only view of your plan, so a client or teammate can see what is coming without access to your workspace.</p>
+    <h2>When to use a snapshot</h2>
     <ul>
-      <li><strong>Snapshots</strong>: read-only plan sharing (calendar-level context).</li>
-      <li><strong>Approvals</strong>: explicit reviewer workflow for draft decisions.</li>
+      <li>Aligning on calendar direction before you write.</li>
+      <li>Giving stakeholders visibility into a week or month of planned content.</li>
     </ul>
     <h2>Recommended review flow</h2>
     <ol>
       <li>Share a snapshot to align on calendar direction.</li>
-      <li>Draft in Compose and mark items requiring sign-off.</li>
-      <li>Send reviewer link from Approvals.</li>
-      <li>Finalize and send to Buffer after approval.</li>
+      <li>Draft in Compose once the direction is agreed.</li>
+      <li>Send to Buffer when you are ready to publish.</li>
     </ol>
     <h3>Good to know</h3>
     <ul>
       <li>Reviewers see what you shared at that stage, not your entire workspace.</li>
+      <li>Snapshots are static, so re-share after major updates.</li>
       <li>In beta, minor visual differences can occur between draft and published formatting.</li>
     </ul>`
   },
@@ -210,8 +209,8 @@ window.POSTIQ_HELP_ARTICLES = [
     slug: 'troubleshooting',
     title: 'Troubleshooting PostIQ',
     category: 'Troubleshooting',
-    summary: 'Fix common connection, sync, media, Snapshot, Approval, and beta feature issues.',
-    tags: ['troubleshooting', 'oauth', 'sync', 'media', 'snapshot', 'approvals', 'beta'],
+    summary: 'Fix common connection, sync, media, Snapshot, and beta feature issues.',
+    tags: ['troubleshooting', 'oauth', 'sync', 'media', 'snapshot', 'beta'],
     featured: false,
     relatedArticles: ['connect-buffer', 'share-content-for-review', 'privacy-storage-beta-limits'],
     body: `<p>If something feels off, most issues fall into connection state, stale sync, or view/filter mismatch.</p>
@@ -227,8 +226,6 @@ window.POSTIQ_HELP_ARTICLES = [
     <p>Usually filter mismatch or stale sync. Re-sync and reset filters.</p>
     <h3>Media not behaving as expected</h3>
     <p>Validate source file and retry send action; in beta, certain edge media cases may need a second attempt.</p>
-    <h3>Approval/Snapshot confusion</h3>
-    <p>Use snapshot for visibility and approvals for sign-off; they solve different review jobs.</p>
     <h3>Good to know</h3>
     <p>Public beta means occasional regressions can appear. If behavior persists, capture steps and share feedback with the team.</p>`
   },

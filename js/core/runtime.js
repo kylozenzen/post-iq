@@ -25,7 +25,7 @@ const FEATURE_FLAGS = {
   calendar: true,
   composer: true,
   ideas: true,
-  // Approvals is deferred via DEFAULT_POSTIQ_CONFIG.features.approvals so the admin panel can flip it back on.
+  // Approvals is controlled entirely by the admin panel / POSTIQ_FEATURE_APPROVALS, not hardcoded here.
   approvals: true,
   library: true,
   pulse: true,
@@ -62,7 +62,7 @@ const DEFAULT_POSTIQ_CONFIG = {
     ideas: true,
     contentPillars: true,
     trending: true,
-    approvals: false,
+    approvals: true,
     snapshots: true,
     library: true,
     pulse: true,

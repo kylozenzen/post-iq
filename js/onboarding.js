@@ -65,12 +65,6 @@ window.PostIQOnboarding = (() => {
       body: 'Build content pillars, save reusable templates, browse trending topics, and capture raw ideas. <strong>Hit Start</strong> on any seed to send a starter to Compose.',
       anchor: '.ideas-tabs',
     },
-    approvalsView: {
-      icon: '✅',
-      title: 'Get sign-off before publishing',
-      body: 'Generate a shareable reviewer link for any Buffer draft. Your client approves or requests changes — <strong>no PostIQ account needed</strong> on their end.',
-      anchor: '.approvals-filter-row',
-    },
   };
 
   // ── State helpers ─────────────────────────
