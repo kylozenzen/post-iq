@@ -1338,7 +1338,8 @@
         <button class="settings-tab active" id="settingsTabConnection" type="button" role="tab" aria-selected="true" aria-controls="settingsPanelConnection" data-stab="connection">Connection</button>
         <button class="settings-tab" id="settingsTabCustomize" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelCustomize" data-stab="customize">Customize</button>
         <button class="settings-tab" id="settingsTabAI" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelAI" data-stab="ai">AI Settings</button>
-        <button class="settings-tab" id="settingsTabFeatures" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelFeatures" data-stab="features">Beta / Features</button>
+        <button class="settings-tab" id="settingsTabFeatures" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelFeatures" data-stab="features">Features</button>
+        <button class="settings-tab" id="settingsTabSupport" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelSupport" data-stab="support">Support</button>
         <button class="settings-tab" id="settingsTabAbout" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelAbout" data-stab="about">About</button>
         <button class="settings-tab" id="settingsTabDiscord" type="button" role="tab"
           aria-selected="false" aria-controls="settingsPanelDiscord" data-stab="discord">
@@ -1398,8 +1399,8 @@
               <span class="workspace-preference-copy"><strong>Ideas</strong><small>Notebook, content pillars, trending feeds, and saved inspiration.</small></span>
               <input type="checkbox" data-workspace-toggle="ideas" aria-label="Show Ideas workspace" />
             </label>
-            <label class="workspace-preference-card">
-              <span class="workspace-preference-copy"><span class="workspace-preference-title"><strong>Approvals</strong><span class="workspace-badge">Coming soon</span></span><small>Client feedback and approval workflows. Coming soon.</small></span>
+            <label class="workspace-preference-card" data-feature="approvals">
+              <span class="workspace-preference-copy"><strong>Approvals</strong><small>Client feedback and approval workflows.</small></span>
               <input type="checkbox" data-workspace-toggle="approvals" aria-label="Show Approvals workspace" />
             </label>
           </div>
@@ -1496,6 +1497,21 @@
             <div class="settings-feature-item"><span>Unsplash search</span><span class="settings-feature-status" data-settings-feature="unsplash">Available</span></div>
           </div>
           <p class="settings-copy settings-feature-note" id="settingsBetaMessage"></p>
+        </div>
+      </div>
+
+      <div id="settingsPanelSupport" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabSupport" tabindex="0">
+        <div class="settings-section">
+          <div class="settings-section-title">Get help</div>
+          <p class="settings-copy">PostIQ is built and maintained by one person, so questions, bug reports, and feature requests come straight to Ben — no ticket queue in between.</p>
+          <div class="row mt12">
+            <a class="btn primary" href="mailto:REPLACE_WITH_SUPPORT_EMAIL?subject=PostIQ%20support" id="supportEmailLink">Email Ben</a>
+            <a class="btn ghost" href="/help/">Help Center</a>
+          </div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-section-title">Community</div>
+          <p class="settings-copy">Already posting through Discord? Webhook setup and destinations live on the <button class="btn sm ghost" id="supportOpenDiscordBtn" type="button">Discord</button> tab.</p>
         </div>
       </div>
 

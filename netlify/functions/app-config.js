@@ -20,7 +20,7 @@ function envDefaults() {
       ideas:         true,
       contentPillars:true,
       trending:      readBooleanEnv('POSTIQ_FEATURE_TRENDING', true),
-      approvals:     readBooleanEnv('POSTIQ_FEATURE_APPROVALS', true),
+      approvals:     readBooleanEnv('POSTIQ_FEATURE_APPROVALS', false),
       snapshots:     readBooleanEnv('POSTIQ_FEATURE_SNAPSHOTS', true),
       library:       readBooleanEnv('POSTIQ_FEATURE_LIBRARY', true),
       pulse:         readBooleanEnv('POSTIQ_FEATURE_PULSE', true),

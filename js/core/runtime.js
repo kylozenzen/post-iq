@@ -25,7 +25,8 @@ const FEATURE_FLAGS = {
   calendar: true,
   composer: true,
   ideas: true,
-  approvals: false,
+  // Approvals is deferred via DEFAULT_POSTIQ_CONFIG.features.approvals so the admin panel can flip it back on.
+  approvals: true,
   library: true,
   pulse: true,
   contentItems: true
@@ -61,7 +62,7 @@ const DEFAULT_POSTIQ_CONFIG = {
     ideas: true,
     contentPillars: true,
     trending: true,
-    approvals: true,
+    approvals: false,
     snapshots: true,
     library: true,
     pulse: true,
@@ -475,10 +476,10 @@ async function loadPostiqConfig() {
   } finally {
     applyFeatureFlags();
     renderSettingsFeatureStatus();
-    maybeShowBetaBanner();
   }
 }
 
+// Intentionally not called on load — the beta message lives permanently in Settings › Features (#settingsBetaMessage).
 function maybeShowBetaBanner() {
   const message = String(postiqConfig?.betaMessage || '').trim();
   if (!message) return;
@@ -489,6 +490,7 @@ function maybeShowBetaBanner() {
   } catch {}
   showGlobalStatus(message, { title: 'Public beta', type: 'info', timeout: 7000 });
 }
+window.maybeShowBetaBanner = maybeShowBetaBanner;
 
 function handlePausedFeatureEvent(event) {
   const target = event.target?.closest?.('[data-feature-flag]');
