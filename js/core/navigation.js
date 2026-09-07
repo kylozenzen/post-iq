@@ -18,6 +18,7 @@ function activateView(viewId, source = 'navigation') {
     if (viewId === 'ideasView') GA4_Ideas.ideasOpened();
     if (viewId === 'approvalsView') GA4_Approvals.approvalsOpened();
   });
+  if (viewId === 'approvalsView' && isFeatureEnabled('approvals') && typeof loadApprovals === 'function') loadApprovals();
   if (viewId === 'libraryView' && isFeatureEnabled('library') && window.PostIQLibrary) window.PostIQLibrary.activate();
   if (viewId === 'pulseView' && isFeatureEnabled('pulse') && window.PostIQPulse) window.PostIQPulse.activate();
   document.body.dataset.gaReady = '1';

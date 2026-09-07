@@ -329,9 +329,15 @@ function openModal(id) {
   return true;
 }
 
+function openSupportSettings() {
+  selectSettingsTab('support');
+  openModal('settingsModal');
+}
+
 // Explicitly expose real Settings navigation for cross-file UI entry points such as AI Assist.
 window.selectSettingsTab = selectSettingsTab;
 window.openModal = openModal;
+window.openSupportSettings = openSupportSettings;
 
 function closeModal(id) {
   const modal = document.getElementById(id);

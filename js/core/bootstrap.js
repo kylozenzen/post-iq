@@ -105,6 +105,8 @@ function init() {
     });
   });
 
+  on('supportOpenDiscordBtn', 'click', () => selectSettingsTab('discord'));
+
   on('closeTemplatePicker', 'click', () => closeModal('templatePickerModal'));
   on('templateSearch', 'input', e => { state.templateSearch = e.target.value; renderTemplates(); });
   on('templateSearch', 'change', e => safeTrack(() => GA4_Templates.templateSearched(e.target.value.trim() ? 'has_query' : 'empty')));

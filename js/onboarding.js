@@ -12,6 +12,7 @@ window.PostIQOnboarding = (() => {
     dismissed: 'postiq_ob_dismissed',
     synced:    'postiq_ob_synced',
     composed:  'postiq_ob_composed',
+    complete:  'postiq_ob_complete',
     tipPrefix: 'postiq_ob_tip_',
   };
 
@@ -64,12 +65,6 @@ window.PostIQOnboarding = (() => {
       body: 'Build content pillars, save reusable templates, browse trending topics, and capture raw ideas. <strong>Hit Start</strong> on any seed to send a starter to Compose.',
       anchor: '.ideas-tabs',
     },
-    approvalsView: {
-      icon: '✅',
-      title: 'Get sign-off before publishing',
-      body: 'Generate a shareable reviewer link for any Buffer draft. Your client approves or requests changes — <strong>no PostIQ account needed</strong> on their end.',
-      anchor: '.approvals-filter-row',
-    },
   };
 
   // ── State helpers ─────────────────────────
@@ -77,6 +72,7 @@ window.PostIQOnboarding = (() => {
   const read  = key => { try { return localStorage.getItem(key); } catch { return null; } };
 
   const isBannerDismissed = () => read(KEYS.dismissed) === '1';
+  const isOnboardingComplete = () => read(KEYS.complete) === '1';
   const isTipSeen  = id => read(KEYS.tipPrefix + id) === '1';
   const markTipSeen = id => store(KEYS.tipPrefix + id, '1');
 
@@ -131,16 +127,15 @@ window.PostIQOnboarding = (() => {
       <div class="ob-inner">
         <div class="ob-header">
           <div class="ob-title-group">
-            <span class="ob-eyebrow">Getting started</span>
-            <span class="ob-title">${allDone
-              ? 'You\'re set — explore the app'
-              : 'PostIQ is your planning layer for Buffer'
-            }</span>
-            ${allDone ? '' : '<span class="ob-subtitle">Connect Buffer, load your queue, then start planning and publishing from one place.</span>'}
+            <span class="ob-eyebrow">${allDone ? 'All set' : 'Getting started'}</span>
+            ${allDone ? '' : `
+            <span class="ob-title">PostIQ is your planning layer for Buffer</span>
+            <span class="ob-subtitle">Connect Buffer, load your queue, then start planning and publishing from one place.</span>`}
           </div>
           <button class="ob-dismiss" id="obDismissBtn" aria-label="Dismiss">×</button>
         </div>
 
+        ${allDone ? completionCardHTML() : `
         <div class="ob-steps">
           ${STEPS.map((step, i) => {
             const done   = step.isDone();
@@ -165,25 +160,53 @@ window.PostIQOnboarding = (() => {
             </div>
             <span class="ob-progress-label">${doneCount} of ${STEPS.length} done</span>
           </div>
-          ${allDone
-            ? `<button class="ob-cta ob-cta-done" id="obCtaBtn">Dismiss</button>`
-            : current
-              ? `<button class="ob-cta" id="obCtaBtn" data-step="${current.id}">${current.action}</button>`
-              : ''
+          ${current
+            ? `<button class="ob-cta" id="obCtaBtn" data-step="${current.id}">${current.action}</button>`
+            : ''
           }
-        </div>
+        </div>`}
       </div>
     `;
 
     bannerEl.querySelector('#obDismissBtn')?.addEventListener('click', dismissBanner);
 
+    if (allDone) {
+      bannerEl.querySelector('#obSupportBtn')?.addEventListener('click', openSupport);
+      bannerEl.querySelector('#obCompleteBtn')?.addEventListener('click', completeOnboarding);
+      return;
+    }
+
     const ctaBtn = bannerEl.querySelector('#obCtaBtn');
     if (ctaBtn) {
-      ctaBtn.addEventListener('click', () => {
-        if (allDone) { dismissBanner(); return; }
-        handleStepCTA(ctaBtn.dataset.step);
-      });
+      ctaBtn.addEventListener('click', () => handleStepCTA(ctaBtn.dataset.step));
     }
+  }
+
+  // ── Completion card ───────────────────────
+  // Replaces the step list once all three steps are done and the card has not
+  // been acknowledged yet. Acknowledging it sets KEYS.complete, and the banner
+  // never rebuilds after that.
+  function completionCardHTML() {
+    return `
+        <div class="ob-complete">
+          <div class="ob-complete-title">You're set — PostIQ is ready to use</div>
+          <div class="ob-complete-copy">Questions, bugs, and feature requests go straight to Ben in <strong>Settings › Support</strong>.</div>
+          <div class="ob-complete-actions">
+            <button class="ob-cta" id="obSupportBtn" type="button">Open support</button>
+            <button class="ob-cta ob-cta-done" id="obCompleteBtn" type="button">Done</button>
+          </div>
+        </div>`;
+  }
+
+  function openSupport() {
+    if (typeof window.openSupportSettings === 'function') window.openSupportSettings();
+  }
+
+  function completeOnboarding() {
+    store(KEYS.complete, '1');
+    // Also mark dismissed so per-view tooltips unblock exactly as they do after a manual dismiss.
+    store(KEYS.dismissed, '1');
+    removeBanner();
   }
 
   function handleStepCTA(stepId) {
@@ -201,17 +224,20 @@ window.PostIQOnboarding = (() => {
   function dismissBanner() {
     if (!bannerEl) return;
     store(KEYS.dismissed, '1');
+    removeBanner();
+  }
+
+  function removeBanner() {
+    if (!bannerEl) return;
     bannerEl.classList.add('ob-dismissing');
     setTimeout(() => { bannerEl?.remove(); bannerEl = null; }, 300);
   }
 
   function refreshBanner() {
     if (!bannerEl) return;
+    // Once acknowledged, the banner never rebuilds — the completion card is the exit.
+    if (isOnboardingComplete()) { removeBanner(); return; }
     renderBanner();
-    // Auto-dismiss 2s after all steps complete
-    if (STEPS.every(s => s.isDone())) {
-      setTimeout(dismissBanner, 2000);
-    }
   }
 
   // ── Tooltips ──────────────────────────────
@@ -355,6 +381,9 @@ window.PostIQOnboarding = (() => {
   // ── Init ──────────────────────────────────
   function init() {
     bindEvents();
+
+    // Onboarding was acknowledged on the completion card — never rebuild the banner.
+    if (isOnboardingComplete()) return;
 
     // If the user is already connected, they are not new.
     // Skip the banner entirely — just run tooltips as they explore.

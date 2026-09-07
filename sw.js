@@ -1,4 +1,4 @@
-const CACHE = 'postiq-v11-buffer-save-queue';
+const CACHE = 'postiq-v12-onboarding-support';
 const SHELL = [
   '/',
   '/index.html',

@@ -166,7 +166,6 @@
       <button class="nav-btn" data-view="approvalsView" data-workspace-nav="approvals" data-feature="approvals" data-tooltip="Approvals">
         <span class="nav-icon"><svg><use href="#i-check"/></svg></span>
         <span class="nav-text">Approvals</span>
-        <span class="nav-tag workspace-soon-tag">Soon</span>
       </button>
       <div class="nav-section-label" data-tools-section>Tools</div>
       <button class="nav-btn" data-view="libraryView" data-feature="library" data-tooltip="Library">
@@ -507,6 +506,15 @@
             <input type="hidden" id="composerWhen" />
           </div>
 
+          <!-- Needs approval -->
+          <div class="panel-card" id="approvalCheckPanel" data-feature="approvals">
+            <div class="panel-card-title">Sign-off</div>
+            <label class="approval-check-row">
+              <input type="checkbox" id="needsApprovalCheck" />
+              <span class="approval-check-label">Needs approval before publishing</span>
+            </label>
+            <div style="font-size:11px;color:var(--subtle);margin-top:8px;line-height:1.55;">Save as draft first — then generate an approval link from the Approvals tab.</div>
+          </div>
 
           <div id="discordSendRow"></div>
 
@@ -697,36 +705,37 @@
       </div><!-- /composer-layout -->
     </section>
 
-    <!-- ══════════ APPROVALS (Coming soon) ══════════ -->
+    <!-- ══════════ APPROVALS ══════════ -->
     <section id="approvalsView" class="view" data-feature="approvals">
       <div class="mob-view-hdr">
-        <span class="mob-view-title">✅ Approvals <span class="workspace-badge">Soon</span></span>
+        <span class="mob-view-title">✅ Approvals</span>
+        <div class="mob-view-actions">
+          <button class="btn sm ghost" id="approvalsRefreshBtnMob">↻</button>
+        </div>
       </div>
       <div class="page-hdr">
         <div class="page-hdr-left">
-          <div class="workspace-kicker">Approvals workspace <span class="workspace-badge">Coming soon</span></div>
-          <h1 class="page-title">Approvals are coming to PostIQ.</h1>
-          <p class="page-desc">Soon, you’ll be able to send Buffer drafts for client feedback, collect comments, and keep posts moving before they go live.</p>
+          <h1 class="page-title">Approvals</h1>
+          <p class="page-desc">Route content through sign-off before it goes live. Generate a reviewer link, collect feedback, then publish when approved.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn ghost" id="approvalsRefreshBtn">↻ Refresh</button>
         </div>
       </div>
       <div class="view-content">
-        <div class="approvals-coming-soon-card">
-          <div>
-            <div class="approvals-coming-soon-icon">✓</div>
-            <h2>Review content without leaving your workflow</h2>
-            <ul class="approvals-coming-soon-list">
-              <li>Share clean review links</li>
-              <li>Collect approve / request changes feedback</li>
-              <li>Keep approval notes connected to your content workflow</li>
-              <li>Built for creators, freelancers, and social media managers using Buffer</li>
-            </ul>
-          </div>
-          <div class="approvals-beta-cta">
-            <span class="workspace-badge">Public beta exploration</span>
-            <p>Approvals are being explored as part of PostIQ’s public beta.</p>
-            <a class="btn primary" href="/#beta">Join the approvals beta</a>
-          </div>
+        <div class="approvals-filter-row">
+          <span class="filter-label">Filter:</span>
+          <button class="filter-pill active" data-afilter="all" type="button">All</button>
+          <button class="filter-pill" data-afilter="pending" type="button">⏳ Pending</button>
+          <button class="filter-pill" data-afilter="approved" type="button">✓ Approved</button>
+          <button class="filter-pill" data-afilter="changes" type="button">✎ Changes</button>
         </div>
+        <div id="approvalsEmpty" class="empty-state" style="display:none;">
+          <div class="empty-icon">✅</div>
+          <div class="empty-title">No pending approvals</div>
+          <div class="empty-desc">Save a draft with “Needs approval” checked in Compose, then come here to generate a reviewer link.</div>
+        </div>
+        <div id="approvalsList"></div>
       </div>
     </section>
 
@@ -1338,7 +1347,8 @@
         <button class="settings-tab active" id="settingsTabConnection" type="button" role="tab" aria-selected="true" aria-controls="settingsPanelConnection" data-stab="connection">Connection</button>
         <button class="settings-tab" id="settingsTabCustomize" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelCustomize" data-stab="customize">Customize</button>
         <button class="settings-tab" id="settingsTabAI" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelAI" data-stab="ai">AI Settings</button>
-        <button class="settings-tab" id="settingsTabFeatures" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelFeatures" data-stab="features">Beta / Features</button>
+        <button class="settings-tab" id="settingsTabFeatures" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelFeatures" data-stab="features">Features</button>
+        <button class="settings-tab" id="settingsTabSupport" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelSupport" data-stab="support">Support</button>
         <button class="settings-tab" id="settingsTabAbout" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelAbout" data-stab="about">About</button>
         <button class="settings-tab" id="settingsTabDiscord" type="button" role="tab"
           aria-selected="false" aria-controls="settingsPanelDiscord" data-stab="discord">
@@ -1398,8 +1408,8 @@
               <span class="workspace-preference-copy"><strong>Ideas</strong><small>Notebook, content pillars, trending feeds, and saved inspiration.</small></span>
               <input type="checkbox" data-workspace-toggle="ideas" aria-label="Show Ideas workspace" />
             </label>
-            <label class="workspace-preference-card">
-              <span class="workspace-preference-copy"><span class="workspace-preference-title"><strong>Approvals</strong><span class="workspace-badge">Coming soon</span></span><small>Client feedback and approval workflows. Coming soon.</small></span>
+            <label class="workspace-preference-card" data-feature="approvals">
+              <span class="workspace-preference-copy"><strong>Approvals</strong><small>Client feedback and approval workflows.</small></span>
               <input type="checkbox" data-workspace-toggle="approvals" aria-label="Show Approvals workspace" />
             </label>
           </div>
@@ -1496,6 +1506,21 @@
             <div class="settings-feature-item"><span>Unsplash search</span><span class="settings-feature-status" data-settings-feature="unsplash">Available</span></div>
           </div>
           <p class="settings-copy settings-feature-note" id="settingsBetaMessage"></p>
+        </div>
+      </div>
+
+      <div id="settingsPanelSupport" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabSupport" tabindex="0">
+        <div class="settings-section">
+          <div class="settings-section-title">Get help</div>
+          <p class="settings-copy">PostIQ is built and maintained by one person, so questions, bug reports, and feature requests come straight to Ben — no ticket queue in between.</p>
+          <div class="row mt12">
+            <a class="btn primary" href="mailto:REPLACE_WITH_SUPPORT_EMAIL?subject=PostIQ%20support" id="supportEmailLink">Email Ben</a>
+            <a class="btn ghost" href="/help/">Help Center</a>
+          </div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-section-title">Community</div>
+          <p class="settings-copy">Already posting through Discord? Webhook setup and destinations live on the <button class="btn sm ghost" id="supportOpenDiscordBtn" type="button">Discord</button> tab.</p>
         </div>
       </div>
 

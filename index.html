@@ -4,11 +4,11 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>PostIQ — A Smarter Planning Layer for Buffer</title>
-<meta name="description" content="PostIQ is a free public beta companion workspace for Buffer users. Plan your queue, compose posts, split threads, build content pillars, review content, and share clean snapshots before publishing." />
+<meta name="description" content="PostIQ is a free public beta companion workspace for Buffer users. Plan your queue, compose posts, split threads, build content pillars, and share clean snapshots before publishing." />
 <meta name="theme-color" content="#f5f6fa" />
 <link rel="canonical" href="https://postiq.netlify.app/" />
 <meta property="og:title" content="PostIQ — A Smarter Planning Layer for Buffer" />
-<meta property="og:description" content="Plan, compose, split, review, and share clean snapshots before content goes out through Buffer." />
+<meta property="og:description" content="Plan, compose, split, and share clean snapshots before content goes out through Buffer." />
 <meta property="og:image" content="https://postiq.netlify.app/postiq-og.png" />
 <meta property="og:url" content="https://postiq.netlify.app/" />
 <meta property="og:type" content="website" />
@@ -259,6 +259,8 @@ h1 .line2{display:block;color:var(--ink);}
 }
 .hero-trust a{color:var(--brand);font-weight:600;text-decoration:none;}
 .hero-trust a:hover{text-decoration:underline;}
+.hero-trust-fine{display:block;margin-top:6px;font-size:11px;opacity:.8;}
+.hero-trust-fine a{font-weight:500;}
 
 /* ─── HERO VISUAL ─────────────────────────────── */
 .hero-visual{
@@ -1028,7 +1030,7 @@ h1 .line2{display:block;color:var(--ink);}
         <a href="/auth/connect.html?return=/app.html" class="btn primary lg">Sign in with Buffer →</a>
         <a href="/app.html" class="btn ghost lg">Explore first</a>
       </div>
-      <p class="hero-trust">Free public beta. No account required to explore. Connect Buffer when ready. PostIQ is independently built — not officially affiliated with Buffer unless noted. Need Buffer? <a href="https://join.buffer.com/ben-campbell" target="_blank" rel="noopener">Create an account →</a></p>
+      <p class="hero-trust">No account required to explore — connect Buffer when you are ready. Free during public beta. <span class="hero-trust-fine">PostIQ is independently built and not officially affiliated with Buffer unless noted. <a href="https://join.buffer.com/ben-campbell" target="_blank" rel="noopener">Need a Buffer account?</a></span></p>
     </div>
 
     <div class="hero-visual">
@@ -1218,14 +1220,17 @@ h1 .line2{display:block;color:var(--ink);}
       <button class="tool-tab" data-tool="snapshot">
         <span class="tool-tab-icon">🔗</span> Snapshots
       </button>
-      <button class="tool-tab" data-tool="approvals">
-        <span class="tool-tab-icon">✅</span> Approvals
-      </button>
       <button class="tool-tab" data-tool="templates">
         <span class="tool-tab-icon">⚡</span> Templates
       </button>
       <button class="tool-tab" data-tool="trending">
         <span class="tool-tab-icon">📈</span> Trending
+      </button>
+      <button class="tool-tab" data-tool="library">
+        <span class="tool-tab-icon">📚</span> Library
+      </button>
+      <button class="tool-tab" data-tool="pulse">
+        <span class="tool-tab-icon">〰️</span> Pulse
       </button>
     </div>
 
@@ -1426,46 +1431,6 @@ h1 .line2{display:block;color:var(--ink);}
       </div>
     </div>
 
-    <!-- APPROVALS PANEL -->
-    <div class="tool-panel" id="tool-approvals">
-      <div class="tool-panel-demo">
-        <div class="demo-toolbar">
-          <span class="demo-toolbar-dot ui-dot-r"></span>
-          <span class="demo-toolbar-dot ui-dot-y"></span>
-          <span class="demo-toolbar-dot ui-dot-g"></span>
-          <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--subtle);margin-left:8px;">Approve — Review link</span>
-        </div>
-        <div class="demo-body">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-            <div style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:4px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);font-family:'DM Mono',monospace;font-size:9px;font-weight:500;color:var(--amber);text-transform:uppercase;letter-spacing:.06em;">⏳ Pending</div>
-            <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--subtle);">LinkedIn · June 12</span>
-          </div>
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:10px;font-size:11px;color:var(--text);line-height:1.6;margin-bottom:10px;">
-            Most founders treat content like homework. Something they'll get to when they have time. They won't. The algorithm won't wait.
-          </div>
-          <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:6px;">Approval link</div>
-          <div class="snap-link-row" style="margin-bottom:10px;">
-            <span class="snap-link-url">https://postiq.netlify.app/?approve=f4a8c2d1…</span>
-            <span class="snap-link-copy">Copy</span>
-          </div>
-          <div style="display:flex;gap:7px;">
-            <button class="comp-btn" style="flex:1;text-align:center;justify-content:center;">Save draft</button>
-            <button class="comp-btn q" style="flex:1;text-align:center;justify-content:center;">Add to queue</button>
-          </div>
-        </div>
-      </div>
-      <div class="tool-panel-copy">
-        <h3>Client sign-off before it goes live.</h3>
-        <p>Generate a shareable reviewer link for any draft. Your client reads the post, leaves feedback, and approves or requests changes. You publish once it's cleared — no Buffer access needed on their end.</p>
-        <div class="tool-feat-list">
-          <div class="tool-feat"><div class="tool-feat-check">✓</div>Reviewer-only link — no PostIQ account needed to review</div>
-          <div class="tool-feat"><div class="tool-feat-check">✓</div>Approve, reject, or request changes with a comment</div>
-          <div class="tool-feat"><div class="tool-feat-check">✓</div>Publish unlocks after approval — no accidental posting</div>
-          <div class="tool-feat"><div class="tool-feat-check">✓</div>Approval history tracked per draft</div>
-        </div>
-      </div>
-    </div>
-
     <!-- TEMPLATES PANEL -->
     <div class="tool-panel" id="tool-templates">
       <div class="tool-panel-demo">
@@ -1565,6 +1530,105 @@ h1 .line2{display:block;color:var(--ink);}
           <div class="tool-feat"><div class="tool-feat-check">✓</div>Browse custom subreddits or default content feeds</div>
           <div class="tool-feat"><div class="tool-feat-check">✓</div>Pin any story as a reference above your Compose editor</div>
           <div class="tool-feat"><div class="tool-feat-check">✓</div>Save to Notebook for later use</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIBRARY PANEL -->
+    <div class="tool-panel" id="tool-library">
+      <div class="tool-panel-demo">
+        <div class="demo-toolbar">
+          <span class="demo-toolbar-dot ui-dot-r"></span>
+          <span class="demo-toolbar-dot ui-dot-y"></span>
+          <span class="demo-toolbar-dot ui-dot-g"></span>
+          <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--subtle);margin-left:8px;">Library — Sent posts</span>
+        </div>
+        <div class="demo-body" style="padding:12px;">
+          <div style="display:flex;gap:14px;margin-bottom:10px;">
+            <div><strong style="font-size:15px;color:var(--ink);">50</strong><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--subtle);text-transform:uppercase;letter-spacing:.06em;">sent posts loaded</div></div>
+            <div><strong style="font-size:15px;color:var(--ink);">38</strong><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--subtle);text-transform:uppercase;letter-spacing:.06em;">metrics available</div></div>
+            <div><strong style="font-size:15px;color:var(--ink);">6.4%</strong><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--subtle);text-transform:uppercase;letter-spacing:.06em;">best eng. rate</div></div>
+          </div>
+          <div style="display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:10px;">
+            <span style="padding:7px 10px;font-size:11px;font-weight:600;color:var(--brand);border-bottom:2px solid var(--brand);margin-bottom:-1px;font-family:'Lato',sans-serif;">All posts</span>
+            <span style="padding:7px 10px;font-size:11px;font-weight:600;color:var(--muted);font-family:'Lato',sans-serif;">⭐ Top performers</span>
+            <span style="padding:7px 10px;font-size:11px;font-weight:600;color:var(--muted);font-family:'Lato',sans-serif;">↺ Ready to reuse</span>
+            <span style="padding:7px 10px;font-size:11px;font-weight:600;color:var(--muted);font-family:'Lato',sans-serif;">★ Starred</span>
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+              <span style="font-family:'DM Mono',monospace;font-size:8px;padding:2px 6px;border-radius:3px;background:var(--brand-dim);color:var(--brand);">LinkedIn</span>
+              <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--subtle);">Apr 3, 2026</span>
+              <span style="font-family:'DM Mono',monospace;font-size:8px;padding:2px 6px;border-radius:3px;background:rgba(245,158,11,.12);color:var(--amber);">⭐ Top</span>
+              <span style="margin-left:auto;font-size:12px;color:var(--subtle);">☆</span>
+            </div>
+            <div style="font-size:10px;color:var(--muted);line-height:1.5;margin-bottom:7px;">Most founders treat content like homework. Something they'll get to when they have time…</div>
+            <div style="display:flex;gap:8px;font-family:'DM Mono',monospace;font-size:9px;color:var(--subtle);margin-bottom:8px;">
+              <span>6.4% eng.</span><span>412 reactions</span><span>9.1k impressions</span>
+            </div>
+            <div style="display:flex;gap:5px;">
+              <button class="comp-btn q" style="font-size:9px;padding:3px 8px;">→ Repurpose</button>
+              <button class="comp-btn" style="font-size:9px;padding:3px 8px;">↺ Re-schedule</button>
+              <button class="comp-btn" style="font-size:9px;padding:3px 8px;">Copy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tool-panel-copy">
+        <h3>Your sent posts, with the numbers attached.</h3>
+        <p>Library loads your latest 50 sent posts from Buffer, along with performance data wherever Buffer has it. Search what you have already published, find what worked, and send it back to Compose instead of starting from a blank page.</p>
+        <div class="tool-feat-list">
+          <div class="tool-feat"><div class="tool-feat-check">✓</div>Tabs for all posts, top performers, ready to reuse, and starred</div>
+          <div class="tool-feat"><div class="tool-feat-check">✓</div>Sort by most recent, engagement rate, reactions, or impressions</div>
+          <div class="tool-feat"><div class="tool-feat-check">✓</div>Repurpose pins a post above Compose as a reference; Re-schedule loads the text</div>
+          <div class="tool-feat"><div class="tool-feat-check">✓</div>Star posts to keep them handy — saved in your browser</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PULSE PANEL -->
+    <div class="tool-panel" id="tool-pulse">
+      <div class="tool-panel-demo">
+        <div class="demo-toolbar">
+          <span class="demo-toolbar-dot ui-dot-r"></span>
+          <span class="demo-toolbar-dot ui-dot-y"></span>
+          <span class="demo-toolbar-dot ui-dot-g"></span>
+          <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--subtle);margin-left:8px;">Pulse — Last 30 days</span>
+        </div>
+        <div class="demo-body" style="padding:12px;">
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:12px;">
+            <span style="padding:4px 9px;border-radius:5px;background:var(--surface2);border:1px solid var(--border2);font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);">7 days</span>
+            <span style="padding:4px 9px;border-radius:5px;background:var(--surface2);border:1px solid var(--border2);font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);">14 days</span>
+            <span style="padding:4px 9px;border-radius:5px;background:var(--brand-dim);border:1px solid var(--brand-glow);font-size:10px;font-family:'DM Mono',monospace;color:var(--brand);">30 days</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:7px;">
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;">
+              <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--subtle);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Posts sent</div>
+              <strong style="font-size:18px;color:var(--ink);">24</strong>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;">
+              <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--subtle);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Reactions</div>
+              <strong style="font-size:18px;color:var(--ink);">1,842</strong>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;">
+              <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--subtle);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Comments</div>
+              <strong style="font-size:18px;color:var(--ink);">216</strong>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;">
+              <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--subtle);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Avg reactions/post</div>
+              <strong style="font-size:18px;color:var(--ink);">76.8</strong>
+            </div>
+          </div>
+          <div style="margin-top:10px;font-family:'DM Mono',monospace;font-size:9px;color:var(--subtle);">Metrics status — Available · from Buffer aggregate metrics</div>
+        </div>
+      </div>
+      <div class="tool-panel-copy">
+        <h3>A calm read on how recent posts did.</h3>
+        <p>Pulse pulls Buffer's aggregate metrics into a single snapshot — no dashboards to configure, no charts to read. Check it, get the gist, get back to writing.</p>
+        <div class="tool-feat-list">
+          <div class="tool-feat"><div class="tool-feat-check">✓</div>Switch between the last 7, 14, or 30 days</div>
+          <div class="tool-feat"><div class="tool-feat-check">✓</div>Posts sent, reactions, comments, and average reactions per post</div>
+          <div class="tool-feat"><div class="tool-feat-check">✓</div>Says when Buffer metrics are still syncing instead of showing zeros</div>
         </div>
       </div>
     </div>
@@ -1706,7 +1770,7 @@ h1 .line2{display:block;color:var(--ink);}
       </div>
       <div class="faq-item">
         <button class="faq-q" aria-expanded="false"><span>What is the public beta?</span><span class="faq-icon">+</span></button>
-        <div class="faq-a">PostIQ is free during public beta. Some features may evolve as Buffer's API matures. The core workflow — plan, compose, split, snapshot, approve, and publish — is stable and ready to use.</div>
+        <div class="faq-a">PostIQ is free during public beta. Some features may evolve as Buffer's API matures. The core workflow — plan, compose, split, snapshot, and publish — is stable and ready to use.</div>
       </div>
       <div class="faq-item">
         <button class="faq-q" aria-expanded="false"><span>Is PostIQ made by Buffer?</span><span class="faq-icon">+</span></button>
