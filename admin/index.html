@@ -10,19 +10,21 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* The console stays dark by design, but on PostIQ's warm ink and brick so
+       it reads as the same product as the app and the marketing site. */
     :root {
-      --bg:      #0d0f1f;
-      --surface: #141629;
-      --surface2:#1c1f38;
-      --border:  #2a2d4a;
-      --border2: #343760;
-      --brand:   #3a3fff;
-      --brand-h: #5b5fff;
-      --text:    #e8eaf6;
-      --muted:   #7b7fa8;
-      --success: #22c55e;
-      --warn:    #f59e0b;
-      --danger:  #ef4444;
+      --bg:      #16150f;
+      --surface: #1f1d17;
+      --surface2:#2a2721;
+      --border:  #38342b;
+      --border2: #4a453a;
+      --brand:   #d3736a;
+      --brand-h: #e19a93;
+      --text:    #f3efe4;
+      --muted:   #a19885;
+      --success: #8cab96;
+      --warn:    #d2b894;
+      --danger:  #d98b96;
       --font-sans: 'Bricolage Grotesque', sans-serif;
       --font-mono: 'DM Mono', monospace;
       --font-body: 'Lato', sans-serif;
@@ -85,7 +87,7 @@
       width: 100%;
       padding: 12px;
       background: var(--brand);
-      color: #fff;
+      color: var(--bg);
       border: none;
       border-radius: 8px;
       font-family: var(--font-sans);
@@ -201,7 +203,7 @@
     #saveStatus.error { color: var(--danger); }
     .btn-save {
       background: var(--brand);
-      color: #fff;
+      color: var(--bg);
       border: none;
       border-radius: 8px;
       padding: 9px 22px;
@@ -421,9 +423,9 @@
       border-radius: 4px;
       flex-shrink: 0;
     }
-    .badge.pending          { background: rgba(245,158,11,.15); color: var(--warn); }
-    .badge.approved         { background: rgba(34,197,94,.15);  color: var(--success); }
-    .badge.changes_requested{ background: rgba(239,68,68,.15);  color: var(--danger); }
+    .badge.pending          { background: color-mix(in srgb, var(--warn) 16%, transparent);    color: var(--warn); }
+    .badge.approved         { background: color-mix(in srgb, var(--success) 16%, transparent); color: var(--success); }
+    .badge.changes_requested{ background: color-mix(in srgb, var(--danger) 16%, transparent);  color: var(--danger); }
     .badge.other            { background: var(--surface);       color: var(--muted); border: 1px solid var(--border); }
     .recent-date { font-family: var(--font-mono); font-size: 11px; color: var(--muted); flex-shrink: 0; }
 

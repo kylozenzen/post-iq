@@ -27,12 +27,12 @@
     .cal-toolbar-right {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--s2);
     }
 
     @media (max-width: 768px) {
       .cal-toolbar {
-        gap: 8px;
+        gap: var(--s2);
       }
 
       .cal-toolbar-right {
@@ -40,7 +40,7 @@
       }
     }
     .cal-month-label {
-      font-family: 'Bricolage Grotesque', sans-serif;
+      font-family: var(--font-display);
       font-weight: 700;
       font-size: 20px;
       letter-spacing: -.3px;
@@ -51,7 +51,7 @@
     .cal-dow {
       display: grid;
       grid-template-columns: repeat(7,1fr);
-      gap: 4px;
+      gap: var(--s1);
       margin-bottom: 4px;
     }
     .dow-cell {
@@ -68,14 +68,14 @@
     .cal-grid {
       display: grid;
       grid-template-columns: repeat(7,1fr);
-      gap: 4px;
+      gap: var(--s1);
     }
 
     .cal-day {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px;
+      border-radius: var(--r2);
+      padding: var(--s2);
       min-height: 92px;
       cursor: pointer;
       display: flex;
@@ -85,17 +85,17 @@
       position: relative;
       overflow: hidden;
     }
-    .cal-day:hover { border-color: var(--brand-glow); background: #fdfdff; }
-    .cal-day.today { border-color: var(--brand); background: #fdfdff; }
+    .cal-day:hover { border-color: var(--brand-glow); background: var(--surface2); }
+    .cal-day.today { border-color: var(--brand); background: var(--brand-dim); }
     .cal-day.today .day-num { color: var(--brand); font-weight: 700; }
     .cal-day.other-month { opacity: .32; }
     .cal-day.has-posts { border-color: var(--border2); }
-    .cal-day.has-gap { border-color: rgba(245,158,11,.4); background: rgba(245,158,11,.03); }
+    .cal-day.has-gap { border-color: var(--amber-glow); background: color-mix(in srgb, var(--amber) 4%, transparent); }
 
     .day-header {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: var(--s1);
       min-height: 18px;
       flex-shrink: 0;
       padding-right: 28px;
@@ -111,7 +111,7 @@
       height: 16px;
       border-radius: 999px;
       border: 1px solid var(--border2);
-      background: rgba(255,255,255,.72);
+      background: var(--surface);
       color: var(--muted);
       display: inline-flex;
       align-items: center;
@@ -143,13 +143,13 @@
       color: var(--brand);
       border: 1px solid var(--brand-glow);
       padding: 1px 5px;
-      border-radius: 3px;
+      border-radius: var(--r2);
     }
     .day-post-pill {
       font-size: 10px;
       line-height: 1.35;
-      padding: 4px 6px;
-      border-radius: 6px;
+      padding: var(--s1) 6px;
+      border-radius: var(--r2);
       background: var(--surface2);
       border: 1px solid var(--border2);
       color: var(--text);
@@ -167,7 +167,7 @@
     .day-post-pill:hover,
     .day-post-pill:focus-visible { border-color: var(--brand-glow); background: var(--brand-dim); outline: none; }
     .day-post-copy { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; min-width: 0; }
-    .platform-logo { width: 16px; height: 16px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 16px; margin-top: -1px; background: #64748b; color: #fff; font: 700 9px/1 'DM Mono', monospace; letter-spacing: -.04em; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+    .platform-logo { width: 16px; height: 16px; border-radius: var(--r2); display: inline-flex; align-items: center; justify-content: center; flex: 0 0 16px; margin-top: -1px; background: #64748b; color: #fff; font: 700 9px/1 'DM Mono', monospace; letter-spacing: -.04em; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
     .platform-linkedin { background:#0a66c2; font-family:Arial,sans-serif; font-size:8px; }
     .platform-instagram { background:linear-gradient(135deg,#833ab4,#fd1d1d 55%,#fcb045); font-size:13px; }
     .platform-facebook { background:#1877f2; font:700 13px/1 Arial,sans-serif; }
@@ -181,7 +181,7 @@
       font-size: 10px;
       line-height: 1.35;
       padding: 2px 5px;
-      border-radius: 4px;
+      border-radius: var(--r2);
       overflow: hidden;
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -200,10 +200,10 @@
       outline: 1px solid currentColor;
       outline-offset: 1px;
     }
-    .day-note-pill.gold   { background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.2); color: #92600a; }
+    .day-note-pill.gold   { background: var(--amber-dim); border: 1px solid var(--amber-glow); color: var(--amber); }
     .day-note-pill.blue   { background: var(--brand-dim); border: 1px solid var(--brand-glow); color: var(--brand); }
-    .day-note-pill.green  { background: var(--green-dim); border: 1px solid rgba(15,166,114,.2); color: var(--green); }
-    .day-note-pill.violet { background: rgba(124,58,237,.08); border: 1px solid rgba(124,58,237,.18); color: #7c3aed; }
+    .day-note-pill.green  { background: var(--green-dim); border: 1px solid var(--green-glow); color: var(--green); }
+    .day-note-pill.violet { background: var(--violet-dim); border: 1px solid var(--violet-glow); color: var(--violet); }
 
     .day-gap-indicator {
       font-size: 9px;
@@ -215,20 +215,20 @@
 
     /* Queue gaps panel */
     .gaps-panel {
-      background: linear-gradient(135deg, rgba(245,158,11,.06), rgba(245,158,11,.02));
-      border: 1px solid rgba(245,158,11,.2);
+      background: linear-gradient(135deg, var(--amber-dim), transparent);
+      border: 1px solid var(--amber-glow);
       border-radius: var(--r);
-      padding: 16px;
+      padding: var(--s4);
       margin-bottom: 20px;
     }
     .gaps-panel-hdr {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--s2);
       margin-bottom: 12px;
     }
     .gaps-title {
-      font-family: 'Bricolage Grotesque', sans-serif;
+      font-family: var(--font-display);
       font-weight: 700;
       font-size: 14px;
       color: var(--amber);
@@ -240,13 +240,124 @@
     }
     .gap-chip {
       padding: 5px 10px;
-      border-radius: 6px;
-      border: 1px solid rgba(245,158,11,.25);
-      background: rgba(245,158,11,.08);
+      border-radius: var(--r2);
+      border: 1px solid var(--amber-glow);
+      background: var(--amber-dim);
       font-size: 11px;
       font-family: 'DM Mono', monospace;
-      color: #92600a;
+      color: var(--amber);
       cursor: pointer;
       transition: all .12s;
     }
-    .gap-chip:hover { background: rgba(245,158,11,.15); border-color: rgba(245,158,11,.4); }
+    .gap-chip:hover { background: color-mix(in srgb, var(--amber) 16%, transparent); border-color: var(--amber); }
+
+    /* ── Day detail: post pills, previews, attached media ── */
+    .day-post-pill { width: 100%; text-align: left; font-family: inherit; cursor: pointer; }
+    .day-post-pill:hover, .day-post-preview-btn:hover { filter: brightness(.98); border-color: var(--brand); }
+    .day-post-preview-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      font-size: 12px;
+      padding: 6px var(--s2);
+      background: var(--brand-dim);
+      border: 1px solid var(--brand-glow);
+      border-radius: var(--r2);
+      color: var(--brand);
+      margin-bottom: var(--s1);
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      cursor: pointer;
+      font-family: 'Lato', sans-serif;
+    }
+    .post-detail-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .post-media-list {
+      padding: var(--s3) 14px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      gap: var(--s2);
+    }
+    .post-media-preview {
+      display: block;
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      overflow: hidden;
+      background: var(--surface2);
+      color: var(--brand);
+      text-decoration: none;
+    }
+    .post-media-preview img { display: block; width: 100%; max-height: 260px; object-fit: cover; }
+    .post-media-broken { display: none; padding: 10px var(--s3); font-size: 12px; font-family: 'DM Mono', monospace; }
+    .post-media-preview.is-broken .post-media-broken { display: block; }
+    .post-media-link {
+      align-self: flex-start;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      color: var(--brand);
+      text-decoration: none;
+      border: 1px solid var(--brand-glow);
+      background: var(--brand-dim);
+      border-radius: var(--r2);
+      padding: 6px 9px;
+    }
+
+    /* ── Calendar filter row ── */
+    .cal-filter-row { display: flex; align-items: center; justify-content: flex-end; gap: var(--s2); margin: -4px 0 10px; }
+    @media (max-width: 768px) { .cal-filter-row { justify-content: flex-start; padding: 0 2px; } }
+
+    /* Touch devices get no hover, so the add-note affordance stays visible. */
+    @media (hover: none), (pointer: coarse) {
+      .day-add-note-btn { opacity: 1; }
+    }
+
+    /* ── Week view ── */
+    .cal-view-toggle { display: inline-flex; gap: 6px; margin-left: var(--s2); }
+    .cal-week { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: var(--s2); margin-top: var(--s3); align-items: stretch; }
+    .cal-week-hdr { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: var(--s2); padding: var(--s1) 0 var(--s2); }
+    .cal-week-range { font: 700 15px var(--font-display); color: var(--ink); }
+    .cal-week-controls { display: flex; gap: var(--s2); }
+    .cal-week-day {
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 10px;
+      background: var(--surface);
+      min-height: 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: border-color .12s, box-shadow .12s, transform .12s;
+      min-width: 0;
+    }
+    .cal-week-day:hover { border-color: var(--brand-glow); box-shadow: var(--shadow); transform: translateY(-1px); }
+    .cal-week-day.today { border-color: var(--brand); box-shadow: 0 0 0 2px var(--brand-dim); }
+    .cal-week-day.has-posts .cal-week-day-summary { color: var(--brand); }
+    .is-week-view .cal-dow { display: none !important; }
+    .cal-week-day-title { display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%; color: var(--muted); position: relative; }
+    .cal-week-day-title span { flex: 0 0 auto; }
+    .cal-week-day-title strong { margin-left: auto; text-align: right; flex: 1; }
+    .cal-week-day-title-right { display: flex; align-items: center; justify-content: flex-end; gap: var(--s2); margin-left: auto; }
+    .cal-week-day-date { text-align: right; }
+    .cal-week-day-name { font: 700 12px 'DM Mono', monospace; text-transform: uppercase; letter-spacing: .04em; }
+    .cal-week-day-summary { font: 600 9px 'DM Mono', monospace; color: var(--subtle); text-transform: uppercase; letter-spacing: .04em; padding-bottom: 7px; border-bottom: 1px solid var(--border); }
+    .cal-week-day-title .day-add-note-btn { opacity: 0; transition: opacity .12s; margin-left: var(--s2); flex: 0 0 auto; }
+    .cal-week-day:hover .day-add-note-btn { opacity: 1; }
+    .cal-week-empty { color: var(--subtle); font-size: 11px; line-height: 1.5; margin: auto; text-align: center; }
+    .cal-week-day .day-post-pill { font-size: 11px; padding: 7px; }
+    .cal-week-day .day-note-pill { padding: 6px 7px; }
+
+    @media (max-width: 1180px) and (min-width: 769px) {
+      .cal-week { grid-template-columns: repeat(4,minmax(0,1fr)); }
+      .cal-week-day { min-height: 220px; }
+    }

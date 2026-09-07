@@ -1,67 +1,137 @@
 /* ═══════════════════════════════════════════
        DESIGN TOKENS
+
+       The base :root IS the Editorial identity — PostIQ's default look.
+       Every other identity, including the original indigo/coral "Classic",
+       is an opt-in [data-theme] override. Anything a theme does not restate
+       here falls through to Editorial, so new tokens only need defining once.
        ═══════════════════════════════════════════ */
     :root {
-      --bg:        #f5f6fa;
-      --surface:   #ffffff;
-      --surface2:  #f9fafc;
-      --surface3:  #f0f2f8;
-      --border:    #e8eaf2;
-      --border2:   #d8dce8;
-      --text:      #14162a;
-      --muted:     #5a6080;
-      --subtle:    #9298b0;
-      --ink:       #2c3050;
+      --bg:        #f2efe6;
+      --surface:   #fffdf7;
+      --surface2:  #f8f4e9;
+      --surface3:  #ebe5d7;
+      --border:    #ded7c7;
+      --border2:   #c8beaa;
+      --text:      #292720;
+      --muted:     #696356;
+      --subtle:    #958d7c;
+      --ink:       #171713;
 
-      /* Brand — deep indigo + coral accent */
-      --brand:     #3a3fff;
-      --brand-dim: rgba(58,63,255,.08);
-      --brand-glow:rgba(58,63,255,.2);
-      --accent:    #ff4f6a;
-      --accent-dim:rgba(255,79,106,.08);
-      --green:     #0fa672;
-      --green-dim: rgba(15,166,114,.09);
-      --amber:     #f59e0b;
-      --red:       #e04040;
+      /* Brand — press brick + deep ink-blue accent */
+      --brand:     #b52c20;
+      --brand-dim: rgba(181,44,32,.08);
+      --brand-glow:rgba(181,44,32,.18);
+      --accent:    #1e5a78;
+      --accent-dim:rgba(30,90,120,.08);
+      --accent-glow:rgba(30,90,120,.22);
 
-      --r:   12px;
-      --r2:  8px;
+      /* Status — warmed for paper. Every one of these is used both as text on
+         --surface and as a fill under #fff, so all four clear 4.5:1 either way. */
+      --green:      #3f7350;
+      --green-dim:  rgba(63,115,80,.1);
+      --green-glow: rgba(63,115,80,.26);
+      --amber:      #9a6212;
+      --amber-dim:  rgba(154,98,18,.1);
+      --amber-glow: rgba(154,98,18,.26);
+      --red:        #9b1c2e;
+      --red-dim:    rgba(155,28,46,.08);
+      --red-glow:   rgba(155,28,46,.24);
+      --violet:     #5f4a7a;
+      --violet-dim: rgba(95,74,122,.08);
+      --violet-glow:rgba(95,74,122,.2);
+
+      /* Heading face. Georgia is websafe, so the serif costs no extra request.
+         Bricolage Grotesque stays on UI chrome, brandmarks, and numerals. */
+      --font-display: Georgia, 'Times New Roman', serif;
+
+      --r:   3px;
+      --r2:  2px;
       --sidebar: 248px;
 
-      --shadow-sm: 0 1px 3px rgba(20,22,42,.06), 0 1px 2px rgba(20,22,42,.04);
-      --shadow:    0 4px 16px rgba(20,22,42,.08), 0 1px 4px rgba(20,22,42,.04);
-      --shadow-lg: 0 12px 40px rgba(20,22,42,.12), 0 4px 12px rgba(20,22,42,.06);
+      /* Spacing scale — feature CSS should reach for these before a raw pixel. */
+      --s1: 4px;
+      --s2: 8px;
+      --s3: 12px;
+      --s4: 16px;
+      --s5: 24px;
+      --s6: 32px;
+
+      /* The inverted slab: sidebar, snapshot hero, toasts, onboarding HUD.
+         It must stay dark in every theme, so chrome that puts white text on it
+         reads --side-bg and never --text or --ink (both invert on After Dark). */
+      --side-bg: #1f1d17;
+      --scrim:   rgba(23,23,19,.5);
+
+      --shadow-sm: 0 1px 0 rgba(23,23,19,.08);
+      --shadow:    3px 3px 0 rgba(23,23,19,.09);
+      --shadow-lg: 7px 7px 0 rgba(23,23,19,.12);
+      /* Floating chrome — modals, drawers, popovers, toasts. A hard offset
+         reads as printing misregistration once the surface gets large, so this
+         stays soft even in Editorial. Never use --shadow-lg for these. */
+      --shadow-float: 0 16px 40px rgba(23,23,19,.17), 0 3px 10px rgba(23,23,19,.09);
     }
 
     /* Workspace themes: token-driven so every view, modal, and tool changes together. */
+    :root[data-theme="classic"] {
+      --bg:#f5f6fa;--surface:#ffffff;--surface2:#f9fafc;--surface3:#f0f2f8;
+      --border:#e8eaf2;--border2:#d8dce8;--text:#14162a;--muted:#5a6080;--subtle:#9298b0;--ink:#2c3050;
+      --brand:#3a3fff;--brand-dim:rgba(58,63,255,.08);--brand-glow:rgba(58,63,255,.2);
+      --accent:#ff4f6a;--accent-dim:rgba(255,79,106,.08);--accent-glow:rgba(255,79,106,.2);
+      --green:#0fa672;--green-dim:rgba(15,166,114,.09);--green-glow:rgba(15,166,114,.24);
+      --amber:#f59e0b;--amber-dim:rgba(245,158,11,.1);--amber-glow:rgba(245,158,11,.28);
+      --red:#e04040;--red-dim:rgba(224,64,64,.08);--red-glow:rgba(224,64,64,.24);
+      --violet:#7c3aed;--violet-dim:rgba(124,58,237,.08);--violet-glow:rgba(124,58,237,.2);
+      --font-display:'Bricolage Grotesque', sans-serif;
+      --r:12px;--r2:8px;
+      --side-bg:#14162a;--scrim:rgba(20,22,42,.55);
+      --shadow-sm:0 1px 3px rgba(20,22,42,.06), 0 1px 2px rgba(20,22,42,.04);
+      --shadow:0 4px 16px rgba(20,22,42,.08), 0 1px 4px rgba(20,22,42,.04);
+      --shadow-lg:0 12px 40px rgba(20,22,42,.12), 0 4px 12px rgba(20,22,42,.06);
+      --shadow-float:0 24px 64px rgba(20,22,42,.18), 0 6px 18px rgba(20,22,42,.08);
+    }
     :root[data-theme="neon"] {
       color-scheme: dark;
       --bg:#080b12;--surface:#101520;--surface2:#151c29;--surface3:#1c2635;
       --border:#263247;--border2:#3a4961;--text:#edfaff;--muted:#9fb5c5;--subtle:#70879b;--ink:#f4fdff;
-      --brand:#24f4c7;--brand-dim:rgba(36,244,199,.1);--brand-glow:rgba(36,244,199,.3);--accent:#ff3df2;
-      --green:#24f4c7;--green-dim:rgba(36,244,199,.1);--amber:#ffd166;--red:#ff5577;
+      --brand:#24f4c7;--brand-dim:rgba(36,244,199,.1);--brand-glow:rgba(36,244,199,.3);
+      --accent:#ff3df2;--accent-dim:rgba(255,61,242,.1);--accent-glow:rgba(255,61,242,.3);
+      --green:#24f4c7;--green-dim:rgba(36,244,199,.1);--green-glow:rgba(36,244,199,.3);
+      --amber:#ffd166;--amber-dim:rgba(255,209,102,.12);--amber-glow:rgba(255,209,102,.3);
+      --red:#ff5577;--red-dim:rgba(255,85,119,.12);--red-glow:rgba(255,85,119,.3);
+      --violet:#b18cff;--violet-dim:rgba(177,140,255,.12);--violet-glow:rgba(177,140,255,.3);
+      --font-display:'Bricolage Grotesque', sans-serif;
+      --r:12px;--r2:8px;
+      --side-bg:#05070c;--scrim:rgba(2,4,9,.72);
       --shadow-sm:0 0 0 1px rgba(36,244,199,.04);--shadow:0 12px 30px rgba(0,0,0,.42),0 0 22px rgba(36,244,199,.05);--shadow-lg:0 20px 55px rgba(0,0,0,.6),0 0 35px rgba(255,61,242,.08);
-    }
-    :root[data-theme="editorial"] {
-      --bg:#f2efe6;--surface:#fffdf7;--surface2:#f8f4e9;--surface3:#ebe5d7;--border:#ded7c7;--border2:#c8beaa;
-      --text:#292720;--muted:#696356;--subtle:#958d7c;--ink:#171713;--brand:#b52c20;--brand-dim:rgba(181,44,32,.08);--brand-glow:rgba(181,44,32,.18);--accent:#1e5a78;
-      --r:3px;--r2:2px;--shadow-sm:0 1px 0 rgba(23,23,19,.08);--shadow:3px 3px 0 rgba(23,23,19,.09);--shadow-lg:7px 7px 0 rgba(23,23,19,.12);
+      --shadow-float:0 26px 70px rgba(0,0,0,.66),0 0 44px rgba(36,244,199,.08);
     }
     :root[data-theme="studio"] {
       --bg:#fff5ea;--surface:#fffdfa;--surface2:#fff7ed;--surface3:#f8e8d7;--border:#efd9c5;--border2:#dfbea2;
-      --text:#3d2b2a;--muted:#7f615b;--subtle:#aa8980;--ink:#4a2529;--brand:#e45c3a;--brand-dim:rgba(228,92,58,.09);--brand-glow:rgba(228,92,58,.22);--accent:#a83b78;--green:#27866c;
-      --r:18px;--r2:12px;--shadow-sm:0 2px 7px rgba(101,55,36,.07);--shadow:0 9px 26px rgba(101,55,36,.1);--shadow-lg:0 20px 50px rgba(101,55,36,.15);
+      --text:#3d2b2a;--muted:#7f615b;--subtle:#aa8980;--ink:#4a2529;
+      --brand:#e45c3a;--brand-dim:rgba(228,92,58,.09);--brand-glow:rgba(228,92,58,.22);
+      --accent:#a83b78;--accent-dim:rgba(168,59,120,.09);--accent-glow:rgba(168,59,120,.22);
+      --green:#27866c;--green-dim:rgba(39,134,108,.1);--green-glow:rgba(39,134,108,.24);
+      --font-display:'Bricolage Grotesque', sans-serif;
+      --r:18px;--r2:12px;
+      --side-bg:#4a2529;--scrim:rgba(61,43,42,.55);
+      --shadow-sm:0 2px 7px rgba(101,55,36,.07);--shadow:0 9px 26px rgba(101,55,36,.1);--shadow-lg:0 20px 50px rgba(101,55,36,.15);
+      --shadow-float:0 24px 62px rgba(101,55,36,.2), 0 6px 18px rgba(101,55,36,.1);
     }
     :root[data-theme="evergreen"] {
       --bg:#edf3ec;--surface:#fbfdf8;--surface2:#f2f7ef;--surface3:#e2ebe0;--border:#d3dfd0;--border2:#b8cbb5;
-      --text:#20342b;--muted:#587064;--subtle:#84988d;--ink:#173c2d;--brand:#267a55;--brand-dim:rgba(38,122,85,.09);--brand-glow:rgba(38,122,85,.2);--accent:#d97941;--green:#267a55;
-      --r:10px;--r2:7px;--shadow-sm:0 1px 3px rgba(23,60,45,.06);--shadow:0 7px 20px rgba(23,60,45,.09);--shadow-lg:0 18px 44px rgba(23,60,45,.13);
+      --text:#20342b;--muted:#587064;--subtle:#84988d;--ink:#173c2d;
+      --brand:#267a55;--brand-dim:rgba(38,122,85,.09);--brand-glow:rgba(38,122,85,.2);
+      --accent:#d97941;--accent-dim:rgba(217,121,65,.09);--accent-glow:rgba(217,121,65,.22);
+      --green:#267a55;--green-dim:rgba(38,122,85,.1);--green-glow:rgba(38,122,85,.24);
+      --font-display:'Bricolage Grotesque', sans-serif;
+      --r:10px;--r2:7px;
+      --side-bg:#173c2d;--scrim:rgba(23,60,45,.55);
+      --shadow-sm:0 1px 3px rgba(23,60,45,.06);--shadow:0 7px 20px rgba(23,60,45,.09);--shadow-lg:0 18px 44px rgba(23,60,45,.13);
+      --shadow-float:0 22px 56px rgba(23,60,45,.18), 0 5px 16px rgba(23,60,45,.09);
     }
     :root[data-theme="neon"] body { background-image:radial-gradient(circle at 72% 8%,rgba(255,61,242,.1),transparent 30%),linear-gradient(rgba(36,244,199,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(36,244,199,.025) 1px,transparent 1px);background-size:auto,32px 32px,32px 32px; }
-    :root[data-theme="editorial"] .page-title, :root[data-theme="editorial"] .settings-section-title { font-family:Georgia,serif;letter-spacing:-.02em; }
-    :root[data-theme="studio"] .side { background:#4a2529; }
-    :root[data-theme="evergreen"] .side { background:#173c2d; }
-    :root[data-theme="neon"] .side { background:#05070c;border-right:1px solid rgba(36,244,199,.22); }
+    :root[data-theme="neon"] .side { border-right:1px solid rgba(36,244,199,.22); }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -74,6 +144,32 @@
       font-size: 14px;
       line-height: 1.5;
       min-height: 100vh;
+    }
+
+    /* Ruled-grid texture + brand wash, shared with the landing page. */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(circle, var(--brand-glow) 1px, transparent 1px),
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 50px 50px, 50px 50px, 50px 50px;
+      opacity: .45;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      width: 500px;
+      height: 340px;
+      right: -140px;
+      top: -100px;
+      background: radial-gradient(ellipse, var(--brand-dim) 0%, transparent 68%);
+      pointer-events: none;
+      z-index: 0;
     }
 
     /* ── GLOBAL STATUS ── */
@@ -92,7 +188,7 @@
       border-radius: var(--r);
       background: var(--surface);
       color: var(--text);
-      box-shadow: 0 18px 45px rgba(20,22,42,.18), 0 4px 14px rgba(20,22,42,.1);
+      box-shadow: var(--shadow-float);
       isolation: isolate;
       pointer-events: auto;
     }
@@ -173,21 +269,27 @@
       filter: grayscale(.15);
     }
 
-    @media (max-width: 640px) {
+    /* The banner's left offset is a calc() on --sidebar, which is hidden on
+       mobile — pin it to the viewport instead so it cannot clip. */
+    @media (max-width: 768px) {
       .global-status-banner {
-        top: 16px;
-        left: 16px;
-        right: 16px;
+        top: 12px;
+        left: 12px;
+        right: 12px;
         width: auto;
         max-width: none;
-        padding: 14px;
-        gap: 10px;
+        padding: 12px 14px;
       }
     }
 
+    @media (max-width: 640px) {
+      .global-status-banner { gap: 10px; }
+    }
+
     /* ── LAYOUT ── */
-    .app { display: grid; grid-template-columns: var(--sidebar) 1fr; min-height: 100vh; transition: grid-template-columns .2s ease; }
-    .main { overflow: auto; min-width: 0; }
+    .app { display: grid; grid-template-columns: var(--sidebar) 1fr; min-height: 100vh; align-items: stretch; transition: grid-template-columns .2s ease; }
+    /* Sidebar and main content sit above the body texture. */
+    .main { overflow: auto; min-width: 0; min-height: 100vh; position: relative; z-index: 1; }
     .view { display: none; padding: 28px 32px 40px; max-width: 1440px; margin-inline: auto; }
     /* Views using view-content: reset outer padding and use view-content */
     #calendarView, #approvalsView, #ideasView { padding: 28px 0 40px; }
@@ -196,14 +298,19 @@
     @keyframes vEnter { from { opacity:.5; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
 
     /* ── SIDEBAR ── */
+    /* Every theme states its own --side-bg rather than leaning on --text: the
+       sidebar is a dark slab in all five, and Editorial wants a deeper, warmer
+       ink than its body text so white nav labels stay comfortably legible. */
     .side {
-      background: var(--text);
+      background: var(--side-bg);
       display: flex;
       flex-direction: column;
       height: 100vh;
       position: sticky;
       top: 0;
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
+      z-index: 1;
       transition: width .2s ease;
     }
 
@@ -234,7 +341,7 @@
       background: var(--brand);
       color: #fff;
       padding: 3px 7px;
-      border-radius: 4px;
+      border-radius: var(--r2);
     }
 
     /* Connection status */
@@ -251,10 +358,10 @@
     }
     @keyframes brandGlowPulse {
       0%, 100% {
-        box-shadow: 0 6px 16px rgba(12, 15, 46, 0.22), 0 0 0 0 rgba(58,63,255,0);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22), 0 0 0 0 color-mix(in srgb, var(--brand) 0%, transparent);
       }
       50% {
-        box-shadow: 0 10px 26px rgba(12, 15, 46, 0.28), 0 0 0 6px rgba(58,63,255,.18);
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28), 0 0 0 6px color-mix(in srgb, var(--brand) 24%, transparent);
       }
     }
     .connection-card.api-live-pulse {
@@ -268,7 +375,7 @@
     .conn-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--s2);
       margin-bottom: 8px;
     }
     .connection-card.compact .conn-row {
@@ -298,13 +405,13 @@
       transition: background .3s;
     }
     .conn-dot.on {
-      background: var(--green);
-      box-shadow: 0 0 0 3px rgba(15,166,114,.25);
+      background: color-mix(in srgb, var(--green) 55%, #fff);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 34%, transparent);
       animation: dotPulse 3s ease-in-out infinite;
     }
     @keyframes dotPulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(15,166,114,.4); }
-      50%      { box-shadow: 0 0 0 5px rgba(15,166,114,0); }
+      0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--green) 46%, transparent); }
+      50%      { box-shadow: 0 0 0 5px color-mix(in srgb, var(--green) 0%, transparent); }
     }
 
     .conn-label {
@@ -404,7 +511,7 @@
       align-items: center;
       gap: 10px;
       padding: 9px 10px;
-      border-radius: 8px;
+      border-radius: var(--r2);
       border: none;
       background: transparent;
       color: rgba(255,255,255,.45);
@@ -419,9 +526,9 @@
     }
     .nav-btn:hover { background: rgba(255,255,255,.07); color: rgba(255,255,255,.8); }
     .nav-btn.active {
-      background: rgba(58,63,255,.2);
+      background: color-mix(in srgb, var(--brand) 26%, transparent);
       color: #fff;
-      border: 1px solid rgba(58,63,255,.35);
+      border: 1px solid color-mix(in srgb, var(--brand) 44%, transparent);
     }
     .nav-btn.active .nav-icon { color: var(--brand); opacity: 1; }
 
@@ -447,12 +554,12 @@
       font-size: 9px;
       font-family: 'DM Mono', monospace;
       padding: 2px 6px;
-      border-radius: 3px;
+      border-radius: var(--r2);
       letter-spacing: .04em;
       flex-shrink: 0;
     }
-    .nav-tag.needs { background: rgba(255,79,106,.15); color: var(--accent); }
-    .nav-tag.free { background: rgba(15,166,114,.15); color: var(--green); }
+    .nav-tag.needs { background: color-mix(in srgb, var(--accent) 28%, transparent); color: color-mix(in srgb, var(--accent) 42%, #fff); }
+    .nav-tag.free { background: color-mix(in srgb, var(--green) 28%, transparent); color: color-mix(in srgb, var(--green) 42%, #fff); }
 
     /* Sidebar toggle button */
     .sidebar-toggle {
@@ -461,7 +568,7 @@
       justify-content: center;
       width: 28px;
       height: 28px;
-      border-radius: 6px;
+      border-radius: var(--r2);
       border: 1px solid rgba(255,255,255,.1);
       background: transparent;
       color: rgba(255,255,255,.45);
@@ -505,18 +612,18 @@
       left: calc(100% + 10px);
       top: 50%;
       transform: translateY(-50%);
-      background: var(--ink);
+      background: var(--side-bg);
       color: #fff;
       font-size: 12px;
       font-family: 'Lato', sans-serif;
       white-space: nowrap;
       padding: 5px 9px;
-      border-radius: 6px;
+      border-radius: var(--r2);
       pointer-events: none;
       opacity: 0;
       transition: opacity .12s;
       z-index: 100;
-      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+      box-shadow: var(--shadow-float);
     }
     .app.sidebar-collapsed .nav-btn:hover::after { opacity: 1; }
 

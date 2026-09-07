@@ -123,7 +123,7 @@
   min-width: 18px;
   text-align: center;
   padding: 1px 5px;
-  border-radius: 3px;
+  border-radius: var(--r2);
   background: var(--surface3);
   color: var(--subtle);
 }
@@ -177,7 +177,7 @@
   font-size: 10px;
   font-weight: 600;
   padding: 2px 7px;
-  border-radius: 4px;
+  border-radius: var(--r2);
   background: var(--surface3);
   border: 1px solid var(--border2);
   color: var(--muted);
@@ -189,7 +189,7 @@
   text-transform: uppercase;
   letter-spacing: .05em;
   padding: 2px 6px;
-  border-radius: 3px;
+  border-radius: var(--r2);
   background: var(--brand-dim);
   border: 1px solid var(--brand-glow);
   color: var(--brand);
@@ -207,10 +207,10 @@
   text-transform: uppercase;
   letter-spacing: .05em;
   padding: 2px 6px;
-  border-radius: 3px;
-  background: rgba(245,158,11,.1);
-  border: 1px solid rgba(245,158,11,.25);
-  color: #92600a;
+  border-radius: var(--r2);
+  background: var(--amber-dim);
+  border: 1px solid var(--amber-glow);
+  color: var(--amber);
 }
 
 .lib-reuse-badge {
@@ -219,9 +219,9 @@
   text-transform: uppercase;
   letter-spacing: .05em;
   padding: 2px 6px;
-  border-radius: 3px;
+  border-radius: var(--r2);
   background: var(--green-dim);
-  border: 1px solid rgba(15,166,114,.2);
+  border: 1px solid var(--green-glow);
   color: var(--green);
 }
 
@@ -232,14 +232,14 @@
   font-size: 16px;
   color: var(--subtle);
   cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 4px;
+  padding: 2px var(--s1);
+  border-radius: var(--r2);
   transition: color .12s, background .12s;
   flex-shrink: 0;
   line-height: 1;
 }
 
-.lib-star-btn:hover { color: var(--amber); background: rgba(245,158,11,.08); }
+.lib-star-btn:hover { color: var(--amber); background: var(--amber-dim); }
 .lib-star-btn.starred { color: var(--amber); }
 
 /* Post text */
@@ -281,8 +281,8 @@
   font-family: 'DM Mono', monospace;
   font-size: 10px;
   font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 4px;
+  padding: 3px var(--s2);
+  border-radius: var(--r2);
 }
 
 .lib-metric-er {
@@ -292,14 +292,14 @@
 }
 
 .lib-metric-rc {
-  background: rgba(255,79,106,.08);
-  border: 1px solid rgba(255,79,106,.2);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-glow);
   color: var(--accent);
 }
 
 .lib-metric-im {
   background: var(--green-dim);
-  border: 1px solid rgba(15,166,114,.2);
+  border: 1px solid var(--green-glow);
   color: var(--green);
 }
 
