@@ -1,4 +1,4 @@
-const CACHE = 'postiq-v13-editorial-default';
+const CACHE = 'postiq-v14-split-cache';
 const SHELL = [
   '/',
   '/index.html',
@@ -44,8 +44,41 @@ const SHELL = [
   '/js/onboarding.js'
 ];
 
+// Same-origin directories served cache-first. Filenames are not content-hashed,
+// so a bumped CACHE is what publishes new CSS/JS to returning visitors.
+const STATIC_DIR = /^\/(?:css|js|assets|images)\//;
+const FONT_ORIGINS = ['https://fonts.googleapis.com', 'https://fonts.gstatic.com'];
+
+function isDocumentRequest(request) {
+  return request.mode === 'navigate' || request.destination === 'document';
+}
+
+function isStaticAsset(url) {
+  if (FONT_ORIGINS.includes(url.origin)) return true;
+  return url.origin === self.location.origin && STATIC_DIR.test(url.pathname);
+}
+
+// Google Fonts stylesheets are fetched no-cors, so they arrive opaque (status 0).
+// Those are still worth storing; everything else has to be a real 2xx.
+function isStorable(response) {
+  return !!response && (response.ok || response.type === 'opaque');
+}
+
+function putInCache(cache, request, response) {
+  cache.put(request, response.clone()).catch(err => {
+    console.warn('[PostIQ SW] cache put failed:', err);
+  });
+}
+
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL).catch(err => console.warn('[PostIQ SW] shell cache failed:', err))));
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    // Cache each shell file on its own so a single 404 cannot drop the whole
+    // shell, and bypass the HTTP cache so a CACHE bump really does refetch.
+    await Promise.all(SHELL.map(path => cache
+      .add(new Request(path, { cache: 'reload' }))
+      .catch(err => console.warn('[PostIQ SW] shell cache failed:', path, err))));
+  })());
   self.skipWaiting();
 });
 
@@ -56,38 +89,70 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
+// Documents: network-first so a deploy lands on the next load, with the cached
+// copy (and finally the app shell) as the offline fallback.
+async function networkFirst(request) {
+  const cache = await caches.open(CACHE);
+  try {
+    const networkResponse = await fetch(request);
+
+    // Clone once for cache before the browser consumes the response body.
+    if (networkResponse && networkResponse.ok && networkResponse.type === 'basic') {
+      putInCache(cache, request, networkResponse);
+    }
+
+    return networkResponse;
+  } catch (err) {
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    if (request.mode === 'navigate') {
+      const appShell = await cache.match('/app.html') || await cache.match('/index.html');
+      if (appShell) return appShell;
+    }
+    throw err;
+  }
+}
+
+// Static assets: serve the cached copy immediately and refresh it in the
+// background, so a warm cache never blocks first paint on the network.
+async function cacheFirst(event, request) {
+  const cache = await caches.open(CACHE);
+  const cached = await cache.match(request);
+
+  if (cached) {
+    event.waitUntil(fetch(request)
+      .then(response => { if (isStorable(response)) putInCache(cache, request, response); })
+      .catch(() => {}));
+    return cached;
+  }
+
+  const networkResponse = await fetch(request);
+  if (isStorable(networkResponse)) putInCache(cache, request, networkResponse);
+  return networkResponse;
+}
+
 self.addEventListener('fetch', event => {
   const request = event.request;
-  const url = new URL(request.url);
 
-  // Never intercept non-GET requests, cross-origin requests, or Netlify functions.
-  // Functions must always hit the network so POST bodies are not consumed/cached by the SW.
-  if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.includes('/.netlify/functions/') || request.cache === 'only-if-cached') {
+  // Never intercept non-GET requests. Netlify functions in particular must
+  // always hit the network so POST bodies are not consumed/cached by the SW.
+  if (request.method !== 'GET' || request.cache === 'only-if-cached') return;
+
+  let url;
+  try { url = new URL(request.url); } catch { return; }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+  if (url.pathname.includes('/.netlify/functions/')) return;
+
+  if (isDocumentRequest(request)) {
+    event.respondWith(networkFirst(request));
     return;
   }
 
-  event.respondWith((async () => {
-    const cache = await caches.open(CACHE);
+  if (isStaticAsset(url)) {
+    event.respondWith(cacheFirst(event, request));
+    return;
+  }
 
-    try {
-      const networkResponse = await fetch(request);
-
-      // Clone once for cache before the browser consumes the response body.
-      if (networkResponse && networkResponse.ok && networkResponse.type === 'basic') {
-        cache.put(request, networkResponse.clone()).catch(err => {
-          console.warn('[PostIQ SW] cache put failed:', err);
-        });
-      }
-
-      return networkResponse;
-    } catch (err) {
-      const cached = await cache.match(request);
-      if (cached) return cached;
-      if (request.mode === 'navigate') {
-        const appShell = await cache.match('/app.html') || await cache.match('/index.html');
-        if (appShell) return appShell;
-      }
-      throw err;
-    }
-  })());
+  // Everything else (API calls, anything cross-origin) goes straight to the
+  // network untouched and is never cached.
 });

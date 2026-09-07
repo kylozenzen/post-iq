@@ -17,17 +17,9 @@
     // Apply the saved palette before styles load to avoid a flash of the default theme.
     try { document.documentElement.dataset.theme = localStorage.getItem('postiq.theme') || 'default'; } catch {}
   </script>
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-5RV57M7J0K"></script>
-  <script>
-  window.dataLayer=window.dataLayer||[];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js',new Date());
-  gtag('config','G-5RV57M7J0K');
-  </script>
-  <!-- GA4 tracking module -->
-  <script src="/js/analytics.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Lato:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:opsz,wght@12..60,700;12..60,800&family=Lato:wght@400;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="./css/app/tokens-layout.css" />
   <link rel="stylesheet" href="./css/app/components.css" />
@@ -222,7 +214,7 @@
     </section>
 
     <!-- ══════════ PLAN (Calendar) ══════════ -->
-    <section id="calendarView" class="view active" data-feature="calendar">
+    <section id="calendarView" class="view" data-feature="calendar">
       <!-- Mobile header -->
       <div class="mob-view-hdr">
         <span class="mob-view-title">📅 Plan</span>
@@ -1308,6 +1300,17 @@
   <script src="./js/library.js" defer></script>
   <script src="./js/pulse.js" defer></script>
   <script src="./js/onboarding.js" defer></script>
+
+  <!-- GA4. Loaded after the app scripts so analytics never competes with first paint. -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-5RV57M7J0K"></script>
+  <script>
+  window.dataLayer=window.dataLayer||[];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js',new Date());
+  gtag('config','G-5RV57M7J0K');
+  </script>
+  <!-- GA4 tracking module -->
+  <script src="/js/analytics.js" defer></script>
 
 
 <!-- Reviewer page -->

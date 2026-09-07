@@ -10,3 +10,38 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
 Content-Security-Policy = "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://generativelanguage.googleapis.com https://api.buffer.com https://auth.buffer.com https://api.imgur.com https://api.unsplash.com https://www.googletagmanager.com https://www.google-analytics.com; form-action 'self'; upgrade-insecure-requests"
+
+# Static assets. Filenames are not content-hashed, so no `immutable`:
+# must-revalidate lets a changed file be picked up once the entry goes stale,
+# and bumping CACHE in sw.js publishes changes ahead of that.
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, must-revalidate"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, must-revalidate"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, must-revalidate"
+
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, must-revalidate"
+
+# Documents revalidate on every load so a deploy lands immediately.
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+# `/` is served from index.html and never matches the `/*.html` rule above.
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "no-cache"
