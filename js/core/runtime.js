@@ -17,7 +17,12 @@ const NOTEBOOK_KEY    = 'postiq_notebook_v1';
 const APPROVAL_PREFIX = 'postiq_approval_';
 const WORKSPACE_PREFERENCES_KEY = 'postiq.workspacePreferences';
 const THEME_PREFERENCE_KEY = 'postiq.theme';
-const THEMES = Object.freeze(['default', 'neon', 'editorial', 'studio', 'evergreen']);
+// 'default' is the editorial identity (the base :root); 'classic' is the former
+// indigo/coral default, kept as an opt-in.
+const THEMES = Object.freeze(['default', 'classic', 'neon', 'studio', 'evergreen']);
+// Themes retired as standalone choices, mapped to the value that preserves the
+// look the person already had. Applied once, on first load after the change.
+const LEGACY_THEME_ALIASES = Object.freeze({ editorial: 'default' });
 const WORKSPACE_DEFAULTS = Object.freeze({ planning: true, create: true, ideas: true, approvals: true });
 const WORKSPACE_VIEWS = Object.freeze({ planning: 'calendarView', create: 'composerView', ideas: 'ideasView', approvals: 'approvalsView' });
 // Internal beta feature flags for safely rolling modules on/off. These are not user-facing settings.
@@ -180,7 +185,7 @@ function applyTheme(theme, persist = true) {
     button.setAttribute('aria-checked', String(selected));
   });
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.content = normalized === 'neon' ? '#080b12' : normalized === 'editorial' ? '#f2efe6' : normalized === 'studio' ? '#fff5ea' : normalized === 'evergreen' ? '#edf3ec' : '#f5f6fa';
+  if (meta) meta.content = normalized === 'neon' ? '#080b12' : normalized === 'classic' ? '#f5f6fa' : normalized === 'studio' ? '#fff5ea' : normalized === 'evergreen' ? '#edf3ec' : '#f2efe6';
   if (persist) {
     try { localStorage.setItem(THEME_PREFERENCE_KEY, normalized); } catch {}
     const note = qs('themePreferenceNote');
@@ -193,6 +198,14 @@ function applyTheme(theme, persist = true) {
 function initThemePicker() {
   let saved = 'default';
   try { saved = localStorage.getItem(THEME_PREFERENCE_KEY) || 'default'; } catch {}
+  const alias = LEGACY_THEME_ALIASES[saved];
+  if (alias) {
+    // Anyone who chose Editorial keeps exactly the look they picked, now under
+    // its new name. Anyone on 'default' is intentionally moved to the new
+    // default and is NOT migrated to Classic.
+    saved = alias;
+    try { localStorage.setItem(THEME_PREFERENCE_KEY, saved); } catch {}
+  }
   applyTheme(saved, false);
   document.querySelectorAll('[data-theme-choice]').forEach(button => {
     button.addEventListener('click', () => applyTheme(button.dataset.themeChoice));

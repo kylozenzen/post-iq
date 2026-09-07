@@ -5,28 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex, nofollow" />
   <title>PostIQ — Connecting Buffer</title>
-  <meta name="theme-color" content="#1a1a2e" />
+  <meta name="theme-color" content="#1f1d17" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root { color-scheme: dark; --bg:#0f1020; --card:#17182b; --border:rgba(255,255,255,.12); --text:#f8fafc; --muted:#a5adbd; --brand:#8b5cf6; --green:#22c55e; --red:#ef4444; --amber:#f59e0b; }
+    /* A dark interstitial, but on the app's warm ink and brick rather than a
+       palette of its own. Status hues are lifted for legibility on the card. */
+    :root { color-scheme: dark; --bg:#1f1d17; --card:#2a2721; --border:rgba(255,255,255,.12); --text:#faf7ef; --muted:#b3aa98; --brand:#d3736a; --green:#8cab96; --red:#d98b96; --amber:#d2b894; --r:3px; }
     * { box-sizing: border-box; }
-    body { margin:0; min-height:100vh; display:grid; place-items:center; padding:24px; background:radial-gradient(circle at 20% 20%, rgba(139,92,246,.24), transparent 28%), radial-gradient(circle at 80% 10%, rgba(34,197,94,.14), transparent 24%), var(--bg); color:var(--text); font-family:"Bricolage Grotesque", system-ui, sans-serif; }
-    .card { width:min(100%, 480px); padding:30px; border:1px solid var(--border); border-radius:22px; background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.025)), var(--card); box-shadow:0 28px 80px rgba(0,0,0,.35); text-align:center; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; padding:24px; background:radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--brand) 26%, transparent), transparent 28%), radial-gradient(circle at 80% 10%, color-mix(in srgb, var(--green) 16%, transparent), transparent 24%), var(--bg); color:var(--text); font-family:"Bricolage Grotesque", system-ui, sans-serif; }
+    .card { width:min(100%, 480px); padding:30px; border:1px solid var(--border); border-radius:var(--r); background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.025)), var(--card); box-shadow:0 28px 80px rgba(0,0,0,.35); text-align:center; }
     .brand { display:inline-flex; align-items:center; gap:8px; margin-bottom:22px; padding:8px 12px; border:1px solid var(--border); border-radius:999px; font-weight:800; letter-spacing:.01em; }
     .badge { color:var(--brand); font:500 11px/1 "DM Mono", monospace; text-transform:uppercase; }
-    .icon { width:58px; height:58px; border-radius:18px; display:grid; place-items:center; margin:0 auto 18px; font-size:28px; background:rgba(139,92,246,.16); border:1px solid rgba(139,92,246,.28); }
+    .icon { width:58px; height:58px; border-radius:var(--r); display:grid; place-items:center; margin:0 auto 18px; font-size:28px; background:color-mix(in srgb, var(--brand) 18%, transparent); border:1px solid color-mix(in srgb, var(--brand) 30%, transparent); }
     .spinner { width:30px; height:30px; border-radius:50%; border:3px solid rgba(255,255,255,.2); border-top-color:var(--brand); animation:spin .9s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    h1 { margin:0 0 8px; font-size:28px; line-height:1.05; }
+    h1 { margin:0 0 8px; font-family:Georgia,'Times New Roman',serif; font-size:28px; line-height:1.05; }
     p { margin:0; color:var(--muted); line-height:1.55; font-size:15px; }
-    .detail { margin-top:16px; padding:12px; border-radius:12px; background:rgba(255,255,255,.045); color:var(--muted); font:12px/1.5 "DM Mono", monospace; overflow-wrap:anywhere; display:none; }
+    .detail { margin-top:16px; padding:12px; border-radius:var(--r); background:rgba(255,255,255,.045); color:var(--muted); font:12px/1.5 "DM Mono", monospace; overflow-wrap:anywhere; display:none; }
     .actions { margin-top:22px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
-    a, button { border:0; border-radius:12px; padding:10px 14px; background:var(--brand); color:white; font:700 13px/1 "Bricolage Grotesque", sans-serif; text-decoration:none; cursor:pointer; }
+    a, button { border:0; border-radius:var(--r); padding:10px 14px; background:var(--brand); color:#1f1d17; font:700 13px/1 "Bricolage Grotesque", sans-serif; text-decoration:none; cursor:pointer; }
     .ghost { background:rgba(255,255,255,.08); color:var(--text); border:1px solid var(--border); }
-    .success .icon { background:rgba(34,197,94,.15); border-color:rgba(34,197,94,.3); }
-    .error .icon { background:rgba(239,68,68,.14); border-color:rgba(239,68,68,.3); }
-    .cancelled .icon { background:rgba(245,158,11,.14); border-color:rgba(245,158,11,.3); }
+    .success .icon { background:color-mix(in srgb, var(--green) 16%, transparent); border-color:color-mix(in srgb, var(--green) 32%, transparent); }
+    .error .icon { background:color-mix(in srgb, var(--red) 15%, transparent); border-color:color-mix(in srgb, var(--red) 32%, transparent); }
+    .cancelled .icon { background:color-mix(in srgb, var(--amber) 15%, transparent); border-color:color-mix(in srgb, var(--amber) 32%, transparent); }
   </style>
 </head>
 <body>

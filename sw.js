@@ -1,4 +1,4 @@
-const CACHE = 'postiq-v12-onboarding-support';
+const CACHE = 'postiq-v13-editorial-default';
 const SHELL = [
   '/',
   '/index.html',
@@ -12,10 +12,10 @@ const SHELL = [
   '/css/app/content-flow.css',
   '/css/app/content-pillars.css',
   '/css/app/responsive.css',
-  '/css/app/polish.css',
   '/css/app/preferences-ai.css',
   '/css/app/library.css',
   '/css/app/pulse.css',
+  '/css/app/home.css',
   '/css/onboarding.css',
   '/js/analytics.js',
   '/js/ai-assist.js',

@@ -21,7 +21,7 @@
         margin-bottom: 0;
       }
       .mob-view-title {
-        font-family: 'Bricolage Grotesque', sans-serif;
+        font-family: var(--font-display);
         font-weight: 700;
         font-size: 19px;
         color: var(--ink);
@@ -77,11 +77,11 @@
         padding: 8px 10px;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: var(--s2);
         background: linear-gradient(to bottom, transparent, var(--bg) 22%);
       }
       .composer-panel:has(.schedule-row.open) { position: static; }
-      .composer-panel .panel-card { padding: 9px; border-color: var(--border2); border-radius: 12px; }
+      .composer-panel .panel-card { padding: 9px; border-color: var(--border2); border-radius: var(--r); }
       .composer-panel .panel-card-title { display: none; }
       .send-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
       .send-actions .btn { width: auto; min-width: 0; height: 44px; padding-inline: 6px; font-size: 12px; line-height: 1.15; justify-content: center; }
@@ -101,7 +101,7 @@
       }
       .composer-support.open { transform: translateY(0); }
       .composer-support .support-tools-card {
-        border-radius: 22px 22px 0 0;
+        border-radius: var(--r) var(--r) 0 0;
         border-left: none;
         border-right: none;
         border-bottom: none;
@@ -130,7 +130,7 @@
         margin: 8px 10px 12px;
         padding: 9px 10px;
         top: 8px;
-        border-radius: 12px;
+        border-radius: var(--r);
       }
       .composer-focus-brand { font-size: 15px; }
       .composer-focus-actions { margin-left: auto; }
@@ -164,8 +164,8 @@
       }
       .type-filter-btn {
         width: auto;
-        padding: 5px 12px;
-        border-radius: 20px;
+        padding: 5px var(--s3);
+        border-radius: 999px;
         border: 1px solid var(--border2);
         background: var(--surface);
         font-size: 12px;
@@ -209,7 +209,7 @@
         z-index: 100;
         align-items: stretch;
         padding-bottom: env(safe-area-inset-bottom);
-        box-shadow: 0 -2px 12px rgba(20,22,42,.06);
+        box-shadow: var(--shadow-float);
       }
       .mob-tab {
         flex: 1;
@@ -250,7 +250,7 @@
       .modal { align-items: flex-end; padding: 0; }
       .modal-card {
         max-width: 100%; width: 100%;
-        border-radius: 20px 20px 0 0;
+        border-radius: var(--r) var(--r) 0 0;
         max-height: 88vh;
         padding: 20px 16px 40px;
         animation: sheetUp .28s cubic-bezier(.34,1.1,.64,1);
@@ -268,4 +268,17 @@
     @media (max-width: 960px) {
       :root { --sidebar: 220px; }
       .composer-layout { grid-template-columns: 1fr; }
+    }
+
+    /* ── MOBILE COMING SOON ── */
+    .mobile-coming-soon { display: none; min-height: 100vh; padding: var(--s5); background: var(--bg); }
+    .mobile-coming-card { max-width: 640px; margin: 0 auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; box-shadow: var(--shadow); }
+    .mobile-feature-ideas { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; color: var(--muted); padding-left: 18px; }
+    .mobile-feature-form { display: grid; gap: 10px; margin-top: 14px; }
+    .mobile-feature-form fieldset { border: 1px solid var(--border); border-radius: var(--r2); padding: var(--s3); display: grid; gap: 6px; }
+
+    @media (max-width: 768px) {
+      #app { display: none !important; }
+      #mobileTabs, .mobile-tabs, #mobileDrawer, #mobOpenSettings, #mobMenuBtn, #mobMenuBtnDraft { display: none !important; }
+      .mobile-coming-soon { display: block; }
     }
