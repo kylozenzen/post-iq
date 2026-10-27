@@ -1,0 +1,416 @@
+<title>PostIQ Landing Page</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: editorial planner. Narrow column of copy beside a working "page" of the calendar; each feature band pairs a claim with a live-looking mock. */
+:root{
+  --bg:#f2efe6; --surface:#fffdf7; --sunk:#e9e4d6; --border:#ded7c7;
+  --text:#292720; --muted:#696356; --subtle:#958d7c; --ink:#171713;
+  --brand:#b52c20; --brand-dim:rgba(181,44,32,.08);
+  --accent:#1e5a78; --accent-dim:rgba(30,90,120,.09);
+  --green:#3f7350; --green-dim:rgba(63,115,80,.11);
+  --amber:#9a6212; --amber-dim:rgba(154,98,18,.11);
+  --note:#fbf3d6; --note-edge:#e4cf86;
+  --display:Georgia,'Times New Roman',serif;
+  --body:'Lato',system-ui,-apple-system,sans-serif;
+  --mono:'DM Mono',ui-monospace,Menlo,monospace;
+  --r:3px; --max:1100px;
+  --shadow:0 14px 34px rgba(23,23,19,.12),0 2px 8px rgba(23,23,19,.06);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#16140f; --surface:#201d16; --sunk:#2a261d; --border:#3a3529;
+  --text:#e7e1d1; --muted:#aaa18d; --subtle:#867e6c; --ink:#f7f2e4;
+  --brand:#e2584a; --brand-dim:rgba(226,88,74,.13);
+  --accent:#6ea9c7; --accent-dim:rgba(110,169,199,.13);
+  --green:#86b994; --green-dim:rgba(134,185,148,.13);
+  --amber:#dca552; --amber-dim:rgba(220,165,82,.14);
+  --note:#3a321b; --note-edge:#6b5a26;
+  --shadow:0 14px 34px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.3);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#16140f; --surface:#201d16; --sunk:#2a261d; --border:#3a3529;
+  --text:#e7e1d1; --muted:#aaa18d; --subtle:#867e6c; --ink:#f7f2e4;
+  --brand:#e2584a; --brand-dim:rgba(226,88,74,.13);
+  --accent:#6ea9c7; --accent-dim:rgba(110,169,199,.13);
+  --green:#86b994; --green-dim:rgba(134,185,148,.13);
+  --amber:#dca552; --amber-dim:rgba(220,165,82,.14);
+  --note:#3a321b; --note-edge:#6b5a26;
+  --shadow:0 14px 34px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.3);
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:var(--max);margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:inherit}
+h1,h2,h3{font-family:var(--display);color:var(--ink);font-weight:700;text-wrap:balance;margin:0}
+p{margin:0}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brand)}
+.mono{font-family:var(--mono)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--border)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:14px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--display);font-weight:700;font-size:20px;color:var(--ink)}
+.logo svg{width:28px;height:28px;flex:none}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;font-family:var(--body);font-weight:700;font-size:14px;padding:10px 16px;border-radius:var(--r);text-decoration:none;border:1px solid var(--border);color:var(--ink);background:var(--surface);transition:transform .15s,background .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fffdf7}
+@media (max-width:520px){.btn.ghost{display:none}}
+
+/* hero */
+.hero{padding-block:clamp(40px,7vw,84px) clamp(32px,5vw,56px)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(28px,4vw,56px);align-items:center}
+.hero h1{font-size:clamp(2.4rem,5.4vw,4.2rem);line-height:1.02;letter-spacing:-.03em;margin-top:14px}
+.hero h1 em{color:var(--brand);font-style:italic}
+.lede{font-size:clamp(1.05rem,1.6vw,1.2rem);color:var(--muted);max-width:34ch;margin-top:20px}
+.hero .actions{margin-top:28px}
+.fine{font-size:13px;color:var(--subtle);margin-top:14px}
+@media (max-width:860px){.hero-grid{grid-template-columns:1fr}}
+
+/* calendar mock */
+.sheet{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);min-width:0}
+.sheet-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.sheet-head strong{font-family:var(--display);font-size:18px;color:var(--ink)}
+.sheet-head span{font-family:var(--mono);font-size:11px;color:var(--subtle)}
+.cal-scroll{overflow-x:auto}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(84px,1fr));min-width:620px}
+.day{border-right:1px solid var(--border);padding:10px 8px 14px;display:flex;flex-direction:column;gap:6px;min-height:200px}
+.day:last-child{border-right:0}
+.day.today{background:var(--brand-dim)}
+.dlabel{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--subtle);display:flex;justify-content:space-between}
+.day.today .dlabel{color:var(--brand)}
+.note{background:var(--note);border-left:3px solid var(--note-edge);padding:5px 6px;font-size:11.5px;line-height:1.35;color:var(--text);border-radius:2px}
+.note b{display:block;font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--amber)}
+.note.rest{background:var(--green-dim);border-left-color:var(--green)}
+.note.rest b{color:var(--green)}
+.post{font-size:11.5px;line-height:1.3;padding:5px 6px;border:1px solid var(--border);border-radius:2px;background:var(--bg);display:flex;gap:6px;align-items:flex-start}
+.ch{font-family:var(--mono);font-size:9px;font-weight:500;padding:1px 4px;border-radius:2px;background:var(--accent-dim);color:var(--accent);flex:none;margin-top:1px}
+.post.fail{border-color:var(--brand);background:var(--brand-dim)}
+.post.fail .ch{background:var(--brand);color:#fffdf7}
+.gap{border:1px dashed var(--amber);color:var(--amber);font-family:var(--mono);font-size:10px;padding:5px 6px;border-radius:2px;text-align:center}
+.cmt{font-family:var(--mono);font-size:9.5px;color:var(--green);margin-left:auto;flex:none}
+.sheet-foot{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--border)}
+.chip{font-family:var(--mono);font-size:10.5px;padding:4px 8px;border-radius:99px;border:1px solid var(--border);color:var(--muted);white-space:nowrap}
+.chip.ok{color:var(--green);border-color:var(--green);background:var(--green-dim)}
+.chip.warn{color:var(--amber);border-color:var(--amber);background:var(--amber-dim)}
+.chip.bad{color:var(--brand);border-color:var(--brand);background:var(--brand-dim)}
+.sample{font-family:var(--mono);font-size:10px;color:var(--subtle);text-align:right;margin-top:8px}
+
+/* proof strip */
+.strip{border-block:1px solid var(--border);background:var(--surface)}
+.strip ul{list-style:none;margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;padding-block:28px}
+.strip li{display:flex;flex-direction:column;gap:4px}
+.strip strong{font-family:var(--display);font-size:20px;color:var(--ink)}
+.strip span{color:var(--muted);font-size:14.5px}
+@media (max-width:760px){.strip ul{grid-template-columns:1fr;gap:18px}}
+
+/* feature bands */
+.band{padding-block:clamp(56px,8vw,96px)}
+.band + .band{border-top:1px solid var(--border)}
+.band-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(28px,5vw,64px);align-items:start}
+.band.flip .band-grid{grid-template-columns:minmax(0,6fr) minmax(0,5fr)}
+.band.flip .copy{order:2}
+@media (max-width:860px){.band-grid,.band.flip .band-grid{grid-template-columns:1fr}.band.flip .copy{order:0}}
+.copy h2{font-size:clamp(1.9rem,3.6vw,2.8rem);line-height:1.06;letter-spacing:-.02em;margin-top:12px}
+.copy > p{color:var(--muted);margin-top:16px;max-width:46ch;font-size:17px}
+.list{list-style:none;padding:0;margin:26px 0 0;display:grid;gap:14px}
+.list li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;align-items:start}
+.list li::before{content:"";width:10px;height:10px;margin-top:8px;border:2px solid var(--brand);border-radius:2px}
+.list b{color:var(--ink)}
+.list span{color:var(--muted)}
+
+/* composer mock */
+.mock{padding:16px;display:grid;gap:12px}
+.brief{background:var(--note);border:1px solid var(--note-edge);border-radius:var(--r);padding:12px 14px;display:grid;gap:6px}
+.brief .kicker{color:var(--amber)}
+.brief p{font-size:14px;color:var(--text)}
+.field{border:1px solid var(--border);border-radius:var(--r);background:var(--bg);padding:12px 14px;font-size:14.5px;color:var(--text);min-height:96px}
+.field .caret{display:inline-block;width:1.5px;height:1em;background:var(--brand);vertical-align:-2px;animation:blink 1.1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+
+/* health mock */
+.hrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border)}
+.hrow:last-child{border-bottom:0}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--green)}
+.dot.warn{background:var(--amber)}.dot.bad{background:var(--brand)}
+.hrow strong{color:var(--ink);font-size:14.5px;display:block}
+.hrow small{color:var(--muted);font-size:13px;display:block;line-height:1.4}
+.hrow .err{font-family:var(--mono);font-size:11.5px;color:var(--brand)}
+.mini{font-family:var(--body);font-weight:700;font-size:12.5px;padding:6px 10px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);color:var(--ink);white-space:nowrap;cursor:default}
+.mini.go{background:var(--brand);border-color:var(--brand);color:#fffdf7}
+
+/* runway mock */
+.rw{padding:16px;display:grid;gap:14px}
+.rw-row{display:grid;grid-template-columns:92px minmax(0,1fr) 70px;gap:12px;align-items:center;font-size:14px}
+.rw-row .name{color:var(--ink);font-weight:700}
+.track{height:12px;background:var(--sunk);border-radius:2px;position:relative;overflow:hidden}
+.fill{position:absolute;inset:0 auto 0 0;background:var(--green);border-radius:2px}
+.fill.warn{background:var(--amber)}.fill.bad{background:var(--brand)}
+.days{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.ticks{display:grid;grid-template-columns:92px minmax(0,1fr) 70px;gap:12px;font-family:var(--mono);font-size:10px;color:var(--subtle)}
+.ticks div{display:flex;justify-content:space-between}
+.nudge{border-top:1px solid var(--border);padding:14px 16px;display:grid;gap:10px}
+.nudge p{font-size:14.5px}
+.nudge p b{color:var(--ink)}
+.pace{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--border)}
+.pace div{padding:14px 16px;border-right:1px solid var(--border);display:grid;gap:2px}
+.pace div:last-child{border-right:0}
+.pace strong{font-family:var(--display);font-size:24px;color:var(--ink);font-variant-numeric:tabular-nums}
+.pace span{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--subtle)}
+@media (max-width:460px){.rw-row,.ticks{grid-template-columns:72px minmax(0,1fr) 56px}.pace strong{font-size:20px}}
+
+/* also */
+.also{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-top:32px}
+.also div{background:var(--surface);padding:20px;display:grid;gap:6px;align-content:start}
+.also h3{font-size:18px}
+.also p{color:var(--muted);font-size:14.5px}
+@media (max-width:860px){.also{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:480px){.also{grid-template-columns:1fr}}
+
+/* faq */
+.faq{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 48px;margin-top:32px}
+.faq h3{font-size:19px}
+.faq p{color:var(--muted);margin-top:6px;max-width:52ch}
+@media (max-width:760px){.faq{grid-template-columns:1fr}}
+
+/* cta */
+.cta{background:var(--ink);color:var(--bg)}
+.cta .wrap{padding-block:clamp(56px,8vw,88px);display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap}
+.cta h2{color:var(--bg);font-size:clamp(2rem,4.4vw,3.2rem);line-height:1.05;max-width:16ch}
+.cta p{color:var(--subtle);margin-top:12px;max-width:44ch}
+.cta .btn{border-color:var(--bg)}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:24px;font-size:13.5px;color:var(--subtle)}
+footer nav{display:flex;gap:18px;flex-wrap:wrap}
+footer a{text-decoration:none}footer a:hover{color:var(--ink)}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<header>
+  <div class="wrap bar">
+    <a class="logo" href="/" aria-label="PostIQ home">
+      <svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#0b0d12"/><path d="M121 112h171c74 0 119 42 119 105 0 65-45 108-119 108h-68v75H121V112Zm103 76v61h55c20 0 31-11 31-31 0-19-11-30-31-30h-55Z" fill="#f5b731"/><circle cx="366" cy="371" r="43" fill="#f5b731"/></svg>
+      PostIQ
+    </a>
+    <nav class="actions">
+      <a href="/app.html" class="btn ghost">Explore PostIQ</a>
+      <a href="/auth/connect.html?return=/app.html" class="btn primary">Sign in with Buffer</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="kicker">A planner for your Buffer calendar</span>
+        <h1>Plan the day, <em>not just the post.</em></h1>
+        <p class="lede">PostIQ adds notes, channel health, and a content runway to the posts you already schedule in Buffer. You'll know what's planned, what broke, and when you can take a day off.</p>
+        <div class="actions">
+          <a href="/auth/connect.html?return=/app.html" class="btn primary">Connect Buffer, free</a>
+          <a href="/app.html" class="btn">Try the demo</a>
+        </div>
+        <p class="fine">Buffer still publishes your posts. PostIQ reads your schedule and helps you plan around it.</p>
+      </div>
+
+      <div>
+        <div class="sheet" role="img" aria-label="Sample PostIQ week view with notes, scheduled posts, a failed post, and a gap on Threads">
+          <div class="sheet-head"><strong>Week of Nov 9</strong><span>LinkedIn · Threads · Bluesky</span></div>
+          <div class="cal-scroll">
+            <div class="cal">
+              <div class="day"><div class="dlabel"><span>Mon</span><span>9</span></div>
+                <div class="note"><b>Plan</b>Reshare the press release once it's live</div>
+                <div class="post"><span class="ch">LI</span>Launch recap<span class="cmt">💬 12</span></div>
+                <div class="post"><span class="ch">TH</span>Behind the build</div>
+              </div>
+              <div class="day today"><div class="dlabel"><span>Tue</span><span>10</span></div>
+                <div class="post"><span class="ch">LI</span>Client story</div>
+                <div class="post fail"><span class="ch">BS</span>Weekly tip · failed</div>
+              </div>
+              <div class="day"><div class="dlabel"><span>Wed</span><span>11</span></div>
+                <div class="note"><b>Holiday</b>Veterans Day. Pause promo posts.</div>
+                <div class="post"><span class="ch">TH</span>Thank-you post</div>
+              </div>
+              <div class="day"><div class="dlabel"><span>Thu</span><span>12</span></div>
+                <div class="post"><span class="ch">LI</span>Poll: tools we use</div>
+                <div class="gap">Threads open</div>
+              </div>
+              <div class="day"><div class="dlabel"><span>Fri</span><span>13</span></div>
+                <div class="note"><b>Idea</b>Repurpose Monday's recap for Bluesky</div>
+                <div class="post"><span class="ch">TH</span>Friday wins</div>
+              </div>
+              <div class="day"><div class="dlabel"><span>Sat</span><span>14</span></div>
+                <div class="note rest"><b>Rest day</b>Queue covers it</div>
+              </div>
+              <div class="day"><div class="dlabel"><span>Sun</span><span>15</span></div>
+                <div class="note rest"><b>Rest day</b>Queue covers it</div>
+              </div>
+            </div>
+          </div>
+          <div class="sheet-foot">
+            <span class="chip ok">LinkedIn · 9 days queued</span>
+            <span class="chip warn">Threads · 2 days</span>
+            <span class="chip bad">1 failed post</span>
+          </div>
+        </div>
+        <p class="sample">Sample data</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="strip" aria-label="What PostIQ answers">
+    <div class="wrap">
+      <ul>
+        <li><strong>What's the plan today?</strong><span>Notes and holidays sit on the calendar and open with the composer.</span></li>
+        <li><strong>Did it actually go out?</strong><span>Failed posts and broken connections show up before your audience notices.</span></li>
+        <li><strong>Can I take a break?</strong><span>A runway for each channel tells you how far ahead you are.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="band" id="plan">
+    <div class="wrap band-grid">
+      <div class="copy">
+        <span class="kicker">Plan</span>
+        <h2>A calendar with room in the margins.</h2>
+        <p>Buffer's calendar shows your posts. PostIQ adds the planning around them: the reminder to reshare, the holiday to work around, the idea you want to come back to on Friday.</p>
+        <ul class="list">
+          <li><span><b>Notes on any day.</b> Plans, holidays, ideas, and rest days, color-coded and draggable.</span></li>
+          <li><span><b>Day Brief in the composer.</b> Start a post and that day's notes are right there.</span></li>
+          <li><span><b>Repeats and awareness days.</b> Monthly recaps and a ready-made pack of observances.</span></li>
+          <li><span><b>Your Google Calendar alongside.</b> See launches and time off next to your posting plan.</span></li>
+          <li><span><b>Gaps by channel.</b> Spot the open Threads slot even when LinkedIn is full.</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="sheet">
+          <div class="sheet-head"><strong>New post · Fri, Nov 13</strong><span>Threads</span></div>
+          <div class="mock">
+            <div class="brief">
+              <span class="kicker">Day Brief · Nov 13</span>
+              <p><b>Idea:</b> Repurpose Monday's recap for Bluesky.</p>
+              <p><b>Plan:</b> Friday wins thread at 9:30 AM.</p>
+            </div>
+            <div class="field">Three things that shipped this week, and the one that didn't<span class="caret"></span></div>
+            <div class="row"><span class="chip">146 / 500</span><span class="mini go">Add to queue</span></div>
+          </div>
+        </div>
+        <p class="sample">Sample data</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band flip" id="health">
+    <div class="wrap band-grid">
+      <div class="copy">
+        <span class="kicker">Health</span>
+        <h2>Know when something didn't go out.</h2>
+        <p>Posts fail quietly. A connection expires, a channel gets paused, and you find out a day later. PostIQ checks your channels and tells you in plain words what happened and how to fix it.</p>
+        <ul class="list">
+          <li><span><b>Channel status at a glance.</b> Disconnected, paused, and needs-reconnect channels.</span></li>
+          <li><span><b>Failed posts with the reason.</b> Buffer's own error message and the help article for it.</span></li>
+          <li><span><b>Retry in one tap.</b> Put a failed post back in the queue, or duplicate and reschedule it.</span></li>
+          <li><span><b>Comments to answer.</b> Sent posts show their comment count and link straight to the post.</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="sheet">
+          <div class="sheet-head"><strong>Channel health</strong><span>Checked 4 min ago</span></div>
+          <div class="hrow"><span class="dot"></span><div><strong>LinkedIn</strong><small>Posting and comments working</small></div><span class="chip ok">OK</span></div>
+          <div class="hrow"><span class="dot warn"></span><div><strong>Threads</strong><small>Queue paused since Sunday</small></div><span class="mini">Open Buffer</span></div>
+          <div class="hrow"><span class="dot bad"></span><div><strong>Bluesky · Weekly tip</strong><small class="err">Image exceeds the 1 MB limit for this channel.</small></div><span class="mini go">Retry</span></div>
+          <div class="hrow"><span class="dot"></span><div><strong>Launch recap</strong><small>12 comments since Monday</small></div><span class="mini">Reply</span></div>
+        </div>
+        <p class="sample">Sample data</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="runway">
+    <div class="wrap band-grid">
+      <div class="copy">
+        <span class="kicker">Runway</span>
+        <h2>Know when you can take a day off.</h2>
+        <p>When your queue is full, PostIQ says so and tells you to rest. As a channel gets close to empty, it nudges you to write something new or repurpose something that already worked.</p>
+        <ul class="list">
+          <li><span><b>Days covered per channel.</b> Counted against your real posting schedule, skipping paused days.</span></li>
+          <li><span><b>Gentle nudges.</b> "You're set for two weeks" now, "Threads runs out Thursday" later.</span></li>
+          <li><span><b>Pace check.</b> How far ahead you write, how often you post after 10 PM, and your longest stretch without a break.</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="sheet">
+          <div class="sheet-head"><strong>Runway</strong><span>As of Tue, Nov 10</span></div>
+          <div class="rw">
+            <div class="rw-row"><span class="name">LinkedIn</span><div class="track"><div class="fill" style="width:64%"></div></div><span class="days">9 days</span></div>
+            <div class="rw-row"><span class="name">Bluesky</span><div class="track"><div class="fill warn" style="width:36%"></div></div><span class="days">5 days</span></div>
+            <div class="rw-row"><span class="name">Threads</span><div class="track"><div class="fill bad" style="width:14%"></div></div><span class="days">2 days</span></div>
+            <div class="ticks"><span></span><div><span>0</span><span>7</span><span>14 days</span></div><span></span></div>
+          </div>
+          <div class="nudge">
+            <p><b>Threads runs out Thursday.</b> Your Monday recap got 12 comments on LinkedIn. Want to adapt it?</p>
+            <div class="row"><span class="mini go">Repurpose it</span><span class="mini">Write something new</span></div>
+          </div>
+          <div class="pace">
+            <div><strong>3.2 days</strong><span>Written ahead</span></div>
+            <div><strong>2</strong><span>Late nights</span></div>
+            <div><strong>11 days</strong><span>Posting streak</span></div>
+          </div>
+        </div>
+        <p class="sample">Sample data</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="more">
+    <div class="wrap">
+      <div class="copy">
+        <span class="kicker">Also in PostIQ</span>
+        <h2>The rest of the toolkit.</h2>
+      </div>
+      <div class="also">
+        <div><h3>Write once, adapt</h3><p>Draft one post and get a version for each channel, checked against that channel's limits.</p></div>
+        <div><h3>Library</h3><p>Search everything you've sent through Buffer and bring a past winner back.</p></div>
+        <div><h3>Snapshots</h3><p>Share a read-only link to your plan with a client or teammate.</p></div>
+        <div><h3>Pulse</h3><p>A quick read on how your recent posts performed.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="faq">
+    <div class="wrap">
+      <div class="copy">
+        <span class="kicker">Questions</span>
+        <h2>Before you connect.</h2>
+      </div>
+      <div class="faq">
+        <div><h3>Does PostIQ replace Buffer?</h3><p>No. Buffer still schedules and publishes. PostIQ reads your Buffer account and adds planning, health checks, and runway on top.</p></div>
+        <div><h3>Where do my notes live?</h3><p>Dated ideas sync to your Buffer account, so they follow you between devices.</p></div>
+        <div><h3>Will it post anything without asking?</h3><p>No. Retry and repurpose only run when you tap them.</p></div>
+        <div><h3>What does it cost?</h3><p>PostIQ is free during the public beta. You need a Buffer account to connect.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="wrap">
+      <div>
+        <h2>Your calendar, with a plan around it.</h2>
+        <p>Connect your Buffer account and see your week with notes, health, and runway in about a minute.</p>
+      </div>
+      <a href="/auth/connect.html?return=/app.html" class="btn primary">Sign in with Buffer</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>PostIQ by Nobody Creative. Not affiliated with Buffer.</span>
+    <nav><a href="/app.html">Open app</a><a href="/help/">Help Center</a><a href="/privacy.html">Privacy</a></nav>
+  </div>
+</footer>
