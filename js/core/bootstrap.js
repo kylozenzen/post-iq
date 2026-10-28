@@ -414,177 +414,18 @@ function init() {
       t.style.borderBottomColor = isActive ? 'var(--brand)' : 'transparent';
     });
     const composePanel = qs('composeModePanel'); if (composePanel) composePanel.style.display = mode === 'compose' ? 'contents' : 'none';
-    const splitPanel = qs('splitModePanel'); if (splitPanel) splitPanel.style.display  = mode === 'split'   ? 'block'    : 'none';
     const discordPanel = qs('discordModePanel'); if (discordPanel) discordPanel.style.display = mode === 'discord' ? 'block' : 'none';
     const support = qs('composerSupportSection');
     if (support) support.style.display = mode === 'compose' ? 'grid' : 'none';
-    if (mode === 'split') initSplitMode();
     if (mode === 'discord' && window.Discord) {
       safeTrack(() => GA4_Discord.discordModeOpened());
       if (window.Discord.renderComposer) window.Discord.renderComposer();
       if (window.Discord.checkScheduledAnnouncements) window.Discord.checkScheduledAnnouncements();
     }
-    const editorText = editorToText(qs('composerEditor').innerHTML);
-    if (editorText) {
-      const ti = qs('threadInput');
-      if (ti && !ti.value.trim()) ti.value = editorText;
-    }
   }
   document.querySelectorAll('.composer-mode-tab').forEach(t => {
     t.onclick = () => setComposerMode(t.dataset.cmode);
   });
-
-  // ── THREAD SPLITTER ──
-  let threadParts = [];
-  let threadNumbered = false;
-  let splitInited = false;
-
-  function splitThreadText(text, max = 280) {
-    const parts = []; let left = text.trim();
-    while (left.length > max) {
-      let cut = left.lastIndexOf('\n', max);
-      if (cut < 80) cut = left.lastIndexOf(' ', max);
-      if (cut < 80) cut = max;
-      parts.push(left.slice(0, cut).trim()); left = left.slice(cut).trim();
-    }
-    if (left) parts.push(left);
-    return parts;
-  }
-
-  function renderThreadParts() {
-    const out = qs('threadOut'); const empty = qs('threadEmpty');
-    const actions = qs('threadActions'); const whenRow = qs('threadWhenRow');
-    if (!threadParts.length) {
-      out.innerHTML = ''; if (empty) empty.style.display = 'flex';
-      if (actions) actions.style.display = 'none';
-      if (whenRow) whenRow.style.display = 'none';
-      return;
-    }
-    if (empty) empty.style.display = 'none';
-    if (actions) actions.style.display = 'flex';
-    out.innerHTML = '';
-    threadParts.forEach((p, i) => {
-      const label = threadNumbered ? `${i+1}/${threadParts.length} ` : '';
-      const full = label + p;
-      const over = full.length > 280;
-      const div = document.createElement('div');
-      div.className = 'card';
-      div.style.cssText = 'padding:12px;margin-bottom:0;';
-      div.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--brand);background:var(--brand-dim);border:1px solid var(--brand-glow);padding:2px 7px;border-radius:4px;">Part ${i+1}</span>
-          <div style="display:flex;gap:6px;align-items:center;">
-            <span style="font-size:11px;font-family:'DM Mono',monospace;color:${over?'var(--red)':'var(--subtle)'};">${full.length}/280</span>
-            <button class="btn sm ghost" data-pi="${i}">Copy</button>
-          </div>
-        </div>
-        <textarea data-ti="${i}" style="min-height:80px;font-size:13px;">${safeText(p)}</textarea>`;
-      div.querySelector('[data-pi]').onclick = () => { navigator.clipboard.writeText(full); safeTrack(() => GA4_Composer.threadPartCopied(i + 1)); showToast('Part copied'); };
-      div.querySelector('[data-ti]').addEventListener('input', e => {
-        threadParts[+e.target.dataset.ti] = e.target.value;
-        const span = e.target.closest('.card').querySelector('span[style*="DM Mono"]');
-        const lbl = threadNumbered ? `${i+1}/${threadParts.length} ` : '';
-        const len = (lbl + e.target.value).length;
-        if (span) { span.textContent = `${len}/280`; span.style.color = len > 280 ? 'var(--red)' : 'var(--subtle)'; }
-      });
-      out.appendChild(div);
-    });
-  }
-
-  function initSplitMode() {
-    if (splitInited) return; splitInited = true;
-
-    const tch = qs('threadChannel');
-    if (tch) {
-      tch.innerHTML = '';
-      const xChs = state.channels.filter(c => { const s = (c.service||'').toLowerCase(); return s.includes('twitter')||s.includes('thread')||s.includes('x-'); });
-      if (xChs.length) {
-        xChs.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = `${c.displayName||c.name} (${c.service})`; tch.appendChild(o); });
-      } else if (state.channels.length) {
-        state.channels.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = `${c.displayName||c.name} (${c.service})`; tch.appendChild(o); });
-      } else {
-        const o = document.createElement('option'); o.value = ''; o.textContent = '↻ Load channels from Buffer'; tch.appendChild(o);
-      }
-    }
-
-    qs('splitBtn').onclick = () => {
-      const text = qs('threadInput').value.trim();
-      if (!text) { showToast('Add some text first', 'error'); return; }
-      threadParts = splitThreadText(text);
-      renderThreadParts();
-      showToast(`${threadParts.length} thread parts`, 'success');
-      safeTrack(() => GA4_Composer.threadSplit(threadParts.length));
-    };
-
-    qs('splitSampleBtn').onclick = () => {
-      qs('threadInput').value = 'PostIQ helps Buffer users move faster. Start with one big idea, split it into clear thread parts, refine each part, and send a cleaner post flow to Buffer — drafts, queued, or scheduled. The whole thing in under two minutes.';
-      qs('splitBtn').click();
-    };
-
-    const toggle = qs('threadNumberToggle');
-    if (toggle) toggle.onchange = e => { threadNumbered = e.target.checked; renderThreadParts(); };
-
-    qs('copyAllPartsBtn').onclick = () => {
-      if (!threadParts.length) return;
-      const text = threadParts.map((p,i) => threadNumbered ? `${i+1}/${threadParts.length} ${p}` : p).join('\n\n');
-      navigator.clipboard.writeText(text); showToast('All parts copied', 'success');
-    };
-
-    // Only these Buffer services accept a native thread payload.
-    const THREAD_METADATA_KEYS = { twitter: 'twitter', threads: 'threads', bluesky: 'bluesky', mastodon: 'mastodon' };
-
-    async function sendThread(action) {
-      if (!threadParts.length) { qs('threadStatus').textContent = 'Split content first.'; return; }
-      const channelId = qs('threadChannel')?.value;
-      if (!channelId) { qs('threadStatus').textContent = 'Select a channel first.'; return; }
-      const parts = threadParts.map((p,i) => threadNumbered ? `${i+1}/${threadParts.length} ${p}` : p);
-      const when = qs('threadWhen')?.value;
-      const ch = state.channels.find(c => c.id === channelId);
-      const svc = (ch?.service||'').toLowerCase();
-      // Buffer keys thread metadata by the channel's own service. Sending a
-      // twitter thread to a Bluesky or Mastodon channel is rejected as invalid
-      // input, and no channel outside this map accepts threads at all.
-      const threadKey = THREAD_METADATA_KEYS[svc] || '';
-      if (parts.length > 1 && !threadKey) {
-        qs('threadStatus').textContent = `${ch?.displayName || ch?.name || 'This channel'} does not support threads on Buffer. Pick a threaded channel, or send one part at a time.`;
-        return;
-      }
-      const rest = parts.slice(1).map(t=>({text:t}));
-      const metadata = parts.length > 1 ? { metadata: { [threadKey]: threadKey === 'threads' ? { type:'thread', thread: rest } : { thread: rest } } } : {};
-      const input = { channelId, text: parts[0], schedulingType: 'automatic', ...metadata };
-      if (action === 'draft')    { input.mode = 'addToQueue'; input.saveToDraft = true; }
-      if (action === 'queue')    { input.mode = 'addToQueue'; }
-      if (action === 'schedule') {
-        if (!when) { qs('threadStatus').textContent = 'Set a date/time first.'; const row = qs('threadWhenRow'); if (row) row.style.display = 'block'; return; }
-        const dueAt = datetimeLocalToISO(when);
-        if (!dueAt) { qs('threadStatus').textContent = 'That date and time could not be read. Pick it again.'; return; }
-        input.mode = 'customScheduled'; input.dueAt = dueAt;
-      }
-      qs('threadStatus').textContent = 'Sending…';
-      try {
-        await createPost(input);
-        const msg = action==='draft'?'Buffer draft saved.':action==='queue'?'Added to queue.':'Scheduled.';
-        qs('threadStatus').textContent = msg; showToast(msg, 'success');
-      } catch(e) {
-        const msg = getErrorMessage(e, 'Failed.');
-        if (isAuthError(e)) handleAuthFailure(msg);
-        qs('threadStatus').textContent = `Failed: ${msg}`;
-      }
-    }
-
-    qs('draftThreadBtn').onclick    = () => sendThread('draft');
-    qs('queueThreadBtn').onclick    = () => sendThread('queue');
-    qs('scheduleThreadBtn').onclick = () => { const row = qs('threadWhenRow'); if (row) row.style.display = 'block'; };
-
-    window.addEventListener('postiq:synced', () => {
-      const tch2 = qs('threadChannel'); if (!tch2) return;
-      tch2.innerHTML = '';
-      const xChs = state.channels.filter(c => { const s=(c.service||'').toLowerCase(); return s.includes('twitter')||s.includes('thread')||s.includes('x-'); });
-      const pool = xChs.length ? xChs : state.channels;
-      pool.forEach(c => { const o=document.createElement('option'); o.value=c.id; o.textContent=`${c.displayName||c.name} (${c.service})`; tch2.appendChild(o); });
-    });
-  }
-
 
   function pinReferenceToComposer(data = {}) {
     const refPin = qs('refPin');

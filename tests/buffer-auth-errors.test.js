@@ -110,10 +110,4 @@ assert.match(contentFlowSource, /async function resolveOrganizationId\(\)/);
 assert.doesNotMatch(contentFlowSource, /organizationId: state\.organizationId/, 'null organizationId reads as a bad token to Buffer');
 assert.match(contentFlowSource, /Sync Buffer first so PostIQ knows which organization to save into/);
 
-// ── Threads only go to channels that accept them ────────────────────────────
-const bootstrapSource = fs.readFileSync('js/core/bootstrap.js', 'utf8');
-assert.match(bootstrapSource, /THREAD_METADATA_KEYS = \{ twitter: 'twitter', threads: 'threads', bluesky: 'bluesky', mastodon: 'mastodon' \}/);
-assert.doesNotMatch(bootstrapSource, /\[isThreads\?'threads':'twitter'\]/, 'Bluesky and Mastodon reject twitter thread metadata');
-assert.match(bootstrapSource, /input\.dueAt = dueAt;/);
-
 console.log('Buffer auth/error classification, scheduling, and save-path tests passed');

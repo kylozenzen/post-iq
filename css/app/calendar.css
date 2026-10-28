@@ -5,7 +5,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 16px;
+      margin-bottom: 10px;
     }
 
     /* Combined calendar toolbar */
@@ -14,7 +14,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       flex-wrap: wrap;
     }
 
@@ -51,8 +51,8 @@
     .cal-dow {
       display: grid;
       grid-template-columns: repeat(7,1fr);
-      gap: var(--s1);
-      margin-bottom: 4px;
+      gap: 6px;
+      margin-bottom: 2px;
     }
     .dow-cell {
       text-align: center;
@@ -68,19 +68,19 @@
     .cal-grid {
       display: grid;
       grid-template-columns: repeat(7,1fr);
-      gap: var(--s1);
+      gap: 6px;
     }
 
     .cal-day {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--r2);
-      padding: var(--s2);
-      min-height: 92px;
+      padding: 7px 8px 8px;
+      min-height: 100px;
       cursor: pointer;
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 4px;
       transition: border-color .12s, background .12s;
       position: relative;
       overflow: hidden;
@@ -218,14 +218,14 @@
       background: linear-gradient(135deg, var(--amber-dim), transparent);
       border: 1px solid var(--amber-glow);
       border-radius: var(--r);
-      padding: var(--s4);
-      margin-bottom: 20px;
+      padding: 10px 14px;
+      margin-bottom: 10px;
     }
     .gaps-panel-hdr {
       display: flex;
       align-items: center;
       gap: var(--s2);
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
     .gaps-title {
       font-family: var(--font-display);
@@ -312,7 +312,7 @@
     }
 
     /* ── Calendar filter row ── */
-    .cal-filter-row { display: flex; align-items: center; justify-content: flex-end; gap: var(--s2); margin: -4px 0 10px; }
+    .cal-filter-row { display: flex; align-items: center; justify-content: flex-end; gap: var(--s2); margin: -2px 0 6px; }
     @media (max-width: 768px) { .cal-filter-row { justify-content: flex-start; padding: 0 2px; } }
 
     /* Touch devices get no hover, so the add-note affordance stays visible. */

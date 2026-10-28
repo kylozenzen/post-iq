@@ -179,14 +179,6 @@ window.PostIQComposerResources = (() => {
     </div>`;
   }
 
-  function dayNoteCard(note) {
-    return `<article class="composer-resource-card">
-      <div class="composer-resource-meta"><span class="resource-chip">${escapeHtml(note.label || 'Note')}</span><span>Planned for today</span></div>
-      <div class="composer-resource-preview">${escapeHtml(compact(note.text, 220))}</div>
-      <div class="composer-resource-actions"><button class="btn sm primary" type="button" data-resource-action="insert-day-note" data-resource-id="${escapeHtml(note.id)}">Insert note</button></div>
-    </article>`;
-  }
-
   function notebookCard(card) {
     const safeUrl = safeExternalUrl(card.url);
     const todayKey = typeof fmtDate === 'function' ? fmtDate(new Date()) : '';
@@ -207,12 +199,37 @@ window.PostIQComposerResources = (() => {
     </article>`;
   }
 
+  // Today's calendar notes, shown directly above the editor so they are not
+  // hidden inside the collapsed Writing tools drawer.
+  function renderDayNotes() {
+    const mount = byId('composerDayNotes');
+    if (!mount) return;
+    const notes = resources.dayNotes;
+    if (!notes.length) {
+      mount.hidden = true;
+      mount.innerHTML = '';
+      return;
+    }
+    const dateLabel = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    mount.hidden = false;
+    mount.innerHTML = `<div class="composer-day-notes-head">
+        <span class="composer-day-notes-title">Today's notes</span>
+        <span class="composer-day-notes-date">${escapeHtml(dateLabel)}</span>
+      </div>
+      <ul class="composer-day-notes-list">
+        ${notes.map(note => `<li class="composer-day-note">
+          <span class="resource-chip">${escapeHtml(note.label || 'Note')}</span>
+          <span class="composer-day-note-text">${escapeHtml(compact(note.text, 160))}</span>
+          <button class="btn sm" type="button" data-resource-action="insert-day-note" data-resource-id="${escapeHtml(note.id)}">Insert</button>
+        </li>`).join('')}
+      </ul>`;
+  }
+
   function renderNotebook() {
     const list = byId('composerNotebookResources');
     if (!list) return;
-    const dayNotes = resources.dayNotes.filter(note => matchesSearch(note.text, note.label));
     const items = resources.notebook.filter(card => matchesSearch(card.title, card.body, card.type));
-    if (!items.length && !dayNotes.length) {
+    if (!items.length) {
       list.innerHTML = emptyState(
         '✦',
         searchQuery ? 'No Notebook matches' : 'Your Notebook is ready when you are',
@@ -221,13 +238,7 @@ window.PostIQComposerResources = (() => {
       );
       return;
     }
-    const todayBlock = dayNotes.length
-      ? `<div class="resource-list-label">Today's notes</div>${dayNotes.map(dayNoteCard).join('')}`
-      : '';
-    const notebookBlock = items.length
-      ? `${dayNotes.length ? '<div class="resource-list-label">Notebook</div>' : ''}${items.map(notebookCard).join('')}`
-      : '';
-    list.innerHTML = `${todayBlock}${notebookBlock}`;
+    list.innerHTML = items.map(notebookCard).join('');
   }
 
   function hookTemplateCard(template) {
@@ -338,6 +349,7 @@ window.PostIQComposerResources = (() => {
 
   function refresh() {
     loadResources();
+    renderDayNotes();
     renderNotebook();
     renderHooks();
     renderHashtags();
@@ -446,7 +458,8 @@ window.PostIQComposerResources = (() => {
     if (action === 'insert-day-note') {
       const note = resources.dayNotes.find(item => item.id === id);
       if (!note || !insertText(note.text)) return;
-      finishAction('Note inserted');
+      byId('composerEditor')?.focus();
+      window.showToast?.('Note inserted into your draft', 'success');
       return;
     }
 
@@ -543,6 +556,11 @@ window.PostIQComposerResources = (() => {
       refresh();
     });
 
+    byId('composerDayNotes')?.addEventListener('click', event => {
+      const button = event.target.closest('[data-resource-action]');
+      if (button) handleResourceAction(button);
+    });
+
     drawer.addEventListener('click', event => {
       const actionButton = event.target.closest('[data-resource-action]');
       if (actionButton) return handleResourceAction(actionButton);
@@ -568,5 +586,11 @@ window.PostIQComposerResources = (() => {
     setActiveTab(storedTab);
   }
 
-  return { init, refresh, selectTab: setActiveTab, extractOpening, insertText };
+  // Lightweight refresh for calendar changes: today's notes only.
+  function refreshDayNotes() {
+    resources.dayNotes = readTodayNotes();
+    renderDayNotes();
+  }
+
+  return { init, refresh, refreshDayNotes, selectTab: setActiveTab, extractOpening, insertText };
 })();
