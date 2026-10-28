@@ -245,6 +245,10 @@ function setContentCalendarMode(mode) {
 }
 
 function renderCalendar() {
+  return withPlannerDayIndex(renderCalendarView);
+}
+
+function renderCalendarView() {
   try { window.PostIQPlanHealth?.render?.(); } catch {}
   try { window.PostIQComposerResources?.refreshDayNotes?.(); } catch {}
   if (isContentCalendarMode()) return renderContentCalendar();
