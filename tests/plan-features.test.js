@@ -55,3 +55,28 @@ test('Notebook cards can be saved to a date as inspiration', () => {
   assert.match(composer, /save-notebook-to-date/);
   assert.match(composer, /addNoteForDateKey\(dateKey, text, 'inspiration'\)/);
 });
+
+test('thread splitter is fully removed from the composer', () => {
+  const bootstrap = fs.readFileSync('js/core/bootstrap.js', 'utf8');
+  assert.doesNotMatch(html, /splitModePanel|data-cmode="split"|threadInput|Thread Splitter/);
+  assert.doesNotMatch(bootstrap, /THREAD SPLITTER|initSplitMode|splitThreadText/);
+});
+
+test('today\'s notes mount sits above the editor, not inside the drawer', () => {
+  const mount = html.indexOf('id="composerDayNotes"');
+  const editor = html.indexOf('id="composerEditor"');
+  assert.ok(mount > 0 && mount < editor, 'mount must precede the editor');
+  assert.match(composer, /function renderDayNotes/);
+  assert.match(composer, /refreshDayNotes/);
+});
+
+test('calendar edits refresh the composer notes strip', () => {
+  assert.match(calendar, /PostIQComposerResources\?\.refreshDayNotes/);
+});
+
+test('health panel is collapsible and remembers its state per browser', () => {
+  const health = fs.readFileSync('js/features/plan-health.js', 'utf8');
+  assert.match(health, /data-health-toggle/);
+  assert.match(health, /aria-expanded/);
+  assert.match(health, /postiqPlanHealthOpen/);
+});

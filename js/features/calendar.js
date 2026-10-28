@@ -245,7 +245,12 @@ function setContentCalendarMode(mode) {
 }
 
 function renderCalendar() {
+  return withPlannerDayIndex(renderCalendarView);
+}
+
+function renderCalendarView() {
   try { window.PostIQPlanHealth?.render?.(); } catch {}
+  try { window.PostIQComposerResources?.refreshDayNotes?.(); } catch {}
   if (isContentCalendarMode()) return renderContentCalendar();
   qs('calendarFilter')?.style.removeProperty('display'); qs('calDesc').textContent = 'Your Buffer queue in a monthly view. Spot gaps and add planning notes before you compose.';
   qs('calendarPostsModeBtn')?.classList.add('active'); qs('calendarContentModeBtn')?.classList.remove('active');

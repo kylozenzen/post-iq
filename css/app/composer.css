@@ -605,3 +605,20 @@
     .discord-scheduled-item { border: 1px solid var(--border2); border-radius: var(--r2); padding: 10px; margin-bottom: var(--s2); background: var(--surface); }
     .discord-scheduled-meta { font-size: 11px; color: var(--subtle); margin-bottom: 6px; }
     .discord-scheduled-msg { font-size: 12px; color: var(--muted); margin-bottom: var(--s2); white-space: pre-wrap; }
+
+/* Today's calendar notes, shown above the editor in Compose mode. */
+.composer-day-notes {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--brand);
+  border-radius: var(--r2, 8px);
+  background: var(--surface);
+  padding: 8px 12px 10px;
+  margin-bottom: 12px;
+}
+.composer-day-notes[hidden] { display: none; }
+.composer-day-notes-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.composer-day-notes-title { font-weight: 700; font-size: 13px; color: var(--ink); }
+.composer-day-notes-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--subtle); }
+.composer-day-notes-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.composer-day-note { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.composer-day-note-text { flex: 1; min-width: 0; font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

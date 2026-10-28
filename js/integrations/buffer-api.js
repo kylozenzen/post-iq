@@ -177,7 +177,31 @@ function getPlannerPosts() {
   return [...byId.values()].sort((a, b) => new Date(getPostPlanningAt(a) || 0) - new Date(getPostPlanningAt(b) || 0));
 }
 
+// A calendar render asks for the posts of ~42 days. Filtering the full list for
+// each day made a render cost roughly 42 full scans with date parsing. While a
+// render runs, build one day index and answer every lookup from it. Outside a
+// render, the lookup filters as before, so nothing can read a stale index.
+let plannerDayIndex = null;
+
+function buildPlannerDayIndex() {
+  const index = new Map();
+  getPlannerPosts().forEach(post => {
+    const key = fmtDate(getPostPlanningAt(post));
+    if (!key) return;
+    const bucket = index.get(key);
+    if (bucket) bucket.push(post);
+    else index.set(key, [post]);
+  });
+  return index;
+}
+
+function withPlannerDayIndex(render) {
+  plannerDayIndex = buildPlannerDayIndex();
+  try { return render(); } finally { plannerDayIndex = null; }
+}
+
 function postsForDateKey(dateKey) {
+  if (plannerDayIndex) return plannerDayIndex.get(dateKey) || [];
   return getPlannerPosts().filter(post => fmtDate(getPostPlanningAt(post)) === dateKey);
 }
 
