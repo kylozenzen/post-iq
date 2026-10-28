@@ -38,7 +38,7 @@ async function testInviteFunction() {
 
 async function testClientAccessState() {
   const vm = require('node:vm');
-  const source = fs.readFileSync('ai-assist.js', 'utf8');
+  const source = fs.readFileSync('js/ai-assist.js', 'utf8');
   const stored = new Map();
   const elements = Object.fromEntries(['aiAssistGate', 'aiAssistMissingKey', 'aiAssistPanel', 'aiSettingsLocked', 'aiSettingsUnlocked', 'aiSettingsFallbackLocked', 'aiSettingsFallbackUnlocked', 'aiApiKey', 'aiApiKeyFallback', 'aiModel', 'aiModelFallback'].map(id => [id, {
     id, hidden: false, value: '', placeholder: '',
@@ -124,7 +124,7 @@ async function testClientAccessState() {
 
 function testStaticIntegration() {
   const html = fs.readFileSync('app.html', 'utf8');
-  const js = fs.readFileSync('ai-assist.js', 'utf8');
+  const js = fs.readFileSync('js/ai-assist.js', 'utf8');
   const toml = fs.readFileSync('netlify.toml', 'utf8');
   assert.match(html, /id="aiAssistGate"[\s\S]*AI Assist Private Beta/);
   assert.match(html, /id="aiAssistMissingKey"[^>]*hidden[\s\S]*AI Assist is unlocked\. Add your Gemini API key in AI Settings\.[\s\S]*Open AI Settings/);

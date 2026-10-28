@@ -1,0 +1,23 @@
+/* Plan health strip: channel status and queue runway above the calendar. */
+.plan-health-strip:empty { display: none; }
+.plan-health-strip { margin: 0 0 14px; }
+.plan-health-card {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--border, rgba(0, 0, 0, .12));
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface, #fff);
+  font-size: 13px;
+}
+.plan-health-card > span,
+.plan-health-warn span { color: var(--subtle, #6b6b6b); }
+.plan-health-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.plan-health-runway { font-family: var(--mono, monospace); font-size: 12px; }
+.plan-health-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.plan-health-row { display: grid; grid-template-columns: 10px auto 1fr; align-items: center; gap: 8px; }
+.plan-health-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok, #0fa672); }
+.plan-health-low .plan-health-dot { background: var(--warn, #f59e0b); }
+.plan-health-empty .plan-health-dot { background: var(--danger, #ef4444); }
+.plan-health-copy { color: var(--subtle, #6b6b6b); }
+.plan-health-break { color: var(--ok, #0fa672); font-weight: 600; }
+.plan-health-note { color: var(--subtle, #6b6b6b); font-size: 12px; }
