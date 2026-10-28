@@ -42,6 +42,7 @@
   <link rel="stylesheet" href="./css/app/library.css" />
   <link rel="stylesheet" href="./css/app/pulse.css" />
   <link rel="stylesheet" href="./css/app/home.css" />
+  <link rel="stylesheet" href="./css/app/plan-health.css" />
   <link rel="stylesheet" href="./css/onboarding.css" />
 
 </head>
@@ -223,6 +224,7 @@
 
     <!-- ══════════ PLAN (Calendar) ══════════ -->
     <section id="calendarView" class="view active" data-feature="calendar">
+      <div id="planHealthStrip" class="plan-health-strip" aria-live="polite"></div>
       <!-- Mobile header -->
       <div class="mob-view-hdr">
         <span class="mob-view-title">📅 Plan</span>
@@ -1292,6 +1294,8 @@
   <script src="./js/integrations/content-items.js" defer></script>
   <script src="./js/features/content-model.js" defer></script>
   <script src="./js/features/calendar.js" defer></script>
+  <script src="./js/features/runway.js" defer></script>
+  <script src="./js/features/plan-health.js" defer></script>
   <script src="./js/features/composer.js" defer></script>
   <script src="./js/features/composer-resources.js" defer></script>
   <script src="./js/features/content-flow.js" defer></script>

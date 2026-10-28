@@ -14,10 +14,11 @@ function response(statusCode, valid, message) {
 }
 
 async function getValidCodes(event) {
-  connectLambda(event);
-
-  // Try Blobs config first, fall back to env var
+  // Try Blobs config first, fall back to env var. connectLambda throws when the
+  // Blobs context is missing (local tests, misconfigured deploys); that must
+  // fall through to the env var rather than fail the whole check.
   try {
+    connectLambda(event);
     const store = getStore('postiq-admin');
     const raw   = await store.get('config', { type: 'text' });
     if (raw) {

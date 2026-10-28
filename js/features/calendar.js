@@ -72,9 +72,26 @@ function setPlanningSettings(v) { localStorage.setItem(PLANNING_KEY, JSON.string
 function getNoteTypes() {
   try {
     const saved = JSON.parse(localStorage.getItem(NOTE_TYPES_KEY) || 'null');
-    if (Array.isArray(saved) && saved.length) return saved.map(t => ({ id: String(t.id || '').trim(), label: String(t.label || 'Note').trim() || 'Note', color: String(t.color || '#6366f1') })).filter(t => t.id);
+    if (Array.isArray(saved) && saved.length) {
+      const types = saved.map(t => ({ id: String(t.id || '').trim(), label: String(t.label || 'Note').trim() || 'Note', color: String(t.color || '#6366f1') })).filter(t => t.id);
+      return ensureBuiltinNoteTypes(types);
+    }
   } catch {}
   return DEFAULT_NOTE_TYPES.map(t => ({ ...t }));
+}
+// Saved lists predate the 'inspiration' and 'action' types. Add them once, so
+// a user who later deletes them does not get them back on every read.
+function ensureBuiltinNoteTypes(types) {
+  try {
+    if (localStorage.getItem(NOTE_TYPES_BUILTINS_FLAG) === '1') return types;
+    const ids = new Set(types.map(t => t.id));
+    const missing = DEFAULT_NOTE_TYPES.filter(t => BUILTIN_NOTE_TYPE_IDS.includes(t.id) && !ids.has(t.id)).map(t => ({ ...t }));
+    localStorage.setItem(NOTE_TYPES_BUILTINS_FLAG, '1');
+    if (!missing.length) return types;
+    const merged = [...types, ...missing];
+    localStorage.setItem(NOTE_TYPES_KEY, JSON.stringify(merged));
+    return merged;
+  } catch { return types; }
 }
 function setNoteTypes(types) { localStorage.setItem(NOTE_TYPES_KEY, JSON.stringify(types)); }
 function getNoteTypeMeta(note, noteTypes = getNoteTypes()) {
@@ -228,6 +245,7 @@ function setContentCalendarMode(mode) {
 }
 
 function renderCalendar() {
+  try { window.PostIQPlanHealth?.render?.(); } catch {}
   if (isContentCalendarMode()) return renderContentCalendar();
   qs('calendarFilter')?.style.removeProperty('display'); qs('calDesc').textContent = 'Your Buffer queue in a monthly view. Spot gaps and add planning notes before you compose.';
   qs('calendarPostsModeBtn')?.classList.add('active'); qs('calendarContentModeBtn')?.classList.remove('active');
@@ -462,19 +480,54 @@ function deleteNote() {
   showToast('Note deleted');
 }
 
+// Adds a note to a date without opening the note modal. Used by the Notebook
+// "save to date" action. Returns the stored note.
+function addNoteForDateKey(dateKey, text, typeId = 'inspiration') {
+  const clean = String(text || '').trim();
+  if (!dateKey || !clean) return null;
+  const typeMeta = getNoteTypes().find(t => t.id === typeId) || getDefaultNoteType();
+  const notes = getNotes();
+  const list = getNotesForDate(dateKey, notes);
+  const now = new Date().toISOString();
+  const note = { id: createNoteId(), date: dateKey, text: clean, typeId: typeMeta.id, label: typeMeta.label, color: typeMeta.color, createdAt: now, updatedAt: now };
+  list.push(note);
+  notes[dateKey] = list;
+  setNotes(notes);
+  return note;
+}
+
+function appendTextToCompose(label, dateKey, text) {
+  const editor = qs('composerEditor');
+  if (!editor) return false;
+  const payload = `[${label}] ${dateKey}\n${text}`;
+  editor.innerText = editor.innerText ? `${editor.innerText}\n\n${payload}` : payload;
+  editor.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
+  updateComposerClearButtonVisibility();
+  return true;
+}
+
 function sendNoteToDraft() {
   if (!state.selectedDate) return;
   const text = qs('noteText').value.trim();
   if (!text) { qs('noteStatus').textContent = 'Add a note first.'; return; }
   const typeMeta = getNoteTypes().find(t => t.id === qs('noteTag').value) || DEFAULT_NOTE_TYPES[0];
-  const label = typeMeta.label;
-  const editor = qs('composerEditor');
-  const payload = `[${label}] ${fmtDate(state.selectedDate)}\n${text}`;
-  editor.innerText = editor.innerText ? `${editor.innerText}\n\n${payload}` : payload;
-  editor.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true }));
-  updateComposerClearButtonVisibility();
+  appendTextToCompose(typeMeta.label, fmtDate(state.selectedDate), text);
   closeModal('noteModal'); resetNoteForm(); activateView('composerView');
   showToast('Note sent to Compose');
+}
+
+// Planned-action notes: done state lives on the note itself (completedAt), so it
+// survives reloads and is carried through normalizeNoteForDate's spread.
+function toggleNoteDone(dateKey, noteId) {
+  const notes = getNotes();
+  const list = getNotesForDate(dateKey, notes);
+  const note = list.find(n => n.id === noteId);
+  if (!note) return null;
+  note.completedAt = note.completedAt ? null : new Date().toISOString();
+  note.updatedAt = new Date().toISOString();
+  notes[dateKey] = list;
+  setNotes(notes);
+  return note;
 }
 
 function renderAgenda() {
@@ -730,7 +783,12 @@ function bindPostDetailCopy(bodyEl) {
 function editableNoteCardsHtml(notes, noteTypes = getNoteTypes()) {
   return (notes || []).map(n => {
     const meta = getNoteTypeMeta(n, noteTypes);
-    return `<div class="snap-modal-note" style="background:${rgbaFromHex(meta.color, .06)};border-color:${rgbaFromHex(meta.color, .24)};"><div class="snap-modal-note-label" style="color:${normalizeHexColor(meta.color)};">${safeText(meta.label || 'Note')}</div><div class="snap-modal-note-text">${safeText(n.text || '')}</div><div class="snap-modal-note-actions"><button class="btn sm ghost" data-edit-note="${safeText(n.id || '')}">Edit note</button></div></div>`;
+    const isAction = meta.id === 'action';
+    const done = !!n.completedAt;
+    const actionButtons = isAction
+      ? `<button class="btn sm" data-draft-note="${safeText(n.id || '')}">Draft</button><button class="btn sm ghost" data-toggle-done="${safeText(n.id || '')}">${done ? 'Reopen' : 'Mark done'}</button>`
+      : '';
+    return `<div class="snap-modal-note${done ? ' is-done' : ''}" style="background:${rgbaFromHex(meta.color, .06)};border-color:${rgbaFromHex(meta.color, .24)};${done ? 'opacity:.6;' : ''}"><div class="snap-modal-note-label" style="color:${normalizeHexColor(meta.color)};">${safeText(meta.label || 'Note')}${done ? ' · Done' : ''}</div><div class="snap-modal-note-text">${safeText(n.text || '')}</div><div class="snap-modal-note-actions">${actionButtons}<button class="btn sm ghost" data-edit-note="${safeText(n.id || '')}">Edit note</button></div></div>`;
   }).join('');
 }
 function openCalendarDayDetails(date) {
@@ -750,6 +808,19 @@ function openCalendarDayDetails(date) {
   bindPostDetailCopy(bodyEl);
   bodyEl.querySelector('[data-add-note]')?.addEventListener('click', () => { closeModal('sharedDayModal'); openAddNoteForDate(date); });
   bodyEl.querySelectorAll('[data-edit-note]').forEach(btn => btn.addEventListener('click', () => { closeModal('sharedDayModal'); openAddNoteForDate(date, btn.dataset.editNote); }));
+  bodyEl.querySelectorAll('[data-toggle-done]').forEach(btn => btn.addEventListener('click', () => {
+    toggleNoteDone(key, btn.dataset.toggleDone);
+    openCalendarDayDetails(date);
+    renderCalendar();
+  }));
+  bodyEl.querySelectorAll('[data-draft-note]').forEach(btn => btn.addEventListener('click', () => {
+    const note = getNotesForDate(key).find(n => n.id === btn.dataset.draftNote);
+    if (!note) return;
+    closeModal('sharedDayModal');
+    appendTextToCompose(getNoteTypeMeta(note).label, key, note.text);
+    activateView('composerView');
+    showToast('Note sent to Compose');
+  }));
   openModal('sharedDayModal');
 }
 function openCalendarPostDetails(key, posts, notes = []) {

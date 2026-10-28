@@ -21,6 +21,7 @@ window.PostIQComposerResources = (() => {
   let activeTab = 'notebook';
   let searchQuery = '';
   let resources = {
+    dayNotes: [],
     notebook: [],
     hookTemplates: [],
     libraryHooks: [],
@@ -146,9 +147,21 @@ window.PostIQComposerResources = (() => {
     return combined.slice(0, 10);
   }
 
+  // Calendar notes dated today. Reads through calendar.js so storage keys and
+  // normalization stay in one place. Returns [] if the calendar has not loaded.
+  function readTodayNotes() {
+    try {
+      if (typeof getNotesForDate !== 'function' || typeof fmtDate !== 'function') return [];
+      return getNotesForDate(fmtDate(new Date())).filter(note => note && note.text);
+    } catch {
+      return [];
+    }
+  }
+
   function loadResources() {
     const templates = readTemplates();
     resources = {
+      dayNotes: readTodayNotes(),
       notebook: readNotebook(),
       hookTemplates: templates.filter(template => template.type === 'Hooks'),
       libraryHooks: readLibraryHooks(),
@@ -166,11 +179,40 @@ window.PostIQComposerResources = (() => {
     </div>`;
   }
 
+  function dayNoteCard(note) {
+    return `<article class="composer-resource-card">
+      <div class="composer-resource-meta"><span class="resource-chip">${escapeHtml(note.label || 'Note')}</span><span>Planned for today</span></div>
+      <div class="composer-resource-preview">${escapeHtml(compact(note.text, 220))}</div>
+      <div class="composer-resource-actions"><button class="btn sm primary" type="button" data-resource-action="insert-day-note" data-resource-id="${escapeHtml(note.id)}">Insert note</button></div>
+    </article>`;
+  }
+
+  function notebookCard(card) {
+    const safeUrl = safeExternalUrl(card.url);
+    const todayKey = typeof fmtDate === 'function' ? fmtDate(new Date()) : '';
+    return `<article class="composer-resource-card">
+      <div class="composer-resource-meta"><span class="resource-chip">${escapeHtml(card.type)}</span>${card.createdAt ? `<span>${escapeHtml(ageLabel(card.createdAt))}</span>` : ''}</div>
+      <div class="composer-resource-title">${escapeHtml(card.title)}</div>
+      ${card.body ? `<div class="composer-resource-preview">${escapeHtml(compact(card.body, 220))}</div>` : ''}
+      <div class="composer-resource-actions">
+        <button class="btn sm primary" type="button" data-resource-action="pin-notebook" data-resource-id="${escapeHtml(card.id)}">Pin reference</button>
+        <button class="btn sm" type="button" data-resource-action="insert-notebook" data-resource-id="${escapeHtml(card.id)}">Insert notes</button>
+        <button class="btn sm" type="button" data-resource-action="toggle-date-row" data-resource-id="${escapeHtml(card.id)}">Save to date</button>
+        ${safeUrl ? `<a class="btn sm ghost" href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener">Source ↗</a>` : ''}
+      </div>
+      <div class="resource-date-row" data-date-row style="display:none;">
+        <input type="date" class="resource-date-input" data-date-input value="${escapeHtml(todayKey)}" aria-label="Date to save this inspiration to">
+        <button class="btn sm primary" type="button" data-resource-action="save-notebook-to-date" data-resource-id="${escapeHtml(card.id)}">Save as inspiration</button>
+      </div>
+    </article>`;
+  }
+
   function renderNotebook() {
     const list = byId('composerNotebookResources');
     if (!list) return;
+    const dayNotes = resources.dayNotes.filter(note => matchesSearch(note.text, note.label));
     const items = resources.notebook.filter(card => matchesSearch(card.title, card.body, card.type));
-    if (!items.length) {
+    if (!items.length && !dayNotes.length) {
       list.innerHTML = emptyState(
         '✦',
         searchQuery ? 'No Notebook matches' : 'Your Notebook is ready when you are',
@@ -179,19 +221,13 @@ window.PostIQComposerResources = (() => {
       );
       return;
     }
-    list.innerHTML = items.map(card => {
-      const safeUrl = safeExternalUrl(card.url);
-      return `<article class="composer-resource-card">
-        <div class="composer-resource-meta"><span class="resource-chip">${escapeHtml(card.type)}</span>${card.createdAt ? `<span>${escapeHtml(ageLabel(card.createdAt))}</span>` : ''}</div>
-        <div class="composer-resource-title">${escapeHtml(card.title)}</div>
-        ${card.body ? `<div class="composer-resource-preview">${escapeHtml(compact(card.body, 220))}</div>` : ''}
-        <div class="composer-resource-actions">
-          <button class="btn sm primary" type="button" data-resource-action="pin-notebook" data-resource-id="${escapeHtml(card.id)}">Pin reference</button>
-          <button class="btn sm" type="button" data-resource-action="insert-notebook" data-resource-id="${escapeHtml(card.id)}">Insert notes</button>
-          ${safeUrl ? `<a class="btn sm ghost" href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener">Source ↗</a>` : ''}
-        </div>
-      </article>`;
-    }).join('');
+    const todayBlock = dayNotes.length
+      ? `<div class="resource-list-label">Today's notes</div>${dayNotes.map(dayNoteCard).join('')}`
+      : '';
+    const notebookBlock = items.length
+      ? `${dayNotes.length ? '<div class="resource-list-label">Notebook</div>' : ''}${items.map(notebookCard).join('')}`
+      : '';
+    list.innerHTML = `${todayBlock}${notebookBlock}`;
   }
 
   function hookTemplateCard(template) {
@@ -404,6 +440,38 @@ window.PostIQComposerResources = (() => {
       } else if (insertText([card.title, card.body].filter(Boolean).join('\n\n'))) {
         finishAction('Notebook notes inserted');
       }
+      return;
+    }
+
+    if (action === 'insert-day-note') {
+      const note = resources.dayNotes.find(item => item.id === id);
+      if (!note || !insertText(note.text)) return;
+      finishAction('Note inserted');
+      return;
+    }
+
+    if (action === 'toggle-date-row') {
+      const row = button.closest('article')?.querySelector('[data-date-row]');
+      if (row) row.style.display = row.style.display === 'none' ? '' : 'none';
+      return;
+    }
+
+    if (action === 'save-notebook-to-date') {
+      const card = resources.notebook.find(item => item.id === id);
+      const dateKey = button.closest('article')?.querySelector('[data-date-input]')?.value || '';
+      if (!card) return;
+      if (!dateKey) { window.showToast?.('Pick a date first', 'error'); return; }
+      const text = [card.title, card.body, card.url].filter(Boolean).join('\n\n');
+      if (typeof window.addNoteForDateKey !== 'function' || !window.addNoteForDateKey(dateKey, text, 'inspiration')) {
+        window.showToast?.('Could not save to the calendar', 'error');
+        return;
+      }
+      track(() => window.GA4_Ideas?.notebookCardUsed?.());
+      window.renderCalendar?.();
+      loadResources();
+      renderNotebook();
+      updateCounts();
+      window.showToast?.(`Saved as inspiration on ${dateKey}`, 'success');
       return;
     }
 

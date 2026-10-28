@@ -57,8 +57,14 @@ const DEFAULT_NOTE_TYPES = [
   { id: 'note', label: 'Note', color: '#6366f1' },
   { id: 'idea', label: 'Idea', color: '#22c55e' },
   { id: 'reminder', label: 'Reminder', color: '#f59e0b' },
-  { id: 'revision', label: 'Needs Revision', color: '#ef4444' }
+  { id: 'revision', label: 'Needs Revision', color: '#ef4444' },
+  { id: 'inspiration', label: 'Inspiration', color: '#a855f7' },
+  { id: 'action', label: 'Planned action', color: '#0ea5e9' }
 ];
+// Built-in types added after the first release. Users with a saved type list
+// receive these once (see ensureBuiltinNoteTypes in calendar.js).
+const BUILTIN_NOTE_TYPE_IDS = ['inspiration', 'action'];
+const NOTE_TYPES_BUILTINS_FLAG = 'postiqNoteTypesBuiltinsV1';
 const DEFAULT_POSTIQ_CONFIG = {
   betaMessage: "PostIQ is in public beta. Some tools may change as Buffer’s API evolves.",
   features: {
