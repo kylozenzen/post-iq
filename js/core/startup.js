@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  try { init(); applyFeatureFlags(); } catch (e) { console.error('[PostIQ] init() crashed:', e); showGlobalErrorBanner(); }
+  try { init(); applyFeatureFlags(); window.CalendarExperience?.init(); } catch (e) { console.error('[PostIQ] init() crashed:', e); showGlobalErrorBanner(); }
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(error => console.warn('[PostIQ] Service worker registration failed:', error));

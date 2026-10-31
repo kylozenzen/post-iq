@@ -11,6 +11,7 @@ function activateView(viewId, source = 'navigation') {
   if (requestedWorkspace && !workspacePreferences[requestedWorkspace]) {
     viewId = WORKSPACE_VIEWS[getFirstEnabledWorkspace(workspacePreferences)];
   }
+  if (currentViewId === 'calendarView' && viewId !== 'calendarView') window.CalendarExperience?.remember();
   if (document.body.dataset.gaReady) safeTrack(() => GA4_System.viewChanged(viewId, source));
   safeTrack(() => {
     if (viewId === 'composerView') GA4_Composer.composerOpened(source);
@@ -27,6 +28,7 @@ function activateView(viewId, source = 'navigation') {
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId));
   document.querySelectorAll('.mob-tab[data-view]').forEach(t => t.classList.toggle('active', t.dataset.view === viewId));
   if (viewId === 'homeView' && FEATURE_HOME_DASHBOARD) renderHomeView();
+  if (viewId === 'queueHealthView') window.PostIQPlanHealth?.render();
   if (viewId === 'ideasView') setIdeasTab(currentIdeasTab || 'notebook');
   window.dispatchEvent(new CustomEvent('postiq:view-changed', { detail: { viewId, source } }));
 }

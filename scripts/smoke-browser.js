@@ -15,7 +15,7 @@ class LocalResourceLoader extends ResourceLoader {
   }
 }
 
-async function loadApp(search = '') {
+async function loadApp(search = '', setup = () => {}) {
   const errors = [];
   const virtualConsole = new VirtualConsole();
   virtualConsole.on('jsdomError', error => errors.push(error.message));
@@ -38,6 +38,7 @@ async function loadApp(search = '') {
       window.CSS = window.CSS || {};
       window.CSS.escape = window.CSS.escape || (value => String(value).replace(/"/g, '\\"'));
       window.confirm = () => true;
+      setup(window);
     }
   });
 
@@ -71,7 +72,8 @@ async function run() {
   console.log('DOM smoke test passed.');
 }
 
-run().catch(error => {
+module.exports = { loadApp };
+if (require.main === module) run().catch(error => {
   console.error(error);
   process.exit(1);
 });

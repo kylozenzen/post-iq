@@ -4,6 +4,7 @@
     "@netlify/blobs": "^10.0.8"
   },
   "devDependencies": {
-    "jsdom": "27.0.0"
+    "jsdom": "27.0.0",
+    "playwright-core": "1.56.1"
   }
 }

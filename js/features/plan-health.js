@@ -1,8 +1,8 @@
 'use strict';
 
 // ── PLAN HEALTH PANEL ────────────────────────────────
-// Collapsible panel above the Plan (calendar) grid. Read-only: it never writes
-// to Buffer or to stored post data. Collapsed by default to one summary line;
+// Channel coverage details in the Queue Health tool. Read-only: it never writes
+// to Buffer or to stored post data. Expanded by default;
 // the open/closed choice is a per-browser convenience kept in localStorage.
 window.PostIQPlanHealth = (() => {
   const OPEN_KEY = 'postiqPlanHealthOpen';
@@ -14,7 +14,7 @@ window.PostIQPlanHealth = (() => {
   let bound = false;
 
   function isOpen() {
-    try { return localStorage.getItem(OPEN_KEY) === '1'; } catch { return false; }
+    try { return localStorage.getItem(OPEN_KEY) !== '0'; } catch { return false; }
   }
   function setOpen(open) {
     try { localStorage.setItem(OPEN_KEY, open ? '1' : '0'); } catch {}
@@ -66,8 +66,11 @@ window.PostIQPlanHealth = (() => {
 
   function render() {
     if (!byId('planHealthStrip')) return;
+    if (typeof detectQueueGaps === 'function') detectQueueGaps();
     bindOnce();
     const connection = (typeof getBufferConnectionState === 'function' && getBufferConnectionState()) || { connected: false };
+    const syncButton = byId('queueHealthSync');
+    if (syncButton) syncButton.textContent = connection.connected ? 'Sync now' : (connection.reconnectNeeded ? 'Reconnect Buffer' : 'Connect Buffer');
     const channels = Array.isArray(state?.channels) ? state.channels : [];
     const scheduled = Array.isArray(state?.scheduled) ? state.scheduled : [];
     const runway = window.PostIQRunway;

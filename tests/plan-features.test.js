@@ -12,8 +12,8 @@ const runtime = fs.readFileSync('js/core/runtime.js', 'utf8');
 const calendar = fs.readFileSync('js/features/calendar.js', 'utf8');
 const composer = fs.readFileSync('js/features/composer-resources.js', 'utf8');
 
-test('health strip mount point sits inside the Plan view', () => {
-  const view = html.slice(html.indexOf('id="calendarView"'), html.indexOf('<!-- Desktop header -->'));
+test('health strip lives in its own Queue Health tool', () => {
+  const view = html.slice(html.indexOf('id="queueHealthView"'), html.indexOf('<!-- ══════════ COMPOSE'));
   assert.match(view, /id="planHealthStrip"/);
 });
 
@@ -41,7 +41,7 @@ test('built-in note types are merged once for saved lists', () => {
 });
 
 test('planned actions expose draft and done controls only for action notes', () => {
-  assert.match(calendar, /const isAction = meta\.id === 'action'/);
+  assert.match(calendar, /const isAction = isActionNote\(n\)/);
   assert.match(calendar, /data-draft-note=/);
   assert.match(calendar, /data-toggle-done=/);
 });

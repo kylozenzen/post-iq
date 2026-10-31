@@ -64,7 +64,7 @@
   }
 
   function scheduledDates(content) {
-    return [...new Set(variants(content).map(variant => variant.dueAt).filter(Boolean).map(value => String(value).slice(0, 10)))].sort();
+    return [...new Set(variants(content).map(variant => variant.dueAt).filter(Boolean).map(value => window.PostIQCoverage?.dayKey(value) || String(value).slice(0, 10)))].sort();
   }
   function calendarEntry(content) {
     const dates = scheduledDates(content);

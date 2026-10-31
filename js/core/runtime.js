@@ -136,7 +136,7 @@ const state = {
   editingNoteId: null,
   calendarFilter: 'all',
   syncState: 'idle',
-  calendarView: localStorage.getItem(CALENDAR_VIEW_KEY) === 'week' ? 'week' : 'month',
+  calendarView: ['week','agenda'].includes(localStorage.getItem(CALENDAR_VIEW_KEY)) ? localStorage.getItem(CALENDAR_VIEW_KEY) : 'month',
   templates: [],
   templateType: 'All',
   templatePlatform: 'All Platforms',
@@ -250,7 +250,7 @@ function getWorkspaceForView(viewId) {
 }
 
 function syncNavSectionVisibility() {
-  const hasVisibleTools = Array.from(document.querySelectorAll('[data-feature="library"], [data-feature="pulse"]'))
+  const hasVisibleTools = Array.from(document.querySelectorAll('[data-feature="library"], [data-feature="pulse"], [data-view="queueHealthView"]'))
     .some(el => !el.hidden && el.style.display !== 'none');
   document.querySelectorAll('[data-tools-section]').forEach(el => {
     el.hidden = !hasVisibleTools;
@@ -458,6 +458,7 @@ function applyInternalFeatureFlags() {
 }
 
 function getFeatureForView(viewId) {
+  if (viewId === 'queueHealthView') return 'calendar';
   return Object.keys(FEATURE_VIEWS).find(feature => FEATURE_VIEWS[feature] === viewId) || null;
 }
 
