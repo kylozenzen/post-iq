@@ -24,9 +24,9 @@ test('consecutive days from tomorrow, stopping at the first gap', () => {
   assert.equal(runway.computeRunway(posts, { now }), 5);
 });
 
-test('a second channel covering the gap extends the account runway', () => {
+test('account runway is the weakest channel, not the union', () => {
   const posts = [1, 2, 3, 4, 5].map(d => at(d, 12, 'li')).concat([at(6, 12, 'th')]);
-  assert.equal(runway.computeRunway(posts, { now }), 6);
+  assert.equal(runway.computeRunway(posts, { now }), 0);
 });
 
 test('per-channel runway stops at that channels own gap', () => {

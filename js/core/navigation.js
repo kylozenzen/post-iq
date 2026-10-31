@@ -88,19 +88,20 @@ function getScheduledPostsForRange(startDate, endDate) {
   });
 }
 function getQueueHealth(posts = []) {
-  const now = new Date();
-  const settings = getPlanningSettings();
-  const next7 = getScheduledPostsForRange(now, new Date(now.getTime() + 7 * 86400000));
-  const byDay = new Set(next7.map(p => fmtDate(new Date(p.due_at || p.dueAt || p.scheduled_at || p.scheduledAt))));
-  const activeChannels = new Set(next7.map(p => String(p.service || p.channel_service || p.channel_id || p.channel || 'Unknown')));
-  const weekGaps = (settings.postingDays || []).filter(code => {
-    const idx = DAY_CODES.indexOf(code);
-    if (idx < 0) return false;
-    const d = new Date(now);
-    d.setDate(now.getDate() + ((idx - now.getDay() + 7) % 7));
-    return !byDay.has(fmtDate(d));
+  const coverage = getQueueCoverage(7);
+  const required = coverage.rows.filter(r => r.status !== 'off');
+  const confirmed = required.filter(r => r.status === 'scheduled');
+  const dates = new Set(coverage.rows.map(r=>r.date));
+  const fullyCovered = [...dates].filter(date => {
+    const rows = required.filter(r=>r.date===date);
+    return rows.length && rows.every(r=>r.status==='scheduled');
   });
-  return { next7, byDayCount: byDay.size, weekGaps, activeChannelsCount: activeChannels.size };
+  const next7 = posts.filter(p => dates.has(window.PostIQCoverage.dayKey(p.dueAt || p.due_at)));
+  const weekGaps = required.filter(r=>r.status==='gap').map(r=>`${r.date} · ${state.channels.find(c=>String(c.id)===r.channelId)?.displayName || r.channelId}`);
+  return {next7,byDayCount:fullyCovered.length,weekGaps,activeChannelsCount:new Set(confirmed.map(r=>r.channelId)).size,
+    uncertain:required.some(r=>['stale','incomplete','disconnected'].includes(r.status)),
+    coveragePct:required.length ? Math.round(100*confirmed.length/required.length) : 0};
+
 }
 function getNext72HoursPosts(posts = []) {
   const now = new Date();
@@ -152,14 +153,14 @@ async function renderHomeView() {
   const q = d.queue || { next7: [], byDayCount: 0, weekGaps: [], activeChannelsCount: 0 };
   const syncedText = qs('lastSynced')?.textContent?.trim();
   const isConnectedNoData = d.connected && !d.hasScheduledPosts;
-  const coveragePct = Math.max(0, Math.min(100, Math.round(((q.byDayCount || 0) / 7) * 100)));
+  const coveragePct = q.coveragePct || 0;
 
   const welcome = qs('homeWelcomeCard');
   if (welcome) welcome.innerHTML = `<div class="home-kicker">Command Center</div><div class="home-title">${safeText(getGreetingLabel())}${d.displayName && d.displayName !== 'there' ? `, ${safeText(d.displayName)}` : ''}.</div><div class="home-copy">${d.connected ? (isConnectedNoData ? 'Connected. Click Sync now to load Buffer posts.' : 'Here’s what’s happening in your content queue.') : 'Connect Buffer to unlock your dashboard.'}</div><div class="home-status-pills"><span class="home-status-pill ${d.connected ? 'connected' : 'offline'}">${d.connected ? 'Connected' : (d.reconnectNeeded ? 'Reconnect needed' : 'Not connected')}</span><span class="home-status-pill">${q.next7?.length || 0} scheduled</span><span class="home-status-pill ${q.weekGaps?.length ? 'gap' : ''}">${q.weekGaps?.length || 0} gaps</span><span class="home-status-pill">${q.activeChannelsCount || 0} channels</span>${syncedText ? `<span class="home-status-pill">${safeText(syncedText)}</span>` : ''}</div><div class="home-actions-row"><button class="btn sm primary" id="homeSyncBtn">${d.connected ? '↻ Sync now' : (d.reconnectNeeded ? 'Reconnect Buffer' : 'Sign in with Buffer')}</button></div>`;
 
-  const gapSummary = q.weekGaps?.length ? `Coverage needs attention: ${q.weekGaps.map(code => DAY_LABELS[DAY_CODES.indexOf(code)]).join(', ')} currently look open.` : 'Nice work — no configured posting-day gaps this week.';
+  const gapSummary = q.uncertain ? 'Sync is incomplete or stale; coverage is uncertain.' : q.weekGaps?.length ? `Coverage needs attention: ${q.weekGaps.map(safeText).join(', ')} currently look open.` : 'Nice work — no configured posting-day gaps this week.';
   const qh = qs('homeQueueHealth');
-  if (qh) qh.innerHTML = `<div class="home-kicker">Queue Health</div><div class="home-title">Current week snapshot</div><div class="home-copy">${!d.connected ? 'Connect Buffer to see your queue health.' : (isConnectedNoData ? 'Click Sync now to load Buffer posts.' : gapSummary)}</div><div class="home-stat-grid"><div class="home-stat"><div class="home-stat-num">${q.next7?.length || 0}</div><div class="home-stat-lbl">Scheduled</div></div><div class="home-stat"><div class="home-stat-num">${q.byDayCount || 0}</div><div class="home-stat-lbl">Days covered</div></div><div class="home-stat"><div class="home-stat-num">${q.weekGaps?.length || 0}</div><div class="home-stat-lbl">Gaps this week</div></div><div class="home-stat"><div class="home-stat-num">${q.activeChannelsCount || 0}</div><div class="home-stat-lbl">Channels</div></div></div><div class="home-coverage-wrap"><div class="home-item-meta">Coverage ${coveragePct}%</div><div class="home-coverage-bar"><span style="width:${coveragePct}%"></span></div></div>`;
+  if (qh) qh.innerHTML = `<div class="home-kicker">Queue Health</div><div class="home-title">Current week snapshot</div><div class="home-copy">${!d.connected ? 'Connect Buffer to see your queue health.' : (isConnectedNoData ? 'Click Sync now to load Buffer posts.' : gapSummary)}</div><div class="home-stat-grid"><div class="home-stat"><div class="home-stat-num">${q.next7?.length || 0}</div><div class="home-stat-lbl">Scheduled</div></div><div class="home-stat"><div class="home-stat-num">${q.byDayCount || 0}</div><div class="home-stat-lbl">Days covered</div></div><div class="home-stat"><div class="home-stat-num">${q.weekGaps?.length || 0}</div><div class="home-stat-lbl">Gaps this week</div></div><div class="home-stat"><div class="home-stat-num">${q.activeChannelsCount || 0}</div><div class="home-stat-lbl">Channels</div></div></div><div class="home-coverage-wrap"><div class="home-item-meta">Coverage ${coveragePct}% of required channel-days (off days excluded)</div><div class="home-coverage-bar"><span style="width:${coveragePct}%"></span></div></div>`;
 
   const next = qs('homeNext72');
   const nextItems = (d.next72 || []).slice(0, 5);

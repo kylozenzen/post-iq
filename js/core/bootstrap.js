@@ -8,13 +8,29 @@ function renderPlanningSettings() {
   const settings = getPlanningSettings();
   show.checked = settings.showQueueGaps;
   daysWrap.innerHTML = DAY_CODES.map((code, idx) => `<label class="settings-check"><input type="checkbox" data-posting-day="${code}" ${settings.postingDays.includes(code) ? 'checked' : ''} /> ${DAY_LABELS[idx]}</label>`).join('');
+  (state.channels || []).forEach(channel => {
+    const row = document.createElement('div');
+    const label = document.createElement('strong'); label.textContent = channel.displayName || channel.name || channel.id; row.appendChild(label);
+    DAY_CODES.forEach(code => {
+      const item = document.createElement('label'), input = document.createElement('input'); input.type = 'checkbox'; input.dataset.channelCadence = channel.id; input.dataset.cadenceDay = code;
+      input.checked = (settings.channelPostingDays[channel.id] ?? settings.postingDays).includes(code);
+      item.append(input, document.createTextNode(code)); row.appendChild(item);
+    }); daysWrap.appendChild(row);
+  });
 }
 function savePlanningSettingsFromUI() {
   const show = qs('showQueueGapsSetting');
   const postingDays = [...document.querySelectorAll('[data-posting-day]')].filter(i => i.checked).map(i => i.dataset.postingDay);
-  const next = { showQueueGaps: !!show?.checked, postingDays: postingDays.length ? postingDays : DEFAULT_PLANNING_SETTINGS.postingDays };
+  const next = { ...getPlanningSettings(), showQueueGaps: !!show?.checked, postingDays };
+  const groups = new Map();
+  document.querySelectorAll('[data-channel-cadence]').forEach(input => {
+    if (!groups.has(input.dataset.channelCadence)) groups.set(input.dataset.channelCadence, []);
+    if (input.checked) groups.get(input.dataset.channelCadence).push(input.dataset.cadenceDay);
+  });
+  groups.forEach((days,id) => { next.channelPostingDays[id] = days; });
   setPlanningSettings(next);
   detectQueueGaps();
+  window.PostIQPlanHealth?.render();
 }
 function renderNoteTypesSettings() {
   const wrap = qs('noteTypesSettings'); if (!wrap) return;

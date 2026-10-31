@@ -38,7 +38,7 @@ window.PostIQPlanHealth = (() => {
       const days = runways[id] ?? 0;
       const status = window.PostIQRunway.classifyRunway(days);
       const label = channel.displayName || channel.name || channel.service || 'Channel';
-      const copy = status === 'empty' ? 'Empty queue'
+      const copy = status === 'empty' ? 'No confirmed runway'
         : status === 'low' ? `Low: ${plural(days, 'day')} covered`
         : `Healthy: ${plural(days, 'day')} covered`;
       return { label, status, copy };
@@ -85,9 +85,9 @@ window.PostIQPlanHealth = (() => {
       return;
     }
 
-    const now = new Date();
-    const runways = runway.computeChannelRunways(scheduled, channels.map(c => String(c.id)), { now });
-    const accountRunway = runway.computeRunway(scheduled, { now });
+    const coverage = getQueueCoverage();
+    const runways = Object.fromEntries(channels.map(c => [String(c.id), window.PostIQCoverage.runway(coverage.rows, c.id)]));
+    const accountRunway = Math.min(...Object.values(runways));
     const rows = channelRows(runways, channels);
     const attention = rows.filter(r => r.status !== 'healthy').length;
     const open = isOpen();
@@ -95,6 +95,7 @@ window.PostIQPlanHealth = (() => {
     const summary = attention
       ? `${plural(attention, 'channel')} need${attention === 1 ? 's' : ''} attention`
       : 'All channels covered';
+    const dataNote = coverage.rows.some(r => ['incomplete','stale'].includes(r.status)) ? 'Coverage uncertain: incomplete or stale sync. ' : '';
     const breakPrompt = accountRunway >= runway.RUNWAY_BREAK_THRESHOLD_DAYS
       ? `<div class="plan-health-break">${plural(accountRunway, 'day')} queued across your channels. A break is fine.</div>` : '';
     const warning = tokenWarning();
@@ -103,7 +104,7 @@ window.PostIQPlanHealth = (() => {
     setStrip(`<div class="plan-health-card${open ? ' is-open' : ''}">
       <button type="button" class="plan-health-toggle" data-health-toggle aria-expanded="${open}" aria-controls="planHealthBody">
         <span class="plan-health-title">Channel health</span>
-        <span class="plan-health-summary">${esc(summary)} · Runway ${plural(accountRunway, 'day')}</span>
+        <span class="plan-health-summary">${esc(dataNote)}${esc(summary)} · Runway ${plural(accountRunway, 'day')}</span>
         <span class="plan-health-chevron" aria-hidden="true">${open ? '▴' : '▾'}</span>
       </button>
       <div id="planHealthBody" class="plan-health-body" ${open ? '' : 'hidden'}>
@@ -114,7 +115,7 @@ window.PostIQPlanHealth = (() => {
             <span class="plan-health-copy">${esc(r.copy)}</span>
           </li>`).join('')}
         </ul>
-        ${breakPrompt}${tokenLine}
+        <div class="plan-health-note">Timezone: ${esc(coverage.timezone)}. Runway counts consecutive required posting days from tomorrow, skipping intentional off days. Summary is the minimum across channels; unknown days stop the count. Sync freshness: ${coverage.stale ? 'stale' : 'current or unknown'}.</div>${breakPrompt}${tokenLine}
       </div>
     </div>`);
   }

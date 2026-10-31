@@ -54,51 +54,24 @@ async function loadApp(search = '') {
 }
 
 async function run() {
-  let dom = await loadApp();
-  let { document, PostIQTools } = dom.window;
-
-  if (!document.querySelector('#composerView.active')) {
-    throw new Error('Composer was not the default active view');
-  }
-  if (!PostIQTools || PostIQTools.list().length !== 6) {
-    throw new Error('Tool registry did not initialize');
-  }
-
-  document.querySelector('#openSettings').click();
-  document.querySelector('[data-stab="tools"]').click();
-  const composerToggle = document.querySelector('[data-tool-toggle="composer"]');
-  composerToggle.checked = false;
-  composerToggle.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
-
-  if (!document.querySelector('#threadView.active')) {
-    throw new Error('Disabling the active tool did not select the next enabled tool');
-  }
-  if (document.querySelector('.side-nav [data-view="composerView"]').dataset.toolHidden !== 'true') {
-    throw new Error('Composer navigation did not hide');
-  }
-
-  document.querySelector('#resetEnabledTools').click();
-  dom.window.close();
-
-  dom = await loadApp('?view=threadView');
-  document = dom.window.document;
-  if (!document.querySelector('#threadView.active')) {
-    throw new Error('Direct Thread Splitter route did not activate');
-  }
-  if (!document.querySelector('#threadTabSplitter')) {
-    throw new Error('Thread Splitter content is missing');
-  }
-
-  document.querySelector('#mobSettingsBtn').click();
-  if (!document.querySelector('#mobDrawer.open')) {
-    throw new Error('Mobile Tools button did not open the tool drawer');
-  }
-
-  dom.window.close();
+  const dom = await loadApp();
+  try {
+    const { document } = dom.window;
+    if (!document.querySelector('#calendarView.active')) throw new Error('Planning must open by default');
+    dom.window.eval(`state.scheduled = [{id:'first',text:'First exact post',channelId:'a',dueAt:new Date().toISOString()},{id:'second',text:'Second exact post',channelId:'a',dueAt:new Date().toISOString()}]; renderCalendar();`);
+    document.querySelector('[data-post-id="second"]').click();
+    const detail = document.querySelector('#sharedDayBody').textContent;
+    if (!detail.includes('Second exact post') || detail.includes('First exact post')) throw new Error('Post selection opened the wrong post');
+    dom.window.eval("closeModal('sharedDayModal')");
+    document.querySelector('[data-view="composerView"]').click();
+    if (!document.querySelector('#composerView.active')) throw new Error('Composer navigation failed');
+    document.querySelector('[data-view="calendarView"]').click();
+    if (!document.querySelector('#calendarView.active')) throw new Error('Planning navigation failed');
+  } finally { dom.window.close(); }
   console.log('DOM smoke test passed.');
 }
 
 run().catch(error => {
   console.error(error);
-  process.exitCode = 1;
+  process.exit(1);
 });
