@@ -136,7 +136,7 @@ const state = {
   editingNoteId: null,
   calendarFilter: 'all',
   syncState: 'idle',
-  calendarView: localStorage.getItem(CALENDAR_VIEW_KEY) === 'week' ? 'week' : 'month',
+  calendarView: ['week','agenda'].includes(localStorage.getItem(CALENDAR_VIEW_KEY)) ? localStorage.getItem(CALENDAR_VIEW_KEY) : 'month',
   templates: [],
   templateType: 'All',
   templatePlatform: 'All Platforms',

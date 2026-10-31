@@ -96,7 +96,9 @@ function init() {
   workspacePreferences = getWorkspacePreferences();
   renderWorkspacePreferences();
   applyInternalFeatureFlags();
-  activateView(WORKSPACE_VIEWS[getFirstEnabledWorkspace(workspacePreferences)]);
+  const destination = new URLSearchParams(location.search).get('view');
+  const validDestination = destination && document.getElementById(destination)?.classList.contains('view');
+  activateView(validDestination ? destination : WORKSPACE_VIEWS[getFirstEnabledWorkspace(workspacePreferences)]);
 
   document.querySelectorAll('[data-workspace-toggle]').forEach(input => {
     input.addEventListener('change', () => setWorkspacePreference(input.dataset.workspaceToggle, input.checked));
@@ -219,8 +221,8 @@ function init() {
     tabBtn.onclick = () => setIdeasTab(tabBtn.dataset.ideasTab);
   });
 
-  on('prevMonth', 'click', () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() - 1, 1); renderCalendar(); detectQueueGaps(); });
-  on('nextMonth', 'click', () => { state.month = new Date(state.month.getFullYear(), state.month.getMonth() + 1, 1); renderCalendar(); detectQueueGaps(); });
+  on('prevMonth', 'click', () => { shiftCalendarRange(-1); renderCalendar(); detectQueueGaps(); });
+  on('nextMonth', 'click', () => { shiftCalendarRange(1); renderCalendar(); detectQueueGaps(); });
   on('todayMonth', 'click', () => { state.month = new Date(); renderCalendar(); detectQueueGaps(); });
   on('closeNote', 'click', () => { closeModal('noteModal'); resetNoteForm(); });
   const closeShared = qs('closeSharedDay'); if (closeShared) closeShared.onclick = () => closeModal('sharedDayModal');
@@ -233,7 +235,7 @@ function init() {
   const shareRangeInput = qs('shareRange'); if (shareRangeInput) shareRangeInput.onchange = markShareNeedsRefresh;
   const shareTitleInput = qs('shareCustomTitle'); if (shareTitleInput) shareTitleInput.oninput = markShareNeedsRefresh;
   const shareNoteInput = qs('shareNote'); if (shareNoteInput) shareNoteInput.oninput = markShareNeedsRefresh;
-  const calendarFilter = qs('calendarFilter'); if (calendarFilter) calendarFilter.onchange = e => { state.calendarFilter = e.target.value || 'all'; renderCalendar(); };
+  const calendarFilter = qs('calendarFilter'); if (calendarFilter) calendarFilter.onchange = e => { const mode = e.target.value === 'content' ? 'content' : 'posts'; if(mode === 'posts') state.calendarFilter = e.target.value || 'all'; setContentCalendarMode(mode); };
   const showQueue = qs('showQueueGapsSetting'); if (showQueue) showQueue.onchange = savePlanningSettingsFromUI;
   const postingDays = qs('postingDaysSettings'); if (postingDays) postingDays.addEventListener('change', savePlanningSettingsFromUI);
   const noteTypesWrap = qs('noteTypesSettings'); if (noteTypesWrap) {
@@ -372,8 +374,8 @@ function init() {
   });
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
-    const open = [...document.querySelectorAll('.modal.open')];
-    if (open.length) closeModal(open[open.length - 1].id);
+    const modal = getTopOpenModal();
+    if (modal) closeModal(modal.id);
   });
 
   function openMobDrawer() {
@@ -391,6 +393,7 @@ function init() {
     document.body.style.overflow = '';
   }
   on('mobBackdrop', 'click', closeMobDrawer);
+  qs('mobDrawer')?.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',closeMobDrawer));
   ['mobMenuBtn','mobMenuBtnDraft','mobMenuBtnApprovals'].forEach(id => {
     const btn = qs(id); if (btn) btn.onclick = openMobDrawer;
   });

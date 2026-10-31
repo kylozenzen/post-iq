@@ -122,7 +122,8 @@ function renderNoteTypeOptions(selectedId) {
 function calendarFilterAllowsPosts(filter = state.calendarFilter) { return filter === 'all' || filter === 'posts'; }
 function calendarFilterNotes(notes, filter = state.calendarFilter) {
   const list = Array.isArray(notes) ? notes : [];
-  if (filter === 'posts') return [];
+  if (filter === 'posts' || filter === 'targets') return [];
+  if (filter === 'tasks') return list.filter(isActionNote);
   if (filter === 'all' || filter === 'notes') return list;
   if (String(filter).startsWith('type:')) {
     const typeId = String(filter).slice(5);
@@ -132,15 +133,18 @@ function calendarFilterNotes(notes, filter = state.calendarFilter) {
 }
 function renderCalendarFilter() {
   const sel = qs('calendarFilter'); if (!sel) return;
-  const current = state.calendarFilter || 'all';
+  const current = isContentCalendarMode() ? 'content' : state.calendarFilter || 'all';
   const options = [
     { value: 'all', label: 'All' },
     { value: 'posts', label: 'Posts only' },
-    { value: 'notes', label: 'Notes only' },
+    { value: 'notes', label: 'Notes & actions' },
+    { value: 'tasks', label: 'Actions only' },
+    { value: 'targets', label: 'Content targets' },
+    { value: 'content', label: 'Content items' },
     ...getNoteTypes().map(t => ({ value: `type:${t.id}`, label: t.label }))
   ];
   const selected = options.some(o => o.value === current) ? current : 'all';
-  if (selected !== current) state.calendarFilter = selected;
+  if (selected !== current && selected !== 'content') state.calendarFilter = selected;
   sel.innerHTML = options.map(o => `<option value="${safeText(o.value)}" ${o.value === selected ? 'selected' : ''}>${safeText(o.label)}</option>`).join('');
 }
 function mediaUrlsFromAssets(assets) {
@@ -214,11 +218,22 @@ function snapshotPostPayload(p) {
 }
 
 function isContentCalendarMode() { return localStorage.getItem('postiq_content_calendar_mode') === 'content' && window.ContentItems?.enabled?.() !== false; }
-function contentCalendarEntries() { return (window.Notebook?.getCards?.() || []).map(window.ContentModel.calendarEntry).filter(entry => entry.date); }
+function contentCalendarEntries() { return (window.Notebook?.getCards?.() || []).map(window.ContentModel.calendarEntry).filter(entry => entry.date && (!state.calendarChannel || (entry.content.variants || []).some(v => String(v.channelId) === state.calendarChannel))); }
+function isConfirmedContentEntry(entry) { return (entry.variants || []).some(v => window.ContentModel.postId(v) && v.dueAt); }
+function calendarTargetsForDate(key) {
+  if (!['all','targets'].includes(state.calendarFilter || 'all')) return [];
+  return contentCalendarEntries().filter(entry => entry.date === key && !isConfirmedContentEntry(entry));
+}
+function isActionNote(note) { return ['action','task'].includes(getNoteTypeMeta(note).id) || !!note.action; }
+function bindCalendarDate(root,date) {
+  root.dataset.calendarDate=fmtDate(date); root.tabIndex=0;
+  root.setAttribute('role','group'); root.setAttribute('aria-label',`Plans for ${formatDateOnly(fmtDate(date))}`);
+  root.addEventListener('keydown',event=>{if(event.target===root && (event.key==='Enter' || event.key===' ')){event.preventDefault();openCalendarDayDetails(date);}});
+}
 function contentCalendarPill(entry) {
   const services = [...new Set(entry.variants.map(variant => variant.service || variant.channelName).filter(Boolean))];
   const range = entry.dates.length > 1 ? `${entry.dates[0].slice(5)}–${entry.dateEnd.slice(5)}` : '';
-  return `<button class="day-post-pill content-calendar-pill" type="button" data-calendar-content="${safeText(entry.content.id)}"><span class="day-post-copy"><strong>${safeText(compact(entry.content.title, 55))}</strong><small>${safeText(services.join(' · ') || 'Source')}${range ? ` · ${safeText(range)}` : ''}</small></span><span class="content-status status-${safeText(entry.lifecycle)}">${safeText(entry.lifecycle)}</span></button>`;
+  return `<button class="day-post-pill content-calendar-pill" type="button" data-calendar-content="${safeText(entry.content.id)}"><span class="day-post-copy"><strong>${safeText(compact(entry.content.title, 55))}</strong><small>${safeText(services.join(' · ') || 'Source')}${range ? ` · ${safeText(range)}` : ''}</small></span><span class="content-status status-${safeText(entry.lifecycle)}">${isConfirmedContentEntry(entry) ? 'Buffer linked' : '◇ Target · not scheduled'}</span></button>`;
 }
 function bindContentCalendar(root) {
   root.querySelectorAll('[data-calendar-content]').forEach(button => button.addEventListener('click', event => { event.stopPropagation(); window.ContentDetail?.open(button.dataset.calendarContent, 'calendarView'); try { window.GA4?.track('content_calendar_item_opened', {}); } catch {} }));
@@ -231,10 +246,11 @@ function renderContentCalendar() {
   for (let i = 0; i < 42; i++) {
     const date = new Date(start); date.setDate(start.getDate() + i); const key = fmtDate(date); const items = entries.filter(entry => entry.date === key);
     const day = document.createElement('div'); day.className = `cal-day${date.getMonth() === state.month.getMonth() ? '' : ' other-month'}${key === today ? ' today' : ''}${items.length ? ' has-posts' : ''}`;
-    day.innerHTML = `<div class="day-header"><div class="day-num">${date.getDate()}</div></div>${items.slice(0, 2).map(contentCalendarPill).join('')}${items.length > 2 ? `<div class="more-indicator">+${items.length - 2} more</div>` : ''}`; bindContentCalendar(day); grid.appendChild(day);
+    day.innerHTML = `<div class="day-header"><div class="day-num">${date.getDate()}</div></div>${items.slice(0, 2).map(contentCalendarPill).join('')}${items.length > 2 ? `<div class="more-indicator">+${items.length - 2} more</div>` : ''}`; bindContentCalendar(day); bindCalendarDate(day,date); day.onclick=event=>{if(!event.target.closest('button'))openCalendarDayDetails(date);}; grid.appendChild(day);
   }
-  const startWeek = weekStart(state.month); for (let i = 0; i < 7; i++) { const date = new Date(startWeek); date.setDate(startWeek.getDate() + i); const key = fmtDate(date); const items = entries.filter(entry => entry.date === key); const day = document.createElement('div'); day.className = 'cal-week-day'; day.innerHTML = `<div class="cal-week-day-title"><strong>${date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</strong></div>${items.map(contentCalendarPill).join('') || '<div class="cal-week-empty">No planned content</div>'}`; bindContentCalendar(day); week.appendChild(day); }
-  qs('calendarFilter').style.display = 'none'; qs('gapsPanel').style.display = 'none'; qs('calDesc').textContent = 'Plan each logical piece of content once, across all of its channel versions.';
+  const startWeek = weekStart(state.month); for (let i = 0; i < 7; i++) { const date = new Date(startWeek); date.setDate(startWeek.getDate() + i); const key = fmtDate(date); const items = entries.filter(entry => entry.date === key); const day = document.createElement('div'); day.className = 'cal-week-day'; day.innerHTML = `<div class="cal-week-day-title"><strong>${date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</strong></div>${items.map(contentCalendarPill).join('') || '<div class="cal-week-empty">No planned content</div>'}`; bindContentCalendar(day); bindCalendarDate(day,date); day.onclick=event=>{if(!event.target.closest('button'))openCalendarDayDetails(date);}; week.appendChild(day); }
+  renderAgenda();
+  renderCalendarFilter(); window.CalendarExperience?.renderChannelFilter(); window.CalendarExperience?.status(); qs('calendarFilter').style.removeProperty('display'); qs('gapsPanel').style.display = 'none'; qs('calDesc').textContent = 'Plan each logical piece of content once, across all of its channel versions.';
   qs('calendarPostsModeBtn')?.classList.remove('active'); qs('calendarContentModeBtn')?.classList.add('active');
   updateCalendarViewUI();
 }
@@ -256,6 +272,8 @@ function renderCalendarView() {
   qs('calendarPostsModeBtn')?.classList.add('active'); qs('calendarContentModeBtn')?.classList.remove('active');
   qs('monthLabel').textContent = monthLabel(state.month);
   renderCalendarFilter();
+  window.CalendarExperience?.renderChannelFilter();
+  window.CalendarExperience?.status();
   const grid = qs('calGrid'); grid.innerHTML = '';
   const week = qs('calWeek'); if (week) week.innerHTML = '';
   const first = monthStart(state.month);
@@ -280,19 +298,22 @@ function renderCalendarView() {
     if (dayNotes.length) cls += ' has-notes';
     day.className = cls;
 
-    let html = `<div class="day-header"><div class="day-num">${d.getDate()}</div><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add note for ${safeText(formatDateWithYear(d))}">+</button></div>`;
+    let html = `<div class="day-header"><div class="day-num">${d.getDate()}</div><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add plan for ${safeText(formatDateWithYear(d))}">+</button></div>`;
     if (dayPosts.length) html += `<div class="day-count">${dayPosts.length}</div>`;
     dayPosts.slice(0, 2).forEach(p => { html += calendarPostPillHtml(p, 'data-post-detail', key, 60); });
     if (dayPosts.length > 2) html += `<div class="more-indicator">+${dayPosts.length - 2} more</div>`;
-    dayNotes.slice(0, 2).forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="day-note-pill" data-note-detail="${safeText(note.id)}" style="${notePillStyle(meta)}" aria-label="Edit note for ${safeText(formatDateWithYear(d))}">${safeText(compact(note.text, 50))}</button>`; });
+    dayNotes.slice(0, 2).forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="day-note-pill${isActionNote(note) ? ' is-action' : ''}" data-note-detail="${safeText(note.id)}" style="${notePillStyle(meta)}" aria-label="Edit note for ${safeText(formatDateWithYear(d))}">${isActionNote(note) ? '□ ' : '✎ '}${safeText(compact(note.text, 50))}</button>`; });
     if (dayNotes.length > 2) html += `<div class="more-indicator">+${dayNotes.length - 2} notes</div>`;
     if (key >= fmtDate(new Date())) {
       const daily = window.PostIQCoverage.calculate({ posts:state.scheduled, channels:state.channels, settings:getPlanningSettings(), now:d, days:1, connected:getBufferConnectionState().connected, meta:state.scheduledCoverage });
       html += `<div class="day-coverage" style="font-size:10px;color:var(--subtle)">${daily.rows.map(row => { const channel=state.channels.find(c=>String(c.id)===row.channelId); return `${safeText(channel?.displayName || channel?.name || row.channelId)}: ${row.status === 'off' ? 'non-posting day' : row.status}`; }).join('<br>')}</div>`;
     }
+    html += calendarTargetsForDate(key).map(contentCalendarPill).join('');
     day.innerHTML = html;
+    bindContentCalendar(day);
+    bindCalendarDate(day,d);
     day.querySelectorAll('[data-add-note-date]').forEach(el => {
-      el.addEventListener('click', ev => { ev.stopPropagation(); openNewNoteForDate(d); });
+      el.addEventListener('click', ev => { ev.stopPropagation(); window.CalendarExperience ? window.CalendarExperience.add(key) : openNewNoteForDate(d); });
     });
     day.querySelectorAll('[data-post-detail]').forEach(el => {
       el.addEventListener('click', ev => { ev.stopPropagation(); openCalendarPostDetails(key, allDayPosts.filter(p => String(p.id) === el.dataset.postId), []); });
@@ -329,11 +350,14 @@ function renderWeekView() {
     const dayNotes = calendarFilterNotes(allDayNotes);
     const card = document.createElement('div');
     card.className = `cal-week-day${key === fmtDate(new Date()) ? ' today' : ''}${dayPosts.length ? ' has-posts' : ''}`;
-    let html = `<div class="cal-week-day-title"><span class="cal-week-day-name">${d.toLocaleDateString(undefined,{ weekday:'short'})}</span><div class="cal-week-day-title-right"><strong class="cal-week-day-date">${d.toLocaleDateString(undefined,{ month:'short', day:'numeric'})}</strong><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add note for ${safeText(formatDateWithYear(d))}">+</button></div></div><div class="cal-week-day-summary">${dayPosts.length ? plannerDaySummary(dayPosts) : 'Open day'}${dayNotes.length ? ` · ${dayNotes.length} note${dayNotes.length === 1 ? '' : 's'}` : ''}</div>`;
+    let html = `<div class="cal-week-day-title"><span class="cal-week-day-name">${d.toLocaleDateString(undefined,{ weekday:'short'})}</span><div class="cal-week-day-title-right"><strong class="cal-week-day-date">${d.toLocaleDateString(undefined,{ month:'short', day:'numeric'})}</strong><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add plan for ${safeText(formatDateWithYear(d))}">+</button></div></div><div class="cal-week-day-summary">${dayPosts.length ? plannerDaySummary(dayPosts) : 'No loaded posts'}${dayNotes.length ? ` · ${dayNotes.length} note${dayNotes.length === 1 ? '' : 's'}` : ''}</div>`;
     if (!dayPosts.length && !dayNotes.length) html += `<div class="cal-week-empty">No loaded posts or notes</div>`;
     dayPosts.forEach(p => { html += calendarPostPillHtml(p, 'data-week-post', key, 110); });
-    dayNotes.forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="day-note-pill" data-week-note="${safeText(note.id)}" style="${notePillStyle(meta)}">${safeText(compact(note.text, 70))}</button>`; });
+    dayNotes.forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="day-note-pill${isActionNote(note) ? ' is-action' : ''}" data-week-note="${safeText(note.id)}" style="${notePillStyle(meta)}">${isActionNote(note) ? '□ ' : '✎ '}${safeText(compact(note.text, 70))}</button>`; });
+    html += calendarTargetsForDate(key).map(contentCalendarPill).join('');
     card.innerHTML = html;
+    bindContentCalendar(card);
+    bindCalendarDate(card,d);
     card.querySelectorAll('[data-week-post]').forEach(el => el.addEventListener('click', ev => { ev.stopPropagation(); openCalendarPostDetails(key, allDayPosts.filter(p => String(p.id) === el.dataset.postId), []); }));
     card.querySelectorAll('[data-week-note]').forEach(el => el.addEventListener('click', ev => { ev.stopPropagation(); openEditNoteForDate(d, el.dataset.weekNote); }));
     card.onclick = () => openCalendarDayDetails(d);
@@ -342,7 +366,7 @@ function renderWeekView() {
     card.querySelectorAll('[data-add-note-date]').forEach(el => {
       el.addEventListener('click', ev => {
         ev.stopPropagation();
-        openNewNoteForDate(d);
+        window.CalendarExperience ? window.CalendarExperience.add(key) : openNewNoteForDate(d);
       });
     });
 
@@ -351,23 +375,36 @@ function renderWeekView() {
   on('prevWeek', 'click', () => { state.month = new Date(start.getFullYear(), start.getMonth(), start.getDate() - 7); renderCalendar(); detectQueueGaps(); });
   on('nextWeek', 'click', () => { state.month = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 7); renderCalendar(); detectQueueGaps(); });
 }
+function shiftCalendarRange(direction) {
+  state.month = (state.calendarView !== 'month' || window.CalendarExperience?.narrow())
+    ? new Date(state.month.getFullYear(), state.month.getMonth(), state.month.getDate()+7*direction)
+    : new Date(state.month.getFullYear(), state.month.getMonth()+direction, 1);
+}
 function setCalendarView(view) {
-  state.calendarView = view === 'week' ? 'week' : 'month';
+  state.calendarView = ['week','agenda'].includes(view) ? view : 'month';
   localStorage.setItem(CALENDAR_VIEW_KEY, state.calendarView);
-  updateCalendarViewUI();
+  renderCalendar();
+  window.CalendarExperience?.remember();
   safeTrack(() => GA4_Calendar.viewModeChanged(state.calendarView));
 }
 function updateCalendarViewUI() {
-  const isWeek = state.calendarView === 'week';
-  const calendarRoot = qs('calendarView');
-  if (calendarRoot) {
-    calendarRoot.classList.toggle('is-week-view', isWeek);
-    calendarRoot.classList.toggle('is-month-view', !isWeek);
+  const mode = window.CalendarExperience?.narrow() ? 'agenda' : state.calendarView;
+  const root=qs('calendarView'); if(!root) return;
+  root.classList.toggle('is-week-view',mode==='week');
+  root.classList.toggle('is-month-view',mode==='month');
+  root.classList.toggle('is-agenda-view',mode==='agenda');
+  qs('calGrid')?.style.setProperty('display',mode==='month'?'grid':'none');
+  qs('calWeek')?.style.setProperty('display',mode==='week'?'grid':'none');
+  qs('calAgenda')?.style.setProperty('display',mode==='agenda'?'block':'none');
+  document.querySelectorAll('[data-calendar-view]').forEach(button=>{
+    const active=button.dataset.calendarView===mode;
+    button.classList.toggle('active',active); button.setAttribute('aria-pressed',String(active));
+  });
+  window.CalendarExperience?.highlight();
+  if(mode==='week' || mode==='agenda') {
+    const start=weekStart(state.month), end=new Date(start); end.setDate(start.getDate()+6);
+    qs('monthLabel').textContent=`${start.toLocaleDateString(undefined,{month:'short',day:'numeric'})}–${end.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}`;
   }
-  qs('calGrid')?.style.setProperty('display', isWeek ? 'none' : 'grid');
-  qs('calWeek')?.style.setProperty('display', isWeek ? 'grid' : 'none');
-  qs('calendarViewMonthBtn')?.classList.toggle('active', !isWeek);
-  qs('calendarViewWeekBtn')?.classList.toggle('active', isWeek);
 }
 
 
@@ -401,16 +438,24 @@ function populateNoteModal(date, existing = null) {
   const noteCount = getNotesForDate(key).length;
   qs('dayPostPreview').innerHTML = `<div style="font-size:12px;color:var(--subtle);margin-bottom:8px;">${dayPosts.length} post${dayPosts.length === 1 ? '' : 's'} · ${noteCount} existing note${noteCount === 1 ? '' : 's'}</div>`;
   qs('noteStatus').textContent = '';
+  const doneButton=qs('calendarNoteDone');
+  if(doneButton) {
+    doneButton.hidden=!(existing && isActionNote(existing));
+    doneButton.textContent=existing?.completedAt?'Reopen action':'Mark action done';
+    doneButton.onclick=()=>{toggleNoteDone(key,existing.id);renderCalendar();openEditNoteForDate(date,existing.id);};
+  }
   openModal('noteModal');
 }
 
 function openNewNoteForDate(date) {
+  window.CalendarExperience?.remember(fmtDate(date));
   state.selectedDate = date;
   state.editingNoteId = null;
   populateNoteModal(date, null);
 }
 
 function openEditNoteForDate(date, noteId) {
+  window.CalendarExperience?.remember(fmtDate(date));
   const key = fmtDate(date);
   const existing = getNotesForDate(key).find(n => n.id === noteId);
   if (!existing) { openNewNoteForDate(date); return; }
@@ -533,46 +578,26 @@ function toggleNoteDone(dateKey, noteId) {
 }
 
 function renderAgenda() {
-  const agenda = qs('calAgenda'); if (!agenda) return;
-  renderCalendarFilter();
-  const notes = getNotes(); const today = fmtDate(new Date());
-  agenda.innerHTML = '';
-  const nav = document.createElement('div'); nav.className = 'cal-header';
-  nav.innerHTML = `<div class="cal-month-label" style="font-size:18px;">${monthLabel(state.month)}</div>`;
-  agenda.appendChild(nav);
-  const map = {};
-  getPlannerPosts().forEach(p => { const k = fmtDate(getPostPlanningAt(p)); if (!k) return; if (!map[k]) map[k] = { posts: [], notes: [] }; map[k].posts.push(p); });
-  Object.entries(notes).forEach(([k, list]) => {
-    if (!map[k]) map[k] = { posts: [], notes: [] };
-    map[k].notes = getNotesForDate(k, notes);
-  });
-  const days = [];
-  const ms = monthStart(state.month);
-  for (let i = 0; i < 35; i++) { const d = new Date(ms.getFullYear(), ms.getMonth(), i + 1); if (d.getMonth() !== ms.getMonth()) break; days.push(fmtDate(d)); }
-  const dmMono = 'DM Mono';
-  days.forEach(key => {
-    const raw = map[key]; if (!raw) return;
-    const posts = calendarFilterAllowsPosts() ? raw.posts : [];
-    const filteredNotes = calendarFilterNotes(raw.notes);
-    if (!posts.length && !filteredNotes.length) return;
-    const isToday = key === today;
-    const date = new Date(key + 'T00:00:00');
-    const dayEl = document.createElement('div');
-    dayEl.style.cssText = `border:1px solid ${isToday ? 'var(--brand)' : 'var(--border)'};border-radius:10px;padding:12px;margin-bottom:8px;background:var(--surface);cursor:pointer;`;
-    const dateLabel = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-    let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-family:'${dmMono}',monospace;font-size:11px;font-weight:600;color:${isToday ? 'var(--brand)' : 'var(--muted)'};">${dateLabel}</span>${posts.length ? `<span style="font-size:9px;font-family:'${dmMono}',monospace;background:var(--brand-dim);color:var(--brand);border:1px solid var(--brand-glow);padding:1px 5px;border-radius:3px;">${posts.length} post${posts.length > 1 ? 's' : ''}</span>` : ''}</div>`;
-    posts.slice(0, 2).forEach(p => { const published = isPublishedPost(p); html += `<button type="button" class="day-post-preview-btn${published ? ' is-published' : ''}" data-agenda-post="${key}">${published ? '✓ ' : ''}${safeText(compact(p.text, 80))}</button>`; });
-    if (posts.length > 2) html += `<div style="font-size:10px;color:var(--subtle);margin-bottom:4px;">+${posts.length - 2} more</div>`;
-    filteredNotes.slice(0, 2).forEach(note => { const meta = getNoteTypeMeta(note); html += `<div class="day-note-pill" style="display:block;border-radius:5px;margin-top:4px;${notePillStyle(meta)}">${safeText(compact(note.text, 60))}</div>`; });
-    if (filteredNotes.length > 2) html += `<div style="font-size:10px;color:var(--subtle);margin-top:4px;">+${filteredNotes.length - 2} notes</div>`;
-    dayEl.innerHTML = html;
-    dayEl.querySelectorAll('[data-agenda-post]').forEach(btn => btn.addEventListener('click', ev => { ev.stopPropagation(); openCalendarPostDetails(key, raw.posts, raw.notes); }));
-    dayEl.onclick = () => openCalendarDayDetails(date);
-    agenda.appendChild(dayEl);
-  });
-  if (!Object.keys(map).length) {
-    const empty = document.createElement('div'); empty.className = 'empty-state'; empty.innerHTML = '<div class="empty-icon">📅</div><div class="empty-title">Nothing planned</div><div class="empty-desc">Connect Buffer and sync to load published and upcoming posts.</div>';
-    agenda.appendChild(empty);
+  const agenda=qs('calAgenda'); if(!agenda) return;
+  agenda.innerHTML='';
+  const first=weekStart(state.month);
+  const count=7;
+  for(let i=0;i<count;i++) {
+    const date=new Date(first.getFullYear(),first.getMonth(),first.getDate()+i), key=fmtDate(date);
+    const posts=!isContentCalendarMode() && calendarFilterAllowsPosts()?postsForDateKey(key):[];
+    const notes=isContentCalendarMode()?[]:calendarFilterNotes(getNotesForDate(key));
+    const targets=isContentCalendarMode()?contentCalendarEntries().filter(entry=>entry.date===key):calendarTargetsForDate(key);
+    const day=document.createElement('section');day.className='calendar-agenda-day';
+    day.innerHTML=`<div class="calendar-agenda-heading"><strong>${safeText(date.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}))}</strong><button type="button" class="btn sm ghost" data-agenda-add aria-label="Add a plan for ${key}">+ Add</button></div>`
+      +posts.map(p=>calendarPostPillHtml(p,'data-agenda-post',key,180)).join('')
+      +notes.map(n=>`<button type="button" class="day-note-pill${isActionNote(n)?' is-action':''}" data-agenda-note="${safeText(n.id)}" style="${notePillStyle(getNoteTypeMeta(n))}">${isActionNote(n)?'□ Action':'✎ Note'} · ${safeText(n.text)}</button>`).join('')
+      +targets.map(contentCalendarPill).join('')
+      +(!posts.length&&!notes.length&&!targets.length?'<p class="calendar-agenda-empty">No loaded items match these filters. Add a note or start a draft; sync to confirm Buffer coverage.</p>':'');
+    bindCalendarDate(day,date);bindContentCalendar(day);
+    day.querySelector('[data-agenda-add]').onclick=()=>window.CalendarExperience.add(key);
+    day.querySelectorAll('[data-agenda-post]').forEach(button=>button.onclick=()=>openCalendarPostDetails(key,posts.filter(p=>String(p.id)===button.dataset.postId),[]));
+    day.querySelectorAll('[data-agenda-note]').forEach(button=>button.onclick=()=>openEditNoteForDate(date,button.dataset.agendaNote));
+    agenda.appendChild(day);
   }
 }
 
@@ -795,6 +820,7 @@ function editableNoteCardsHtml(notes, noteTypes = getNoteTypes()) {
 }
 function openCalendarDayDetails(date) {
   const key = fmtDate(date);
+  window.CalendarExperience?.remember(key);
   const posts = postsForDateKey(key);
   const notes = getNotesForDate(key);
   const titleEl = qs('sharedDayTitle');
@@ -805,9 +831,12 @@ function openCalendarDayDetails(date) {
   if (posts.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${posts.length} post${posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(posts)}</div>`);
   if (notes.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${notes.length} Planning note${notes.length > 1 ? 's' : ''}</div>${editableNoteCardsHtml(notes)}</div>`);
   if (!posts.length && !notes.length) sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No plans yet</div><div class="empty-desc">Add a planning note or draft content for this day.</div></div>');
-  sections.push('<div class="row mt8"><button class="btn primary" data-add-note>Add planning note</button></div>');
+  sections.push(calendarTargetsForDate(key).map(contentCalendarPill).join(''));
+  sections.push('<div class="row mt8"><button class="btn primary" data-add-note>Add planning note</button><button class="btn" data-start-draft>Start draft</button></div><p class="calendar-state">A target date or note does not schedule a Buffer post. Choose a scheduling action in Compose.</p>');
   bodyEl.innerHTML = sections.join('');
   bindPostDetailCopy(bodyEl);
+  bindContentCalendar(bodyEl);
+  bodyEl.querySelector('[data-start-draft]')?.addEventListener('click',()=>window.CalendarExperience.compose(key));
   bodyEl.querySelector('[data-add-note]')?.addEventListener('click', () => { closeModal('sharedDayModal'); openAddNoteForDate(date); });
   bodyEl.querySelectorAll('[data-edit-note]').forEach(btn => btn.addEventListener('click', () => { closeModal('sharedDayModal'); openAddNoteForDate(date, btn.dataset.editNote); }));
   bodyEl.querySelectorAll('[data-toggle-done]').forEach(btn => btn.addEventListener('click', () => {
@@ -820,12 +849,13 @@ function openCalendarDayDetails(date) {
     if (!note) return;
     closeModal('sharedDayModal');
     appendTextToCompose(getNoteTypeMeta(note).label, key, note.text);
-    activateView('composerView');
+    window.CalendarExperience?.compose(key);
     showToast('Note sent to Compose');
   }));
   openModal('sharedDayModal');
 }
 function openCalendarPostDetails(key, posts, notes = []) {
+  window.CalendarExperience?.remember(key);
   openPostDetails(key, { posts, notes }, { title: formatDateOnly(key), noteTypes: getNoteTypes() });
 }
 function openPostDetails(key, data, options = {}) {

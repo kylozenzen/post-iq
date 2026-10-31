@@ -312,6 +312,9 @@ function renderSettingsFeatureStatus() {
 }
 
 
+function getTopOpenModal() {
+  return [...document.querySelectorAll('.modal.open')].sort((a,b)=>Number(a.style.zIndex || 150)-Number(b.style.zIndex || 150)).at(-1);
+}
 function openModal(id) {
   const modal = document.getElementById(id);
   if (!modal) {
@@ -326,6 +329,8 @@ function openModal(id) {
   document.body.classList.add('modal-open');
   document.body.style.overflow = 'hidden';
   if (!wasOpen) modalCount += 1;
+  modal.style.zIndex = String(150 + modalCount);
+  window.CalendarExperience?.onOpen(id);
   return true;
 }
 
@@ -355,6 +360,7 @@ function closeModal(id) {
     document.body.classList.remove('modal-open');
     document.body.style.overflow = '';
   }
+  if (wasOpen) window.CalendarExperience?.onClose(id);
   return true;
 }
 
@@ -460,7 +466,10 @@ function openConnectionSettings(options = {}) {
 
 
 function getBufferConnectUrl() {
-  return '/auth/connect.html?return=/app.html';
+  if (currentViewId === 'calendarView') window.CalendarExperience?.remember();
+  const destination = new URL('/app.html', location.origin);
+  if (typeof currentViewId === 'string' && document.getElementById(currentViewId)?.classList.contains('view')) destination.searchParams.set('view', currentViewId);
+  return '/auth/connect.html?return=' + encodeURIComponent(destination.pathname + destination.search);
 }
 
 function goToBufferConnect() {
@@ -627,7 +636,7 @@ function updateNavTags() {
     ? 'Write your post, attach media, then send to Buffer as a draft, queued post, or scheduled post.'
     : 'Write here now — connect Buffer to unlock Buffer drafts, queueing, and scheduling.';
   updateComposerButtonStates();
-  const calEmpty = qs('calEmptyHint'); if (calEmpty) calEmpty.style.display = connected ? 'none' : 'block';
+  const calEmpty = qs('calEmptyHint'); if (calEmpty) calEmpty.style.display = connected || state.scheduled.length || state.published.length ? 'none' : 'block';
 }
 
 function updateComposerButtonStates() {

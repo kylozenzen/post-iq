@@ -99,6 +99,7 @@ function handleAuthFailure(msg) {
 // ── SYNC ──────────────────────────────────────────
 function setSyncStatus(state_, msg) {
   state.syncState = state_;
+  window.CalendarExperience?.status();
   const el = qs('syncStatus'); if (!el) return;
   el.textContent = msg;
   const lastEl = qs('lastSynced');
@@ -211,8 +212,8 @@ function withPlannerDayIndex(render) {
 }
 
 function postsForDateKey(dateKey) {
-  if (plannerDayIndex) return plannerDayIndex.get(dateKey) || [];
-  return getPlannerPosts().filter(post => fmtDate(getPostPlanningAt(post)) === dateKey);
+  const posts = plannerDayIndex ? (plannerDayIndex.get(dateKey) || []) : getPlannerPosts().filter(post => fmtDate(getPostPlanningAt(post)) === dateKey);
+  return posts.filter(post => !state.calendarChannel || String(post.channelId || post.channel_id) === state.calendarChannel);
 }
 
 function plannerDaySummary(posts = []) {

@@ -11,6 +11,7 @@ function activateView(viewId, source = 'navigation') {
   if (requestedWorkspace && !workspacePreferences[requestedWorkspace]) {
     viewId = WORKSPACE_VIEWS[getFirstEnabledWorkspace(workspacePreferences)];
   }
+  if (currentViewId === 'calendarView' && viewId !== 'calendarView') window.CalendarExperience?.remember();
   if (document.body.dataset.gaReady) safeTrack(() => GA4_System.viewChanged(viewId, source));
   safeTrack(() => {
     if (viewId === 'composerView') GA4_Composer.composerOpened(source);

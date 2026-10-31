@@ -276,9 +276,3 @@
     .mobile-feature-ideas { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; color: var(--muted); padding-left: 18px; }
     .mobile-feature-form { display: grid; gap: 10px; margin-top: 14px; }
     .mobile-feature-form fieldset { border: 1px solid var(--border); border-radius: var(--r2); padding: var(--s3); display: grid; gap: 6px; }
-
-    @media (max-width: 768px) {
-      #app { display: none !important; }
-      #mobileTabs, .mobile-tabs, #mobileDrawer, #mobOpenSettings, #mobMenuBtn, #mobMenuBtnDraft { display: none !important; }
-      .mobile-coming-soon { display: block; }
-    }

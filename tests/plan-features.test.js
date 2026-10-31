@@ -12,9 +12,9 @@ const runtime = fs.readFileSync('js/core/runtime.js', 'utf8');
 const calendar = fs.readFileSync('js/features/calendar.js', 'utf8');
 const composer = fs.readFileSync('js/features/composer-resources.js', 'utf8');
 
-test('health strip mount point sits inside the Plan view', () => {
-  const view = html.slice(html.indexOf('id="calendarView"'), html.indexOf('<!-- Desktop header -->'));
-  assert.match(view, /id="planHealthStrip"/);
+test('health strip mount point sits inside the Calendar insights sidebar', () => {
+  const view = html.slice(html.indexOf('id="calendarView"'), html.indexOf('<!-- ══════════ COMPOSE'));
+  assert.match(view, /id="calendarInsights"[\s\S]*id="planHealthStrip"/);
 });
 
 test('runway and plan-health scripts load after calendar.js and before composer', () => {
