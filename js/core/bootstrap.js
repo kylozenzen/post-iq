@@ -96,7 +96,8 @@ function init() {
   workspacePreferences = getWorkspacePreferences();
   renderWorkspacePreferences();
   applyInternalFeatureFlags();
-  const destination = new URLSearchParams(location.search).get('view');
+  const requestedDestination = new URLSearchParams(location.search).get('view');
+  const destination = requestedDestination === 'contentBankView' ? 'ideasView' : requestedDestination;
   const validDestination = destination && document.getElementById(destination)?.classList.contains('view');
   activateView(validDestination ? destination : WORKSPACE_VIEWS[getFirstEnabledWorkspace(workspacePreferences)]);
 
@@ -564,7 +565,7 @@ function init() {
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <button class="btn sm" style="font-size:11px;" data-inspire="${i}">→ Compose from this</button>
             ${safeSourceUrl ? `<a class=\"btn sm ghost\" href=\"${safeText(safeSourceUrl)}\" target=\"_blank\" rel=\"noopener\" style=\"font-size:11px;\">↗ Source</a>` : ''}
-            <button class="btn sm ghost" style="font-size:11px;" data-save-notebook="${i}">+ Notebook</button>
+            <button class="btn sm ghost" style="font-size:11px;" data-save-notebook="${i}">+ Content Bank</button>
           </div>
         </div>`;
 
@@ -588,7 +589,7 @@ function init() {
             safeTrack(() => GA4_Trending.trendingStorySaved(sourceType));
             saveBtn.textContent = '✓ Saved';
             saveBtn.disabled = true;
-            if (typeof showToast === 'function') showToast('Saved to Notebook', 'success');
+            if (typeof showToast === 'function') showToast('Saved to Content Bank', 'success');
           }
         };
       }

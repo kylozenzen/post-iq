@@ -63,14 +63,40 @@
     return { byContentId, byContentItemId, byPostId };
   }
 
-  function scheduledDates(content) {
-    return [...new Set(variants(content).map(variant => variant.dueAt).filter(Boolean).map(value => window.PostIQCoverage?.dayKey(value) || String(value).slice(0, 10)))].sort();
+  function confirmedScheduling(content, queue = []) {
+    const byId=new Map((Array.isArray(queue)?queue:[]).filter(post=>post.id).map(post=>[String(post.id),post]));
+    return variants(content).flatMap(variant=>{
+      const id=postId(variant); if(!id) return [];
+      const loaded=byId.get(id);
+      if(loaded) {
+        const state=String(loaded.status || 'scheduled').toLowerCase();
+        if(!scheduled(state)) return [];
+        return [{postId:id,channelId:String(variant.channelId || loaded.channelId || ''),dueAt:loaded.dueAt || loaded.due_at || null}];
+      }
+      const state=status(variant);
+      // Legacy API-linked versions may predate the status field; local draft dates never confirm scheduling.
+      if(!scheduled(state) && !(state==='' && variant.dueAt && variant.mode!=='draft')) return [];
+      return [{postId:id,channelId:String(variant.channelId || ''),dueAt:variant.dueAt || null}];
+    });
   }
-  function calendarEntry(content) {
-    const dates = scheduledDates(content);
+  function scheduledDates(content, queue = []) {
+    return [...new Set(confirmedScheduling(content,queue).map(item=>item.dueAt).filter(Boolean).map(value=>window.PostIQCoverage?.dayKey(value) || String(value).slice(0,10)))].sort();
+  }
+  function calendarEntry(content, queue = []) {
+    const dates = scheduledDates(content,queue);
     const date = dates[0] || String(content.targetDate || '').slice(0, 10);
     return { content, date, dates, dateEnd: dates.at(-1) || date, lifecycle: lifecycle(content), variants: variants(content) };
   }
+  function matches(content, {query='', filter='all', stage='all'} = {}, queue = []) {
+    const text=[content.title,content.sourceText,content.body,content.url,...variants(content).flatMap(v=>[v.text,v.channelName,v.service])].filter(Boolean).join(' ').toLocaleLowerCase();
+    if(query && !text.includes(String(query).toLocaleLowerCase().trim())) return false;
+    const confirmed=confirmedScheduling(content,queue).length>0;
+    if(filter==='undated' && content.targetDate) return false;
+    if(filter==='targeted' && !content.targetDate) return false;
+    if(filter==='scheduled' && !confirmed) return false;
+    if(filter==='unconfirmed' && confirmed) return false;
+    return stage==='all' || lifecycle(content)===stage;
+  }
 
-  window.ContentModel = { lifecycle, workflow, workflowSteps: WORKFLOW_STEPS, variants, postId, buildIndex, scheduledDates, calendarEntry };
+  window.ContentModel = { lifecycle, workflow, workflowSteps: WORKFLOW_STEPS, variants, postId, buildIndex, scheduledDates, calendarEntry, confirmedScheduling, matches };
 })(window);

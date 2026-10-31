@@ -11,7 +11,7 @@ window.PostIQComposerResources = (() => {
   const LAST_TAB_KEY = 'postiq_composer_resource_tab_v1';
   const SEARCHABLE_TABS = new Set(['notebook', 'hooks', 'hashtags', 'templates']);
   const TAB_LABELS = {
-    notebook: 'Notebook',
+    notebook: 'Content Bank',
     hooks: 'hooks',
     hashtags: 'hashtag sets',
     templates: 'templates',
@@ -232,7 +232,7 @@ window.PostIQComposerResources = (() => {
     if (!items.length) {
       list.innerHTML = emptyState(
         '✦',
-        searchQuery ? 'No Notebook matches' : 'Your Notebook is ready when you are',
+        searchQuery ? 'No Content Bank matches' : 'Your Content Bank is ready when you are',
         searchQuery ? 'Try a different search.' : 'Save an idea, article, or stray thought and it will appear here.',
         searchQuery ? '' : '<button class="btn sm primary" type="button" data-resource-new-notebook>+ Add idea</button>',
       );
@@ -448,9 +448,9 @@ window.PostIQComposerResources = (() => {
       track(() => window.GA4_Ideas?.notebookCardUsed?.());
       if (action === 'pin-notebook') {
         window.pinReferenceToComposer?.({ title: card.title, body: card.body, url: card.url });
-        finishAction('Notebook idea pinned beside your draft');
+        finishAction('Content Bank item pinned beside your draft');
       } else if (insertText([card.title, card.body].filter(Boolean).join('\n\n'))) {
-        finishAction('Notebook notes inserted');
+        finishAction('Content Bank notes inserted');
       }
       return;
     }

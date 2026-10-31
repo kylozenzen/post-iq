@@ -27,7 +27,7 @@ const HELP_CATEGORIES = [
   "Plan / Calendar",
   "Compose",
   "Thread Splitter",
-  "Ideas Library",
+  "Content Bank",
   "Content Pillars",
   "Templates",
   "Notebook",
@@ -155,22 +155,22 @@ window.POSTIQ_HELP_ARTICLES = [
   {
     slug: 'build-your-idea-system',
     title: 'Build Your Idea System',
-    category: 'Ideas Library',
-    summary: 'Learn how to use Notebook, Content Pillars, Templates, and Trending to turn raw ideas into reusable content starters.',
+    category: 'Content Bank',
+    summary: 'Learn how to use saved content, Content Pillars, Templates, and Trending to turn raw ideas into reusable content starters.',
     tags: ['notebook', 'content pillars', 'templates', 'trending', 'ideas', 'starters'],
     featured: false,
     relatedArticles: ['write-split-send-posts', 'plan-content-calendar', 'getting-started'],
-    body: `<p>Ideas Library is your repeatable idea engine. Instead of starting from zero each time, you store signals and transform them into usable drafts.</p>
+    body: `<p>Content Bank holds your saved material. Local target dates are planning reminders, not confirmed Buffer scheduling. Use the date controls to plan, and Develop to continue the existing workflow. Templates, Content Pillars and Trending are available under Resources. Instead of starting from zero each time, you store signals and transform them into usable drafts.</p>
     <h2>Use each tool for a specific job</h2>
     <ul>
-      <li><strong>Notebook</strong>: capture raw references and angles.</li>
+      <li><strong>Saved content</strong>: search existing material, identify items without a target, and plan a local date. Your original source and channel versions stay intact.</li>
       <li><strong>Content Pillars</strong>: define recurring themes.</li>
       <li><strong>Templates</strong>: save proven structures and CTAs.</li>
       <li><strong>Trending</strong>: monitor timely topics to react faster.</li>
     </ul>
     <h2>Simple weekly routine</h2>
     <ol>
-      <li>Save 5–10 new idea inputs in Notebook/Trending.</li>
+      <li>Save 5–10 new idea inputs in Content Bank or Trending.</li>
       <li>Map them to pillars.</li>
       <li>Turn the strongest ideas into templates or starters.</li>
       <li>Open Compose and finalize for Buffer.</li>

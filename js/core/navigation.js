@@ -2,6 +2,7 @@
 
 // ── VIEW NAVIGATION ──────────────────────────────────
 function activateView(viewId, source = 'navigation') {
+  if (viewId === 'contentBankView') viewId = 'ideasView';
   if (viewId === 'homeView' && !FEATURE_HOME_DASHBOARD) viewId = 'composerView';
   const requestedFeature = getFeatureForView(viewId);
   if (requestedFeature && !isFeatureEnabled(requestedFeature)) {
@@ -28,7 +29,7 @@ function activateView(viewId, source = 'navigation') {
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId));
   document.querySelectorAll('.mob-tab[data-view]').forEach(t => t.classList.toggle('active', t.dataset.view === viewId));
   if (viewId === 'homeView' && FEATURE_HOME_DASHBOARD) renderHomeView();
-  if (viewId === 'queueHealthView') window.PostIQPlanHealth?.render();
+  if (viewId === 'queueHealthView') { window.PostIQPlanHealth?.render(); window.YourPace?.refresh(); }
   if (viewId === 'ideasView') setIdeasTab(currentIdeasTab || 'notebook');
   window.dispatchEvent(new CustomEvent('postiq:view-changed', { detail: { viewId, source } }));
 }
@@ -38,6 +39,8 @@ function setIdeasTab(tabId = 'notebook') {
   if (tabId === 'trending' && !getFeatureFlag('trending')) { showFeaturePaused('trending'); tabId = 'notebook'; }
   const tab = ['notebook', 'pillars', 'templates', 'trending'].includes(tabId) ? tabId : 'notebook';
   currentIdeasTab = tab;
+  const resources=document.getElementById('bankResources');
+  if(resources) {resources.open=false;document.getElementById('bankResourcesSummary').textContent=tab==='notebook'?'Resources':`Resources · ${document.querySelector(`[data-ideas-tab="${tab}"]`)?.textContent || tab}`;}
   safeTrack(() => GA4_Ideas.tabSwitched(tab));
   if (tab === 'pillars') safeTrack(() => GA4_Pillars.builderOpened());
   if (tab === 'trending') safeTrack(() => GA4_Trending.trendingOpened());

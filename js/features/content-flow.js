@@ -6,6 +6,7 @@
   let editingId = null;
   let remixId = null;
   let initialized = false;
+  let planningId = null;
   const el = id => document.getElementById(id);
   const track = (event, params = {}) => { try { window.GA4?.track(event, params); } catch {} };
   const save = () => {
@@ -128,7 +129,7 @@
     el('remixVariants').innerHTML = card.variants.map((variant, index) => { const info = platform(variant.service); return `<div class="remix-variant" data-variant-index="${index}"><div class="remix-variant-title">${safeText(info.label)} draft <small>${safeText(variant.channelName || '')}</small></div><span class="adaptation-status">${variant.adaptationStatus === 'adapted' ? 'Platform-adapted' : 'Source copied — edit for this platform'}</span><textarea class="input" data-variant-text="${index}">${safeText(variant.text)}</textarea><details class="platform-tips"><summary>Platform tips</summary><div>${safeText(info.tip)}</div><ul>${info.guidance.slice(0, 4).map(tip => `<li>${safeText(tip)}</li>`).join('')}</ul></details><div class="variant-error">${safeText(variant.error || '')}</div></div>`; }).join('');
   }
   function persistVariantEdits(card) {
-    const variants = card.variants.map((variant, index) => ({ ...variant, text: el('remixVariants')?.querySelector(`[data-variant-text="${index}"]`)?.value ?? variant.text, mode: 'draft', dueAt: '' }));
+    const variants = card.variants.map((variant, index) => ({ ...variant, text: el('remixVariants')?.querySelector(`[data-variant-text="${index}"]`)?.value ?? variant.text }));
     return updateCard(card.id, { variants });
   }
   async function generateVariants() {
@@ -187,9 +188,36 @@
     if (modal) { modal.hidden = true; modal.setAttribute('aria-hidden', 'true'); }
   }
 
+  function planTarget(id, date) {
+    if(date) {
+      const parsed=new Date(date+'T12:00:00Z');
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(+parsed) || parsed.toISOString().slice(0,10)!==date) throw new Error('Choose a valid target date.');
+    }
+    return updateCard(id,{targetDate:date});
+  }
+  function openPlan(id) {
+    const card=getCard(id);if(!card)return;
+    planningId=id;el('contentBankPlanModal').dataset.contentId=id;el('contentBankPlanName').textContent=card.title;
+    el('contentBankPlanDate').value=card.targetDate || '';el('contentBankPlanStatus').textContent='';
+    window.openModal('contentBankPlanModal');
+  }
+  function savePlan(clear=false) {
+    try {
+      if(!getCard(planningId)) throw new Error('This content item is no longer available.');
+      if(!clear && !el('contentBankPlanDate').value) throw new Error('Choose a target date, or use Clear target.');
+      planTarget(planningId,clear?'':el('contentBankPlanDate').value);
+      window.closeModal('contentBankPlanModal');
+      if(typeof renderCalendar==='function') renderCalendar();
+      showToast?.(clear?'Local target cleared. Buffer scheduling unchanged.':'Local target saved. Not scheduled in Buffer.','success');
+    }catch(error){el('contentBankPlanStatus').textContent=error.message;}
+  }
   function render() {
     const list = el('notebookList'), empty = el('notebookEmpty'); if (!list || !empty) return; empty.style.display = cards.length ? 'none' : 'block';
-    list.innerHTML = cards.map(card => { const lifecycle = window.ContentModel?.lifecycle(card) || card.status; const sync = card.buffer?.contentItemId ? (card.buffer.verified ? 'Synced to Buffer API · Channel-less Content Item' : 'Buffer API sync unverified') : 'Local source'; return `<article class="notebook-card content-source-card" data-content-open="${safeText(card.id)}" tabindex="0"><div class="notebook-card-meta"><span class="content-status status-${safeText(lifecycle)}">${safeText(lifecycle)}</span><span class="buffer-synced">${safeText(sync)}</span></div><div class="notebook-card-body"><div class="notebook-card-title">${safeText(card.title)}</div><div class="content-target">${card.targetDate ? safeText(card.targetDate) : 'No target date'}${card.pillarId ? ' · Content pillar' : ''}</div><div class="content-target">${card.variants.length} platform draft${card.variants.length === 1 ? '' : 's'} · saved locally</div></div><div class="notebook-card-footer"><button class="btn sm primary" data-content-detail="${safeText(card.id)}">Develop</button><button class="btn sm ghost" data-notebook-compose="${safeText(card.id)}">Quick compose</button><button class="btn sm ghost" data-notebook-delete="${safeText(card.id)}">Delete</button></div></article>`; }).join('');
+    const visible=cards.filter(card=>window.ContentModel.matches(card,{query:el('contentBankSearch')?.value || '',filter:el('contentBankFilter')?.value || 'all',stage:el('contentBankStage')?.value || 'all'},state.scheduled || []));
+    if(el('contentBankCount')) el('contentBankCount').textContent=`${visible.length} of ${cards.length} saved items`;
+    list.innerHTML = visible.map(card => { const lifecycle = window.ContentModel?.lifecycle(card) || card.status; const confirmed=window.ContentModel.confirmedScheduling(card,state.scheduled || []); const scheduling=confirmed.length ? 'Last confirmed Buffer scheduling: '+confirmed.map(item=>{const name=(state.channels || []).find(channel=>String(channel.id)===item.channelId)?.displayName || card.variants.find(variant=>String(variant.channelId)===item.channelId)?.channelName || item.channelId;return name+': '+(item.dueAt ? formatDateTime(item.dueAt) : 'queued · time not loaded');}).join('; ') : 'No confirmed Buffer scheduling'; const sync = card.buffer?.contentItemId ? (card.buffer.verified ? 'Synced to Buffer API · Channel-less Content Item' : 'Buffer API sync unverified') : 'Local source'; return `<article class="notebook-card content-source-card" data-content-open="${safeText(card.id)}" tabindex="0"><div class="notebook-card-meta"><span class="content-status status-${safeText(lifecycle)}">${safeText(lifecycle)}</span><span class="buffer-synced">${safeText(sync)}</span></div><div class="notebook-card-body"><div class="notebook-card-title">${safeText(card.title)}</div><div class="content-target${card.targetDate ? '' : ' is-undated'}">${card.targetDate ? 'Local target: '+safeText(card.targetDate)+' · planning only' : 'No target date'}${card.pillarId ? ' · Content pillar' : ''}</div><div class="content-bank-scheduling">${safeText(scheduling)}</div><div class="content-target">${card.variants.length} channel version${card.variants.length === 1 ? '' : 's'} · source saved locally</div></div><div class="notebook-card-footer"><button class="btn sm" data-content-plan="${safeText(card.id)}">${card.targetDate?'Change target':'Plan a date'}</button><button class="btn sm primary" data-content-detail="${safeText(card.id)}">Develop</button><button class="btn sm ghost" data-notebook-compose="${safeText(card.id)}">Quick compose</button><button class="btn sm ghost" data-notebook-delete="${safeText(card.id)}">Delete</button></div></article>`; }).join('');
+    if(cards.length && !visible.length) list.innerHTML='<p class="empty-state">No saved content matches these filters. Change the search or filters to see other items.</p>';
+    list.querySelectorAll('[data-content-plan]').forEach(button=>button.onclick=event=>{event.stopPropagation();openPlan(button.dataset.contentPlan);});
     list.querySelectorAll('[data-content-detail]').forEach(button => button.onclick = event => { event.stopPropagation(); window.ContentDetail?.open(button.dataset.contentDetail, 'ideasView'); });
     list.querySelectorAll('[data-content-open]').forEach(card => { card.onclick = event => { if (!event.target.closest('button,a')) window.ContentDetail?.open(card.dataset.contentOpen, 'ideasView'); }; card.onkeydown = event => { if (event.key === 'Enter') window.ContentDetail?.open(card.dataset.contentOpen, 'ideasView'); }; });
     list.querySelectorAll('[data-content-sync]').forEach(button => button.onclick = () => syncDraft(getCard(button.dataset.contentSync)));
@@ -209,8 +237,15 @@
     // failed request or closed modal never costs independently edited variants.
     el('remixVariants')?.addEventListener('input', () => { const card = getCard(remixId); if (card) persistVariantEdits(card); });
     el('remixVariants')?.addEventListener('change', () => { const card = getCard(remixId); if (card) persistVariantEdits(card); });
+    for(const id of ['contentBankSearch','contentBankFilter','contentBankStage']) el(id)?.addEventListener(id==='contentBankSearch'?'input':'change',render);
+    el('contentBankPlanClose')?.addEventListener('click',()=>window.closeModal('contentBankPlanModal'));
+    el('contentBankPlanSave')?.addEventListener('click',()=>savePlan());
+    el('contentBankPlanClear')?.addEventListener('click',()=>savePlan(true));
+    el('bankResources')?.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();el('bankResources').open=false;el('bankResourcesSummary').focus();}});
+    document.addEventListener?.('click',event=>{if(el('bankResources') && !el('bankResources').contains(event.target))el('bankResources').open=false;});
+    window.addEventListener('postiq:synced',render);window.addEventListener('postiq:scheduled-updated',render);
     render(); window.ContentDetail?.init?.();
   }
   function saveFromTrending(item = {}) { return addCard({ title: item.title || 'Untitled', sourceText: item.tagline || item.selftext || '', url: item.url || item.permalink || '', type: item.source === 'reddit' ? 'reddit' : item.source === 'hn' ? 'hn' : 'idea' }); }
-  window.Notebook = { init, render, addCard, normalizeIdea, updateCard, getCard, getCards: () => cards.map(card => normalizeIdea(card)), openModal, openRemix, syncDraft, saveFromTrending, channelLabel, generateVariants: (card, channels) => channels.map(channel => ({ channelId: channel.id, service: channel.service || '', channelName: channelLabel(channel), text: card.sourceText, adaptationStatus: 'source-copy', dueAt: '', mode: 'draft', buffer: {} })) };
+  window.Notebook = { init, render, planTarget, addCard, normalizeIdea, updateCard, getCard, getCards: () => cards.map(card => normalizeIdea(card)), openModal, openRemix, syncDraft, saveFromTrending, channelLabel, generateVariants: (card, channels) => channels.map(channel => ({ channelId: channel.id, service: channel.service || '', channelName: channelLabel(channel), text: card.sourceText, adaptationStatus: 'source-copy', dueAt: '', mode: 'draft', buffer: {} })) };
 })(window);

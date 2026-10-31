@@ -23,27 +23,35 @@ It's independently built. Not affiliated with Buffer. Just someone who needed th
 ## What it does
 
 ```
-Ideas → Plan → Compose → Review → Buffer
+Content Bank → Calendar → Compose → Review → Buffer
 ```
 
 ### 📅 Plan
 Monthly and weekly calendar views of your Buffer activity, combining recently published posts with the upcoming queue. Queue gaps surface automatically so you always know where the holes are. Add color-coded planning notes to any day — ideas, reminders, revision flags, campaign markers. Share a read-only snapshot link with your team or client without requiring a PostIQ account.
 
+### Your Pace
+
+Open Queue Health from Workspace (or the Calendar shortcut) to set a per-channel
+posting rhythm, check period coverage, mark intentional days off, or plan a lighter
+period. Your Pace uses confirmed scheduled posts and labels incomplete or stale
+queue data. These local planning changes do not move, cancel, publish, or delete
+Buffer posts.
+
 ### 🎛️ Custom Workspaces
-Turn the Planning, Create, Ideas, and Approvals hubs on or off from Customize settings so the sidebar matches your workflow. Choose from the original PostIQ look plus four distinct themes: After Dark, Editorial, Studio, and Evergreen. Workspace and theme preferences are saved locally in your browser.
+Turn the Calendar, Compose, Content Bank, and Approvals workspaces on or off from Customize settings so the sidebar matches your workflow. Choose from the original PostIQ look plus four distinct themes: After Dark, Editorial, Studio, and Evergreen. Workspace and theme preferences are saved locally in your browser.
 
 ### 🧠 Content Pillars
 Define your repeatable content themes with seed ideas and tone angles. The Pillar Plan Builder walks you through 6 questions and generates a full pillar system — 5 content pillars, trust layer tags, seed ideas, hooks, and series starters. Hit Start on any seed to drop a post starter directly into Compose.
 
 ### ✍️ Compose
-Focused writing workspace with local draft autosave, a distraction-free mode, rich text formatting, media attachment (URL, upload, or Unsplash), and searchable writing tools. Pull in Notebook cards, saved or proven hooks, hashtag sets, templates, pillars, and AI Assist without leaving the draft. Send to Buffer as a draft, queue it, or schedule it for a specific time. Nothing publishes until you choose a Buffer action.
+Focused writing workspace with local draft autosave, a distraction-free mode, rich text formatting, media attachment (URL, upload, or Unsplash), and searchable writing tools. Pull in Content Bank items, saved or proven hooks, hashtag sets, templates, pillars, and AI Assist without leaving the draft. Send to Buffer as a draft, queue it, or schedule it for a specific time. Nothing publishes until you choose a Buffer action.
 
 ### ✂️ Thread Splitter
 Paste any long-form content. PostIQ splits it into 280-character thread parts. Edit each part, then queue the whole thread to Buffer natively.
 
-### 💡 Ideas Library
+### 💡 Content Bank
 Three tools in one tab:
-- **Notebook** — save raw references, angles, and inspiration cards. Pin any card above your Compose editor as a writing reference.
+- **Saved content** — search existing references, source text, and independent channel versions. Identify undated items and plan local target dates separately from confirmed Buffer scheduling. Pin any card above your Compose editor as a writing reference.
 - **Trending** — browse Reddit, Hacker News, and Product Hunt for timely ideas. Click any story to compose from it.
 - **Templates** — save and reuse your best hooks, CTAs, announcements, and engagement questions.
 
