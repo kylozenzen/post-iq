@@ -62,7 +62,7 @@ window.YourPace = (() => {
   function loadRhythm() {
     const settings=getPlanningSettings(), id=el('paceChannel').value;
     const days=settings.channelPostingDays?.[id] ?? settings.postingDays;
-    el('paceDays').innerHTML=DAY_CODES.map((code,index)=>`<label><input type="checkbox" value="${code}" ${days.includes(code)?'checked':''}>${DAY_LABELS[index].slice(0,3)}</label>`).join('');
+    el('paceDays').innerHTML=DAY_CODES.map((code,index)=>`<label><input type="checkbox" value="${code}" ${!id?'disabled':''} ${days.includes(code)?'checked':''}>${DAY_LABELS[index].slice(0,3)}</label>`).join('');
     el('paceTarget').value=Number.isInteger(settings.channelTargets?.[id])?settings.channelTargets[id]:1;
   }
   function renderExceptions() {
@@ -79,7 +79,7 @@ window.YourPace = (() => {
         row.append(label,button);mount.appendChild(row);count++;
       });
     }
-    if(!count) {const p=document.createElement('p');p.textContent='No date-specific changes saved.';mount.appendChild(p);}
+    mount.hidden=count===0;
   }
   function check() {
     try {
@@ -93,10 +93,11 @@ window.YourPace = (() => {
         : summary.fullyCovered?`All ${summary.planned} planned slots are covered by confirmed scheduled posts.`
         : `${summary.covered} of ${summary.planned} planned slots have loaded scheduled posts. ${summary.uncovered} ${summary.complete?'uncovered':'not confirmed from the available data'}.`;
       const checkedAt=new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit',timeZone:result.timezone});
-      el('paceDataNote').textContent=`Timezone: ${result.timezone}. Checked at ${checkedAt}. `+(!connection.connected?'Buffer is disconnected; coverage cannot be verified.'
+      el('paceCoverageMeta').textContent=`${result.timezone} · checked ${checkedAt}`;
+      el('paceDataNote').textContent=(!connection.connected?'Buffer is disconnected; coverage cannot be verified.'
         :result.stale?'Queue data is stale. Sync before relying on this check.'
         :!result.complete?'Queue data is incomplete or the last sync failed. This is a limited check, not a fully covered result.'
-        :'All scheduled pages are loaded and fresh. Counts are calculated separately for each channel and posting date.')+' Local notes, drafts and target dates do not count as confirmed coverage.';
+        :'All scheduled pages are loaded and fresh. Counts are calculated separately for each channel and posting date.');
       const list=el('paceSlots');list.innerHTML='';
       result.rows.filter(row=>row.target>0 && row.missingCount>0).forEach(row=>{
         const item=document.createElement('li'), copy=document.createElement('span'), button=document.createElement('button');
@@ -107,7 +108,7 @@ window.YourPace = (() => {
         item.append(copy,button);list.appendChild(item);
       });
       return {result,summary};
-    } catch(error) {message(error.message);el('paceCoverageSummary').textContent='Coverage could not be checked for this period.';el('paceDataNote').textContent='';el('paceSlots').innerHTML='';return null;}
+    } catch(error) {message(error.message);el('paceCoverageSummary').textContent='Coverage could not be checked for this period.';el('paceDataNote').textContent='';el('paceCoverageMeta').textContent='';el('paceSlots').innerHTML='';return null;}
   }
   function planSlot(channelId,date) {
     if(!workspacePreferences.planning || !isFeatureEnabled('calendar')) {message('Enable the Planning workspace to open this calendar slot.');return;}
@@ -120,9 +121,11 @@ window.YourPace = (() => {
   function refresh(forceRhythm=false) {
     if(!initialized) return;
     const select=el('paceChannel'), previous=select.value;
-    select.innerHTML=(state.channels || []).map(channel=>`<option value="${safeText(channel.id)}">${safeText(channel.displayName || channel.name || channel.id)}</option>`).join('');
+    select.innerHTML=(state.channels.length?'':'<option value="">No channels loaded</option>')+(state.channels || []).map(channel=>`<option value="${safeText(channel.id)}">${safeText(channel.displayName || channel.name || channel.id)}</option>`).join('');
     if([...select.options].some(option=>option.value===previous))select.value=previous;
-    for(const id of ['paceSave','pacePeriodSave']) el(id).disabled=!select.value;
+    for(const id of ['paceSave','pacePeriodSave','paceChannel','paceTarget','pacePeriodTarget']) el(id).disabled=!select.value;
+    el('paceChannelHint').hidden=!!select.value;
+    el('paceOffScope').querySelector('[value="selected"]').disabled=!select.value;
     if(forceRhythm || select.value!==previous)loadRhythm();
     renderExceptions();check();
   }
@@ -131,7 +134,7 @@ window.YourPace = (() => {
     initialized=true;
     el('paceStart').value=today();el('paceEnd').value=C.addDays(today(),13);
     el('paceCheck').onclick=()=>check();el('paceChannel').onchange=loadRhythm;
-    for(const id of ['paceStart','paceEnd']) el(id).addEventListener('input',()=>{el('paceCoverageSummary').textContent='Dates changed. Check this period to refresh coverage.';el('paceDataNote').textContent='';el('paceSlots').innerHTML='';});
+    for(const id of ['paceStart','paceEnd']) el(id).addEventListener('input',()=>{el('paceCoverageSummary').textContent='Dates changed. Check this period to refresh coverage.';el('paceDataNote').textContent='';el('paceCoverageMeta').textContent='';el('paceSlots').innerHTML='';});
     el('paceSave').onclick=saveRhythm;el('pacePeriodSave').onclick=savePeriodTarget;el('paceOffSave').onclick=saveDaysOff;
     window.addEventListener('postiq:synced',()=>refresh());
     window.addEventListener('postiq:scheduled-updated',()=>check());

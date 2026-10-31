@@ -31,6 +31,12 @@ async function run() {
       });
       await page.addInitScript(()=>{localStorage.setItem('postiq_ob_dismissed','1');localStorage.setItem('postiq_ob_complete','1');});
       await page.goto(base+'/app.html');await page.waitForFunction(()=>window.YourPace && document.getElementById('paceStart').value);
+      await page.evaluate(()=>activateView('queueHealthView'));
+      assert.ok(await page.locator('#paceChannel').isDisabled());
+      assert.match(await page.locator('#paceChannel').innerText(),/No channels loaded/);
+      assert.ok(await page.locator('#paceCoverageSummary').evaluate(el=>el.getBoundingClientRect().right<=innerWidth));
+      await page.screenshot({animations:'disabled',fullPage:true,path:`/tmp/postiq-health-empty-${width}.png`});
+      await page.evaluate(()=>activateView('calendarView'));
       const date=await page.evaluate(()=>{
         const C=PostIQCoverage,today=C.dayKey(new Date()),weekday=new Date(today+'T12:00:00Z').getUTCDay();
         const start=C.addDays(today,(8-weekday)%7);
@@ -58,6 +64,7 @@ async function run() {
       await page.evaluate(()=>{state.scheduledCoverage.complete=false;});await page.locator('#paceCheck').click();
       assert.match(await page.locator('#paceDataNote').innerText(),/incomplete/);assert.doesNotMatch(await page.locator('#paceCoverageSummary').innerText(),/All .*covered/);
       const original=await page.evaluate(()=>JSON.stringify(state.scheduled));
+      await page.locator('#paceOffDetails > summary').click();
       await page.locator('#paceOffScope').selectOption('selected');await page.locator('#paceOffSave').click();
       assert.equal(await page.evaluate(()=>JSON.stringify(state.scheduled)),original);
       assert.match(await page.locator('#paceExceptions').innerText(),/intentional days off/);

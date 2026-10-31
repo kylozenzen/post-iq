@@ -113,3 +113,12 @@ The existing 200-post/four-page fetch cap remains. Capped data stays incomplete.
 Live Buffer/OAuth operations and production deployment are not verified here.
 The full suite retains the pre-existing AI Assist private-beta copy assertion
 failure; other regression test files pass. No merge or deployment is performed.
+
+## Queue Health layout refinement
+
+Period coverage is a bounded, full-width card above compact rhythm controls.
+Lighter-period and day-off settings use native collapsible sections. The slot
+list scrolls without truncating its actions and supports keyboard scrolling.
+Disconnected channel controls show a placeholder and disable channel-specific
+editing; global days-off planning remains available. Calculation details remain
+accessible in a disclosure, while connection/data warnings stay visible.

@@ -14,7 +14,7 @@
 .pace-panel label, .content-bank-filters label { display:block; font-size:12px; color:var(--muted); }
 .pace-panel .input, .content-bank-filters .input { display:block; width:100%; margin:6px 0 12px; }
 .pace-period .input, .content-bank-filters .input { margin-bottom:0; }
-.pace-columns { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.2fr); gap:24px; }
+.pace-columns { display:grid; grid-template-columns:minmax(0,1fr); gap:16px; min-width:0; }
 .pace-panel fieldset { min-width:0; border:1px solid var(--border); padding:16px; border-radius:var(--r2); margin:0 0 16px; background:var(--surface); }
 .pace-panel legend { font-weight:700; padding:0 6px; }
 .pace-days { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 16px; }
@@ -40,4 +40,55 @@
 .bank-resources { position:relative; }
 .bank-resource-menu { position:absolute; top:100%; left:0; z-index:15; min-width:190px; padding:8px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r2); box-shadow:var(--shadow-float); }
 .bank-resource-menu .ideas-tab { display:block; width:100%; text-align:left; }
-@media(max-width:768px) { .pace-columns > section { grid-row:1; } }
+
+
+/* Keep Queue Health compact and bounded at every viewport size. */
+.pace-panel { margin-top:24px; padding-top:20px; min-width:0; }
+.pace-panel > h2 { margin:0 0 6px; font-size:20px; }
+.pace-panel > p { max-width:75ch; margin:0 0 12px; }
+.pace-panel p:empty, #paceStatus:empty { display:none; }
+.pace-period { gap:10px; margin:14px 0; }
+.pace-period > label { width:160px; }
+.pace-panel .input { min-width:0; max-width:100%; box-sizing:border-box; }
+.pace-panel .pace-number { width:88px; }
+.pace-period .btn { min-height:38px; }
+.pace-results { min-width:0; padding:16px; border:1px solid var(--border); border-radius:var(--r2); background:var(--surface); overflow-wrap:anywhere; }
+.pace-results-header { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:6px 16px; }
+.pace-results h3 { margin:0; font-size:16px; }
+#paceCoverageMeta { min-width:0; color:var(--muted); font-size:11px; }
+.pace-results #paceCoverageSummary { color:var(--ink); font-size:14px; margin:10px 0 6px; }
+.pace-results #paceDataNote { margin:0; max-width:80ch; }
+.pace-calculation { margin-top:12px; font-size:12px; color:var(--muted); }
+.pace-calculation summary { cursor:pointer; }
+.pace-calculation p { margin:8px 0 0; max-width:80ch; }
+.pace-controls { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:start; gap:14px; min-width:0; }
+.pace-panel fieldset { margin:0; padding:12px 14px 14px; }
+.pace-panel legend { font-size:14px; }
+.pace-days { gap:6px 10px; margin:8px 0 12px; }
+.pace-days input { margin:0; }
+.pace-adjustment { min-width:0; border:1px solid var(--border); border-radius:var(--r2); background:var(--surface); }
+.pace-adjustment > summary { padding:14px; font-size:14px; font-weight:700; cursor:pointer; }
+.pace-adjustment-body { padding:0 14px 14px; }
+.pace-adjustment-body p { margin:0 0 12px; }
+.pace-slots li > span, .pace-exception > span { min-width:0; flex:1; }
+.pace-slots .btn, .pace-exception .btn { flex-shrink:0; }
+#paceExceptions { margin-top:16px; padding:14px 16px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r2); }
+#paceExceptions[hidden] { display:none; }
+#paceExceptions h3 { margin:0 0 4px; font-size:14px; }
+#paceExceptions .pace-exception:last-child { border-bottom:0; padding-bottom:0; }
+#paceChannelHint { margin:0 0 8px; font-size:12px; }
+@media(max-width:1100px) { .pace-controls { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:768px) {
+ .pace-controls { grid-template-columns:minmax(0,1fr); }
+ .pace-rhythm { grid-row:auto; }
+ .pace-period > label { width:auto; }
+ .pace-results { padding:14px; }
+ .pace-results-header { display:block; }
+ #paceCoverageMeta { display:block; margin-top:4px; }
+ .pace-exception { flex-wrap:wrap; }
+}
+
+.pace-slots { max-height:320px; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter:stable; }
+.pace-slots:empty { display:none; }
+.pace-slots:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
+.pace-panel button:disabled { opacity:.5; cursor:not-allowed; }
