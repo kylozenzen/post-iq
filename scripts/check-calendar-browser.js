@@ -69,11 +69,17 @@ async function run() {
       await page.locator('#composerReturnCalendar').click();
       assert.equal(await page.evaluate(()=>state.calendarView),'week');
       assert.equal(await page.evaluate(()=>state.calendarChannel),'a');
-      if(width<=768) {
-        await page.locator('#calendarHealthToggle').click();assert.ok(await page.locator('#calendarHealthSheet').isVisible());
-        assert.ok(await page.locator('#calendarHealthSheet #planHealthStrip').isVisible());
-        await page.keyboard.press('Escape');
-      }
+      await page.evaluate(()=>{window.fixtureConnection=getBufferConnectionState;getBufferConnectionState=()=>({connected:true});state.scheduledCoverage={complete:true,ts:Date.now()};activateView('queueHealthView');});
+      assert.ok(await page.locator('#queueHealthView').isVisible());
+      assert.ok(await page.locator('#queueHealthView #planHealthStrip').isVisible());
+      assert.ok(await noOverflow(),`${width}: Queue Health overflow`);
+      await page.screenshot({animations:'disabled',path:`/tmp/postiq-health-${width}.png`});
+      await page.evaluate(()=>{getBufferConnectionState=window.fixtureConnection;activateView('calendarView');});
+      await page.evaluate(()=>{const key=fmtDate(new Date()),note=getNotesForDate(key).find(n=>n.typeId==='action');toggleNoteDone(key,note.id);renderCalendar();});
+      const done=page.locator('.day-note-pill.is-done').filter({visible:true}).first();
+      assert.match(await done.innerText(),/Done/);
+      await done.scrollIntoViewIfNeeded();
+      await page.screenshot({animations:'disabled',path:`/tmp/postiq-completed-${width}.png`});
       await page.evaluate(()=>{
         const target={id:'target-check',title:'Campaign target',sourceText:'An unscheduled content idea for a future campaign.',targetDate:fmtDate(new Date()),variants:[{channelId:'a'}]};
         const get=window.Notebook.getCard;

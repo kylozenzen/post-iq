@@ -48,25 +48,6 @@ window.CalendarExperience = (() => {
     }
     select.value=value;
   }
-  function updateHealthToggle() {
-    const button=qs('calendarHealthToggle'); if(!button) return;
-    button.setAttribute('aria-controls',narrow()?'calendarHealthSheet':'calendarInsights');
-    button.setAttribute('aria-expanded',String(narrow()?qs('calendarHealthSheet').classList.contains('open'):!qs('calendarInsights').hidden));
-  }
-  function showHealth() {
-    if(narrow()) {
-      qs('calendarInsights').hidden=false;
-      qs('calendarHealthSheetBody').appendChild(qs('calendarInsights'));
-      openModal('calendarHealthSheet');
-    } else {
-      const visible=qs('calendarInsights').hidden;
-      qs('calendarInsights').hidden=!visible;
-      qs('calendarHealthToggle').setAttribute('aria-expanded',String(visible));
-      document.querySelector('.calendar-layout').classList.toggle('insights-collapsed',!visible);
-      localStorage.setItem('postiq_calendar_insights',visible?'open':'closed');
-    }
-    updateHealthToggle();
-  }
   function compose(date=selectedKey(), channel=state.calendarChannel || '') {
     if(!workspacePreferences.create || !isFeatureEnabled('composer')) { showToast('Enable the Create workspace to start a draft.','error'); return; }
     remember(date);
@@ -92,23 +73,16 @@ window.CalendarExperience = (() => {
   function onClose(id) {
     if(!qs(id)?.classList.contains('calendar-drawer')) return;
     if(id==='contentDetailDrawer') window.ContentDetail?.restoreCalendarDrawer?.();
-    if(id==='calendarHealthSheet') { document.querySelector('.calendar-layout')?.appendChild(qs('calendarInsights')); qs('calendarInsights').hidden=localStorage.getItem('postiq_calendar_insights')==='closed'; }
     const target=returnFocus.get(id); returnFocus.delete(id);
     const fallback=context?.selected && [...document.querySelectorAll(`[data-calendar-date="${context.selected}"]`)].find(day=>day.getClientRects().length);
     if(target?.isConnected) target.focus({preventScroll:true});
     else (fallback || qs('calendarAddBtn'))?.focus({preventScroll:true});
     if(qs(id)?.classList.contains('calendar-drawer')) restoreScroll();
-    updateHealthToggle();
   }
   function init() {
     if(initialized || !qs('calendarView') || new URLSearchParams(location.search).has('approve') || location.hash.startsWith('#share=')) return;
     initialized=true; restore(); renderCalendar(); renderChannelFilter(); status();
-    const insights=qs('calendarInsights');
-    if(localStorage.getItem('postiq_calendar_insights')==='closed' && !narrow()) { insights.hidden=true; document.querySelector('.calendar-layout').classList.add('insights-collapsed'); qs('calendarHealthToggle').setAttribute('aria-expanded','false'); }
-    updateHealthToggle();
-    qs('calendarHealthToggle').onclick=showHealth;
-    qs('calendarHealthClose').onclick=()=>{ if(qs('calendarHealthSheet').classList.contains('open')) closeModal('calendarHealthSheet'); else showHealth(); };
-    qs('calendarHealthSheet').querySelector('[data-close-modal]').onclick=()=>closeModal('calendarHealthSheet');
+    qs('queueHealthSync').onclick=()=>getBufferConnectionState().connected ? syncBuffer({force:true}) : goToBufferConnect();
     qs('calendarViewAgendaBtn').onclick=()=>setCalendarView('agenda');
     qs('calendarChannelFilter').onchange=e=>{state.calendarChannel=e.target.value;remember();renderCalendar();};
     qs('calendarAddBtn').onclick=()=>add();
@@ -134,7 +108,7 @@ window.CalendarExperience = (() => {
       if(event.detail.viewId==='calendarView') restoreScroll();
     });
     window.addEventListener('postiq:synced',()=>{renderChannelFilter();status();});
-    window.addEventListener('resize',()=>{updateCalendarViewUI();updateHealthToggle();});
+    window.addEventListener('resize',()=>{updateCalendarViewUI();});
     qs('calendarView').addEventListener('click',event=>{
       const cell=event.target.closest('[data-calendar-date]'); if(cell) remember(cell.dataset.calendarDate);
     },true);

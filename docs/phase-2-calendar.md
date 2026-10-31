@@ -14,7 +14,7 @@ OAuth, date-only note keys, notebook cards, and Buffer payload models remain.
   and Compose. Approvals, Library and Pulse remain in secondary navigation and
   mobile More. Sidebar collapse and workspace customization retain their keys.
 - Calendar uses one toolbar: Today, previous/next range, range label,
-  Month/Week/Agenda, channel and item filters, Add, Share and Queue Health.
+  Month/Week/Agenda, channel and item filters, Add and Share.
   The legacy content-calendar mode is accessible through “Content items” in
   the item filter. The underlying mode preference is retained.
 - Desktop Week and Agenda navigate seven-day ranges; Month navigates months.
@@ -25,8 +25,9 @@ OAuth, date-only note keys, notebook cards, and Buffer payload models remain.
   separate labels/markers. Target dates explicitly say “not scheduled”.
   Calendar content dates use the same display timezone as coverage where that
   helper is present. Existing note dates remain literal dates.
-- Queue Health lives in a collapsible sidebar, or an accessible mobile drawer.
-  Your Pace has a labeled reserved section with no fake controls or metrics.
+- Queue Health is a separate tool in the left sidebar (mobile: More), with
+  channel health, coverage details and the reserved Your Pace section. It no
+  longer occupies space in the calendar.
 - Post/day and note/action details use the existing renderers in matching
   drawers. Content targets reuse ContentDetail and the original notebook data;
   the existing view moves into a drawer for Calendar entry and returns to its
@@ -45,7 +46,8 @@ Existing keys and user data are not renamed or deleted. Additions:
 - `sessionStorage.postiq_calendar_context_v2`: selected date, range anchor,
   view, item/channel filters, main/window scroll. Used for detail/Compose return
   and OAuth return in the same tab.
-- `localStorage.postiq_calendar_insights`: sidebar open/closed preference.
+- The old `localStorage.postiq_calendar_insights` preference is retained but
+  unused now that Queue Health has its own view.
 - The existing `postiq_calendar_view` additionally accepts `agenda`; mobile
   rendering alone does not write that key.
 
@@ -76,7 +78,7 @@ The browser script serves the checkout locally, blocks remote requests, and uses
 local fixture posts/notes. It never submits content to Buffer. It verifies 390,
 768 and 1440px layouts, week/Agenda rendering, exact-post selection, keyboard
 focus trapping/restoration, scroll restoration, note creation, draft return,
-mobile Queue Health and content-target drawers. Screenshots are written under
+the Queue Health tool, completed actions and content-target drawers. Screenshots are written under
 `/tmp/postiq-phase2-*.png`. An installed Chromium is required; playwright-core
 is a development dependency and does not download a browser.
 
@@ -84,3 +86,12 @@ Project checker, DOM smoke, seven new DOM regression cases, and Chromium checks
 pass. Full test suite: 20 passing test files and one pre-existing AI Assist
 private-beta copy assertion failure. Live Buffer/OAuth and production snapshot
 sharing were not exercised; no real content was published or scheduled.
+
+## Follow-up refinement
+
+Queue Health moved out of the calendar into its own sidebar/mobile More tool.
+The calendar is full width, without a health popup or coverage-chip panel.
+Action notes show explicit “To do” / “Done” labels, completed text is struck
+through, the editor shows completion status and supports reopening, and item
+filters can show only to-do or done actions. Existing `completedAt` values are
+used directly; no data migration or storage-key changes are needed.

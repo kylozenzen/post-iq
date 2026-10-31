@@ -5,6 +5,7 @@ async function withApp(search,fn,setup){const dom=await loadApp(search,setup);tr
 test('normal entry, explicit destinations and disabled Planning preferences',async()=>{
  await withApp('',w=>assert.ok(w.document.querySelector('#calendarView.active')));
  await withApp('?view=composerView&connected=buffer',w=>assert.ok(w.document.querySelector('#composerView.active')));
+ await withApp('?view=queueHealthView',w=>assert.ok(w.document.querySelector('#queueHealthView.active')));
  await withApp('?view=not-a-view',w=>assert.ok(w.document.querySelector('#calendarView.active')));
  await withApp('',w=>assert.ok(w.document.querySelector('#composerView.active')),w=>w.localStorage.setItem('postiq.workspacePreferences',JSON.stringify({planning:false,create:true,ideas:true,approvals:true})));
 });
@@ -25,13 +26,16 @@ test('Agenda exact selection, draft date/channel and return preserve context',as
  assert.ok(d.querySelector('#calendarView.active'));assert.equal(w.eval('state.calendarView'),'agenda');assert.equal(w.eval('state.calendarChannel'),'b');
  assert.equal(d.querySelectorAll('#calAgenda > [data-calendar-date]').length,7);
 }));
-test('mobile uses Agenda without overwriting desktop preference, Queue Health sheet closes',async()=>withApp('',w=>{
+test('mobile keeps Agenda preference and Queue Health is a separate tool',async()=>withApp('',w=>{
  w.matchMedia=()=>({matches:true}); w.eval("setCalendarView('week')");
  assert.ok(w.document.querySelector('#calendarView.is-agenda-view'));
  assert.equal(w.localStorage.getItem('postiq_calendar_view'),'week');
- w.document.querySelector('#calendarHealthToggle').click();assert.ok(w.document.querySelector('#calendarHealthSheet.open'));
- w.document.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
- assert.equal(w.document.querySelector('#calendarInsights').parentElement.className.includes('calendar-layout'),true);
+ assert.equal(w.document.querySelector('#calendarView #planHealthStrip'),null);
+ assert.equal(w.document.querySelector('#calendarHealthToggle'),null);
+ w.document.querySelector('#mobDrawer [data-view="queueHealthView"]').click();
+ assert.ok(w.document.querySelector('#queueHealthView.active'));
+ assert.ok(w.document.querySelector('#queueHealthView #planHealthStrip'));
+ w.eval("activateView('calendarView')");assert.equal(w.eval('state.calendarView'),'week');
 }));
 test('saved calendar view/filter/date is restored after OAuth return',async()=>withApp('?connected=buffer&view=calendarView',w=>{
  assert.equal(w.eval('state.calendarView'),'week');assert.equal(w.eval('state.calendarFilter'),'notes');assert.equal(w.eval('fmtDate(state.month)'),'2026-10-20');
@@ -56,6 +60,14 @@ test('notes retain literal dates and planned actions can be completed in drawer'
  w.eval("addNoteForDateKey('2026-11-01','Review draft','action');state.month=new Date('2026-11-01T12:00:00');renderCalendar();openEditNoteForDate(new Date('2026-11-01T12:00:00'),getNotesForDate('2026-11-01')[0].id)");
  assert.ok(d.querySelector('#noteModal.open'));assert.equal(d.querySelector('#calendarNoteDone').hidden,false);
  d.querySelector('#calendarNoteDone').click();assert.ok(w.eval("getNotesForDate('2026-11-01')[0].completedAt"));
+ assert.match(d.querySelector('#noteCompletionStatus').textContent,/Done/);
+ assert.match(d.querySelector('#calGrid .day-note-pill.is-done').textContent,/Done/);
+ assert.match(d.querySelector('#calWeek .day-note-pill.is-done').textContent,/Done/);
+ assert.match(d.querySelector('#calAgenda .day-note-pill.is-done').textContent,/Done/);
+ w.eval("state.calendarFilter='tasks-open';renderCalendar()");assert.equal(d.querySelectorAll('#calAgenda .day-note-pill').length,0);
+ w.eval("state.calendarFilter='tasks-done';renderCalendar()");assert.equal(d.querySelectorAll('#calAgenda .day-note-pill.is-done').length,1);
+ d.querySelector('#calendarNoteDone').click();assert.equal(w.eval("!!getNotesForDate('2026-11-01')[0].completedAt"),false);
+ assert.match(d.querySelector('#noteCompletionStatus').textContent,/To do/);
  assert.equal(w.eval("getNotesForDate('2026-11-01')[0].date"),'2026-11-01');
  w.eval("closeModal('noteModal')");
 }));

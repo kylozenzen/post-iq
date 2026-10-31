@@ -28,6 +28,7 @@ function activateView(viewId, source = 'navigation') {
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId));
   document.querySelectorAll('.mob-tab[data-view]').forEach(t => t.classList.toggle('active', t.dataset.view === viewId));
   if (viewId === 'homeView' && FEATURE_HOME_DASHBOARD) renderHomeView();
+  if (viewId === 'queueHealthView') window.PostIQPlanHealth?.render();
   if (viewId === 'ideasView') setIdeasTab(currentIdeasTab || 'notebook');
   window.dispatchEvent(new CustomEvent('postiq:view-changed', { detail: { viewId, source } }));
 }

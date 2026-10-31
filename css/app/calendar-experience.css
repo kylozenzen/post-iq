@@ -1,17 +1,7 @@
 /* Calendar refinement: inherits existing theme tokens and component controls. */
 #calendarView { max-width: 1700px; }
-.calendar-layout { display:grid; grid-template-columns:minmax(0,1fr) 260px; gap:24px; align-items:start; padding:0 32px; }
-.calendar-layout.insights-collapsed { grid-template-columns:minmax(0,1fr); }
-.calendar-main, .calendar-insights, .cal-toolbar > *, .cal-toolbar-right { min-width:0; }
+.calendar-layout { display:grid; grid-template-columns:minmax(0,1fr); gap:24px; align-items:start; padding:0 32px; }
 .calendar-main { padding:0; }
-.calendar-insights { position:sticky; top:20px; border-left:1px solid var(--border); padding-left:20px; }
-.calendar-insights[hidden] { display:none; }
-.calendar-insights-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.calendar-insights h2 { font-size:17px; margin:0; }
-.calendar-insights .plan-health-toggle { flex-wrap:wrap; }
-.calendar-insights .plan-health-summary { white-space:normal; text-align:left; }
-.calendar-insights .plan-health-row { flex-wrap:wrap; }
-.calendar-insights .plan-health-strip { margin:16px 0; }
 .calendar-pace { border-top:1px solid var(--border); margin-top:24px; padding-top:16px; color:var(--muted); font-size:13px; line-height:1.6; }
 .calendar-pace h3 { color:var(--ink); margin:0; font-size:15px; }
 #calendarView .cal-toolbar { align-items:flex-start; flex-wrap:wrap; gap:12px; padding-bottom:16px; }
@@ -44,7 +34,6 @@
 .calendar-drawer textarea, .calendar-drawer input, .calendar-drawer select { max-width:100%; box-sizing:border-box; }
 #composerCalendarContext { display:flex; flex-wrap:wrap; align-items:center; gap:10px; border:1px solid var(--border); background:var(--surface); border-radius:8px; margin:12px 0; padding:12px; font-size:12px; color:var(--muted); }
 .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
-@media (max-width:1150px) { .calendar-layout { grid-template-columns:minmax(0,1fr); } .calendar-insights { position:static; border:1px solid var(--border); padding:16px; border-radius:10px; } }
 @media (max-width:768px) {
  #calendarView .calendar-layout { padding:0; }
  #calendarView .calendar-main { padding:14px 12px; }
@@ -54,7 +43,6 @@
  #calendarView .cal-toolbar-right { width:100%; }
  #calendarView .cal-toolbar .btn { min-height:36px; }
  #calendarView .cal-toolbar .input { flex:1 1 130px; max-width:none; }
- #calendarView .calendar-insights { display:none; }
  #calendarView .cal-grid, #calendarView .cal-week, #calendarView .cal-dow { display:none !important; }
  #calendarView .cal-agenda { display:block !important; }
  #calendarView .cal-view-toggle[aria-label="Calendar view mode"] { display:none; }
@@ -64,11 +52,9 @@
 }
 
 #composerCalendarContext[hidden] { display:none; }
-@media(max-width:768px) { #calendarHealthSheet .calendar-insights { display:block; border:0; padding:0; } }
 
 #calendarView [data-calendar-date].is-selected { outline:2px solid var(--brand); outline-offset:-2px; }
 #calendarView .cal-toolbar-nav { padding-inline:4px; }
-#calendarHealthSheet .calendar-insights-heading button { display:none; }
 
 #calendarView .content-calendar-toggle { display:none; } /* Replaced by the Content items filter. */
 
@@ -78,3 +64,13 @@
 @keyframes calendarDrawerIn { from { opacity:0; transform:translateX(12px); } to { opacity:1; transform:none; } }
 @media(prefers-reduced-motion:reduce) { .calendar-drawer .modal-card { animation:none; } }
 #calendarView .cal-week-hdr { display:none; } /* Range controls live in the shared toolbar. */
+
+.queue-health-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:24px; }
+#queueHealthView { max-width:1100px; }
+#queueHealthView .plan-health-body { padding:16px; }
+#queueHealthView .plan-health-row { padding:12px 0; border-bottom:1px solid var(--border); }
+.note-state { display:inline-block; font-size:10px; font-weight:700; line-height:1.6; margin-right:4px; white-space:nowrap; }
+#calendarView .day-note-pill.is-done { opacity:.8; border-style:solid !important; }
+#calendarView .day-note-pill.is-done .note-copy, .snap-modal-note.is-done .snap-modal-note-text { text-decoration:line-through; }
+.note-completion-status { padding:10px 12px; border:1px solid var(--border); border-radius:6px; font-weight:700; }
+@media(max-width:768px) { #queueHealthView .queue-health-header, #queueHealthView > .plan-health-strip, #queueHealthView > .calendar-pace { margin:16px; } .queue-health-header { flex-wrap:wrap; } }
