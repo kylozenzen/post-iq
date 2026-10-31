@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-title" content="PostIQ" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png" />
-  <meta name="description" content="PostIQ is a free public beta companion workspace for Buffer users. Plan your queue, compose posts, review content, and share clean snapshots before publishing." />
+  <meta name="description" content="PostIQ is an independent calendar companion for Buffer users. See scheduled posts beside planning notes, check queue gaps against your posting rhythm, and plan saved content." />
   <script>
     // Apply the saved palette before styles load to avoid a flash of the default theme.
     try { document.documentElement.dataset.theme = localStorage.getItem('postiq.theme') || 'default'; } catch {}
@@ -43,9 +43,9 @@
   <link rel="stylesheet" href="./css/app/pulse.css" />
   <link rel="stylesheet" href="./css/app/home.css" />
   <link rel="stylesheet" href="./css/app/plan-health.css" />
-  <link rel="stylesheet" href="./css/onboarding.css" />
   <link rel="stylesheet" href="./css/app/calendar-experience.css" />
   <link rel="stylesheet" href="./css/app/planning-tools.css" />
+  <link rel="stylesheet" href="./css/app/tour.css" />
 
 </head>
 
@@ -195,6 +195,10 @@
         <span class="nav-icon" style="opacity:.5;"><svg><use href="#i-settings"/></svg></span>
         <span class="nav-text">Settings</span>
       </button>
+      <button class="nav-btn" type="button" data-tour-start="sidebar" data-tooltip="Take a tour">
+        <span class="nav-icon" style="opacity:.5;" aria-hidden="true">◎</span>
+        <span class="nav-text">Take a tour</span>
+      </button>
       <a class="nav-btn" href="/help/" data-tooltip="Help Center">
         <span class="nav-icon" style="opacity:.5;">❓</span>
         <span class="nav-text">Help Center</span>
@@ -248,6 +252,7 @@
         <div class="page-actions">
 
           <button class="btn ghost" type="button" data-view="queueHealthView">Queue Health &amp; Your Pace</button>
+          <button class="btn ghost" type="button" data-tour-start="calendar_header">Take a tour</button>
           <a class="btn ghost" href="/help/?article=plan-content-calendar">Help</a>
           <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
         </div>
@@ -1228,6 +1233,7 @@
   <button class="btn ghost" data-view="libraryView" data-feature="library">Library</button>
   <button class="btn ghost" data-view="pulseView" data-feature="pulse">Pulse</button>
   <button class="btn ghost" id="mobOpenSettings" type="button" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">⚙ Settings</button>
+  <button class="btn ghost" type="button" data-tour-start="mobile_drawer" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">◎ Take a tour</button>
   <a class="btn ghost" href="/help/" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">❓ Help Center</a>
 </div>
 
@@ -1314,7 +1320,7 @@
   <script src="./js/discord-integration.js" defer></script>
   <script src="./js/library.js" defer></script>
   <script src="./js/pulse.js" defer></script>
-  <script src="./js/onboarding.js" defer></script>
+  <script src="./js/features/tour.js" defer></script>
 
 
 <!-- Reviewer page -->
@@ -1536,7 +1542,7 @@
           <img class="about-ben-photo" src="https://github.com/kylozenzen/ben-portfolio/blob/main/Ben%20Headshot%202026.jpg?raw=true" alt="Ben Campbell" loading="lazy" />
           <div class="about-ben-copy">
             <div class="settings-section-title">About Ben</div>
-            <p class="settings-copy">PostIQ was built by Ben Campbell, a social media and content strategist who needed a cleaner way to plan, write, split, and share posts before they went live.</p>
+            <p class="settings-copy">PostIQ was built by Ben Campbell, a social media and content strategist who wanted a calmer way to see a Buffer queue, plan around it, and notice gaps before they happened.</p>
             <p class="settings-copy">It started as a set of internal workflow tools and became a public beta companion for Buffer users.</p>
             <div class="about-ben-actions">
               <a href="https://bencampbell.netlify.app" target="_blank" rel="noopener" class="btn primary">View Ben’s portfolio</a>

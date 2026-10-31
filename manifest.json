@@ -1,7 +1,7 @@
 {
-  "name": "PostIQ — Buffer Power Tools",
+  "name": "PostIQ — Calendar companion for Buffer",
   "short_name": "PostIQ",
-  "description": "Thread Splitter, Content Calendar, Composer, Snippets and Trending for Buffer.",
+  "description": "An independent calendar companion for Buffer users: scheduled posts beside planning notes, queue gaps against your rhythm, and saved content you can plan.",
   "start_url": "/app.html",
   "display": "standalone",
   "background_color": "#f5f6fa",

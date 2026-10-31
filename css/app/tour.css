@@ -1,0 +1,49 @@
+/* Optional product tour (js/features/tour.js). Non-modal: no scrim, and the
+   highlight ring ignores pointer events so the app remains usable. Sits below
+   modals (150) so a dialog opened mid-tour stays on top. */
+.tour-ring {
+  position: fixed;
+  z-index: 140;
+  border: 2px solid var(--brand);
+  border-radius: var(--r);
+  box-shadow: 0 0 0 4px var(--brand-dim);
+  pointer-events: none;
+  transition: top .18s ease, left .18s ease, width .18s ease, height .18s ease;
+}
+.tour-pop {
+  position: fixed;
+  z-index: 145;
+  width: min(340px, calc(100vw - 24px));
+  padding: 16px 16px 14px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border2);
+  border-top: 3px solid var(--brand);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-float);
+}
+.tour-pop.is-docked {
+  left: 12px;
+  right: 12px;
+  bottom: 72px; /* above the mobile tab bar */
+  width: auto;
+}
+.tour-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.tour-count { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--brand); }
+.tour-close {
+  width: 32px; height: 32px; margin: -6px -6px 0 0;
+  border: 0; background: transparent; color: var(--muted);
+  font-size: 20px; line-height: 1; cursor: pointer; border-radius: var(--r2);
+}
+.tour-close:hover { color: var(--ink); background: var(--surface2); }
+.tour-title { font-family: var(--font-display); font-size: 18px; line-height: 1.2; color: var(--ink); margin: 0 0 6px; }
+.tour-title:focus { outline: none; }
+.tour-title:focus-visible { outline: none; } /* focus is placed here for screen readers, not as a control */
+.tour-body { font-size: 13px; line-height: 1.6; color: var(--muted); margin: 0 0 14px; }
+.tour-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tour-nav { display: flex; gap: 6px; }
+.tour-actions .btn.sm { min-height: 36px; }
+.tour-pop button:focus-visible, .tour-close:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.tour-connect { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin: -4px 0 14px; padding: 10px 12px; background: var(--brand-dim); border-radius: var(--r2); font-size: 12.5px; color: var(--muted); }
+.tour-connect[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .tour-ring { transition: none; } }
