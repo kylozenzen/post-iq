@@ -161,6 +161,7 @@ const CACHE_TTL = { orgId: 86400000, channels: 86400000, scheduled: 600000, publ
 const qs = id => document.getElementById(id);
 const on = (id, evt, handler, opts) => { const el = qs(id); if (!el) return null; el.addEventListener(evt, handler, opts); return el; };
 const fmtDate = value => {
+  if (typeof value === 'string') return window.PostIQCoverage.dayKey(value);
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return '';
   const y = d.getFullYear();
@@ -566,7 +567,7 @@ function formatDateTime(value) {
   if (!value) return 'Unscheduled';
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return String(value);
-  return d.toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  return d.toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: window.PostIQCoverage.timezone, timeZoneName: 'short' });
 }
 function formatDateOnly(value) {
   const d = new Date(value + 'T00:00:00');
@@ -603,3 +604,7 @@ const rgbaFromHex = (hex, alpha = 0.1) => {
   return `rgba(${(num >> 16) & 255},${(num >> 8) & 255},${num & 255},${alpha})`;
 };
 const maskToken = t => !t ? '—' : t.length <= 8 ? '••••' : `${t.slice(0,4)}••••${t.slice(-4)}`;
+
+function getQueueCoverage(days = 90) {
+  return window.PostIQCoverage.calculate({ posts: state.scheduled, channels: state.channels, settings: getPlanningSettings(), days, connected: getBufferConnectionState().connected, meta: state.scheduledCoverage });
+}

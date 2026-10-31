@@ -6,7 +6,7 @@ function loadCacheState() {
     const raw = localStorage.getItem(CACHE_KEY); if (!raw) return;
     const parsed = JSON.parse(raw);
     Object.keys(cache).forEach(key => {
-      if (parsed[key]?.ts) cache[key] = { value: parsed[key].value, ts: parsed[key].ts };
+      if (parsed[key]?.ts) cache[key] = { value: parsed[key].value, ts: parsed[key].ts, coverage: parsed[key].coverage };
     });
   } catch {}
 }
@@ -15,10 +15,12 @@ function isCacheFresh(key) { return !!cache[key]?.ts && (Date.now() - cache[key]
 function hydrateFromCache() {
   if (cache.orgId.value) state.organizationId = cache.orgId.value;
   if (Array.isArray(cache.channels.value) && cache.channels.value.length) state.channels = cache.channels.value;
-  if (Array.isArray(cache.scheduled.value) && cache.scheduled.value.length) state.scheduled = cache.scheduled.value;
+  if (Array.isArray(cache.scheduled.value)) state.scheduled = cache.scheduled.value;
+  state.scheduledCoverage = cache.scheduled.coverage || null;
   if (Array.isArray(cache.published.value)) state.published = cache.published.value;
 }
 function clearSyncedData() {
+  state.scheduledCoverage = null;
   state.channels = []; state.scheduled = []; state.published = []; state.organizationId = null;
   Object.keys(cache).forEach(k => { cache[k] = { value: Array.isArray(cache[k]?.value) ? [] : null, ts: 0 }; });
   try { localStorage.removeItem(CACHE_KEY); } catch {}
@@ -71,6 +73,7 @@ async function callBuffer(query, variables = {}, options = {}) {
     }
     throw error;
   }
+  if (!res.ok || data.errors?.length) throw Object.assign(new Error(data.errors?.[0]?.message || "Buffer response incomplete"), { code: "BUFFER_PARTIAL_RESPONSE" });
   handleBufferWarnings(data);
   return data;
 }
@@ -89,7 +92,7 @@ function getErrorMessage(err, fallback = 'Request failed. Please try again.') {
 function handleAuthFailure(msg) {
   bufferToken = '';
   if (getBufferConnectionState().source === 'oauth') markBufferReconnectNeeded();
-  clearSyncedData(); renderConnectionUI();
+  renderConnectionUI(); renderCalendar();
   setSyncStatus('failed', msg);
 }
 
@@ -126,24 +129,31 @@ async function getScheduledPosts({ force = false } = {}) {
   const orgId = await getOrgId({ force });
   if (!orgId) return [];
   const bounds = getScheduledBounds();
-  let all = [], after = null, hasNext = true, fetched = 0;
-  const seen = new Set();
+  let paginationComplete = false;
+  let all = [], after = null, hasNext = true, fetched = 0, pages = 0, invalid = false;
+  const seen = new Set(), seenCursors = new Set();
   const q = 'query P($organizationId: OrganizationId!, $after: String, $first: Int!) { posts(first:$first,after:$after,input:{organizationId:$organizationId,filter:{status:[scheduled]}}){edges{node{id text dueAt channelId}} pageInfo{hasNextPage endCursor} } }';
-  while (hasNext && fetched < 200 && all.length < 200) {
+  while (hasNext && fetched < 200 && all.length < 200 && pages < 4) {
     const page = await callBuffer(q, { organizationId: orgId, after, first: 50 });
     const block = page?.data?.posts;
+    pages++;
+    if (!Array.isArray(block?.edges)) throw new Error('Scheduled posts response is incomplete. Previous data retained.');
     (block?.edges || []).forEach(e => {
       const post = e?.node;
-      if (!post?.id || seen.has(post.id)) return;
+      if (!post?.id) { invalid = true; return; }
+      if (seen.has(post.id)) return;
       const due = new Date(post.dueAt);
-      if (due >= bounds.start && due <= bounds.end) { seen.add(post.id); all.push(post); }
+      if (Number.isFinite(+due)) { seen.add(post.id); all.push(post); } else invalid = true;
     });
     hasNext = !!block?.pageInfo?.hasNextPage; after = block?.pageInfo?.endCursor || null; fetched += (block?.edges || []).length;
-    if (!block?.pageInfo) break;
+    if (!block?.pageInfo || (hasNext && (!after || seenCursors.has(after)))) break;
+    if (after) seenCursors.add(after);
+    if (!hasNext) paginationComplete = true;
   }
   all.sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt));
+  state.scheduledCoverage = { complete: paginationComplete && !invalid, ts: Date.now(), count: all.length };
   state.scheduled = all;
-  cache.scheduled = { value: all, ts: Date.now() };
+  cache.scheduled = { value: all, ts: Date.now(), coverage: state.scheduledCoverage };
   saveCacheState();
   return all;
 }
@@ -219,7 +229,8 @@ async function getPublishedPosts({ force = false } = {}) {
   const orgId = await getOrgId({ force });
   if (!orgId) return [];
   const bounds = getScheduledBounds();
-  let all = [], after = null, hasNext = true, fetched = 0;
+  let paginationComplete = false;
+  let all = [], after = null, hasNext = true, fetched = 0, pages = 0, invalid = false;
   const seen = new Set();
   const q = 'query SentPosts($organizationId: OrganizationId!, $after: String, $first: Int!) { posts(first:$first,after:$after,input:{organizationId:$organizationId,filter:{status:[sent]},sort:[{field:createdAt,direction:desc}]}){edges{node{id text createdAt sentAt channelId externalLink assets{thumbnail mimeType source}}} pageInfo{hasNextPage endCursor}} }';
   while (hasNext && fetched < 500) {
@@ -271,6 +282,7 @@ async function syncBuffer({ force = false } = {}) {
     ]);
     const plannerPosts = getPlannerPosts();
     renderChannelSelects();
+    renderPlanningSettings();
     renderCalendar();
     detectQueueGaps();
     setSyncStatus('success', `${scheduledPosts.length} scheduled · ${publishedPosts.length} published.`);

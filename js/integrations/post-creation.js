@@ -19,7 +19,7 @@ function postActionErrorCode(typename) {
 
 function unwrapPostAction(result, fallback = 'Buffer rejected this post.') {
   if (!result) throw new Error('Empty mutation response.');
-  if (result.__typename === 'PostActionSuccess') return result;
+  if (result.__typename === 'PostActionSuccess' && result.post?.id) return result;
   const typename = String(result.__typename || '');
   const message = result.message || POST_ACTION_FALLBACK_MESSAGES[typename] || fallback;
   throw Object.assign(new Error(message), {
@@ -55,8 +55,11 @@ function appendScheduled(post, sourceInput = {}) {
   cache.scheduled = { value: state.scheduled, ts: Date.now() }; saveCacheState();
 }
 
+let composerSendPending = false;
 async function composerSend(action) {
-  const text = editorToText(qs('composerEditor').innerHTML);
+  if (composerSendPending) return;
+  const editorSnapshot = qs('composerEditor').innerHTML;
+  const text = editorToText(editorSnapshot);
   if (!text) { showToast('Write something first', 'error'); return; }
   const connection = getBufferConnectionState();
   const oauthToken = getStoredOAuthToken();
@@ -82,9 +85,12 @@ async function composerSend(action) {
       input.assets = [{ image: { url: imgUrl } }];
     }
   }
+  composerSendPending = true;
   qs('composerStatus').textContent = 'Sending…';
+  let accepted = false;
   try {
     const created = await createPost(input);
+    accepted = true;
     const draftId = created?.post?.id;
     if (action === 'draft' && needsApproval && draftId) {
       const ch = state.channels.find(c => c.id === channelId);
@@ -102,13 +108,14 @@ async function composerSend(action) {
     // Discord integration
     if (window.Discord) {
       const channel = state.channels.find(c => c.id === channelId);
-      window.Discord.onComposerSent(text, action, {
+      try { window.Discord.onComposerSent(text, action, {
         platform: channel?.service || '',
         channelName: channel?.displayName || channel?.name || '',
         dueAt: action === 'schedule' ? when : '',
-      });
+      }); } catch (error) { console.warn('Discord notification failed', error); }
     }
     if (created?.post?.dueAt) { appendScheduled(created.post, input); renderCalendar(); }
+    if (qs('composerEditor').innerHTML !== editorSnapshot) return;
     qs('composerEditor').innerHTML = '';
     if (typeof clearStoredComposerDraft === 'function') clearStoredComposerDraft();
     qs('composerEditor').dispatchEvent(new Event('input'));
@@ -118,11 +125,12 @@ async function composerSend(action) {
     qs('schedulePanel').classList.remove('open');
     qs('composerScheduleToggle').style.display = 'inline-flex';
   } catch (e) {
+    if (accepted) { qs('composerStatus').textContent = 'Buffer accepted the post, but local updates failed. Check Buffer before sending again.'; return; }
     const msg = getErrorMessage(e, 'Failed to send.');
     if (isAuthError(e)) handleAuthFailure(msg);
     qs('composerStatus').textContent = `Failed: ${msg}`;
     showToast('Failed: ' + msg, 'error');
     safeTrack(() => GA4_Composer.postSendFailed(getErrorType(e)));
     safeTrack(() => GA4_System.applicationError(e, 'composer'));
-  }
+  } finally { composerSendPending = false; }
 }

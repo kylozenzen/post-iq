@@ -65,7 +65,7 @@ function getPlanningSettings() {
   try {
     const saved = JSON.parse(localStorage.getItem(PLANNING_KEY) || 'null') || {};
     const postingDays = Array.isArray(saved.postingDays) ? saved.postingDays.filter(d => DAY_CODES.includes(d)) : DEFAULT_PLANNING_SETTINGS.postingDays;
-    return { showQueueGaps: saved.showQueueGaps !== false, postingDays: postingDays.length ? postingDays : DEFAULT_PLANNING_SETTINGS.postingDays };
+    return { ...saved, showQueueGaps: saved.showQueueGaps !== false, postingDays, channelPostingDays: saved.channelPostingDays || {} };
   } catch { return { ...DEFAULT_PLANNING_SETTINGS }; }
 }
 function setPlanningSettings(v) { localStorage.setItem(PLANNING_KEY, JSON.stringify(v)); }
@@ -201,7 +201,7 @@ function calendarPostPillHtml(post, dataAttribute, dateKey, limit) {
   const platform = platformIdentity(post);
   const published = isPublishedPost(post);
   const statusLabel = published ? 'Published' : 'Scheduled';
-  return `<button type="button" class="day-post-pill${published ? ' is-published' : ''}" ${dataAttribute}="${safeText(dateKey)}" title="${safeText(statusLabel)} · ${safeText(platform.label)} · ${safeText(compact(post.text, 120))}">${platformLogoHtml(post)}<span class="day-post-status" aria-hidden="true">${published ? '✓' : '◷'}</span><span class="day-post-copy">${safeText(compact(post.text, limit))}</span></button>`;
+  return `<button type="button" class="day-post-pill${published ? ' is-published' : ''}" ${dataAttribute}="${safeText(dateKey)}" data-post-id="${safeText(post.id)}" title="${safeText(statusLabel)} · ${safeText(platform.label)} · ${safeText(compact(post.text, 120))}">${platformLogoHtml(post)}<span class="day-post-status" aria-hidden="true">${published ? '✓' : '◷'}</span><span class="day-post-copy">${safeText(compact(post.text, limit))}</span></button>`;
 }
 function snapshotPostPayload(p) {
   const planningAt = getPostPlanningAt(p);
@@ -252,7 +252,7 @@ function renderCalendarView() {
   try { window.PostIQPlanHealth?.render?.(); } catch {}
   try { window.PostIQComposerResources?.refreshDayNotes?.(); } catch {}
   if (isContentCalendarMode()) return renderContentCalendar();
-  qs('calendarFilter')?.style.removeProperty('display'); qs('calDesc').textContent = 'Your Buffer queue in a monthly view. Spot gaps and add planning notes before you compose.';
+  qs('calendarFilter')?.style.removeProperty('display'); qs('calDesc').textContent = `Timezone: ${PostIQCoverage.timezone}. ${state.scheduledCoverage?.complete ? 'All scheduled pages loaded.' : 'Incomplete scheduled data; unloaded dates are unknown.'} Posting-day coverage is evaluated separately for every channel.`;
   qs('calendarPostsModeBtn')?.classList.add('active'); qs('calendarContentModeBtn')?.classList.remove('active');
   qs('monthLabel').textContent = monthLabel(state.month);
   renderCalendarFilter();
@@ -286,12 +286,16 @@ function renderCalendarView() {
     if (dayPosts.length > 2) html += `<div class="more-indicator">+${dayPosts.length - 2} more</div>`;
     dayNotes.slice(0, 2).forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="day-note-pill" data-note-detail="${safeText(note.id)}" style="${notePillStyle(meta)}" aria-label="Edit note for ${safeText(formatDateWithYear(d))}">${safeText(compact(note.text, 50))}</button>`; });
     if (dayNotes.length > 2) html += `<div class="more-indicator">+${dayNotes.length - 2} notes</div>`;
+    if (key >= fmtDate(new Date())) {
+      const daily = window.PostIQCoverage.calculate({ posts:state.scheduled, channels:state.channels, settings:getPlanningSettings(), now:d, days:1, connected:getBufferConnectionState().connected, meta:state.scheduledCoverage });
+      html += `<div class="day-coverage" style="font-size:10px;color:var(--subtle)">${daily.rows.map(row => { const channel=state.channels.find(c=>String(c.id)===row.channelId); return `${safeText(channel?.displayName || channel?.name || row.channelId)}: ${row.status === 'off' ? 'non-posting day' : row.status}`; }).join('<br>')}</div>`;
+    }
     day.innerHTML = html;
     day.querySelectorAll('[data-add-note-date]').forEach(el => {
       el.addEventListener('click', ev => { ev.stopPropagation(); openNewNoteForDate(d); });
     });
     day.querySelectorAll('[data-post-detail]').forEach(el => {
-      el.addEventListener('click', ev => { ev.stopPropagation(); openCalendarPostDetails(key, allDayPosts, allDayNotes); });
+      el.addEventListener('click', ev => { ev.stopPropagation(); openCalendarPostDetails(key, allDayPosts.filter(p => String(p.id) === el.dataset.postId), []); });
     });
     day.querySelectorAll('[data-note-detail]').forEach(el => {
       el.addEventListener('click', ev => { ev.stopPropagation(); openEditNoteForDate(d, el.dataset.noteDetail); });
@@ -326,11 +330,11 @@ function renderWeekView() {
     const card = document.createElement('div');
     card.className = `cal-week-day${key === fmtDate(new Date()) ? ' today' : ''}${dayPosts.length ? ' has-posts' : ''}`;
     let html = `<div class="cal-week-day-title"><span class="cal-week-day-name">${d.toLocaleDateString(undefined,{ weekday:'short'})}</span><div class="cal-week-day-title-right"><strong class="cal-week-day-date">${d.toLocaleDateString(undefined,{ month:'short', day:'numeric'})}</strong><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add note for ${safeText(formatDateWithYear(d))}">+</button></div></div><div class="cal-week-day-summary">${dayPosts.length ? plannerDaySummary(dayPosts) : 'Open day'}${dayNotes.length ? ` · ${dayNotes.length} note${dayNotes.length === 1 ? '' : 's'}` : ''}</div>`;
-    if (!dayPosts.length && !dayNotes.length) html += `<div class="cal-week-empty">No posts or notes</div>`;
+    if (!dayPosts.length && !dayNotes.length) html += `<div class="cal-week-empty">No loaded posts or notes</div>`;
     dayPosts.forEach(p => { html += calendarPostPillHtml(p, 'data-week-post', key, 110); });
     dayNotes.forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="day-note-pill" data-week-note="${safeText(note.id)}" style="${notePillStyle(meta)}">${safeText(compact(note.text, 70))}</button>`; });
     card.innerHTML = html;
-    card.querySelectorAll('[data-week-post]').forEach(el => el.addEventListener('click', ev => { ev.stopPropagation(); openCalendarPostDetails(key, allDayPosts, allDayNotes); }));
+    card.querySelectorAll('[data-week-post]').forEach(el => el.addEventListener('click', ev => { ev.stopPropagation(); openCalendarPostDetails(key, allDayPosts.filter(p => String(p.id) === el.dataset.postId), []); }));
     card.querySelectorAll('[data-week-note]').forEach(el => el.addEventListener('click', ev => { ev.stopPropagation(); openEditNoteForDate(d, el.dataset.weekNote); }));
     card.onclick = () => openCalendarDayDetails(d);
 
@@ -372,25 +376,18 @@ function detectQueueGaps() {
   if (!panel || !list || !getBufferConnectionState().connected) { if (panel) panel.style.display = 'none'; return; }
   const settings = getPlanningSettings();
   if (!settings.showQueueGaps) { panel.style.display = 'none'; return; }
-  const today = new Date(); today.setHours(0,0,0,0);
-  const gaps = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(today); d.setDate(today.getDate() + i);
-    if (!settings.postingDays.includes(DAY_CODES[d.getDay()])) continue;
-    const key = fmtDate(d);
-    const hasPosts = state.scheduled.some(p => fmtDate(new Date(p.dueAt)) === key);
-    if (!hasPosts) gaps.push(d);
-  }
-  if (!gaps.length) { panel.style.display = 'none'; return; }
+  const coverage = getQueueCoverage(7);
   panel.style.display = 'block';
   list.innerHTML = '';
-  gaps.forEach(d => {
-    const chip = document.createElement('button');
-    chip.className = 'gap-chip';
-    chip.textContent = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-    chip.onclick = () => openDayNote(d);
+  coverage.rows.forEach(row => {
+    if (row.status === 'scheduled' || row.status === 'off') return;
+    const chip = document.createElement('button'); chip.className = 'gap-chip';
+    const channel = state.channels.find(c => String(c.id) === row.channelId);
+    chip.textContent = `${row.date} · ${channel?.displayName || channel?.name || row.channelId}: ${row.status}`;
+    chip.onclick = () => openDayNote(new Date(row.date+'T12:00:00'));
     list.appendChild(chip);
   });
+
 }
 
 function openDayNote(date) { openCalendarDayDetails(date); }
@@ -840,7 +837,7 @@ function openPostDetails(key, data, options = {}) {
   if (data.posts && data.posts.length) {
     sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${data.posts.length} post${data.posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(data.posts)}</div>`);
   } else {
-    sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No post on this day</div><div class="empty-desc">This day does not have a published or scheduled post in this calendar.</div></div>');
+    sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No post on this day</div><div class="empty-desc">No loaded post on this day. Check sync completeness before treating it as empty.</div></div>');
   }
   if (data.notes && data.notes.length) {
     sections.push(`<div><div class="post-detail-label">Planning notes</div>${noteCardsHtml(data.notes, options.noteTypes || getNoteTypes())}</div>`);
