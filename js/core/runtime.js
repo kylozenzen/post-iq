@@ -607,5 +607,6 @@ const rgbaFromHex = (hex, alpha = 0.1) => {
 const maskToken = t => !t ? '—' : t.length <= 8 ? '••••' : `${t.slice(0,4)}••••${t.slice(-4)}`;
 
 function getQueueCoverage(days = 90) {
-  return window.PostIQCoverage.calculate({ posts: state.scheduled, channels: state.channels, settings: getPlanningSettings(), days, connected: getBufferConnectionState().connected, meta: state.scheduledCoverage });
+  const meta = state.scheduledCoverage ? { ...state.scheduledCoverage, complete: state.scheduledCoverage.complete && state.syncState !== 'failed' } : undefined;
+  return window.PostIQCoverage.calculate({ posts: state.scheduled, channels: state.channels, settings: getPlanningSettings(), days, connected: getBufferConnectionState().connected, meta });
 }

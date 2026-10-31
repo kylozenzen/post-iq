@@ -44,7 +44,7 @@ async function editPost(input, options = {}) {
 }
 
 function appendScheduled(post, sourceInput = {}) {
-  const id = post?.id; if (!id) return;
+  const id = post?.id; if (!id || sourceInput.saveToDraft || post.status === 'draft') return;
   if (state.scheduled.some(p => p.id === id)) return;
   const channel = state.channels.find(c => c.id === (post.channelId || sourceInput.channelId));
   state.scheduled = [...state.scheduled, {
@@ -52,7 +52,8 @@ function appendScheduled(post, sourceInput = {}) {
     channelName: channel?.displayName || channel?.name || '', platform: channel?.service || '', status: 'scheduled',
     mediaUrls: mediaUrlsFromAssets(sourceInput.assets)
   }];
-  cache.scheduled = { value: state.scheduled, ts: Date.now() }; saveCacheState();
+  cache.scheduled = { value: state.scheduled, ts: Date.now(), coverage: state.scheduledCoverage }; saveCacheState();
+  window.dispatchEvent(new Event('postiq:scheduled-updated'));
 }
 
 let composerSendPending = false;
@@ -114,7 +115,16 @@ async function composerSend(action) {
         dueAt: action === 'schedule' ? when : '',
       }); } catch (error) { console.warn('Discord notification failed', error); }
     }
-    if (created?.post?.dueAt) { appendScheduled(created.post, input); renderCalendar(); }
+    if (action !== 'draft') {
+      if (created?.post?.dueAt && Number.isFinite(Date.parse(created.post.dueAt))) appendScheduled(created.post, input);
+      else {
+        // A successful queue action without a confirmed date cannot fill a dated planning slot.
+        state.scheduledCoverage = { ...state.scheduledCoverage, complete: false };
+        cache.scheduled = { value: state.scheduled, ts: Date.now(), coverage: state.scheduledCoverage }; saveCacheState();
+        window.dispatchEvent(new Event('postiq:scheduled-updated'));
+      }
+      renderCalendar();
+    }
     if (qs('composerEditor').innerHTML !== editorSnapshot) return;
     qs('composerEditor').innerHTML = '';
     if (typeof clearStoredComposerDraft === 'function') clearStoredComposerDraft();

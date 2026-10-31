@@ -68,7 +68,7 @@ function getPlanningSettings() {
     return { ...saved, showQueueGaps: saved.showQueueGaps !== false, postingDays, channelPostingDays: saved.channelPostingDays || {} };
   } catch { return { ...DEFAULT_PLANNING_SETTINGS }; }
 }
-function setPlanningSettings(v) { localStorage.setItem(PLANNING_KEY, JSON.stringify(v)); }
+function setPlanningSettings(v) { localStorage.setItem(PLANNING_KEY, JSON.stringify(v)); window.dispatchEvent(new Event('postiq:planning-changed')); }
 function getNoteTypes() {
   try {
     const saved = JSON.parse(localStorage.getItem(NOTE_TYPES_KEY) || 'null');
@@ -150,6 +150,7 @@ function renderCalendarFilter() {
   const selected = options.some(o => o.value === current) ? current : 'all';
   if (selected !== current && selected !== 'content') state.calendarFilter = selected;
   sel.innerHTML = options.map(o => `<option value="${safeText(o.value)}" ${o.value === selected ? 'selected' : ''}>${safeText(o.label)}</option>`).join('');
+  window.CalendarExperience?.updateFilterSummary();
 }
 function mediaUrlsFromAssets(assets) {
   const urls = [];
@@ -222,8 +223,8 @@ function snapshotPostPayload(p) {
 }
 
 function isContentCalendarMode() { return localStorage.getItem('postiq_content_calendar_mode') === 'content' && window.ContentItems?.enabled?.() !== false; }
-function contentCalendarEntries() { return (window.Notebook?.getCards?.() || []).map(window.ContentModel.calendarEntry).filter(entry => entry.date && (!state.calendarChannel || (entry.content.variants || []).some(v => String(v.channelId) === state.calendarChannel))); }
-function isConfirmedContentEntry(entry) { return (entry.variants || []).some(v => window.ContentModel.postId(v) && v.dueAt); }
+function contentCalendarEntries() { return (window.Notebook?.getCards?.() || []).map(card=>window.ContentModel.calendarEntry(card,state.scheduled)).filter(entry => entry.date && (!state.calendarChannel || (entry.content.variants || []).some(v => String(v.channelId) === state.calendarChannel))); }
+function isConfirmedContentEntry(entry) { return window.ContentModel.confirmedScheduling(entry.content,state.scheduled).length>0; }
 function calendarTargetsForDate(key) {
   if (!['all','targets'].includes(state.calendarFilter || 'all')) return [];
   return contentCalendarEntries().filter(entry => entry.date === key && !isConfirmedContentEntry(entry));
@@ -278,7 +279,7 @@ function renderCalendarView() {
   try { window.PostIQPlanHealth?.render?.(); } catch {}
   try { window.PostIQComposerResources?.refreshDayNotes?.(); } catch {}
   if (isContentCalendarMode()) return renderContentCalendar();
-  qs('calendarFilter')?.style.removeProperty('display'); qs('calDesc').textContent = `Timezone: ${PostIQCoverage.timezone}. ${state.scheduledCoverage?.complete ? 'All scheduled pages loaded.' : 'Incomplete scheduled data; unloaded dates are unknown.'} Posting-day coverage is evaluated separately for every channel.`;
+  qs('calendarFilter')?.style.removeProperty('display'); qs('calDesc').textContent = `Your publishing plan · ${PostIQCoverage.timezone}`;
   qs('calendarPostsModeBtn')?.classList.add('active'); qs('calendarContentModeBtn')?.classList.remove('active');
   qs('monthLabel').textContent = monthLabel(state.month);
   renderCalendarFilter();

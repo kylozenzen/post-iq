@@ -56,7 +56,7 @@ exactly, so the cascade remains unchanged.
 
 ## Modular product behavior
 
-The product-level modular foundation already exists. Planning, Create, Ideas,
+The product-level modular foundation already exists. Calendar, Compose, Content Bank,
 and Approvals are user-configurable workspaces, and internal feature flags can
 pause individual capabilities. Keep these concerns separate:
 
@@ -88,3 +88,21 @@ storage keys and Buffer payload contracts stable during those migrations.
 The `assets/` tree is not loaded by the current `app.html`; it is retained as a
 legacy modular prototype until it can be audited and removed in a dedicated
 cleanup.
+
+## Planning and Content Bank
+
+`js/features/coverage.js` is the shared channel/date coverage calculation for
+Calendar, Queue Health, runway and Your Pace. Planning-only cadence, per-day
+targets, days off and future period targets are held under the existing planning
+settings key. They never change scheduled Buffer posts.
+
+`js/features/your-pace.js` owns the Your Pace controls inside the standalone
+Queue Health tool, not a calendar sidebar. `calendar-experience.js` owns the
+compact filter presentation and calendar/drawer context.
+
+`js/features/content-flow.js` remains the single owner of the existing saved
+content database (`postiq_notebook_v1`, `window.Notebook`). Content Bank is its
+visible name; legacy Ideas routes and identifiers remain valid. Target-date
+planning goes through its existing updateCard boundary. `content-model.js`
+separates local targets from API-linked scheduling without replacing source
+text, independent variants, lifecycle data or Buffer relationships.

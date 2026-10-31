@@ -39,8 +39,8 @@ window.PostIQPlanHealth = (() => {
       const status = window.PostIQRunway.classifyRunway(days);
       const label = channel.displayName || channel.name || channel.service || 'Channel';
       const copy = status === 'empty' ? 'No confirmed runway'
-        : status === 'low' ? `Low: ${plural(days, 'day')} covered`
-        : `Healthy: ${plural(days, 'day')} covered`;
+        : status === 'low' ? `Low: ${plural(days, 'posting day')} covered`
+        : `Healthy: ${plural(days, 'posting day')} covered`;
       return { label, status, copy };
     });
   }
@@ -97,17 +97,17 @@ window.PostIQPlanHealth = (() => {
 
     const summary = attention
       ? `${plural(attention, 'channel')} need${attention === 1 ? 's' : ''} attention`
-      : 'All channels covered';
-    const dataNote = coverage.rows.some(r => ['incomplete','stale'].includes(r.status)) ? 'Coverage uncertain: incomplete or stale sync. ' : '';
+      : (coverage.complete ? 'Each channel has at least 3 posting days covered' : 'Runway based on loaded posts only');
+    const dataNote = !coverage.complete ? 'Coverage uncertain: incomplete or stale sync. ' : '';
     const breakPrompt = accountRunway >= runway.RUNWAY_BREAK_THRESHOLD_DAYS
-      ? `<div class="plan-health-break">${plural(accountRunway, 'day')} queued across your channels. A break is fine.</div>` : '';
+      ? `<div class="plan-health-break">${plural(accountRunway, 'posting day')} queued across your channels. A break is fine.</div>` : '';
     const warning = tokenWarning();
     const tokenLine = warning ? `<div class="plan-health-note">${esc(warning)}</div>` : '';
 
     setStrip(`<div class="plan-health-card${open ? ' is-open' : ''}">
       <button type="button" class="plan-health-toggle" data-health-toggle aria-expanded="${open}" aria-controls="planHealthBody">
         <span class="plan-health-title">Channel health</span>
-        <span class="plan-health-summary">${esc(dataNote)}${esc(summary)} · Runway ${plural(accountRunway, 'day')}</span>
+        <span class="plan-health-summary">${esc(dataNote)}${esc(summary)} · Runway ${plural(accountRunway, 'posting day')}</span>
         <span class="plan-health-chevron" aria-hidden="true">${open ? '▴' : '▾'}</span>
       </button>
       <div id="planHealthBody" class="plan-health-body" ${open ? '' : 'hidden'}>

@@ -45,6 +45,7 @@
   <link rel="stylesheet" href="./css/app/plan-health.css" />
   <link rel="stylesheet" href="./css/onboarding.css" />
   <link rel="stylesheet" href="./css/app/calendar-experience.css" />
+  <link rel="stylesheet" href="./css/app/planning-tools.css" />
 
 </head>
 
@@ -165,7 +166,6 @@
         <span class="nav-icon"><svg><use href="#i-compose"/></svg></span>
         <span class="nav-text">Compose</span>
       </button>
-      <div class="nav-section-label" data-tools-section>More tools</div>
       <button class="nav-btn" data-view="queueHealthView" data-feature="calendar" data-tooltip="Queue Health"><span class="nav-icon" aria-hidden="true">◷</span><span class="nav-text">Queue Health</span></button>
       <button class="nav-btn" data-view="approvalsView" data-workspace-nav="approvals" data-feature="approvals" data-tooltip="Approvals">
         <span class="nav-icon"><svg><use href="#i-check"/></svg></span>
@@ -231,6 +231,7 @@
       <div class="mob-view-hdr">
         <span class="mob-view-title">Calendar</span>
         <div class="mob-view-actions">
+          <button class="btn sm ghost" type="button" data-view="queueHealthView">Your Pace</button>
           <button class="btn sm" id="shareMonthBtnMob">Share</button>
           <button class="btn sm ghost" id="mobMenuBtn">
             <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
@@ -246,6 +247,7 @@
         </div>
         <div class="page-actions">
 
+          <button class="btn ghost" type="button" data-view="queueHealthView">Queue Health &amp; Your Pace</button>
           <a class="btn ghost" href="/help/?article=plan-content-calendar">Help</a>
           <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
         </div>
@@ -268,8 +270,9 @@
             <button class="btn sm ghost active" id="calendarPostsModeBtn" type="button">Posts</button>
             <button class="btn sm ghost" id="calendarContentModeBtn" type="button">Content</button>
           </div>
-          <label class="sr-only" for="calendarChannelFilter">Channel</label><select id="calendarChannelFilter" class="input"><option value="">All channels</option></select>
-          <label class="sr-only" for="calendarFilter">Item filter</label><select id="calendarFilter" class="input" style="max-width:150px;font-size:12px;height:30px;padding:0 28px 0 8px;"></select>
+          <details class="calendar-filters" id="calendarFilters"><summary class="btn sm" id="calendarFilterSummary">Filters</summary><div class="calendar-filter-popover"><div class="field">          <label class="label" for="calendarChannelFilter">Channel</label><select id="calendarChannelFilter" class="input"><option value="">All channels</option></select>
+          <label class="label" for="calendarFilter">Item filter</label><select id="calendarFilter" class="input" style="max-width:150px;font-size:12px;height:30px;padding:0 28px 0 8px;"></select>
+</div><div class="calendar-legend"><span>◷ Buffer post</span><span>✎ Date-only note</span><span>□ Action</span><span>◇ Target · not scheduled</span></div><button class="btn sm ghost" type="button" id="calendarFiltersReset">Reset filters</button></div></details>
           <div class="cal-view-toggle" role="tablist" aria-label="Calendar view mode">
             <button class="btn sm ghost active" id="calendarViewMonthBtn" type="button" data-calendar-view="month">Month</button>
             <button class="btn sm ghost" id="calendarViewWeekBtn" type="button" data-calendar-view="week">Week</button>
@@ -280,7 +283,6 @@
         </div>
       </div>
       <p id="calendarState" class="calendar-state" role="status"></p>
-      <div class="calendar-legend"><span>◷ Buffer post</span><span>✎ Date-only note</span><span>□ Action</span><span>◇ Target · not scheduled</span></div>
 
       <!-- Day-of-week labels -->
       <div class="cal-dow">
@@ -323,7 +325,27 @@
         <div class="gaps-list" id="gapsList"></div>
       </div>
 
-      <section class="calendar-pace" aria-labelledby="calendarPaceTitle"><h2 id="calendarPaceTitle">Your Pace</h2><p>Pace insights are coming in a future update.</p></section>
+      <section id="yourPace" class="pace-panel" aria-labelledby="paceTitle">
+        <h2 id="paceTitle">Your Pace</h2>
+        <p>Set a rhythm that fits your plan, then check a break or a lighter period. These are local planning choices. Existing Buffer posts stay as scheduled.</p>
+        <div class="pace-period"><label>From<input class="input" type="date" id="paceStart"></label><label>Through<input class="input" type="date" id="paceEnd"></label><button class="btn" id="paceCheck" type="button">Check this period</button></div>
+        <p id="paceStatus" role="status"></p>
+        <div class="pace-columns">
+          <section class="pace-results" aria-labelledby="paceResultsTitle">
+            <div class="pace-results-header"><h3 id="paceResultsTitle">Period coverage</h3><span id="paceCoverageMeta"></span></div>
+            <p id="paceCoverageSummary" role="status"></p>
+            <p id="paceDataNote" class="calendar-state"></p>
+            <ul id="paceSlots" class="pace-slots" tabindex="0" aria-label="Uncovered planned slots"></ul>
+            <details class="pace-calculation"><summary>How coverage is calculated</summary><p>Only confirmed scheduled posts count toward your selected posting days and targets. Intentional days off are excluded. Local notes, drafts and target dates do not count as confirmed coverage. Checks use the displayed timezone and the latest loaded queue data.</p></details>
+          </section>
+          <div class="pace-controls">
+            <div class="pace-rhythm" role="group" aria-labelledby="paceRhythmTitle"><h3 id="paceRhythmTitle">Channel rhythm</h3><label>Channel<select class="input" id="paceChannel"></select></label><p id="paceChannelHint" hidden>Connect Buffer and sync to set a channel rhythm.</p><div id="paceDays" class="pace-days"></div><label>Posts per selected day<input class="input pace-number" id="paceTarget" type="number" min="0" max="10" value="1"></label><button class="btn" id="paceSave" type="button">Save rhythm</button></div>
+            <details class="pace-adjustment" id="paceLighterDetails"><summary>A lighter period</summary><div class="pace-adjustment-body"><p>Adjust this channel’s target for the selected dates. Zero plans no posts; the latest overlapping change takes precedence.</p><label>Posts per selected day<input class="input pace-number" id="pacePeriodTarget" type="number" min="0" max="10" value="0"></label><button class="btn" id="pacePeriodSave" type="button">Save period target</button></div></details>
+            <details class="pace-adjustment" id="paceOffDetails"><summary>Intentional days off</summary><div class="pace-adjustment-body"><p>Mark the selected dates off, without changing Buffer posts.</p><label>Apply to<select class="input" id="paceOffScope"><option value="*">All channels</option><option value="selected">Selected channel</option></select></label><button class="btn" id="paceOffSave" type="button">Mark dates off</button></div></details>
+          </div>
+        </div>
+        <div id="paceExceptions"></div>
+      </section>
     </section>
 
     <!-- ══════════ COMPOSE (Composer) ══════════ -->
@@ -591,10 +613,10 @@
             </div>
             <div class="resource-drawer-search" id="composerResourceSearchWrap">
               <label class="sr-only" for="composerResourceSearch">Search writing tools</label>
-              <input class="input" id="composerResourceSearch" type="search" autocomplete="off" placeholder="Search Notebook" />
+              <input class="input" id="composerResourceSearch" type="search" autocomplete="off" placeholder="Search Content Bank" />
             </div>
             <div class="support-tabs" role="tablist" aria-label="Compose tools">
-              <button class="support-tab active" id="composerToolTabNotebook" type="button" role="tab" aria-selected="true" aria-controls="composerToolPanelNotebook" data-stool="notebook">Notebook <span class="support-tab-count" data-resource-count="notebook" hidden></span></button>
+              <button class="support-tab active" id="composerToolTabNotebook" type="button" role="tab" aria-selected="true" aria-controls="composerToolPanelNotebook" data-stool="notebook">Content Bank <span class="support-tab-count" data-resource-count="notebook" hidden></span></button>
               <button class="support-tab" id="composerToolTabHooks" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelHooks" data-stool="hooks">Hooks <span class="support-tab-count" data-resource-count="hooks" hidden></span></button>
               <button class="support-tab" id="composerToolTabHashtags" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelHashtags" data-stool="hashtags">Hashtags <span class="support-tab-count" data-resource-count="hashtags" hidden></span></button>
               <button class="support-tab" id="composerToolTabTemplates" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelTemplates" data-stool="templates">Templates <span class="support-tab-count" data-resource-count="templates" hidden></span></button>
@@ -603,8 +625,8 @@
             </div>
             <div class="support-panel active" id="composerToolPanelNotebook" role="tabpanel" aria-labelledby="composerToolTabNotebook" data-stool-panel="notebook">
               <div class="composer-support-hdr">
-                <div><div class="panel-card-title" style="margin-bottom:2px;">Notebook</div><div class="resource-panel-copy">Pin an idea beside your draft or insert its notes.</div></div>
-                <button class="btn sm ghost" type="button" data-resource-manage="notebook">Open Notebook →</button>
+                <div><div class="panel-card-title" style="margin-bottom:2px;">Content Bank</div><div class="resource-panel-copy">Pin an idea beside your draft or insert its notes.</div></div>
+                <button class="btn sm ghost" type="button" data-resource-manage="notebook">Open Content Bank →</button>
               </div>
               <div class="composer-resource-list" id="composerNotebookResources"></div>
             </div>
@@ -802,8 +824,8 @@
       </div>
       <div class="page-hdr">
         <div class="page-hdr-left">
-          <h1 class="page-title">Ideas Library</h1>
-          <p class="page-desc">Build reusable content pillars, save post templates, and explore trends before turning ideas into Buffer-ready starters.</p>
+          <h1 class="page-title">Content Bank</h1>
+          <p class="page-desc">Find saved material, plan local target dates, and develop your channel versions. Buffer scheduling is shown separately.</p>
         </div>
         <div class="page-actions">
           <a class="btn ghost" href="/help/?article=build-your-idea-system">Help</a>
@@ -812,12 +834,12 @@
 
       <div class="view-content">
         <div class="ideas-tool-switcher" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:18px;box-shadow:var(--shadow-sm);">
-          <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">Choose an idea tool</div>
-          <div class="ideas-tabs" role="tablist" aria-label="Ideas sections" style="margin:0;border:0;padding:0;">
-            <button class="ideas-tab active" type="button" data-ideas-tab="notebook">Notebook</button>
-            <button class="ideas-tab" type="button" data-ideas-tab="pillars">Content Pillars</button>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">Saved material and resources</div>
+          <div class="ideas-tabs" role="group" aria-label="Content Bank sections" style="margin:0;border:0;padding:0;">
+            <button class="ideas-tab active" type="button" data-ideas-tab="notebook">Saved content</button>
+            <details class="bank-resources" id="bankResources"><summary class="btn sm" id="bankResourcesSummary">Resources</summary><div class="bank-resource-menu"><button class="ideas-tab" type="button" data-ideas-tab="pillars">Content Pillars</button>
             <button class="ideas-tab" type="button" data-ideas-tab="templates">Templates</button>
-            <button class="ideas-tab" type="button" data-ideas-tab="trending">Trending</button>
+            <button class="ideas-tab" type="button" data-ideas-tab="trending">Trending</button></div></details>
           </div>
         </div>
 
@@ -826,13 +848,15 @@
           <div class="ideas-panel-hdr">
             <p class="ideas-panel-copy">Capture an idea, develop the source, then remix editable versions for your Buffer channels. Your original source always stays in PostIQ.</p>
             <div class="page-actions">
-              <button class="btn sm primary" id="newNotecardBtn" type="button">+ Capture idea</button>
+              <button class="btn sm primary" id="newNotecardBtn" type="button">+ Add content</button>
             </div>
           </div>
+          <div class="content-bank-filters"><label>Search saved content<input class="input" type="search" id="contentBankSearch" placeholder="Title, source text, or channel version"></label><label>Show<select class="input" id="contentBankFilter"><option value="all">All content</option><option value="undated">No target date</option><option value="targeted">Has a local target</option><option value="scheduled">Confirmed Buffer scheduling</option><option value="unconfirmed">No confirmed scheduling</option></select></label><label>Stage<select class="input" id="contentBankStage"><option value="all">All stages</option><option value="idea">Idea</option><option value="developing">Developing</option><option value="ready">Ready</option><option value="scheduled">Scheduled</option><option value="published">Published</option></select></label></div>
+          <p id="contentBankCount" role="status"></p><p class="calendar-state">Scheduling reflects the last Buffer response; sync for the latest status. Local target dates never confirm scheduling.</p>
           <div id="notebookEmpty" class="empty-state">
             <div class="empty-icon">📓</div>
-            <div class="empty-title">No notebook cards yet</div>
-            <div class="empty-desc">Save from Trending or add a manual note to build your writing references.</div>
+            <div class="empty-title">No saved content yet</div>
+            <div class="empty-desc">Capture content here or save it from Trending. Plan a target date when you are ready.</div>
           </div>
           <div id="notebookList"></div>
         </section>
@@ -1117,7 +1141,7 @@
 
     <section id="contentDetailView" class="view" aria-labelledby="contentDetailTitle">
       <div class="content-detail-shell">
-        <button class="btn sm ghost content-detail-back" id="contentDetailBack" type="button">← Back to Ideas</button>
+        <button class="btn sm ghost content-detail-back" id="contentDetailBack" type="button">← Back to Content Bank</button>
         <header class="content-detail-header">
           <div><div class="content-detail-kicker">Content workspace</div><h1 id="contentDetailTitle" class="page-title"></h1><div id="contentDetailMeta" class="content-detail-meta"></div></div>
           <div class="content-detail-actions"><button class="btn" id="contentDetailSync" type="button">Sync Source to Buffer</button><button class="btn primary" id="contentDetailRemix" type="button">Create Platform Drafts</button></div>
@@ -1285,6 +1309,7 @@
   <script src="./js/core/bootstrap.js" defer></script>
   <script src="./js/features/content-pillars.js" defer></script>
   <script src="./js/features/calendar-experience.js" defer></script>
+  <script src="./js/features/your-pace.js" defer></script>
   <script src="./js/core/startup.js" defer></script>
   <script src="./js/discord-integration.js" defer></script>
   <script src="./js/library.js" defer></script>
@@ -1387,8 +1412,8 @@
               <input type="checkbox" data-workspace-toggle="create" aria-label="Show Create workspace" />
             </label>
             <label class="workspace-preference-card">
-              <span class="workspace-preference-copy"><strong>Ideas</strong><small>Notebook, content pillars, trending feeds, and saved inspiration.</small></span>
-              <input type="checkbox" data-workspace-toggle="ideas" aria-label="Show Ideas workspace" />
+              <span class="workspace-preference-copy"><strong>Content Bank</strong><small>Saved content, local targets, content pillars, templates, and Trending.</small></span>
+              <input type="checkbox" data-workspace-toggle="ideas" aria-label="Show Content Bank workspace" />
             </label>
             <label class="workspace-preference-card" data-feature="approvals">
               <span class="workspace-preference-copy"><strong>Approvals</strong><small>Client feedback and approval workflows.</small></span>
@@ -1478,7 +1503,7 @@
             <div class="settings-feature-item"><span>Plan / Calendar</span><span class="settings-feature-status" data-settings-feature="calendar">Available</span></div>
             <div class="settings-feature-item"><span>Compose</span><span class="settings-feature-status" data-settings-feature="composer">Available</span></div>
             
-            <div class="settings-feature-item"><span>Ideas</span><span class="settings-feature-status" data-settings-feature="ideas">Available</span></div>
+            <div class="settings-feature-item"><span>Content Bank</span><span class="settings-feature-status" data-settings-feature="ideas">Available</span></div>
             <div class="settings-feature-item"><span>Content Pillars</span><span class="settings-feature-status" data-settings-feature="contentPillars">Available</span></div>
             <div class="settings-feature-item"><span>Templates</span><span class="settings-feature-status is-static">Available</span></div>
             <div class="settings-feature-item"><span>Trending ideas</span><span class="settings-feature-status" data-settings-feature="trending">Available</span></div>
@@ -1659,7 +1684,7 @@
 <div id="notecardModal" class="modal">
   <div class="modal-card">
     <div class="modal-hdr">
-      <span class="modal-title" id="notecardModalTitle">Add to Notebook</span>
+      <span class="modal-title" id="notecardModalTitle">Add to Content Bank</span>
       <button class="btn sm ghost" id="closeNotecardModal" type="button">Close</button>
     </div>
     <div class="field">
@@ -1725,5 +1750,6 @@
 </div>
 
 <div id="contentDetailDrawer" class="modal calendar-drawer" role="dialog" aria-modal="true" aria-labelledby="contentDetailTitle"><div class="modal-card lg" id="contentDetailDrawerBody"></div></div>
+<div id="contentBankPlanModal" class="modal calendar-drawer" role="dialog" aria-modal="true" aria-labelledby="contentBankPlanTitle"><div class="modal-card"><div class="modal-hdr"><h2 id="contentBankPlanTitle">Plan a target date</h2><button class="btn sm ghost" id="contentBankPlanClose" type="button">Close</button></div><p id="contentBankPlanName"></p><p>A local target is a planning reminder, not confirmed scheduling. Buffer posts and channel versions will not change.</p><label for="contentBankPlanDate">Target date</label><input class="input" type="date" id="contentBankPlanDate"><div class="row mt16"><button class="btn primary" id="contentBankPlanSave" type="button">Save target</button><button class="btn ghost" id="contentBankPlanClear" type="button">Clear target</button></div><p id="contentBankPlanStatus" role="status"></p></div></div>
 </body>
 </html>

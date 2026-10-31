@@ -2,7 +2,7 @@
 // Presentation and context only. Notes, content items and Buffer posts keep their owners.
 window.CalendarExperience = (() => {
   const CONTEXT_KEY = 'postiq_calendar_context_v2';
-  let context = null, returnFocus = new Map(), initialized = false;
+  let context = null, returnFocus = new Map(), bankScroll = null, initialized = false;
   const narrow = () => window.matchMedia?.('(max-width: 768px)').matches || false;
   const selectedKey = () => context?.selected || fmtDate(state.month);
   function remember(date) {
@@ -18,7 +18,7 @@ window.CalendarExperience = (() => {
   function restoreScroll() {
     const main = document.querySelector('.main');
     if (main) main.scrollTop = context?.mainScroll || 0;
-    if (window.scrollTo && context?.windowScroll) window.scrollTo(0,context.windowScroll);
+    if (window.scrollTo && Number.isFinite(context?.windowScroll) && window.scrollY!==context.windowScroll) window.scrollTo(0,context.windowScroll);
   }
   function restore() {
     try { context = JSON.parse(sessionStorage.getItem(CONTEXT_KEY) || 'null'); } catch {}
@@ -37,7 +37,13 @@ window.CalendarExperience = (() => {
       : state.syncState==='failed' ? 'Sync failed. Showing the last loaded posts; missing dates are not confirmed gaps.'
       : !state.scheduledCoverage?.complete ? 'Partial or unrefreshed Buffer data. Unloaded dates are unknown, not empty.'
       : Date.now()-state.scheduledCoverage.ts>15*60*1000 ? 'Stale Buffer data. Sync before making decisions about gaps.'
-      : 'Buffer posts are confirmed. Notes, tasks and target dates are local plans, not scheduled posts.';
+      : 'Queue up to date. Local plans are not scheduled posts.';
+  }
+  function updateFilterSummary() {
+    const summary=qs('calendarFilterSummary');if(!summary)return;
+    const count=Number(!!state.calendarChannel)+Number(isContentCalendarMode() || (state.calendarFilter || 'all')!=='all');
+    summary.textContent=count?`Filters (${count})`:'Filters';
+    summary.title=`${qs('calendarChannelFilter')?.selectedOptions[0]?.textContent || 'All channels'} · ${qs('calendarFilter')?.selectedOptions[0]?.textContent || 'All items'}`;
   }
   function renderChannelFilter() {
     const select=qs('calendarChannelFilter'); if(!select) return;
@@ -47,6 +53,7 @@ window.CalendarExperience = (() => {
       const option=document.createElement('option'); option.value=value; option.textContent='Selected channel (not loaded)'; select.appendChild(option);
     }
     select.value=value;
+    updateFilterSummary();
   }
   function compose(date=selectedKey(), channel=state.calendarChannel || '') {
     if(!workspacePreferences.create || !isFeatureEnabled('composer')) { showToast('Enable the Create workspace to start a draft.','error'); return; }
@@ -67,6 +74,7 @@ window.CalendarExperience = (() => {
   function onOpen(id) {
     const modal=qs(id); if(!modal?.classList.contains('calendar-drawer')) return;
     if(!returnFocus.has(id)) returnFocus.set(id,document.activeElement);
+    if(id==='contentBankPlanModal') bankScroll={main:document.querySelector('.main')?.scrollTop || 0,window:window.scrollY || 0};
     modal.querySelector('.modal-card')?.setAttribute('tabindex','-1');
     (modal.querySelector('button, input, textarea, [tabindex="0"]') || modal.querySelector('.modal-card'))?.focus({preventScroll:true});
   }
@@ -74,6 +82,12 @@ window.CalendarExperience = (() => {
     if(!qs(id)?.classList.contains('calendar-drawer')) return;
     if(id==='contentDetailDrawer') window.ContentDetail?.restoreCalendarDrawer?.();
     const target=returnFocus.get(id); returnFocus.delete(id);
+    if(id==='contentBankPlanModal') {
+      const replacement=[...document.querySelectorAll('[data-content-plan]')].find(button=>button.dataset.contentPlan===qs(id).dataset.contentId);
+      (target?.isConnected?target:replacement || qs('contentBankSearch'))?.focus({preventScroll:true});
+      if(bankScroll) {document.querySelector('.main').scrollTop=bankScroll.main;if(window.scrollY!==bankScroll.window)window.scrollTo(0,bankScroll.window);}
+      return;
+    }
     const fallback=context?.selected && [...document.querySelectorAll(`[data-calendar-date="${context.selected}"]`)].find(day=>day.getClientRects().length);
     if(target?.isConnected) target.focus({preventScroll:true});
     else (fallback || qs('calendarAddBtn'))?.focus({preventScroll:true});
@@ -86,7 +100,10 @@ window.CalendarExperience = (() => {
     qs('calendarViewAgendaBtn').onclick=()=>setCalendarView('agenda');
     qs('calendarChannelFilter').onchange=e=>{state.calendarChannel=e.target.value;remember();renderCalendar();};
     qs('calendarAddBtn').onclick=()=>add();
-    qs('calendarFilter').addEventListener('change',()=>remember());
+    qs('calendarFilter').addEventListener('change',()=>{remember();updateFilterSummary();});
+    qs('calendarFiltersReset').onclick=()=>{state.calendarChannel='';state.calendarFilter='all';setContentCalendarMode('posts');remember();updateFilterSummary();};
+    document.addEventListener('click',event=>{if(!qs('calendarFilters').contains(event.target))qs('calendarFilters').open=false;});
+    qs('calendarFilters').addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();qs('calendarFilters').open=false;qs('calendarFilterSummary').focus();}});
     const banner=document.createElement('div'); banner.id='composerCalendarContext'; banner.hidden=true;
     banner.innerHTML='<span id="composerCalendarDate"></span><button type="button" class="btn sm" id="composerReturnCalendar">Back to Calendar</button><button type="button" class="btn sm ghost" id="composerUseCalendarDate">Use date in schedule picker</button>';
     qs('composerView').prepend(banner);
@@ -114,5 +131,5 @@ window.CalendarExperience = (() => {
     },true);
     restoreScroll();
   }
-  return {init,remember,compose,add,onOpen,onClose,status,renderChannelFilter,narrow,highlight};
+  return {init,remember,compose,add,onOpen,onClose,status,renderChannelFilter,narrow,highlight,updateFilterSummary};
 })();
