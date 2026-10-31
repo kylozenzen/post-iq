@@ -29,9 +29,13 @@
   }
 
   function renderHome(){
-    const hiddenSlugs = renderRecommended();
-    const baseList = articles.filter(a => !hiddenSlugs.has(a.slug));
-    gridEl.innerHTML = `<section><h2 class="section-head">All guides</h2><div class="articles-grid">${baseList.map(a => articleCard(a, { featured: false })).join('')}</div></section>`;
+    const query = (document.getElementById('helpSearch')?.value || '').trim().toLowerCase();
+    const hiddenSlugs = query ? new Set() : renderRecommended();
+    recommendedEl.hidden = !!query;
+    const baseList = articles.filter(a => !hiddenSlugs.has(a.slug) && (!query || [a.title, a.summary, a.category, ...(a.tags || [])].join(' ').toLowerCase().includes(query)));
+    const status = document.getElementById('helpSearchStatus');
+    if (status) status.textContent = query ? `${baseList.length} guide${baseList.length === 1 ? '' : 's'} found` : '';
+    gridEl.innerHTML = `<section><h2 class="section-head">All guides</h2><div class="articles-grid">${baseList.length ? baseList.map(a => articleCard(a, { featured: false })).join('') : '<p>No guides match. Try “connection” or “settings”, or choose Need more help above.</p>'}</div></section>`;
   }
 
   function renderArticle(slug){
@@ -84,6 +88,7 @@
     if (homeLink){ e.preventDefault(); history.pushState({}, '', '/help/'); applyRoute(); }
   });
 
+  document.getElementById('helpSearch')?.addEventListener('input', renderHome);
   window.addEventListener('popstate', applyRoute);
   applyRoute();
 })();

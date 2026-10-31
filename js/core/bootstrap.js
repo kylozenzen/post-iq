@@ -10,9 +10,10 @@ function renderPlanningSettings() {
   daysWrap.innerHTML = DAY_CODES.map((code, idx) => `<label class="settings-check"><input type="checkbox" data-posting-day="${code}" ${settings.postingDays.includes(code) ? 'checked' : ''} /> ${DAY_LABELS[idx]}</label>`).join('');
   (state.channels || []).forEach(channel => {
     const row = document.createElement('div');
-    const label = document.createElement('strong'); label.textContent = channel.displayName || channel.name || channel.id; row.appendChild(label);
+    const label = document.createElement('strong'); row.className = 'settings-channel-cadence';
+    label.textContent = channel.displayName || channel.name || channel.id; row.appendChild(label);
     DAY_CODES.forEach(code => {
-      const item = document.createElement('label'), input = document.createElement('input'); input.type = 'checkbox'; input.dataset.channelCadence = channel.id; input.dataset.cadenceDay = code;
+      const item = document.createElement('label'), input = document.createElement('input'); input.type = 'checkbox'; input.dataset.channelCadence = channel.id; input.dataset.cadenceDay = code; input.setAttribute('aria-label', `${label.textContent}: ${code}`);
       input.checked = (settings.channelPostingDays[channel.id] ?? settings.postingDays).includes(code);
       item.append(input, document.createTextNode(code)); row.appendChild(item);
     }); daysWrap.appendChild(row);
@@ -38,7 +39,7 @@ function renderNoteTypesSettings() {
   wrap.innerHTML = types.map((t, idx) => `
     <div class="note-type-row" data-note-type-row="${safeText(t.id)}">
       <input type="color" value="${safeText(t.color)}" data-note-type-color="${safeText(t.id)}" aria-label="${safeText(t.label)} color" />
-      <input class="input" value="${safeText(t.label)}" data-note-type-label="${safeText(t.id)}" maxlength="40" />
+      <input class="input" value="${safeText(t.label)}" data-note-type-label="${safeText(t.id)}" aria-label="${safeText(t.label)} name" maxlength="40" />
       <button class="btn sm ghost" type="button" data-delete-note-type="${safeText(t.id)}" ${DEFAULT_NOTE_TYPES.some(d => d.id === t.id) ? 'disabled title="Default types cannot be deleted"' : ''}>Delete</button>
     </div>`).join('');
   renderNoteTypeOptions(qs('noteTag')?.value);
@@ -179,6 +180,10 @@ function init() {
   on('clearTokenBtn', 'click', () => { const tokenInput = qs('tokenInput'); if (tokenInput) tokenInput.value = ''; saveToken(); });
   const connectBufferBtn = qs('connectBufferBtn'); if (connectBufferBtn) connectBufferBtn.onclick = goToBufferConnect;
   const disconnectBufferBtn = qs('disconnectBufferBtn'); if (disconnectBufferBtn) disconnectBufferBtn.onclick = disconnectBuffer;
+
+  window.addEventListener('storage', handleBufferStorageChange);
+  ['signOutBufferBtn', 'mobSignOutBufferBtn'].forEach(id => on(id, 'click', disconnectBuffer));
+  on('connectionSyncBtn', 'click', () => syncBuffer({ force: true }));
 
   on('syncBtn', 'click', () => syncBuffer({ force: true }));
   const initialParams = new URLSearchParams(location.search);

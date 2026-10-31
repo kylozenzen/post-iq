@@ -139,24 +139,28 @@
 .notebook-card-source-link:hover { text-decoration:underline; }
 /* Settings modal tabs */
     .settings-modal-card {
-      max-width: 640px;
-      max-height: 88vh;
+      max-width: 760px;
+      max-height: min(88dvh, 820px);
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
     .settings-modal-hdr { flex-shrink: 0; }
     .settings-modal-body {
-      min-height: 320px;
       flex: 1 1 auto;
-      min-height: min(440px, calc(88vh - 96px));
-      max-height: calc(88vh - 96px);
+      min-height: 0;
+      max-height: none;
       overflow-y: auto;
       overflow-x: hidden;
       padding-right: 2px;
     }
     .settings-tabs {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--surface);
       display: flex;
+      flex-wrap: wrap;
       gap: 2px;
       border-bottom: 1px solid var(--border);
       margin-bottom: 16px;
@@ -183,7 +187,7 @@
     .settings-tab:hover { color: var(--brand); background: var(--brand-dim); }
     .settings-tab.active, .settings-tab[aria-selected="true"] { color: var(--brand); border-bottom-color: var(--brand); background: var(--surface2); }
     .settings-tab:focus-visible { outline: 2px solid var(--brand-glow); outline-offset: -2px; }
-    .settings-panel { display: none; min-height: 420px; max-height: 420px; overflow-y: auto; padding-right: 4px; }
+    .settings-panel { display: none; min-height: 0; max-height: none; overflow: visible; padding-right: 4px; }
     .settings-panel.active { display: block; }
     .settings-panel:focus { outline: none; }
 .settings-panel[hidden] { display: none !important; }
@@ -255,10 +259,10 @@
     .note-type-row input[type="color"] { width: 42px; height: 34px; padding: 2px; border: 1px solid var(--border2); border-radius: var(--r2); background: var(--surface); }
 
     @media (max-width: 520px) {
-      .settings-modal-body { min-height: min(360px, calc(88vh - 94px)); max-height: calc(88vh - 94px); }
+      .settings-modal-body { min-height: 0; max-height: none; }
       .settings-tabs { margin-bottom: 14px; }
       .settings-tab { padding: var(--s2) 10px; font-size: 12px; }
-      .settings-panel { min-height: 360px; max-height: 360px; }
+      .settings-panel { min-height: 0; max-height: none; }
       .settings-day-grid { grid-template-columns: 1fr; }
       .settings-feature-item { align-items: flex-start; flex-direction: column; gap: 6px; }
       .about-ben-card { grid-template-columns: 1fr; }
@@ -268,5 +272,28 @@
     }
 
     @media (max-width: 768px) {
-      .settings-panel { min-height: 360px; max-height: 360px; }
+      .settings-panel { min-height: 0; max-height: none; }
     }
+
+/* One scroll surface keeps every setting reachable on short screens. */
+.settings-modal-body { overscroll-behavior: contain; scrollbar-gutter: stable; }
+.settings-modal-card { width: min(100%, 760px); }
+.settings-modal-card [hidden], .sign-out-btn[hidden] { display: none !important; }
+.settings-modal-hdr { padding-bottom: 16px; border-bottom: 1px solid var(--border); margin-bottom: 0; }
+.settings-tabs { padding-top: 12px; padding-bottom: 8px; }
+.settings-tab { min-height: 40px; }
+.settings-section:last-child { margin-bottom: 0; }
+.settings-save-note { color: var(--brand); font-size: 12px; line-height: 1.6; }
+.connection-session-note { margin-top: 12px !important; }
+.settings-channel-cadence { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: var(--r2); }
+.settings-channel-cadence strong { flex-basis: 100%; font-size: 13px; overflow-wrap: anywhere; }
+.settings-channel-cadence label { display: inline-flex; gap: 4px; align-items: center; min-height: 32px; font-size: 12px; }
+.settings-check { min-height: 32px; }
+.sign-out-btn { color: var(--muted); }
+@media (max-width: 520px) {
+  .settings-modal-card { max-height: 92dvh; padding: 16px; }
+  .settings-tab { padding-inline: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}

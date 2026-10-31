@@ -135,7 +135,8 @@ function testStaticIntegration() {
   assert.match(html, /id="aiSettingsUnlocked"[^>]*hidden[\s\S]*Unlock status: Unlocked[\s\S]*id="aiApiKey"[^>]*type="password"[\s\S]*id="aiSaveKey"[\s\S]*id="aiTestKey"[\s\S]*id="aiClearKey"/);
   assert.match(html, /Create a Gemini API key in Google AI Studio, then paste it here\./);
   assert.match(html, /Your Gemini API key is stored locally in this browser and is used only to power your AI Assist requests\./);
-  assert.match(html, /id="aiSettingsFallback"[\s\S]*AI Settings loaded[\s\S]*id="aiSettingsFallbackUnlocked"[^>]*hidden[\s\S]*id="aiApiKeyFallback"/);
+  // AI settings now have one tab panel; the old duplicate fallback was removed.
+  assert.doesNotMatch(html, /id="aiSettingsFallback"/);
   assert.match(html, /id="aiModel"[\s\S]*value="gemini-2\.5-flash"[\s\S]*value="gemini-2\.5-flash-lite"[\s\S]*value="gemini-2\.5-pro"/);
   assert.match(html, /name="ai-assist-waitlist"[\s\S]*data-netlify="true"/);
   assert.doesNotMatch(html, /OpenAI|openai|gpt-4/);
