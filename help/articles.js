@@ -34,12 +34,27 @@ const HELP_CATEGORIES = [
   "Trending",
   "Snapshots",
   "Troubleshooting",
-  "Privacy & Data"
+  "Privacy & Data",
+  "Settings"
 ];
 
 window.HELP_CATEGORIES = HELP_CATEGORIES;
 
 window.POSTIQ_HELP_ARTICLES = [
+  {
+    slug: 'settings-and-sign-out',
+    title: 'Settings, Saved Preferences, and Sign Out',
+    category: 'Settings',
+    summary: 'Customize your workspace, understand what saves automatically, and manage your Buffer connection.',
+    tags: ['settings', 'customize', 'theme', 'sidebar', 'sign out', 'logout', 'stay signed in', 'API key'],
+    relatedArticles: ['connect-buffer', 'queue-health-your-pace', 'privacy-storage-beta-limits'],
+    body: `<p>Open Settings from the sidebar or the mobile More menu. Section tabs stay available while you scroll.</p>
+    <h2>Connection</h2><p>Check your Buffer connection, choose Sync now, or Sign out. You stay signed in on this browser until you sign out, clear site data, or Buffer requires authorization again. Advanced API key setup is optional: Session keeps a manual key for this tab, while Save locally keeps it between visits. Sign out removes both kinds of Buffer access.</p>
+    <h2>Customize</h2><p>Workspace visibility, themes, posting days, queue-gap visibility, and note types save automatically in this browser. At least one workspace must stay visible. Reset workspace visibility restores the default sidebar choices. It does not delete your content.</p>
+    <h2>Posting rhythm</h2><p>Choose default posting days or override them for each synced channel. Your Pace in Queue Health offers further cadence and intentional-break controls. These settings guide coverage checks; they do not change your Buffer queue or schedule posts.</p>
+    <h2>AI and Discord</h2><p>AI Assist is optional and currently requires a beta unlock. Use its Save buttons when changing your Gemini key or voice. Discord has its own configuration and save controls. Never include keys or webhook URLs in screenshots or support messages.</p>
+    <h2>Using a shared device</h2><p>Sign out clears Buffer access and cached Buffer data but keeps local work and other integration settings. Private browser windows can discard saved work when closed. Export or copy important work before clearing site data.</p>`
+  },
   {
     slug: 'getting-started',
     title: 'Getting Started with PostIQ',
@@ -76,7 +91,7 @@ window.POSTIQ_HELP_ARTICLES = [
     summary: 'Learn how Buffer connection works, what syncing does, and how to recover from a disconnected state.',
     tags: ['buffer', 'oauth', 'sync', 'token', 'disconnected'],
     featured: true,
-    relatedArticles: ['getting-started', 'troubleshooting', 'plan-content-calendar'],
+    relatedArticles: ['settings-and-sign-out', 'troubleshooting', 'plan-content-calendar'],
     body: `<p>Buffer connection gives PostIQ access to the profiles and queue data you need for planning and prep. Connection and syncing are related, but not the same.</p>
     <h2>Connection vs sync</h2>
     <ul>
@@ -87,9 +102,13 @@ window.POSTIQ_HELP_ARTICLES = [
     <ol>
       <li>Open <strong>Connection settings</strong>.</li>
       <li>Complete Buffer sign-in/OAuth.</li>
-      <li>Use <strong>Load from Buffer</strong> to pull current queue data.</li>
+      <li>Choose <strong>Sync now</strong> to pull current queue data.</li>
       <li>Verify the right profile filter is selected.</li>
     </ol>
+    <h2>Staying signed in</h2>
+    <p>Buffer sign-in is saved on this browser across reloads and new tabs. PostIQ refreshes access automatically when Buffer provides a refresh token. Clearing site data, private browsing, or revoked authorization can require another sign-in. A network outage or rate limit does not clear your saved connection; retry Sync now when service returns.</p>
+    <h2>Sign out</h2>
+    <p>Choose <strong>Sign out</strong> in the sidebar, mobile More menu, or Settings → Connection. This removes Buffer tokens, any manual API key, and cached Buffer posts from this browser. It keeps local notes, Content Bank items, drafts, and preferences. It does not sign you out of buffer.com or cancel anything already queued there. To revoke PostIQ’s authorization entirely, use Buffer’s connected-app controls.</p>
     <h2>If you get disconnected</h2>
     <ol>
       <li>Reconnect from Connection settings.</li>
@@ -276,6 +295,8 @@ window.POSTIQ_HELP_ARTICLES = [
       <li>Planning, draft prep, organization, and review utilities.</li>
       <li>Local workspace state and beta workflow features.</li>
     </ul>
+    <h2>Browser storage and signing out</h2>
+    <p>Buffer sign-in tokens persist on this browser so you do not have to reconnect each visit. Sign out removes those tokens, any manual Buffer API key, and cached Buffer queue data. Your notes, Content Bank items, drafts, preferences, and optional Gemini key remain on this device. Sign out is not an erase-all-data action. Export important local work before clearing browser site data; local work does not automatically follow you to another browser.</p>
     <h2>Snapshot link visibility</h2>
     <p>Anyone with a snapshot link can view that shared snapshot. Treat links as shareable planning artifacts.</p>
     <h2>Public beta expectations</h2>

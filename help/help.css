@@ -88,3 +88,9 @@ body { margin:0; background:var(--bg); color:var(--ink); font-family:'Lato',syst
   .featured-grid, .articles-grid { grid-template-columns:1fr; }
   .article-view h2 { font-size:28px; }
 }
+
+.help-search-wrap { margin: 28px 0; }
+.help-search-wrap label { display: block; font-weight: 700; margin-bottom: 8px; }
+.help-search-wrap input { box-sizing: border-box; width: 100%; min-height: 48px; border: 1px solid var(--border2); border-radius: var(--r); padding: 12px 14px; font: inherit; background: var(--surface); color: var(--ink); }
+.help-search-wrap input:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+#helpSearchStatus { font-size: 13px; min-height: 20px; }

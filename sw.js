@@ -1,4 +1,4 @@
-const CACHE = 'postiq-v21-editorial-default';
+const CACHE = 'postiq-v22-editorial-default';
 const SHELL = [
   '/',
   '/index.html',
