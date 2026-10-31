@@ -15,17 +15,21 @@ assert.match(landing, /Sample data/);
 assert.match(landing, /not (?:made by, )?affiliated with/);
 assert.doesNotMatch(landing, /thread splitter|first companion app|demoInput/i, 'obsolete demo and claims stay removed');
 assert.ok(landing.indexOf('id="calendar"') < landing.indexOf('id="toolkit"'), 'toolkit follows the calendar story');
-for (const image of ['calendar-desktop', 'queue-health-desktop', 'content-bank-desktop', 'calendar-mobile']) {
-  assert.ok(fs.existsSync(`images/product/${image}.png`), `missing ${image}`);
-}
+assert.doesNotMatch(landing, /href="[^"]*tour=1/, 'one preview entry point, not a separate tour link');
+const heroVisual = landing.match(/<figure class="hero-visual"[\s\S]*?<\/figure>/);
+assert.ok(heroVisual, 'hero shows the product next to the copy');
+assert.doesNotMatch(heroVisual[0], /Approvals|Library|Pulse/, 'hero mockup shows only calendar-first tools');
 
 assert.ok(app.includes('./js/features/tour.js') && app.includes('./css/app/tour.css'));
-assert.ok(app.indexOf('./js/onboarding.js') < app.indexOf('./js/features/tour.js'), 'tour loads after onboarding');
+assert.ok(!app.includes('onboarding.js') && !sw.includes('onboarding'), 'the tour is the only onboarding');
 assert.ok((app.match(/data-tour-start=/g) || []).length >= 3, 'tour can be restarted from the sidebar, Calendar and mobile menu');
 assert.ok(sw.includes("'/js/features/tour.js'") && sw.includes("'/css/app/tour.css'"));
 
 // The tour only navigates and points; it never calls Buffer or post creation.
-assert.doesNotMatch(tour, /fetch\(|createPost|syncBuffer|goToBufferConnect|\.click\(\)/);
+// Sign-in starts only from the tour's own button.
+assert.doesNotMatch(tour, /fetch\(|createPost|syncBuffer|\.click\(\)/);
+assert.match(tour, /action === 'connect'[\s\S]*goToBufferConnect/);
+assert.match(tour, /FIRST_VISIT && read\(SEEN_KEY\) !== '1'/, 'opens once on a first visit');
 assert.match(tour, /params\.delete\('tour'\)/, 'landing tour flag is single-use');
 assert.match(tour, /aria-modal', 'false'/, 'tour is non-modal');
 for (const id of ['calendar', 'context', 'health', 'pace', 'bank']) assert.match(tour, new RegExp(`id: '${id}'`));

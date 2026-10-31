@@ -4,20 +4,21 @@
 
 ### Added
 
-- Optional five-step product tour (calendar, planning context, Queue Health, Your Pace, Content Bank), user-started, skippable and restartable
-- “Take a tour” entry points in the sidebar, Calendar header, mobile More menu and getting-started banner
-- Landing screenshots captured from the real app with labelled sample data, and a matching share image
+- Five-step product tour (calendar, planning context, Queue Health, Your Pace, Content Bank) as the single onboarding: opens once on a first visit, skippable, and restartable
+- “Take a tour” entry points in the sidebar, Calendar header and mobile More menu
+- Two-column hero with an animated, illustrated calendar; illustrated Queue Health and Content Bank mockups labelled as sample data
+- Share image built from a real-app screenshot with sample data
 
 ### Changed
 
 - Landing page leads with the calendar: “Your Buffer calendar, with room to think.”
 - Primary CTA “Sign in with Buffer” returns to the calendar; secondary “Preview the calendar” opens it without sign-in
-- Getting-started banner follows connect → check coverage → plan a gap → send
 - Help Center, README, manifest and social metadata describe the current product
 
 ### Removed
 
 - Thread splitter demo and messaging (no longer in the app); “first companion app” claim
+- Getting-started banner and per-view tips (replaced by the tour)
 
 ## Focused Writing Space
 

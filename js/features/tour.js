@@ -1,11 +1,14 @@
 'use strict';
 
-// Optional, user-started product tour. It only moves between views and points
-// at controls that are already visible; it never clicks them, opens Buffer, or
-// writes anything other than its own "seen" flag. The popover is non-modal, so
-// the app stays usable while it is open.
+// PostIQ's onboarding: a short product tour. It opens once on someone's first
+// visit to the app and can be restarted from any "Take a tour" button. It only
+// moves between views and points at controls that are already visible; it never
+// clicks them or writes to Buffer. Sign-in starts only from its own button. The
+// popover is non-modal, so the app stays usable while it is open.
 window.PostIQTour = (() => {
   const SEEN_KEY = 'postiq_tour_seen';
+  // Read before startup marks the app as visited, so only a first visit qualifies.
+  const FIRST_VISIT = (() => { try { return localStorage.getItem('postiq_app_visited') !== '1'; } catch { return false; } })();
   const MOBILE_QUERY = '(max-width: 768px)';
 
   const STEPS = [
@@ -16,7 +19,7 @@ window.PostIQTour = (() => {
       title: 'Your Buffer calendar',
       body: () => isConnected()
         ? 'Confirmed Buffer posts sit beside your planning notes and actions. Gap labels follow the posting rhythm you choose.'
-        : 'After you sign in with Buffer, confirmed scheduled posts appear here beside your planning notes and actions. Until then, the calendar holds local notes only.',
+        : 'After you sign in with Buffer, confirmed scheduled posts appear here beside your planning notes and actions. You can look around first; until then, the calendar holds local notes only.',
     },
     {
       id: 'context',
@@ -112,6 +115,10 @@ window.PostIQTour = (() => {
       </div>
       <h2 class="tour-title" id="tourTitle" tabindex="-1"></h2>
       <p class="tour-body" id="tourBody"></p>
+      <div class="tour-connect" hidden>
+        <button class="btn sm primary" type="button" data-tour="connect">Sign in with Buffer</button>
+        <span>to load your scheduled posts and coverage.</span>
+      </div>
       <div class="tour-actions">
         <button class="btn sm ghost tour-skip" type="button" data-tour="close">Skip tour</button>
         <span class="tour-nav">
@@ -124,6 +131,12 @@ window.PostIQTour = (() => {
       if (action === 'close') stop();
       if (action === 'back') go(index - 1);
       if (action === 'next') index >= steps.length - 1 ? stop({ finished: true }) : go(index + 1);
+      if (action === 'connect') {
+        // Return to the calendar after Buffer sign-in.
+        stop({ finished: true });
+        window.activateView?.('calendarView', 'tour');
+        if (typeof goToBufferConnect === 'function') goToBufferConnect();
+      }
     });
     document.body.append(ring, pop);
   }
@@ -190,7 +203,10 @@ window.PostIQTour = (() => {
     pop.querySelector('#tourBody').textContent = step.body();
     const back = pop.querySelector('[data-tour="back"]');
     back.hidden = index === 0;
-    pop.querySelector('[data-tour="next"]').textContent = index === steps.length - 1 ? 'Finish' : 'Next';
+    const last = index === steps.length - 1;
+    pop.querySelector('[data-tour="next"]').textContent = last ? 'Finish' : 'Next';
+    pop.querySelector('[data-tour="next"]').classList.toggle('primary', !(last && !isConnected()));
+    pop.querySelector('.tour-connect').hidden = !(last && !isConnected());
     // Instant scroll keeps the ring aligned; on phones, centre the control so
     // neither the sticky header nor the docked popover covers it.
     target.scrollIntoView({ block: isMobile() ? 'center' : 'nearest', behavior: 'auto' });
@@ -221,7 +237,6 @@ window.PostIQTour = (() => {
     returnFocus = options.returnFocus || (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     active = true;
     document.body.classList.add('tour-active');
-    document.querySelectorAll('.ob-tooltip').forEach(el => el.remove());
     build();
     window.addEventListener('resize', schedulePlace);
     document.addEventListener('scroll', schedulePlace, true);
@@ -260,15 +275,19 @@ window.PostIQTour = (() => {
         start({ source: button.dataset.tourStart || 'button', returnFocus: button });
       });
     });
-    // A landing-page link can ask for the tour once. The flag is removed right
-    // away, so refreshing, bookmarking, or returning from Buffer sign-in does not
+    // Opens automatically once: on a first visit, or when a link asks with
+    // ?tour=1. The flag is removed right away and closing the tour records it as
+    // seen, so refreshing, bookmarking, or returning from Buffer sign-in does not
     // reopen it.
     const params = new URLSearchParams(location.search);
-    if (params.get('tour') === '1') {
+    const requested = params.get('tour') === '1';
+    if (requested) {
       params.delete('tour');
       history.replaceState(history.state, document.title, `${location.pathname}${params.toString() ? `?${params}` : ''}${location.hash}`);
+    }
+    if (requested || (FIRST_VISIT && read(SEEN_KEY) !== '1')) {
       // Wait for app startup; reviewer and shared-snapshot pages hide the app shell.
-      setTimeout(() => { if (!document.getElementById('app')?.classList.contains('hidden')) start({ source: 'landing' }); }, 600);
+      setTimeout(() => { if (!document.getElementById('app')?.classList.contains('hidden')) start({ source: requested ? 'link' : 'first_visit' }); }, 600);
     }
   }
 

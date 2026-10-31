@@ -38,7 +38,7 @@ queue data. These local planning changes do not move, cancel, publish, or delete
 Buffer posts.
 
 ### 🧭 Take a tour
-An optional five-step tour (calendar, planning context, Queue Health, Your Pace, Content Bank) starts from **Take a tour** in the sidebar, Calendar header, mobile More menu, or getting-started banner, or from the landing page link `/app.html?view=calendarView&tour=1`. It is skippable, closes on Escape or when you navigate elsewhere, never performs Buffer writes, and skips steps for disabled workspaces. The `tour=1` flag is removed on load, so it does not reopen on refresh or after Buffer sign-in.
+The tour is PostIQ's onboarding. Five steps (calendar, planning context, Queue Health, Your Pace, Content Bank) open once on someone's first visit to the app, whether they preview first or sign in first, and can be restarted from **Take a tour** in the sidebar, Calendar header, or mobile More menu (or a link with `?tour=1`). It is skippable, closes on Escape or when you navigate elsewhere, never performs Buffer writes, and skips steps for disabled workspaces. Disconnected visitors are offered **Sign in with Buffer** on the last step. Once closed it is recorded as seen, and the `tour=1` flag is removed on load, so it does not reopen on refresh or after Buffer sign-in. Visitors from before the tour existed are not interrupted.
 
 ### 🎛️ Custom Workspaces
 Turn the Calendar, Compose, Content Bank, and Approvals workspaces on or off from Customize settings so the sidebar matches your workflow. Choose from five themes: PostIQ, Classic, After Dark, Studio, and Evergreen. Workspace and theme preferences are saved locally in your browser.
@@ -95,7 +95,7 @@ Primary files:
 
 ```
 index.html               # Public landing page
-images/product/          # Landing screenshots of the real app (fictional sample data)
+images/product/          # Real-app calendar screenshot (sample data) used for the share image
 app.html                 # App shell and ordered asset entry points
 css/app/                 # App styles grouped by workspace and responsibility
 js/core/                 # Shared runtime, navigation, bootstrap, and startup
@@ -126,7 +126,7 @@ node scripts/check-project.js
 # Landing page links/accessibility/layout and the product tour (needs Chromium)
 CHROMIUM_PATH=/path/to/chromium node scripts/check-landing-tour-browser.js
 
-# Regenerate landing screenshots and postiq-og.png from the real app with sample data
+# Regenerate the share image (postiq-og.png) from the real app with sample data
 CHROMIUM_PATH=/path/to/chromium node scripts/capture-landing-screenshots.js
 ```
 

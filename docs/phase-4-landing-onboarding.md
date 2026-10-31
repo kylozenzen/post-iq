@@ -25,38 +25,60 @@ testimonials, usage numbers or outcomes were added.
   (encoded). `connect.js`/`callback.js` already accept same-origin paths with a
   query, so sign-in returns to the calendar with `connected=buffer`.
 - **Preview the calendar** → `/app.html?view=calendarView` (existing `view` route).
-- “Take the 5-step tour” → `/app.html?view=calendarView&tour=1`.
+  There is no separate tour link; the tour opens on a first visit.
 
 The existing returning-visitor redirect from `/` to `/app.html` is retained.
 
-## Product preview
+## Product visuals
+
+The hero is two columns, with an illustrated calendar to the right of the copy.
+The calendar, Queue Health/Your Pace and Content Bank are drawn in HTML/CSS in
+the previous landing page's style: window chrome, a stat strip, floating
+status pills, a dotted grid texture, and small animations. Gaps pulse, one gap
+turns into a planned draft, the coverage bar fills, and the arrow from a dated
+item to the calendar moves. Motion is disabled under `prefers-reduced-motion`.
+Every mockup is labelled “Sample data”. Its numbers are consistent with a
+Mon/Wed/Fri + Mon/Thu rhythm: 10 slots, 8 covered, 2 gaps, and Nov 23–27
+marked off. Mockups show only Calendar, Queue Health and Content Bank.
 
 `scripts/capture-landing-screenshots.js` renders the real app with fictional
-sample data seeded into browser storage (frozen clock, all remote requests
-blocked, write requests rejected) and writes `images/product/*.png` plus the
-1200×630 `postiq-og.png`. Every preview is labelled “Sample data”.
+sample data. It uses a frozen clock, blocks remote requests, and rejects write
+requests. Approvals, Library and Pulse are switched off through the app-config
+response. It writes `images/product/calendar-desktop.png` and the 1200×630
+`postiq-og.png` built from it.
 
-## Tour
+## Onboarding: the tour
 
-`js/features/tour.js` + `css/app/tour.css`. Five steps: calendar, Add (planning
-context), Queue Health, Your Pace, Content Bank.
+`js/features/tour.js` + `css/app/tour.css` replace the old getting-started
+banner and per-view tips (`js/onboarding.js`, `css/onboarding.css`, removed).
+Five steps: calendar, Add (planning context), Queue Health, Your Pace, Content Bank.
 
-- Started only by the person: Take a tour in the sidebar, Calendar header,
-  mobile More menu, the getting-started banner, or the landing link. The
-  `tour=1` flag is removed on load, so refresh, bookmarks and OAuth return
-  (which only carries `view`) do not reopen it.
+- Opens once automatically on a first visit to the app (no `postiq_app_visited`
+  before this load), whether the person previewed first or signed in first.
+  Visitors from before the tour existed are not interrupted.
+- Restart: Take a tour in the sidebar, Calendar header, or mobile More menu,
+  or a link with `?tour=1`. The flag is removed on load. Closing records
+  `postiq_tour_seen`, so refresh, bookmarks and OAuth return (which only
+  carries `view`) do not reopen it.
 - Non-modal dialog without a scrim; the highlight ring ignores pointer events.
   Skip, ×, Escape, Finish, or navigating elsewhere closes it. Focus moves to the
-  step title and returns to the trigger. Back/Next are available.
+  step title and returns to the trigger.
 - Steps whose view is disabled by feature flag or workspace preference, or whose
   control is not visible in the current layout, are skipped. Mobile uses agenda
-  targets and a docked popover above the tab bar.
-- Only calls `activateView`; no Buffer requests or clicks on app controls.
-  `postiq_tour_seen` is recorded for analytics/state only.
-- Onboarding banner and per-view tips are hidden while the tour runs.
+  targets and a popover docked above the tab bar.
+- Disconnected visitors are offered **Sign in with Buffer** on the last step.
+  That button is the only way the tour leaves the page: it returns to the
+  calendar and starts the normal sign-in. The tour never performs Buffer writes
+  or clicks app controls.
 
-The getting-started banner now follows connect → check coverage (visiting
-Queue Health) → plan a gap and send to Buffer, and offers Take a tour.
+## Gap detection
+
+Gap detection is unchanged from Phases 1–3 and appears in three places. All
+three use the shared `PostIQCoverage` calculation:
+
+1. Calendar day labels: scheduled, gap, or non-posting day.
+2. Queue Health's channel health/runway and its “Coverage this week” gap chips.
+3. Your Pace's period check, which lists every uncovered slot.
 
 ## Copy updates
 
@@ -80,9 +102,9 @@ CHROMIUM_PATH=/opt/pw-browsers/chromium node scripts/check-landing-tour-browser.
 `check-landing-tour-browser.js` (390/768/1440px): local link/asset/anchor
 resolution, alt text, single h1, CTA targets, OG metadata, FAQ `aria-expanded`,
 support-dialog Escape/focus return, section order, no horizontal overflow,
-preview CTA landing on the calendar; tour steps, popover on-screen, single-use
+preview CTA landing on the calendar with the tour open; tour steps, popover on-screen, single-use
 flag, no reopen on reload, restart from header/mobile menu, Back, Escape, end on
-navigation, disabled Content Bank skip, banner interplay, OAuth return path,
+navigation, disabled Content Bank skip, first-visit open, returning visitors, last-step sign-in offer, OAuth return path,
 no runtime errors and no write requests. Screenshots: `/tmp/postiq-phase4-*.png`.
 
 Not verified here: live Buffer OAuth/sync, production deploy, the external

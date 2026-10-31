@@ -29,7 +29,7 @@ async function run() {
         if(url.pathname.startsWith('/.netlify/')) return route.fulfill({json:{}});
         return route.continue();
       });
-      await page.addInitScript(()=>{localStorage.setItem('postiq_ob_dismissed','1');localStorage.setItem('postiq_ob_complete','1');});
+      await page.addInitScript(()=>{localStorage.setItem('postiq_tour_seen','1');});
       await page.goto(base+'/app.html');await page.waitForFunction(()=>window.YourPace && document.getElementById('paceStart').value);
       await page.evaluate(()=>activateView('queueHealthView'));
       assert.ok(await page.locator('#paceChannel').isDisabled());

@@ -1,4 +1,4 @@
-const CACHE = 'postiq-v20-editorial-default';
+const CACHE = 'postiq-v21-editorial-default';
 const SHELL = [
   '/',
   '/index.html',
@@ -16,7 +16,6 @@ const SHELL = [
   '/css/app/library.css',
   '/css/app/pulse.css',
   '/css/app/home.css',
-  '/css/onboarding.css',
   '/js/analytics.js',
   '/js/ai-assist.js',
   '/js/features/calendar-experience.js',
@@ -49,7 +48,6 @@ const SHELL = [
   '/js/discord-integration.js',
   '/js/library.js',
   '/js/pulse.js',
-  '/js/onboarding.js',
   '/js/features/tour.js'
 ];
 

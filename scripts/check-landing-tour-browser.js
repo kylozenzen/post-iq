@@ -79,20 +79,24 @@ async function checkLanding(browser, base, width) {
   const order = await page.evaluate(() => ['calendar', 'workflow', 'access', 'toolkit'].map(id => document.getElementById(id).getBoundingClientRect().top + scrollY));
   assert.deepEqual([...order].sort((a, b) => a - b), order);
   await page.screenshot({ fullPage: true, path: `/tmp/postiq-phase4-landing-${width}.png` });
-  // The preview CTA lands on the calendar without signing in.
+  assert.equal(await page.locator('a[href*="tour=1"]').count(), 0, 'no separate tour link next to the preview CTA');
+  // The preview CTA lands on the calendar without signing in, and a first
+  // visit opens the tour there.
   await page.locator('.hero-ctas a.ghost').click();
   await page.waitForURL(/\/app\.html\?view=calendarView/);
   await page.waitForFunction(() => document.getElementById('calendarView')?.classList.contains('active'));
+  await page.waitForSelector('.tour-pop');
+  assert.equal(await page.locator('#tourTitle').innerText(), 'Your Buffer calendar');
   assert.deepEqual(errors, [], `${width}: landing errors`);
   await page.close();
 }
 
 async function checkTour(browser, base, width) {
-  const seenBanner = () => { localStorage.setItem('postiq_ob_dismissed', '1'); localStorage.setItem('postiq_ob_complete', '1'); };
-  const { page, errors, writes } = await openPage(browser, base, width, seenBanner);
-  await page.goto(base + '/app.html?view=calendarView&tour=1');
+  // First visit: the tour is the onboarding and opens by itself.
+  const { page, errors, writes } = await openPage(browser, base, width);
+  await page.goto(base + '/app.html?view=calendarView');
   await page.waitForSelector('.tour-pop');
-  assert.equal(new URL(page.url()).search, '?view=calendarView', 'tour flag must be removed from the URL');
+  assert.equal(await page.locator('.onboarding-banner, #obBanner, .ob-tooltip').count(), 0, 'old getting-started banner is gone');
   assert.equal(await page.locator('.tour-pop').getAttribute('role'), 'dialog');
   assert.equal(await page.evaluate(() => document.activeElement.id), 'tourTitle');
   const seen = [];
@@ -106,6 +110,10 @@ async function checkTour(browser, base, width) {
     await page.screenshot({ path: `/tmp/postiq-phase4-tour-${i + 1}-${width}.png` });
     // The app remains usable: the ring does not intercept pointer events.
     assert.equal(await page.locator('.tour-ring').evaluate(el => getComputedStyle(el).pointerEvents), 'none');
+    if (i === 4) {
+      assert.ok(await page.locator('.tour-connect').isVisible(), 'disconnected people are offered Buffer sign-in at the end');
+      assert.equal(await page.locator('[data-tour="connect"]').innerText(), 'Sign in with Buffer');
+    } else assert.ok(!(await page.locator('.tour-connect').isVisible()));
     await page.locator('[data-tour="next"]').click();
   }
   assert.deepEqual(seen, ['Your Buffer calendar', 'Add planning context', 'Queue Health', 'Your Pace', 'Content Bank']);
@@ -133,6 +141,11 @@ async function checkTour(browser, base, width) {
   await page.evaluate(() => PostIQTour.start());
   await page.evaluate(() => activateView('composerView'));
   assert.equal(await page.locator('.tour-pop').count(), 0);
+  // A link can still ask for the tour; the flag is single-use.
+  await page.goto(base + '/app.html?view=calendarView&tour=1');
+  await page.waitForSelector('.tour-pop');
+  assert.equal(new URL(page.url()).search, '?view=calendarView', 'tour flag must be removed from the URL');
+  await page.locator('[data-tour="close"]').first().click();
   // OAuth return keeps the view, never the tour flag.
   const connectUrl = await page.evaluate(() => { activateView('calendarView'); return getBufferConnectUrl(); });
   assert.equal(new URL(connectUrl, base).searchParams.get('return'), '/app.html?view=calendarView');
@@ -142,7 +155,7 @@ async function checkTour(browser, base, width) {
 
   // Disabled Content Bank workspace: the step is skipped.
   const disabled = await openPage(browser, base, width, () => {
-    localStorage.setItem('postiq_ob_dismissed', '1'); localStorage.setItem('postiq_ob_complete', '1');
+    localStorage.setItem('postiq_tour_seen', '1');
     localStorage.setItem('postiq.workspacePreferences', JSON.stringify({ planning: true, create: true, ideas: false, approvals: true }));
   });
   await disabled.page.goto(base + '/app.html?view=calendarView');
@@ -158,19 +171,14 @@ async function checkTour(browser, base, width) {
   assert.deepEqual(disabled.errors, []);
   await disabled.page.close();
 
-  // Getting-started banner offers the tour and hides while it runs.
-  const fresh = await openPage(browser, base, width);
-  await fresh.page.goto(base + '/app.html');
-  await fresh.page.waitForSelector('#obTourBtn');
-  assert.match(await fresh.page.locator('.ob-title').innerText(), /room to think/);
-  await fresh.page.locator('#obTourBtn').click();
-  await fresh.page.waitForSelector('.tour-pop');
-  assert.ok(!(await fresh.page.locator('#obBanner').isVisible()), 'banner hides during the tour');
-  await fresh.page.locator('[data-tour="close"]').first().click();
-  assert.ok(await fresh.page.locator('#obBanner').isVisible(), 'banner returns after the tour');
-  assert.deepEqual(fresh.errors, []);
-  assert.deepEqual(fresh.writes, []);
-  await fresh.page.close();
+  // Returning visitors from before the tour existed are not interrupted.
+  const returning = await openPage(browser, base, width, () => localStorage.setItem('postiq_app_visited', '1'));
+  await returning.page.goto(base + '/app.html');
+  await returning.page.waitForFunction(() => window.PostIQTour && window.YourPace);
+  await returning.page.waitForTimeout(900);
+  assert.equal(await returning.page.locator('.tour-pop').count(), 0, 'returning visitors do not get the tour automatically');
+  assert.deepEqual(returning.errors, []);
+  await returning.page.close();
 }
 
 async function run() {
@@ -181,7 +189,7 @@ async function run() {
     for (const width of [390, 768, 1440]) {
       await checkLanding(browser, base, width);
       await checkTour(browser, base, width);
-      console.log(`${width}px: landing links, CTAs, metadata, FAQ/dialog keyboard, layout and the tour (steps, skip, restart, disabled workspace, banner, OAuth return, no writes) passed.`);
+      console.log(`${width}px: landing links, CTAs, metadata, FAQ/dialog keyboard, layout and the tour (first-visit open, steps, sign-in offer, skip, restart, single-use link, disabled workspace, returning visitors, OAuth return, no writes) passed.`);
     }
   } finally { await browser.close(); }
 }

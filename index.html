@@ -77,15 +77,16 @@ img{max-width:100%;display:block;}
 a{color:inherit;}
 :focus-visible{outline:2px solid var(--brand);outline-offset:3px;}
 
-/* Grid texture */
+/* Grid texture with dotted intersections */
 body::before{
   content:'';
   position:fixed;inset:0;
   background-image:
+    radial-gradient(circle,var(--brand-glow) 1px,transparent 1px),
     linear-gradient(var(--border) 1px,transparent 1px),
     linear-gradient(90deg,var(--border) 1px,transparent 1px);
-  background-size:50px 50px;
-  opacity:.45;
+  background-size:50px 50px,50px 50px,50px 50px;
+  opacity:.55;
   pointer-events:none;
   z-index:0;
 }
@@ -115,7 +116,12 @@ section{position:relative;z-index:1;}
   text-transform:uppercase;letter-spacing:.14em;color:var(--brand);
   margin-bottom:16px;
 }
-.eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--brand);}
+.eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--brand);animation:blink 2.5s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.35;transform:scale(.65);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+@keyframes floatBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+@keyframes cellIn{from{opacity:0;transform:scale(.94);}to{opacity:1;transform:none;}}
+@keyframes ringPulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--brand) 0%,transparent);}50%{box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 18%,transparent);}}
 .section-title{
   font-family:var(--font-display);font-weight:800;
   font-size:clamp(1.9rem,3.6vw,2.7rem);line-height:1.05;letter-spacing:-.04em;
@@ -176,66 +182,146 @@ section{position:relative;z-index:1;}
 .text-link:hover{color:var(--brand-h);}
 
 /* ─── HERO ─────────────────────────────── */
-.hero{padding:64px 0 28px;}
-.hero-copy{max-width:760px;}
+.hero{padding:56px 0 30px;}
+.hero-inner{display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr);gap:44px;align-items:center;}
+.hero-copy > *{animation:fadeUp .45s ease both;}
+.hero-copy > :nth-child(2){animation-delay:.08s;}.hero-copy > :nth-child(3){animation-delay:.16s;}
+.hero-copy > :nth-child(4){animation-delay:.24s;}.hero-copy > :nth-child(5){animation-delay:.32s;}
 h1{
   font-family:var(--font-display);
   font-weight:800;
-  font-size:clamp(2.6rem,6vw,4.6rem);
-  line-height:1;
+  font-size:clamp(2.6rem,4.6vw,4rem);
+  line-height:.99;
   letter-spacing:-.05em;
   color:var(--ink);
   margin-bottom:20px;
 }
 h1 em{font-style:normal;color:var(--brand);display:block;}
-.hero-desc{font-size:clamp(16px,1.6vw,18px);color:var(--muted);line-height:1.7;max-width:58ch;margin-bottom:28px;}
+.hero-desc{font-size:clamp(16px,1.5vw,17px);color:var(--muted);line-height:1.75;max-width:50ch;margin-bottom:26px;}
 .hero-ctas{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
-.hero-tour{font-size:14px;margin-left:6px;}
-.hero-note{font-size:13px;color:var(--muted);line-height:1.65;max-width:64ch;}
+.hero-note{font-size:13px;color:var(--muted);line-height:1.65;max-width:52ch;}
 .hero-note strong{color:var(--text);}
+.hero-visual{position:relative;animation:fadeUp .6s .2s ease both;}
 
-/* ─── PRODUCT PREVIEW ─────────────────────────────── */
-.preview{padding:16px 0 40px;}
-.shot{
-  position:relative;
-  background:var(--surface);
-  border:1px solid var(--border2);
-  border-radius:var(--r);
-  box-shadow:var(--sh2);
-  overflow:hidden;
-}
-.shot-bar{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:9px 14px;background:var(--surface2);border-bottom:1px solid var(--border);
-  font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);
-}
-.shot-dots{display:flex;gap:6px;}
-.shot-dots span{width:9px;height:9px;border-radius:50%;background:var(--border2);}
+/* ─── DRAWN PRODUCT MOCKUPS ─────────────────────────────── */
+/* Illustrations of real PostIQ screens; sample content is fictional. */
+.ui-shell{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);box-shadow:var(--sh2);overflow:hidden;}
+.ui-titlebar{display:flex;align-items:center;gap:6px;padding:9px 12px;background:var(--surface2);border-bottom:1px solid var(--border);}
+.ui-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ui-dot-r{background:#c0503f;}.ui-dot-y{background:#d29a3a;}.ui-dot-g{background:var(--green);}
+.ui-tabs{display:flex;gap:2px;margin-left:10px;min-width:0;overflow:hidden;}
+.ui-tab{font-family:'DM Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:var(--r2);color:var(--subtle);border:1px solid transparent;white-space:nowrap;}
+.ui-tab.active{background:var(--brand-dim);color:var(--brand);border-color:var(--brand-glow);}
+.ui-title{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-left:8px;}
 .sample-tag{
-  display:inline-flex;align-items:center;gap:6px;
-  font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;
+  display:inline-flex;align-items:center;gap:6px;margin-left:auto;
+  font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;
   color:var(--amber);background:color-mix(in srgb,var(--amber) 10%,var(--surface));
-  border:1px solid color-mix(in srgb,var(--amber) 35%,transparent);border-radius:var(--r2);padding:3px 8px;white-space:nowrap;
+  border:1px solid color-mix(in srgb,var(--amber) 35%,transparent);border-radius:var(--r2);padding:2px 7px;white-space:nowrap;
 }
-.shot img{width:100%;height:auto;}
-figure > figcaption{font-size:13px;color:var(--muted);line-height:1.6;margin-top:12px;}
-.preview-figure figcaption{max-width:80ch;}
-.preview-callouts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px;}
-.callout{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh0);}
-.callout b{display:block;font-size:13px;color:var(--ink);margin-bottom:3px;}
-.callout span{font-size:13px;color:var(--muted);line-height:1.55;}
+.ui-body{padding:14px;}
+.mock-label{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--subtle);margin-bottom:7px;}
+
+/* Calendar mockup */
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.cal-month{font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--ink);display:flex;align-items:center;gap:8px;}
+.cal-nav{width:20px;height:20px;border:1px solid var(--border);border-radius:var(--r2);display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:var(--subtle);background:var(--surface2);}
+.cal-legend{display:flex;gap:9px;font-family:'DM Mono',monospace;font-size:8.5px;color:var(--muted);flex-wrap:wrap;justify-content:flex-end;}
+.cal-legend i{font-style:normal;}
+.cal-dow,.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;}
+.cal-dow span{font-family:'DM Mono',monospace;font-size:8.5px;text-align:center;color:var(--subtle);padding-bottom:4px;letter-spacing:.06em;}
+.mc{min-height:74px;border:1px solid var(--border);border-radius:var(--r2);background:var(--surface);padding:4px;display:flex;flex-direction:column;gap:3px;min-width:0;animation:cellIn .35s ease both;}
+.cal-grid .mc:nth-child(n+8){animation-delay:.1s;}.cal-grid .mc:nth-child(n+15){animation-delay:.2s;}
+.mc-n{font-family:'DM Mono',monospace;font-size:9px;color:var(--subtle);line-height:1;display:flex;justify-content:space-between;}
+.mc.off{background:var(--surface2);opacity:.75;}
+.mc.today{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 6%,var(--surface));}
+.mc.today .mc-n{color:var(--brand);font-weight:700;}
+.mc.away{background:repeating-linear-gradient(135deg,var(--surface2) 0 6px,color-mix(in srgb,var(--green) 8%,var(--surface2)) 6px 12px);}
+.mc.gap{border:1.5px dashed var(--brand);position:relative;animation:cellIn .35s ease both,ringPulse 2.8s ease-in-out 1s infinite;}
+.chip{display:block;font-style:normal;font-size:8.5px;line-height:1.25;padding:2px 4px;border-radius:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);}
+.chip.post{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--brand);}
+.chip.post.li{border-left-color:var(--accent);}
+.chip.note{background:color-mix(in srgb,#22c55e 12%,var(--surface));color:#2d6b3f;}
+.chip.action{background:color-mix(in srgb,#0ea5e9 12%,var(--surface));color:#17607e;}
+.chip.target{border:1px dashed var(--brand-glow);color:var(--brand);background:transparent;}
+.chip.status{font-family:'DM Mono',monospace;font-size:7.5px;color:var(--subtle);padding:0;background:none;}
+.gap-swap{position:relative;display:block;height:28px;margin-top:auto;}
+.gap-swap > *{position:absolute;left:0;right:0;top:0;}
+.gap-a{font-family:'DM Mono',monospace;font-size:8px;color:var(--brand);font-weight:500;line-height:1.3;animation:swapA 7s ease-in-out 1.2s infinite;}
+.gap-b{opacity:0;animation:swapB 7s ease-in-out 1.2s infinite;}
+@keyframes swapA{0%,42%{opacity:1;}50%,92%{opacity:0;}100%{opacity:1;}}
+@keyframes swapB{0%,42%{opacity:0;}50%,92%{opacity:1;}100%{opacity:0;}}
+.stat-strip{display:flex;border-top:1px solid var(--border);}
+.stat-item{flex:1;padding:10px 14px;border-right:1px solid var(--border);}
+.stat-item:last-child{border-right:none;}
+.stat-num{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;color:var(--ink);letter-spacing:-.03em;line-height:1.1;}
+.stat-num.warn{color:var(--brand);}
+.stat-lbl{font-family:'DM Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--subtle);margin-top:2px;}
+.float-pill{
+  position:absolute;z-index:2;display:flex;align-items:center;gap:6px;
+  font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;
+  padding:6px 12px;border-radius:999px;color:#fff;white-space:nowrap;
+  animation:floatBob 3.5s ease-in-out infinite;
+}
+.float-pill-dot{width:5px;height:5px;border-radius:50%;background:#fff;opacity:.75;}
+.float-pill.warn{top:-15px;right:120px;background:var(--brand);box-shadow:0 4px 14px color-mix(in srgb,var(--brand) 34%,transparent);}
+.float-pill.ok{top:58%;left:-26px;background:var(--green);box-shadow:0 4px 14px color-mix(in srgb,var(--green) 34%,transparent);animation-delay:1.2s;}
+.mock-caption{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:12px;}
+
+/* Queue Health mockup */
+.qh-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px;}
+.qh-row:last-child{border-bottom:none;}
+.qh-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.qh-row b{color:var(--ink);font-weight:700;}
+.qh-row span{color:var(--muted);}
+.qh-runway{margin-left:auto;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
+.mock-card{border:1px solid var(--border);border-radius:var(--r2);background:var(--surface);padding:11px 12px;margin-top:10px;}
+.days{display:flex;gap:4px;flex-wrap:wrap;margin:2px 0 8px;}
+.day{font-family:'DM Mono',monospace;font-size:9.5px;width:30px;height:24px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border2);border-radius:var(--r2);color:var(--subtle);}
+.day.on{background:var(--brand);border-color:var(--brand);color:#fff;}
+.pace-meta{display:flex;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);}
+.pace-meta b{color:var(--ink);}
+.cov-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12.5px;color:var(--ink);font-weight:700;}
+.cov-head span{font-family:'DM Mono',monospace;font-size:9.5px;color:var(--subtle);font-weight:400;}
+.cov-bar{height:8px;border-radius:999px;background:var(--surface3);overflow:hidden;margin:8px 0 10px;}
+.cov-bar i{display:block;height:100%;width:80%;background:linear-gradient(90deg,var(--green),color-mix(in srgb,var(--green) 70%,#fff));border-radius:999px;transform-origin:left;animation:barGrow 1.2s .3s ease both;}
+@keyframes barGrow{from{transform:scaleX(0);}to{transform:scaleX(1);}}
+.slot{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px dashed var(--border);font-size:11.5px;color:var(--text);}
+.slot-btn{margin-left:auto;font-size:10.5px;font-weight:700;border:1px solid var(--border2);border-radius:var(--r2);padding:3px 8px;background:var(--surface);white-space:nowrap;}
+.slot:first-of-type .slot-btn{border-color:var(--brand);color:var(--brand);animation:ringPulse 2.4s ease-in-out infinite;}
+.away-chip{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-family:'DM Mono',monospace;font-size:9.5px;color:var(--green);background:color-mix(in srgb,var(--green) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--green) 30%,transparent);padding:3px 8px;border-radius:var(--r2);}
+
+/* Content Bank mockup */
+.bank-wrap{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.65fr);gap:14px;align-items:center;}
+.bank-card{border:1px solid var(--border);border-left:3px solid var(--brand);border-radius:var(--r2);background:var(--surface);padding:9px 11px;margin-bottom:8px;}
+.bank-card:last-child{margin-bottom:0;}
+.bank-stage{font-family:'DM Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--amber);background:var(--amber-dim, rgba(154,98,18,.1));padding:1px 6px;border-radius:999px;}
+.bank-title{font-size:12.5px;font-weight:700;color:var(--ink);margin:5px 0 3px;}
+.bank-meta{font-family:'DM Mono',monospace;font-size:9.5px;color:var(--muted);}
+.bank-meta.target{color:var(--brand);}
+.bank-actions{display:flex;gap:6px;margin-top:7px;}
+.bank-btn{font-size:10.5px;font-weight:700;border:1px solid var(--border2);border-radius:var(--r2);padding:3px 8px;background:var(--surface);}
+.bank-btn.go{border-color:var(--brand);color:var(--brand);animation:ringPulse 2.4s ease-in-out infinite;}
+.bank-btn.dev{background:var(--brand);border-color:var(--brand);color:#fff;}
+.bank-day{position:relative;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface);padding:10px;box-shadow:var(--sh1);}
+.bank-day .mc-n{font-size:10px;margin-bottom:6px;}
+.bank-day .chip{white-space:normal;font-size:10px;margin-bottom:4px;}
+.bank-arrow{display:block;width:100%;height:24px;margin:2px 0 6px;color:var(--brand);}
+.bank-arrow path{stroke-dasharray:4 4;animation:dash 1.4s linear infinite;}
+@keyframes dash{to{stroke-dashoffset:-16;}}
 
 /* ─── PILLARS ─────────────────────────────── */
 .pillars{padding:56px 0;}
 .pillar-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
-.pillar{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--brand);border-radius:var(--r);padding:22px 20px;box-shadow:var(--sh1);}
+.pillar{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--brand);border-radius:var(--r);padding:22px 20px;box-shadow:var(--sh1);transition:transform .15s,box-shadow .15s;}
+.pillar:hover{transform:translateY(-2px);box-shadow:var(--sh2);}
 .pillar-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--brand);margin-bottom:10px;display:block;}
 .pillar h3{font-family:var(--font-display);font-size:19px;line-height:1.2;color:var(--ink);margin-bottom:8px;letter-spacing:-.01em;}
 .pillar p{font-size:14px;color:var(--muted);line-height:1.6;}
 
 /* ─── FEATURE ROWS ─────────────────────────────── */
 .features{padding:24px 0 56px;}
-.feature{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:44px;align-items:center;margin-bottom:64px;}
+.feature{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:48px;align-items:center;margin-bottom:72px;}
 .feature:last-child{margin-bottom:0;}
 .feature.flip .feature-copy{order:2;}
 .feature h3{font-family:var(--font-display);font-size:clamp(1.5rem,2.6vw,2rem);line-height:1.1;letter-spacing:-.03em;color:var(--ink);margin-bottom:12px;}
@@ -245,16 +331,28 @@ figure > figcaption{font-size:13px;color:var(--muted);line-height:1.6;margin-top
 .feature li::before{content:'';position:absolute;left:0;top:.6em;width:7px;height:7px;border-radius:50%;background:var(--brand);}
 .requires{display:inline-block;margin-top:10px;font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;}
 
-/* ─── WORKFLOW ─────────────────────────────── */
+/* ─── WORKFLOW (flow diagram) ─────────────────────────────── */
 .workflow{padding:56px 0;}
-.steps{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);box-shadow:var(--sh2);overflow:hidden;counter-reset:step;}
-.step{padding:24px 22px;border-right:1px solid var(--border);position:relative;}
+.workflow .section-head{text-align:center;}
+.workflow .section-lede{margin:0 auto;}
+.flow{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);box-shadow:var(--sh1);overflow:hidden;}
+.steps{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);}
+.step{padding:26px 20px 22px;text-align:center;position:relative;border-right:1px solid var(--border);transition:background .2s;}
 .step:last-child{border-right:none;}
-.step-num{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:var(--brand-dim);border:1px solid var(--brand-glow);color:var(--brand);font-family:'DM Mono',monospace;font-size:12px;margin-bottom:12px;}
-.step h3{font-family:'Bricolage Grotesque',sans-serif;font-size:17px;color:var(--ink);margin-bottom:6px;letter-spacing:-.01em;}
-.step p{font-size:14px;color:var(--muted);line-height:1.6;}
-.step-where{display:block;margin-top:10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--subtle);}
-.workflow-foot{margin-top:16px;font-size:14px;color:var(--muted);}
+.step:hover{background:var(--surface2);}
+.step-icon{width:44px;height:44px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:19px;margin:0 auto 10px;border:1px solid var(--border2);background:var(--surface2);transition:border-color .2s,background .2s;}
+.step:hover .step-icon{border-color:var(--brand-glow);background:var(--brand-dim);}
+.step-num{font-family:'DM Mono',monospace;font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.1em;color:var(--brand);margin-bottom:5px;display:block;}
+.step h3{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;color:var(--ink);margin-bottom:6px;letter-spacing:-.01em;}
+.step p{font-size:13.5px;color:var(--muted);line-height:1.6;}
+.step-where{display:block;margin-top:10px;font-family:'DM Mono',monospace;font-size:10.5px;color:var(--subtle);}
+.flow-arrow{position:absolute;right:-9px;top:48px;width:18px;height:18px;display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--border2);border-radius:50%;z-index:2;font-size:9px;color:var(--brand);}
+.flow-dest{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 22px;border-top:1px solid var(--border);background:linear-gradient(90deg,var(--ink) 0%,color-mix(in srgb,var(--ink) 78%,var(--brand)) 100%);}
+.flow-dest-label{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.6);}
+.flow-dest-name{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:15px;color:#fff;}
+.flow-dest-pill{margin-left:auto;display:inline-flex;align-items:center;gap:6px;background:color-mix(in srgb,var(--brand) 48%,transparent);border:1px solid color-mix(in srgb,var(--brand) 58%,transparent);color:#fff;font-family:'DM Mono',monospace;font-size:10px;padding:5px 11px;border-radius:var(--r2);white-space:nowrap;}
+.flow-dest-dot{width:5px;height:5px;border-radius:50%;background:#fff;animation:blink 2s ease-in-out infinite;}
+.workflow-foot{margin-top:16px;font-size:14px;color:var(--muted);text-align:center;}
 
 /* ─── ACCESS (preview vs connected) ─────────────────────────────── */
 .access{padding:56px 0;}
@@ -273,7 +371,9 @@ figure > figcaption{font-size:13px;color:var(--muted);line-height:1.6;margin-top
 /* ─── TOOLKIT ─────────────────────────────── */
 .toolkit{padding:56px 0;}
 .tool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-.tool{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 18px 16px;box-shadow:var(--sh0);}
+.tool{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 18px 16px;box-shadow:var(--sh0);transition:border-color .15s,transform .15s,box-shadow .15s;}
+.tool:hover{border-color:var(--brand-glow);transform:translateY(-2px);box-shadow:var(--sh1);}
+.tool-icon{width:34px;height:34px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:16px;border:1px solid var(--border2);background:var(--surface2);margin-bottom:10px;}
 .tool h3{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;color:var(--ink);margin-bottom:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .tool p{font-size:13.5px;color:var(--muted);line-height:1.6;}
 .tool-tag{font-family:'DM Mono',monospace;font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border:1px solid var(--border2);border-radius:var(--r2);padding:2px 6px;}
@@ -360,7 +460,19 @@ figure > figcaption{font-size:13px;color:var(--muted);line-height:1.6;margin-top
 .reveal-ready .reveal{opacity:0;transform:translateY(12px);}
 .reveal-ready .reveal.visible{opacity:1;transform:none;}
 
+/* Hero callouts */
+.preview-callouts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:34px;}
+.callout{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh0);}
+.callout b{display:block;font-size:13px;color:var(--ink);margin-bottom:3px;}
+.callout span{font-size:13px;color:var(--muted);line-height:1.55;}
+
 /* ─── RESPONSIVE ─────────────────────────────── */
+@media(max-width:1080px){
+  .hero-inner{grid-template-columns:1fr;gap:40px;}
+  .hero-copy{max-width:680px;}
+  .float-pill.ok{left:-6px;}
+  .float-pill.warn{right:96px;}
+}
 @media(max-width:980px){
   .top-links{display:none;}
   .pillar-grid{grid-template-columns:1fr 1fr;}
@@ -369,6 +481,7 @@ figure > figcaption{font-size:13px;color:var(--muted);line-height:1.6;margin-top
   .steps{grid-template-columns:1fr 1fr;}
   .step:nth-child(2){border-right:none;}
   .step:nth-child(-n+2){border-bottom:1px solid var(--border);}
+  .flow-arrow{display:none;}
   .tool-grid{grid-template-columns:1fr 1fr;}
   .connect-card{grid-template-columns:1fr;}
   .preview-callouts{grid-template-columns:1fr;}
@@ -377,7 +490,27 @@ figure > figcaption{font-size:13px;color:var(--muted);line-height:1.6;margin-top
   .wrap,.topbar-inner{width:calc(100% - 32px);}
   .hero{padding:40px 0 18px;}
   .hero-ctas .btn{width:100%;}
-  .hero-tour{margin-left:0;}
+  .ui-body{padding:10px;}
+  .cal-legend{display:none;}
+  .cal-dow,.cal-grid{gap:3px;}
+  .mc{min-height:48px;padding:3px;}
+  /* Small cells keep the colour coding as bars instead of text. */
+  .cal-grid .chip{font-size:0;height:5px;padding:0;border-width:0;border-left-width:0;}
+  .cal-grid .chip.post{background:var(--brand);opacity:.7;}.cal-grid .chip.post.li{background:var(--accent);}
+  .cal-grid .chip.note{background:#22c55e;opacity:.6;}.cal-grid .chip.action{background:#0ea5e9;opacity:.6;}
+  .cal-grid .chip.target{border:1px dashed var(--brand);height:6px;}
+  .cal-grid .chip.status{display:none;}
+  .gap-swap{height:12px;}
+  .gap-a{font-size:0;}
+  .gap-a::before{content:'Gap';font-size:7.5px;}
+  .stat-item{padding:8px 10px;}
+  .stat-num{font-size:17px;}
+  .float-pill{font-size:9.5px;padding:5px 10px;}
+  .float-pill.warn{right:auto;left:8px;top:-14px;}
+  .float-pill.ok{top:-14px;bottom:auto;left:auto;right:6px;}
+  .float-pill .ok-dates{display:none;}
+  .bank-wrap{grid-template-columns:1fr;}
+  .ui-tab:not(.active){display:none;}
   .top-actions .btn.ghost{display:none;}
   .top-actions .btn{min-height:40px;padding:0 14px;font-size:13px;}
   .pillar-grid,.steps,.access-grid,.tool-grid,.faq-grid{grid-template-columns:1fr;}
@@ -389,7 +522,6 @@ figure > figcaption{font-size:13px;color:var(--muted);line-height:1.6;margin-top
   .bio-card{grid-template-columns:56px 1fr;padding:16px;}
   .bio-photo{width:56px;height:56px;}
   .bio-card .btn{grid-column:1/-1;}
-  .shot-bar .shot-title{display:none;}
 }
 </style>
 </head>
@@ -418,41 +550,71 @@ figure > figcaption{font-size:13px;color:var(--muted);line-height:1.6;margin-top
 <!-- HERO -->
 <section class="hero" aria-labelledby="heroTitle">
   <div class="wrap">
-    <div class="hero-copy">
-      <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Independent calendar companion for Buffer · public beta</div>
-      <h1 id="heroTitle">Your Buffer calendar, <em>with room to think.</em></h1>
-      <p class="hero-desc">PostIQ puts your scheduled Buffer posts beside planning notes and actions, flags queue gaps against the posting rhythm you choose, and helps you turn saved content into a dated plan.</p>
-      <div class="hero-ctas">
-        <a href="/auth/connect.html?return=%2Fapp.html%3Fview%3DcalendarView" class="btn primary lg" data-cta="hero">Sign in with Buffer</a>
-        <a href="/app.html?view=calendarView" class="btn ghost lg" data-cta="hero">Preview the calendar</a>
-        <a href="/app.html?view=calendarView&amp;tour=1" class="text-link hero-tour" data-cta="hero">or take the 5-step tour</a>
-      </div>
-      <p class="hero-note"><strong>Scheduled posts, Queue Health and sending to Buffer need Buffer sign-in.</strong> The preview opens the same calendar without your account data. Free during public beta. Not made by, affiliated with, or endorsed by Buffer.</p>
-    </div>
-  </div>
-</section>
-
-<!-- PRODUCT PREVIEW -->
-<section class="preview" aria-label="Product preview">
-  <div class="wrap">
-    <figure class="preview-figure reveal">
-      <div class="shot">
-        <div class="shot-bar">
-          <span class="shot-dots" aria-hidden="true"><span></span><span></span><span></span></span>
-          <span class="shot-title">postiq.netlify.app · Calendar</span>
-          <span class="sample-tag">Sample data</span>
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Independent calendar companion for Buffer</div>
+        <h1 id="heroTitle">Your Buffer calendar, <em>with room to think.</em></h1>
+        <p class="hero-desc">PostIQ puts your scheduled Buffer posts beside planning notes and actions, flags queue gaps against the posting rhythm you choose, and helps you turn saved content into a dated plan.</p>
+        <div class="hero-ctas">
+          <a href="/auth/connect.html?return=%2Fapp.html%3Fview%3DcalendarView" class="btn primary lg" data-cta="hero">Sign in with Buffer</a>
+          <a href="/app.html?view=calendarView" class="btn ghost lg" data-cta="hero">Preview the calendar</a>
         </div>
-        <picture>
-          <source media="(max-width: 640px)" srcset="/images/product/calendar-mobile.png" width="390" height="844">
-          <img src="/images/product/calendar-desktop.png" width="1440" height="900" alt="The PostIQ Calendar in month view with sample data. Scheduled posts for two sample channels appear on their days next to a planned action, a campaign idea note, a completed action, and a content target marked not scheduled. Days are labelled scheduled, gap, or non-posting day based on the chosen rhythm." fetchpriority="high">
-        </picture>
+        <p class="hero-note"><strong>Scheduled posts, Queue Health and sending to Buffer need Buffer sign-in.</strong> The preview opens the same calendar without your account data, with a short tour you can skip. Free during public beta. Not made by, affiliated with, or endorsed by Buffer.</p>
       </div>
-      <figcaption>A current PostIQ screen. The account, channels, posts and notes are fictional sample data; “gap” and “non-posting day” labels come from a Mon/Wed/Fri rhythm set in Your Pace.</figcaption>
-    </figure>
+
+      <figure class="hero-visual" aria-labelledby="heroMockCaption">
+        <div class="float-pill warn" aria-hidden="true"><span class="float-pill-dot"></span>2 gaps<span class="ok-dates"> in the next 2 weeks</span></div>
+        <div class="float-pill ok" aria-hidden="true"><span class="float-pill-dot"></span>Away<span class="ok-dates"> Nov 23–27 ·</span> marked off</div>
+        <div class="ui-shell" role="img" aria-label="Illustration of the PostIQ calendar for November with sample data. Scheduled posts for two channels sit beside a planned action, a campaign note and a content target marked not scheduled. Two days are dashed as gaps against a Monday, Wednesday and Friday rhythm, one of which turns into a planned draft. November 23 to 27 is marked as intentional days off.">
+          <div class="ui-titlebar" aria-hidden="true">
+            <span class="ui-dot ui-dot-r"></span><span class="ui-dot ui-dot-y"></span><span class="ui-dot ui-dot-g"></span>
+            <div class="ui-tabs"><span class="ui-tab active">Calendar</span><span class="ui-tab">Queue Health</span><span class="ui-tab">Content Bank</span></div>
+            <span class="sample-tag">Sample data</span>
+          </div>
+          <div class="ui-body" aria-hidden="true">
+            <div class="cal-head">
+              <div class="cal-month"><span class="cal-nav">‹</span>November 2026<span class="cal-nav">›</span></div>
+              <div class="cal-legend"><i>◷ Buffer post</i><i>✎ Note</i><i>□ Action</i><i>◇ Target</i></div>
+            </div>
+            <div class="cal-dow"><span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span></div>
+            <div class="cal-grid">
+              <div class="mc off"><span class="mc-n">8</span></div>
+              <div class="mc today"><span class="mc-n">9<b>2</b></span><i class="chip post">Behind the scenes</i><i class="chip post li">Autumn lessons</i></div>
+              <div class="mc"><span class="mc-n">10</span><i class="chip action">□ Shoot flat-lays</i></div>
+              <div class="mc"><span class="mc-n">11</span><i class="chip post">Studio tour, pt 2</i></div>
+              <div class="mc gap"><span class="mc-n">12</span><span class="gap-swap"><span class="gap-a">Gap · Newsletter</span><span class="gap-b"><i class="chip action">✎ Draft planned</i></span></span></div>
+              <div class="mc"><span class="mc-n">13</span><i class="chip post">Reader spotlight</i></div>
+              <div class="mc off"><span class="mc-n">14</span></div>
+              <div class="mc off"><span class="mc-n">15</span></div>
+              <div class="mc"><span class="mc-n">16</span><i class="chip post">Desk setups</i><i class="chip post li">Newsletter preview</i></div>
+              <div class="mc"><span class="mc-n">17</span><i class="chip note">✎ Winter series idea</i></div>
+              <div class="mc gap"><span class="mc-n">18</span><span class="gap-swap"><span class="gap-a">Gap · Studio</span></span></div>
+              <div class="mc"><span class="mc-n">19</span><i class="chip post li">Reading list</i><i class="chip target">◇ Year in review</i><i class="chip status">target · not scheduled</i></div>
+              <div class="mc"><span class="mc-n">20</span><i class="chip post">Holiday hours</i></div>
+              <div class="mc off"><span class="mc-n">21</span></div>
+              <div class="mc off"><span class="mc-n">22</span></div>
+              <div class="mc away"><span class="mc-n">23</span><i class="chip status">day off</i></div>
+              <div class="mc away"><span class="mc-n">24</span><i class="chip status">day off</i></div>
+              <div class="mc away"><span class="mc-n">25</span><i class="chip status">day off</i></div>
+              <div class="mc away"><span class="mc-n">26</span><i class="chip status">day off</i></div>
+              <div class="mc away"><span class="mc-n">27</span><i class="chip status">day off</i></div>
+              <div class="mc off"><span class="mc-n">28</span></div>
+            </div>
+          </div>
+          <div class="stat-strip" aria-hidden="true">
+            <div class="stat-item"><div class="stat-num">8</div><div class="stat-lbl">Scheduled</div></div>
+            <div class="stat-item"><div class="stat-num warn">2</div><div class="stat-lbl">Gaps</div></div>
+            <div class="stat-item"><div class="stat-num">3</div><div class="stat-lbl">Notes &amp; actions</div></div>
+          </div>
+        </div>
+        <figcaption class="mock-caption" id="heroMockCaption">Illustration of the PostIQ calendar with fictional sample data. Gaps follow a rhythm you set in Your Pace.</figcaption>
+      </figure>
+    </div>
+
     <div class="preview-callouts">
-      <div class="callout"><b>Posts and plans, kept apart</b><span>Buffer posts, date-only notes, actions and content targets each have their own marker. Notes never count as scheduled.</span></div>
-      <div class="callout"><b>Gaps you define</b><span>A day is a gap only when your rhythm expects a post there and no confirmed post is loaded.</span></div>
-      <div class="callout"><b>Honest about data</b><span>Stale or partial Buffer data is labelled as such instead of being shown as full coverage.</span></div>
+      <div class="callout reveal"><b>Posts and plans, kept apart</b><span>Buffer posts, date-only notes, actions and content targets each have their own marker. Notes never count as scheduled.</span></div>
+      <div class="callout reveal"><b>Gaps you define</b><span>A day is a gap only when your rhythm expects a post there and no confirmed post is loaded.</span></div>
+      <div class="callout reveal"><b>Honest about data</b><span>Stale or partial Buffer data is labelled as such instead of being shown as full coverage.</span></div>
     </div>
   </div>
 </section>
@@ -506,11 +668,27 @@ figure > figcaption{font-size:13px;color:var(--muted);line-height:1.6;margin-top
         <span class="requires">Coverage requires Buffer sign-in and a recent sync.</span>
       </div>
       <figure>
-        <div class="shot">
-          <div class="shot-bar"><span class="shot-dots" aria-hidden="true"><span></span><span></span><span></span></span><span class="shot-title">Queue Health</span><span class="sample-tag">Sample data</span></div>
-          <img src="/images/product/queue-health-desktop.png" width="1440" height="1100" loading="lazy" alt="Queue Health with sample data: channel health shows one channel low and one with no confirmed runway; Your Pace period coverage reports 5 of 10 planned slots scheduled and lists five uncovered slots, each with a Plan this slot button.">
+        <div class="ui-shell" role="img" aria-label="Illustration of Queue Health with sample data: one channel has three posting days of runway and the other has a gap on Thursday; Your Pace shows Monday, Wednesday and Friday selected at one post per day; period coverage reads 8 of 10 planned slots scheduled, with two uncovered slots each offering Plan this slot, and November 23 to 27 marked as days off.">
+          <div class="ui-titlebar" aria-hidden="true"><span class="ui-dot ui-dot-r"></span><span class="ui-dot ui-dot-y"></span><span class="ui-dot ui-dot-g"></span><span class="ui-title">Queue Health</span><span class="sample-tag">Sample data</span></div>
+          <div class="ui-body" aria-hidden="true">
+            <div class="mock-label">Channel health</div>
+            <div class="qh-row"><span class="qh-dot" style="background:var(--green)"></span><b>Sample Studio</b><span>Covered</span><span class="qh-runway">3 posting days</span></div>
+            <div class="qh-row"><span class="qh-dot" style="background:var(--amber)"></span><b>Sample Newsletter</b><span>Gap Thu 12</span><span class="qh-runway">0 posting days</span></div>
+            <div class="mock-card">
+              <div class="mock-label">Your Pace · Sample Studio</div>
+              <div class="days"><span class="day">S</span><span class="day on">M</span><span class="day">T</span><span class="day on">W</span><span class="day">T</span><span class="day on">F</span><span class="day">S</span></div>
+              <div class="pace-meta"><span><b>1</b> post per selected day</span><span>Nov 9 – Nov 22</span></div>
+            </div>
+            <div class="mock-card">
+              <div class="cov-head">8 of 10 planned slots scheduled<span>UTC · checked 9:00</span></div>
+              <div class="cov-bar"><i></i></div>
+              <div class="slot">Thu Nov 12 · Newsletter · 1 uncovered<span class="slot-btn">Plan this slot</span></div>
+              <div class="slot">Wed Nov 18 · Studio · 1 uncovered<span class="slot-btn">Plan this slot</span></div>
+              <span class="away-chip">● Nov 23–27 · all channels · days off</span>
+            </div>
+          </div>
         </div>
-        <figcaption class="caption">Current Queue Health screen with fictional sample channels.</figcaption>
+        <figcaption class="mock-caption">Illustration of Queue Health with fictional sample channels.</figcaption>
       </figure>
     </div>
 
@@ -527,11 +705,20 @@ figure > figcaption{font-size:13px;color:var(--muted);line-height:1.6;margin-top
         <span class="requires">Saved locally in your browser; works in the preview.</span>
       </div>
       <figure>
-        <div class="shot">
-          <div class="shot-bar"><span class="shot-dots" aria-hidden="true"><span></span><span></span><span></span></span><span class="shot-title">Content Bank</span><span class="sample-tag">Sample data</span></div>
-          <img src="/images/product/content-bank-desktop.png" width="1440" height="900" loading="lazy" alt="Content Bank with three sample saved items. One has a local target date marked planning only; the others show No target date and a Plan a date button. Each shows No confirmed Buffer scheduling.">
+        <div class="ui-shell" role="img" aria-label="Illustration of Content Bank with sample data: one saved item has no target date and a Plan a date button; another has a local target of November 19, planning only, which appears on the calendar as a target marked not scheduled.">
+          <div class="ui-titlebar" aria-hidden="true"><span class="ui-dot ui-dot-r"></span><span class="ui-dot ui-dot-y"></span><span class="ui-dot ui-dot-g"></span><span class="ui-title">Content Bank</span><span class="sample-tag">Sample data</span></div>
+          <div class="ui-body bank-wrap" aria-hidden="true">
+            <div>
+              <div class="bank-card"><span class="bank-stage">Developing</span><div class="bank-title">Winter workspace series</div><div class="bank-meta">No target date · no confirmed Buffer scheduling</div><div class="bank-actions"><span class="bank-btn go">Plan a date</span><span class="bank-btn dev">Develop</span></div></div>
+              <div class="bank-card"><span class="bank-stage">Developing</span><div class="bank-title">Year-in-review outline</div><div class="bank-meta target">◇ Local target: Nov 19 · planning only</div><div class="bank-actions"><span class="bank-btn">Change target</span><span class="bank-btn dev">Develop</span></div></div>
+            </div>
+            <div>
+              <svg class="bank-arrow" viewBox="0 0 120 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12 H108"/><path d="M102 6 L110 12 L102 18" stroke-dasharray="none"/></svg>
+              <div class="bank-day"><div class="mc-n">THU 19</div><i class="chip post li">Reading list</i><i class="chip target">◇ Year in review</i><i class="chip status">target · not scheduled</i></div>
+            </div>
+          </div>
         </div>
-        <figcaption class="caption">Current Content Bank screen with fictional sample items.</figcaption>
+        <figcaption class="mock-caption">Illustration of Content Bank with fictional sample items.</figcaption>
       </figure>
     </div>
   </div>
@@ -543,34 +730,48 @@ figure > figcaption{font-size:13px;color:var(--muted);line-height:1.6;margin-top
     <div class="section-head reveal">
       <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>How it works</div>
       <h2 class="section-title" id="workflowTitle">Connect, check, plan, <em>send.</em></h2>
+      <p class="section-lede">PostIQ sits beside your Buffer queue. Nothing goes to Buffer until you choose a Buffer action.</p>
     </div>
-    <ol class="steps reveal">
-      <li class="step">
-        <span class="step-num" aria-hidden="true">1</span>
-        <h3>Connect Buffer</h3>
-        <p>Sign in with Buffer’s OAuth and sync. PostIQ loads your channels and scheduled queue.</p>
-        <span class="step-where">Sidebar · Sign in with Buffer</span>
-      </li>
-      <li class="step">
-        <span class="step-num" aria-hidden="true">2</span>
-        <h3>Inspect coverage</h3>
-        <p>Set your rhythm in Your Pace, then check a week or the run-up to time off.</p>
-        <span class="step-where">Queue Health · Check this period</span>
-      </li>
-      <li class="step">
-        <span class="step-num" aria-hidden="true">3</span>
-        <h3>Plan a gap</h3>
-        <p>Open the slot on the calendar. Add a note or action, date a saved item, or start a draft for that day.</p>
-        <span class="step-where">Plan this slot · Calendar day</span>
-      </li>
-      <li class="step">
-        <span class="step-num" aria-hidden="true">4</span>
-        <h3>Send to Buffer</h3>
-        <p>In Compose, choose Draft, Queue or Schedule. Nothing reaches Buffer until you pick one.</p>
-        <span class="step-where">Compose · Buffer actions</span>
-      </li>
-    </ol>
-    <p class="workflow-foot reveal">Want to see it first? <a class="text-link" href="/app.html?view=calendarView&amp;tour=1" data-cta="workflow">Take the tour in the preview</a>. It only points at controls; it never sends anything.</p>
+    <div class="flow reveal">
+      <ol class="steps">
+        <li class="step">
+          <span class="flow-arrow" aria-hidden="true">→</span>
+          <div class="step-icon" aria-hidden="true">🔗</div>
+          <span class="step-num">01</span>
+          <h3>Connect Buffer</h3>
+          <p>Sign in with Buffer’s OAuth and sync. PostIQ loads your channels and scheduled queue.</p>
+          <span class="step-where">Sidebar · Sign in with Buffer</span>
+        </li>
+        <li class="step">
+          <span class="flow-arrow" aria-hidden="true">→</span>
+          <div class="step-icon" aria-hidden="true">◷</div>
+          <span class="step-num">02</span>
+          <h3>Inspect coverage</h3>
+          <p>Set your rhythm in Your Pace, then check a week or the run-up to time off.</p>
+          <span class="step-where">Queue Health · Check this period</span>
+        </li>
+        <li class="step">
+          <span class="flow-arrow" aria-hidden="true">→</span>
+          <div class="step-icon" aria-hidden="true">📅</div>
+          <span class="step-num">03</span>
+          <h3>Plan a gap</h3>
+          <p>Open the slot on the calendar. Add a note or action, date a saved item, or start a draft for that day.</p>
+          <span class="step-where">Plan this slot · Calendar day</span>
+        </li>
+        <li class="step">
+          <div class="step-icon" aria-hidden="true">⚡</div>
+          <span class="step-num">04</span>
+          <h3>Send to Buffer</h3>
+          <p>In Compose, choose Draft, Queue or Schedule. Nothing reaches Buffer until you pick one.</p>
+          <span class="step-where">Compose · Buffer actions</span>
+        </li>
+      </ol>
+      <div class="flow-dest">
+        <div><div class="flow-dest-label">Destination</div><div class="flow-dest-name">Buffer — your publishing home</div></div>
+        <span class="flow-dest-pill"><span class="flow-dest-dot" aria-hidden="true"></span>You choose every action</span>
+      </div>
+    </div>
+    <p class="workflow-foot reveal">Not ready to connect? <a class="text-link" href="/app.html?view=calendarView" data-cta="workflow">Preview the calendar</a>. A short tour opens the first time, and you can skip it.</p>
   </div>
 </section>
 
@@ -620,12 +821,13 @@ figure > figcaption{font-size:13px;color:var(--muted);line-height:1.6;margin-top
       <p class="section-lede">The calendar comes first. These sit around it, and most can be switched off in Settings so your sidebar only shows what you use.</p>
     </div>
     <div class="tool-grid">
-      <article class="tool reveal"><h3>Compose</h3><p>A focused editor with local autosave, Focus mode, media, and writing tools for Content Bank items, hooks, hashtags and templates.</p></article>
-      <article class="tool reveal"><h3>Shareable snapshots</h3><p>Share a read-only week or month of the calendar with a teammate or client. Anyone with the link can view it; no login required.</p></article>
-      <article class="tool reveal"><h3>Approvals <span class="tool-tag">Beta</span></h3><p>Send a reviewer link for a Buffer draft and collect approval or change requests.</p></article>
-      <article class="tool reveal"><h3>Templates, Pillars &amp; Trending</h3><p>Reusable starters, recurring content themes, and timely topics from public sources, under Content Bank → Resources.</p></article>
-      <article class="tool reveal"><h3>Library &amp; Pulse</h3><p>Recently sent posts with performance data when Buffer provides it, plus a quick read on how they did.</p></article>
+      <article class="tool reveal"><div class="tool-icon" aria-hidden="true">✍️</div><h3>Compose</h3><p>A focused editor with local autosave, Focus mode, media, and writing tools for Content Bank items, hooks, hashtags and templates.</p></article>
+      <article class="tool reveal"><div class="tool-icon" aria-hidden="true">🔗</div><h3>Shareable snapshots</h3><p>Share a read-only week or month of the calendar with a teammate or client. Anyone with the link can view it; no login required.</p></article>
+      <article class="tool reveal"><div class="tool-icon" aria-hidden="true">✅</div><h3>Approvals <span class="tool-tag">Beta</span></h3><p>Send a reviewer link for a Buffer draft and collect approval or change requests.</p></article>
+      <article class="tool reveal"><div class="tool-icon" aria-hidden="true">🧠</div><h3>Templates, Pillars &amp; Trending</h3><p>Reusable starters, recurring content themes, and timely topics from public sources, under Content Bank → Resources.</p></article>
+      <article class="tool reveal"><div class="tool-icon" aria-hidden="true">📚</div><h3>Library &amp; Pulse</h3><p>Recently sent posts with performance data when Buffer provides it, plus a quick read on how they did.</p></article>
       <article class="tool reveal">
+        <div class="tool-icon" aria-hidden="true">🎨</div>
         <h3>Themes &amp; workspaces</h3>
         <p>Turn Calendar, Compose, Content Bank and Approvals on or off, and pick one of five looks. Saved in your browser.</p>
         <div class="theme-strip" role="img" aria-label="Theme swatches: PostIQ, Classic, After Dark, Studio and Evergreen">
@@ -687,7 +889,7 @@ figure > figcaption{font-size:13px;color:var(--muted);line-height:1.6;margin-top
       </div>
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq4"><span>What does the preview include?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
-        <div class="faq-a" id="faq4" hidden>The real app, without your Buffer data: the calendar, notes and actions, Content Bank, Compose drafts and settings, all stored in your browser. Queue Health and Your Pace need connected channels to measure anything. The optional tour walks through five areas and can be skipped or restarted from the app.</div>
+        <div class="faq-a" id="faq4" hidden>The real app, without your Buffer data: the calendar, notes and actions, Content Bank, Compose drafts and settings, all stored in your browser. Queue Health and Your Pace need connected channels to measure anything. A five-step tour opens the first time you visit; skip it whenever you like, or restart it from Take a tour in the app.</div>
       </div>
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq5"><span>Where is my planning data stored?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
@@ -824,7 +1026,7 @@ document.querySelectorAll('a[data-cta]').forEach(function(link){
   link.addEventListener('click',function(){
     if(typeof gtag==='undefined')return;
     var href=link.getAttribute('href')||'';
-    var flow=href.indexOf('/auth/')===0?'buffer_connect':href.indexOf('tour=1')>-1?'tour':'open_app';
+    var flow=href.indexOf('/auth/')===0?'buffer_connect':'open_app';
     gtag('event','landing_cta_click',{location:link.dataset.cta,flow:flow});
   });
 });

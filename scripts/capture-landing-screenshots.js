@@ -1,5 +1,7 @@
 'use strict';
-// Captures the landing-page product screenshots from the real app shell.
+// Captures the calendar screenshot used by the share image (postiq-og.png) from
+// the real app shell. Approvals, Library and Pulse are switched off through the
+// app's feature config so the sidebar shows only the calendar-first tools.
 // The account, channels, posts and notes are fictional sample data seeded into
 // browser storage. All remote requests are blocked; nothing is sent to Buffer.
 // Usage: CHROMIUM_PATH=/path/to/chromium node scripts/capture-landing-screenshots.js
@@ -73,8 +75,6 @@ function seed({ nowIso }) {
   set('postiq_buffer_cache_v1', cache);
   set('postiq_calendar_notes_v2', notes);
   set('postiqPlanningSettings', settings);
-  set('postiq_ob_dismissed', '1');
-  set('postiq_ob_complete', '1');
   set('postiq_tour_seen', '1');
   set('postiq_beta_banner_seen_persist', '1');
   sessionStorage.setItem('postiq_beta_banner_seen', '1');
@@ -88,9 +88,6 @@ async function run() {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', headless: true, args: ['--no-sandbox'] });
   const shots = [
     { name: 'calendar-desktop', width: 1440, height: 900, view: 'calendarView' },
-    { name: 'queue-health-desktop', width: 1440, height: 1100, view: 'queueHealthView', pace: true },
-    { name: 'content-bank-desktop', width: 1440, height: 900, view: 'ideasView' },
-    { name: 'calendar-mobile', width: 390, height: 844, view: 'calendarView' },
   ];
   try {
     for (const shot of shots) {
@@ -102,6 +99,7 @@ async function run() {
         // Trending is a read-only POST, as in the other browser checks.
         if (request.method() !== 'GET' && url.pathname !== '/.netlify/functions/trending') writes.push(url.pathname);
         if (url.origin !== base) return route.abort();
+        if (url.pathname === '/.netlify/functions/app-config') return route.fulfill({ json: { features: { approvals: false, library: false, pulse: false } } });
         if (url.pathname.startsWith('/.netlify/')) return route.fulfill({ json: {} });
         return route.continue();
       });
@@ -109,14 +107,8 @@ async function run() {
       await page.goto(`${base}/app.html?view=${shot.view}`);
       await page.waitForFunction(() => window.YourPace && document.getElementById('paceStart').value);
       await page.evaluate(() => document.querySelectorAll('#globalStatusBanner,.beta-banner').forEach(el => el.classList.add('hidden')));
-      if (shot.pace) {
-        await page.evaluate(() => {
-          const C = PostIQCoverage, today = C.dayKey(new Date());
-          document.getElementById('paceStart').value = today;
-          document.getElementById('paceEnd').value = C.addDays(today, 13);
-        });
-        await page.locator('#paceCheck').click();
-        await page.evaluate(() => { document.activeElement?.blur(); document.querySelectorAll('.main,.view').forEach(el => { el.scrollTop = 0; }); window.scrollTo(0, 0); });
+      for (const view of ['approvalsView', 'libraryView', 'pulseView']) {
+        if (await page.locator(`.side-nav [data-view="${view}"]`).isVisible()) throw new Error(`${view} should be hidden in screenshots`);
       }
       await page.waitForTimeout(400);
       const file = path.join(outDir, `${shot.name}.png`);

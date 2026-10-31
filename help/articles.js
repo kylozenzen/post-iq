@@ -59,7 +59,7 @@ window.POSTIQ_HELP_ARTICLES = [
     <h2>Preview without signing in</h2>
     <p>You can open the calendar without a Buffer account. Notes, actions, Content Bank items, and Compose drafts are saved in your browser. Scheduled posts, Queue Health coverage, and sending to Buffer need Buffer sign-in.</p>
     <h2>Take the tour</h2>
-    <p>Choose <strong>Take a tour</strong> in the sidebar, the Calendar header, or the mobile More menu for a five-step walkthrough of the calendar, planning context, Queue Health, Your Pace, and Content Bank. It only points at controls and never sends anything to Buffer. Skip or close it at any time and restart it from the same buttons; steps for workspaces you have turned off are skipped.</p>
+    <p>A five-step tour opens the first time you visit. To see it again, choose <strong>Take a tour</strong> in the sidebar, the Calendar header, or the mobile More menu. It walks through the calendar, planning context, Queue Health, Your Pace, and Content Bank. It only points at controls and never sends anything to Buffer. Skip or close it at any time and restart it from the same buttons; steps for workspaces you have turned off are skipped.</p>
     <h2>What does not happen automatically</h2>
     <p>Nothing is published just because you typed it in PostIQ. Content only moves into Buffer when you choose a Buffer action (for example draft, queue, or scheduled send).</p>
     <h3>Good to know</h3>
