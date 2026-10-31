@@ -34,8 +34,14 @@ async function run() {
       await page.evaluate(()=>activateView('queueHealthView'));
       assert.ok(await page.locator('#paceChannel').isDisabled());
       assert.match(await page.locator('#paceChannel').innerText(),/No channels loaded/);
+      const headingInside=await page.locator('.pace-rhythm').evaluate(card=>{
+        const box=card.getBoundingClientRect(),title=card.querySelector('#paceRhythmTitle').getBoundingClientRect();
+        return title.top>=box.top+12 && title.left>=box.left+12 && title.right<=box.right-12 && title.bottom<box.bottom;
+      });
+      assert.ok(headingInside,`${width}: Channel rhythm title must sit inside its card padding`);
       assert.ok(await page.locator('#paceCoverageSummary').evaluate(el=>el.getBoundingClientRect().right<=innerWidth));
       await page.screenshot({animations:'disabled',fullPage:true,path:`/tmp/postiq-health-empty-${width}.png`});
+      await page.locator('.pace-rhythm').screenshot({animations:'disabled',path:`/tmp/postiq-rhythm-card-${width}.png`});
       await page.evaluate(()=>activateView('calendarView'));
       const date=await page.evaluate(()=>{
         const C=PostIQCoverage,today=C.dayKey(new Date()),weekday=new Date(today+'T12:00:00Z').getUTCDay();
