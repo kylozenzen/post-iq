@@ -25,8 +25,8 @@ const HELP_CATEGORIES = [
   "Getting Started",
   "Buffer Connection",
   "Plan / Calendar",
+  "Queue Health",
   "Compose",
-  "Thread Splitter",
   "Content Bank",
   "Content Pillars",
   "Templates",
@@ -44,19 +44,22 @@ window.POSTIQ_HELP_ARTICLES = [
     slug: 'getting-started',
     title: 'Getting Started with PostIQ',
     category: 'Getting Started',
-    summary: 'Learn what PostIQ is, how it works with Buffer, and the core workflow from planning to publishing.',
+    summary: 'Learn what PostIQ is, how it works with Buffer, and the calendar-first workflow: connect, check coverage, plan a gap, send.',
     tags: ['onboarding', 'workflow', 'buffer', 'queue', 'publish'],
     featured: true,
-    relatedArticles: ['connect-buffer', 'plan-content-calendar', 'write-split-send-posts'],
-    body: `<p>PostIQ is the planning and preparation layer around Buffer. Buffer is still your publishing home. PostIQ helps you decide <em>what</em> to post, shape it, review it, and send it to Buffer when you are ready.</p>
+    relatedArticles: ['connect-buffer', 'plan-content-calendar', 'queue-health-your-pace'],
+    body: `<p>PostIQ is an independent calendar companion for Buffer users. Buffer is still your publishing home. PostIQ shows your scheduled Buffer posts beside planning notes and actions, flags gaps against the posting rhythm you choose, and helps you turn saved content into a dated plan. It is not made by or affiliated with Buffer.</p>
     <h2>How PostIQ fits into your process</h2>
     <ol>
-      <li><strong>Connect Buffer</strong> so PostIQ can load your channels and queue context.</li>
-      <li><strong>Plan</strong> in calendar view to spot gaps and capture notes.</li>
-      <li><strong>Compose</strong> drafts, media, or threads in PostIQ.</li>
-      <li><strong>Review</strong> with Snapshots where needed.</li>
-      <li><strong>Send to Buffer</strong> only when you pick a Buffer action.</li>
+      <li><strong>Connect Buffer</strong> so PostIQ can load your channels and scheduled queue.</li>
+      <li><strong>Inspect coverage</strong> in Queue Health. Set your rhythm in Your Pace, then check a period.</li>
+      <li><strong>Plan a gap</strong> from the calendar: add a note or action, date a Content Bank item, or start a draft for that day.</li>
+      <li><strong>Send to Buffer</strong> from Compose only when you pick Draft, Queue, or Schedule.</li>
     </ol>
+    <h2>Preview without signing in</h2>
+    <p>You can open the calendar without a Buffer account. Notes, actions, Content Bank items, and Compose drafts are saved in your browser. Scheduled posts, Queue Health coverage, and sending to Buffer need Buffer sign-in.</p>
+    <h2>Take the tour</h2>
+    <p>Choose <strong>Take a tour</strong> in the sidebar, the Calendar header, or the mobile More menu for a five-step walkthrough of the calendar, planning context, Queue Health, Your Pace, and Content Bank. It only points at controls and never sends anything to Buffer. Skip or close it at any time and restart it from the same buttons; steps for workspaces you have turned off are skipped.</p>
     <h2>What does not happen automatically</h2>
     <p>Nothing is published just because you typed it in PostIQ. Content only moves into Buffer when you choose a Buffer action (for example draft, queue, or scheduled send).</p>
     <h3>Good to know</h3>
@@ -105,18 +108,19 @@ window.POSTIQ_HELP_ARTICLES = [
     slug: 'plan-content-calendar',
     title: 'Plan Your Content Calendar',
     category: 'Plan / Calendar',
-    summary: 'Learn how to review your Buffer queue, spot content gaps, add planning notes, and share content snapshots.',
-    tags: ['calendar', 'queue', 'gaps', 'notes', 'snapshot', 'planning'],
+    summary: 'Learn how to review your Buffer queue on the calendar, read gap labels, add planning notes and actions, and share snapshots.',
+    tags: ['calendar', 'queue', 'gaps', 'notes', 'actions', 'snapshot', 'planning'],
     featured: false,
-    relatedArticles: ['getting-started', 'share-content-for-review', 'write-split-send-posts'],
-    body: `<p>The Plan view helps you understand posting cadence before you draft more content. Use it to find weak spots and plan what to create next.</p>
-    <h2>How to use Plan effectively</h2>
+    relatedArticles: ['getting-started', 'queue-health-your-pace', 'share-content-for-review'],
+    body: `<p>The Calendar shows confirmed Buffer posts, date-only notes, to-do actions, and Content Bank target dates in month, week, or agenda view. Each has its own marker, and target dates are labelled “not scheduled”.</p>
+    <h2>How to use the calendar</h2>
     <ol>
-      <li>Sync Buffer data.</li>
-      <li>Review month view for empty days or uneven posting.</li>
-      <li>Add planning notes on key days.</li>
-      <li>Use snapshot sharing for stakeholder visibility.</li>
+      <li>Sign in with Buffer and sync.</li>
+      <li>Read the day labels: a <strong>gap</strong> means your rhythm expects a post and no confirmed post is loaded; a <strong>non-posting day</strong> is outside your rhythm.</li>
+      <li>Use <strong>+ Add</strong> or the + on a day to add a note, an action, or a draft.</li>
+      <li>Use Filters to narrow channels or item types, and Share for a read-only snapshot.</li>
     </ol>
+    <p>Gap labels need a connected, recently synced queue. If data is partial or stale, the calendar says so instead of showing full coverage.</p>
     <h2>When to use Snapshot sharing</h2>
     <p>Use snapshots when you need to share a read-only plan quickly. Snapshot links are ideal for alignment, not for collecting line-by-line feedback.</p>
     <h3>Good to know</h3>
@@ -126,23 +130,22 @@ window.POSTIQ_HELP_ARTICLES = [
     </ul>`
   },
   {
+    // Slug kept from the retired thread-splitter guide so existing links still work.
     slug: 'write-split-send-posts',
-    title: 'Write, Split, and Send Posts to Buffer',
+    title: 'Write and Send Posts to Buffer',
     category: 'Compose',
-    summary: 'Learn how to draft posts, add media, split long copy into threads, and choose the right Buffer action.',
-    tags: ['compose', 'thread', 'split', 'media', 'draft', 'queue', 'schedule'],
-    featured: true,
+    summary: 'Learn how to draft posts, add media, start from a calendar day, and choose the right Buffer action.',
+    tags: ['compose', 'media', 'draft', 'queue', 'schedule'],
+    featured: false,
     relatedArticles: ['getting-started', 'build-your-idea-system', 'share-content-for-review'],
     body: `<p>Compose is where ideas become publish-ready posts. Draft the message, shape formatting, attach media, and decide the final Buffer action.</p>
     <h2>Drafting workflow</h2>
     <ol>
-      <li>Start from a blank draft, template, or idea card.</li>
+      <li>Start from a blank draft, a template, a Content Bank item, or a calendar day.</li>
       <li>Add copy and media.</li>
-      <li>Use split mode if the post is too long for one update.</li>
-      <li>Choose draft/queue/schedule action for Buffer.</li>
+      <li>If you started from the calendar, use the planning date in the schedule picker only if you want it.</li>
+      <li>Choose the Draft, Queue, or Schedule action for Buffer.</li>
     </ol>
-    <h2>Thread splitting basics</h2>
-    <p>Split mode helps convert long-form thoughts into cleaner multi-part posts. Always review each part before sending.</p>
     <h2>Choosing the right Buffer action</h2>
     <ul>
       <li><strong>Draft</strong>: still in review.</li>
@@ -153,13 +156,38 @@ window.POSTIQ_HELP_ARTICLES = [
     <p>Nothing is sent until you explicitly choose one of those Buffer actions.</p>`
   },
   {
+    slug: 'queue-health-your-pace',
+    title: 'Check Coverage with Queue Health and Your Pace',
+    category: 'Queue Health',
+    summary: 'Set a posting rhythm per channel, check a period for uncovered slots, and plan days off or a lighter stretch.',
+    tags: ['queue health', 'your pace', 'gaps', 'coverage', 'rhythm', 'days off', 'runway'],
+    featured: true,
+    relatedArticles: ['plan-content-calendar', 'connect-buffer', 'getting-started'],
+    body: `<p>Queue Health shows each channel’s confirmed runway. Your Pace, on the same page, compares confirmed scheduled Buffer posts with the rhythm you choose.</p>
+    <h2>Set a rhythm</h2>
+    <ol>
+      <li>Open <strong>Queue Health</strong> from the sidebar, the Calendar header, or the mobile More menu.</li>
+      <li>Under <strong>Channel rhythm</strong>, pick a channel, its posting days, and posts per selected day (0–10).</li>
+      <li>Choose a period of up to 92 days and select <strong>Check this period</strong>.</li>
+      <li>Use <strong>Plan this slot</strong> to open that date on the calendar with the channel selected.</li>
+    </ol>
+    <h2>Before time away</h2>
+    <p>Use <strong>Intentional days off</strong> for one channel or all channels, or <strong>A lighter period</strong> to lower a target for selected dates. Days off are excluded from gaps.</p>
+    <h3>Good to know</h3>
+    <ul>
+      <li>Only confirmed scheduled posts count. Notes, drafts, and target dates do not.</li>
+      <li>Coverage needs Buffer sign-in and a recent sync; partial or stale data is labelled.</li>
+      <li>These are local planning settings. They never move, cancel, or delete Buffer posts.</li>
+    </ul>`
+  },
+  {
     slug: 'build-your-idea-system',
     title: 'Build Your Idea System',
     category: 'Content Bank',
     summary: 'Learn how to use saved content, Content Pillars, Templates, and Trending to turn raw ideas into reusable content starters.',
     tags: ['notebook', 'content pillars', 'templates', 'trending', 'ideas', 'starters'],
     featured: false,
-    relatedArticles: ['write-split-send-posts', 'plan-content-calendar', 'getting-started'],
+    relatedArticles: ['plan-content-calendar', 'write-split-send-posts', 'getting-started'],
     body: `<p>Content Bank holds your saved material. Local target dates are planning reminders, not confirmed Buffer scheduling. Use the date controls to plan, and Develop to continue the existing workflow. Templates, Content Pillars and Trending are available under Resources. Instead of starting from zero each time, you store signals and transform them into usable drafts.</p>
     <h2>Use each tool for a specific job</h2>
     <ul>

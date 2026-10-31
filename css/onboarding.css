@@ -246,10 +246,33 @@
 .ob-progress-label {
   font-family: 'DM Mono', monospace;
   font-size: 9px;
-  color: rgba(255,255,255,.28);
+  color: rgba(255,255,255,.62);
   white-space: nowrap;
   letter-spacing: .03em;
 }
+
+.ob-footer-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.ob-tour {
+  height: 26px;
+  padding: 0 9px;
+  border-radius: var(--r2);
+  border: 1px solid rgba(255,255,255,.18);
+  background: transparent;
+  color: rgba(255,255,255,.82);
+  font-family: 'Lato', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ob-tour:hover { color: #fff; border-color: rgba(255,255,255,.4); }
+.ob-tour:focus-visible, .ob-cta:focus-visible, .ob-dismiss:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
 .ob-cta {
   display: inline-flex;

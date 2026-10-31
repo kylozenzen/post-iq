@@ -1,5 +1,24 @@
 # Changelog
 
+## Calendar-first landing and tour
+
+### Added
+
+- Optional five-step product tour (calendar, planning context, Queue Health, Your Pace, Content Bank), user-started, skippable and restartable
+- “Take a tour” entry points in the sidebar, Calendar header, mobile More menu and getting-started banner
+- Landing screenshots captured from the real app with labelled sample data, and a matching share image
+
+### Changed
+
+- Landing page leads with the calendar: “Your Buffer calendar, with room to think.”
+- Primary CTA “Sign in with Buffer” returns to the calendar; secondary “Preview the calendar” opens it without sign-in
+- Getting-started banner follows connect → check coverage → plan a gap → send
+- Help Center, README, manifest and social metadata describe the current product
+
+### Removed
+
+- Thread splitter demo and messaging (no longer in the app); “first companion app” claim
+
 ## Focused Writing Space
 
 ### Added

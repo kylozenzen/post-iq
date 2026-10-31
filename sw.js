@@ -1,4 +1,4 @@
-const CACHE = 'postiq-v19-editorial-default';
+const CACHE = 'postiq-v20-editorial-default';
 const SHELL = [
   '/',
   '/index.html',
@@ -23,6 +23,7 @@ const SHELL = [
   '/js/features/your-pace.js',
   '/css/app/planning-tools.css',
   '/css/app/calendar-experience.css',
+  '/css/app/tour.css',
   '/js/features/coverage.js',
   '/js/features/runway.js',
   '/js/features/plan-health.js',
@@ -48,7 +49,8 @@ const SHELL = [
   '/js/discord-integration.js',
   '/js/library.js',
   '/js/pulse.js',
-  '/js/onboarding.js'
+  '/js/onboarding.js',
+  '/js/features/tour.js'
 ];
 
 self.addEventListener('install', event => {

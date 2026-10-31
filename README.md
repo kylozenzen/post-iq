@@ -1,8 +1,8 @@
-# PostIQ — The Planning Layer for Buffer
+# PostIQ — Your Buffer calendar, with room to think
 
-Buffer just opened their API. PostIQ is the first companion app built on it.
+PostIQ is an independent calendar companion for Buffer users, free during public beta. It puts scheduled Buffer posts beside planning notes and actions, flags queue gaps against the posting rhythm you choose, turns saved content into a dated plan, and shows coverage before you take time away. Buffer stays your publishing home.
 
-PostIQ is a free public beta workspace for Buffer users. It gives your content workflow a planning layer to clean up your pre-content creation workflow — calendar planning, composing, thread splitting, content pillars, client approvals, and clean snapshot sharing. Buffer stays your publishing home. PostIQ is everything before the publish button.
+Connected features (scheduled posts, Queue Health coverage, sending to Buffer) require Buffer sign-in. The calendar preview works without an account and keeps notes, Content Bank items and drafts in your browser.
 
 → **[Open PostIQ](https://postiq.netlify.app)**
 
@@ -12,7 +12,7 @@ PostIQ is a free public beta workspace for Buffer users. It gives your content w
 
 I've spent years running social media for brands — including growing a single account to 6M+ followers and 470M+ impressions. The one thing that never got easier was the planning layer.
 
-Buffer is great at publishing. It was never built to answer "what should I post, and is my queue healthy this week?" That's the gap PostIQ fills. When Buffer opened their API, I connected the internal tools I'd been using into something other creators and teams can actually use.
+Buffer is great at publishing. I wanted a calmer place to answer "is my queue covered this week, and what's missing?" When Buffer opened their API, I connected the internal tools I'd been using into something other creators and teams can actually use.
 
 It's independently built. Not affiliated with Buffer. Just someone who needed this badly enough to build it.
 
@@ -23,11 +23,11 @@ It's independently built. Not affiliated with Buffer. Just someone who needed th
 ## What it does
 
 ```
-Content Bank → Calendar → Compose → Review → Buffer
+Connect Buffer → Inspect coverage → Plan a gap → Send to Buffer
 ```
 
-### 📅 Plan
-Monthly and weekly calendar views of your Buffer activity, combining recently published posts with the upcoming queue. Queue gaps surface automatically so you always know where the holes are. Add color-coded planning notes to any day — ideas, reminders, revision flags, campaign markers. Share a read-only snapshot link with your team or client without requiring a PostIQ account.
+### 📅 Calendar
+Month, week and agenda views of confirmed Buffer posts alongside date-only planning notes, to-do actions and Content Bank target dates (labelled “not scheduled”). With a connected, fresh queue, days are labelled scheduled, gap or non-posting day according to your rhythm. Share a read-only snapshot link without requiring a PostIQ account.
 
 ### Your Pace
 
@@ -37,17 +37,17 @@ period. Your Pace uses confirmed scheduled posts and labels incomplete or stale
 queue data. These local planning changes do not move, cancel, publish, or delete
 Buffer posts.
 
+### 🧭 Take a tour
+An optional five-step tour (calendar, planning context, Queue Health, Your Pace, Content Bank) starts from **Take a tour** in the sidebar, Calendar header, mobile More menu, or getting-started banner, or from the landing page link `/app.html?view=calendarView&tour=1`. It is skippable, closes on Escape or when you navigate elsewhere, never performs Buffer writes, and skips steps for disabled workspaces. The `tour=1` flag is removed on load, so it does not reopen on refresh or after Buffer sign-in.
+
 ### 🎛️ Custom Workspaces
-Turn the Calendar, Compose, Content Bank, and Approvals workspaces on or off from Customize settings so the sidebar matches your workflow. Choose from the original PostIQ look plus four distinct themes: After Dark, Editorial, Studio, and Evergreen. Workspace and theme preferences are saved locally in your browser.
+Turn the Calendar, Compose, Content Bank, and Approvals workspaces on or off from Customize settings so the sidebar matches your workflow. Choose from five themes: PostIQ, Classic, After Dark, Studio, and Evergreen. Workspace and theme preferences are saved locally in your browser.
 
 ### 🧠 Content Pillars
 Define your repeatable content themes with seed ideas and tone angles. The Pillar Plan Builder walks you through 6 questions and generates a full pillar system — 5 content pillars, trust layer tags, seed ideas, hooks, and series starters. Hit Start on any seed to drop a post starter directly into Compose.
 
 ### ✍️ Compose
 Focused writing workspace with local draft autosave, a distraction-free mode, rich text formatting, media attachment (URL, upload, or Unsplash), and searchable writing tools. Pull in Content Bank items, saved or proven hooks, hashtag sets, templates, pillars, and AI Assist without leaving the draft. Send to Buffer as a draft, queue it, or schedule it for a specific time. Nothing publishes until you choose a Buffer action.
-
-### ✂️ Thread Splitter
-Paste any long-form content. PostIQ splits it into 280-character thread parts. Edit each part, then queue the whole thread to Buffer natively.
 
 ### 💡 Content Bank
 Three tools in one tab:
@@ -73,8 +73,10 @@ PostIQ uses Buffer's public API with OAuth (PKCE flow). When you sign in:
 - You can disconnect anytime from Settings → Connection
 
 ```
-Sign in with Buffer → Sync channels + queue → Plan → Compose → Send to Buffer
+Sign in with Buffer → Sync channels + queue → Check coverage → Plan a gap → Send to Buffer
 ```
+
+The landing page's primary CTA returns to `/app.html?view=calendarView` after sign-in; the secondary CTA opens the same calendar without signing in.
 
 ---
 
@@ -93,6 +95,7 @@ Primary files:
 
 ```
 index.html               # Public landing page
+images/product/          # Landing screenshots of the real app (fictional sample data)
 app.html                 # App shell and ordered asset entry points
 css/app/                 # App styles grouped by workspace and responsibility
 js/core/                 # Shared runtime, navigation, bootstrap, and startup
@@ -119,6 +122,12 @@ netlify dev
 
 # Verify local asset references, JavaScript syntax, and bundle size guardrails
 node scripts/check-project.js
+
+# Landing page links/accessibility/layout and the product tour (needs Chromium)
+CHROMIUM_PATH=/path/to/chromium node scripts/check-landing-tour-browser.js
+
+# Regenerate landing screenshots and postiq-og.png from the real app with sample data
+CHROMIUM_PATH=/path/to/chromium node scripts/capture-landing-screenshots.js
 ```
 
 ---

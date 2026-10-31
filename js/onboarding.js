@@ -12,6 +12,7 @@ window.PostIQOnboarding = (() => {
     dismissed: 'postiq_ob_dismissed',
     synced:    'postiq_ob_synced',
     composed:  'postiq_ob_composed',
+    coverage:  'postiq_ob_coverage',
     complete:  'postiq_ob_complete',
     tipPrefix: 'postiq_ob_tip_',
   };
@@ -35,10 +36,18 @@ window.PostIQOnboarding = (() => {
       isDone: isSynced,
     },
     {
+      id: 'coverage',
+      label: 'Check your coverage',
+      desc: 'Open Queue Health to see gaps against your posting rhythm',
+      action: 'Open Queue Health →',
+      doneAction: 'Checked',
+      isDone: isCoverageChecked,
+    },
+    {
       id: 'compose',
-      label: 'Send your first post',
-      desc: 'Draft, queue, or schedule something through Buffer',
-      action: 'Go to Compose →',
+      label: 'Plan a gap and send it to Buffer',
+      desc: 'Start a draft from a calendar day, then choose Draft, Queue, or Schedule',
+      action: 'Open Calendar →',
       doneAction: 'Done',
       isDone: isComposed,
     },
@@ -49,8 +58,8 @@ window.PostIQOnboarding = (() => {
   const VIEW_TIPS = {
     calendarView: {
       icon: '📅',
-      title: 'Your Buffer queue as a calendar',
-      body: 'Scheduled posts appear here automatically after syncing. <strong>Click any day</strong> to add planning notes, draft content, or spot gaps in your queue.',
+      title: 'Your Buffer calendar, with room to think',
+      body: 'Confirmed Buffer posts appear here after you sign in and sync. <strong>Click any day</strong> to add a planning note, an action, or a draft.',
       anchor: '.cal-toolbar',
     },
     composerView: {
@@ -61,9 +70,15 @@ window.PostIQOnboarding = (() => {
     },
     ideasView: {
       icon: '💡',
-      title: 'Where content ideas live',
-      body: 'Build content pillars, save reusable templates, browse trending topics, and capture raw ideas. <strong>Hit Start</strong> on any seed to send a starter to Compose.',
+      title: 'Saved content, ready to plan',
+      body: 'Search saved material and <strong>Plan a date</strong> to put an item on the calendar. Templates, Content Pillars, and Trending are under Resources.',
       anchor: '.ideas-tabs',
+    },
+    queueHealthView: {
+      icon: '◷',
+      title: 'Coverage against your rhythm',
+      body: 'Queue Health compares confirmed Buffer posts with the posting days you choose in <strong>Your Pace</strong>. Planning changes here never move Buffer posts.',
+      anchor: '.queue-health-header',
     },
   };
 
@@ -88,6 +103,7 @@ window.PostIQOnboarding = (() => {
   }
   function isSynced()   { return read(KEYS.synced)   === '1'; }
   function isComposed() { return read(KEYS.composed)  === '1'; }
+  function isCoverageChecked() { return read(KEYS.coverage) === '1'; }
 
   // ── Banner ────────────────────────────────
   let bannerEl = null;
@@ -129,8 +145,8 @@ window.PostIQOnboarding = (() => {
           <div class="ob-title-group">
             <span class="ob-eyebrow">${allDone ? 'All set' : 'Getting started'}</span>
             ${allDone ? '' : `
-            <span class="ob-title">PostIQ is your planning layer for Buffer</span>
-            <span class="ob-subtitle">Connect Buffer, load your queue, then start planning and publishing from one place.</span>`}
+            <span class="ob-title">Your Buffer calendar, with room to think</span>
+            <span class="ob-subtitle">Connect Buffer to see scheduled posts beside your notes, check coverage, then plan the gaps. Connected features need Buffer sign-in.</span>`}
           </div>
           <button class="ob-dismiss" id="obDismissBtn" aria-label="Dismiss">×</button>
         </div>
@@ -160,10 +176,13 @@ window.PostIQOnboarding = (() => {
             </div>
             <span class="ob-progress-label">${doneCount} of ${STEPS.length} done</span>
           </div>
-          ${current
-            ? `<button class="ob-cta" id="obCtaBtn" data-step="${current.id}">${current.action}</button>`
-            : ''
-          }
+          <span class="ob-footer-actions">
+            <button class="ob-tour" id="obTourBtn" type="button">Take a tour</button>
+            ${current
+              ? `<button class="ob-cta" id="obCtaBtn" data-step="${current.id}">${current.action}</button>`
+              : ''
+            }
+          </span>
         </div>`}
       </div>
     `;
@@ -176,6 +195,10 @@ window.PostIQOnboarding = (() => {
       return;
     }
 
+    bannerEl.querySelector('#obTourBtn')?.addEventListener('click', event => {
+      window.PostIQTour?.start({ source: 'onboarding_banner', returnFocus: event.currentTarget });
+    });
+
     const ctaBtn = bannerEl.querySelector('#obCtaBtn');
     if (ctaBtn) {
       ctaBtn.addEventListener('click', () => handleStepCTA(ctaBtn.dataset.step));
@@ -183,7 +206,7 @@ window.PostIQOnboarding = (() => {
   }
 
   // ── Completion card ───────────────────────
-  // Replaces the step list once all three steps are done and the card has not
+  // Replaces the step list once all steps are done and the card has not
   // been acknowledged yet. Acknowledging it sets KEYS.complete, and the banner
   // never rebuilds after that.
   function completionCardHTML() {
@@ -216,8 +239,10 @@ window.PostIQOnboarding = (() => {
     } else if (stepId === 'sync') {
       const btn = document.getElementById('syncBtn');
       if (btn) btn.click();
+    } else if (stepId === 'coverage') {
+      if (typeof window.activateView === 'function') window.activateView('queueHealthView');
     } else if (stepId === 'compose') {
-      if (typeof window.activateView === 'function') window.activateView('composerView');
+      if (typeof window.activateView === 'function') window.activateView('calendarView');
     }
   }
 
@@ -246,8 +271,9 @@ window.PostIQOnboarding = (() => {
   let activeTipView = null;
 
   function showViewTooltip(viewId) {
-    // Block tooltips until banner is done
+    // Block tooltips until banner is done, and while the optional tour is open
     if (!isBannerDismissed()) return;
+    if (window.PostIQTour?.isActive()) return;
     if (isTipSeen(viewId)) return;
     const def = VIEW_TIPS[viewId];
     if (!def) return;
@@ -358,6 +384,10 @@ window.PostIQOnboarding = (() => {
       window.activateView = function(viewId, ...args) {
         origActivate.call(this, viewId, ...args);
         if (bannerEl) bannerEl.classList.toggle('ob-compose-mode', viewId === 'composerView');
+        if (viewId === 'queueHealthView' && document.getElementById('queueHealthView')?.classList.contains('active') && !isCoverageChecked()) {
+          store(KEYS.coverage, '1');
+          refreshBanner();
+        }
         showViewTooltip(viewId);
       };
     }
