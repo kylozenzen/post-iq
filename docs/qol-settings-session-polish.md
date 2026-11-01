@@ -4,7 +4,7 @@ Reviewed main at `719581ed0fea64d8079761818235d82add2c077f`.
 
 ## Changes
 
-- Settings uses one scrolling body, a fixed header and wrapping sticky tabs. The dialog is wider on desktop and fits short phone screens.
+- Settings uses one scrolling body, a fixed header and wrapping sticky tabs. The dialog has a stable viewport-based height across tabs, is wider on desktop, and fits short phone screens. Longer sections scroll inside the fixed sheet; the header and tab positions stay steady.
 - Settings receives keyboard focus when opened, traps Tab, closes with Escape, and restores focus to its opener.
 - Customize explains automatic browser-local saving; channel posting-day controls have consistent rows and accessible labels. Manual API-key storage controls reflect the saved mode.
 - Sign out is available in the desktop connection card, mobile More menu and Settings → Connection. It clears OAuth credentials, manual Buffer keys in both storage types, authorization-transaction remnants and synced Buffer data. Local notes, drafts, Content Bank and preferences remain. Optional Gemini/Discord settings remain. Buffer.com sign-in and existing scheduled posts are unaffected.
@@ -19,3 +19,9 @@ Passed `node scripts/check-project.js`, all 80 tests with `node --test tests/*.t
 Session lifecycle tests exercise legacy-grant migration, refresh deduplication/rotation, transient errors, revoked grants and sign-out during refresh. UI tests cover settings focus/Escape and help search.
 
 Browser QA uses the current static app at desktop, phone (390px) and tablet (768px) widths. External Buffer OAuth, live API behavior and Netlify deployment require deployed-environment verification; no live publishing was performed.
+
+## Mobile settings sizing correction
+
+The initial pass only bounded the dialog maximum height, allowing short tabs to shrink it. The sheet now has an explicit viewport-based height (92dvh on mobile, bounded 88dvh on desktop), while only its body scrolls. At a fixed viewport, switching sections does not change sheet width/height, top edge, header position, or tab position.
+
+Browser-verified all seven sections at 390×740 and 640×360. The sheet heights remained 680.796875px and 331.1875px respectively across every section. Long sections remain scrollable; short sections retain the same sheet size. Project asset/syntax checks and workspace preference checks passed.

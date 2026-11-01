@@ -140,6 +140,8 @@
 /* Settings modal tabs */
     .settings-modal-card {
       max-width: 760px;
+      height: min(88vh, 820px);
+      height: min(88dvh, 820px);
       max-height: min(88dvh, 820px);
       display: flex;
       flex-direction: column;
@@ -291,9 +293,20 @@
 .settings-check { min-height: 32px; }
 .sign-out-btn { color: var(--muted); }
 @media (max-width: 520px) {
-  .settings-modal-card { max-height: 92dvh; padding: 16px; }
+  .settings-modal-card { padding: 16px; }
   .settings-tab { padding-inline: 9px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* Keep the settings sheet stable when switching short and long tabs. */
+@media (max-width: 768px) {
+  #settingsModal .settings-modal-card {
+    height: 92vh;
+    height: 92dvh;
+    max-height: 92vh;
+    max-height: 92dvh;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
 }
