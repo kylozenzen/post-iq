@@ -362,14 +362,25 @@
       .cal-week-day { min-height: 220px; }
     }
 
-/* ── Channel identity badges ───────────────────────────────
-   Branded letter-chip so every channel name shows its platform. */
-.ch-badge { display:inline-flex; align-items:center; justify-content:center; min-width:15px; height:15px; padding:0 3px; border-radius:4px; color:#fff; font-size:9px; font-weight:800; line-height:1; letter-spacing:-.02em; font-family:'DM Mono',monospace; vertical-align:middle; flex:none; }
+/* ── Channel identity labels ───────────────────────────────
+   Reuses the .platform-logo badge (same as the post pills) so every channel
+   name shows its platform in one consistent style. */
 .ch-label { display:inline-flex; align-items:center; gap:5px; min-width:0; }
 .ch-label .ch-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .ch-handle { color:var(--subtle); font-size:.85em; }
 .day-gaps { display:flex; align-items:center; gap:3px; flex-wrap:wrap; margin-top:4px; }
 .day-gaps .day-gaps-dot { width:6px; height:6px; border-radius:50%; background:var(--brand); flex:none; }
-.day-gaps .ch-badge { opacity:.9; }
-.day-covered { margin-top:4px; font-size:10px; color:var(--green); font-family:'DM Mono',monospace; }
-.day-off { margin-top:4px; font-size:10px; color:var(--subtle); font-family:'DM Mono',monospace; }
+.day-gaps .platform-logo { width:14px; height:14px; flex:0 0 14px; }
+
+/* Single gap alert per day cell (detail lives in the day view) */
+.day-gap-alert { margin-top: 4px; display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-family: 'DM Mono', monospace; color: var(--brand); font-weight: 700; letter-spacing: .02em; }
+/* Day-detail coverage breakdown */
+.day-cov-list { list-style: none; margin: 0; padding: 0; }
+.day-cov-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--border); font-size: 13px; }
+.day-cov-row:first-child { border-top: none; }
+.day-cov-status { width: 14px; text-align: center; flex: none; font-size: 11px; }
+.day-cov-row.is-gap .day-cov-status { color: var(--brand); }
+.day-cov-row.is-ok .day-cov-status { color: var(--green); }
+.day-cov-row .ch-label { flex: 1; min-width: 0; }
+.day-cov-msg { color: var(--muted); font-size: 12px; }
+.day-cov-row .btn { flex: none; }

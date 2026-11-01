@@ -101,3 +101,16 @@
 .gs-step.is-done .gs-step-label { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--border2, var(--border)); }
 .gs-step-desc { font-size: 12px; color: var(--muted); line-height: 1.45; }
 .gs-step .btn { flex: none; white-space: nowrap; }
+
+/* Consolidated runway bar — one line, expandable for per-channel detail */
+.calendar-runway.is-active { padding: 0; }
+.runway-bar { display: flex; align-items: center; gap: 10px; padding: 9px 14px; font-size: 13px; }
+.runway-bar .runway-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex: none; align-self: center; }
+.calendar-runway.tone-low .runway-bar .runway-dot, .calendar-runway.tone-now .runway-bar .runway-dot { background: var(--brand); }
+.runway-summary { flex: 1; color: var(--ink); min-width: 0; }
+.runway-summary .ch-label { display: inline-flex; vertical-align: middle; }
+.runway-summary strong { font-weight: 600; }
+.runway-toggle { flex: none; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 12px; border-radius: 6px; padding: 3px 9px; cursor: pointer; }
+.runway-toggle:hover { color: var(--ink); }
+.calendar-runway .runway-list { border-top: 1px solid var(--border); padding: 4px 0; }
+.calendar-runway .runway-list[hidden] { display: none; }
