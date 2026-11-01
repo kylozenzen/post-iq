@@ -361,3 +361,15 @@
       .cal-week { grid-template-columns: repeat(4,minmax(0,1fr)); }
       .cal-week-day { min-height: 220px; }
     }
+
+/* ── Channel identity badges ───────────────────────────────
+   Branded letter-chip so every channel name shows its platform. */
+.ch-badge { display:inline-flex; align-items:center; justify-content:center; min-width:15px; height:15px; padding:0 3px; border-radius:4px; color:#fff; font-size:9px; font-weight:800; line-height:1; letter-spacing:-.02em; font-family:'DM Mono',monospace; vertical-align:middle; flex:none; }
+.ch-label { display:inline-flex; align-items:center; gap:5px; min-width:0; }
+.ch-label .ch-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ch-handle { color:var(--subtle); font-size:.85em; }
+.day-gaps { display:flex; align-items:center; gap:3px; flex-wrap:wrap; margin-top:4px; }
+.day-gaps .day-gaps-dot { width:6px; height:6px; border-radius:50%; background:var(--brand); flex:none; }
+.day-gaps .ch-badge { opacity:.9; }
+.day-covered { margin-top:4px; font-size:10px; color:var(--green); font-family:'DM Mono',monospace; }
+.day-off { margin-top:4px; font-size:10px; color:var(--subtle); font-family:'DM Mono',monospace; }

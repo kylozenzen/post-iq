@@ -169,7 +169,7 @@ window.YourPace = (() => {
     const select = el('schedChannel'); if (!select) return;
     const previous = select.value;
     select.innerHTML = (state.channels.length ? '' : '<option value="">No channels loaded</option>')
-      + (state.channels || []).map(c => `<option value="${safeText(c.id)}">${safeText(c.displayName || c.name || c.id)}</option>`).join('');
+      + (state.channels || []).map(c => `<option value="${safeText(c.id)}">${safeText(c.displayName || c.name || c.id)}${c.service ? ' · ' + safeText(c.service) : ''}</option>`).join('');
     if ([...select.options].some(o => o.value === previous)) select.value = previous;
     for (const id of ['schedSave', 'schedChannel', 'schedTarget']) { const n = el(id); if (n) n.disabled = !select.value; }
     const hint = el('schedChannelHint'); if (hint) hint.hidden = !!select.value;

@@ -316,8 +316,19 @@ function renderCalendarView() {
     dayNotes.slice(0, 2).forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="${calendarNoteClass(note)}" data-note-detail="${safeText(note.id)}" style="${notePillStyle(meta)}" aria-label="Edit ${isActionNote(note) ? (note.completedAt ? 'completed action' : 'to-do action') : 'note'} for ${safeText(formatDateWithYear(d))}: ${safeText(compact(note.text,50))}">${calendarNoteCopy(note,50)}</button>`; });
     if (dayNotes.length > 2) html += `<div class="more-indicator">+${dayNotes.length - 2} notes</div>`;
     if (key >= fmtDate(new Date())) {
-      const daily = window.PostIQCoverage.calculate({ posts:state.scheduled, channels:state.channels, settings:getPlanningSettings(), now:d, days:1, connected:getBufferConnectionState().connected, meta:state.scheduledCoverage });
-      html += `<div class="day-coverage" style="font-size:10px;color:var(--subtle)">${daily.rows.map(row => { const channel=state.channels.find(c=>String(c.id)===row.channelId); return `${safeText(channel?.displayName || channel?.name || row.channelId)}: ${row.status === 'off' ? 'non-posting day' : row.status}`; }).join('<br>')}</div>`;
+      // Compact coverage: show only the platform chips of channels that still
+      // need content that day. Gated on a set schedule so new users stay clean,
+      // and scales to many channels (icons wrap) instead of one line per channel.
+      const settings = getPlanningSettings();
+      const scheduledIds = new Set((state.channels || []).filter(c => Array.isArray(settings.channelPostingDays?.[String(c.id)]) && settings.channelPostingDays[String(c.id)].length).map(c => String(c.id)));
+      if (getBufferConnectionState().connected && scheduledIds.size) {
+        const daily = window.PostIQCoverage.calculate({ posts:state.scheduled, channels:state.channels, settings, now:d, days:1, connected:true, meta:state.scheduledCoverage });
+        const gaps = daily.rows.filter(r => scheduledIds.has(String(r.channelId)) && r.status === 'gap');
+        if (gaps.length) {
+          const chips = gaps.map(r => { const ch = state.channels.find(c => String(c.id) === String(r.channelId)); return window.PostIQChannelIcons.badge(ch?.service); }).join('');
+          html += `<div class="day-gaps" title="Needs content: ${safeText(gaps.map(r => { const ch = state.channels.find(c => String(c.id) === String(r.channelId)); return ch?.displayName || ch?.name || r.channelId; }).join(', '))}"><span class="day-gaps-dot" aria-hidden="true"></span>${chips}</div>`;
+        }
+      }
     }
     html += calendarTargetsForDate(key).map(contentCalendarPill).join('');
     day.innerHTML = html;
@@ -439,9 +450,10 @@ function renderCalendarRunway() {
   const fmt = key => { try { return new Date(key + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); } catch { return key; } };
   const lines = [];
   let worst = 'covered';
+  const dups = window.PostIQChannelIcons?.duplicateNames?.();
   scheduled.forEach(ch => {
     const info = PostIQCoverage.runwayInfo(coverage.rows, ch.id, today);
-    const name = safeText(ch.displayName || ch.name || ch.id);
+    const name = window.PostIQChannelIcons ? window.PostIQChannelIcons.label(ch, { dups }) : safeText(ch.displayName || ch.name || ch.id);
     if (info.state === 'covered') {
       lines.push(`<li class="runway-line is-good"><span class="runway-dot"></span><span class="runway-ch">${name}</span><span class="runway-msg">You're covered — nothing needed today.</span></li>`);
     } else if (info.state === 'gap') {
