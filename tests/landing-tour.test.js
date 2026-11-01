@@ -7,7 +7,7 @@ const app = fs.readFileSync('app.html', 'utf8');
 const tour = fs.readFileSync('js/features/tour.js', 'utf8');
 const sw = fs.readFileSync('sw.js', 'utf8');
 
-assert.match(landing, /<h1[^>]*>Your Buffer calendar, <em>with room to think\.<\/em><\/h1>/);
+assert.match(landing, /<h1[^>]*>Buffer publishes\. <em>PostIQ plans\.<\/em><\/h1>/);
 assert.match(landing, /href="\/auth\/connect\.html\?return=%2Fapp\.html%3Fview%3DcalendarView"[^>]*>Sign in with Buffer</, 'primary CTA returns to the calendar');
 assert.match(landing, /href="\/app\.html\?view=calendarView"[^>]*>Preview the calendar</);
 assert.match(landing, /need Buffer sign-in/);
