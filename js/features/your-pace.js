@@ -148,17 +148,22 @@ window.YourPace = (() => {
     mount.innerHTML = '';
     // Days off are the kept planning exception. Legacy period targets, if any
     // remain from earlier versions, are shown so they can be removed.
+    const chLabel = id => {
+      if (id === '*') return 'All channels';
+      const ch = (state.channels || []).find(c => String(c.id) === String(id));
+      return window.PostIQChannelIcons && ch ? window.PostIQChannelIcons.label(ch) : safeText(channelName(id));
+    };
     const rows = [];
-    (settings.daysOff || []).forEach((entry, index) => rows.push({ kind: 'daysOff', entry, index, label: `${entry.channelId === '*' ? 'All channels' : channelName(entry.channelId)} · ${entry.start}–${entry.end} · time off` }));
-    (settings.targetOverrides || []).forEach((entry, index) => rows.push({ kind: 'targetOverrides', entry, index, label: `${channelName(entry.channelId)} · ${entry.start}–${entry.end} · ${entry.target} posts/day (legacy)` }));
+    (settings.daysOff || []).forEach((entry, index) => rows.push({ kind: 'daysOff', entry, index, label: `${chLabel(entry.channelId)} · ${safeText(entry.start)}–${safeText(entry.end)} · time off` }));
+    (settings.targetOverrides || []).forEach((entry, index) => rows.push({ kind: 'targetOverrides', entry, index, label: `${chLabel(entry.channelId)} · ${safeText(entry.start)}–${safeText(entry.end)} · ${entry.target} posts/day (legacy)` }));
     if (!rows.length) { mount.hidden = true; return; }
     mount.hidden = false;
     const head = document.createElement('h3'); head.textContent = 'Planned time off'; head.className = 'sched-exceptions-title'; mount.appendChild(head);
     rows.forEach(({ kind, entry, index, label }) => {
       const row = document.createElement('div'); row.className = 'sched-exception';
-      const text = document.createElement('span'); text.textContent = label;
+      const text = document.createElement('span'); text.innerHTML = label;
       const button = document.createElement('button'); button.className = 'btn sm ghost'; button.type = 'button'; button.textContent = 'Remove';
-      button.setAttribute('aria-label', 'Remove ' + label);
+      button.setAttribute('aria-label', 'Remove this planned time off');
       button.onclick = () => { const next = getPlanningSettings(); next[kind] = (next[kind] || []).filter((item, i) => entry.id ? item.id !== entry.id : i !== index); save(next, 'Removed.'); };
       row.append(text, button); mount.appendChild(row);
     });
@@ -169,7 +174,7 @@ window.YourPace = (() => {
     const select = el('schedChannel'); if (!select) return;
     const previous = select.value;
     select.innerHTML = (state.channels.length ? '' : '<option value="">No channels loaded</option>')
-      + (state.channels || []).map(c => `<option value="${safeText(c.id)}">${safeText(c.displayName || c.name || c.id)}</option>`).join('');
+      + (state.channels || []).map(c => `<option value="${safeText(c.id)}">${safeText(c.displayName || c.name || c.id)}${c.service ? ' · ' + safeText(c.service) : ''}</option>`).join('');
     if ([...select.options].some(o => o.value === previous)) select.value = previous;
     for (const id of ['schedSave', 'schedChannel', 'schedTarget']) { const n = el(id); if (n) n.disabled = !select.value; }
     const hint = el('schedChannelHint'); if (hint) hint.hidden = !!select.value;

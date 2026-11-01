@@ -460,8 +460,7 @@ window.PostIQLibrary = (() => {
       <article class="lib-post-card" data-post-id="${safeId}">
         <div class="lib-post-card-hdr">
           <div class="lib-post-meta">
-            ${channelLabel ? `<span class="lib-channel-badge">${safeText(channelLabel)}</span>` : ''}
-            ${service ? `<span class="lib-service-badge">${safeText(service)}</span>` : ''}
+            ${channelLabel ? `<span class="lib-channel-badge">${window.PostIQChannelIcons ? window.PostIQChannelIcons.badge(service) + ' ' : ''}${safeText(channelLabel)}</span>` : (service ? `<span class="lib-service-badge">${safeText(service)}</span>` : '')}
             <span class="lib-date">${fmtDate(post.sentAt)}</span>
             ${isStarred ? '<span class="lib-reuse-badge">★ Evergreen</span>' : (isOld ? '<span class="lib-reuse-badge">↺ Ready to reuse</span>' : '')}
           </div>

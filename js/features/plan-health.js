@@ -79,13 +79,10 @@ window.PostIQPlanHealth = (() => {
       return;
     }
 
-    const ago = syncedAgo();
-    const synced = ago ? ` · synced ${esc(ago)}` : '';
-    if (wellAhead(coverage)) {
-      setStrip('good', `<strong>You're well ahead</strong><span>Every channel is connected and your queue is full${synced}. It's fine to take a break.</span>`);
-    } else {
-      setStrip('good', `<strong>Connected to Buffer</strong><span>Your channels are syncing normally${synced}.</span>`);
-    }
+    // Healthy + connected: stay silent. The runway bar carries the positive
+    // "you're covered / a break is fine" message, so there's no second bar.
+    const mount = byId('planHealthStrip');
+    if (mount) mount.innerHTML = '';
   }
 
   return { render };

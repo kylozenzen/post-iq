@@ -316,8 +316,13 @@ function renderCalendarView() {
     dayNotes.slice(0, 2).forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="${calendarNoteClass(note)}" data-note-detail="${safeText(note.id)}" style="${notePillStyle(meta)}" aria-label="Edit ${isActionNote(note) ? (note.completedAt ? 'completed action' : 'to-do action') : 'note'} for ${safeText(formatDateWithYear(d))}: ${safeText(compact(note.text,50))}">${calendarNoteCopy(note,50)}</button>`; });
     if (dayNotes.length > 2) html += `<div class="more-indicator">+${dayNotes.length - 2} notes</div>`;
     if (key >= fmtDate(new Date())) {
-      const daily = window.PostIQCoverage.calculate({ posts:state.scheduled, channels:state.channels, settings:getPlanningSettings(), now:d, days:1, connected:getBufferConnectionState().connected, meta:state.scheduledCoverage });
-      html += `<div class="day-coverage" style="font-size:10px;color:var(--subtle)">${daily.rows.map(row => { const channel=state.channels.find(c=>String(c.id)===row.channelId); return `${safeText(channel?.displayName || channel?.name || row.channelId)}: ${row.status === 'off' ? 'non-posting day' : row.status}`; }).join('<br>')}</div>`;
+      // One general gap alert per day (not a chip per channel — that doesn't
+      // scale). The per-platform breakdown + actions live in the day detail you
+      // open by clicking the cell. Gated on a set schedule so new users stay clean.
+      const gapCount = dayGapCount(d);
+      if (gapCount > 0) {
+        html += `<div class="day-gap-alert" title="${gapCount} channel${gapCount === 1 ? '' : 's'} need content — click to see the day">▲ ${gapCount} gap${gapCount === 1 ? '' : 's'}</div>`;
+      }
     }
     html += calendarTargetsForDate(key).map(contentCalendarPill).join('');
     day.innerHTML = html;
@@ -437,28 +442,69 @@ function renderCalendarRunway() {
   const coverage = getQueueCoverage(90);
   const today = PostIQCoverage.dayKey(new Date());
   const fmt = key => { try { return new Date(key + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); } catch { return key; } };
-  const lines = [];
-  let worst = 'covered';
-  scheduled.forEach(ch => {
-    const info = PostIQCoverage.runwayInfo(coverage.rows, ch.id, today);
-    const name = safeText(ch.displayName || ch.name || ch.id);
-    if (info.state === 'covered') {
-      lines.push(`<li class="runway-line is-good"><span class="runway-dot"></span><span class="runway-ch">${name}</span><span class="runway-msg">You're covered — nothing needed today.</span></li>`);
-    } else if (info.state === 'gap') {
-      const tone = info.days === 0 ? 'now' : info.days < 3 ? 'low' : 'ok';
-      if (tone !== 'ok' && worst !== 'now') worst = tone === 'now' ? 'now' : 'low';
-      const msg = info.days === 0
-        ? `New content needed today.`
-        : info.days < 3
-          ? `${info.days} day${info.days === 1 ? '' : 's'} of content left — add more by <strong>${fmt(info.date)}</strong>.`
-          : `Covered for <strong>${info.days} days</strong> — new content needed by <strong>${fmt(info.date)}</strong>.`;
-      lines.push(`<li class="runway-line is-${tone}"><span class="runway-dot"></span><span class="runway-ch">${name}</span><span class="runway-msg">${msg}</span></li>`);
-    }
-    // incomplete / stale / disconnected: left to the connection-health signal
-  });
-  if (!lines.length) return;
-  box.classList.add('is-active', `tone-${worst}`);
-  box.innerHTML = `<ul class="runway-list">${lines.join('')}</ul>`;
+  const dups = window.PostIQChannelIcons?.duplicateNames?.();
+  const label = ch => window.PostIQChannelIcons ? window.PostIQChannelIcons.label(ch, { dups }) : `<span class="ch-label">${safeText(ch.displayName || ch.name || ch.id)}</span>`;
+  const infos = scheduled
+    .map(ch => ({ ch, info: PostIQCoverage.runwayInfo(coverage.rows, ch.id, today) }))
+    .filter(x => x.info.state === 'covered' || x.info.state === 'gap');
+  if (!infos.length) return; // data not confident — connection strip handles it
+
+  // One summary line; per-channel detail is tucked behind "Details".
+  const gapInfos = infos.filter(x => x.info.state === 'gap').sort((a, b) => a.info.days - b.info.days);
+  let tone = 'covered', headline;
+  if (!gapInfos.length) {
+    headline = `You're covered across your channels — a break is fine.`;
+  } else {
+    const soonest = gapInfos[0];
+    tone = soonest.info.days === 0 ? 'now' : soonest.info.days < 3 ? 'low' : 'ok';
+    const when = soonest.info.days === 0 ? 'today' : `in <strong>${soonest.info.days} day${soonest.info.days === 1 ? '' : 's'}</strong> (${fmt(soonest.info.date)})`;
+    const more = gapInfos.length > 1 ? ` · ${gapInfos.length} channels need content` : '';
+    headline = `Next content due ${when} — ${label(soonest.ch)}${more}`;
+  }
+
+  const lines = infos.map(({ ch, info }) => {
+    if (info.state === 'covered') return `<li class="runway-line is-good"><span class="runway-dot"></span><span class="runway-ch">${label(ch)}</span><span class="runway-msg">Covered — nothing needed today.</span></li>`;
+    const t = info.days === 0 ? 'now' : info.days < 3 ? 'low' : 'ok';
+    const msg = info.days === 0 ? 'New content needed today.'
+      : info.days < 3 ? `${info.days} day${info.days === 1 ? '' : 's'} left — add by <strong>${fmt(info.date)}</strong>.`
+      : `Covered for <strong>${info.days} days</strong> — by <strong>${fmt(info.date)}</strong>.`;
+    return `<li class="runway-line is-${t}"><span class="runway-dot"></span><span class="runway-ch">${label(ch)}</span><span class="runway-msg">${msg}</span></li>`;
+  }).join('');
+
+  box.classList.add('is-active', `tone-${tone}`);
+  box.innerHTML = `<div class="runway-bar"><span class="runway-dot"></span><span class="runway-summary">${headline}</span>${infos.length > 1 ? '<button class="runway-toggle" type="button" aria-expanded="false">Details</button>' : ''}</div><ul class="runway-list" hidden>${lines}</ul>`;
+  const toggle = box.querySelector('.runway-toggle'); const list = box.querySelector('.runway-list');
+  toggle?.addEventListener('click', () => { const open = list.hidden; list.hidden = !open; toggle.setAttribute('aria-expanded', String(open)); toggle.textContent = open ? 'Hide' : 'Details'; });
+}
+
+// Channels the user has given an explicit posting schedule (what coverage measures).
+function scheduledPlanningChannels() {
+  const settings = getPlanningSettings();
+  return (state.channels || []).filter(ch => Array.isArray(settings.channelPostingDays?.[String(ch.id)]) && settings.channelPostingDays[String(ch.id)].length);
+}
+function dayCoverageRows(date) {
+  const scheduled = scheduledPlanningChannels();
+  if (!getBufferConnectionState().connected || !scheduled.length) return [];
+  const daily = window.PostIQCoverage.calculate({ posts: state.scheduled, channels: state.channels, settings: getPlanningSettings(), now: date, days: 1, connected: true, meta: state.scheduledCoverage });
+  const ids = new Set(scheduled.map(c => String(c.id)));
+  return daily.rows.filter(r => ids.has(String(r.channelId)));
+}
+function dayGapCount(date) { return dayCoverageRows(date).filter(r => r.status === 'gap').length; }
+// Per-platform coverage breakdown for the day-detail view — this is where the
+// gap detail and the "Add for this channel" action live.
+function dayCoverageDetailHtml(date) {
+  const rows = dayCoverageRows(date).filter(r => r.status === 'gap' || r.status === 'scheduled');
+  if (!rows.length) return '';
+  const dups = window.PostIQChannelIcons?.duplicateNames?.();
+  const gaps = rows.filter(r => r.status === 'gap').length;
+  const items = rows.sort((a, b) => (a.status === 'gap' ? 0 : 1) - (b.status === 'gap' ? 0 : 1)).map(r => {
+    const ch = state.channels.find(c => String(c.id) === String(r.channelId));
+    const label = window.PostIQChannelIcons ? window.PostIQChannelIcons.label(ch, { dups }) : safeText(ch?.displayName || r.channelId);
+    const gap = r.status === 'gap';
+    return `<li class="day-cov-row ${gap ? 'is-gap' : 'is-ok'}"><span class="day-cov-status" aria-hidden="true">${gap ? '▲' : '✓'}</span>${label}<span class="day-cov-msg">${gap ? 'needs content' : 'covered'}</span>${gap ? `<button class="btn sm" type="button" data-cov-add="${safeText(r.channelId)}">Add</button>` : ''}</li>`;
+  }).join('');
+  const head = gaps ? `${gaps} channel${gaps === 1 ? '' : 's'} need content` : 'All channels covered';
+  return `<div style="margin-bottom:16px;"><div class="post-detail-label">Coverage · ${head}</div><ul class="day-cov-list">${items}</ul></div>`;
 }
 
 function detectQueueGaps() {
@@ -886,6 +932,8 @@ function openCalendarDayDetails(date) {
   if (!titleEl || !bodyEl) return;
   titleEl.textContent = formatDateOnly(key);
   const sections = [];
+  const coverageHtml = dayCoverageDetailHtml(date);
+  if (coverageHtml) sections.push(coverageHtml);
   if (posts.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${posts.length} post${posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(posts)}</div>`);
   if (notes.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${notes.length} Planning note${notes.length > 1 ? 's' : ''}</div>${editableNoteCardsHtml(notes)}</div>`);
   if (!posts.length && !notes.length) sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No plans yet</div><div class="empty-desc">Add a planning note or draft content for this day.</div></div>');
@@ -895,6 +943,14 @@ function openCalendarDayDetails(date) {
   bindPostDetailCopy(bodyEl);
   bindContentCalendar(bodyEl);
   bodyEl.querySelector('[data-start-draft]')?.addEventListener('click',()=>window.CalendarExperience.compose(key));
+  bodyEl.querySelectorAll('[data-cov-add]').forEach(btn => btn.addEventListener('click', () => {
+    const chId = String(btn.dataset.covAdd);
+    closeModal('sharedDayModal');
+    state.calendarChannel = chId;
+    window.CalendarExperience?.compose(key);
+    const sel = qs('composerChannel'); if (sel) { sel.value = chId; sel.dispatchEvent(new Event('change')); }
+    showToast('Draft started for this channel');
+  }));
   bodyEl.querySelector('[data-add-note]')?.addEventListener('click', () => { closeModal('sharedDayModal'); openAddNoteForDate(date); });
   bodyEl.querySelectorAll('[data-edit-note]').forEach(btn => btn.addEventListener('click', () => { closeModal('sharedDayModal'); openAddNoteForDate(date, btn.dataset.editNote); }));
   bodyEl.querySelectorAll('[data-toggle-done]').forEach(btn => btn.addEventListener('click', () => {
