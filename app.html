@@ -995,6 +995,7 @@
   <script src="./js/features/your-pace.js" defer></script>
   <script src="./js/features/getting-started.js" defer></script>
   <script src="./js/features/alerts.js" defer></script>
+  <script src="./js/features/campaigns.js" defer></script>
   <script src="./js/core/startup.js" defer></script>
   <script src="./js/discord-integration.js" defer></script>
   <script src="./js/library.js" defer></script>
@@ -1209,6 +1210,36 @@
         <!-- Filled by Discord.renderSettings() on tab open -->
       </div>
 
+    </div>
+  </div>
+</div>
+
+<div id="campaignModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="campaignModalTitle" aria-hidden="true">
+  <div class="modal-card">
+    <div class="modal-hdr">
+      <span class="modal-title" id="campaignModalTitle">Plan a campaign or newsletter</span>
+      <button class="btn sm ghost" id="campClose" type="button">Close</button>
+    </div>
+    <p class="camp-intro">A dated plan across a range — a newsletter issue or a campaign. Tick off the stages as you go. This is a local plan; it never schedules a Buffer post.</p>
+    <div class="camp-body">
+      <label class="label" for="campType">Type</label>
+      <select class="input" id="campType"><option value="newsletter">Newsletter</option><option value="campaign">Campaign</option></select>
+      <label class="label" for="campTitle">Title</label>
+      <input class="input" id="campTitle" type="text" placeholder="e.g. The Feed — Issue 14" />
+      <div class="camp-range">
+        <label>Start<input class="input" type="date" id="campStart"></label>
+        <label>End<input class="input" type="date" id="campEnd"></label>
+      </div>
+      <div class="camp-field">
+        <span class="label">Stages</span>
+        <ul id="campStages" class="camp-stages"></ul>
+        <button class="btn sm ghost" id="campAddStage" type="button">+ Add stage</button>
+      </div>
+      <div class="camp-actions">
+        <button class="btn primary" id="campSave" type="button">Save</button>
+        <button class="btn ghost" id="campDelete" type="button" hidden>Delete</button>
+      </div>
+      <p id="campStatus" class="sched-status" role="status"></p>
     </div>
   </div>
 </div>
