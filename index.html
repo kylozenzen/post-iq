@@ -310,6 +310,23 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
 .bank-arrow path{stroke-dasharray:4 4;animation:dash 1.4s linear infinite;}
 @keyframes dash{to{stroke-dashoffset:-16;}}
 
+/* Updated mock bits: alert bell, platform badges, campaign range, gap alert, alerts panel */
+.ui-bell{margin-left:auto;display:inline-flex;align-items:center;gap:3px;font-family:'DM Mono',monospace;font-size:9px;color:var(--brand);border:1px solid var(--brand-glow);background:var(--brand-dim);border-radius:999px;padding:1px 7px;}
+.ui-titlebar .ui-bell + .sample-tag{margin-left:6px;}
+.pb{display:inline-flex;align-items:center;justify-content:center;min-width:12px;height:12px;padding:0 2px;border-radius:3px;color:#fff;font-size:7px;font-weight:800;font-family:'DM Mono',monospace;line-height:1;vertical-align:middle;margin-right:3px;}
+.pb-li{background:#0a66c2;}.pb-th{background:#111;}.pb-bs{background:#1185fe;}.pb-x{background:#111;}
+.daygap{margin-top:auto;font-family:'DM Mono',monospace;font-size:8px;color:var(--brand);font-weight:700;letter-spacing:.02em;}
+.mc.camp{background:color-mix(in srgb,var(--muted) 8%,var(--surface));}
+.chip.camp{background:var(--surface);border:1px solid var(--border);border-left:3px solid #6366f1;color:var(--ink);font-weight:600;}
+.chip.camp.end{border-left-style:dashed;opacity:.9;}
+.alert-mini{display:flex;align-items:center;gap:7px;padding:8px 0;border-top:1px solid var(--border);font-size:12.5px;color:var(--text);}
+.alert-mini:first-of-type{border-top:none;}
+.alert-mini .am-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.alert-mini b{color:var(--ink);font-weight:700;}
+.alert-mini .am-detail{color:var(--muted);font-size:11px;}
+.alert-mini .am-add{margin-left:auto;font-size:10.5px;font-weight:700;border:1px solid var(--border2);border-radius:var(--r2);padding:3px 9px;background:var(--surface);white-space:nowrap;}
+.alert-mini:first-of-type .am-add{border-color:var(--brand);color:var(--brand);animation:ringPulse 2.4s ease-in-out infinite;}
+
 /* ─── PILLARS ─────────────────────────────── */
 .pillars{padding:56px 0;}
 .pillar-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
@@ -569,6 +586,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
           <div class="ui-titlebar" aria-hidden="true">
             <span class="ui-dot ui-dot-r"></span><span class="ui-dot ui-dot-y"></span><span class="ui-dot ui-dot-g"></span>
             <div class="ui-tabs"><span class="ui-tab active">Calendar</span><span class="ui-tab">Compose</span><span class="ui-tab">Content Bank</span></div>
+            <span class="ui-bell" title="Alerts">◔ 1</span>
             <span class="sample-tag">Sample data</span>
           </div>
           <div class="ui-body" aria-hidden="true">
@@ -579,25 +597,25 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
             <div class="cal-dow"><span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span></div>
             <div class="cal-grid">
               <div class="mc off"><span class="mc-n">8</span></div>
-              <div class="mc today"><span class="mc-n">9<b>2</b></span><i class="chip post">Behind the scenes</i><i class="chip post li">Autumn lessons</i></div>
-              <div class="mc"><span class="mc-n">10</span><i class="chip action">□ Shoot flat-lays</i></div>
-              <div class="mc"><span class="mc-n">11</span><i class="chip post">Studio tour, pt 2</i></div>
-              <div class="mc gap"><span class="mc-n">12</span><span class="gap-swap"><span class="gap-a">Gap · Newsletter</span><span class="gap-b"><i class="chip action">✎ Draft planned</i></span></span></div>
-              <div class="mc"><span class="mc-n">13</span><i class="chip post">Reader spotlight</i></div>
+              <div class="mc today"><span class="mc-n">9<b>2</b></span><i class="chip post"><b class="pb pb-li">in</b>Behind the scenes</i><i class="chip post li"><b class="pb pb-th">@</b>Autumn lessons</i></div>
+              <div class="mc"><span class="mc-n">10</span><i class="chip action">□ Shoot flat-lays</i><i class="daygap">▲ 2 gaps</i></div>
+              <div class="mc camp"><span class="mc-n">11</span><i class="chip camp">◆ The Feed #14</i><i class="chip post"><b class="pb pb-li">in</b>Studio tour</i></div>
+              <div class="mc camp"><span class="mc-n">12</span><i class="chip action">□ Draft issue</i><i class="daygap">▲ 2 gaps</i></div>
+              <div class="mc camp"><span class="mc-n">13</span><i class="chip post"><b class="pb pb-bs">bs</b>Reader spotlight</i></div>
               <div class="mc off"><span class="mc-n">14</span></div>
               <div class="mc off"><span class="mc-n">15</span></div>
-              <div class="mc"><span class="mc-n">16</span><i class="chip post">Desk setups</i><i class="chip post li">Newsletter preview</i></div>
+              <div class="mc camp"><span class="mc-n">16</span><i class="chip camp end">The Feed #14 ◆</i><i class="chip post"><b class="pb pb-li">in</b>Issue is live</i></div>
               <div class="mc"><span class="mc-n">17</span><i class="chip note">✎ Winter series idea</i></div>
-              <div class="mc gap"><span class="mc-n">18</span><span class="gap-swap"><span class="gap-a">Gap · Studio</span></span></div>
-              <div class="mc"><span class="mc-n">19</span><i class="chip post li">Reading list</i><i class="chip target">◇ Year in review</i><i class="chip status">target · not scheduled</i></div>
-              <div class="mc"><span class="mc-n">20</span><i class="chip post">Holiday hours</i></div>
+              <div class="mc"><span class="mc-n">18</span><i class="chip action">□ Reply to comments</i><i class="daygap">▲ 1 gap</i></div>
+              <div class="mc"><span class="mc-n">19</span><i class="chip post li"><b class="pb pb-th">@</b>Reading list</i><i class="chip target">◇ Year in review</i></div>
+              <div class="mc"><span class="mc-n">20</span><i class="chip post"><b class="pb pb-x">X</b>Holiday hours</i></div>
               <div class="mc off"><span class="mc-n">21</span></div>
               <div class="mc off"><span class="mc-n">22</span></div>
-              <div class="mc away"><span class="mc-n">23</span><i class="chip status">day off</i></div>
-              <div class="mc away"><span class="mc-n">24</span><i class="chip status">day off</i></div>
-              <div class="mc away"><span class="mc-n">25</span><i class="chip status">day off</i></div>
-              <div class="mc away"><span class="mc-n">26</span><i class="chip status">day off</i></div>
-              <div class="mc away"><span class="mc-n">27</span><i class="chip status">day off</i></div>
+              <div class="mc away"><span class="mc-n">23</span><i class="chip status">time off</i></div>
+              <div class="mc away"><span class="mc-n">24</span><i class="chip status">time off</i></div>
+              <div class="mc away"><span class="mc-n">25</span><i class="chip status">time off</i></div>
+              <div class="mc away"><span class="mc-n">26</span><i class="chip status">time off</i></div>
+              <div class="mc away"><span class="mc-n">27</span><i class="chip status">time off</i></div>
               <div class="mc off"><span class="mc-n">28</span></div>
             </div>
           </div>
@@ -680,11 +698,11 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
               <div class="pace-meta"><span><b>1</b> post per selected day</span><span>Nov 9 – Nov 22</span></div>
             </div>
             <div class="mock-card">
-              <div class="cov-head">Covered for 12 days<span>new content by Nov 21</span></div>
-              <div class="cov-bar"><i></i></div>
-              <div class="slot">Thu Nov 12 · Newsletter · needs content<span class="slot-btn">Add</span></div>
-              <div class="slot">Wed Nov 18 · Studio · needs content<span class="slot-btn">Add</span></div>
-              <span class="away-chip">● Nov 23–27 · all channels · time off</span>
+              <div class="mock-label">Alerts · 2 channels need content</div>
+              <div class="alert-mini"><span class="am-dot" style="background:var(--amber)"></span><b><span class="pb pb-th">@</span>The Feed</b><span class="am-detail">1 day left · by Thu 12</span><span class="am-add">Add</span></div>
+              <div class="alert-mini"><span class="am-dot" style="background:var(--amber)"></span><b><span class="pb pb-li">in</span>Studio</b><span class="am-detail">2 days left · by Wed 18</span><span class="am-add">Add</span></div>
+              <div class="alert-mini"><span class="am-dot" style="background:var(--green)"></span><b>Connected to Buffer</b><span class="am-detail">synced 2m ago</span></div>
+              <span class="away-chip">● Nov 23–27 · time off — won’t show as gaps</span>
             </div>
           </div>
         </div>
