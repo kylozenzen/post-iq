@@ -1,5 +1,37 @@
 # Changelog
 
+## Calendar-first simplification
+
+A pass to make PostIQ easier for newer creators: the calendar is the planning
+spine and Compose is the writing tool; everything else supports that loop.
+
+### Added
+
+- **Content runway** on the calendar: per channel, "Covered for N days — new
+  content needed by DATE", counting non-posting days. Calm when healthy, no
+  alarm colors.
+- **Posting schedule** modal (opened from the calendar): days + target per
+  channel, plan time off, and **evergreen reshares** that queue starred Library
+  posts into Buffer to keep a streak alive during a break.
+- Connection/health strip on the calendar (connect / reconnect, token expiring,
+  stale data) with a "you're well ahead — a break is fine" nudge.
+
+### Changed
+
+- **Queue Health** is no longer a separate page — its runway and connection
+  signals now live on the calendar; the runway number shows in one unit.
+- **Library** drops performance metrics and becomes a reuse/evergreen tool
+  (star, Reshare, Rewrite); it no longer runs the heavy metrics probe.
+- **Trending** moved from Content Bank into a Compose writing-tools tab and is
+  loaded only when opened (no fetch on every app start).
+- New accounts start with Calendar + Compose; Content Bank is opt-in. Tour
+  trimmed to three steps (calendar, schedule, Compose).
+
+### Removed
+
+- **Pulse**, **Content Pillars**, and **Approvals** retired from the app
+  (moved to `archive/`). Approvals' reviewer flow is retired with it.
+
 ## Calendar-first landing and tour
 
 ### Added

@@ -11,45 +11,30 @@ window.PostIQTour = (() => {
   const FIRST_VISIT = (() => { try { return localStorage.getItem('postiq_app_visited') !== '1'; } catch { return false; } })();
   const MOBILE_QUERY = '(max-width: 768px)';
 
+  // Three steps: see the calendar, set your schedule (coverage), write in Compose.
   const STEPS = [
     {
       id: 'calendar',
       view: 'calendarView',
-      targets: ['#calGrid', '#calWeek', '#calAgenda .calendar-agenda-day', '#calAgenda'],
-      title: 'Your Buffer calendar',
+      targets: ['#calendarRunway', '#calGrid', '#calWeek', '#calAgenda'],
+      title: 'Your calendar',
       body: () => isConnected()
-        ? 'Confirmed Buffer posts sit beside your planning notes and actions. Gap labels follow the posting rhythm you choose.'
-        : 'After you sign in with Buffer, confirmed scheduled posts appear here beside your planning notes and actions. You can look around first; until then, the calendar holds local notes only.',
+        ? 'Your confirmed Buffer posts sit here beside your planning notes. Once you set a posting schedule, the top of the calendar shows your content runway — how many days you’re covered, per channel.'
+        : 'After you sign in with Buffer, your scheduled posts appear here. Set a posting schedule and the top of the calendar shows how many days of content you have left, per channel.',
     },
     {
-      id: 'context',
-      view: 'calendarView',
-      targets: ['#calendarAddBtn'],
-      title: 'Add planning context',
-      body: () => 'Use Add, or the + on any day, for a date-only note, a planned action, or a draft. Notes stay in PostIQ and are never treated as scheduled posts.',
-    },
-    {
-      id: 'health',
-      view: 'calendarView',
-      targets: ['#calendarRunway', '#planHealthStrip'],
-      title: 'Your content runway',
-      body: () => isConnected()
-        ? 'Once you set a posting schedule, the top of the calendar shows how many days you’re covered and when new content is due — per channel. When you’re covered, it tells you to relax.'
-        : 'Once Buffer is connected and you set a posting schedule, the top of the calendar shows how many days of content you have left — per channel.',
-    },
-    {
-      id: 'pace',
+      id: 'schedule',
       view: 'calendarView',
       targets: ['#openScheduleBtn'],
       title: 'Set your posting schedule',
-      body: () => 'Tell PostIQ which days you post and how often, per channel — that powers your runway. Planning time off? Mark it here so a break doesn’t show as a gap. Buffer posts stay as scheduled.',
+      body: () => 'Tell PostIQ which days you post and how often, per channel — that powers your runway and the “you’re covered, take a break” nudge. Planning time off? Mark it here, and keep your streak alive with evergreen reshares. Your Buffer posts never change.',
     },
     {
-      id: 'bank',
-      view: 'ideasView',
-      targets: ['.content-bank-filters', '#notebookList', '#ideasView .page-title'],
-      title: 'Content Bank',
-      body: () => 'Saved material lives here. Plan a target date to put an item on the calendar as a dated plan. It becomes scheduled only after you send it to Buffer.',
+      id: 'compose',
+      view: 'composerView',
+      targets: ['#composerEditor', '#composerView .page-title'],
+      title: 'Write and send',
+      body: () => 'Write your post here, pull in hooks, templates or trending ideas from the writing tools, then send it to Buffer as a draft, to your queue, or scheduled for a time. Nothing publishes until you choose.',
     },
   ];
 

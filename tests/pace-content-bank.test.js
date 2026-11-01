@@ -46,7 +46,7 @@ test('Content Bank keeps legacy items and independent variants while searching, 
  assert.match(d.querySelector('#notebookList').textContent,/No confirmed Buffer scheduling/);
  assert.ok(JSON.parse(w.localStorage.getItem('postiq_notebook_v1')).find(item=>item.id==='legacy'));
  w.activateView('contentBankView');assert.ok(d.querySelector('#ideasView.active'));
-},w=>w.localStorage.setItem('postiq_notebook_v1',JSON.stringify([{id:'legacy',title:'Saved source',sourceText:'Original source untouched',custom:'retained',variants:[{channelId:'a',text:'First independent',mode:'draft'},{channelId:'b',text:'Second independent',mode:'draft',dueAt:'2027-01-01T12:00Z'}],buffer:{contentItemId:'item-1'}}]))));
+},w=>{w.localStorage.setItem('postiq.workspacePreferences',JSON.stringify({planning:true,create:true,ideas:true}));w.localStorage.setItem('postiq_notebook_v1',JSON.stringify([{id:'legacy',title:'Saved source',sourceText:'Original source untouched',custom:'retained',variants:[{channelId:'a',text:'First independent',mode:'draft'},{channelId:'b',text:'Second independent',mode:'draft',dueAt:'2027-01-01T12:00Z'}],buffer:{contentItemId:'item-1'}}]));}));
 test('confirmed scheduling is separate from local dates and Buffer drafts',async()=>app(w=>{
  const M=w.ContentModel;
  const local={targetDate:'2027-01-01',variants:[{channelId:'a',dueAt:'2027-01-02T12:00Z',mode:'draft',postId:'draft',buffer:{status:'draft'}}]};
@@ -71,7 +71,7 @@ test('editing one channel version preserves the others and their Buffer scheduli
  assert.equal(JSON.stringify(after.variants[1]),before);assert.equal(after.sourceText,'Source remains');
 }));
 test('legacy Ideas and Content Bank alias routes both preserve the existing workspace',async()=>{
- for(const route of ['?view=ideasView','?view=contentBankView']) {const dom=await loadApp(route);try{assert.ok(dom.window.document.querySelector('#ideasView.active'));}finally{dom.window.close();}}
+ for(const route of ['?view=ideasView','?view=contentBankView']) {const dom=await loadApp(route,w=>w.localStorage.setItem('postiq.workspacePreferences',JSON.stringify({planning:true,create:true,ideas:true})));try{assert.ok(dom.window.document.querySelector('#ideasView.active'));}finally{dom.window.close();}}
 });
 test('calendar health flags loaded coverage when pagination is incomplete or sync failed',async()=>app(w=>{
  w.eval("state.channels=[{id:'a',displayName:'A'}];getBufferConnectionState=()=>({connected:true});state.scheduled=Array.from({length:92},(_,i)=>({id:String(i),channelId:'a',dueAt:PostIQCoverage.addDays(PostIQCoverage.dayKey(new Date()),i)+'T18:00:00Z'}));state.scheduledCoverage={complete:false,ts:Date.now()};PostIQPlanHealth.render()");

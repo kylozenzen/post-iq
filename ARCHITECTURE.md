@@ -13,7 +13,6 @@ app.html
 ├── js/core/                 state, utilities, navigation, bootstrap, startup
 ├── js/integrations/         Buffer OAuth, API access, and post creation
 ├── js/features/             product workspaces and feature behavior
-│   └── approvals/           approval metadata, owner UI, reviewer UI
 └── js/*.js                  independently maintained feature modules
 ```
 
@@ -26,12 +25,12 @@ while making ownership and future extraction clearer.
 
 1. `js/ai-assist.js`
 2. `js/core/runtime.js`
-3. Buffer auth and approval metadata
+3. Buffer auth
 4. templates and Buffer connection/API services
-5. calendar, composer, media, post creation, and approvals
+5. calendar, runway, posting schedule, composer, media, post creation
 6. navigation and bootstrap bindings
-7. content pillars and startup
-8. Discord, Library, Pulse, and onboarding modules
+7. startup
+8. Discord and Library modules
 
 Do not alphabetize these tags. Earlier files provide bindings consumed by later
 files, and `js/core/startup.js` registers the main `DOMContentLoaded` handler.
@@ -56,9 +55,10 @@ exactly, so the cascade remains unchanged.
 
 ## Modular product behavior
 
-The product-level modular foundation already exists. Calendar, Compose, Content Bank,
-and Approvals are user-configurable workspaces, and internal feature flags can
-pause individual capabilities. Keep these concerns separate:
+The product-level modular foundation already exists. Calendar and Compose are
+always on; Content Bank is a user-configurable workspace (off by default for new
+accounts). Internal feature flags can pause individual capabilities. Keep these
+concerns separate:
 
 - Workspace preferences control what the user chooses to see.
 - Feature flags control rollout and operational availability.
@@ -91,14 +91,17 @@ cleanup.
 
 ## Planning and Content Bank
 
-`js/features/coverage.js` is the shared channel/date coverage calculation for
-Calendar, Queue Health, runway and Your Pace. Planning-only cadence, per-day
-targets, days off and future period targets are held under the existing planning
-settings key. They never change scheduled Buffer posts.
+`js/features/coverage.js` is the shared channel/date coverage calculation for the
+calendar runway banner and the plan-health strip. `runwayInfo()` reports the
+calendar-day runway to the first gap. Planning-only cadence, per-day targets and
+days off are held under the existing planning settings key. They never change
+scheduled Buffer posts.
 
-`js/features/your-pace.js` owns the Your Pace controls inside the standalone
-Queue Health tool, not a calendar sidebar. `calendar-experience.js` owns the
-compact filter presentation and calendar/drawer context.
+`js/features/your-pace.js` owns the Posting schedule modal (days + target per
+channel, time off, and the evergreen reshare / fill-my-break flow), opened from
+the calendar. `js/features/plan-health.js` renders the connection/health strip on
+the calendar. `calendar-experience.js` owns the compact filter presentation and
+calendar/drawer context.
 
 `js/features/content-flow.js` remains the single owner of the existing saved
 content database (`postiq_notebook_v1`, `window.Notebook`). Content Bank is its

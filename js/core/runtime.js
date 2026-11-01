@@ -23,7 +23,7 @@ const THEMES = Object.freeze(['default', 'classic', 'neon', 'studio', 'evergreen
 // Themes retired as standalone choices, mapped to the value that preserves the
 // look the person already had. Applied once, on first load after the change.
 const LEGACY_THEME_ALIASES = Object.freeze({ editorial: 'default' });
-const WORKSPACE_DEFAULTS = Object.freeze({ planning: true, create: true, ideas: true });
+const WORKSPACE_DEFAULTS = Object.freeze({ planning: true, create: true, ideas: false });
 const WORKSPACE_VIEWS = Object.freeze({ planning: 'calendarView', create: 'composerView', ideas: 'ideasView' });
 // Internal beta feature flags for safely rolling modules on/off. These are not user-facing settings.
 const FEATURE_FLAGS = {
@@ -437,6 +437,11 @@ function applyInternalFeatureFlags() {
       el.disabled = false;
     }
   });
+
+  // Feature flags above un-hide every enabled [data-feature]; re-apply workspace
+  // preferences so a workspace the user (or the default) has turned off stays
+  // hidden even though its feature flag is on.
+  if (typeof renderWorkspacePreferences === 'function') renderWorkspacePreferences();
 
   syncNavSectionVisibility();
 
