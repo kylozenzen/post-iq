@@ -307,6 +307,7 @@ function renderCalendarView() {
     if (isToday) cls += ' today';
     if (dayPosts.length) cls += ' has-posts';
     if (dayNotes.length) cls += ' has-notes';
+    if (window.PostIQCampaigns?.covers?.(key)) cls += ' has-campaign';
     day.className = cls;
 
     let html = `<div class="day-header"><div class="day-num">${d.getDate()}</div><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add plan for ${safeText(formatDateWithYear(d))}">+</button></div>`;
@@ -315,6 +316,7 @@ function renderCalendarView() {
     if (dayPosts.length > 2) html += `<div class="more-indicator">+${dayPosts.length - 2} more</div>`;
     dayNotes.slice(0, 2).forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="${calendarNoteClass(note)}" data-note-detail="${safeText(note.id)}" style="${notePillStyle(meta)}" aria-label="Edit ${isActionNote(note) ? (note.completedAt ? 'completed action' : 'to-do action') : 'note'} for ${safeText(formatDateWithYear(d))}: ${safeText(compact(note.text,50))}">${calendarNoteCopy(note,50)}</button>`; });
     if (dayNotes.length > 2) html += `<div class="more-indicator">+${dayNotes.length - 2} notes</div>`;
+    html += window.PostIQCampaigns?.cellHtml?.(key) || '';
     if (key >= fmtDate(new Date())) {
       // One general gap alert per day (not a chip per channel — that doesn't
       // scale). The per-platform breakdown + actions live in the day detail you
@@ -938,11 +940,12 @@ function openCalendarDayDetails(date) {
   if (notes.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${notes.length} Planning note${notes.length > 1 ? 's' : ''}</div>${editableNoteCardsHtml(notes)}</div>`);
   if (!posts.length && !notes.length) sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No plans yet</div><div class="empty-desc">Add a planning note or draft content for this day.</div></div>');
   sections.push(calendarTargetsForDate(key).map(contentCalendarPill).join(''));
-  sections.push('<div class="row mt8"><button class="btn primary" data-add-note>Add planning note</button><button class="btn" data-start-draft>Start draft</button></div><p class="calendar-state">A target date or note does not schedule a Buffer post. Choose a scheduling action in Compose.</p>');
+  sections.push('<div class="row mt8"><button class="btn primary" data-add-note>Add planning note</button><button class="btn" data-start-draft>Start draft</button><button class="btn" data-plan-campaign>Plan a campaign / newsletter</button></div><p class="calendar-state">A target date or note does not schedule a Buffer post. Choose a scheduling action in Compose.</p>');
   bodyEl.innerHTML = sections.join('');
   bindPostDetailCopy(bodyEl);
   bindContentCalendar(bodyEl);
   bodyEl.querySelector('[data-start-draft]')?.addEventListener('click',()=>window.CalendarExperience.compose(key));
+  bodyEl.querySelector('[data-plan-campaign]')?.addEventListener('click',()=>{ closeModal('sharedDayModal'); window.PostIQCampaigns?.open(null, key); });
   bodyEl.querySelectorAll('[data-cov-add]').forEach(btn => btn.addEventListener('click', () => {
     const chId = String(btn.dataset.covAdd);
     closeModal('sharedDayModal');
