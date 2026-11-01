@@ -30,9 +30,8 @@ test('mobile keeps Agenda preference; runway and health live on the calendar',as
  w.matchMedia=()=>({matches:true}); w.eval("setCalendarView('week')");
  assert.ok(w.document.querySelector('#calendarView.is-agenda-view'));
  assert.equal(w.localStorage.getItem('postiq_calendar_view'),'week');
- // Queue Health is gone; runway + health now live on the calendar itself
- assert.ok(w.document.querySelector('#calendarView #calendarRunway'));
- assert.ok(w.document.querySelector('#calendarView #planHealthStrip'));
+ // Queue Health is gone; alerts live behind the calendar's alert bell
+ assert.ok(w.document.querySelector('#calendarView #calAlertBell'));
  assert.equal(w.document.querySelector('#queueHealthView'),null);
  w.eval("activateView('calendarView')");assert.equal(w.eval('state.calendarView'),'week');
 }));
