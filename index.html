@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>PostIQ — Your Buffer calendar, with room to think</title>
+<title>PostIQ — Buffer publishes. PostIQ plans.</title>
 <meta name="description" content="PostIQ is an independent calendar companion for Buffer users. See scheduled posts beside planning notes and actions, find queue gaps against your posting rhythm, and turn saved content into a dated plan." />
 <meta name="theme-color" content="#f2efe6" />
 <link rel="canonical" href="https://postiq.netlify.app/" />
 <meta property="og:site_name" content="PostIQ" />
 <meta property="og:title" content="PostIQ — Your Buffer calendar, with room to think" />
-<meta property="og:description" content="An independent calendar companion for Buffer users: scheduled posts beside planning notes, queue gaps against your rhythm, and coverage before time away." />
+<meta property="og:description" content="An independent planning companion for Buffer. Plan your whole calendar — notes and to-dos, how many days of content each channel has left, campaigns, newsletters, reuse and more — on top of Buffer. Buffer publishes; PostIQ plans." />
 <meta property="og:image" content="https://postiq.netlify.app/postiq-og.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
@@ -310,6 +310,23 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
 .bank-arrow path{stroke-dasharray:4 4;animation:dash 1.4s linear infinite;}
 @keyframes dash{to{stroke-dashoffset:-16;}}
 
+/* Updated mock bits: alert bell, platform badges, campaign range, gap alert, alerts panel */
+.ui-bell{margin-left:auto;display:inline-flex;align-items:center;gap:3px;font-family:'DM Mono',monospace;font-size:9px;color:var(--brand);border:1px solid var(--brand-glow);background:var(--brand-dim);border-radius:999px;padding:1px 7px;}
+.ui-titlebar .ui-bell + .sample-tag{margin-left:6px;}
+.pb{display:inline-flex;align-items:center;justify-content:center;min-width:12px;height:12px;padding:0 2px;border-radius:3px;color:#fff;font-size:7px;font-weight:800;font-family:'DM Mono',monospace;line-height:1;vertical-align:middle;margin-right:3px;}
+.pb-li{background:#0a66c2;}.pb-th{background:#111;}.pb-bs{background:#1185fe;}.pb-x{background:#111;}
+.daygap{margin-top:auto;font-family:'DM Mono',monospace;font-size:8px;color:var(--brand);font-weight:700;letter-spacing:.02em;}
+.mc.camp{background:color-mix(in srgb,var(--muted) 8%,var(--surface));}
+.chip.camp{background:var(--surface);border:1px solid var(--border);border-left:3px solid #6366f1;color:var(--ink);font-weight:600;}
+.chip.camp.end{border-left-style:dashed;opacity:.9;}
+.alert-mini{display:flex;align-items:center;gap:7px;padding:8px 0;border-top:1px solid var(--border);font-size:12.5px;color:var(--text);}
+.alert-mini:first-of-type{border-top:none;}
+.alert-mini .am-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.alert-mini b{color:var(--ink);font-weight:700;}
+.alert-mini .am-detail{color:var(--muted);font-size:11px;}
+.alert-mini .am-add{margin-left:auto;font-size:10.5px;font-weight:700;border:1px solid var(--border2);border-radius:var(--r2);padding:3px 9px;background:var(--surface);white-space:nowrap;}
+.alert-mini:first-of-type .am-add{border-color:var(--brand);color:var(--brand);animation:ringPulse 2.4s ease-in-out infinite;}
+
 /* ─── PILLARS ─────────────────────────────── */
 .pillars{padding:56px 0;}
 .pillar-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
@@ -552,14 +569,14 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
   <div class="wrap">
     <div class="hero-inner">
       <div class="hero-copy">
-        <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Independent calendar companion for Buffer</div>
-        <h1 id="heroTitle">Your Buffer calendar, <em>with room to think.</em></h1>
-        <p class="hero-desc">PostIQ puts your scheduled Buffer posts beside planning notes and actions, flags queue gaps against the posting rhythm you choose, and helps you turn saved content into a dated plan.</p>
+        <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Independent planning companion for Buffer</div>
+        <h1 id="heroTitle">Buffer publishes. <em>PostIQ plans.</em></h1>
+        <p class="hero-desc">The planning layer on top of Buffer — notes and to-dos on the calendar, how many days of content each channel has left, writing tools to fill a gap, an evergreen library to reuse what worked, and campaigns and newsletters mapped across dates.</p>
         <div class="hero-ctas">
           <a href="/auth/connect.html?return=%2Fapp.html%3Fview%3DcalendarView" class="btn primary lg" data-cta="hero">Sign in with Buffer</a>
           <a href="/app.html?view=calendarView" class="btn ghost lg" data-cta="hero">Preview the calendar</a>
         </div>
-        <p class="hero-note"><strong>Scheduled posts, Queue Health and sending to Buffer need Buffer sign-in.</strong> The preview opens the same calendar without your account data, with a short tour you can skip. Free during public beta. Not made by, affiliated with, or endorsed by Buffer.</p>
+        <p class="hero-note"><strong>Your scheduled posts, channel health and sending to Buffer need Buffer sign-in.</strong> The preview opens the same calendar without your account data, with a short tour you can skip. Free during public beta. Not made by, affiliated with, or endorsed by Buffer.</p>
       </div>
 
       <figure class="hero-visual" aria-labelledby="heroMockCaption">
@@ -568,7 +585,8 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
         <div class="ui-shell" role="img" aria-label="Illustration of the PostIQ calendar for November with sample data. Scheduled posts for two channels sit beside a planned action, a campaign note and a content target marked not scheduled. Two days are dashed as gaps against a Monday, Wednesday and Friday rhythm, one of which turns into a planned draft. November 23 to 27 is marked as intentional days off.">
           <div class="ui-titlebar" aria-hidden="true">
             <span class="ui-dot ui-dot-r"></span><span class="ui-dot ui-dot-y"></span><span class="ui-dot ui-dot-g"></span>
-            <div class="ui-tabs"><span class="ui-tab active">Calendar</span><span class="ui-tab">Queue Health</span><span class="ui-tab">Content Bank</span></div>
+            <div class="ui-tabs"><span class="ui-tab active">Calendar</span><span class="ui-tab">Compose</span><span class="ui-tab">Content Bank</span></div>
+            <span class="ui-bell" title="Alerts">◔ 1</span>
             <span class="sample-tag">Sample data</span>
           </div>
           <div class="ui-body" aria-hidden="true">
@@ -579,25 +597,25 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
             <div class="cal-dow"><span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span></div>
             <div class="cal-grid">
               <div class="mc off"><span class="mc-n">8</span></div>
-              <div class="mc today"><span class="mc-n">9<b>2</b></span><i class="chip post">Behind the scenes</i><i class="chip post li">Autumn lessons</i></div>
-              <div class="mc"><span class="mc-n">10</span><i class="chip action">□ Shoot flat-lays</i></div>
-              <div class="mc"><span class="mc-n">11</span><i class="chip post">Studio tour, pt 2</i></div>
-              <div class="mc gap"><span class="mc-n">12</span><span class="gap-swap"><span class="gap-a">Gap · Newsletter</span><span class="gap-b"><i class="chip action">✎ Draft planned</i></span></span></div>
-              <div class="mc"><span class="mc-n">13</span><i class="chip post">Reader spotlight</i></div>
+              <div class="mc today"><span class="mc-n">9<b>2</b></span><i class="chip post"><b class="pb pb-li">in</b>Behind the scenes</i><i class="chip post li"><b class="pb pb-th">@</b>Autumn lessons</i></div>
+              <div class="mc"><span class="mc-n">10</span><i class="chip action">□ Shoot flat-lays</i><i class="daygap">▲ 2 gaps</i></div>
+              <div class="mc camp"><span class="mc-n">11</span><i class="chip camp">◆ The Feed #14</i><i class="chip post"><b class="pb pb-li">in</b>Studio tour</i></div>
+              <div class="mc camp"><span class="mc-n">12</span><i class="chip action">□ Draft issue</i><i class="daygap">▲ 2 gaps</i></div>
+              <div class="mc camp"><span class="mc-n">13</span><i class="chip post"><b class="pb pb-bs">bs</b>Reader spotlight</i></div>
               <div class="mc off"><span class="mc-n">14</span></div>
               <div class="mc off"><span class="mc-n">15</span></div>
-              <div class="mc"><span class="mc-n">16</span><i class="chip post">Desk setups</i><i class="chip post li">Newsletter preview</i></div>
+              <div class="mc camp"><span class="mc-n">16</span><i class="chip camp end">The Feed #14 ◆</i><i class="chip post"><b class="pb pb-li">in</b>Issue is live</i></div>
               <div class="mc"><span class="mc-n">17</span><i class="chip note">✎ Winter series idea</i></div>
-              <div class="mc gap"><span class="mc-n">18</span><span class="gap-swap"><span class="gap-a">Gap · Studio</span></span></div>
-              <div class="mc"><span class="mc-n">19</span><i class="chip post li">Reading list</i><i class="chip target">◇ Year in review</i><i class="chip status">target · not scheduled</i></div>
-              <div class="mc"><span class="mc-n">20</span><i class="chip post">Holiday hours</i></div>
+              <div class="mc"><span class="mc-n">18</span><i class="chip action">□ Reply to comments</i><i class="daygap">▲ 1 gap</i></div>
+              <div class="mc"><span class="mc-n">19</span><i class="chip post li"><b class="pb pb-th">@</b>Reading list</i><i class="chip target">◇ Year in review</i></div>
+              <div class="mc"><span class="mc-n">20</span><i class="chip post"><b class="pb pb-x">X</b>Holiday hours</i></div>
               <div class="mc off"><span class="mc-n">21</span></div>
               <div class="mc off"><span class="mc-n">22</span></div>
-              <div class="mc away"><span class="mc-n">23</span><i class="chip status">day off</i></div>
-              <div class="mc away"><span class="mc-n">24</span><i class="chip status">day off</i></div>
-              <div class="mc away"><span class="mc-n">25</span><i class="chip status">day off</i></div>
-              <div class="mc away"><span class="mc-n">26</span><i class="chip status">day off</i></div>
-              <div class="mc away"><span class="mc-n">27</span><i class="chip status">day off</i></div>
+              <div class="mc away"><span class="mc-n">23</span><i class="chip status">time off</i></div>
+              <div class="mc away"><span class="mc-n">24</span><i class="chip status">time off</i></div>
+              <div class="mc away"><span class="mc-n">25</span><i class="chip status">time off</i></div>
+              <div class="mc away"><span class="mc-n">26</span><i class="chip status">time off</i></div>
+              <div class="mc away"><span class="mc-n">27</span><i class="chip status">time off</i></div>
               <div class="mc off"><span class="mc-n">28</span></div>
             </div>
           </div>
@@ -607,7 +625,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
             <div class="stat-item"><div class="stat-num">3</div><div class="stat-lbl">Notes &amp; actions</div></div>
           </div>
         </div>
-        <figcaption class="mock-caption" id="heroMockCaption">Illustration of the PostIQ calendar with fictional sample data. Gaps follow a rhythm you set in Your Pace.</figcaption>
+        <figcaption class="mock-caption" id="heroMockCaption">Illustration of the PostIQ calendar with fictional sample data. Each channel shows how many days of content you have left, from the schedule you set.</figcaption>
       </figure>
     </div>
 
@@ -624,71 +642,71 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
   <div class="wrap">
     <div class="section-head reveal">
       <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>What PostIQ adds</div>
-      <h2 class="section-title" id="pillarsTitle">One calendar for the queue <em>and the thinking around it.</em></h2>
-      <p class="section-lede">Buffer stays where you publish. PostIQ is the place to look at what’s coming, decide what’s missing, and plan before you send anything.</p>
+      <h2 class="section-title" id="pillarsTitle">One calendar for your posts <em>and everything around them.</em></h2>
+      <p class="section-lede">Buffer stays where you publish. PostIQ is where you see what’s coming, decide what’s missing, and plan it — all in one place.</p>
     </div>
     <div class="pillar-grid">
       <article class="pillar reveal">
         <span class="pillar-num">01</span>
-        <h3>Scheduled posts, with context</h3>
-        <p>See confirmed Buffer posts in month, week or agenda view, alongside your planning notes and to-do actions for the same day.</p>
+        <h3>Plan on the calendar</h3>
+        <p>See confirmed Buffer posts in month, week or agenda view, alongside planning notes and to-do actions on any day.</p>
       </article>
       <article class="pillar reveal">
         <span class="pillar-num">02</span>
-        <h3>Gaps based on your rhythm</h3>
-        <p>Pick posting days and a target for each channel. PostIQ marks the days that rhythm expects and your queue doesn’t cover.</p>
+        <h3>Know where you stand</h3>
+        <p>Set a posting schedule per channel and see how many days of content each one has left — so you can fill a gap, or step away with confidence.</p>
       </article>
       <article class="pillar reveal">
         <span class="pillar-num">03</span>
-        <h3>Saved content, ready to date</h3>
-        <p>Keep material in Content Bank and give an item a target date. It shows on the calendar as a plan, clearly marked not scheduled.</p>
+        <h3>Reuse what worked</h3>
+        <p>Keep an evergreen library of past posts and reshare them in a click — fill a slow week or keep your streak alive while you’re away.</p>
       </article>
       <article class="pillar reveal">
         <span class="pillar-num">04</span>
-        <h3>Coverage before time away</h3>
-        <p>Check a period, mark intentional days off or a lighter stretch, and see which planned slots still need a post before you step away.</p>
+        <h3>Map campaigns &amp; newsletters</h3>
+        <p>Plan a newsletter issue or a campaign as a dated range with stages you tick off — right on the calendar, next to everything else.</p>
       </article>
     </div>
   </div>
 </section>
 
 <!-- FEATURE DETAIL -->
-<section class="features" aria-label="Queue Health, Your Pace and Content Bank">
+<section class="features" aria-label="Channel health and Content Bank">
   <div class="wrap">
     <div class="feature reveal">
       <div class="feature-copy">
-        <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Queue Health &amp; Your Pace</div>
-        <h3>Know what’s covered, slot by slot.</h3>
-        <p>Queue Health shows each channel’s confirmed runway. Your Pace checks any period of up to 92 days against your rhythm and lists every uncovered slot.</p>
+        <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Channel health</div>
+        <h3>Know how far you’re covered.</h3>
+        <p>Set a posting schedule per channel and the calendar tells you how many days of content each one has left — and quietly alerts you before any channel runs dry.</p>
         <ul>
           <li>Per-channel posting days and posts-per-day targets</li>
-          <li>Intentional days off and lighter periods, without touching Buffer posts</li>
-          <li>“Plan this slot” opens that date on the calendar</li>
+          <li>Mark time off so a planned break doesn’t show as a gap — your Buffer posts stay put</li>
+          <li>Alerts gather in one place, so the calendar stays calm until something needs you</li>
         </ul>
-        <span class="requires">Coverage requires Buffer sign-in and a recent sync.</span>
+        <span class="requires">Channel health requires Buffer sign-in and a recent sync.</span>
       </div>
       <figure>
-        <div class="ui-shell" role="img" aria-label="Illustration of Queue Health with sample data: one channel has three posting days of runway and the other has a gap on Thursday; Your Pace shows Monday, Wednesday and Friday selected at one post per day; period coverage reads 8 of 10 planned slots scheduled, with two uncovered slots each offering Plan this slot, and November 23 to 27 marked as days off.">
-          <div class="ui-titlebar" aria-hidden="true"><span class="ui-dot ui-dot-r"></span><span class="ui-dot ui-dot-y"></span><span class="ui-dot ui-dot-g"></span><span class="ui-title">Queue Health</span><span class="sample-tag">Sample data</span></div>
+        <div class="ui-shell" role="img" aria-label="Illustration of channel health with sample data: one channel has 12 days of content left and another has 1 day left, due Thursday; a posting schedule shows Monday, Wednesday and Friday at one post per day; the calendar reads covered for 12 days with two channels needing content, and November 23 to 27 marked as time off.">
+          <div class="ui-titlebar" aria-hidden="true"><span class="ui-dot ui-dot-r"></span><span class="ui-dot ui-dot-y"></span><span class="ui-dot ui-dot-g"></span><span class="ui-title">Channel health</span><span class="sample-tag">Sample data</span></div>
           <div class="ui-body" aria-hidden="true">
             <div class="mock-label">Channel health</div>
-            <div class="qh-row"><span class="qh-dot" style="background:var(--green)"></span><b>Sample Studio</b><span>Covered</span><span class="qh-runway">3 posting days</span></div>
-            <div class="qh-row"><span class="qh-dot" style="background:var(--amber)"></span><b>Sample Newsletter</b><span>Gap Thu 12</span><span class="qh-runway">0 posting days</span></div>
+            <div class="qh-row"><span class="qh-dot" style="background:var(--green)"></span><b>Sample Studio</b><span>Covered</span><span class="qh-runway">12 days left</span></div>
+            <div class="qh-row"><span class="qh-dot" style="background:var(--amber)"></span><b>Sample Newsletter</b><span>1 day left</span><span class="qh-runway">add by Thu 12</span></div>
             <div class="mock-card">
-              <div class="mock-label">Your Pace · Sample Studio</div>
+              <div class="mock-label">Posting schedule · Sample Studio</div>
               <div class="days"><span class="day">S</span><span class="day on">M</span><span class="day">T</span><span class="day on">W</span><span class="day">T</span><span class="day on">F</span><span class="day">S</span></div>
               <div class="pace-meta"><span><b>1</b> post per selected day</span><span>Nov 9 – Nov 22</span></div>
             </div>
             <div class="mock-card">
-              <div class="cov-head">8 of 10 planned slots scheduled<span>UTC · checked 9:00</span></div>
-              <div class="cov-bar"><i></i></div>
-              <div class="slot">Thu Nov 12 · Newsletter · 1 uncovered<span class="slot-btn">Plan this slot</span></div>
-              <div class="slot">Wed Nov 18 · Studio · 1 uncovered<span class="slot-btn">Plan this slot</span></div>
-              <span class="away-chip">● Nov 23–27 · all channels · days off</span>
+              <div class="mock-label">Alerts · 2 channels need content</div>
+              <div class="alert-mini"><span class="am-dot" style="background:var(--amber)"></span><b><span class="pb pb-th">@</span>The Feed</b><span class="am-detail">1 day left · by Thu 12</span><span class="am-add">Add</span></div>
+              <div class="alert-mini"><span class="am-dot" style="background:var(--amber)"></span><b><span class="pb pb-li">in</span>Studio</b><span class="am-detail">2 days left · by Wed 18</span><span class="am-add">Add</span></div>
+              <div class="alert-mini"><span class="am-dot" style="background:var(--green)"></span><b>Connected to Buffer</b><span class="am-detail">synced 2m ago</span></div>
+              <span class="away-chip">● Nov 23–27 · time off — won’t show as gaps</span>
             </div>
           </div>
         </div>
-        <figcaption class="mock-caption">Illustration of Queue Health with fictional sample channels.</figcaption>
+        <figcaption class="mock-caption">Illustration of channel health with fictional sample channels.</figcaption>
       </figure>
     </div>
 
@@ -700,7 +718,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
         <ul>
           <li>Filter by no target date, local target, or confirmed Buffer scheduling</li>
           <li>Develop channel versions while the original source stays intact</li>
-          <li>Templates, Content Pillars and Trending live under Resources</li>
+          <li>Templates live under Resources; trending topics sit in Compose</li>
         </ul>
         <span class="requires">Saved locally in your browser; works in the preview.</span>
       </div>
@@ -746,17 +764,17 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
           <span class="flow-arrow" aria-hidden="true">→</span>
           <div class="step-icon" aria-hidden="true">◷</div>
           <span class="step-num">02</span>
-          <h3>Inspect coverage</h3>
-          <p>Set your rhythm in Your Pace, then check a week or the run-up to time off.</p>
-          <span class="step-where">Queue Health · Check this period</span>
+          <h3>See where you stand</h3>
+          <p>Set a posting schedule per channel. The calendar shows how many days of content each has left.</p>
+          <span class="step-where">Posting schedule · Calendar</span>
         </li>
         <li class="step">
           <span class="flow-arrow" aria-hidden="true">→</span>
           <div class="step-icon" aria-hidden="true">📅</div>
           <span class="step-num">03</span>
-          <h3>Plan a gap</h3>
-          <p>Open the slot on the calendar. Add a note or action, date a saved item, or start a draft for that day.</p>
-          <span class="step-where">Plan this slot · Calendar day</span>
+          <h3>Plan it</h3>
+          <p>Open a day to add a note or action, map a campaign or newsletter, or reuse an evergreen post.</p>
+          <span class="step-where">Calendar day · Add</span>
         </li>
         <li class="step">
           <div class="step-icon" aria-hidden="true">⚡</div>
@@ -800,10 +818,9 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
         <p>Needed for anything that reads or writes your Buffer account.</p>
         <ul>
           <li>Your scheduled posts on the calendar</li>
-          <li>Queue Health runway and Your Pace coverage per channel</li>
+          <li>Channel health — how many days of content each channel has left</li>
           <li>Sending a draft, queued post or scheduled post to Buffer</li>
-          <li>Library and Pulse views of recently sent posts</li>
-          <li>Approval links for Buffer drafts <span class="tool-tag">Beta</span></li>
+          <li>An evergreen Library of sent posts to reuse and reshare</li>
         </ul>
         <a href="/auth/connect.html?return=%2Fapp.html%3Fview%3DcalendarView" class="btn primary" data-cta="access">Sign in with Buffer</a>
       </div>
@@ -821,15 +838,14 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
       <p class="section-lede">The calendar comes first. These sit around it, and most can be switched off in Settings so your sidebar only shows what you use.</p>
     </div>
     <div class="tool-grid">
-      <article class="tool reveal"><div class="tool-icon" aria-hidden="true">✍️</div><h3>Compose</h3><p>A focused editor with local autosave, Focus mode, media, and writing tools for Content Bank items, hooks, hashtags and templates.</p></article>
+      <article class="tool reveal"><div class="tool-icon" aria-hidden="true">✍️</div><h3>Compose</h3><p>A focused editor with local autosave, Focus mode and media, plus writing tools — hooks, templates, trending topics and AI assist — to fill a gap fast.</p></article>
+      <article class="tool reveal"><div class="tool-icon" aria-hidden="true">🗓️</div><h3>Campaigns &amp; newsletters</h3><p>Map a newsletter issue or a campaign as a dated range with stages you tick off, right on the calendar.</p></article>
+      <article class="tool reveal"><div class="tool-icon" aria-hidden="true">📚</div><h3>Evergreen Library</h3><p>Your recently sent posts, ready to reuse. Star the evergreen ones and reshare to Buffer to keep your streak alive.</p></article>
       <article class="tool reveal"><div class="tool-icon" aria-hidden="true">🔗</div><h3>Shareable snapshots</h3><p>Share a read-only week or month of the calendar with a teammate or client. Anyone with the link can view it; no login required.</p></article>
-      <article class="tool reveal"><div class="tool-icon" aria-hidden="true">✅</div><h3>Approvals <span class="tool-tag">Beta</span></h3><p>Send a reviewer link for a Buffer draft and collect approval or change requests.</p></article>
-      <article class="tool reveal"><div class="tool-icon" aria-hidden="true">🧠</div><h3>Templates, Pillars &amp; Trending</h3><p>Reusable starters, recurring content themes, and timely topics from public sources, under Content Bank → Resources.</p></article>
-      <article class="tool reveal"><div class="tool-icon" aria-hidden="true">📚</div><h3>Library &amp; Pulse</h3><p>Recently sent posts with performance data when Buffer provides it, plus a quick read on how they did.</p></article>
       <article class="tool reveal">
         <div class="tool-icon" aria-hidden="true">🎨</div>
         <h3>Themes &amp; workspaces</h3>
-        <p>Turn Calendar, Compose, Content Bank and Approvals on or off, and pick one of five looks. Saved in your browser.</p>
+        <p>Turn workspaces on or off, pick one of five themes, or go zen — a calendar-only view for a screen. Saved in your browser.</p>
         <div class="theme-strip" role="img" aria-label="Theme swatches: PostIQ, Classic, After Dark, Studio and Evergreen">
           <span class="theme-chip"></span><span class="theme-chip"></span><span class="theme-chip"></span><span class="theme-chip"></span><span class="theme-chip"></span>
         </div>
@@ -881,7 +897,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
       </div>
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq2"><span>How does PostIQ decide what counts as a gap?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
-        <div class="faq-a" id="faq2" hidden>You choose posting days and a posts-per-day target for each channel in Your Pace. A planned slot is covered only by a confirmed scheduled Buffer post. Notes, drafts and target dates don’t count, and intentional days off are excluded. If the loaded data is incomplete or stale, PostIQ says so instead of claiming full coverage.</div>
+        <div class="faq-a" id="faq2" hidden>You set posting days and a posts-per-day target for each channel. The calendar then shows how many days of content each channel has left, counting non-posting days. Only confirmed scheduled Buffer posts count — notes, drafts and target dates don’t, and days off are excluded. If the loaded data is incomplete or stale, PostIQ says so instead of claiming you’re covered.</div>
       </div>
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq3"><span>Will PostIQ post or change things in Buffer on its own?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
@@ -889,11 +905,11 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
       </div>
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq4"><span>What does the preview include?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
-        <div class="faq-a" id="faq4" hidden>The real app, without your Buffer data: the calendar, notes and actions, Content Bank, Compose drafts and settings, all stored in your browser. Queue Health and Your Pace need connected channels to measure anything. A five-step tour opens the first time you visit; skip it whenever you like, or restart it from Take a tour in the app.</div>
+        <div class="faq-a" id="faq4" hidden>The real app, without your Buffer data: the calendar, notes and actions, campaigns, Content Bank, Compose drafts and settings, all stored in your browser. Channel health needs connected channels to measure anything. A short three-step tour opens the first time you visit; skip it whenever you like, or restart it from Take a tour in the app.</div>
       </div>
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq5"><span>Where is my planning data stored?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
-        <div class="faq-a" id="faq5" hidden>Notes, rhythms, days off, Content Bank items and settings are kept in your browser’s local storage. A snapshot carries its shared content inside the link itself; approval links are stored by PostIQ so reviewers can open them. See the <a href="/privacy.html">privacy policy</a> and the <a href="/help/?article=privacy-storage-beta-limits">beta limits guide</a>.</div>
+        <div class="faq-a" id="faq5" hidden>Notes, schedules, days off, campaigns, Content Bank items and settings are kept in your browser’s local storage. A snapshot carries its shared content inside the link itself. See the <a href="/privacy.html">privacy policy</a> and the <a href="/help/?article=privacy-storage-beta-limits">beta limits guide</a>.</div>
       </div>
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq6"><span>Is PostIQ made by Buffer?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
