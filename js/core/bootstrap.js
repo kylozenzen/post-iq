@@ -159,12 +159,6 @@ function init() {
   }
 
   try {
-    if (isFeatureEnabled('pulse') && window.PostIQPulse?.init) window.PostIQPulse.init();
-  } catch (e) {
-    console.error('[PostIQ] PostIQPulse.init() failed:', e);
-  }
-
-  try {
     if (window.Notebook?.init) window.Notebook.init();
   } catch (e) {
     console.error('[PostIQ] Notebook.init() failed:', e);

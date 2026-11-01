@@ -33,7 +33,6 @@ const FEATURE_FLAGS = {
   // Approvals is controlled entirely by the admin panel / POSTIQ_FEATURE_APPROVALS, not hardcoded here.
   approvals: true,
   library: true,
-  pulse: true,
   contentItems: true
 };
 const FEATURE_VIEWS = Object.freeze({
@@ -41,8 +40,7 @@ const FEATURE_VIEWS = Object.freeze({
   composer: 'composerView',
   ideas: 'ideasView',
   approvals: 'approvalsView',
-  library: 'libraryView',
-  pulse: 'pulseView'
+  library: 'libraryView'
 });
 
 const IMGUR_KEY    = '546c25a59c58ad7';
@@ -76,7 +74,6 @@ const DEFAULT_POSTIQ_CONFIG = {
     approvals: true,
     snapshots: true,
     library: true,
-    pulse: true,
     uploads: true,
     unsplash: true,
     contentItems: true,
@@ -89,7 +86,6 @@ const DEFAULT_POSTIQ_CONFIG = {
     approvals: '',
     trending: '',
     library: '',
-    pulse: '',
     uploads: '',
     snapshots: '',
     contentItems: ''
@@ -250,7 +246,7 @@ function getWorkspaceForView(viewId) {
 }
 
 function syncNavSectionVisibility() {
-  const hasVisibleTools = Array.from(document.querySelectorAll('[data-feature="library"], [data-feature="pulse"], [data-view="queueHealthView"]'))
+  const hasVisibleTools = Array.from(document.querySelectorAll('[data-feature="library"]'))
     .some(el => !el.hidden && el.style.display !== 'none');
   document.querySelectorAll('[data-tools-section]').forEach(el => {
     el.hidden = !hasVisibleTools;
