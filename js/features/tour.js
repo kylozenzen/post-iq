@@ -30,19 +30,19 @@ window.PostIQTour = (() => {
     },
     {
       id: 'health',
-      view: 'queueHealthView',
-      targets: ['#planHealthStrip', '.queue-health-header'],
-      title: 'Queue Health',
+      view: 'calendarView',
+      targets: ['#calendarRunway', '#planHealthStrip'],
+      title: 'Your content runway',
       body: () => isConnected()
-        ? 'See which channels have confirmed coverage and how many posting days your queue covers. Sync first if your data is stale.'
-        : 'Once Buffer is connected and synced, this shows each channel’s coverage and runway. Without sign-in it has nothing to measure.',
+        ? 'Once you set a posting schedule, the top of the calendar shows how many days you’re covered and when new content is due — per channel. When you’re covered, it tells you to relax.'
+        : 'Once Buffer is connected and you set a posting schedule, the top of the calendar shows how many days of content you have left — per channel.',
     },
     {
       id: 'pace',
-      view: 'queueHealthView',
-      targets: ['#yourPace .pace-period', '#yourPace'],
-      title: 'Your Pace',
-      body: () => 'Choose posting days and a target per channel, then check a period. Mark intentional days off or a lighter stretch before you take time away. These are local planning choices; Buffer posts stay as scheduled.',
+      view: 'calendarView',
+      targets: ['#openScheduleBtn'],
+      title: 'Set your posting schedule',
+      body: () => 'Tell PostIQ which days you post and how often, per channel — that powers your runway. Planning time off? Mark it here so a break doesn’t show as a gap. Buffer posts stay as scheduled.',
     },
     {
       id: 'bank',

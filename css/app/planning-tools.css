@@ -90,3 +90,21 @@
 .pace-slots:empty { display:none; }
 .pace-slots:focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
 .pace-panel button:disabled { opacity:.5; cursor:not-allowed; }
+
+/* ── Posting schedule modal ──────────────────────────────── */
+.sched-intro { font-size: 13px; color: var(--muted); line-height: 1.55; margin: 0 0 16px; }
+.sched-body { display: flex; flex-direction: column; gap: 4px; }
+.sched-body > .label { margin-top: 6px; }
+.sched-field { margin: 10px 0 2px; }
+.sched-field .label { display: block; margin-bottom: 4px; }
+.sched-hint { font-size: 12px; color: var(--muted); margin: 4px 0; }
+.sched-status { font-size: 12px; color: var(--muted); min-height: 16px; margin: 8px 0 0; }
+#schedSave { margin-top: 12px; align-self: flex-start; }
+.sched-off { margin-top: 18px; border: 1px solid var(--border); border-radius: var(--r2, 10px); background: var(--surface); }
+.sched-off > summary { padding: 12px 14px; font-size: 14px; font-weight: 700; cursor: pointer; }
+.sched-off-body { padding: 0 14px 14px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+.sched-off-range { display: flex; gap: 12px; flex-wrap: wrap; margin: 10px 0; }
+.sched-off-range label { display: inline-flex; flex-direction: column; gap: 4px; font-size: 12px; }
+.sched-exceptions { margin-top: 16px; }
+.sched-exceptions-title { font-size: 13px; margin: 0 0 4px; }
+.sched-exception { padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; overflow-wrap: anywhere; }

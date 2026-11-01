@@ -230,6 +230,7 @@ function init() {
   on('prevMonth', 'click', () => { shiftCalendarRange(-1); renderCalendar(); detectQueueGaps(); });
   on('nextMonth', 'click', () => { shiftCalendarRange(1); renderCalendar(); detectQueueGaps(); });
   on('todayMonth', 'click', () => { state.month = new Date(); renderCalendar(); detectQueueGaps(); });
+  document.querySelectorAll('[data-open-schedule]').forEach(b => b.addEventListener('click', () => window.YourPace?.open?.()));
   on('closeNote', 'click', () => { closeModal('noteModal'); resetNoteForm(); });
   const closeShared = qs('closeSharedDay'); if (closeShared) closeShared.onclick = () => closeModal('sharedDayModal');
   on('saveNoteBtn', 'click', saveNote);

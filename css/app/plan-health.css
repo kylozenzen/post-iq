@@ -30,3 +30,35 @@
 .plan-health-break { color: var(--ok, #0fa672); font-weight: 600; }
 .plan-health-note { color: var(--subtle, #6b6b6b); font-size: 12px; }
 @media (max-width: 768px) { .plan-health-summary { white-space: normal; } }
+
+/* ── Calendar content runway ───────────────────────────────
+   Calm, per-channel coverage banner at the top of the calendar.
+   No alarm colors: green when healthy, brand accent only when low. */
+.calendar-runway { margin: 0 0 14px; }
+.calendar-runway:empty { display: none; }
+.calendar-runway.is-setup .runway-prompt {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border: 1px dashed var(--border);
+  border-radius: 10px; background: var(--surface);
+  font-size: 13px; color: var(--muted); line-height: 1.5;
+}
+.calendar-runway .runway-prompt strong { color: var(--ink); }
+.calendar-runway .runway-prompt .runway-ico { font-size: 18px; color: var(--muted); }
+.calendar-runway .runway-prompt button { margin-left: auto; white-space: nowrap; }
+.calendar-runway.is-active {
+  border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface); padding: 6px 2px;
+}
+.calendar-runway .runway-list { list-style: none; margin: 0; padding: 0; }
+.runway-line {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 7px 14px; font-size: 13px; line-height: 1.45; color: var(--ink);
+}
+.runway-line + .runway-line { border-top: 1px solid var(--border); }
+.runway-line .runway-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; align-self: center; background: var(--green); }
+.runway-line .runway-ch { font-weight: 600; min-width: 90px; }
+.runway-line .runway-msg { color: var(--muted); }
+.runway-line .runway-msg strong { color: var(--ink); font-weight: 600; }
+.runway-line.is-low .runway-dot,
+.runway-line.is-now .runway-dot { background: var(--brand); }
+.runway-line.is-now .runway-msg strong { color: var(--brand); }

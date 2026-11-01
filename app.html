@@ -167,7 +167,6 @@
         <span class="nav-icon"><svg><use href="#i-compose"/></svg></span>
         <span class="nav-text">Compose</span>
       </button>
-      <button class="nav-btn" data-view="queueHealthView" data-feature="calendar" data-tooltip="Queue Health"><span class="nav-icon" aria-hidden="true">◷</span><span class="nav-text">Queue Health</span></button>
       <button class="nav-btn" data-view="approvalsView" data-workspace-nav="approvals" data-feature="approvals" data-tooltip="Approvals">
         <span class="nav-icon"><svg><use href="#i-check"/></svg></span>
         <span class="nav-text">Approvals</span>
@@ -236,7 +235,7 @@
       <div class="mob-view-hdr">
         <span class="mob-view-title">Calendar</span>
         <div class="mob-view-actions">
-          <button class="btn sm ghost" type="button" data-view="queueHealthView">Your Pace</button>
+          <button class="btn sm ghost" type="button" data-open-schedule="mobile">Schedule</button>
           <button class="btn sm" id="shareMonthBtnMob">Share</button>
           <button class="btn sm ghost" id="mobMenuBtn">
             <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
@@ -252,7 +251,7 @@
         </div>
         <div class="page-actions">
 
-          <button class="btn ghost" type="button" data-view="queueHealthView">Queue Health &amp; Your Pace</button>
+          <button class="btn ghost" type="button" id="openScheduleBtn" data-open-schedule="calendar">Posting schedule</button>
           <button class="btn ghost" type="button" data-tour-start="calendar_header">Take a tour</button>
           <a class="btn ghost" href="/help/?article=plan-content-calendar">Help</a>
           <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
@@ -261,6 +260,11 @@
 
       <div class="calendar-layout">
       <div class="view-content calendar-main">
+
+      <!-- Content runway — per-channel, shown once a posting schedule is set -->
+      <div id="calendarRunway" class="calendar-runway" aria-live="polite"></div>
+      <!-- Channel + connection health, and the "a break is fine" reminder -->
+      <div id="planHealthStrip" class="plan-health-strip" aria-live="polite"></div>
 
       <!-- Calendar toolbar — month nav, view toggle, and filter in one row -->
       <div class="cal-toolbar">
@@ -315,43 +319,6 @@
       </div><!-- /view-content -->
 
       </div><!-- /calendar-layout -->
-    </section>
-
-    <section id="queueHealthView" class="view" data-feature="calendar" aria-labelledby="queueHealthTitle">
-      <div class="mob-view-hdr"><span class="mob-view-title">Queue Health</span><button class="btn sm" data-view="calendarView">Calendar</button></div>
-      <header class="queue-health-header"><div><h1 id="queueHealthTitle" class="page-title">Queue Health</h1><p class="page-desc">Review coverage and runway across your channels, away from the calendar.</p></div><button class="btn" id="queueHealthSync" type="button">Sync now</button></header>
-      <div id="planHealthStrip" class="plan-health-strip" aria-live="polite"></div>
-      <!-- Queue gaps (shown when connected + gaps found) -->
-      <div class="gaps-panel" id="gapsPanel" style="display:none;">
-        <div class="gaps-panel-hdr">
-          <span style="font-size:16px;">⚠️</span>
-          <span class="gaps-title">Coverage this week</span>
-          <span style="font-size:12px;color:var(--muted);margin-left:auto;">Click a day to add a note or plan content</span>
-        </div>
-        <div class="gaps-list" id="gapsList"></div>
-      </div>
-
-      <section id="yourPace" class="pace-panel" aria-labelledby="paceTitle">
-        <h2 id="paceTitle">Your Pace</h2>
-        <p>Set a rhythm that fits your plan, then check a break or a lighter period. These are local planning choices. Existing Buffer posts stay as scheduled.</p>
-        <div class="pace-period"><label>From<input class="input" type="date" id="paceStart"></label><label>Through<input class="input" type="date" id="paceEnd"></label><button class="btn" id="paceCheck" type="button">Check this period</button></div>
-        <p id="paceStatus" role="status"></p>
-        <div class="pace-columns">
-          <section class="pace-results" aria-labelledby="paceResultsTitle">
-            <div class="pace-results-header"><h3 id="paceResultsTitle">Period coverage</h3><span id="paceCoverageMeta"></span></div>
-            <p id="paceCoverageSummary" role="status"></p>
-            <p id="paceDataNote" class="calendar-state"></p>
-            <ul id="paceSlots" class="pace-slots" tabindex="0" aria-label="Uncovered planned slots"></ul>
-            <details class="pace-calculation"><summary>How coverage is calculated</summary><p>Only confirmed scheduled posts count toward your selected posting days and targets. Intentional days off are excluded. Local notes, drafts and target dates do not count as confirmed coverage. Checks use the displayed timezone and the latest loaded queue data.</p></details>
-          </section>
-          <div class="pace-controls">
-            <div class="pace-rhythm" role="group" aria-labelledby="paceRhythmTitle"><h3 id="paceRhythmTitle">Channel rhythm</h3><label>Channel<select class="input" id="paceChannel"></select></label><p id="paceChannelHint" hidden>Connect Buffer and sync to set a channel rhythm.</p><div id="paceDays" class="pace-days"></div><label>Posts per selected day<input class="input pace-number" id="paceTarget" type="number" min="0" max="10" value="1"></label><button class="btn" id="paceSave" type="button">Save rhythm</button></div>
-            <details class="pace-adjustment" id="paceLighterDetails"><summary>A lighter period</summary><div class="pace-adjustment-body"><p>Adjust this channel’s target for the selected dates. Zero plans no posts; the latest overlapping change takes precedence.</p><label>Posts per selected day<input class="input pace-number" id="pacePeriodTarget" type="number" min="0" max="10" value="0"></label><button class="btn" id="pacePeriodSave" type="button">Save period target</button></div></details>
-            <details class="pace-adjustment" id="paceOffDetails"><summary>Intentional days off</summary><div class="pace-adjustment-body"><p>Mark the selected dates off, without changing Buffer posts.</p><label>Apply to<select class="input" id="paceOffScope"><option value="*">All channels</option><option value="selected">Selected channel</option></select></label><button class="btn" id="paceOffSave" type="button">Mark dates off</button></div></details>
-          </div>
-        </div>
-        <div id="paceExceptions"></div>
-      </section>
     </section>
 
     <!-- ══════════ COMPOSE (Composer) ══════════ -->
@@ -1230,7 +1197,6 @@
   <!-- Quick links -->
   <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">↗ Open Buffer</a>
   <button class="btn ghost" data-view="ideasView" data-workspace-nav="ideas" data-feature="ideas" id="mobDrawerIdeasBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">Content Bank</button>
-  <button class="btn ghost" data-view="queueHealthView" data-feature="calendar">Queue Health</button>
   <button class="btn ghost" data-view="approvalsView" data-workspace-nav="approvals" data-feature="approvals">Approvals</button>
   <button class="btn ghost" data-view="libraryView" data-feature="library">Library</button>
   <button class="btn ghost" data-view="pulseView" data-feature="pulse">Pulse</button>
@@ -1563,6 +1529,45 @@
         <!-- Filled by Discord.renderSettings() on tab open -->
       </div>
 
+    </div>
+  </div>
+</div>
+
+<div id="scheduleModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="scheduleTitle" aria-hidden="true">
+  <div class="modal-card">
+    <div class="modal-hdr">
+      <span class="modal-title" id="scheduleTitle">Posting schedule</span>
+      <button class="btn sm ghost" id="schedClose" type="button">Close</button>
+    </div>
+    <p class="sched-intro">Tell PostIQ when you plan to post on each channel. The calendar uses this to show your content runway — how many days you're covered. These are local planning choices; your Buffer posts never change.</p>
+    <div class="sched-body">
+      <label class="label" for="schedChannel">Channel</label>
+      <select class="input" id="schedChannel"></select>
+      <p id="schedChannelHint" class="sched-hint" hidden>Connect Buffer and sync to set a schedule.</p>
+      <div class="sched-field">
+        <span class="label">Posting days</span>
+        <div id="schedDays" class="pace-days"></div>
+      </div>
+      <div class="sched-field">
+        <label class="label" for="schedTarget">Posts per selected day</label>
+        <input class="input pace-number" id="schedTarget" type="number" min="0" max="10" value="1">
+      </div>
+      <button class="btn primary" id="schedSave" type="button">Save schedule</button>
+      <p id="schedStatus" class="sched-status" role="status"></p>
+      <details class="sched-off">
+        <summary>Plan time off</summary>
+        <div class="sched-off-body">
+          <p>Taking a break? Mark dates off so a planned vacation doesn't show as a gap on your calendar. Your Buffer posts stay exactly as scheduled.</p>
+          <div class="sched-off-range">
+            <label>From<input class="input" type="date" id="schedOffStart"></label>
+            <label>Through<input class="input" type="date" id="schedOffEnd"></label>
+          </div>
+          <label class="label" for="schedOffScope">Apply to</label>
+          <select class="input" id="schedOffScope"><option value="*">All channels</option><option value="selected">Selected channel</option></select>
+          <button class="btn" id="schedOffSave" type="button">Mark dates off</button>
+        </div>
+      </details>
+      <div id="schedExceptions" class="sched-exceptions"></div>
     </div>
   </div>
 </div>

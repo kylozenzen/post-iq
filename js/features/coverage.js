@@ -55,6 +55,22 @@
     return {planned,covered,uncovered:planned-covered,fullyCovered:result.complete && planned>0 && planned===covered,complete:result.complete};
   }
   function runway(rows,id) {let count=0; for(const r of rows.filter(r=>r.channelId===String(id)).slice(1)) {if(r.status==='off')continue; if(r.status!=='scheduled')break; count++;} return count;}
-  const api={dayKey,addDays,calculate,runway,timezone,targetFor,summarize}; root.PostIQCoverage=api;
+  // Calendar-day runway: how many days from today until content runs out (the first
+  // posting day with no confirmed post). Non-posting and intentional-off days are
+  // included in the day count because they extend coverage. Returns the first-gap date.
+  function runwayInfo(rows,id,todayKey) {
+    const mine=rows.filter(r=>String(r.channelId)===String(id));
+    if(!mine.length) return {state:'none'};
+    const start=todayKey || mine[0].date;
+    const diff=key=>Math.round((Date.parse(key+'T12:00:00Z')-Date.parse(start+'T12:00:00Z'))/86400000);
+    for(const r of mine) {
+      if(r.status==='off' || r.status==='scheduled') continue;
+      if(r.status==='gap') return {state:'gap',days:Math.max(0,diff(r.date)),date:r.date};
+      return {state:r.status}; // incomplete / stale / disconnected — not a confident runway
+    }
+    const last=mine[mine.length-1];
+    return {state:'covered',days:diff(last.date)+1,horizon:true};
+  }
+  const api={dayKey,addDays,calculate,runway,runwayInfo,timezone,targetFor,summarize}; root.PostIQCoverage=api;
   if(typeof module!=='undefined')module.exports=api;
 })(typeof window==='undefined'?globalThis:window);

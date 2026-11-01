@@ -96,7 +96,7 @@ window.CalendarExperience = (() => {
   function init() {
     if(initialized || !qs('calendarView') || new URLSearchParams(location.search).has('approve') || location.hash.startsWith('#share=')) return;
     initialized=true; restore(); renderCalendar(); renderChannelFilter(); status();
-    qs('queueHealthSync').onclick=()=>getBufferConnectionState().connected ? syncBuffer({force:true}) : goToBufferConnect();
+    { const qh=qs('queueHealthSync'); if(qh) qh.onclick=()=>getBufferConnectionState().connected ? syncBuffer({force:true}) : goToBufferConnect(); }
     qs('calendarViewAgendaBtn').onclick=()=>setCalendarView('agenda');
     qs('calendarChannelFilter').onchange=e=>{state.calendarChannel=e.target.value;remember();renderCalendar();};
     qs('calendarAddBtn').onclick=()=>add();
