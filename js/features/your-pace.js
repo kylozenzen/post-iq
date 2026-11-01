@@ -58,8 +58,70 @@ window.YourPace = (() => {
         ...settings,
         channelPostingDays: { ...settings.channelPostingDays, [id]: days },
         channelTargets: { ...settings.channelTargets, [id]: target() },
+        channelReshare: { ...settings.channelReshare, [id]: !!el('schedReshare').checked },
       }, 'Schedule saved.');
     } catch (error) { message(error.message); }
+  }
+
+  // ── Evergreen reshare / "fill my break" ──────────────────
+  // Queues starred evergreen posts (from Library) into Buffer so a break
+  // doesn't break the streak. addToQueue lets Buffer slot each one into the
+  // channel's own schedule — no timestamp math, no change to existing posts.
+  function evergreenTexts() {
+    try {
+      const starred = new Set(JSON.parse(localStorage.getItem('postiq_library_starred_v1') || '[]'));
+      const cache = JSON.parse(localStorage.getItem('postiq_library_cache_v3') || '{}');
+      return (Array.isArray(cache.posts) ? cache.posts : [])
+        .filter(p => starred.has(p.id))
+        .map(p => String(p.text || '').trim())
+        .filter(Boolean);
+    } catch { return []; }
+  }
+  function postingDaysInRange(id, start, end, settings) {
+    const codes = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const days = settings.channelPostingDays?.[id] ?? settings.postingDays ?? DAY_CODES;
+    let n = 0, d = start;
+    while (d <= end) { if (days.includes(codes[new Date(d + 'T12:00:00Z').getUTCDay()])) n++; d = C.addDays(d, 1); }
+    return n;
+  }
+  let pendingFill = null;
+  function planFill() {
+    const status = el('schedFillStatus'), confirmBtn = el('schedFillConfirm');
+    confirmBtn.hidden = true; pendingFill = null;
+    try {
+      const dates = offPeriod();
+      const settings = getPlanningSettings();
+      const channels = (state.channels || []).filter(c => settings.channelReshare?.[String(c.id)]);
+      if (!channels.length) { status.textContent = 'Turn on evergreen reshares for at least one channel first (the checkbox above).'; return; }
+      const texts = evergreenTexts();
+      if (!texts.length) { status.textContent = 'Star some posts as evergreen in Library first — those are what get reshared.'; return; }
+      const plan = [];
+      channels.forEach(c => {
+        const n = postingDaysInRange(String(c.id), dates.start, dates.end, settings);
+        for (let i = 0; i < n; i++) plan.push({ channelId: String(c.id), text: texts[plan.length % texts.length] });
+      });
+      if (!plan.length) { status.textContent = 'No posting days fall in that range for your reshare channels.'; return; }
+      pendingFill = plan;
+      status.textContent = `Ready to queue ${plan.length} reshare${plan.length === 1 ? '' : 's'} across ${channels.length} channel${channels.length === 1 ? '' : 's'}. They'll post on your normal Buffer schedule.`;
+      confirmBtn.hidden = false;
+    } catch (error) { status.textContent = error.message; }
+  }
+  async function runFill() {
+    const status = el('schedFillStatus'), confirmBtn = el('schedFillConfirm');
+    if (!pendingFill || !pendingFill.length) { planFill(); return; }
+    const plan = pendingFill; pendingFill = null; confirmBtn.hidden = true; confirmBtn.disabled = true;
+    status.textContent = `Queuing ${plan.length}…`;
+    let ok = 0, fail = 0;
+    for (const item of plan) {
+      try {
+        const created = await createPost({ channelId: item.channelId, text: item.text, mode: 'addToQueue', schedulingType: 'automatic' });
+        ok++; if (created?.post?.dueAt && typeof appendScheduled === 'function') appendScheduled(created.post, item);
+      } catch (e) { fail++; console.error('[PostIQ reshare]', e); }
+    }
+    confirmBtn.disabled = false;
+    status.textContent = `Queued ${ok} reshare${ok === 1 ? '' : 's'}${fail ? `, ${fail} couldn't be queued` : ''}. Your existing Buffer posts are unchanged.`;
+    window.dispatchEvent(new Event('postiq:scheduled-updated'));
+    renderCalendar(); window.PostIQPlanHealth?.render();
   }
 
   function saveDaysOff() {
@@ -77,6 +139,7 @@ window.YourPace = (() => {
     el('schedDays').innerHTML = DAY_CODES.map((code, index) =>
       `<label><input type="checkbox" value="${code}" ${!id ? 'disabled' : ''} ${days.includes(code) ? 'checked' : ''}>${DAY_LABELS[index].slice(0, 3)}</label>`).join('');
     el('schedTarget').value = Number.isInteger(settings.channelTargets?.[id]) ? settings.channelTargets[id] : 1;
+    const reshare = el('schedReshare'); if (reshare) { reshare.checked = !!settings.channelReshare?.[id]; reshare.disabled = !id; }
   }
 
   function renderExceptions() {
@@ -130,6 +193,9 @@ window.YourPace = (() => {
     el('schedChannel').onchange = loadRhythm;
     el('schedSave').onclick = saveSchedule;
     el('schedOffSave').onclick = saveDaysOff;
+    el('schedFill').onclick = planFill;
+    el('schedFillConfirm').onclick = runFill;
+    ['schedOffStart', 'schedOffEnd'].forEach(id => el(id)?.addEventListener('input', () => { pendingFill = null; const c = el('schedFillConfirm'); if (c) c.hidden = true; }));
     el('schedClose').onclick = () => closeModal('scheduleModal');
     window.addEventListener('postiq:synced', () => refresh());
     window.addEventListener('postiq:planning-changed', () => refresh(true));

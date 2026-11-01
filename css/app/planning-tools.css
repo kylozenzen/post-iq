@@ -108,3 +108,10 @@
 .sched-exceptions { margin-top: 16px; }
 .sched-exceptions-title { font-size: 13px; margin: 0 0 4px; }
 .sched-exception { padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; overflow-wrap: anywhere; }
+
+/* Evergreen reshare toggle + fill-my-break */
+.sched-reshare { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--ink); line-height: 1.4; margin: 14px 0 4px; cursor: pointer; }
+.sched-reshare input { margin-top: 2px; flex: none; }
+.sched-fill { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+.sched-fill-copy { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 0 0 10px; }
+.sched-fill .btn { margin-right: 8px; }

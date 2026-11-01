@@ -1549,6 +1549,7 @@
         <label class="label" for="schedTarget">Posts per selected day</label>
         <input class="input pace-number" id="schedTarget" type="number" min="0" max="10" value="1">
       </div>
+      <label class="sched-reshare"><input type="checkbox" id="schedReshare"> Keep this channel's streak alive with evergreen reshares when I take time off</label>
       <button class="btn primary" id="schedSave" type="button">Save schedule</button>
       <p id="schedStatus" class="sched-status" role="status"></p>
       <details class="sched-off">
@@ -1562,6 +1563,12 @@
           <label class="label" for="schedOffScope">Apply to</label>
           <select class="input" id="schedOffScope"><option value="*">All channels</option><option value="selected">Selected channel</option></select>
           <button class="btn" id="schedOffSave" type="button">Mark dates off</button>
+          <div class="sched-fill">
+            <p class="sched-fill-copy">Want to keep posting while you're away? For every reshare-enabled channel, PostIQ can queue your evergreen posts (starred in Library) into Buffer across the posting days in this range. Buffer publishes them on your normal schedule — your streak stays alive.</p>
+            <button class="btn" id="schedFill" type="button">Fill these days with evergreen reshares</button>
+            <button class="btn primary" id="schedFillConfirm" type="button" hidden>Confirm &amp; queue to Buffer</button>
+            <p id="schedFillStatus" class="sched-status" role="status"></p>
+          </div>
         </div>
       </details>
       <div id="schedExceptions" class="sched-exceptions"></div>
