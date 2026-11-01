@@ -12,7 +12,7 @@ const templates = fs.readFileSync('js/features/templates.js', 'utf8');
 const library = fs.readFileSync('js/library.js', 'utf8');
 const sw = fs.readFileSync('sw.js', 'utf8');
 
-for (const tab of ['notebook', 'hooks', 'hashtags', 'templates', 'pillars', 'ai']) {
+for (const tab of ['notebook', 'hooks', 'hashtags', 'templates', 'ai']) {
   assert.match(html, new RegExp(`data-stool="${tab}"`));
   assert.match(html, new RegExp(`data-stool-panel="${tab}"`));
 }

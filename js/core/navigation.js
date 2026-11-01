@@ -18,18 +18,14 @@ function activateView(viewId, source = 'navigation') {
     if (viewId === 'composerView') GA4_Composer.composerOpened(source);
     if (viewId === 'calendarView') GA4_Calendar.calendarOpened();
     if (viewId === 'ideasView') GA4_Ideas.ideasOpened();
-    if (viewId === 'approvalsView') GA4_Approvals.approvalsOpened();
   });
-  if (viewId === 'approvalsView' && isFeatureEnabled('approvals') && typeof loadApprovals === 'function') loadApprovals();
   if (viewId === 'libraryView' && isFeatureEnabled('library') && window.PostIQLibrary) window.PostIQLibrary.activate();
-  if (viewId === 'pulseView' && isFeatureEnabled('pulse') && window.PostIQPulse) window.PostIQPulse.activate();
   document.body.dataset.gaReady = '1';
   currentViewId = viewId;
   document.querySelectorAll('[data-view]').forEach(x => x.classList.toggle('active', x.dataset.view === viewId));
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId));
   document.querySelectorAll('.mob-tab[data-view]').forEach(t => t.classList.toggle('active', t.dataset.view === viewId));
   if (viewId === 'homeView' && FEATURE_HOME_DASHBOARD) renderHomeView();
-  if (viewId === 'queueHealthView') { window.PostIQPlanHealth?.render(); window.YourPace?.refresh(); }
   if (viewId === 'ideasView') setIdeasTab(currentIdeasTab || 'notebook');
   window.dispatchEvent(new CustomEvent('postiq:view-changed', { detail: { viewId, source } }));
 }
@@ -37,13 +33,11 @@ window.activateView = activateView;
 
 function setIdeasTab(tabId = 'notebook') {
   if (tabId === 'trending' && !getFeatureFlag('trending')) { showFeaturePaused('trending'); tabId = 'notebook'; }
-  const tab = ['notebook', 'pillars', 'templates', 'trending'].includes(tabId) ? tabId : 'notebook';
+  const tab = ['notebook', 'templates'].includes(tabId) ? tabId : 'notebook';
   currentIdeasTab = tab;
   const resources=document.getElementById('bankResources');
   if(resources) {resources.open=false;document.getElementById('bankResourcesSummary').textContent=tab==='notebook'?'Resources':`Resources · ${document.querySelector(`[data-ideas-tab="${tab}"]`)?.textContent || tab}`;}
   safeTrack(() => GA4_Ideas.tabSwitched(tab));
-  if (tab === 'pillars') safeTrack(() => GA4_Pillars.builderOpened());
-  if (tab === 'trending') safeTrack(() => GA4_Trending.trendingOpened());
   document.querySelectorAll('.ideas-tab').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.ideasTab === tab);
   });

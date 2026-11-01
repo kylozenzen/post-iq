@@ -23,26 +23,21 @@ const THEMES = Object.freeze(['default', 'classic', 'neon', 'studio', 'evergreen
 // Themes retired as standalone choices, mapped to the value that preserves the
 // look the person already had. Applied once, on first load after the change.
 const LEGACY_THEME_ALIASES = Object.freeze({ editorial: 'default' });
-const WORKSPACE_DEFAULTS = Object.freeze({ planning: true, create: true, ideas: true, approvals: true });
-const WORKSPACE_VIEWS = Object.freeze({ planning: 'calendarView', create: 'composerView', ideas: 'ideasView', approvals: 'approvalsView' });
+const WORKSPACE_DEFAULTS = Object.freeze({ planning: true, create: true, ideas: false });
+const WORKSPACE_VIEWS = Object.freeze({ planning: 'calendarView', create: 'composerView', ideas: 'ideasView' });
 // Internal beta feature flags for safely rolling modules on/off. These are not user-facing settings.
 const FEATURE_FLAGS = {
   calendar: true,
   composer: true,
   ideas: true,
-  // Approvals is controlled entirely by the admin panel / POSTIQ_FEATURE_APPROVALS, not hardcoded here.
-  approvals: true,
   library: true,
-  pulse: true,
   contentItems: true
 };
 const FEATURE_VIEWS = Object.freeze({
   calendar: 'calendarView',
   composer: 'composerView',
   ideas: 'ideasView',
-  approvals: 'approvalsView',
-  library: 'libraryView',
-  pulse: 'pulseView'
+  library: 'libraryView'
 });
 
 const IMGUR_KEY    = '546c25a59c58ad7';
@@ -71,12 +66,9 @@ const DEFAULT_POSTIQ_CONFIG = {
     calendar: true,
     composer: true,
     ideas: true,
-    contentPillars: true,
     trending: true,
-    approvals: true,
     snapshots: true,
     library: true,
-    pulse: true,
     uploads: true,
     unsplash: true,
     contentItems: true,
@@ -85,11 +77,8 @@ const DEFAULT_POSTIQ_CONFIG = {
     calendar: '',
     composer: '',
     ideas: '',
-    contentPillars: '',
-    approvals: '',
     trending: '',
     library: '',
-    pulse: '',
     uploads: '',
     snapshots: '',
     contentItems: ''
@@ -250,7 +239,7 @@ function getWorkspaceForView(viewId) {
 }
 
 function syncNavSectionVisibility() {
-  const hasVisibleTools = Array.from(document.querySelectorAll('[data-feature="library"], [data-feature="pulse"], [data-view="queueHealthView"]'))
+  const hasVisibleTools = Array.from(document.querySelectorAll('[data-feature="library"]'))
     .some(el => !el.hidden && el.style.display !== 'none');
   document.querySelectorAll('[data-tools-section]').forEach(el => {
     el.hidden = !hasVisibleTools;
@@ -448,6 +437,11 @@ function applyInternalFeatureFlags() {
       el.disabled = false;
     }
   });
+
+  // Feature flags above un-hide every enabled [data-feature]; re-apply workspace
+  // preferences so a workspace the user (or the default) has turned off stays
+  // hidden even though its feature flag is on.
+  if (typeof renderWorkspacePreferences === 'function') renderWorkspacePreferences();
 
   syncNavSectionVisibility();
 

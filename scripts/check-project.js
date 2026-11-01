@@ -40,7 +40,7 @@ for (const relativePath of checkedFiles.filter(file => file.endsWith('.js'))) {
   }
 }
 
-for (const viewId of ['calendarView', 'composerView', 'ideasView', 'approvalsView', 'libraryView', 'pulseView']) {
+for (const viewId of ['calendarView', 'composerView', 'ideasView', 'libraryView']) {
   if (!appHtml.includes(`id="${viewId}"`)) failures.push(`Missing view ${viewId}`);
 }
 

@@ -12,9 +12,11 @@ const runtime = fs.readFileSync('js/core/runtime.js', 'utf8');
 const calendar = fs.readFileSync('js/features/calendar.js', 'utf8');
 const composer = fs.readFileSync('js/features/composer-resources.js', 'utf8');
 
-test('health strip lives in its own Queue Health tool', () => {
-  const view = html.slice(html.indexOf('id="queueHealthView"'), html.indexOf('<!-- ══════════ COMPOSE'));
+test('runway and health strips live on the calendar, not a separate tool', () => {
+  const view = html.slice(html.indexOf('id="calendarView"'), html.indexOf('<!-- ══════════ COMPOSE'));
+  assert.match(view, /id="calendarRunway"/);
   assert.match(view, /id="planHealthStrip"/);
+  assert.ok(!html.includes('id="queueHealthView"'), 'standalone Queue Health view should be removed');
 });
 
 test('runway and plan-health scripts load after calendar.js and before composer', () => {
@@ -74,9 +76,9 @@ test('calendar edits refresh the composer notes strip', () => {
   assert.match(calendar, /PostIQComposerResources\?\.refreshDayNotes/);
 });
 
-test('health panel is collapsible and remembers its state per browser', () => {
+test('plan-health is a connection/health strip with no duplicated runway number', () => {
   const health = fs.readFileSync('js/features/plan-health.js', 'utf8');
-  assert.match(health, /data-health-toggle/);
-  assert.match(health, /aria-expanded/);
-  assert.match(health, /postiqPlanHealthOpen/);
+  assert.match(health, /Reconnect Buffer/);
+  assert.match(health, /break/i); // the "a break is fine" nudge
+  assert.ok(!/posting days? covered/i.test(health), 'runway numbers belong in the calendar runway banner, not plan-health');
 });

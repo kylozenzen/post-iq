@@ -23,40 +23,32 @@ It's independently built. Not affiliated with Buffer. Just someone who needed th
 ## What it does
 
 ```
-Connect Buffer → Inspect coverage → Plan a gap → Send to Buffer
+See your runway on the calendar → write in Compose → send to Buffer
 ```
 
-### 📅 Calendar
-Month, week and agenda views of confirmed Buffer posts alongside date-only planning notes, to-do actions and Content Bank target dates (labelled “not scheduled”). With a connected, fresh queue, days are labelled scheduled, gap or non-posting day according to your rhythm. Share a read-only snapshot link without requiring a PostIQ account.
+The calendar is the home base and Compose is where you write. Everything else supports that loop.
 
-### Your Pace
+### 📅 Calendar — the home base
+Month, week and agenda views of confirmed Buffer posts alongside date-only planning notes and to-do actions. Once you set a posting schedule, the top of the calendar shows your **content runway** per channel — "Covered for 20 days — new content needed by Nov 21", counting non-posting days — plus a calm connection/health line that tells you when you're well ahead and a break is fine. Share a read-only snapshot link without a PostIQ account.
 
-Open Queue Health from Workspace (or the Calendar shortcut) to set a per-channel
-posting rhythm, check period coverage, mark intentional days off, or plan a lighter
-period. Your Pace uses confirmed scheduled posts and labels incomplete or stale
-queue data. These local planning changes do not move, cancel, publish, or delete
-Buffer posts.
+### ⏱️ Posting schedule
+A focused modal (open it from the Calendar) where you set, per channel, which days you post and how many times — that powers the runway. Mark **time off** so a planned break doesn't show as a gap, and turn on **evergreen reshares** to keep your streak alive: PostIQ can queue your starred evergreen posts into Buffer across the days you're away. These are local planning choices; your Buffer posts never change.
 
-### 🧭 Take a tour
-The tour is PostIQ's onboarding. Five steps (calendar, planning context, Queue Health, Your Pace, Content Bank) open once on someone's first visit to the app, whether they preview first or sign in first, and can be restarted from **Take a tour** in the sidebar, Calendar header, or mobile More menu (or a link with `?tour=1`). It is skippable, closes on Escape or when you navigate elsewhere, never performs Buffer writes, and skips steps for disabled workspaces. Disconnected visitors are offered **Sign in with Buffer** on the last step. Once closed it is recorded as seen, and the `tour=1` flag is removed on load, so it does not reopen on refresh or after Buffer sign-in. Visitors from before the tour existed are not interrupted.
-
-### 🎛️ Custom Workspaces
-Turn the Calendar, Compose, Content Bank, and Approvals workspaces on or off from Customize settings so the sidebar matches your workflow. Choose from five themes: PostIQ, Classic, After Dark, Studio, and Evergreen. Workspace and theme preferences are saved locally in your browser.
-
-### 🧠 Content Pillars
-Define your repeatable content themes with seed ideas and tone angles. The Pillar Plan Builder walks you through 6 questions and generates a full pillar system — 5 content pillars, trust layer tags, seed ideas, hooks, and series starters. Hit Start on any seed to drop a post starter directly into Compose.
-
-### ✍️ Compose
-Focused writing workspace with local draft autosave, a distraction-free mode, rich text formatting, media attachment (URL, upload, or Unsplash), and searchable writing tools. Pull in Content Bank items, saved or proven hooks, hashtag sets, templates, pillars, and AI Assist without leaving the draft. Send to Buffer as a draft, queue it, or schedule it for a specific time. Nothing publishes until you choose a Buffer action.
+### ✍️ Compose — the writing tool
+Focused writing workspace with local draft autosave, distraction-free mode, rich text, media (URL, upload, or Unsplash), and searchable writing tools: saved hooks, hashtag sets, templates, **Trending** ideas (Reddit, Hacker News, Product Hunt, RSS — loaded only when you open the tab), and AI Assist, without leaving the draft. Send to Buffer as a draft, queue it, or schedule it. Nothing publishes until you choose.
 
 ### 💡 Content Bank
-Three tools in one tab:
-- **Saved content** — search existing references, source text, and independent channel versions. Identify undated items and plan local target dates separately from confirmed Buffer scheduling. Pin any card above your Compose editor as a writing reference.
-- **Trending** — browse Reddit, Hacker News, and Product Hunt for timely ideas. Click any story to compose from it.
+- **Saved content** — search references, source text, and independent channel versions; plan local target dates separately from Buffer scheduling; pin any card above your Compose editor.
 - **Templates** — save and reuse your best hooks, CTAs, announcements, and engagement questions.
 
-### ✅ Approvals *(beta)*
-Generate a shareable reviewer link for any Buffer draft. Your client reads the post, leaves feedback, and approves or requests changes — no PostIQ account needed. Publishing unlocks after approval.
+### 📚 Library
+Your latest sent posts, for filling gaps fast. Star posts as **evergreen** to build a reuse pool; **Reshare** loads one back into Compose to send again, or **Rewrite** pins it as a reference for a fresh take.
+
+### 🧭 Take a tour
+PostIQ's onboarding — three steps (calendar & runway, posting schedule, Compose) that open once on a first visit and can be restarted from **Take a tour** in the sidebar, Calendar header, or mobile More menu (or `?tour=1`). Skippable, non-modal, never writes to Buffer.
+
+### 🎛️ Customize
+Turn the Content Bank workspace on or off so the sidebar matches your workflow (new accounts start with Calendar and Compose). Choose from five themes: PostIQ, Classic, After Dark, Studio, and Evergreen. Preferences are saved locally in your browser.
 
 ### 🔗 Snapshots
 Turn any week or month of planned content into a static, shareable link. Recipients see a clean read-only calendar view with full post text. No login required.
@@ -100,11 +92,12 @@ app.html                 # App shell and ordered asset entry points
 css/app/                 # App styles grouped by workspace and responsibility
 js/core/                 # Shared runtime, navigation, bootstrap, and startup
 js/integrations/         # Buffer auth/API and post creation boundaries
-js/features/             # Calendar, composer, media, templates, approvals, pillars
-js/*.js                  # Standalone modules (AI Assist, Library, Pulse, onboarding)
+js/features/             # Calendar, runway, posting schedule, composer, media, templates
+js/*.js                  # Standalone modules (AI Assist, Library, trending wiring)
+archive/                 # Retired features kept for reference (Pulse, Content Pillars, Approvals)
 manifest.json            # PWA manifest
 sw.js                    # Service worker and app-shell cache manifest
-netlify/functions/       # Buffer proxy, token exchange, approvals, trending, config
+netlify/functions/       # Buffer proxy, token exchange, trending, config
 ```
 
 ---

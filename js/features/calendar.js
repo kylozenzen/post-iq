@@ -338,6 +338,8 @@ function renderCalendarView() {
   renderAgenda();
   renderWeekView();
   updateCalendarViewUI();
+  try { renderCalendarRunway(); } catch (e) { console.error('[PostIQ] renderCalendarRunway failed:', e); }
+  try { window.PostIQGettingStarted?.render(); } catch (e) { console.error('[PostIQ] getting-started render failed:', e); }
 }
 
 function weekStart(date) {
@@ -418,6 +420,46 @@ function updateCalendarViewUI() {
   }
 }
 
+
+function renderCalendarRunway() {
+  const box = qs('calendarRunway'); if (!box) return;
+  box.innerHTML = ''; box.className = 'calendar-runway';
+  if (!getBufferConnectionState().connected) return; // nothing to measure until signed in
+  const settings = getPlanningSettings();
+  const scheduled = (state.channels || []).filter(ch => Array.isArray(settings.channelPostingDays?.[String(ch.id)]) && settings.channelPostingDays[String(ch.id)].length);
+  if (!(state.channels || []).length) return;
+  if (!scheduled.length) {
+    box.classList.add('is-setup');
+    box.innerHTML = `<div class="runway-prompt"><span class="runway-ico" aria-hidden="true">◷</span><div><strong>See your content runway.</strong> Set a posting schedule per channel and the calendar will show how many days you're covered.</div><button class="btn sm" type="button" data-open-schedule="runway">Set posting schedule</button></div>`;
+    box.querySelector('[data-open-schedule]')?.addEventListener('click', () => window.YourPace?.open?.());
+    return;
+  }
+  const coverage = getQueueCoverage(90);
+  const today = PostIQCoverage.dayKey(new Date());
+  const fmt = key => { try { return new Date(key + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); } catch { return key; } };
+  const lines = [];
+  let worst = 'covered';
+  scheduled.forEach(ch => {
+    const info = PostIQCoverage.runwayInfo(coverage.rows, ch.id, today);
+    const name = safeText(ch.displayName || ch.name || ch.id);
+    if (info.state === 'covered') {
+      lines.push(`<li class="runway-line is-good"><span class="runway-dot"></span><span class="runway-ch">${name}</span><span class="runway-msg">You're covered — nothing needed today.</span></li>`);
+    } else if (info.state === 'gap') {
+      const tone = info.days === 0 ? 'now' : info.days < 3 ? 'low' : 'ok';
+      if (tone !== 'ok' && worst !== 'now') worst = tone === 'now' ? 'now' : 'low';
+      const msg = info.days === 0
+        ? `New content needed today.`
+        : info.days < 3
+          ? `${info.days} day${info.days === 1 ? '' : 's'} of content left — add more by <strong>${fmt(info.date)}</strong>.`
+          : `Covered for <strong>${info.days} days</strong> — new content needed by <strong>${fmt(info.date)}</strong>.`;
+      lines.push(`<li class="runway-line is-${tone}"><span class="runway-dot"></span><span class="runway-ch">${name}</span><span class="runway-msg">${msg}</span></li>`);
+    }
+    // incomplete / stale / disconnected: left to the connection-health signal
+  });
+  if (!lines.length) return;
+  box.classList.add('is-active', `tone-${worst}`);
+  box.innerHTML = `<ul class="runway-list">${lines.join('')}</ul>`;
+}
 
 function detectQueueGaps() {
   const panel = qs('gapsPanel'); const list = qs('gapsList');

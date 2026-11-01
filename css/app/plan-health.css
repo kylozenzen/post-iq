@@ -30,3 +30,74 @@
 .plan-health-break { color: var(--ok, #0fa672); font-weight: 600; }
 .plan-health-note { color: var(--subtle, #6b6b6b); font-size: 12px; }
 @media (max-width: 768px) { .plan-health-summary { white-space: normal; } }
+
+/* ── Calendar content runway ───────────────────────────────
+   Calm, per-channel coverage banner at the top of the calendar.
+   No alarm colors: green when healthy, brand accent only when low. */
+.calendar-runway { margin: 0 0 14px; }
+.calendar-runway:empty { display: none; }
+.calendar-runway.is-setup .runway-prompt {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border: 1px dashed var(--border);
+  border-radius: 10px; background: var(--surface);
+  font-size: 13px; color: var(--muted); line-height: 1.5;
+}
+.calendar-runway .runway-prompt strong { color: var(--ink); }
+.calendar-runway .runway-prompt .runway-ico { font-size: 18px; color: var(--muted); }
+.calendar-runway .runway-prompt button { margin-left: auto; white-space: nowrap; }
+.calendar-runway.is-active {
+  border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface); padding: 6px 2px;
+}
+.calendar-runway .runway-list { list-style: none; margin: 0; padding: 0; }
+.runway-line {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 7px 14px; font-size: 13px; line-height: 1.45; color: var(--ink);
+}
+.runway-line + .runway-line { border-top: 1px solid var(--border); }
+.runway-line .runway-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; align-self: center; background: var(--green); }
+.runway-line .runway-ch { font-weight: 600; min-width: 90px; }
+.runway-line .runway-msg { color: var(--muted); }
+.runway-line .runway-msg strong { color: var(--ink); font-weight: 600; }
+.runway-line.is-low .runway-dot,
+.runway-line.is-now .runway-dot { background: var(--brand); }
+.runway-line.is-now .runway-msg strong { color: var(--brand); }
+
+/* ── Calendar connection + queue health strip ──────────────
+   One line: connection status, or a calm "a break is fine" nudge.
+   Runway numbers live in the runway banner above, never here. */
+.plan-health-strip { margin: 0 0 14px; }
+.plan-health-strip:empty { display: none; }
+.health-card {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 10px 14px; border: 1px solid var(--border);
+  border-radius: 10px; background: var(--surface); font-size: 13px; line-height: 1.45;
+}
+.health-card .health-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; align-self: center; }
+.health-card .health-body { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+.health-card .health-body strong { color: var(--ink); font-weight: 600; }
+.health-card .health-body span { color: var(--muted); }
+.health-good .health-dot { background: var(--green); }
+.health-neutral .health-dot { background: var(--muted); }
+.health-warn .health-dot { background: var(--brand); }
+.health-warn .health-body strong { color: var(--brand); }
+
+/* ── Getting Started checklist ─────────────────────────────
+   Calm, dismissible onboarding card at the top of the calendar. */
+.getting-started { margin: 0 0 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 14px 16px; }
+.getting-started[hidden] { display: none; }
+.gs-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.gs-title { font-size: 14px; color: var(--ink); }
+.gs-progress { font-size: 12px; color: var(--muted); margin-left: 8px; font-family: 'DM Mono', monospace; }
+.gs-dismiss { border: none; background: transparent; color: var(--muted); font-size: 12px; cursor: pointer; padding: 4px 6px; }
+.gs-dismiss:hover { color: var(--ink); text-decoration: underline; }
+.gs-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.gs-step { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--border); }
+.gs-step:first-child { border-top: none; }
+.gs-check { width: 20px; height: 20px; flex: none; display: grid; place-items: center; border-radius: 50%; font-size: 12px; border: 1px solid var(--border2, var(--border)); color: var(--muted); }
+.gs-step.is-done .gs-check { background: var(--green-dim); border-color: var(--green-glow); color: var(--green); }
+.gs-step-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.gs-step-label { font-size: 13px; font-weight: 600; color: var(--ink); }
+.gs-step.is-done .gs-step-label { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--border2, var(--border)); }
+.gs-step-desc { font-size: 12px; color: var(--muted); line-height: 1.45; }
+.gs-step .btn { flex: none; white-space: nowrap; }

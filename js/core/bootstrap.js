@@ -141,12 +141,6 @@ function init() {
   }
 
   try {
-    if (window.ContentPillars?.init) window.ContentPillars.init();
-  } catch (e) {
-    console.error('[PostIQ] ContentPillars.init() failed:', e);
-  }
-
-  try {
     if (window.Discord?.init) window.Discord.init();
   } catch (e) {
     console.error('[PostIQ] Discord.init() failed:', e);
@@ -156,12 +150,6 @@ function init() {
     if (isFeatureEnabled('library') && window.PostIQLibrary?.init) window.PostIQLibrary.init();
   } catch (e) {
     console.error('[PostIQ] PostIQLibrary.init() failed:', e);
-  }
-
-  try {
-    if (isFeatureEnabled('pulse') && window.PostIQPulse?.init) window.PostIQPulse.init();
-  } catch (e) {
-    console.error('[PostIQ] PostIQPulse.init() failed:', e);
   }
 
   try {
@@ -230,6 +218,7 @@ function init() {
   on('prevMonth', 'click', () => { shiftCalendarRange(-1); renderCalendar(); detectQueueGaps(); });
   on('nextMonth', 'click', () => { shiftCalendarRange(1); renderCalendar(); detectQueueGaps(); });
   on('todayMonth', 'click', () => { state.month = new Date(); renderCalendar(); detectQueueGaps(); });
+  document.querySelectorAll('[data-open-schedule]').forEach(b => b.addEventListener('click', () => window.YourPace?.open?.()));
   on('closeNote', 'click', () => { closeModal('noteModal'); resetNoteForm(); });
   const closeShared = qs('closeSharedDay'); if (closeShared) closeShared.onclick = () => closeModal('sharedDayModal');
   on('saveNoteBtn', 'click', saveNote);
@@ -358,20 +347,6 @@ function init() {
   on('unsplashQuery', 'keydown', e => { if (e.key === 'Enter') runUnsplashSearch(); });
 
 
-  on('approvalsRefreshBtn', 'click', loadApprovals);
-  document.querySelectorAll('[data-afilter]').forEach(pill => {
-    pill.onclick = () => {
-      document.querySelectorAll('[data-afilter]').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      const filter = pill.dataset.afilter;
-      document.querySelectorAll('#approvalsList .approval-card').forEach(card => {
-        const bar = card.querySelector('.approval-card-status-bar');
-        if (!bar) return;
-        const status = bar.classList.contains('approved') ? 'approved' : bar.classList.contains('changes') ? 'changes' : 'pending';
-        card.style.display = (filter === 'all' || status === filter) ? '' : 'none';
-      });
-    };
-  });
 
 
 
@@ -400,7 +375,7 @@ function init() {
   }
   on('mobBackdrop', 'click', closeMobDrawer);
   qs('mobDrawer')?.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',closeMobDrawer));
-  ['mobMenuBtn','mobMenuBtnDraft','mobMenuBtnApprovals'].forEach(id => {
+  ['mobMenuBtn','mobMenuBtnDraft'].forEach(id => {
     const btn = qs(id); if (btn) btn.onclick = openMobDrawer;
   });
   on('mobSyncBtn', 'click', () => { syncBuffer({ force: true }); closeMobDrawer(); });
@@ -422,7 +397,6 @@ function init() {
   editor.addEventListener('input', updateComposerClearButtonVisibility);
   updateComposerClearButtonVisibility();
 
-  const arbm = qs('approvalsRefreshBtnMob'); if (arbm) arbm.onclick = loadApprovals;
 
   const mobMoreBtn = qs('mobMoreBtn');
   if (mobMoreBtn) mobMoreBtn.onclick = openMobDrawer;
@@ -809,8 +783,10 @@ function init() {
       if (btn) btn.onclick = handler;
     });
 
-    // Load Reddit on init
-    loadReddit();
+    // Lazy: load Reddit only when the Trending tab in Compose is first opened,
+    // so there's no API call on every app load.
+    let trendingLoaded = false;
+    window.PostIQTrending = { ensureLoaded() { if (trendingLoaded) return; trendingLoaded = true; loadReddit(); } };
   }
 
   try {

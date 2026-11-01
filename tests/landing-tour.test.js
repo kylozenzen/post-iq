@@ -32,6 +32,6 @@ assert.match(tour, /action === 'connect'[\s\S]*goToBufferConnect/);
 assert.match(tour, /FIRST_VISIT && read\(SEEN_KEY\) !== '1'/, 'opens once on a first visit');
 assert.match(tour, /params\.delete\('tour'\)/, 'landing tour flag is single-use');
 assert.match(tour, /aria-modal', 'false'/, 'tour is non-modal');
-for (const id of ['calendar', 'context', 'health', 'pace', 'bank']) assert.match(tour, new RegExp(`id: '${id}'`));
+for (const id of ['calendar', 'schedule', 'compose']) assert.match(tour, new RegExp(`id: '${id}'`));
 
 console.log('Landing CTA, claim, screenshot and tour wiring tests passed');
