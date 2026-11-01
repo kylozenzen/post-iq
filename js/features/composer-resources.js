@@ -380,6 +380,7 @@ window.PostIQComposerResources = (() => {
     if (searchWrap) searchWrap.hidden = !SEARCHABLE_TABS.has(activeTab);
     if (search) search.placeholder = `Search ${TAB_LABELS[activeTab] || 'writing tools'}`;
     try { localStorage.setItem(LAST_TAB_KEY, activeTab); } catch {}
+    if (activeTab === 'trending') { try { window.PostIQTrending?.ensureLoaded?.(); } catch {} }
     refresh();
     if (focusTab) selected.focus();
   }

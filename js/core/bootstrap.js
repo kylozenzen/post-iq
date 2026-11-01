@@ -783,8 +783,10 @@ function init() {
       if (btn) btn.onclick = handler;
     });
 
-    // Load Reddit on init
-    loadReddit();
+    // Lazy: load Reddit only when the Trending tab in Compose is first opened,
+    // so there's no API call on every app load.
+    let trendingLoaded = false;
+    window.PostIQTrending = { ensureLoaded() { if (trendingLoaded) return; trendingLoaded = true; loadReddit(); } };
   }
 
   try {
