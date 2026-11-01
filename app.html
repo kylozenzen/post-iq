@@ -243,6 +243,9 @@
       <div class="calendar-layout">
       <div class="view-content calendar-main">
 
+      <!-- Getting started checklist — shown to new users until done or dismissed -->
+      <div id="gettingStarted" class="getting-started" hidden></div>
+
       <!-- Content runway — per-channel, shown once a posting schedule is set -->
       <div id="calendarRunway" class="calendar-runway" aria-live="polite"></div>
       <!-- Channel + connection health, and the "a break is fine" reminder -->
@@ -992,6 +995,7 @@
   <script src="./js/core/bootstrap.js" defer></script>
   <script src="./js/features/calendar-experience.js" defer></script>
   <script src="./js/features/your-pace.js" defer></script>
+  <script src="./js/features/getting-started.js" defer></script>
   <script src="./js/core/startup.js" defer></script>
   <script src="./js/discord-integration.js" defer></script>
   <script src="./js/library.js" defer></script>

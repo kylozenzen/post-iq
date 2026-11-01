@@ -94,6 +94,7 @@ async function composerSend(action) {
     const draftId = created?.post?.id;
     const msg = action === 'draft' ? 'Buffer draft saved.' : action === 'queue' ? 'Added to queue.' : 'Scheduled.';
     qs('composerStatus').textContent = msg; showToast(msg, 'success');
+    try { localStorage.setItem('postiq_first_post_sent', '1'); window.dispatchEvent(new Event('postiq:scheduled-updated')); } catch {}
     safeTrack(() => GA4_Composer.postSent({ action, charCount: text.length, hasMedia: !!imgUrl, mediaType: mediaState.type || 'none', channelCount: 1, isThread: false, threadPartCount: 1, daysAhead: 0 }));
     composerContentStartedTracked = false;
     composerMilestonesTracked.clear();
