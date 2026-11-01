@@ -23,15 +23,13 @@ const THEMES = Object.freeze(['default', 'classic', 'neon', 'studio', 'evergreen
 // Themes retired as standalone choices, mapped to the value that preserves the
 // look the person already had. Applied once, on first load after the change.
 const LEGACY_THEME_ALIASES = Object.freeze({ editorial: 'default' });
-const WORKSPACE_DEFAULTS = Object.freeze({ planning: true, create: true, ideas: true, approvals: true });
-const WORKSPACE_VIEWS = Object.freeze({ planning: 'calendarView', create: 'composerView', ideas: 'ideasView', approvals: 'approvalsView' });
+const WORKSPACE_DEFAULTS = Object.freeze({ planning: true, create: true, ideas: true });
+const WORKSPACE_VIEWS = Object.freeze({ planning: 'calendarView', create: 'composerView', ideas: 'ideasView' });
 // Internal beta feature flags for safely rolling modules on/off. These are not user-facing settings.
 const FEATURE_FLAGS = {
   calendar: true,
   composer: true,
   ideas: true,
-  // Approvals is controlled entirely by the admin panel / POSTIQ_FEATURE_APPROVALS, not hardcoded here.
-  approvals: true,
   library: true,
   contentItems: true
 };
@@ -39,7 +37,6 @@ const FEATURE_VIEWS = Object.freeze({
   calendar: 'calendarView',
   composer: 'composerView',
   ideas: 'ideasView',
-  approvals: 'approvalsView',
   library: 'libraryView'
 });
 
@@ -70,7 +67,6 @@ const DEFAULT_POSTIQ_CONFIG = {
     composer: true,
     ideas: true,
     trending: true,
-    approvals: true,
     snapshots: true,
     library: true,
     uploads: true,
@@ -81,7 +77,6 @@ const DEFAULT_POSTIQ_CONFIG = {
     calendar: '',
     composer: '',
     ideas: '',
-    approvals: '',
     trending: '',
     library: '',
     uploads: '',

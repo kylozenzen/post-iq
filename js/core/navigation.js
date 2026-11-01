@@ -18,9 +18,7 @@ function activateView(viewId, source = 'navigation') {
     if (viewId === 'composerView') GA4_Composer.composerOpened(source);
     if (viewId === 'calendarView') GA4_Calendar.calendarOpened();
     if (viewId === 'ideasView') GA4_Ideas.ideasOpened();
-    if (viewId === 'approvalsView') GA4_Approvals.approvalsOpened();
   });
-  if (viewId === 'approvalsView' && isFeatureEnabled('approvals') && typeof loadApprovals === 'function') loadApprovals();
   if (viewId === 'libraryView' && isFeatureEnabled('library') && window.PostIQLibrary) window.PostIQLibrary.activate();
   document.body.dataset.gaReady = '1';
   currentViewId = viewId;

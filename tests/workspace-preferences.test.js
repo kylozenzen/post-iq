@@ -39,18 +39,18 @@ function run(expression) {
 }
 
 stored.set('postiq.workspacePreferences', '{bad json');
-assert.deepEqual({ ...run('getWorkspacePreferences()') }, { planning: true, create: true, ideas: true, approvals: true });
-assert.equal(stored.get('postiq.workspacePreferences'), JSON.stringify({ planning: true, create: true, ideas: true, approvals: true }));
+assert.deepEqual({ ...run('getWorkspacePreferences()') }, { planning: true, create: true, ideas: true });
+assert.equal(stored.get('postiq.workspacePreferences'), JSON.stringify({ planning: true, create: true, ideas: true }));
 
-stored.set('postiq.workspacePreferences', JSON.stringify({ planning: false, create: false, ideas: false, approvals: false }));
-assert.deepEqual({ ...run('getWorkspacePreferences()') }, { planning: true, create: false, ideas: false, approvals: false });
+stored.set('postiq.workspacePreferences', JSON.stringify({ planning: false, create: false, ideas: false }));
+assert.deepEqual({ ...run('getWorkspacePreferences()') }, { planning: true, create: false, ideas: false });
 
-run('workspacePreferences = { planning: false, create: false, ideas: true, approvals: false }; setWorkspacePreference("ideas", false)');
+run('workspacePreferences = { planning: false, create: false, ideas: true }; setWorkspacePreference("ideas", false)');
 assert.equal(note.textContent, 'At least one workspace needs to stay on.');
 assert.equal(run('workspacePreferences.ideas'), true);
 
 context.currentViewId = 'ideasView';
-run('workspacePreferences = { planning: true, create: false, ideas: true, approvals: false }; saveWorkspacePreferences({ planning: true, create: false, ideas: false, approvals: false })');
+run('workspacePreferences = { planning: true, create: false, ideas: true }; saveWorkspacePreferences({ planning: true, create: false, ideas: false })');
 assert.equal(context.activatedView, 'calendarView');
 assert.equal(nav.hidden, true);
 assert.equal(toggle.checked, false);

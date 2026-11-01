@@ -67,7 +67,6 @@ async function composerSend(action) {
   if (!connection.connected && !oauthToken?.accessToken && !oauthToken?.refreshToken) { showToast(connection.reconnectNeeded ? 'Reconnect Buffer first' : 'Connect Buffer first', 'error'); return; }
   const channelId = qs('composerChannel').value;
   if (!channelId) { showToast('Load channels first', 'error'); return; }
-  const needsApproval = qs('needsApprovalCheck')?.checked || false;
   const when = qs('composerWhen').value;
   const input = { channelId, text, schedulingType: 'automatic' };
   if (action === 'draft') { input.mode = 'addToQueue'; input.saveToDraft = true; }
@@ -93,16 +92,9 @@ async function composerSend(action) {
     const created = await createPost(input);
     accepted = true;
     const draftId = created?.post?.id;
-    if (action === 'draft' && needsApproval && draftId) {
-      const ch = state.channels.find(c => c.id === channelId);
-      setApprovalMeta(draftId, {
-        needs_approval: true, status: 'pending', comments: [], link_generated: false, locked: false,
-        content: text, platform: ch?.service || null, image_url: imgUrl || null, channel_id: channelId, created_at: Date.now(),
-      });
-    }
     const msg = action === 'draft' ? 'Buffer draft saved.' : action === 'queue' ? 'Added to queue.' : 'Scheduled.';
     qs('composerStatus').textContent = msg; showToast(msg, 'success');
-    safeTrack(() => GA4_Composer.postSent({ action, charCount: text.length, hasMedia: !!imgUrl, mediaType: mediaState.type || 'none', channelCount: 1, isThread: false, threadPartCount: 1, needsApproval, daysAhead: 0 }));
+    safeTrack(() => GA4_Composer.postSent({ action, charCount: text.length, hasMedia: !!imgUrl, mediaType: mediaState.type || 'none', channelCount: 1, isThread: false, threadPartCount: 1, daysAhead: 0 }));
     composerContentStartedTracked = false;
     composerMilestonesTracked.clear();
 
@@ -130,7 +122,6 @@ async function composerSend(action) {
     if (typeof clearStoredComposerDraft === 'function') clearStoredComposerDraft();
     qs('composerEditor').dispatchEvent(new Event('input'));
     qs('composerWhen').value = '';
-    if (qs('needsApprovalCheck')) qs('needsApprovalCheck').checked = false;
     clearMedia(); closeMediaPanel();
     qs('schedulePanel').classList.remove('open');
     qs('composerScheduleToggle').style.display = 'inline-flex';

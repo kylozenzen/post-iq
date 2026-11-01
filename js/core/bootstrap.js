@@ -347,20 +347,6 @@ function init() {
   on('unsplashQuery', 'keydown', e => { if (e.key === 'Enter') runUnsplashSearch(); });
 
 
-  on('approvalsRefreshBtn', 'click', loadApprovals);
-  document.querySelectorAll('[data-afilter]').forEach(pill => {
-    pill.onclick = () => {
-      document.querySelectorAll('[data-afilter]').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      const filter = pill.dataset.afilter;
-      document.querySelectorAll('#approvalsList .approval-card').forEach(card => {
-        const bar = card.querySelector('.approval-card-status-bar');
-        if (!bar) return;
-        const status = bar.classList.contains('approved') ? 'approved' : bar.classList.contains('changes') ? 'changes' : 'pending';
-        card.style.display = (filter === 'all' || status === filter) ? '' : 'none';
-      });
-    };
-  });
 
 
 
@@ -389,7 +375,7 @@ function init() {
   }
   on('mobBackdrop', 'click', closeMobDrawer);
   qs('mobDrawer')?.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',closeMobDrawer));
-  ['mobMenuBtn','mobMenuBtnDraft','mobMenuBtnApprovals'].forEach(id => {
+  ['mobMenuBtn','mobMenuBtnDraft'].forEach(id => {
     const btn = qs(id); if (btn) btn.onclick = openMobDrawer;
   });
   on('mobSyncBtn', 'click', () => { syncBuffer({ force: true }); closeMobDrawer(); });
@@ -411,7 +397,6 @@ function init() {
   editor.addEventListener('input', updateComposerClearButtonVisibility);
   updateComposerClearButtonVisibility();
 
-  const arbm = qs('approvalsRefreshBtnMob'); if (arbm) arbm.onclick = loadApprovals;
 
   const mobMoreBtn = qs('mobMoreBtn');
   if (mobMoreBtn) mobMoreBtn.onclick = openMobDrawer;
