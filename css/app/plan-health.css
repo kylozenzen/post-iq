@@ -62,3 +62,22 @@
 .runway-line.is-low .runway-dot,
 .runway-line.is-now .runway-dot { background: var(--brand); }
 .runway-line.is-now .runway-msg strong { color: var(--brand); }
+
+/* ── Calendar connection + queue health strip ──────────────
+   One line: connection status, or a calm "a break is fine" nudge.
+   Runway numbers live in the runway banner above, never here. */
+.plan-health-strip { margin: 0 0 14px; }
+.plan-health-strip:empty { display: none; }
+.health-card {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 10px 14px; border: 1px solid var(--border);
+  border-radius: 10px; background: var(--surface); font-size: 13px; line-height: 1.45;
+}
+.health-card .health-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; align-self: center; }
+.health-card .health-body { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+.health-card .health-body strong { color: var(--ink); font-weight: 600; }
+.health-card .health-body span { color: var(--muted); }
+.health-good .health-dot { background: var(--green); }
+.health-neutral .health-dot { background: var(--muted); }
+.health-warn .health-dot { background: var(--brand); }
+.health-warn .health-body strong { color: var(--brand); }
