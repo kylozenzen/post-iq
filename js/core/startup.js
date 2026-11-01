@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  try { init(); applyFeatureFlags(); window.CalendarExperience?.init(); window.YourPace?.init(); window.PostIQGettingStarted?.init(); window.PostIQAlerts?.init(); window.PostIQCampaigns?.init(); } catch (e) { console.error('[PostIQ] init() crashed:', e); showGlobalErrorBanner(); }
+  try { init(); applyFeatureFlags(); window.CalendarExperience?.init(); window.YourPace?.init(); window.PostIQGettingStarted?.init(); window.PostIQAlerts?.init(); window.PostIQZen?.init(); window.PostIQCampaigns?.init(); } catch (e) { console.error('[PostIQ] init() crashed:', e); showGlobalErrorBanner(); }
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(error => console.warn('[PostIQ] Service worker registration failed:', error));
