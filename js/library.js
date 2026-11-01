@@ -259,7 +259,7 @@ window.PostIQLibrary = (() => {
       const res = await fetch('/.netlify/functions/buffer-library', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: tokenResult.token, organizationId: orgId, maxPosts: 50, includeDebug: true }),
+        body: JSON.stringify({ token: tokenResult.token, organizationId: orgId, maxPosts: 50, includeDebug: false }),
       });
 
       const data = await res.json().catch(() => ({}));
@@ -324,33 +324,17 @@ window.PostIQLibrary = (() => {
     return ch?.service || post.service || post.network || '';
   }
 
-  function topPerformers() {
-    return posts
-      .filter(post => getMetricStatus(post) === 'available')
-      .sort((a, b) => (metricNumber(b, 'engagementRate') ?? -Infinity) - (metricNumber(a, 'engagementRate') ?? -Infinity));
-  }
-
-  function measuredRepurposeCandidates() {
-    return topPerformers().filter(p => daysAgo(p.sentAt) >= REPURPOSE_DAYS);
-  }
-
-  function isReuseFallbackActive() {
-    return activeTab === 'reuse' && measuredRepurposeCandidates().length < 3 && posts.length > 0;
-  }
-
+  // "Ready to reuse" = starred evergreen first, then older sent posts worth a
+  // second run. No metrics involved — the user curates with the star.
   function readyToRepurpose() {
-    const usable = measuredRepurposeCandidates();
-    if (usable.length >= 3) return usable;
-    const recent = [...posts].sort((a, b) => sentTime(b) - sentTime(a));
-    const combined = [...usable];
-    recent.forEach(post => { if (!combined.includes(post) && combined.length < 12) combined.push(post); });
-    return combined;
+    const star = posts.filter(p => starred.has(p.id));
+    const old = [...posts].filter(p => !starred.has(p.id) && daysAgo(p.sentAt) >= REPURPOSE_DAYS).sort((a, b) => sentTime(b) - sentTime(a));
+    return [...star, ...old];
   }
 
   function filteredPosts() {
     let pool;
-    if (activeTab === 'top')       pool = topPerformers().length >= 3 ? topPerformers() : [];
-    else if (activeTab === 'reuse') pool = readyToRepurpose();
+    if (activeTab === 'reuse') pool = readyToRepurpose();
     else if (activeTab === 'starred') pool = posts.filter(p => starred.has(p.id));
     else pool = [...posts];
 
@@ -359,14 +343,8 @@ window.PostIQLibrary = (() => {
       pool = pool.filter(p => String(p.text || '').toLowerCase().includes(q) || getChannelLabel(p).toLowerCase().includes(q));
     }
 
-    if (sortBy === 'engagement') {
-      pool = pool.sort((a, b) => (metricNumber(b, 'engagementRate') ?? -Infinity) - (metricNumber(a, 'engagementRate') ?? -Infinity));
-    } else if (sortBy === 'reactions') {
-      pool = pool.sort((a, b) => (metricNumber(b, 'reactions') ?? -Infinity) - (metricNumber(a, 'reactions') ?? -Infinity));
-    } else if (sortBy === 'impressions') {
-      pool = pool.sort((a, b) => (metricNumber(b, 'impressions') ?? -Infinity) - (metricNumber(a, 'impressions') ?? -Infinity));
-    }
-    // default: date order (already sorted from API)
+    if (sortBy === 'oldest') pool = [...pool].sort((a, b) => sentTime(a) - sentTime(b));
+    // default: most recent (API already returns newest-first)
 
     return pool;
   }
@@ -469,32 +447,13 @@ window.PostIQLibrary = (() => {
     return '<span class="lib-metric-badge lib-metric-raw">metrics available</span>';
   }
 
-  function metricsNoticeHtml() {
-    const notices = [];
-    if (metricsMeta.permissionError) {
-      notices.push('Performance metrics need an updated Buffer connection. Reconnect Buffer to enable analytics.');
-    }
-    if (isReuseFallbackActive()) {
-      notices.push('Recent posts to revisit: not enough older posts have available metrics yet, so this section includes recent sent posts as inspiration.');
-    }
-    if (!notices.length) return '';
-    return notices.map(message => `
-      <div class="lib-analytics-notice" role="status" style="margin:0 0 14px;padding:12px 14px;border:1px solid rgba(245,158,11,.28);border-radius:14px;background:rgba(245,158,11,.10);color:var(--ink);font-size:13px;line-height:1.5;">
-        ${safeText(message)}
-      </div>`).join('');
-  }
+  function metricsNoticeHtml() { return ''; }
 
   function postCardHtml(post) {
     const isStarred = starred.has(post.id);
     const channelLabel = getChannelLabel(post);
     const service = getChannelService(post);
-    const age = daysAgo(post.sentAt);
-    const metricStatus = getMetricStatus(post);
-    const badges = metricStatus === 'available' ? metricBadgeHtml(post.metrics) : '';
-    const rawIndicator = metricStatus === 'available' ? rawMetricsIndicatorHtml(post) : '';
-    const metricStatusText = metricStatus === 'pending' ? 'Metrics pending' : metricStatus === 'unavailable' && activeTab === 'top' ? 'Metrics unavailable for this post type' : '';
-    const isTopPerformer = metricStatus === 'available' && hasPositiveMetric(post, 'engagementRate') && (post.metrics?.engagementRate || 0) > 0.02; // >2% engagement
-    const isOld = age >= REPURPOSE_DAYS;
+    const isOld = daysAgo(post.sentAt) >= REPURPOSE_DAYS;
     const safeId = safeText(String(posts.indexOf(post)));
 
     return `
@@ -503,25 +462,19 @@ window.PostIQLibrary = (() => {
           <div class="lib-post-meta">
             ${channelLabel ? `<span class="lib-channel-badge">${safeText(channelLabel)}</span>` : ''}
             ${service ? `<span class="lib-service-badge">${safeText(service)}</span>` : ''}
-            ${post.status ? `<span class="lib-status-badge">${safeText(post.status)}</span>` : ''}
             <span class="lib-date">${fmtDate(post.sentAt)}</span>
-            ${post.metricsUpdatedAt ? `<span class="lib-date">metrics ${fmtDate(post.metricsUpdatedAt)}</span>` : ''}
-            ${isTopPerformer ? '<span class="lib-top-badge">⭐ Top</span>' : ''}
-            ${isOld && isTopPerformer ? '<span class="lib-reuse-badge">↺ Ready to reuse</span>' : ''}
+            ${isStarred ? '<span class="lib-reuse-badge">★ Evergreen</span>' : (isOld ? '<span class="lib-reuse-badge">↺ Ready to reuse</span>' : '')}
           </div>
-          <button class="lib-star-btn ${isStarred ? 'starred' : ''}" data-star="${safeId}" aria-label="${isStarred ? 'Unstar post' : 'Star post'}">
+          <button class="lib-star-btn ${isStarred ? 'starred' : ''}" data-star="${safeId}" aria-label="${isStarred ? 'Remove from evergreen' : 'Mark as evergreen'}" title="${isStarred ? 'Remove from evergreen' : 'Mark as evergreen to reshare later'}">
             ${isStarred ? '★' : '☆'}
           </button>
         </div>
 
         <div class="lib-post-text">${safeText(compact(post.text, 280))}</div>
 
-        ${badges || rawIndicator ? `<div class="lib-metrics-row">${badges || rawIndicator}</div>` : ''}
-        ${metricStatusText ? `<div class="lib-metrics-subtle" style="font-size:12px;color:var(--subtle);margin-top:8px;">${safeText(metricStatusText)}</div>` : ''}
-
         <div class="lib-post-actions">
-          <button class="btn sm primary" data-action="repurpose" data-post-id="${safeId}">→ Repurpose</button>
-          <button class="btn sm" data-action="reschedule" data-post-id="${safeId}">↺ Re-schedule</button>
+          <button class="btn sm primary" data-action="reschedule" data-post-id="${safeId}">↺ Reshare</button>
+          <button class="btn sm" data-action="repurpose" data-post-id="${safeId}">→ Rewrite</button>
           <button class="btn sm ghost" data-action="copy" data-post-id="${safeId}">Copy</button>
           ${post.externalLink ? `<a class="btn sm ghost" href="${safeText(post.externalLink)}" target="_blank" rel="noopener">↗ View</a>` : ''}
         </div>
@@ -535,9 +488,8 @@ window.PostIQLibrary = (() => {
     const filtered = filteredPosts();
     if (!filtered.length) {
       const msgs = {
-        top: topPerformers().length ? 'Not enough metrics available yet.' : 'No performance metrics available yet.',
-        reuse: 'No recent posts to revisit yet.',
-        starred: 'No starred posts yet. Star any post to save it here.',
+        reuse: 'Nothing to reuse yet. Star a post as evergreen, or older posts will collect here.',
+        starred: 'No evergreen posts yet. Star any post to save it for reshares.',
         all: searchQuery ? 'No posts match that search.' : 'No sent posts found.',
       };
       list.innerHTML = metricsNoticeHtml() + emptyStateHtml(msgs[activeTab] || msgs.all);
@@ -568,18 +520,12 @@ window.PostIQLibrary = (() => {
     if (!statsEl) return;
 
     const total = posts.length;
-    const statusSummary = metricStatusSummary(posts);
-    const withMetrics = statusSummary.available;
-    const pendingOrUnsupported = statusSummary.pending + statusSummary.unavailable;
-    const top = topPerformers().slice(0, 1)[0];
-    const topEr = top ? pct(top.metrics?.engagementRate) : null;
+    const evergreen = [...starred].filter(id => posts.some(p => p.id === id)).length;
     const syncAge = lastFetchAt ? Math.floor((Date.now() - lastFetchAt) / 60000) : null;
 
     statsEl.innerHTML = `
       <div class="lib-stat"><span class="lib-stat-num">${total}</span><span class="lib-stat-lbl">sent posts loaded</span></div>
-      <div class="lib-stat"><span class="lib-stat-num">${withMetrics}</span><span class="lib-stat-lbl">metrics available</span></div>
-      <div class="lib-stat"><span class="lib-stat-num">${pendingOrUnsupported}</span><span class="lib-stat-lbl">pending / unsupported</span></div>
-      ${topEr ? `<div class="lib-stat"><span class="lib-stat-num">${safeText(topEr)}</span><span class="lib-stat-lbl">best eng. rate</span></div>` : ''}
+      <div class="lib-stat"><span class="lib-stat-num">${evergreen}</span><span class="lib-stat-lbl">evergreen</span></div>
       ${syncAge != null ? `<div class="lib-stat lib-stat-muted"><span class="lib-stat-num">${syncAge}m</span><span class="lib-stat-lbl">ago</span></div>` : ''}
     `;
   }
@@ -587,15 +533,9 @@ window.PostIQLibrary = (() => {
   function renderTabCounts() {
     const counts = {
       all:     posts.length,
-      top:     topPerformers().length >= 3 ? topPerformers().length : 0,
       reuse:   readyToRepurpose().length,
       starred: [...starred].filter(id => posts.some(p => p.id === id)).length,
     };
-    const reuseTab = document.querySelector('[data-lib-tab="reuse"]');
-    if (reuseTab) {
-      const countHtml = '<span class="lib-tab-count" id="libTabCount-reuse"></span>';
-      reuseTab.innerHTML = `${isReuseFallbackActive() ? '↺ Recent posts to revisit' : '↺ Ready to reuse'} ${countHtml}`;
-    }
     Object.entries(counts).forEach(([tab, count]) => {
       const el = qs(`libTabCount-${tab}`);
       if (el) el.textContent = count > 0 ? count : '';

@@ -720,7 +720,7 @@
       <div class="page-hdr">
         <div class="page-hdr-left">
           <h1 class="page-title">Post Library</h1>
-          <p class="page-desc">Latest 50 sent posts with performance data when Buffer has it. Find what worked, revisit recent posts, or re-schedule content that did well.</p>
+          <p class="page-desc">Your latest 50 sent posts. Reuse something that worked, or star your evergreen posts to reshare and keep your streak alive.</p>
         </div>
         <div class="page-actions">
           <button class="btn ghost" id="libraryRefreshBtn">↻ Refresh</button>
@@ -737,16 +737,13 @@
           <input id="librarySearch" class="input lib-search" type="search" placeholder="Search posts…" autocomplete="off" />
           <select id="librarySort" class="input lib-sort">
             <option value="date">Sort: most recent</option>
-            <option value="engagement">Sort: engagement rate</option>
-            <option value="reactions">Sort: reactions</option>
-            <option value="impressions">Sort: impressions</option>
+            <option value="oldest">Sort: oldest first</option>
           </select>
         </div>
         <div class="lib-tabs" role="tablist" aria-label="Library filters">
           <button class="lib-tab active" data-lib-tab="all" type="button">All posts <span class="lib-tab-count" id="libTabCount-all"></span></button>
-          <button class="lib-tab" data-lib-tab="top" type="button">⭐ Top performers <span class="lib-tab-count" id="libTabCount-top"></span></button>
           <button class="lib-tab" data-lib-tab="reuse" type="button">↺ Ready to reuse <span class="lib-tab-count" id="libTabCount-reuse"></span></button>
-          <button class="lib-tab" data-lib-tab="starred" type="button">★ Starred <span class="lib-tab-count" id="libTabCount-starred"></span></button>
+          <button class="lib-tab" data-lib-tab="starred" type="button">★ Evergreen <span class="lib-tab-count" id="libTabCount-starred"></span></button>
         </div>
         <div id="libraryPostList" class="lib-post-list">
           <div class="empty-state" style="margin-top:24px;">
