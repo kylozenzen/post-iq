@@ -12,10 +12,10 @@ const runtime = fs.readFileSync('js/core/runtime.js', 'utf8');
 const calendar = fs.readFileSync('js/features/calendar.js', 'utf8');
 const composer = fs.readFileSync('js/features/composer-resources.js', 'utf8');
 
-test('runway and health strips live on the calendar, not a separate tool', () => {
+test('alerts bell on the calendar replaces the standalone Queue Health tool', () => {
   const view = html.slice(html.indexOf('id="calendarView"'), html.indexOf('<!-- ══════════ COMPOSE'));
-  assert.match(view, /id="calendarRunway"/);
-  assert.match(view, /id="planHealthStrip"/);
+  assert.match(view, /id="calAlertBell"/);
+  assert.match(html, /id="alertsModal"/);
   assert.ok(!html.includes('id="queueHealthView"'), 'standalone Queue Health view should be removed');
 });
 

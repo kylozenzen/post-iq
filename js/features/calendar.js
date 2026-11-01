@@ -343,7 +343,7 @@ function renderCalendarView() {
   renderAgenda();
   renderWeekView();
   updateCalendarViewUI();
-  try { renderCalendarRunway(); } catch (e) { console.error('[PostIQ] renderCalendarRunway failed:', e); }
+  try { window.PostIQAlerts?.render(); } catch (e) { console.error('[PostIQ] alerts render failed:', e); }
   try { window.PostIQGettingStarted?.render(); } catch (e) { console.error('[PostIQ] getting-started render failed:', e); }
 }
 

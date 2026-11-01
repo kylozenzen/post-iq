@@ -384,3 +384,25 @@
 .day-cov-row .ch-label { flex: 1; min-width: 0; }
 .day-cov-msg { color: var(--muted); font-size: 12px; }
 .day-cov-row .btn { flex: none; }
+
+/* ── Alerts bell + overlay ─────────────────────────────────
+   Keeps the calendar top clean; surfaces connection/channel-health and
+   low-runway warnings only when there's something to act on. */
+.cal-alert-bell { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); border-radius: var(--r2, 8px); cursor: pointer; font-size: 15px; }
+.cal-alert-bell:hover { color: var(--ink); }
+.cal-alert-bell.has-alerts { color: var(--ink); }
+.cal-alert-bell.has-warn { border-color: var(--brand-glow); color: var(--brand); }
+.cal-alert-count { position: absolute; top: -6px; right: -6px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 9px; background: var(--muted); color: #fff; font: 700 10px/16px 'DM Mono', monospace; text-align: center; }
+.cal-alert-bell.has-warn .cal-alert-count { background: var(--brand); }
+.alerts-intro { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0 0 14px; }
+.alert-list { list-style: none; margin: 0; padding: 0; }
+.alert-row { display: flex; align-items: flex-start; gap: 10px; padding: 11px 0; border-top: 1px solid var(--border); }
+.alert-row:first-child { border-top: none; }
+.alert-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; margin-top: 5px; background: var(--muted); }
+.alert-row.tone-warn .alert-dot { background: var(--brand); }
+.alert-row.tone-info .alert-dot { background: var(--green); }
+.alert-copy { flex: 1; min-width: 0; }
+.alert-title { font-size: 13px; color: var(--ink); display: flex; align-items: center; gap: 6px; }
+.alert-title strong { font-weight: 600; }
+.alert-detail { font-size: 12px; color: var(--muted); line-height: 1.45; margin-top: 2px; }
+.alert-row .btn { flex: none; }

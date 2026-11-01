@@ -9,7 +9,6 @@ test('Posting schedule modal saves cadence, target and days off without touching
  // Queue Health view is gone; the schedule lives in a modal, runway on the calendar
  assert.equal(d.querySelector('#queueHealthView'),null);
  assert.ok(d.querySelector('#scheduleModal'));
- assert.equal(d.querySelector('#calendarView #calendarRunway')!==null,true);
  const snapshot=w.eval('JSON.stringify(state.scheduled)');
  d.querySelector('#schedChannel').value='a';w.eval('YourPace.refresh(true)');d.querySelector('#schedChannel').value='a';
  d.querySelector('#schedTarget').value='2';d.querySelector('#schedSave').click();
@@ -21,9 +20,9 @@ test('Posting schedule modal saves cadence, target and days off without touching
 },w=>w.localStorage.setItem('postiqPlanningSettings',JSON.stringify({postingDays:['MON','WED','FRI'],legacyOption:'keep'}))));
 test('incomplete queue data shows no confident runway and flags the data problem',async()=>app(w=>{
  const d=w.document;
- w.eval("state.channels=[{id:'a',displayName:'A'}];getBufferConnectionState=()=>({connected:true});state.scheduled=[];setPlanningSettings({...getPlanningSettings(),channelPostingDays:{a:['MON','TUE','WED','THU','FRI']},channelTargets:{a:1}});state.scheduledCoverage={complete:false,ts:Date.now()};renderCalendar();PostIQPlanHealth.render()");
- assert.doesNotMatch(d.querySelector('#calendarRunway').textContent,/Covered for/); // no confident number under incomplete data
- assert.match(d.querySelector('#planHealthStrip').textContent,/out of date/);
+ w.eval("state.channels=[{id:'a',displayName:'A'}];getBufferConnectionState=()=>({connected:true});state.scheduled=[];setPlanningSettings({...getPlanningSettings(),channelPostingDays:{a:['MON','TUE','WED','THU','FRI']},channelTargets:{a:1}});state.scheduledCoverage={complete:false,ts:Date.now()};renderCalendar();PostIQAlerts.render()");
+ w.eval('PostIQAlerts.render()');
+ assert.match(d.querySelector('#alertsBody').textContent,/out of date/); // incomplete data surfaces as a stale alert
  assert.equal(w.eval('getQueueCoverage().complete'),false);
 }));
 test('Content Bank keeps legacy items and independent variants while searching, filtering and planning a date',async()=>app(w=>{
@@ -74,7 +73,7 @@ test('legacy Ideas and Content Bank alias routes both preserve the existing work
  for(const route of ['?view=ideasView','?view=contentBankView']) {const dom=await loadApp(route,w=>w.localStorage.setItem('postiq.workspacePreferences',JSON.stringify({planning:true,create:true,ideas:true})));try{assert.ok(dom.window.document.querySelector('#ideasView.active'));}finally{dom.window.close();}}
 });
 test('calendar health flags loaded coverage when pagination is incomplete or sync failed',async()=>app(w=>{
- w.eval("state.channels=[{id:'a',displayName:'A'}];getBufferConnectionState=()=>({connected:true});state.scheduled=Array.from({length:92},(_,i)=>({id:String(i),channelId:'a',dueAt:PostIQCoverage.addDays(PostIQCoverage.dayKey(new Date()),i)+'T18:00:00Z'}));state.scheduledCoverage={complete:false,ts:Date.now()};PostIQPlanHealth.render()");
- assert.match(w.document.querySelector('#planHealthStrip').textContent,/out of date/);assert.doesNotMatch(w.document.querySelector('#planHealthStrip').textContent,/well ahead/);
+ w.eval("state.channels=[{id:'a',displayName:'A'}];getBufferConnectionState=()=>({connected:true});state.scheduled=Array.from({length:92},(_,i)=>({id:String(i),channelId:'a',dueAt:PostIQCoverage.addDays(PostIQCoverage.dayKey(new Date()),i)+'T18:00:00Z'}));state.scheduledCoverage={complete:false,ts:Date.now()};PostIQAlerts.render()");
+ assert.match(w.document.querySelector('#alertsBody').textContent,/out of date/);
  w.eval("state.scheduledCoverage.complete=true;state.syncState='failed'");assert.equal(w.eval('getQueueCoverage().complete'),false);
 }));

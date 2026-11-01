@@ -18,6 +18,7 @@ window.PostIQChannelIcons = (() => {
     { m: ['bluesky'], key: 'bluesky', label: 'Bluesky', mark: '◇' },
     { m: ['mastodon'], key: 'mastodon', label: 'Mastodon', mark: 'M' },
     { m: ['googlebusiness', 'google'], key: 'google', label: 'Google', mark: 'G' },
+    { m: ['startpage', 'start'], key: 'startpage', label: 'Start Page', mark: '◆' },
   ];
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
