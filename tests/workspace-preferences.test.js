@@ -61,6 +61,6 @@ assert.match(html, /data-stab="customize">Customize<\/button>/);
 assert.doesNotMatch(html, /data-stab="(?:workspace|planning|notes)"/);
 assert.match(html, /id="settingsPanelCustomize"[\s\S]*id="customizeWorkspaceHeading">Workspace<[\s\S]*id="customizePlanningHeading">Planning<[\s\S]*id="customizeNotesHeading">Notes</);
 assert.match(html, /id="resetWorkspaceBtn"[^>]*>Reset workspace visibility<\/button>/);
-assert.match(css, /\.settings-panel \{ display: none; min-height: 420px; max-height: 420px; overflow-y: auto;/);
+assert.match(css, /\.settings-panel \{ display: none; min-height: 0; max-height: none; overflow: visible;/);
 
 console.log('Workspace preference tests passed');

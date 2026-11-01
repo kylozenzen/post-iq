@@ -48,6 +48,7 @@ function isAuthError(err) {
 }
 
 async function callBuffer(query, variables = {}, options = {}) {
+  const generation = bufferConnectionGeneration;
   const activeToken = await getActiveBufferToken();
   if (!activeToken?.token) throw Object.assign(new Error(hasReconnectNeeded() ? 'Buffer connection expired' : 'No Buffer token'), { code: hasReconnectNeeded() ? 'AUTH_ERROR' : 'MISSING_TOKEN', status: hasReconnectNeeded() ? 401 : undefined });
   let res;
@@ -55,6 +56,7 @@ async function callBuffer(query, variables = {}, options = {}) {
   catch (err) { throw Object.assign(new Error('Network error'), { code: 'PROXY_NETWORK_ERROR', retryable: true, cause: err }); }
   let data;
   try { data = await res.json(); } catch { throw Object.assign(new Error('Invalid proxy response'), { code: 'PROXY_BAD_RESPONSE' }); }
+  if (generation !== bufferConnectionGeneration) throw Object.assign(new Error('Connection changed. Please try again.'), { code: 'CONNECTION_CHANGED', retryable: true });
   if (data.errors?.length && !data.data) {
     const first = data.errors[0] || {};
     const error = Object.assign(new Error(first.message || 'Buffer request failed'), { code: first.code || 'BUFFER_ERROR', status: first.status, retryable: !!first.retryable, retryAfter: first.retryAfter });
@@ -268,6 +270,8 @@ async function syncBuffer({ force = false } = {}) {
   const oauthToken = getStoredOAuthToken();
   if (connection.reconnectNeeded) { renderConnectionUI(); setSyncStatus('failed', 'Reconnect Buffer to keep syncing.'); return; }
   if (!connection.connected && !oauthToken?.accessToken && !oauthToken?.refreshToken) { renderConnectionUI(); setSyncStatus('failed', 'Sign in with Buffer first.'); return; }
+  if (state.syncState === 'syncing') return;
+  const syncGeneration = bufferConnectionGeneration;
   const syncStartTime = Date.now();
   safeTrack(() => GA4_Auth.syncStarted());
   setSyncStatus('syncing', 'Syncing…');
@@ -295,6 +299,7 @@ async function syncBuffer({ force = false } = {}) {
     if (state.organizationId) safeTrack(() => GA4.setUserIdentity(state.organizationId, { connected: true, channelCount: state.channels.length, queueDepth: state.scheduled.length, hasApprovals: getAllApprovalMetas().length > 0 }));
     window.dispatchEvent(new Event('postiq:synced'));
   } catch (e) {
+    if (syncGeneration !== bufferConnectionGeneration) return;
     const msg = getErrorMessage(e, 'Sync failed.');
     if (isAuthError(e)) handleAuthFailure(msg);
     else setSyncStatus('failed', msg);

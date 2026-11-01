@@ -1,6 +1,8 @@
 'use strict';
 
 // ── TOKEN / CONNECTION STATE ──────────────────────────
+let bufferConnectionGeneration = 0;
+let bufferRefreshPromise = null;
 function getStoredValue(key) {
   return sessionStorage.getItem(key) || localStorage.getItem(key) || '';
 }
@@ -13,7 +15,7 @@ function getManualBufferToken() {
 function getOAuthStorageForKey(key) {
   if (sessionStorage.getItem(key)) return sessionStorage;
   if (localStorage.getItem(key)) return localStorage;
-  return sessionStorage;
+  return localStorage;
 }
 
 function setStoredOAuthValue(key, value) {
@@ -83,7 +85,17 @@ function markBufferReconnectNeeded() {
 
 const BUFFER_TOKEN_ENDPOINT = '/.netlify/functions/buffer-token';
 
-async function refreshBufferOAuthToken() {
+function refreshBufferOAuthToken() {
+  // Parallel queue, library and coverage requests share one token rotation.
+  if (bufferRefreshPromise) return bufferRefreshPromise;
+  const pending = performBufferOAuthRefresh();
+  bufferRefreshPromise = pending;
+  pending.finally(() => { if (bufferRefreshPromise === pending) bufferRefreshPromise = null; }).catch(() => {});
+  return pending;
+}
+
+async function performBufferOAuthRefresh() {
+  const generation = bufferConnectionGeneration;
   const token = getStoredOAuthToken();
   if (!token?.refreshToken) throw Object.assign(new Error('No Buffer refresh token'), { code: 'MISSING_REFRESH_TOKEN' });
 
@@ -106,9 +118,13 @@ async function refreshBufferOAuthToken() {
 
   let data = null;
   try { data = await response.json(); } catch {}
-  if (!response.ok && response.status >= 500) {
+  if (generation !== bufferConnectionGeneration) {
+    throw Object.assign(new Error('Connection changed. Please try again.'), { code: 'CONNECTION_CHANGED', retryable: true });
+  }
+  if (!response.ok && (response.status >= 500 || response.status === 429 || response.status === 408)) {
     throw Object.assign(new Error(data?.error_description || data?.error || 'Buffer could not refresh the connection right now'), { code: 'REFRESH_NETWORK_ERROR', retryable: true, status: response.status });
   }
+  if (response.ok && !data?.access_token) throw Object.assign(new Error('Buffer returned an incomplete token response. Please retry.'), { code: 'REFRESH_NETWORK_ERROR', retryable: true });
   if (!response.ok || !data?.access_token) {
     // Buffer rejected the grant itself. This is the one case that needs a new sign-in.
     markBufferReconnectNeeded();
@@ -200,6 +216,8 @@ window.getPostIQChannels = getPostIQChannels;
 window.getActiveBufferToken = getActiveBufferToken;
 
 function clearOAuthConnection() {
+  bufferConnectionGeneration += 1;
+  bufferRefreshPromise = null;
   [sessionStorage, localStorage].forEach(store => {
     store.removeItem(OAUTH_ACCESS_TOKEN_KEY);
     store.removeItem(OAUTH_REFRESH_TOKEN_KEY);
@@ -207,6 +225,9 @@ function clearOAuthConnection() {
     store.removeItem(OAUTH_TOKEN_TYPE_KEY);
     store.removeItem(OAUTH_SCOPE_KEY);
     store.removeItem(OAUTH_RECONNECT_NEEDED_KEY);
+    store.removeItem('postiq_oauth_transaction');
+    store.removeItem('postiq_oauth_verifier');
+    store.removeItem('postiq_oauth_return_to');
     store.removeItem('postiq_oauth_state');
     store.removeItem('postiq_pkce_verifier');
     store.removeItem('postiq_oauth_redirect_uri');
@@ -288,6 +309,9 @@ function selectSettingsTab(tabName) {
     p.classList.toggle('active', active);
     p.hidden = !active;
   });
+  document.querySelector('.settings-modal-body')?.scrollTo?.({ top: 0 });
+  document.querySelector('.settings-tab.active')?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+  if (targetTab === 'customize') { renderPlanningSettings(); renderNoteTypesSettings(); renderWorkspacePreferences(); }
   if (targetTab === 'features') renderSettingsFeatureStatus();
   if (targetTab === 'discord' && window.Discord) window.Discord.renderSettings();
 }
@@ -536,6 +560,7 @@ function renderConnectionUI() {
 
   const tokenInput = qs('tokenInput');
   if (tokenInput) tokenInput.value = manualToken || '';
+  if (manualToken) document.querySelectorAll('input[name="tokenMode"]').forEach(input => { input.checked = input.value === (localStorage.getItem(STORE_KEY) ? 'local' : 'session'); });
   const tokenMsg = qs('tokenMsg');
   if (tokenMsg && !tokenPanelOpen) tokenMsg.textContent = manualActive ? 'Manual API key fallback active.' : '';
 
@@ -561,15 +586,18 @@ function renderConnectionUI() {
       : (manualActive ? 'Switch to Buffer sign-in' : 'Sign in with Buffer');
   }
   const disconnectBtn = qs('disconnectBufferBtn');
-  if (disconnectBtn) disconnectBtn.style.display = oauthActive || reconnectNeeded ? '' : 'none';
+  if (disconnectBtn) disconnectBtn.style.display = connected || reconnectNeeded ? '' : 'none';
+  ['signOutBufferBtn', 'mobSignOutBufferBtn'].forEach(id => { const button = qs(id); if (button) button.hidden = !connected && !reconnectNeeded; });
+  if (qs('connectionSyncBtn')) qs('connectionSyncBtn').hidden = !connected;
+  if (connectBtn) connectBtn.hidden = connected && !reconnectNeeded;
 
   const advancedConnectionCopy = qs('advancedConnectionCopy');
   if (advancedConnectionCopy) {
     advancedConnectionCopy.textContent = manualActive
-      ? 'You’re currently using the advanced setup. This works, but Buffer sign-in is recommended for most users because it is easier to manage and does not require manually storing an API key. Disconnect Buffer clears OAuth sign-in only; saved manual keys stay here until you remove them.'
+      ? 'You’re currently using the advanced setup. This works, but Buffer sign-in is recommended for most users because it is easier to manage and does not require manually storing an API key. Sign out clears Buffer sign-in and any saved manual API key from this browser. Your local notes, drafts, and preferences stay here.'
       : (oauthActive
-        ? 'API key fallback is optional and only needed if Buffer sign-in is unavailable. Disconnect Buffer clears OAuth sign-in only; saved manual keys stay here until you remove them.'
-        : 'Use this only if Buffer sign-in is unavailable or you need a manual setup. Disconnect Buffer clears OAuth sign-in only; saved manual keys stay here until you remove them.');
+        ? 'API key fallback is optional and only needed if Buffer sign-in is unavailable. Sign out clears Buffer sign-in and any saved manual API key from this browser. Your local notes, drafts, and preferences stay here.'
+        : 'Use this only if Buffer sign-in is unavailable or you need a manual setup. Sign out clears Buffer sign-in and any saved manual API key from this browser. Your local notes, drafts, and preferences stay here.');
   }
 
   const mobDot = qs('mobConnDot'); if (mobDot) mobDot.classList.toggle('on', connected);
@@ -679,18 +707,46 @@ function setBufferToken(token, { mode = 'session', messageEl = null } = {}) {
 
 function disconnectBuffer() {
   clearOAuthConnection();
+  localStorage.removeItem(STORE_KEY);
+  sessionStorage.removeItem(STORE_KEY);
   const after = syncBufferTokenFromState();
   if (!after.connected) clearSyncedData();
   renderConnectionUI();
   initHomeView();
-  showToast('Buffer disconnected.', 'success');
-  setSyncStatus('idle', after.connected ? 'Connected with advanced setup.' : 'Buffer disconnected.');
+  showToast('Signed out of PostIQ. Your local work is saved.', 'success');
+  setSyncStatus('idle', 'Signed out.');
+  if (qs('lastSynced')) qs('lastSynced').textContent = '';
+  renderConnectionUI();
+  window.dispatchEvent(new Event('postiq:signed-out'));
   safeTrack(() => GA4_Auth.signedOut());
   safeTrack(() => GA4.clearUserIdentity());
   return true;
 }
 
+function handleBufferStorageChange(event) {
+  if (event.storageArea !== localStorage) return;
+  if (event.key && ![OAUTH_ACCESS_TOKEN_KEY, OAUTH_REFRESH_TOKEN_KEY, STORE_KEY].includes(event.key)) return;
+  if (getStoredOAuthToken() || getManualBufferToken()) return;
+  // Another tab signed out: discard in-flight work and the visible Buffer cache.
+  bufferConnectionGeneration += 1;
+  bufferRefreshPromise = null;
+  bufferToken = '';
+  clearSyncedData();
+  if (qs('lastSynced')) qs('lastSynced').textContent = '';
+  renderConnectionUI();
+  initHomeView();
+  setSyncStatus('idle', 'Signed out.');
+  window.dispatchEvent(new Event('postiq:signed-out'));
+}
+
 function loadStoredToken() {
+  // Older builds could keep OAuth credentials in a single tab. Migrate the
+  // complete grant together so reloads and later visits use the same session.
+  const persistentGrant = localStorage.getItem(OAUTH_ACCESS_TOKEN_KEY) || localStorage.getItem(OAUTH_REFRESH_TOKEN_KEY);
+  [OAUTH_ACCESS_TOKEN_KEY, OAUTH_REFRESH_TOKEN_KEY, OAUTH_EXPIRES_AT_KEY, OAUTH_TOKEN_TYPE_KEY, OAUTH_SCOPE_KEY, OAUTH_RECONNECT_NEEDED_KEY].forEach(key => {
+    const value = sessionStorage.getItem(key);
+    if (value) { try { if (!persistentGrant) localStorage.setItem(key, value); sessionStorage.removeItem(key); } catch {} }
+  });
   const connection = syncBufferTokenFromState();
   const manualToken = getManualBufferToken();
   const inp = qs('tokenInput'); if (inp) inp.value = manualToken;

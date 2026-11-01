@@ -72,14 +72,14 @@ window.CalendarExperience = (() => {
     openCalendarDayDetails(new Date(date+'T12:00:00'));
   }
   function onOpen(id) {
-    const modal=qs(id); if(!modal?.classList.contains('calendar-drawer')) return;
+    const modal=qs(id); if(!modal || (!modal.classList.contains('calendar-drawer') && modal.id !== 'settingsModal')) return;
     if(!returnFocus.has(id)) returnFocus.set(id,document.activeElement);
     if(id==='contentBankPlanModal') bankScroll={main:document.querySelector('.main')?.scrollTop || 0,window:window.scrollY || 0};
     modal.querySelector('.modal-card')?.setAttribute('tabindex','-1');
     (modal.querySelector('button, input, textarea, [tabindex="0"]') || modal.querySelector('.modal-card'))?.focus({preventScroll:true});
   }
   function onClose(id) {
-    if(!qs(id)?.classList.contains('calendar-drawer')) return;
+    if(!qs(id)?.classList.contains('calendar-drawer') && id !== 'settingsModal') return;
     if(id==='contentDetailDrawer') window.ContentDetail?.restoreCalendarDrawer?.();
     const target=returnFocus.get(id); returnFocus.delete(id);
     if(id==='contentBankPlanModal') {
@@ -111,7 +111,7 @@ window.CalendarExperience = (() => {
     qs('composerUseCalendarDate').onclick=()=>{qs('scheduleDate').value=banner.dataset.date; qs('schedulePanel').classList.add('open'); syncComposerWhen();};
     document.addEventListener('keydown',event=>{
       const modal=getTopOpenModal();
-      if(!modal?.classList.contains('calendar-drawer')) return;
+      if(!modal || (!modal.classList.contains('calendar-drawer') && modal.id !== 'settingsModal')) return;
       if(event.key==='Escape') {event.preventDefault();event.stopImmediatePropagation();closeModal(modal.id);return;}
       if(event.key!=='Tab') return;
       const focusable=[...modal.querySelectorAll('button,input,select,textarea,a[href],[tabindex="0"]')].filter(el=>!el.disabled && !el.hidden && el.getAttribute('aria-hidden')!=='true' && el.getClientRects().length);
