@@ -141,12 +141,6 @@ function init() {
   }
 
   try {
-    if (window.ContentPillars?.init) window.ContentPillars.init();
-  } catch (e) {
-    console.error('[PostIQ] ContentPillars.init() failed:', e);
-  }
-
-  try {
     if (window.Discord?.init) window.Discord.init();
   } catch (e) {
     console.error('[PostIQ] Discord.init() failed:', e);
