@@ -38,7 +38,6 @@
   <link rel="stylesheet" href="./css/app/responsive.css" />
   <link rel="stylesheet" href="./css/app/preferences-ai.css" />
   <link rel="stylesheet" href="./css/app/library.css" />
-  <link rel="stylesheet" href="./css/app/home.css" />
   <link rel="stylesheet" href="./css/app/plan-health.css" />
   <link rel="stylesheet" href="./css/app/calendar-experience.css" />
   <link rel="stylesheet" href="./css/app/planning-tools.css" />
@@ -75,10 +74,7 @@
 
 <!-- ── MOBILE TABS ── -->
 <nav class="mobile-tabs" id="mobileTabs">
-  <button class="mob-tab active" data-view="homeView" data-home-feature="true">
-    🏠 Home
-  </button>
-  <button class="mob-tab" data-view="calendarView" data-workspace-nav="planning" data-feature="calendar">
+  <button class="mob-tab active" data-view="calendarView" data-workspace-nav="planning" data-feature="calendar">
     <svg><use href="#i-cal"/></svg>Calendar
   </button>
   <button class="mob-tab" data-view="ideasView" data-workspace-nav="ideas" data-feature="ideas">
@@ -141,11 +137,7 @@
     <!-- Nav -->
     <nav class="side-nav">
       <div class="nav-section-label">Workspace</div>
-      <button class="nav-btn active" data-view="homeView" data-home-feature="true" data-tooltip="Home">
-        <span class="nav-icon">🏠</span>
-        <span class="nav-text">Home</span>
-      </button>
-      <button class="nav-btn" data-view="calendarView" data-workspace-nav="planning" data-feature="calendar" data-tooltip="Calendar">
+      <button class="nav-btn active" data-view="calendarView" data-workspace-nav="planning" data-feature="calendar" data-tooltip="Calendar">
         <span class="nav-icon"><svg><use href="#i-cal"/></svg></span>
         <span class="nav-text">Calendar</span>
       </button>
@@ -192,23 +184,6 @@
   <main class="main">
 
 
-    <!-- ══════════ HOME ══════════ -->
-    <section id="homeView" class="view active">
-      <div class="home-grid v1">
-        <div class="home-main-col">
-          <div class="home-card home-hero-card" id="homeWelcomeCard"></div>
-          <div class="home-command-grid">
-            <div class="home-card home-health-card" id="homeQueueHealth"></div>
-            <div class="home-card home-next-card" id="homeNext72"></div>
-          </div>
-          <div class="home-card" id="homeNews"></div>
-          <div class="home-lower-grid">
-            <div class="home-card home-dev-card" id="homeDevNote"></div>
-            <div class="home-card" id="homeQuickActions"></div>
-          </div>
-        </div>
-      </div>
-    </section>
 
     <!-- ══════════ PLAN (Calendar) ══════════ -->
     <section id="calendarView" class="view active" data-feature="calendar">
@@ -840,34 +815,6 @@
   </main>
 </section><!-- /app -->
 
-<section id="mobileComingSoon" class="mobile-coming-soon" aria-label="PostIQ mobile coming soon">
-  <div class="mobile-coming-card">
-    <h1>PostIQ mobile is coming soon</h1>
-    <p>PostIQ is currently built for desktop planning and publishing workflows. Want particular features on mobile? Tell the dev team what would actually help.</p>
-    <ul class="mobile-feature-ideas">
-      <li>Quick drafts</li><li>Calendar / week view</li><li>Snapshot links</li>
-      <li>Snippets</li><li>Buffer queue check</li><li>Discord posting</li><li>Social news / RSS ideas</li>
-    </ul>
-    <form name="mobile-feature-requests" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="mobile-feature-form">
-      <input type="hidden" name="form-name" value="mobile-feature-requests" />
-      <p hidden><label>Don’t fill this out: <input name="bot-field" /></label></p>
-      <label>Name (optional)<input type="text" name="name" class="input" /></label>
-      <label>Email (optional)<input type="email" name="email" class="input" /></label>
-      <fieldset>
-        <legend>Features</legend>
-        <label><input type="checkbox" name="features" value="Quick drafts"> Quick drafts</label>
-        <label><input type="checkbox" name="features" value="Calendar / week view"> Calendar / week view</label>
-        <label><input type="checkbox" name="features" value="Snapshot links"> Snapshot links</label>
-        <label><input type="checkbox" name="features" value="Snippets"> Snippets</label>
-        <label><input type="checkbox" name="features" value="Buffer queue check"> Buffer queue check</label>
-        <label><input type="checkbox" name="features" value="Discord posting"> Discord posting</label>
-        <label><input type="checkbox" name="features" value="Social news / RSS ideas"> Social news / RSS ideas</label>
-      </fieldset>
-      <label>Notes<textarea name="notes" class="input" rows="4"></textarea></label>
-      <button type="submit" class="btn primary">Send feedback</button>
-    </form>
-  </div>
-</section>
           
 <!-- ── MODALS ── -->
 

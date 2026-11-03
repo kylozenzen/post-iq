@@ -269,10 +269,3 @@
       :root { --sidebar: 220px; }
       .composer-layout { grid-template-columns: 1fr; }
     }
-
-    /* ── MOBILE COMING SOON ── */
-    .mobile-coming-soon { display: none; min-height: 100vh; padding: var(--s5); background: var(--bg); }
-    .mobile-coming-card { max-width: 640px; margin: 0 auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; box-shadow: var(--shadow); }
-    .mobile-feature-ideas { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; color: var(--muted); padding-left: 18px; }
-    .mobile-feature-form { display: grid; gap: 10px; margin-top: 14px; }
-    .mobile-feature-form fieldset { border: 1px solid var(--border); border-radius: var(--r2); padding: var(--s3); display: grid; gap: 6px; }

@@ -79,7 +79,6 @@ function markBufferReconnectNeeded() {
   store.setItem(OAUTH_RECONNECT_NEEDED_KEY, '1');
   bufferToken = '';
   renderConnectionUI();
-  initHomeView();
   setSyncStatus('failed', 'Reconnect Buffer to keep syncing.');
 }
 
@@ -140,7 +139,6 @@ async function performBufferOAuthRefresh() {
   const expiresIn = Number(data.expires_in || 0);
   setStoredOAuthValue(OAUTH_EXPIRES_AT_KEY, expiresIn ? Date.now() + expiresIn * 1000 : '');
   renderConnectionUI();
-  initHomeView();
   safeTrack(() => GA4_Auth.tokenRefreshed('automatic'));
   return getStoredOAuthToken();
 }
@@ -480,7 +478,6 @@ function openConnectionSettings(options = {}) {
   selectSettingsTab('connection');
   tokenPanelOpen = !!options.advancedApi;
   renderConnectionUI();
-  initHomeView();
   const panel = qs('tokenPanel');
   if (options.advancedApi) setTokenPanelVisible(panel, true);
 
@@ -624,7 +621,6 @@ function renderConnectionUI() {
 
 function refreshTokenUI() {
   renderConnectionUI();
-  initHomeView();
 }
 
 function toggleDesktopTokenPanel({ reveal = false } = {}) {
@@ -635,14 +631,12 @@ function toggleDesktopTokenPanel({ reveal = false } = {}) {
     if (inp) { inp.type = 'text'; inp.focus(); }
   }
   renderConnectionUI();
-  initHomeView();
 }
 
 function toggleMobileTokenPanel() {
   window.postiqMobileTokenPanelOpen = !window.postiqMobileTokenPanelOpen;
   setTokenPanelVisible(qs('mobTokenPanel'), window.postiqMobileTokenPanelOpen);
   renderConnectionUI();
-  initHomeView();
 }
 
 function updateNavTags() {
@@ -690,7 +684,6 @@ function setBufferToken(token, { mode = 'session', messageEl = null } = {}) {
     if (!after.connected) clearSyncedData();
     if (messageEl) messageEl.textContent = 'Manual API key disconnected.';
     renderConnectionUI();
-  initHomeView();
     showToast('Manual API key disconnected');
     return false;
   }
@@ -700,7 +693,6 @@ function setBufferToken(token, { mode = 'session', messageEl = null } = {}) {
   bufferToken = clean;
   if (messageEl) messageEl.textContent = mode === 'local' ? 'API key fallback saved locally.' : 'API key fallback saved for session.';
   renderConnectionUI();
-  initHomeView();
   showToast('API key fallback saved', 'success');
   return true;
 }
@@ -712,7 +704,6 @@ function disconnectBuffer() {
   const after = syncBufferTokenFromState();
   if (!after.connected) clearSyncedData();
   renderConnectionUI();
-  initHomeView();
   showToast('Signed out of PostIQ. Your local work is saved.', 'success');
   setSyncStatus('idle', 'Signed out.');
   if (qs('lastSynced')) qs('lastSynced').textContent = '';
@@ -734,7 +725,6 @@ function handleBufferStorageChange(event) {
   clearSyncedData();
   if (qs('lastSynced')) qs('lastSynced').textContent = '';
   renderConnectionUI();
-  initHomeView();
   setSyncStatus('idle', 'Signed out.');
   window.dispatchEvent(new Event('postiq:signed-out'));
 }
@@ -756,7 +746,6 @@ function loadStoredToken() {
     hydrateFromCache();
   }
   renderConnectionUI();
-  initHomeView();
 }
 
 
@@ -765,7 +754,6 @@ async function checkBufferConnectionHealth() {
   if (oauthToken?.accessToken && !isOAuthTokenExpired()) {
     clearReconnectNeeded();
     renderConnectionUI();
-  initHomeView();
     const connection = getBufferConnectionState();
     safeTrack(() => GA4_Auth.connectionStatusChecked(connection.connected));
     return connection;
@@ -777,13 +765,11 @@ async function checkBufferConnectionHealth() {
       markBufferReconnectNeeded();
     }
     renderConnectionUI();
-  initHomeView();
     const connection = getBufferConnectionState();
     safeTrack(() => GA4_Auth.connectionStatusChecked(connection.connected));
     return connection;
   }
   renderConnectionUI();
-  initHomeView();
   const connection = getBufferConnectionState();
   safeTrack(() => GA4_Auth.connectionStatusChecked(connection.connected));
   return connection;

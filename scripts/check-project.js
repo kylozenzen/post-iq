@@ -13,7 +13,6 @@ const requiredFiles = [
   'icons/postiq-icon.svg',
   'sw.js',
   'netlify/functions/buffer-proxy.js',
-  'netlify/functions/approval.js',
   'netlify/functions/unsplash-search.js',
 ];
 
@@ -54,6 +53,23 @@ for (const relativePath of activeBundleFiles) {
   if (!fs.existsSync(absolutePath)) continue;
   const size = fs.statSync(absolutePath).size;
   if (size > 80_000) failures.push(`${relativePath} is ${size} bytes; keep active modules below 80 KB`);
+}
+
+// Every precached path in sw.js must exist, or cache.addAll() rejects and the
+// offline shell silently never installs.
+const swSource = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+const shellBlock = swSource.match(/const SHELL = \[([\s\S]*?)\];/);
+if (!shellBlock) failures.push('sw.js: SHELL list not found');
+for (const entry of shellBlock ? [...shellBlock[1].matchAll(/'([^']+)'/g)].map(m => m[1]) : []) {
+  if (entry === '/') continue;
+  if (!fs.existsSync(path.join(root, entry.replace(/^\//, '')))) failures.push(`sw.js precaches missing file ${entry}`);
+}
+for (const reference of localAssetReferences) {
+  if (shellBlock && !shellBlock[1].includes(`'/${reference}'`)) failures.push(`sw.js does not precache ${reference}`);
+}
+
+if (fs.existsSync(path.join(root, 'assets/js/app.js')) || fs.existsSync(path.join(root, 'archive'))) {
+  failures.push('Legacy assets/ or archive/ reintroduced — keep retired code on the archive branch');
 }
 
 if (failures.length) {

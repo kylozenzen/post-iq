@@ -292,7 +292,6 @@ async function syncBuffer({ force = false } = {}) {
     detectQueueGaps();
     setSyncStatus('success', `${scheduledPosts.length} scheduled · ${publishedPosts.length} published.`);
     renderConnectionUI();
-  initHomeView();
     showToast(`Loaded ${plannerPosts.length} planner posts`, 'success');
     safeTrack(() => GA4_Auth.syncComplete({ postCount: plannerPosts.length, channelCount: state.channels.length, syncTimeMs: Date.now() - syncStartTime, usedCache: false }));
     safeTrack(() => GA4_System.performanceMetric('buffer_sync', Date.now() - syncStartTime));

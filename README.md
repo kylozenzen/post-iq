@@ -94,7 +94,6 @@ js/core/                 # Shared runtime, navigation, bootstrap, and startup
 js/integrations/         # Buffer auth/API and post creation boundaries
 js/features/             # Calendar, runway, posting schedule, composer, media, templates
 js/*.js                  # Standalone modules (AI Assist, Library, trending wiring)
-archive/                 # Retired features kept for reference (Pulse, Content Pillars, Approvals)
 manifest.json            # PWA manifest
 sw.js                    # Service worker and app-shell cache manifest
 netlify/functions/       # Buffer proxy, token exchange, trending, config
