@@ -237,7 +237,7 @@ window.PostIQLibrary = (() => {
     const tokenResult = await getToken();
     if (!tokenResult?.token) {
       logDiagnostic('missing token');
-      renderEmpty('Connect Buffer to load your post library.');
+      renderEmpty('Connect Buffer to see your past posts here.');
       return;
     }
 
@@ -247,7 +247,7 @@ window.PostIQLibrary = (() => {
         missingOrgWarned = true;
         logDiagnostic('missing organizationId');
       }
-      renderEmpty('Sync Buffer first to load your post library.');
+      renderEmpty('Sync Buffer to see your past posts here.');
       return;
     }
     missingOrgWarned = false;

@@ -29,7 +29,7 @@ test('Content Bank keeps legacy items and independent variants while searching, 
  const d=w.document,card=w.Notebook.getCard('legacy');assert.ok(card);
  const original=JSON.stringify({sourceText:card.sourceText,variants:card.variants,buffer:card.buffer,id:card.id,custom:card.custom});
  w.activateView('ideasView');
- assert.match(d.querySelector('#ideasView h1').textContent,/Content Bank/);
+ assert.match(d.querySelector('#ideasView h1').textContent,/Shelf/);assert.ok(d.querySelector('[data-shelf-nav].active'),'Shelf nav stays lit on the ideas tab');
  d.querySelector('#contentBankSearch').value='Second independent';d.querySelector('#contentBankSearch').dispatchEvent(new w.Event('input'));
  assert.equal(d.querySelectorAll('#notebookList [data-content-open]').length,1);
  d.querySelector('#contentBankSearch').value='No matching phrase';d.querySelector('#contentBankSearch').dispatchEvent(new w.Event('input'));assert.equal(d.querySelectorAll('#notebookList [data-content-open]').length,0);
@@ -57,8 +57,8 @@ test('confirmed scheduling is separate from local dates and Buffer drafts',async
 test('calendar filters are collapsed, remain functional, and reset without losing controls',async()=>app(w=>{
  const d=w.document;assert.equal(d.querySelector('#calendarFilters').open,false);
  d.querySelector('#calendarFilters').open=true;d.querySelector('#calendarFilter').value='notes';d.querySelector('#calendarFilter').dispatchEvent(new w.Event('change'));
- assert.match(d.querySelector('#calendarFilterSummary').textContent,/1/);
- d.querySelector('#calendarFiltersReset').click();assert.equal(w.eval('state.calendarFilter'),'all');
+ assert.match(d.querySelector('#calendarFilterSummary').getAttribute('aria-label'),/1 filter on/);assert.equal(d.querySelector('#calendarFilterSummary .cal-more-dot').hidden,false);assert.equal(d.querySelector('#calFilterChip').hidden,false);
+ d.querySelector('#calendarFiltersReset').click();assert.equal(w.eval('state.calendarFilter'),'all');assert.equal(d.querySelector('#calFilterChip').hidden,true);assert.equal(d.querySelector('#calendarFilterSummary .cal-more-dot').hidden,true);
  d.querySelector('#calendarFilters').dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));assert.equal(d.querySelector('#calendarFilters').open,false);
 }));
 test('editing one channel version preserves the others and their Buffer scheduling metadata',async()=>app(w=>{

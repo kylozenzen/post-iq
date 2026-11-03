@@ -94,7 +94,7 @@ window.YourPace = (() => {
       const channels = (state.channels || []).filter(c => settings.channelReshare?.[String(c.id)]);
       if (!channels.length) { status.textContent = 'Turn on evergreen reshares for at least one channel first (the checkbox above).'; return; }
       const texts = evergreenTexts();
-      if (!texts.length) { status.textContent = 'Star some posts as evergreen in Library first — those are what get reshared.'; return; }
+      if (!texts.length) { status.textContent = 'Star some posts as evergreen on your Shelf first — those are what get reshared.'; return; }
       const plan = [];
       channels.forEach(c => {
         const n = postingDaysInRange(String(c.id), dates.start, dates.end, settings);

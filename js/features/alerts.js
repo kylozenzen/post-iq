@@ -72,6 +72,7 @@ window.PostIQAlerts = (() => {
     const countEl = bell.querySelector('.cal-alert-count');
     if (countEl) { countEl.textContent = String(count); countEl.hidden = count === 0; }
     bell.setAttribute('aria-label', count ? `${count} alert${count === 1 ? '' : 's'}` : 'No alerts');
+    bell.hidden = count === 0; // quiet when all is well
 
     const body = el('alertsBody');
     if (body) {
