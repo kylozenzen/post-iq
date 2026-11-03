@@ -185,7 +185,6 @@ function init() {
     history.replaceState({}, document.title, cleanUrl);
   }
   renderConnectionUI();
-  if (FEATURE_HOME_DASHBOARD) initHomeView();
   if (initialParams.get('settings') === 'connection') {
     openConnectionSettings({ advancedApi: initialParams.get('advanced') === 'api' });
   }
@@ -206,7 +205,6 @@ function init() {
       if (b.dataset.view === 'ideasView' && b.dataset.ideasTab) setIdeasTab(b.dataset.ideasTab);
     };
   });
-  document.querySelectorAll('[data-home-feature="true"]').forEach(el => { if (!FEATURE_HOME_DASHBOARD) el.style.display = 'none'; });
   on('calendarViewMonthBtn', 'click', () => setCalendarView('month'));
   on('calendarViewWeekBtn', 'click', () => setCalendarView('week'));
   on('calendarPostsModeBtn', 'click', () => setContentCalendarMode('posts'));
@@ -363,7 +361,6 @@ function init() {
     const syncEl = qs('syncStatus');
     const ms = qs('mobSyncStatus'); if (ms && syncEl) ms.textContent = syncEl.textContent;
     renderConnectionUI();
-  initHomeView();
     qs('mobDrawer')?.classList.add('open');
     qs('mobBackdrop')?.classList.add('open');
     document.body.style.overflow = 'hidden';

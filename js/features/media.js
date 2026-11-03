@@ -90,8 +90,10 @@ async function runUnsplashSearch() {
     const q = queryInput.value.trim(); if (!q) return;
     if (q === _unsplashLast) return; _unsplashLast = q;
     status.textContent = 'Searching…'; grid.innerHTML = '';
-    const res = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&per_page=9&orientation=landscape`, { headers: { Authorization: `Client-ID ${UNSPLASH_KEY}` } });
-    if (!res.ok) throw new Error(res.status === 403 ? 'Rate limit' : `HTTP ${res.status}`);
+    // Routed through our function so the Unsplash key never ships to the browser.
+    const res = await fetch(`/.netlify/functions/unsplash-search?q=${encodeURIComponent(q)}`, { headers: { Accept: 'application/json' } });
+    if (res.status === 503) { status.textContent = 'Photo search is not set up yet.'; _unsplashLast = ''; return; }
+    if (!res.ok) { _unsplashLast = ''; throw new Error(res.status === 403 ? 'Rate limit' : `HTTP ${res.status}`); }
     const data = await res.json();
     if (!data.results?.length) { status.textContent = `No results for "${q}".`; return; }
     status.textContent = `${data.total.toLocaleString()} results`;

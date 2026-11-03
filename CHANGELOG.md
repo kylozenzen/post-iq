@@ -1,5 +1,28 @@
 # Changelog
 
+## Phase 0 cleanup
+
+### Fixed
+
+- **Offline app shell.** The service worker precached 11 files that no longer
+  exist, so `cache.addAll()` failed and the offline shell never installed. The
+  list now mirrors `app.html`, and `scripts/check-project.js` keeps it in sync.
+
+### Security
+
+- **Unsplash search** now goes through `/.netlify/functions/unsplash-search`
+  instead of calling Unsplash from the browser with a hardcoded key. Needs the
+  `UNSPLASH_ACCESS_KEY` environment variable in Netlify.
+
+### Removed
+
+- The hidden Home dashboard (view, navigation, helpers and styles). The app
+  opens on the calendar; old links to Home land there too.
+- The unused "mobile coming soon" screen.
+- The unused `assets/` prototype, the deployed `archive/` folder, and the
+  `buffer-pulse` and `approval` functions. Retired code is kept on the
+  `archive/retired-features` branch.
+
 ## Calendar-first simplification
 
 A pass to make PostIQ easier for newer creators: the calendar is the planning

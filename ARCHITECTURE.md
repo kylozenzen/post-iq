@@ -39,7 +39,7 @@ files, and `js/core/startup.js` registers the main `DOMContentLoaded` handler.
 
 `css/app/tokens-layout.css` defines design tokens and the shell first. Component
 and workspace styles follow, then responsive rules, polish/overrides, and the
-Library and Pulse additions. The order in `app.html` matches the former bundle
+Library additions. The order in `app.html` matches the former bundle
 exactly, so the cascade remains unchanged.
 
 ## Responsibilities
@@ -85,9 +85,9 @@ or ES modules. Start with low-coupling areas such as templates or media, then
 reduce the cross-workspace DOM wiring in `js/core/bootstrap.js`. Keep local
 storage keys and Buffer payload contracts stable during those migrations.
 
-The `assets/` tree is not loaded by the current `app.html`; it is retained as a
-legacy modular prototype until it can be audited and removed in a dedicated
-cleanup.
+Retired code (the legacy `assets/` prototype and the Pulse, Content Pillars
+and Approvals features) lives on the `archive/retired-features` branch, not in
+`main`. `scripts/check-project.js` fails if either folder is reintroduced.
 
 ## Planning and Content Bank
 

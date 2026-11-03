@@ -41,7 +41,6 @@ const FEATURE_VIEWS = Object.freeze({
 });
 
 const IMGUR_KEY    = '546c25a59c58ad7';
-const UNSPLASH_KEY = 'tBuaYCO5p-pJPjgF29hR2yJGtlQaG4d5HqdVivV0lbQ';
 
 const TEMPLATE_TYPES     = ['All','Hooks','CTAs','Announcements','Engagement','Hashtag Sets'];
 const TEMPLATE_PLATFORMS = ['All Platforms','LinkedIn','X','Threads','Instagram','Universal'];
@@ -88,7 +87,6 @@ const BETA_BANNER_SESSION_KEY = 'postiq_beta_banner_seen';
 const BETA_BANNER_PERSIST_KEY = 'postiq_beta_banner_seen_persist';
 const APP_VISITED_KEY = 'postiq_app_visited';
 const CALENDAR_VIEW_KEY = 'postiq_calendar_view';
-const FEATURE_HOME_DASHBOARD = false;
 const LEGACY_NOTE_TYPES = {
   gold: { id: 'idea', label: 'Idea', color: '#f59e0b' },
   blue: { id: 'draft', label: 'Draft', color: '#3a3fff' },
@@ -106,7 +104,6 @@ let modalCount = 0;
 let modalActionDelegatesBound = false;
 let globalStatusTimer = null;
 let lastGlobalErrorBannerAt = 0;
-let homeActionsBound = false;
 let homeDashboardWarned = false;
 let composerContentStartedTracked = false;
 const composerMilestonesTracked = new Set();
