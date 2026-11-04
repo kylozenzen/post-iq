@@ -69,6 +69,8 @@ window.PostIQGettingStarted = (() => {
 
     box.querySelectorAll('[data-gs-act]').forEach(btn => btn.addEventListener('click', () => {
       const step = list.find(s => s.id === btn.dataset.gsAct);
+      // Close the setup panel before navigating so the destination is visible.
+      el('gettingStartedDialog')?.close();
       try { step?.act?.(); } catch {}
     }));
   }
