@@ -1,4 +1,4 @@
-const CACHE = 'postiq-v24-editorial-default';
+const CACHE = 'postiq-v25-external-calendar-feeds';
 // Precache list mirrors the assets app.html loads (scripts/check-project.js verifies it).
 const SHELL = [
   '/',
@@ -54,6 +54,7 @@ const SHELL = [
   '/js/library.js',
   '/js/features/tour.js',
   '/js/features/holidays.js',
+  '/js/features/external-calendars.js',
   '/js/features/quick-add.js',
   '/js/features/calendar-drag.js',
   '/js/features/today.js',
