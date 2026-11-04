@@ -319,9 +319,10 @@ window.PostIQTour = (() => {
     // seen, so refreshing, bookmarking, or returning from Buffer sign-in does not
     // reopen it.
     const params = new URLSearchParams(location.search);
-    const requested = params.get('tour') === '1';
+    const requested = params.get('tour') === '1' || params.get('welcome') === '1';
     if (requested) {
       params.delete('tour');
+      params.delete('welcome');
       history.replaceState(history.state, document.title, `${location.pathname}${params.toString() ? `?${params}` : ''}${location.hash}`);
     }
     if (requested || (FIRST_VISIT && read(SEEN_KEY) !== '1') || (isConnected() && read(CONNECTED_SEEN_KEY) !== '1')) {
