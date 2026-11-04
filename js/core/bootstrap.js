@@ -164,6 +164,7 @@ function init() {
     else goToBufferConnect();
   });
   on('revealTokenBtn', 'click', (e) => { e.preventDefault(); openConnectionSettings(); });
+  ['connStatusButton', 'sideConnectionSettings'].forEach(id => on(id, 'click', () => openConnectionSettings()));
   on('saveTokenBtn', 'click', saveToken);
   on('clearTokenBtn', 'click', () => { const tokenInput = qs('tokenInput'); if (tokenInput) tokenInput.value = ''; saveToken(); });
   const connectBufferBtn = qs('connectBufferBtn'); if (connectBufferBtn) connectBufferBtn.onclick = goToBufferConnect;
