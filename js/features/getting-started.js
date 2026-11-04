@@ -28,7 +28,7 @@ window.PostIQGettingStarted = (() => {
       { id: 'connect', done: connected(), label: 'Connect Buffer', desc: 'Link your Buffer account so PostIQ can see your channels and queue.', cta: 'Connect', act: () => { try { typeof goToBufferConnect === 'function' ? goToBufferConnect() : (window.location.href = '/auth/connect.html'); } catch {} } },
       { id: 'schedule', done: hasSchedule(), label: 'Set your posting schedule', desc: 'Tell PostIQ which days you post, per channel — that powers your runway.', cta: 'Set schedule', act: () => window.YourPace?.open?.() },
       { id: 'write', done: read(FIRST_POST_KEY) === '1', label: 'Write your first post', desc: 'Draft in Compose and send it to Buffer as a draft, queue, or scheduled.', cta: 'Open Compose', act: () => window.activateView?.('composerView', 'getting_started') },
-      { id: 'evergreen', done: hasEvergreen(), label: 'Star an evergreen post', desc: 'Mark a post in Library as evergreen so you can reshare it during a break.', cta: 'Open Library', act: () => window.activateView?.('libraryView', 'getting_started') },
+      { id: 'evergreen', done: hasEvergreen(), label: 'Star an evergreen post', desc: 'Star a past post on your Shelf as evergreen so you can reshare it during a break.', cta: 'Open Shelf', act: () => window.activateView?.('libraryView', 'getting_started') },
     ];
   }
 

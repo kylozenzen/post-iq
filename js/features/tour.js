@@ -19,15 +19,15 @@ window.PostIQTour = (() => {
       targets: ['#calendarRunway', '#calGrid', '#calWeek', '#calAgenda'],
       title: 'Your calendar',
       body: () => isConnected()
-        ? 'Your confirmed Buffer posts sit here beside your planning notes. Once you set a posting schedule, the top of the calendar shows your content runway — how many days you’re covered, per channel.'
-        : 'After you sign in with Buffer, your scheduled posts appear here. Set a posting schedule and the top of the calendar shows how many days of content you have left, per channel.',
+        ? 'Your Buffer posts are the solid cards; your own plans are the outlined ones. Dashed “open slots” are days that could use a post — tap one to fill it.'
+        : 'After you sign in with Buffer, your scheduled posts show up here as solid cards. Anything you plan yourself — a note, a to-do, a campaign — sits beside them, outlined.',
     },
     {
       id: 'schedule',
       view: 'calendarView',
-      targets: ['#openScheduleBtn'],
+      targets: ['#calendarFilterSummary'],
       title: 'Set your posting schedule',
-      body: () => 'Tell PostIQ which days you post and how often, per channel — that powers your runway and the “you’re covered, take a break” nudge. Planning time off? Mark it here, and keep your streak alive with evergreen reshares. Your Buffer posts never change.',
+      body: () => 'Open the ⋯ menu and choose Posting schedule. Tell PostIQ which days you post, per channel, and it will mark open slots and let you know — quietly, from the bell — when you’re running low. Planning time off? Mark it there too.',
     },
     {
       id: 'compose',
@@ -216,7 +216,7 @@ window.PostIQTour = (() => {
     if (active) return;
     steps = STEPS.filter(step => viewAvailable(step.view));
     if (!steps.length) {
-      if (typeof showToast === 'function') showToast('The tour needs the Calendar or Content Bank workspace. Turn one on in Settings.', 'info');
+      if (typeof showToast === 'function') showToast('The tour needs the Calendar. Turn it on in Settings.', 'info');
       return;
     }
     returnFocus = options.returnFocus || (document.activeElement instanceof HTMLElement ? document.activeElement : null);

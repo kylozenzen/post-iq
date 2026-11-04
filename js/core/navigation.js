@@ -25,6 +25,10 @@ function activateView(viewId, source = 'navigation') {
   document.querySelectorAll('[data-view]').forEach(x => x.classList.toggle('active', x.dataset.view === viewId));
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === viewId));
   document.querySelectorAll('.mob-tab[data-view]').forEach(t => t.classList.toggle('active', t.dataset.view === viewId));
+  // Shelf is one place across two views (past posts and ideas): keep its nav lit and its tabs in step.
+  const onShelf = viewId === 'libraryView' || viewId === 'ideasView';
+  document.querySelectorAll('[data-shelf-nav]').forEach(x => x.classList.toggle('active', onShelf));
+  document.querySelectorAll('[data-shelf-tab]').forEach(tab => { const on = tab.dataset.shelfTab === viewId; tab.classList.toggle('active', on); tab.setAttribute('aria-selected', String(on)); });
   if (viewId === 'ideasView') setIdeasTab(currentIdeasTab || 'notebook');
   window.dispatchEvent(new CustomEvent('postiq:view-changed', { detail: { viewId, source } }));
 }
@@ -63,3 +67,8 @@ function syncComposerWhen() {
   if (ap === 'PM' && h !== 12) h += 12; if (ap === 'AM' && h === 12) h = 0;
   whenEl.value = localWallClockToISO(d, h, m);
 }
+
+document.addEventListener('click', event => {
+  const tab = event.target.closest('[data-shelf-tab]');
+  if (tab) activateView(tab.dataset.shelfTab, 'shelf_tab');
+});

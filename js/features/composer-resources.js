@@ -11,7 +11,7 @@ window.PostIQComposerResources = (() => {
   const LAST_TAB_KEY = 'postiq_composer_resource_tab_v1';
   const SEARCHABLE_TABS = new Set(['notebook', 'hooks', 'hashtags', 'templates']);
   const TAB_LABELS = {
-    notebook: 'Content Bank',
+    notebook: 'Shelf',
     hooks: 'hooks',
     hashtags: 'hashtag sets',
     templates: 'templates',
@@ -232,7 +232,7 @@ window.PostIQComposerResources = (() => {
     if (!items.length) {
       list.innerHTML = emptyState(
         '✦',
-        searchQuery ? 'No Content Bank matches' : 'Your Content Bank is ready when you are',
+        searchQuery ? 'Nothing on your Shelf matches' : 'Your Shelf is ready when you are',
         searchQuery ? 'Try a different search.' : 'Save an idea, article, or stray thought and it will appear here.',
         searchQuery ? '' : '<button class="btn sm primary" type="button" data-resource-new-notebook>+ Add idea</button>',
       );
@@ -272,8 +272,8 @@ window.PostIQComposerResources = (() => {
       list.innerHTML = emptyState(
         '⚡',
         searchQuery ? 'No hooks match' : 'Save the lines that stop the scroll',
-        searchQuery ? 'Try a different search.' : 'Hook templates and openings from starred or top Library posts will collect here.',
-        searchQuery ? '' : '<button class="btn sm primary" type="button" data-resource-new-template="Hooks">+ Save a hook</button><button class="btn sm" type="button" data-resource-manage="library">Open Library</button>',
+        searchQuery ? 'Try a different search.' : 'Hook templates and openings from starred or top posts on your Shelf will collect here.',
+        searchQuery ? '' : '<button class="btn sm primary" type="button" data-resource-new-template="Hooks">+ Save a hook</button><button class="btn sm" type="button" data-resource-manage="library">Open Shelf</button>',
       );
       return;
     }
@@ -449,9 +449,9 @@ window.PostIQComposerResources = (() => {
       track(() => window.GA4_Ideas?.notebookCardUsed?.());
       if (action === 'pin-notebook') {
         window.pinReferenceToComposer?.({ title: card.title, body: card.body, url: card.url });
-        finishAction('Content Bank item pinned beside your draft');
+        finishAction('Pinned from your Shelf beside your draft');
       } else if (insertText([card.title, card.body].filter(Boolean).join('\n\n'))) {
-        finishAction('Content Bank notes inserted');
+        finishAction('Shelf notes inserted');
       }
       return;
     }

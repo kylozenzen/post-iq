@@ -1,5 +1,35 @@
 # Changelog
 
+## Phase 1: calm calendar
+
+### Changed
+
+- **One row of controls.** The calendar header is now just `‹ Month ›`,
+  Month/Week and **+ Add**. Filters, List view, Posting schedule, Share, tour,
+  Help and Open Buffer moved into a single **⋯ menu**. **Today** only appears
+  when you've paged away from today; the alerts bell only appears when
+  something needs you; the status line only speaks when something is wrong.
+- **Two layers in a day.** Buffer posts are solid cards with the platform icon
+  (the ◷ glyph is gone). Your own plans are outlined in their colour, and to-dos
+  get a small check circle. No more symbol legend. A day shows three items,
+  then one "+N more".
+- **Gaps are open slots.** A dashed "Open slot" / "2 open slots" replaces the
+  ▲ gap warning.
+- **Filters stay honest.** When a filter is on, a dot shows on ⋯ and a
+  "Filtered · Clear" chip appears in the toolbar.
+- **Shelf.** Content Bank and Library are now one place, the **Shelf**, with
+  **Past posts** and **Ideas** tabs, and one entry in the sidebar and phone tab
+  bar. Help articles use the same name.
+- Turning on **Ideas on the Shelf** in Settings now says where it went
+  ("Ideas now appear as a tab on your Shelf") and briefly highlights the
+  Shelf in the sidebar. The Shelf stays visible whenever either half (past
+  posts or ideas) is available, instead of depending on the Library switch.
+- **Phones.** The toolbar sticks to the top, the week label is short
+  ("Nov 1–7"), the ⋯ menu opens as a sheet, empty days are a quiet
+  "Nothing planned" line, and Shelf is in the tab bar.
+- Week view drops its duplicate prev/next header.
+- Tour copy points at the ⋯ menu and describes the two layers.
+
 ## Phase 0 cleanup
 
 ### Fixed

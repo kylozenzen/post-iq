@@ -37,13 +37,18 @@ window.CalendarExperience = (() => {
       : state.syncState==='failed' ? 'Sync failed. Showing the last loaded posts; missing dates are not confirmed gaps.'
       : !state.scheduledCoverage?.complete ? 'Partial or unrefreshed Buffer data. Unloaded dates are unknown, not empty.'
       : Date.now()-state.scheduledCoverage.ts>15*60*1000 ? 'Stale Buffer data. Sync before making decisions about gaps.'
-      : 'Queue up to date. Local plans are not scheduled posts.';
+      : '';
+    el.hidden=!el.textContent;
   }
   function updateFilterSummary() {
     const summary=qs('calendarFilterSummary');if(!summary)return;
     const count=Number(!!state.calendarChannel)+Number(isContentCalendarMode() || (state.calendarFilter || 'all')!=='all');
-    summary.textContent=count?`Filters (${count})`:'Filters';
-    summary.title=`${qs('calendarChannelFilter')?.selectedOptions[0]?.textContent || 'All channels'} · ${qs('calendarFilter')?.selectedOptions[0]?.textContent || 'All items'}`;
+    const described=`${qs('calendarChannelFilter')?.selectedOptions[0]?.textContent || 'All channels'} · ${qs('calendarFilter')?.selectedOptions[0]?.textContent || 'All items'}`;
+    // Filters live in the ⋯ menu; when one is on, say so in the toolbar so an emptier calendar never looks like lost posts.
+    const dot=summary.querySelector('.cal-more-dot'); if(dot) dot.hidden=!count;
+    summary.setAttribute('aria-label',count?`More calendar options (${count} filter${count===1?'':'s'} on)`:'More calendar options');
+    summary.title=count?described:'More';
+    const chip=qs('calFilterChip'); if(chip){chip.hidden=!count; chip.title=described;}
   }
   function renderChannelFilter() {
     const select=qs('calendarChannelFilter'); if(!select) return;
@@ -101,7 +106,11 @@ window.CalendarExperience = (() => {
     qs('calendarChannelFilter').onchange=e=>{state.calendarChannel=e.target.value;remember();renderCalendar();};
     qs('calendarAddBtn').onclick=()=>add();
     qs('calendarFilter').addEventListener('change',()=>{remember();updateFilterSummary();});
-    qs('calendarFiltersReset').onclick=()=>{state.calendarChannel='';state.calendarFilter='all';setContentCalendarMode('posts');remember();updateFilterSummary();};
+    const resetFilters=()=>{state.calendarChannel='';state.calendarFilter='all';const sel=qs('calendarFilter');if(sel)sel.value='all';setContentCalendarMode('posts');renderChannelFilter();renderCalendar();remember();updateFilterSummary();};
+    qs('calendarFiltersReset').onclick=resetFilters;
+    qs('calFilterChip')?.addEventListener('click',resetFilters);
+    // Menu actions close the menu; the selects and Show toggle keep it open so you can adjust several at once.
+    qs('calendarFilters').querySelectorAll('.more-item').forEach(item=>item.addEventListener('click',()=>{qs('calendarFilters').open=false;}));
     document.addEventListener('click',event=>{if(!qs('calendarFilters').contains(event.target))qs('calendarFilters').open=false;});
     qs('calendarFilters').addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();qs('calendarFilters').open=false;qs('calendarFilterSummary').focus();}});
     const banner=document.createElement('div'); banner.id='composerCalendarContext'; banner.hidden=true;

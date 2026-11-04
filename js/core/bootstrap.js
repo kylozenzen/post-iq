@@ -541,7 +541,7 @@ function init() {
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <button class="btn sm" style="font-size:11px;" data-inspire="${i}">→ Compose from this</button>
             ${safeSourceUrl ? `<a class=\"btn sm ghost\" href=\"${safeText(safeSourceUrl)}\" target=\"_blank\" rel=\"noopener\" style=\"font-size:11px;\">↗ Source</a>` : ''}
-            <button class="btn sm ghost" style="font-size:11px;" data-save-notebook="${i}">+ Content Bank</button>
+            <button class="btn sm ghost" style="font-size:11px;" data-save-notebook="${i}">+ Shelf</button>
           </div>
         </div>`;
 
@@ -565,7 +565,7 @@ function init() {
             safeTrack(() => GA4_Trending.trendingStorySaved(sourceType));
             saveBtn.textContent = '✓ Saved';
             saveBtn.disabled = true;
-            if (typeof showToast === 'function') showToast('Saved to Content Bank', 'success');
+            if (typeof showToast === 'function') showToast('Saved to your Shelf', 'success');
           }
         };
       }

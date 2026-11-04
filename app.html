@@ -42,6 +42,7 @@
   <link rel="stylesheet" href="./css/app/calendar-experience.css" />
   <link rel="stylesheet" href="./css/app/planning-tools.css" />
   <link rel="stylesheet" href="./css/app/tour.css" />
+  <link rel="stylesheet" href="./css/app/calm-calendar.css" />
 
 </head>
 
@@ -77,15 +78,12 @@
   <button class="mob-tab active" data-view="calendarView" data-workspace-nav="planning" data-feature="calendar">
     <svg><use href="#i-cal"/></svg>Calendar
   </button>
-  <button class="mob-tab" data-view="ideasView" data-workspace-nav="ideas" data-feature="ideas">
-    <svg><use href="#i-trending"/></svg>Content Bank
-  </button>
   <button class="mob-tab" data-view="composerView" data-workspace-nav="create" data-feature="composer">
     <svg><use href="#i-compose"/></svg>Compose
   </button>
-  <button class="mob-tab" data-view="libraryView" data-feature="library">
+  <button class="mob-tab" data-view="libraryView" data-shelf-nav>
     <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-    Library
+    Shelf
   </button>
   <button class="mob-tab" id="mobMoreBtn">
     <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
@@ -141,22 +139,18 @@
         <span class="nav-icon"><svg><use href="#i-cal"/></svg></span>
         <span class="nav-text">Calendar</span>
       </button>
-      <button class="nav-btn" data-view="ideasView" data-workspace-nav="ideas" data-feature="ideas" data-tooltip="Content Bank">
-        <span class="nav-icon"><svg><use href="#i-trending"/></svg></span>
-        <span class="nav-text">Content Bank</span>
-      </button>
       <button class="nav-btn" data-view="composerView" data-workspace-nav="create" data-feature="composer" data-tooltip="Compose">
         <span class="nav-icon"><svg><use href="#i-compose"/></svg></span>
         <span class="nav-text">Compose</span>
       </button>
-      <button class="nav-btn" data-view="libraryView" data-feature="library" data-tooltip="Library">
+      <button class="nav-btn" data-view="libraryView" data-tooltip="Shelf" data-shelf-nav>
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
           </svg>
         </span>
-        <span class="nav-text">Library</span>
+        <span class="nav-text">Shelf</span>
       </button>
     </nav>
 
@@ -188,32 +182,7 @@
     <!-- ══════════ PLAN (Calendar) ══════════ -->
     <section id="calendarView" class="view active" data-feature="calendar">
 
-      <!-- Mobile header -->
-      <div class="mob-view-hdr">
-        <span class="mob-view-title">Calendar</span>
-        <div class="mob-view-actions">
-          <button class="btn sm ghost" type="button" data-open-schedule="mobile">Schedule</button>
-          <button class="btn sm" id="shareMonthBtnMob">Share</button>
-          <button class="btn sm ghost" id="mobMenuBtn">
-            <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Desktop header -->
-      <div class="page-hdr">
-        <div class="page-hdr-left">
-          <h1 class="page-title">Calendar</h1>
-          <p class="page-desc" id="calDesc">Your Buffer queue in a monthly view. Spot gaps and add planning notes before you compose.</p>
-        </div>
-        <div class="page-actions">
-
-          <button class="btn ghost" type="button" id="openScheduleBtn" data-open-schedule="calendar">Posting schedule</button>
-          <button class="btn ghost" type="button" data-tour-start="calendar_header">Take a tour</button>
-          <a class="btn ghost" href="/help/?article=plan-content-calendar">Help</a>
-          <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
-        </div>
-      </div>
+      <h1 class="sr-only">Calendar</h1>
 
       <div class="calendar-layout">
       <div class="view-content calendar-main">
@@ -222,31 +191,50 @@
       <div id="gettingStarted" class="getting-started" hidden></div>
 
 
-      <!-- Calendar toolbar — month nav, view toggle, and filter in one row -->
-      <div class="cal-toolbar">
+      <!-- Calendar toolbar: turn the page, pick a zoom, add something. Everything else lives in the ⋯ menu. -->
+      <div class="cal-toolbar calm-toolbar">
         <div class="cal-toolbar-nav">
-          <button class="btn sm ghost" id="prevMonth" aria-label="Previous date range">‹</button>
-          <div class="cal-month-label" id="monthLabel"></div>
-          <button class="btn sm ghost" id="nextMonth" aria-label="Next date range">›</button>
-          <button class="btn sm ghost" id="todayMonth" style="font-size:11px;">Today</button>
+          <button class="cal-nav-btn" id="prevMonth" type="button" aria-label="Previous">‹</button>
+          <h2 class="cal-month-label" id="monthLabel" aria-live="polite"></h2>
+          <button class="cal-nav-btn" id="nextMonth" type="button" aria-label="Next">›</button>
+          <button class="btn sm ghost cal-today-btn" id="todayMonth" type="button">Today</button>
         </div>
 
         <div class="cal-toolbar-right">
+          <button class="cal-filter-chip" id="calFilterChip" type="button" hidden>Filtered · <span>Clear</span></button>
           <button class="cal-alert-bell" id="calAlertBell" type="button" aria-label="Alerts" aria-haspopup="dialog"><span class="cal-alert-ico" aria-hidden="true">◔</span><span class="cal-alert-count" hidden>0</span></button>
-          <div class="cal-view-toggle content-calendar-toggle" role="tablist" aria-label="Calendar items">
-            <button class="btn sm ghost active" id="calendarPostsModeBtn" type="button">Posts</button>
-            <button class="btn sm ghost" id="calendarContentModeBtn" type="button">Content</button>
+          <div class="cal-view-toggle" role="group" aria-label="Calendar view">
+            <button class="seg-btn active" id="calendarViewMonthBtn" type="button" data-calendar-view="month">Month</button>
+            <button class="seg-btn" id="calendarViewWeekBtn" type="button" data-calendar-view="week">Week</button>
           </div>
-          <details class="calendar-filters" id="calendarFilters"><summary class="btn sm" id="calendarFilterSummary">Filters</summary><div class="calendar-filter-popover"><div class="field">          <label class="label" for="calendarChannelFilter">Channel</label><select id="calendarChannelFilter" class="input"><option value="">All channels</option></select>
-          <label class="label" for="calendarFilter">Item filter</label><select id="calendarFilter" class="input" style="max-width:150px;font-size:12px;height:30px;padding:0 28px 0 8px;"></select>
-</div><div class="calendar-legend"><span>◷ Buffer post</span><span>✎ Date-only note</span><span>□ Action</span><span>◇ Target · not scheduled</span></div><button class="btn sm ghost" type="button" id="calendarFiltersReset">Reset filters</button></div></details>
-          <div class="cal-view-toggle" role="tablist" aria-label="Calendar view mode">
-            <button class="btn sm ghost active" id="calendarViewMonthBtn" type="button" data-calendar-view="month">Month</button>
-            <button class="btn sm ghost" id="calendarViewWeekBtn" type="button" data-calendar-view="week">Week</button>
-            <button class="btn sm ghost" id="calendarViewAgendaBtn" type="button" data-calendar-view="agenda">Agenda</button>
-          </div>
-          <button class="btn sm primary" id="calendarAddBtn" type="button">+ Add</button>
-          <button class="btn sm" id="shareMonthBtn" type="button">Share</button>
+          <button class="btn sm primary cal-add-btn" id="calendarAddBtn" type="button" aria-label="Add to calendar"><span aria-hidden="true">+</span><span class="cal-add-label"> Add</span></button>
+          <details class="calendar-filters calendar-more" id="calendarFilters">
+            <summary class="cal-more-btn" id="calendarFilterSummary" aria-label="More calendar options"><span aria-hidden="true">⋯</span><span class="cal-more-dot" hidden></span></summary>
+            <div class="calendar-filter-popover calendar-more-menu" role="menu">
+              <div class="more-section">
+                <div class="more-heading">Show</div>
+                <div class="seg-row" role="group" aria-label="Calendar items">
+                  <button class="seg-btn active" id="calendarPostsModeBtn" type="button">Posts &amp; plans</button>
+                  <button class="seg-btn" id="calendarContentModeBtn" type="button">Shelf items</button>
+                </div>
+                <label class="label" for="calendarChannelFilter">Channel</label>
+                <select id="calendarChannelFilter" class="input"><option value="">All channels</option></select>
+                <label class="label" for="calendarFilter">Items</label>
+                <select id="calendarFilter" class="input"></select>
+                <button class="more-link" type="button" id="calendarFiltersReset">Reset filters</button>
+              </div>
+              <div class="more-section">
+                <button class="more-item" type="button" id="calendarViewAgendaBtn" data-calendar-view="agenda">List view</button>
+                <button class="more-item" type="button" id="openScheduleBtn" data-open-schedule="calendar">Posting schedule</button>
+                <button class="more-item" type="button" id="shareMonthBtn">Share a snapshot</button>
+              </div>
+              <div class="more-section">
+                <button class="more-item" type="button" data-tour-start="calendar_menu">Take a tour</button>
+                <a class="more-item" href="/help/?article=plan-content-calendar">Help</a>
+                <a class="more-item" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
+              </div>
+            </div>
+          </details>
         </div>
       </div>
       <p id="calendarState" class="calendar-state" role="status"></p>
@@ -535,10 +523,10 @@
             </div>
             <div class="resource-drawer-search" id="composerResourceSearchWrap">
               <label class="sr-only" for="composerResourceSearch">Search writing tools</label>
-              <input class="input" id="composerResourceSearch" type="search" autocomplete="off" placeholder="Search Content Bank" />
+              <input class="input" id="composerResourceSearch" type="search" autocomplete="off" placeholder="Search your Shelf" />
             </div>
             <div class="support-tabs" role="tablist" aria-label="Compose tools">
-              <button class="support-tab active" id="composerToolTabNotebook" type="button" role="tab" aria-selected="true" aria-controls="composerToolPanelNotebook" data-stool="notebook">Content Bank <span class="support-tab-count" data-resource-count="notebook" hidden></span></button>
+              <button class="support-tab active" id="composerToolTabNotebook" type="button" role="tab" aria-selected="true" aria-controls="composerToolPanelNotebook" data-stool="notebook">Shelf <span class="support-tab-count" data-resource-count="notebook" hidden></span></button>
               <button class="support-tab" id="composerToolTabHooks" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelHooks" data-stool="hooks">Hooks <span class="support-tab-count" data-resource-count="hooks" hidden></span></button>
               <button class="support-tab" id="composerToolTabHashtags" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelHashtags" data-stool="hashtags">Hashtags <span class="support-tab-count" data-resource-count="hashtags" hidden></span></button>
               <button class="support-tab" id="composerToolTabTemplates" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelTemplates" data-stool="templates">Templates <span class="support-tab-count" data-resource-count="templates" hidden></span></button>
@@ -547,15 +535,15 @@
             </div>
             <div class="support-panel active" id="composerToolPanelNotebook" role="tabpanel" aria-labelledby="composerToolTabNotebook" data-stool-panel="notebook">
               <div class="composer-support-hdr">
-                <div><div class="panel-card-title" style="margin-bottom:2px;">Content Bank</div><div class="resource-panel-copy">Pin an idea beside your draft or insert its notes.</div></div>
-                <button class="btn sm ghost" type="button" data-resource-manage="notebook">Open Content Bank →</button>
+                <div><div class="panel-card-title" style="margin-bottom:2px;">Shelf</div><div class="resource-panel-copy">Pin an idea beside your draft or insert its notes.</div></div>
+                <button class="btn sm ghost" type="button" data-resource-manage="notebook">Open Shelf →</button>
               </div>
               <div class="composer-resource-list" id="composerNotebookResources"></div>
             </div>
             <div class="support-panel" id="composerToolPanelHooks" role="tabpanel" aria-labelledby="composerToolTabHooks" data-stool-panel="hooks" hidden>
               <div class="composer-support-hdr">
                 <div><div class="panel-card-title" style="margin-bottom:2px;">Hooks</div><div class="resource-panel-copy">Saved hooks plus openings from starred and top posts.</div></div>
-                <button class="btn sm ghost" type="button" data-resource-manage="library">Open Library →</button>
+                <button class="btn sm ghost" type="button" data-resource-manage="library">Open Shelf →</button>
               </div>
               <div class="composer-resource-list" id="composerHookResources"></div>
             </div>
@@ -686,19 +674,23 @@
     <!-- ══════════ LIBRARY (Post Library) ══════════ -->
     <section id="libraryView" class="view" data-feature="library">
       <div class="mob-view-hdr">
-        <span class="mob-view-title">📚 Library</span>
+        <span class="mob-view-title">Shelf</span>
         <div class="mob-view-actions">
           <button class="btn sm ghost" id="libraryRefreshBtnMob">↻</button>
         </div>
       </div>
       <div class="page-hdr">
         <div class="page-hdr-left">
-          <h1 class="page-title">Post Library</h1>
-          <p class="page-desc">Your latest 50 sent posts. Reuse something that worked, or star your evergreen posts to reshare and keep your streak alive.</p>
+          <h1 class="page-title">Shelf</h1>
+          <p class="page-desc">Everything you could post next. Reuse something that worked, or star an evergreen post so it can fill a gap while you take a break.</p>
         </div>
         <div class="page-actions">
           <button class="btn ghost" id="libraryRefreshBtn">↻ Refresh</button>
         </div>
+      </div>
+      <div class="shelf-tabs" role="tablist" aria-label="Shelf">
+        <button class="shelf-tab active" type="button" role="tab" aria-selected="true" data-shelf-tab="libraryView" data-feature="library">Past posts</button>
+        <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="ideasView" data-workspace-nav="ideas" data-feature="ideas">Ideas</button>
       </div>
       <div class="lib-content">
         <div class="lib-stats-strip" id="libraryStats">
@@ -714,7 +706,7 @@
             <option value="oldest">Sort: oldest first</option>
           </select>
         </div>
-        <div class="lib-tabs" role="tablist" aria-label="Library filters">
+        <div class="lib-tabs" role="tablist" aria-label="Past post filters">
           <button class="lib-tab active" data-lib-tab="all" type="button">All posts <span class="lib-tab-count" id="libTabCount-all"></span></button>
           <button class="lib-tab" data-lib-tab="reuse" type="button">↺ Ready to reuse <span class="lib-tab-count" id="libTabCount-reuse"></span></button>
           <button class="lib-tab" data-lib-tab="starred" type="button">★ Evergreen <span class="lib-tab-count" id="libTabCount-starred"></span></button>
@@ -734,22 +726,26 @@
     <!-- ══════════ IDEAS LIBRARY ══════════ -->
     <section id="ideasView" class="view" data-feature="ideas">
       <div class="mob-view-hdr">
-        <span class="mob-view-title">Content Bank</span>
+        <span class="mob-view-title">Shelf</span>
       </div>
       <div class="page-hdr">
         <div class="page-hdr-left">
-          <h1 class="page-title">Content Bank</h1>
-          <p class="page-desc">Find saved material, plan local target dates, and develop your channel versions. Buffer scheduling is shown separately.</p>
+          <h1 class="page-title">Shelf</h1>
+          <p class="page-desc">Ideas you have saved for later. Give one a target date to see it on the calendar, then develop it into channel versions.</p>
         </div>
         <div class="page-actions">
           <a class="btn ghost" href="/help/?article=build-your-idea-system">Help</a>
         </div>
       </div>
+      <div class="shelf-tabs" role="tablist" aria-label="Shelf">
+        <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="libraryView" data-feature="library">Past posts</button>
+        <button class="shelf-tab active" type="button" role="tab" aria-selected="true" data-shelf-tab="ideasView" data-workspace-nav="ideas" data-feature="ideas">Ideas</button>
+      </div>
 
       <div class="view-content">
         <div class="ideas-tool-switcher" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:18px;box-shadow:var(--shadow-sm);">
           <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">Saved material and resources</div>
-          <div class="ideas-tabs" role="group" aria-label="Content Bank sections" style="margin:0;border:0;padding:0;">
+          <div class="ideas-tabs" role="group" aria-label="Idea sections" style="margin:0;border:0;padding:0;">
             <button class="ideas-tab active" type="button" data-ideas-tab="notebook">Saved content</button>
             <details class="bank-resources" id="bankResources"><summary class="btn sm" id="bankResourcesSummary">Resources</summary><div class="bank-resource-menu">            <button class="ideas-tab" type="button" data-ideas-tab="templates">Templates</button></div></details>
           </div>
@@ -803,7 +799,7 @@
 
     <section id="contentDetailView" class="view" aria-labelledby="contentDetailTitle">
       <div class="content-detail-shell">
-        <button class="btn sm ghost content-detail-back" id="contentDetailBack" type="button">← Back to Content Bank</button>
+        <button class="btn sm ghost content-detail-back" id="contentDetailBack" type="button">← Back to Shelf</button>
         <header class="content-detail-header">
           <div><div class="content-detail-kicker">Content workspace</div><h1 id="contentDetailTitle" class="page-title"></h1><div id="contentDetailMeta" class="content-detail-meta"></div></div>
           <div class="content-detail-actions"><button class="btn" id="contentDetailSync" type="button">Sync Source to Buffer</button><button class="btn primary" id="contentDetailRemix" type="button">Create Platform Drafts</button></div>
@@ -857,8 +853,7 @@
 
   <!-- Quick links -->
   <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">↗ Open Buffer</a>
-  <button class="btn ghost" data-view="ideasView" data-workspace-nav="ideas" data-feature="ideas" id="mobDrawerIdeasBtn" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">Content Bank</button>
-  <button class="btn ghost" data-view="libraryView" data-feature="library">Library</button>
+  <button class="btn ghost" data-view="libraryView" data-shelf-nav>Shelf</button>
   <button class="btn ghost" id="mobOpenSettings" type="button" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">⚙ Settings</button>
   <button class="btn ghost" type="button" data-tour-start="mobile_drawer" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">◎ Take a tour</button>
   <a class="btn ghost" href="/help/" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">❓ Help Center</a>
@@ -1022,8 +1017,8 @@
               <input type="checkbox" data-workspace-toggle="create" aria-label="Show Create workspace" />
             </label>
             <label class="workspace-preference-card">
-              <span class="workspace-preference-copy"><strong>Content Bank</strong><small>Saved content, local targets, content pillars, templates, and Trending.</small></span>
-              <input type="checkbox" data-workspace-toggle="ideas" aria-label="Show Content Bank workspace" />
+              <span class="workspace-preference-copy"><strong>Ideas on the Shelf</strong><small>Adds an Ideas tab to the Shelf: save ideas, give them target dates, keep templates handy.</small></span>
+              <input type="checkbox" data-workspace-toggle="ideas" aria-label="Show Ideas on the Shelf" />
             </label>
           </div>
           <p class="workspace-preference-note" id="workspacePreferenceNote" role="status" aria-live="polite"></p>
@@ -1110,7 +1105,7 @@
             <div class="settings-feature-item"><span>Plan / Calendar</span><span class="settings-feature-status" data-settings-feature="calendar">Available</span></div>
             <div class="settings-feature-item"><span>Compose</span><span class="settings-feature-status" data-settings-feature="composer">Available</span></div>
             
-            <div class="settings-feature-item"><span>Content Bank</span><span class="settings-feature-status" data-settings-feature="ideas">Available</span></div>
+            <div class="settings-feature-item"><span>Shelf ideas</span><span class="settings-feature-status" data-settings-feature="ideas">Available</span></div>
             <div class="settings-feature-item"><span>Content Pillars</span><span class="settings-feature-status" data-settings-feature="contentPillars">Available</span></div>
             <div class="settings-feature-item"><span>Templates</span><span class="settings-feature-status is-static">Available</span></div>
             <div class="settings-feature-item"><span>Trending ideas</span><span class="settings-feature-status" data-settings-feature="trending">Available</span></div>
@@ -1236,7 +1231,7 @@
           <select class="input" id="schedOffScope"><option value="*">All channels</option><option value="selected">Selected channel</option></select>
           <button class="btn" id="schedOffSave" type="button">Mark dates off</button>
           <div class="sched-fill">
-            <p class="sched-fill-copy">Want to keep posting while you're away? For every reshare-enabled channel, PostIQ can queue your evergreen posts (starred in Library) into Buffer across the posting days in this range. Buffer publishes them on your normal schedule — your streak stays alive.</p>
+            <p class="sched-fill-copy">Want to keep posting while you're away? For every reshare-enabled channel, PostIQ can queue your evergreen posts (starred on your Shelf) into Buffer across the posting days in this range. Buffer publishes them on your normal schedule — your streak stays alive.</p>
             <button class="btn" id="schedFill" type="button">Fill these days with evergreen reshares</button>
             <button class="btn primary" id="schedFillConfirm" type="button" hidden>Confirm &amp; queue to Buffer</button>
             <p id="schedFillStatus" class="sched-status" role="status"></p>
@@ -1377,7 +1372,7 @@
 <div id="notecardModal" class="modal">
   <div class="modal-card">
     <div class="modal-hdr">
-      <span class="modal-title" id="notecardModalTitle">Add to Content Bank</span>
+      <span class="modal-title" id="notecardModalTitle">Add to Shelf</span>
       <button class="btn sm ghost" id="closeNotecardModal" type="button">Close</button>
     </div>
     <div class="field">

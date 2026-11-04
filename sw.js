@@ -19,6 +19,7 @@ const SHELL = [
   '/css/app/calendar-experience.css',
   '/css/app/planning-tools.css',
   '/css/app/tour.css',
+  '/css/app/calm-calendar.css',
   '/js/features/platform-guidance.js',
   '/js/ai-assist.js',
   '/js/features/develop.js',

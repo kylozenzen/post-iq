@@ -27,7 +27,7 @@ const HELP_CATEGORIES = [
   "Plan / Calendar",
   "Queue Health",
   "Compose",
-  "Content Bank",
+  "Shelf",
   "Content Pillars",
   "Templates",
   "Notebook",
@@ -68,13 +68,13 @@ window.POSTIQ_HELP_ARTICLES = [
     <ol>
       <li><strong>Connect Buffer</strong> so PostIQ can load your channels and scheduled queue.</li>
       <li><strong>Inspect coverage</strong> in Queue Health. Set your rhythm in Your Pace, then check a period.</li>
-      <li><strong>Plan a gap</strong> from the calendar: add a note or action, date a Content Bank item, or start a draft for that day.</li>
+      <li><strong>Plan a gap</strong> from the calendar: add a note or action, date a Shelf idea, or start a draft for that day.</li>
       <li><strong>Send to Buffer</strong> from Compose only when you pick Draft, Queue, or Schedule.</li>
     </ol>
     <h2>Preview without signing in</h2>
-    <p>You can open the calendar without a Buffer account. Notes, actions, Content Bank items, and Compose drafts are saved in your browser. Scheduled posts, Queue Health coverage, and sending to Buffer need Buffer sign-in.</p>
+    <p>You can open the calendar without a Buffer account. Notes, actions, Shelf ideas, and Compose drafts are saved in your browser. Scheduled posts, Queue Health coverage, and sending to Buffer need Buffer sign-in.</p>
     <h2>Take the tour</h2>
-    <p>A five-step tour opens the first time you visit. To see it again, choose <strong>Take a tour</strong> in the sidebar, the Calendar header, or the mobile More menu. It walks through the calendar, planning context, Queue Health, Your Pace, and Content Bank. It only points at controls and never sends anything to Buffer. Skip or close it at any time and restart it from the same buttons; steps for workspaces you have turned off are skipped.</p>
+    <p>A three-step tour opens the first time you visit. To see it again, choose <strong>Take a tour</strong> in the sidebar, the calendar’s ⋯ menu, or the mobile More menu. It walks through the calendar, your posting schedule, and Compose. It only points at controls and never sends anything to Buffer. Skip or close it at any time and restart it from the same buttons.</p>
     <h2>What does not happen automatically</h2>
     <p>Nothing is published just because you typed it in PostIQ. Content only moves into Buffer when you choose a Buffer action (for example draft, queue, or scheduled send).</p>
     <h3>Good to know</h3>
@@ -108,7 +108,7 @@ window.POSTIQ_HELP_ARTICLES = [
     <h2>Staying signed in</h2>
     <p>Buffer sign-in is saved on this browser across reloads and new tabs. PostIQ refreshes access automatically when Buffer provides a refresh token. Clearing site data, private browsing, or revoked authorization can require another sign-in. A network outage or rate limit does not clear your saved connection; retry Sync now when service returns.</p>
     <h2>Sign out</h2>
-    <p>Choose <strong>Sign out</strong> in the sidebar, mobile More menu, or Settings → Connection. This removes Buffer tokens, any manual API key, and cached Buffer posts from this browser. It keeps local notes, Content Bank items, drafts, and preferences. It does not sign you out of buffer.com or cancel anything already queued there. To revoke PostIQ’s authorization entirely, use Buffer’s connected-app controls.</p>
+    <p>Choose <strong>Sign out</strong> in the sidebar, mobile More menu, or Settings → Connection. This removes Buffer tokens, any manual API key, and cached Buffer posts from this browser. It keeps local notes, Shelf ideas, drafts, and preferences. It does not sign you out of buffer.com or cancel anything already queued there. To revoke PostIQ’s authorization entirely, use Buffer’s connected-app controls.</p>
     <h2>If you get disconnected</h2>
     <ol>
       <li>Reconnect from Connection settings.</li>
@@ -131,13 +131,13 @@ window.POSTIQ_HELP_ARTICLES = [
     tags: ['calendar', 'queue', 'gaps', 'notes', 'actions', 'snapshot', 'planning'],
     featured: false,
     relatedArticles: ['getting-started', 'queue-health-your-pace', 'share-content-for-review'],
-    body: `<p>The Calendar shows confirmed Buffer posts, date-only notes, to-do actions, and Content Bank target dates in month, week, or agenda view. Each has its own marker, and target dates are labelled “not scheduled”.</p>
+    body: `<p>The Calendar shows two layers. <strong>Posts</strong> from Buffer are solid cards with the platform’s icon. <strong>Plans</strong> you make yourself — notes, to-dos and Shelf ideas with a target date — are outlined. Switch between Month and Week at the top; on a phone you get a list of the week.</p>
     <h2>How to use the calendar</h2>
     <ol>
       <li>Sign in with Buffer and sync.</li>
-      <li>Read the day labels: a <strong>gap</strong> means your rhythm expects a post and no confirmed post is loaded; a <strong>non-posting day</strong> is outside your rhythm.</li>
-      <li>Use <strong>+ Add</strong> or the + on a day to add a note, an action, or a draft.</li>
-      <li>Use Filters to narrow channels or item types, and Share for a read-only snapshot.</li>
+      <li>Look for dashed <strong>open slots</strong>: a day where your posting schedule expects a post and none is in Buffer yet. Open the day to fill it.</li>
+      <li>Use <strong>+ Add</strong>, or the + that appears on a day, to add a note, a to-do, or a draft.</li>
+      <li>Open the <strong>⋯ menu</strong> to filter by channel or item, set your posting schedule, switch to List view, or share a read-only snapshot. When a filter is on, a dot appears on ⋯ and a “Filtered · Clear” chip shows beside it.</li>
     </ol>
     <p>Gap labels need a connected, recently synced queue. If data is partial or stale, the calendar says so instead of showing full coverage.</p>
     <h2>When to use Snapshot sharing</h2>
@@ -160,7 +160,7 @@ window.POSTIQ_HELP_ARTICLES = [
     body: `<p>Compose is where ideas become publish-ready posts. Draft the message, shape formatting, attach media, and decide the final Buffer action.</p>
     <h2>Drafting workflow</h2>
     <ol>
-      <li>Start from a blank draft, a template, a Content Bank item, or a calendar day.</li>
+      <li>Start from a blank draft, a template, a Shelf idea, or a calendar day.</li>
       <li>Add copy and media.</li>
       <li>If you started from the calendar, use the planning date in the schedule picker only if you want it.</li>
       <li>Choose the Draft, Queue, or Schedule action for Buffer.</li>
@@ -185,7 +185,7 @@ window.POSTIQ_HELP_ARTICLES = [
     body: `<p>Queue Health shows each channel’s confirmed runway. Your Pace, on the same page, compares confirmed scheduled Buffer posts with the rhythm you choose.</p>
     <h2>Set a rhythm</h2>
     <ol>
-      <li>Open <strong>Queue Health</strong> from the sidebar, the Calendar header, or the mobile More menu.</li>
+      <li>On the calendar, open the <strong>⋯ menu</strong> and choose <strong>Posting schedule</strong>.</li>
       <li>Under <strong>Channel rhythm</strong>, pick a channel, its posting days, and posts per selected day (0–10).</li>
       <li>Choose a period of up to 92 days and select <strong>Check this period</strong>.</li>
       <li>Use <strong>Plan this slot</strong> to open that date on the calendar with the channel selected.</li>
@@ -202,12 +202,12 @@ window.POSTIQ_HELP_ARTICLES = [
   {
     slug: 'build-your-idea-system',
     title: 'Build Your Idea System',
-    category: 'Content Bank',
+    category: 'Shelf',
     summary: 'Learn how to use saved content, Content Pillars, Templates, and Trending to turn raw ideas into reusable content starters.',
     tags: ['notebook', 'content pillars', 'templates', 'trending', 'ideas', 'starters'],
     featured: false,
     relatedArticles: ['plan-content-calendar', 'write-split-send-posts', 'getting-started'],
-    body: `<p>Content Bank holds your saved material. Local target dates are planning reminders, not confirmed Buffer scheduling. Use the date controls to plan, and Develop to continue the existing workflow. Templates, Content Pillars and Trending are available under Resources. Instead of starting from zero each time, you store signals and transform them into usable drafts.</p>
+    body: `<p>The Shelf holds your saved ideas and past posts. Local target dates are planning reminders, not confirmed Buffer scheduling. Use the date controls to plan, and Develop to continue the existing workflow. Templates, Content Pillars and Trending are available under Resources. Instead of starting from zero each time, you store signals and transform them into usable drafts.</p>
     <h2>Use each tool for a specific job</h2>
     <ul>
       <li><strong>Saved content</strong>: search existing material, identify items without a target, and plan a local date. Your original source and channel versions stay intact.</li>
@@ -217,7 +217,7 @@ window.POSTIQ_HELP_ARTICLES = [
     </ul>
     <h2>Simple weekly routine</h2>
     <ol>
-      <li>Save 5–10 new idea inputs in Content Bank or Trending.</li>
+      <li>Save 5–10 new ideas to your Shelf or from Trending.</li>
       <li>Map them to pillars.</li>
       <li>Turn the strongest ideas into templates or starters.</li>
       <li>Open Compose and finalize for Buffer.</li>
@@ -296,7 +296,7 @@ window.POSTIQ_HELP_ARTICLES = [
       <li>Local workspace state and beta workflow features.</li>
     </ul>
     <h2>Browser storage and signing out</h2>
-    <p>Buffer sign-in tokens persist on this browser so you do not have to reconnect each visit. Sign out removes those tokens, any manual Buffer API key, and cached Buffer queue data. Your notes, Content Bank items, drafts, preferences, and optional Gemini key remain on this device. Sign out is not an erase-all-data action. Export important local work before clearing browser site data; local work does not automatically follow you to another browser.</p>
+    <p>Buffer sign-in tokens persist on this browser so you do not have to reconnect each visit. Sign out removes those tokens, any manual Buffer API key, and cached Buffer queue data. Your notes, Shelf items, drafts, preferences, and optional Gemini key remain on this device. Sign out is not an erase-all-data action. Export important local work before clearing browser site data; local work does not automatically follow you to another browser.</p>
     <h2>Snapshot link visibility</h2>
     <p>Anyone with a snapshot link can view that shared snapshot. Treat links as shareable planning artifacts.</p>
     <h2>Public beta expectations</h2>
