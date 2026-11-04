@@ -693,3 +693,22 @@
 .side-bottom .side-learn .gs-step .btn:hover { background:rgba(255,255,255,.18); }
 .side-bottom .side-learn .gs-check { color:#d1c9bb; }
 .side-bottom .side-learn .gs-step.is-done .gs-check { color:#86ddad; }
+
+/* Connection status expands in place. No Settings round trip for everyday work. */
+.side-connection.connection-card { display:block; }
+.side-connection .conn-row { display:flex; align-items:center; }
+.side-connection .conn-status-action { min-width:0; }
+.side-connection .conn-chevron { transition: transform .15s ease; font-size:15px; }
+.side-connection.expanded .conn-chevron { transform:rotate(180deg); }
+.side-connection .conn-expanded[hidden] { display:none !important; }
+.side-connection.expanded .conn-expanded { display:block; padding-top:12px; margin-top:10px; border-top:1px solid rgba(255,255,255,.1); }
+.side-connection.expanded .conn-heading { display:none !important; }
+.side-connection.expanded .conn-helper { display:block !important; color:rgba(255,255,255,.72); font-size:11px; margin:0 0 10px; }
+.side-connection.expanded .conn-actions { display:flex !important; flex-direction:column; align-items:stretch; gap:7px; }
+.side-connection.expanded .conn-actions .btn { display:flex; width:100%; min-height:32px; }
+.side-connection.expanded .conn-actions .btn[hidden] { display:none !important; }
+.side-connection.expanded .conn-last-sync { display:block; margin:10px 0 0; font-size:10px; color:rgba(255,255,255,.62); }
+.side-connection.expanded .conn-last-sync[style*="display:none"] { display:none; }
+.side-connection .conn-advanced-link { display:none; }
+.side-connection.expanded .conn-advanced-link { display:block; width:100%; margin-top:9px; border:0; background:transparent; color:rgba(255,255,255,.68); font-size:11px; text-align:left; padding:6px 2px; cursor:pointer; }
+.side-connection.expanded .conn-advanced-link:hover { color:#fff; }
