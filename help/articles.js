@@ -44,83 +44,68 @@ window.POSTIQ_HELP_ARTICLES = [
     slug: 'settings-and-sign-out',
     title: 'Settings, Saved Preferences, and Sign Out',
     category: 'Settings',
-    summary: 'Customize your workspace, understand what saves automatically, and manage your Buffer connection.',
+    summary: 'Customize PostIQ, enable Shelf ideas, and find advanced connection settings.',
     tags: ['settings', 'customize', 'theme', 'sidebar', 'sign out', 'logout', 'stay signed in', 'API key'],
     relatedArticles: ['connect-buffer', 'privacy-storage-beta-limits'],
-    body: `<p>Open Settings from the sidebar or the mobile More menu. Section tabs stay available while you scroll.</p>
-    <h2>Connection</h2><p>Check your Buffer connection, choose Sync now, or Sign out. You stay signed in on this browser until you sign out, clear site data, or Buffer requires authorization again. Advanced API key setup is optional: Session keeps a manual key for this tab, while Save locally keeps it between visits. Sign out removes both kinds of Buffer access.</p>
-    <h2>Customize</h2><p>Workspace visibility, themes, posting days, queue-gap visibility, and note types save automatically in this browser. At least one workspace must stay visible. Reset workspace visibility restores the default sidebar choices. It does not delete your content.</p>
-    <h2>Posting rhythm</h2><p>Choose default posting days or override them for each synced channel. The posting schedule guides open-slot suggestions. Changing it never changes your Buffer queue or scheduled posts.</p>
-    <h2>AI and Discord</h2><p>AI Assist is optional and currently requires a beta unlock. Use its Save buttons when changing your Gemini key or voice. Discord has its own configuration and save controls. Never include keys or webhook URLs in screenshots or support messages.</p>
-    <h2>Using a shared device</h2><p>Sign out clears Buffer access and cached Buffer data but keeps local work and other integration settings. Private browser windows can discard saved work when closed. Export or copy important work before clearing site data.</p>`
+    body: `<p>Open <strong>Settings</strong> from the desktop sidebar or mobile More menu. Settings is for preferences and advanced configuration; most everyday Buffer actions can now be done directly in the sidebar.</p>
+<h2>Buffer connection without opening Settings</h2>
+<p>Click the compact Buffer status row near the top of the sidebar to expand <strong>Connect/Reconnect Buffer</strong>, <strong>Sync now</strong>, or <strong>Sign out</strong>, as applicable. Click it again to collapse. Green indicates a connected account; amber indicates a reconnect or detected sync issue.</p>
+<p>Use <strong>Settings → Connection</strong> or <strong>Advanced connection settings</strong> for less common setup, including the optional manual API key. Your browser keeps Buffer sign-in until you sign out, clear site data, or need reauthorization.</p>
+<h2>Customize</h2>
+<p>Under <strong>Settings → Customize</strong>, choose your workspace visibility, theme, posting defaults, queue-gap visibility, and note types. <strong>Ideas on the Shelf</strong> adds an Ideas tab to Shelf; turning it off hides that tab rather than deleting your ideas. At least one workspace must remain enabled. Preferences save in this browser.</p>
+<h2>Posting rhythm</h2>
+<p>Use <strong>Posting schedule</strong> from the calendar's <strong>⋯</strong> menu to choose days and channel cadence. This guides open slots and coverage without moving or modifying scheduled Buffer posts.</p>
+<h2>Help and onboarding</h2>
+<p>Open <strong>Help</strong> in the sidebar to choose <strong>Getting started</strong>, <strong>Replay product tour</strong>, or <strong>Help Center</strong>. Getting started opens a separate optional checklist, not a permanent calendar banner.</p>
+<h2>AI, Discord, and shared devices</h2>
+<p>Optional integrations have their own configuration. Never include private keys or webhook URLs in screenshots. Signing out of Buffer keeps local plans and other integration settings; clearing browser data may remove those. Use the calendar backup feature before clearing your browser or moving devices.</p>`
   },
   {
     slug: 'getting-started',
     title: 'Getting Started with PostIQ',
     category: 'Getting Started',
-    summary: 'Learn what PostIQ is, how it works with Buffer, and the calendar-first workflow: connect, check coverage, plan a gap, send.',
+    summary: 'Start with Welcome, take the four-part tour, and find optional setup in Help.',
     tags: ['onboarding', 'workflow', 'buffer', 'queue', 'publish'],
     featured: true,
     relatedArticles: ['connect-buffer', 'plan-content-calendar', 'keyboard-shortcuts-command-menu'],
-    body: `<p>PostIQ is an independent calendar companion for Buffer users. Buffer is still your publishing home. PostIQ shows your scheduled Buffer posts beside planning notes and actions, flags gaps against the posting rhythm you choose, and helps you turn saved content into a dated plan. It is not made by or affiliated with Buffer.</p>
-    <h2>How PostIQ fits into your process</h2>
-    <ol>
-      <li><strong>Connect Buffer</strong> so PostIQ can load your channels and scheduled queue.</li>
-      <li><strong>Set your posting schedule</strong> from the calendar’s ⋯ menu to show open slots that fit your rhythm.</li>
-      <li><strong>Plan a gap</strong> from the calendar: add a note or action, date a Shelf idea, or start a draft for that day.</li>
-      <li><strong>Send to Buffer</strong> from Compose only when you pick Draft, Queue, or Schedule.</li>
-    </ol>
-    <h2>Preview without signing in</h2>
-    <p>You can open the calendar without a Buffer account. Notes, actions, Shelf ideas, and Compose drafts are saved in your browser. Scheduled posts and sending to Buffer need Buffer sign-in.</p>
-    <h2>Take the tour</h2>
-    <p>A three-step tour opens the first time you visit. To see it again, choose <strong>Take a tour</strong> in the sidebar, the calendar’s ⋯ menu, or the mobile More menu. It walks through the calendar, your posting schedule, and Compose. It only points at controls and never sends anything to Buffer. Skip or close it at any time and restart it from the same buttons.</p>
-    <h2>What does not happen automatically</h2>
-    <p>Nothing is published just because you typed it in PostIQ. Content only moves into Buffer when you choose a Buffer action (for example draft, queue, or scheduled send).</p>
-    <h3>Good to know</h3>
-    <ul>
-      <li>PostIQ is in public beta, so flows can evolve.</li>
-      <li>You may see lightweight rough edges while features stabilize.</li>
-      <li>Use Help links inside each view for context-specific guidance.</li>
-    </ul>`
+    body: `<p>PostIQ is an independent planning companion for Buffer. Buffer handles publishing; PostIQ helps you see scheduled posts alongside notes, to-dos, and dated ideas, spot gaps in your posting rhythm, and prepare what comes next. PostIQ is not made by or affiliated with Buffer.</p>
+<h2>Your first visit: choose your pace</h2>
+<p>The first time you open the app, a welcome screen offers <strong>Take the tour</strong> or <strong>Look around</strong>. Neither choice requires connecting Buffer. If you are already connected, PostIQ keeps your existing session; it does not make you sign in again to take the tour.</p>
+<h2>The four-part tour</h2>
+<ol>
+<li><strong>Calendar:</strong> solid cards are scheduled Buffer posts; outlined items are plans that are not scheduled.</li>
+<li><strong>Planning:</strong> use <strong>+ Add</strong> or open a calendar day to add a note, reminder, or idea. In an open day drawer, choose <strong>Add planning note</strong>.</li>
+<li><strong>Compose:</strong> write and prepare a post. Sending it to Buffer requires a deliberate Draft, Queue, or Schedule action and a connected Buffer account.</li>
+<li><strong>Shelf:</strong> keep past posts handy and optionally enable <strong>Ideas on the Shelf</strong> under <strong>Settings → Customize</strong>. The tour includes a <strong>Show me that setting</strong> shortcut.</li>
+</ol>
+<p>The tour is skippable. Reopen it through <strong>Help → Replay product tour</strong>, the calendar's <strong>⋯</strong> menu, or the mobile More menu. It guides you around the interface; it does not publish or send posts.</p>
+<h2>Getting Started is optional</h2>
+<p>Need help with setup after the tour? Open <strong>Help → Getting started</strong> in the sidebar. This opens a separate checklist window with optional tasks: connect Buffer, set a posting rhythm, enable Shelf ideas, create a Buffer draft, and star a past post for reuse. The checklist is not something you must finish to use PostIQ.</p>
+<h2>Explore without a Buffer account</h2>
+<p>Choose <strong>Look around</strong> to explore the existing calendar and planning tools. Local planning work stays in this browser. This is not a preloaded sample Buffer queue: actual scheduled posts, channels, and sending actions require a Buffer connection.</p>
+<h2>Start a simple workflow</h2>
+<ol><li>Connect Buffer from the expandable status at the top of the sidebar if you want to see your real posts.</li><li>Check the calendar and set your posting rhythm in its <strong>⋯</strong> menu.</li><li>Open a blank day, add a plan, or move an idea onto a date.</li><li>Open Compose and send to Buffer only when ready.</li></ol>
+<p><strong>Nothing publishes automatically.</strong> A note, draft, or target date is not a scheduled Buffer post.</p>`
   },
   {
     slug: 'connect-buffer',
     title: 'Connect Buffer and Manage Syncing',
     category: 'Buffer Connection',
-    summary: 'Learn how Buffer connection works, what syncing does, and how to recover from a disconnected state.',
+    summary: 'Expand the sidebar status to connect, sync, reconnect, and sign out of Buffer.',
     tags: ['buffer', 'oauth', 'sync', 'token', 'disconnected'],
     featured: true,
     relatedArticles: ['settings-and-sign-out', 'troubleshooting', 'plan-content-calendar'],
-    body: `<p>Buffer connection gives PostIQ access to the profiles and queue data you need for planning and prep. Connection and syncing are related, but not the same.</p>
-    <h2>Connection vs sync</h2>
-    <ul>
-      <li><strong>Connection</strong> = authorization to access your Buffer workspace.</li>
-      <li><strong>Sync</strong> = loading fresh channel and queue data into PostIQ.</li>
-    </ul>
-    <h2>Standard setup steps</h2>
-    <ol>
-      <li>Open <strong>Connection settings</strong>.</li>
-      <li>Complete Buffer sign-in/OAuth.</li>
-      <li>Choose <strong>Sync now</strong> to pull current queue data.</li>
-      <li>Verify the right profile filter is selected.</li>
-    </ol>
-    <h2>Staying signed in</h2>
-    <p>Buffer sign-in is saved on this browser across reloads and new tabs. PostIQ refreshes access automatically when Buffer provides a refresh token. Clearing site data, private browsing, or revoked authorization can require another sign-in. A network outage or rate limit does not clear your saved connection; retry Sync now when service returns.</p>
-    <h2>Sign out</h2>
-    <p>Choose <strong>Sign out</strong> in the sidebar, mobile More menu, or Settings → Connection. This removes Buffer tokens, any manual API key, and cached Buffer posts from this browser. It keeps local notes, Shelf ideas, drafts, and preferences. It does not sign you out of buffer.com or cancel anything already queued there. To revoke PostIQ’s authorization entirely, use Buffer’s connected-app controls.</p>
-    <h2>If you get disconnected</h2>
-    <ol>
-      <li>Reconnect from Connection settings.</li>
-      <li>Run sync again.</li>
-      <li>Refresh filters if posts appear missing.</li>
-    </ol>
-    <h3>Common confusion</h3>
-    <p>“Connected” does not always mean “fresh.” If your calendar looks stale, sync again.</p>
-    <h3>Good to know</h3>
-    <ul>
-      <li>OAuth state is handled by Buffer auth flow; PostIQ does not replace it.</li>
-      <li>Temporary API/network issues can delay sync updates in beta.</li>
-    </ul>`
+    body: `<p>PostIQ uses your Buffer connection to load channels and scheduled posts. <strong>Connected</strong> means authorized; <strong>synced</strong> means the app has refreshed data. The two are different.</p>
+<h2>Connect from the sidebar</h2>
+<ol><li>Find the Buffer status row near the top of the desktop sidebar. It says <strong>Connect Buffer</strong>, <strong>Buffer connected</strong>, <strong>Reconnect Buffer</strong>, or <strong>Sync issue</strong>, depending on the state.</li><li>Click the status row to <strong>expand</strong> its actions without leaving the calendar.</li><li>Choose <strong>Connect Buffer</strong> (or <strong>Reconnect Buffer</strong>) and finish Buffer's authorization flow.</li><li>When connected, expand the row again and use <strong>Sync now</strong> to refresh your queue and channels.</li><li>Click the status row again to collapse the controls.</li></ol>
+<h2>What the status light means</h2>
+<ul><li><strong>Green:</strong> Buffer is connected. Data may still need syncing.</li><li><strong>Amber:</strong> the session needs reconnection or the most recent sync reports an issue.</li><li><strong>Neutral:</strong> Buffer is not connected yet.</li></ul>
+<p>When a sync issue occurs, open the status row, try <strong>Sync now</strong>, and review your channel filters. A connection being active does not guarantee your calendar data is current.</p>
+<h2>Sign out and advanced settings</h2>
+<p>Expand the sidebar status row and choose <strong>Sign out</strong> to disconnect from Buffer. More advanced setup, including the optional manual API key fallback, remains under <strong>Advanced connection settings</strong> or <strong>Settings → Connection</strong>. On mobile, connection actions remain available from the More menu.</p>
+<p>Signing out clears Buffer tokens, manual Buffer keys, and cached Buffer data from this browser; it does not remove your locally saved notes, ideas, drafts, or preferences. It does not cancel scheduled Buffer posts or sign you out of buffer.com.</p>
+<h2>Why might I need to reconnect?</h2>
+<p>PostIQ keeps your Buffer sign-in on this browser and refreshes authorization when possible. Clearing site data, using a private session, revoking the app, or an expired authorization may require sign-in again. A temporary network or API problem may instead require only another sync.</p>`
   },
   {
     slug: 'plan-content-calendar',
@@ -130,32 +115,12 @@ window.POSTIQ_HELP_ARTICLES = [
     tags: ['calendar', 'queue', 'gaps', 'notes', 'actions', 'snapshot', 'planning'],
     featured: false,
     relatedArticles: ['getting-started', 'keyboard-shortcuts-command-menu', 'share-content-for-review'],
-    body: `<p>The Calendar shows two layers. <strong>Posts</strong> from Buffer are solid cards with platform icons. <strong>Plans</strong> you make — notes, to-dos and dated Shelf ideas — are outlined. Switch between Month and Week at the top, or choose List view from the ⋯ menu.</p>
-    <h2>How to use the calendar</h2>
-    <ol>
-      <li>Sign in with Buffer and sync.</li>
-      <li>Look for dashed <strong>open slots</strong>: a day where your posting schedule expects a post and none is in Buffer yet. Open the day to fill it.</li>
-      <li>Use <strong>+ Add</strong>, or the + that appears on a day, to add a note, a to-do, or a draft.</li>
-      <li>Open the <strong>⋯ menu</strong> to filter by channel or item, set your posting schedule, switch to List view, or share a read-only snapshot. When a filter is on, a dot appears on ⋯ and a “Filtered · Clear” chip shows beside it.</li>
-    </ol>
-    <h2>Fast ways to plan</h2>
-    <ul>
-      <li><strong>Quick add.</strong> Press <strong>⌘K / Ctrl K</strong>, choose Quick add, or press <kbd>N</kbd> and type a plan with its day: “Fri: reshare the press release”, “todo tomorrow: film B-roll”, “Nov 12: webinar promo”, or a holiday name like “Thanksgiving: thank-you post”. A preview shows the day before you press Enter.</li>
-      <li><strong>Today.</strong> When you’re looking at the current month or week, the Today card shows what’s going out, today’s to-dos, and your next open slot.</li>
-      <li><strong>Fill an open slot.</strong> Click a dashed open slot (or use the Today card). If you’ve starred evergreen posts on your Shelf, PostIQ suggests one and shows the exact day and time before you queue it in Buffer. Choose <strong>Another</strong> for a different post, or <strong>Write new</strong>.</li>
-      <li><strong>Drag to reschedule.</strong> Drag a scheduled post or a plan to another day. Posts keep their time of day and move in Buffer; plans move in PostIQ. Every move has an <strong>Undo</strong>. Published posts and past days don’t move.</li>
-      <li><strong>Holidays.</strong> Public holidays show under the date. Pick your country, or turn them off, in the ⋯ menu.</li>
-    </ul>
-    <h2>Keep a copy of your plans</h2>
-    <p>Plans are saved in this browser. From the ⋯ menu you can <strong>Download a backup</strong> (and later <strong>Restore</strong> it on any browser), or <strong>Export to calendar app</strong> to add your plans to Google, Apple or Outlook calendar. Backups never include your Buffer sign-in.</p>
-    <p>Gap labels need a connected, recently synced queue. If data is partial or stale, the calendar says so instead of showing full coverage.</p>
-    <h2>When to use Snapshot sharing</h2>
-    <p>Use snapshots when you need to share a read-only plan quickly. Snapshot links are ideal for alignment, not for collecting line-by-line feedback.</p>
-    <h3>Good to know</h3>
-    <ul>
-      <li>Snapshots are static views, so re-share after major updates.</li>
-      <li>Plan helps you prepare; publishing still happens through Buffer actions.</li>
-    </ul>`
+    body: `<p>The Calendar is PostIQ's home. <strong>Solid cards</strong> represent posts loaded from Buffer; <strong>outlined cards</strong> represent local notes, to-dos, and dated ideas that have not been scheduled. Choose Month or Week from the calendar controls, or List from the <strong>⋯</strong> menu.</p>
+<h2>Start on a blank day</h2><ol><li>Click a calendar date or dashed <strong>Open slot</strong>.</li><li>The day drawer opens with <strong>Add planning note</strong>, <strong>Start draft</strong>, and <strong>Plan a campaign / newsletter</strong> actions.</li><li>Choose the action that matches your next step; a note stays a plan, while a draft takes you to Compose.</li><li>Nothing goes into Buffer until you deliberately choose a send or schedule action.</li></ol>
+<h2>Plan faster</h2><ul><li><strong>+ Add:</strong> open the calendar's add-plan entry point. Press <kbd>N</kbd> when keyboard shortcuts are available.</li><li><strong>Today card:</strong> see today's posts and tasks and find an upcoming gap.</li><li><strong>Open slots:</strong> reflect your chosen posting rhythm, not a requirement to publish every day.</li><li><strong>Drag:</strong> move an eligible post or plan to another day and use Undo when offered. Moving a Buffer post may update the connected queue; local plans remain local.</li><li><strong>Holidays:</strong> choose visible public holidays from the calendar menu.</li></ul>
+<h2>Filters and posting rhythm</h2><p>Use the calendar <strong>⋯</strong> menu to filter by channel or content, configure your posting schedule, and access additional views and share tools. Coverage information depends on the channels and scheduled posts most recently synced from Buffer.</p>
+<h2>Backup and sharing</h2><p>The menu includes options for backing up and restoring local plans, exporting calendar data, and sharing read-only snapshots when enabled. Backups do not contain your Buffer authorization. Snapshot links show a static view; share a new one after substantial changes.</p>
+<p>Remember: a planning date is not a scheduled Buffer post, and a stale sync may make calendar coverage incomplete.</p>`
   },
   {
     // Slug kept from the retired thread-splitter guide so existing links still work.
@@ -166,22 +131,11 @@ window.POSTIQ_HELP_ARTICLES = [
     tags: ['compose', 'media', 'draft', 'queue', 'schedule'],
     featured: false,
     relatedArticles: ['getting-started', 'build-your-idea-system', 'share-content-for-review'],
-    body: `<p>Compose is where ideas become publish-ready posts. Draft the message, shape formatting, attach media, and decide the final Buffer action.</p>
-    <h2>Drafting workflow</h2>
-    <ol>
-      <li>Start from a blank draft, a template, a Shelf idea, or a calendar day.</li>
-      <li>Add copy and media.</li>
-      <li>If you started from the calendar, use the planning date in the schedule picker only if you want it.</li>
-      <li>Choose the Draft, Queue, or Schedule action for Buffer.</li>
-    </ol>
-    <h2>Choosing the right Buffer action</h2>
-    <ul>
-      <li><strong>Draft</strong>: still in review.</li>
-      <li><strong>Queue</strong>: ready for your normal posting cadence.</li>
-      <li><strong>Schedule</strong>: needs a specific time.</li>
-    </ul>
-    <h3>Good to know</h3>
-    <p>Nothing is sent until you explicitly choose one of those Buffer actions.</p>`
+    body: `<p><strong>Compose</strong> is where you turn a plan into something ready for Buffer. You can explore the editor without connecting; actual Buffer sending requires a connected account.</p>
+<h2>Start writing</h2><ol><li>Open <strong>Compose</strong> from the sidebar, or open a calendar day and choose <strong>Start draft</strong>.</li><li>Write your message, choose channels when available, and attach media or use writing resources as needed.</li><li>Review the copy, media, channels, and timing.</li><li>Only when ready, choose the appropriate Buffer action.</li></ol>
+<h2>Draft, Queue, or Schedule?</h2><ul><li><strong>Draft:</strong> send an unfinished post into Buffer drafts for later work.</li><li><strong>Queue:</strong> send it to Buffer's posting queue.</li><li><strong>Schedule:</strong> choose a specific posting date and time.</li></ul>
+<p>Creating a local planning note or opening Compose does not schedule a Buffer post. A target date in PostIQ is only a plan until you explicitly send to Buffer.</p>
+<h2>Need a starting point?</h2><p>Use <strong>Shelf</strong> for past posts, or enable <strong>Ideas on the Shelf</strong> under <strong>Settings → Customize</strong> for an ideas tab you can develop over time. The four-part onboarding tour includes Compose and Shelf.</p>`
   },
   {
     slug: 'queue-health-your-pace', // Retained so older help links continue to resolve.
@@ -215,36 +169,29 @@ window.POSTIQ_HELP_ARTICLES = [
     summary: 'Find actions with the command menu, add a plan in plain English, and move around the calendar from your keyboard.',
     tags: ['keyboard', 'shortcuts', 'command menu', 'quick add', 'accessibility'],
     relatedArticles: ['plan-content-calendar', 'getting-started'],
-    body: `<p>Press <kbd>⌘K</kbd> on a Mac or <kbd>Ctrl K</kbd> on Windows to open the command menu. Search for an action, use the arrow keys to choose it, press Enter to run it, or press Escape to close the menu.</p>
-    <h2>Quick add from the menu</h2><p>Type a plan such as “Fri: film B-roll” or “todo tomorrow: review captions” and press Enter. PostIQ reads the date, shows a preview, and saves it to the calendar. Press <kbd>N</kbd> or choose <strong>+ Add</strong> for the quick-add field.</p>
-    <h2>Calendar shortcuts</h2><ul><li><kbd>T</kbd>: go to today</li><li><kbd>←</kbd> / <kbd>→</kbd>: previous or next period</li><li><kbd>M</kbd> / <kbd>W</kbd> / <kbd>L</kbd>: Month, Week, or List view</li><li><kbd>Arrow keys</kbd>: move focus between days; press Enter to open a day</li><li><kbd>?</kbd>: show the shortcut sheet</li></ul>
-    <p>Shortcuts pause while you type in a field or when a dialog is open. The command menu can still be opened with its shortcut while you are in a field.</p>`
+    body: `<p>PostIQ has a keyboard power layer for common navigation and planning tasks. Press <kbd>⌘K</kbd> on Mac or <kbd>Ctrl+K</kbd> on Windows to open the command menu. Use the arrow keys and Enter to choose actions, or Escape to close it.</p>
+<h2>Add a plan by typing a date</h2><p>Choose <strong>+ Add</strong> or press <kbd>N</kbd> outside text fields to open the add-plan flow. Enter a date and an idea, such as “Fri: film B-roll,” “tomorrow: review captions,” or “Nov 12: webinar promo.” Check the proposed date before saving. These entries are local plans, not Buffer posts.</p>
+<h2>Calendar navigation</h2><p>Shortcuts include <kbd>T</kbd> for Today, <kbd>M</kbd> and <kbd>W</kbd> for Month and Week, and calendar navigation keys. Use <kbd>?</kbd> to show the shortcut reference where available.</p>
+<p>Typing shortcuts pause when you are editing a field or using most dialogs, so they do not interfere with writing. The product tour is available through <strong>Help → Replay product tour</strong>.</p>`
   },
   {
     slug: 'build-your-idea-system',
     title: 'Build Your Idea System',
     category: 'Shelf',
-    summary: 'Learn how to use saved content, Content Pillars, Templates, and Trending to turn raw ideas into reusable content starters.',
+    summary: 'Enable Ideas on the Shelf, reuse past posts, and develop ideas into plans.',
     tags: ['notebook', 'content pillars', 'templates', 'trending', 'ideas', 'starters'],
     featured: false,
     relatedArticles: ['plan-content-calendar', 'write-split-send-posts', 'getting-started'],
-    body: `<p>The Shelf holds your saved ideas and past posts. Local target dates are planning reminders, not confirmed Buffer scheduling. Use the date controls to plan, and Develop to continue the existing workflow. Templates, Content Pillars and Trending are available under Resources. Instead of starting from zero each time, you store signals and transform them into usable drafts.</p>
-    <h2>Use each tool for a specific job</h2>
-    <ul>
-      <li><strong>Saved content</strong>: search existing material, identify items without a target, and plan a local date. Your original source and channel versions stay intact.</li>
-      <li><strong>Content Pillars</strong>: define recurring themes.</li>
-      <li><strong>Templates</strong>: save proven structures and CTAs.</li>
-      <li><strong>Trending</strong>: monitor timely topics to react faster.</li>
-    </ul>
-    <h2>Simple weekly routine</h2>
-    <ol>
-      <li>Save 5–10 new ideas to your Shelf or from Trending.</li>
-      <li>Map them to pillars.</li>
-      <li>Turn the strongest ideas into templates or starters.</li>
-      <li>Open Compose and finalize for Buffer.</li>
-    </ol>
-    <h3>Common confusion</h3>
-    <p>Trending is for prompts and context, not copy-and-paste posting. Keep your own voice and point of view.</p>`
+    body: `<p><strong>Shelf</strong> brings together past Buffer posts and, when enabled, a separate Ideas workspace. Think of past posts as material you can reuse; ideas are things you have not finished yet. A target date is a planning reminder, not a Buffer schedule.</p>
+<h2>Turn on Ideas on the Shelf</h2>
+<ol><li>Open <strong>Settings → Customize</strong>.</li><li>Find <strong>Ideas on the Shelf</strong> under workspace visibility.</li><li>Enable it to add an Ideas tab to Shelf.</li><li>Return to <strong>Shelf</strong> in the sidebar and switch between <strong>Past posts</strong> and <strong>Ideas</strong>.</li></ol>
+<p>You can also reach this setting from the final step of the product tour or the optional <strong>Help → Getting started</strong> checklist. Disabling Ideas on the Shelf hides its navigation but does not erase locally saved ideas.</p>
+<h2>Make use of past posts</h2>
+<p>When connected and synced, the Past posts tab shows content returned from Buffer. Star useful posts as evergreen for later reuse or start a new take in Compose. Buffer remains responsible for publishing.</p>
+<h2>Develop and date ideas</h2>
+<p>Use the Ideas tab to keep a thought, develop it, and give it a target date that appears on the calendar's planning layer. Your original material remains separate from scheduled Buffer posts until you explicitly send a post to Buffer.</p>
+<h2>Writing resources</h2>
+<p>Templates, content pillars, and optional Trending tools can help you develop material. Availability may vary with feature settings and beta access. Use <strong>Compose</strong> when you are ready to turn a plan into a Buffer draft, queued post, or scheduled post.</p>`
   },
   {
     slug: 'share-content-for-review',
@@ -281,21 +228,19 @@ window.POSTIQ_HELP_ARTICLES = [
     tags: ['troubleshooting', 'oauth', 'sync', 'media', 'snapshot', 'beta'],
     featured: false,
     relatedArticles: ['connect-buffer', 'share-content-for-review', 'privacy-storage-beta-limits'],
-    body: `<p>If something feels off, most issues fall into connection state, stale sync, or view/filter mismatch.</p>
-    <h2>Quick triage checklist</h2>
-    <ol>
-      <li>Confirm Buffer connection status.</li>
-      <li>Run sync again.</li>
-      <li>Check current profile/channel filters.</li>
-      <li>Retry the action after a short wait.</li>
-    </ol>
-    <h2>Common issues</h2>
-    <h3>Posts missing in calendar</h3>
-    <p>Usually filter mismatch or stale sync. Re-sync and reset filters.</p>
-    <h3>Media not behaving as expected</h3>
-    <p>Validate source file and retry send action; in beta, certain edge media cases may need a second attempt.</p>
-    <h3>Good to know</h3>
-    <p>Public beta means occasional regressions can appear. If behavior persists, capture steps and share feedback with the team.</p>`
+    body: `<p>If PostIQ looks wrong, first distinguish account connection, sync status, browser-stored plans, and calendar filters.</p>
+<h2>Buffer connected but posts are missing</h2>
+<ol><li>Expand the Buffer status row in the sidebar.</li><li>Choose <strong>Sync now</strong> and check for a sync error.</li><li>Clear calendar filters or choose the correct channel.</li><li>If the status says <strong>Reconnect Buffer</strong>, complete sign-in again.</li></ol>
+<h2>What do the connection colors mean?</h2>
+<p>Green indicates an active Buffer connection, not necessarily a fresh sync. Amber means a reconnect or detected sync problem. Click the status row to expand troubleshooting actions. Advanced connection options are still available in Settings.</p>
+<h2>I cannot find Getting Started</h2>
+<p>Open the desktop sidebar's <strong>Help</strong> section, then choose <strong>Getting started</strong>. It opens a separate checklist window. <strong>Replay product tour</strong> is a different action: it highlights the main app screens. On mobile, use the More menu for the tour and help options.</p>
+<h2>I cannot see Ideas on Shelf</h2>
+<p>Go to <strong>Settings → Customize → Ideas on the Shelf</strong> and enable that workspace. The Past posts tab and Ideas tab are related but distinct parts of Shelf.</p>
+<h2>How do I replay the welcome screen?</h2>
+<p>Open <code>/app.html?welcome=1</code> on your PostIQ site to revisit the welcome choice without clearing your Buffer session. For just the guided steps, use <strong>Help → Replay product tour</strong> or the calendar's tour menu item.</p>
+<h2>Media, snapshots, and beta issues</h2>
+<p>If an upload or post action fails, check the file and retry; an API or network issue can be temporary. Snapshot links are read-only views and may need to be shared again after changes. When reporting a bug, include what you clicked, what you expected, what happened, and whether Buffer was connected—never include access tokens or private keys.</p>`
   },
   {
     slug: 'privacy-storage-beta-limits',
