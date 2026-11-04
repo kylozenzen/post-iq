@@ -1,7 +1,6 @@
 'use strict';
 // Captures the calendar screenshot used by the share image (postiq-og.png) from
-// the real app shell. Approvals are switched off through the app's feature config so the sidebar
-// shows the calendar-first tools. Shelf remains available.
+// the real app shell, plus the command menu, shortcut sheet and landing page.
 // The account, channels, posts and notes are fictional sample data seeded into
 // browser storage. All remote requests are blocked; nothing is sent to Buffer.
 // Usage: CHROMIUM_PATH=/path/to/chromium node scripts/capture-landing-screenshots.js
@@ -48,7 +47,7 @@ function seed({ nowIso }) {
     orgId: { value: 'sample-org', ts },
     channels: { value: channels, ts },
     scheduled: { value: scheduled, ts, coverage: { complete: true, ts, count: scheduled.length } },
-    published: { value: [], ts },
+    published: { value: [{ id: 'pub1', channelId: 'sample-ig', status: 'sent', sentAt: at(-6, 15), text: 'The best planning tool is the one you open every morning. Ours has two layers: what is going out, and what we plan to do.' }], ts },
   };
   const note = (date, id, text, typeId, label, color, extra = {}) => ({ id, date, text, typeId, label, color, createdAt: now.toISOString(), updatedAt: now.toISOString(), ...extra });
   const notes = {
@@ -76,6 +75,14 @@ function seed({ nowIso }) {
   set('postiq_calendar_notes_v2', notes);
   set('postiqPlanningSettings', settings);
   set('postiq_tour_seen', '1');
+  set('postiq_getting_started_dismissed', '1');
+  set('postiq_add_hint_seen', '1');
+  // A starred evergreen post, so the Today card can offer a one-tap fill.
+  set('postiq_library_starred_v1', ['pub1']);
+  set('postiq_library_cache_v3', { posts: [{ id: 'pub1', channelId: 'sample-ig', text: 'The best planning tool is the one you open every morning. Ours has two layers: what is going out, and what we plan to do.' }], ts });
+  set('postiq_holidays_v1', { country: 'US', cache: {
+    'US-2026': { ts, list: [{ date: '2026-11-11', name: 'Veterans Day' }, { date: '2026-11-26', name: 'Thanksgiving Day' }] },
+    'US-2027': { ts, list: [] } } });
   set('postiq_beta_banner_seen_persist', '1');
   sessionStorage.setItem('postiq_beta_banner_seen', '1');
   if (!localStorage.getItem('postiq_notebook_v1')) set('postiq_notebook_v1', notebook);
@@ -99,14 +106,15 @@ async function run() {
         // Trending is a read-only POST, as in the other browser checks.
         if (request.method() !== 'GET' && url.pathname !== '/.netlify/functions/trending') writes.push(url.pathname);
         if (url.origin !== base) return route.abort();
-        if (url.pathname === '/.netlify/functions/app-config') return route.fulfill({ json: { features: { approvals: false, library: false, pulse: false } } });
+        if (url.pathname === '/.netlify/functions/app-config') return route.fulfill({ json: { features: { approvals: false, pulse: false } } });
         if (url.pathname.startsWith('/.netlify/')) return route.fulfill({ json: {} });
         return route.continue();
       });
       await page.addInitScript(seed, { nowIso: NOW.toISOString() });
       await page.goto(`${base}/app.html?view=${shot.view}`);
-      await page.waitForFunction(() => window.YourPace && document.getElementById('paceStart').value);
+      await page.waitForFunction(() => window.PostIQToday && window.PostIQPower && document.querySelector('#calendarView.active #calGrid .cal-day'));
       await page.evaluate(() => document.querySelectorAll('#globalStatusBanner,.beta-banner').forEach(el => el.classList.add('hidden')));
+      if (!(await page.locator('.side-nav [data-shelf-nav]').isVisible())) throw new Error('Shelf should show in the sidebar');
       for (const view of ['approvalsView', 'pulseView']) {
         if (await page.locator(`.side-nav [data-view="${view}"]`).isVisible()) throw new Error(`${view} should be hidden in screenshots`);
       }
@@ -126,7 +134,10 @@ async function run() {
     }
     const landing = await browser.newPage({ viewport: { width: 1440, height: 1000 }, serviceWorkers: 'block' });
     await landing.route('**/*', route => new URL(route.request().url()).origin === base ? route.continue() : route.abort());
-    await landing.goto(base + '/');
+    await landing.goto(base + '/index.html');
+    // Sections fade in on scroll; a full-page capture never scrolls, so reveal them all first.
+    await landing.evaluate(() => document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible')));
+    await landing.waitForTimeout(500);
     await landing.screenshot({ animations: 'disabled', fullPage: true, path: path.join(outDir, 'landing-desktop.png') });
     await landing.close();
     await captureShareImage(browser, base);
