@@ -43,10 +43,10 @@ assert.match(tour, /params\.get\('welcome'\) === '1'/, 'welcome can be force-pre
 assert.match(tour, /params\.delete\('welcome'\)/, 'welcome preview flag is single-use');
 assert.match(app, /id="sideLearn"/, 'getting started is in sidebar');
 assert.match(app, /id="connStatusButton"/, 'connection has a compact status action');
-for (const id of ['calendar', 'plan', 'schedule']) assert.match(tour, new RegExp(`id: '${id}'`));
+for (const id of ['calendar', 'plan', 'compose', 'shelf']) assert.match(tour, new RegExp(`id: '${id}'`));
 
 assert.match(tour, /CONNECTED_SEEN_KEY/, 'connected and preview tour completion are independent');
 assert.match(tour, /relevantSteps\(\)/, 'tour adapts to connection state');
-assert.match(tour, /STEPS\.filter\(step => step\.id !== 'schedule'\)/, 'preview tour does not demand a posting schedule');
-assert.doesNotMatch(tour, /id: 'compose'/, 'first-run stays in the calendar');
+assert.match(tour, /Ideas on the Shelf/, 'tour explains optional Shelf ideas');
+assert.match(tour, /selectSettingsTab\?\.\('customize'\)/, 'tour opens the Shelf setting');
 console.log('Landing CTA, claim, screenshot and calendar tour wiring tests passed');
