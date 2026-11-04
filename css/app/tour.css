@@ -68,3 +68,25 @@
 body.tour-active .tour-ring { z-index:205; }
 body.tour-active .tour-pop { z-index:206; }
 body.tour-active .tour-pop.is-docked { bottom:14px; }
+
+/* Full-width, standalone setup panel keeps checklist out of the narrow sidebar. */
+.getting-started-dialog { width:min(580px,calc(100vw - 32px)); max-height:min(85dvh,760px); overflow:auto; padding:0; border:1px solid var(--border2); border-radius:18px; background:var(--surface); color:var(--text); box-shadow:var(--shadow-float); }
+.getting-started-dialog::backdrop { background:rgba(10,12,19,.65); backdrop-filter:blur(3px); }
+.getting-started-dialog-head { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; padding:28px 28px 18px; border-bottom:1px solid var(--border); }
+.getting-started-dialog-head h2 { font:700 26px var(--font-display); color:var(--ink); margin:6px 0; }
+.getting-started-dialog-head p { font-size:13px; color:var(--muted); line-height:1.5; margin:0; }
+.gs-eyebrow { font:10px 'DM Mono',monospace; letter-spacing:.13em; color:var(--brand); }
+.getting-started-dialog .getting-started { padding:22px 28px 28px; margin:0; background:none; border:0; box-shadow:none; }
+.getting-started-dialog .gs-head { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:18px; }
+.getting-started-dialog .gs-title { display:none; }
+.getting-started-dialog .gs-progress { font-size:12px; font-weight:700; color:var(--ink); }
+.getting-started-dialog .gs-subtitle { font-size:11px; color:var(--muted); }
+.getting-started-dialog .gs-steps { padding:0; margin:0; display:grid; gap:10px; list-style:none; }
+.getting-started-dialog .gs-step { display:grid; grid-template-columns:24px minmax(0,1fr) auto; align-items:center; gap:12px; padding:14px; border:1px solid var(--border); border-radius:10px; background:var(--surface2); }
+.getting-started-dialog .gs-check { color:var(--subtle); font-size:18px; }
+.getting-started-dialog .gs-step.is-done .gs-check { color:var(--green); }
+.getting-started-dialog .gs-step-body { display:flex; flex-direction:column; gap:4px; min-width:0; }
+.getting-started-dialog .gs-step-label { color:var(--ink); font-size:14px; font-weight:700; }
+.getting-started-dialog .gs-step-desc { color:var(--muted); font-size:12px; line-height:1.5; }
+.getting-started-dialog .gs-step .btn { min-height:32px; }
+@media(max-width:480px){ .getting-started-dialog-head { padding:20px 18px 14px; } .getting-started-dialog .getting-started { padding:18px; } .getting-started-dialog .gs-step { grid-template-columns:20px 1fr; } .getting-started-dialog .gs-step .btn { grid-column:2; width:fit-content; } }
