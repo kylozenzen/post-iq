@@ -36,6 +36,10 @@ assert.match(tour, /action === 'connect'[\s\S]*goToBufferConnect/);
 assert.match(tour, /FIRST_VISIT && read\(SEEN_KEY\) !== '1'/, 'opens once on a first visit');
 assert.match(tour, /params\.delete\('tour'\)/, 'landing tour flag is single-use');
 assert.match(tour, /aria-modal', 'false'/, 'tour is non-modal');
-for (const id of ['calendar', 'schedule', 'compose']) assert.match(tour, new RegExp(`id: '${id}'`));
+for (const id of ['calendar', 'plan', 'schedule']) assert.match(tour, new RegExp(`id: '${id}'`));
 
-console.log('Landing CTA, claim, screenshot and tour wiring tests passed');
+assert.match(tour, /CONNECTED_SEEN_KEY/, 'connected and preview tour completion are independent');
+assert.match(tour, /relevantSteps\(\)/, 'tour adapts to connection state');
+assert.match(tour, /STEPS\.filter\(step => step\.id !== 'schedule'\)/, 'preview tour does not demand a posting schedule');
+assert.doesNotMatch(tour, /id: 'compose'/, 'first-run stays in the calendar');
+console.log('Landing CTA, claim, screenshot and calendar tour wiring tests passed');

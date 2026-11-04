@@ -7,36 +7,44 @@
 // popover is non-modal, so the app stays usable while it is open.
 window.PostIQTour = (() => {
   const SEEN_KEY = 'postiq_tour_seen';
+  const CONNECTED_SEEN_KEY = 'postiq_tour_connected_seen';
   // Read before startup marks the app as visited, so only a first visit qualifies.
   const FIRST_VISIT = (() => { try { return localStorage.getItem('postiq_app_visited') !== '1'; } catch { return false; } })();
   const MOBILE_QUERY = '(max-width: 768px)';
 
-  // Three steps: see the calendar, set your schedule (coverage), write in Compose.
+  // An orientation to planning, not a mandatory publishing tutorial.
+  // Keep PR #193's Today card and Add button targets available.
   const STEPS = [
     {
       id: 'calendar',
       view: 'calendarView',
       targets: ['#todayStrip', '#calGrid', '#calWeek', '#calAgenda'],
-      title: 'Your calendar',
+      title: 'Your content has a calendar. Give it a plan.',
       body: () => isConnected()
-        ? 'Your Buffer posts are the solid cards; your own plans are the outlined ones. Dashed “open slots” are days that could use a post — tap one to fill it.'
-        : 'After you sign in with Buffer, scheduled posts appear as solid cards. Notes, to-dos, and dated Shelf ideas sit beside them as outlined plans.',
+        ? 'Solid cards are your Buffer posts. Outlined cards are plans you are still working on. See what is scheduled and what comes next, all in one place.'
+        : 'This is your planning calendar. Connect Buffer to see your scheduled posts, or explore the planning tools without an account. Nothing here publishes on its own.',
+    },
+    {
+      id: 'plan',
+      view: 'calendarView',
+      targets: ['#calendarAddBtn', '#todayStrip', '#calGrid', '#calWeek', '#calAgenda'],
+      title: 'Add one plan',
+      body: () => isConnected()
+        ? 'Use + Add, or choose a day, to add a note, to-do, or idea. Plans stay separate from Buffer posts until you choose to create a post.'
+        : 'Try + Add or choose a day to make a plan. You can explore the calendar before connecting Buffer. Only connected accounts can load real Buffer posts.',
     },
     {
       id: 'schedule',
       view: 'calendarView',
-      targets: ['#calendarAddBtn', '#calendarFilterSummary'],
-      title: 'Set your posting schedule',
-      body: () => 'Choose Posting schedule from the ⋯ menu to set your posting days. Dashed open slots mark useful opportunities to plan. Add in plain English with + Add or N, and use the Holidays picker when you want dates called out.',
-    },
-    {
-      id: 'compose',
-      view: 'composerView',
-      targets: ['#composerEditor', '#composerView .page-title'],
-      title: 'Write and send',
-      body: () => 'Compose your post here, or keep a rough idea on the Shelf until you are ready. Choose Draft, Queue, or Schedule to send it to Buffer; nothing publishes until you choose.',
+      targets: ['#calendarFilterSummary', '#todayStrip', '#calGrid', '#calWeek'],
+      title: 'Find room for what comes next',
+      body: () => 'Use Posting schedule in the calendar menu to set the days you normally post. Open slots show opportunities to plan, not a demand to post every day.',
     },
   ];
+
+  function relevantSteps() {
+    return isConnected() ? STEPS : STEPS.filter(step => step.id !== 'schedule');
+  }
 
   let active = false;
   let steps = [];
@@ -49,7 +57,7 @@ window.PostIQTour = (() => {
   let frame = 0;
 
   const read = key => { try { return localStorage.getItem(key); } catch { return null; } };
-  const markSeen = () => { try { localStorage.setItem(SEEN_KEY, '1'); } catch {} };
+  const markSeen = () => { try { localStorage.setItem(isConnected() ? CONNECTED_SEEN_KEY : SEEN_KEY, '1'); } catch {} };
   const isMobile = () => window.matchMedia?.(MOBILE_QUERY).matches;
 
   function isConnected() {
@@ -101,8 +109,8 @@ window.PostIQTour = (() => {
       <h2 class="tour-title" id="tourTitle" tabindex="-1"></h2>
       <p class="tour-body" id="tourBody"></p>
       <div class="tour-connect" hidden>
-        <button class="btn sm primary" type="button" data-tour="connect">Sign in with Buffer</button>
-        <span>to load your scheduled posts and coverage.</span>
+        <button class="btn sm primary" type="button" data-tour="connect">Connect Buffer</button>
+        <span>to see your real scheduled posts.</span>
       </div>
       <div class="tour-actions">
         <button class="btn sm ghost tour-skip" type="button" data-tour="close">Skip tour</button>
@@ -191,7 +199,7 @@ window.PostIQTour = (() => {
     const last = index === steps.length - 1;
     pop.querySelector('[data-tour="next"]').textContent = last ? 'Finish' : 'Next';
     pop.querySelector('[data-tour="next"]').classList.toggle('primary', !(last && !isConnected()));
-    pop.querySelector('.tour-connect').hidden = !(last && !isConnected());
+    pop.querySelector('.tour-connect').hidden = isConnected();
     // Instant scroll keeps the ring aligned; on phones, centre the control so
     // neither the sticky header nor the docked popover covers it.
     target.scrollIntoView({ block: isMobile() ? 'center' : 'nearest', behavior: 'auto' });
@@ -214,7 +222,7 @@ window.PostIQTour = (() => {
 
   function start(options = {}) {
     if (active) return;
-    steps = STEPS.filter(step => viewAvailable(step.view));
+    steps = relevantSteps().filter(step => viewAvailable(step.view));
     if (!steps.length) {
       if (typeof showToast === 'function') showToast('The tour needs the Calendar. Turn it on in Settings.', 'info');
       return;
@@ -270,13 +278,13 @@ window.PostIQTour = (() => {
       params.delete('tour');
       history.replaceState(history.state, document.title, `${location.pathname}${params.toString() ? `?${params}` : ''}${location.hash}`);
     }
-    if (requested || (FIRST_VISIT && read(SEEN_KEY) !== '1')) {
+    if (requested || (FIRST_VISIT && read(SEEN_KEY) !== '1') || (isConnected() && read(CONNECTED_SEEN_KEY) !== '1')) {
       // Wait for app startup; reviewer and shared-snapshot pages hide the app shell.
       setTimeout(() => { if (!document.getElementById('app')?.classList.contains('hidden')) start({ source: requested ? 'link' : 'first_visit' }); }, 600);
     }
   }
 
-  return { init, start, stop, isActive: () => active, hasSeen: () => read(SEEN_KEY) === '1', steps: STEPS };
+  return { init, start, stop, isActive: () => active, hasSeen: () => read(isConnected() ? CONNECTED_SEEN_KEY : SEEN_KEY) === '1', steps: STEPS };
 })();
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(window.PostIQTour.init, 0));
