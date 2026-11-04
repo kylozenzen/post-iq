@@ -16,25 +16,25 @@ window.PostIQTour = (() => {
     {
       id: 'calendar',
       view: 'calendarView',
-      targets: ['#calendarRunway', '#calGrid', '#calWeek', '#calAgenda'],
+      targets: ['#todayStrip', '#calGrid', '#calWeek', '#calAgenda'],
       title: 'Your calendar',
       body: () => isConnected()
         ? 'Your Buffer posts are the solid cards; your own plans are the outlined ones. Dashed “open slots” are days that could use a post — tap one to fill it.'
-        : 'After you sign in with Buffer, your scheduled posts show up here as solid cards. Anything you plan yourself — a note, a to-do, a campaign — sits beside them, outlined.',
+        : 'After you sign in with Buffer, scheduled posts appear as solid cards. Notes, to-dos, and dated Shelf ideas sit beside them as outlined plans.',
     },
     {
       id: 'schedule',
       view: 'calendarView',
-      targets: ['#calendarFilterSummary'],
+      targets: ['#calendarAddBtn', '#calendarFilterSummary'],
       title: 'Set your posting schedule',
-      body: () => 'Open the ⋯ menu and choose Posting schedule. Tell PostIQ which days you post, per channel, and it will mark open slots and let you know — quietly, from the bell — when you’re running low. Planning time off? Mark it there too.',
+      body: () => 'Choose Posting schedule from the ⋯ menu to set your posting days. Dashed open slots mark useful opportunities to plan. Add in plain English with + Add or N, and use the Holidays picker when you want dates called out.',
     },
     {
       id: 'compose',
       view: 'composerView',
       targets: ['#composerEditor', '#composerView .page-title'],
       title: 'Write and send',
-      body: () => 'Write your post here, pull in hooks, templates or trending ideas from the writing tools, then send it to Buffer as a draft, to your queue, or scheduled for a time. Nothing publishes until you choose.',
+      body: () => 'Compose your post here, or keep a rough idea on the Shelf until you are ready. Choose Draft, Queue, or Schedule to send it to Buffer; nothing publishes until you choose.',
     },
   ];
 

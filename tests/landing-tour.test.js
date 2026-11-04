@@ -10,7 +10,7 @@ const sw = fs.readFileSync('sw.js', 'utf8');
 assert.match(landing, /<h1[^>]*>Buffer publishes\. <em>PostIQ plans\.<\/em><\/h1>/);
 assert.match(landing, /href="\/auth\/connect\.html\?return=%2Fapp\.html%3Fview%3DcalendarView"[^>]*>Sign in with Buffer</, 'primary CTA returns to the calendar');
 assert.match(landing, /href="\/app\.html\?view=calendarView"[^>]*>Preview the calendar</);
-assert.match(landing, /need Buffer sign-in/);
+assert.match(landing, /Buffer sign-in loads your scheduled posts and enables Buffer actions/);
 assert.match(landing, /Sample data/);
 assert.match(landing, /not (?:made by, )?affiliated with/);
 assert.doesNotMatch(landing, /thread splitter|first companion app|demoInput/i, 'obsolete demo and claims stay removed');
@@ -18,7 +18,11 @@ assert.ok(landing.indexOf('id="calendar"') < landing.indexOf('id="toolkit"'), 't
 assert.doesNotMatch(landing, /href="[^"]*tour=1/, 'one preview entry point, not a separate tour link');
 const heroVisual = landing.match(/<figure class="hero-visual"[\s\S]*?<\/figure>/);
 assert.ok(heroVisual, 'hero shows the product next to the copy');
-assert.doesNotMatch(heroVisual[0], /Approvals|Library|Pulse/, 'hero mockup shows only calendar-first tools');
+assert.match(heroVisual[0], /calendar-desktop\.png/, 'hero uses the current product capture');
+const shots = [...landing.matchAll(/src="\/images\/product\/([a-z-]+\.png)"/g)].map(m => m[1]);
+assert.equal(new Set(shots).size, shots.length, `each landing image is different: ${shots.join(', ')}`);
+for (const shot of shots) assert.ok(require('node:fs').existsSync(require('node:path').join(__dirname, '..', 'images', 'product', shot)), `${shot} exists`);
+assert.match(landing, /Today card[\s\S]*Quick add[\s\S]*Drag to reschedule/);
 
 assert.ok(app.includes('./js/features/tour.js') && app.includes('./css/app/tour.css'));
 assert.ok(!app.includes('onboarding.js') && !sw.includes('onboarding'), 'the tour is the only onboarding');

@@ -20,6 +20,7 @@ const SHELL = [
   '/css/app/planning-tools.css',
   '/css/app/tour.css',
   '/css/app/calm-calendar.css',
+  '/css/app/power-layer.css',
   '/js/features/platform-guidance.js',
   '/js/ai-assist.js',
   '/js/features/develop.js',
@@ -56,7 +57,8 @@ const SHELL = [
   '/js/features/quick-add.js',
   '/js/features/calendar-drag.js',
   '/js/features/today.js',
-  '/js/features/backup.js'
+  '/js/features/backup.js',
+  '/js/features/power-layer.js'
 ];
 
 self.addEventListener('install', event => {

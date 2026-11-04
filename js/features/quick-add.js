@@ -179,6 +179,16 @@ window.PostIQQuickAdd = (() => {
     });
   }
 
+  function addText(text) {
+    if (!document.getElementById('calendarView')?.classList.contains('active')) window.activateView?.('calendarView','command_quick_add');
+    open(); input.value = String(text || '').replace(/^add\s+/i, ''); update(); save();
+  }
+
+  function addText(text) {
+    if (!document.getElementById('calendarView')?.classList.contains('active')) window.activateView?.('calendarView','command_quick_add');
+    open(); input.value = String(text || '').replace(/^add\s+/i, ''); update(); save();
+  }
+
   function init() {
     const btn = document.getElementById('calendarAddBtn');
     if (!btn) return;
@@ -195,7 +205,7 @@ window.PostIQQuickAdd = (() => {
     });
   }
 
-  return { init, parse, open, close };
+  return { init, parse, open, close, addText };
 })();
 
 document.addEventListener('DOMContentLoaded', () => { try { window.PostIQQuickAdd.init(); } catch (e) { console.warn('[PostIQ quick add]', e); } });

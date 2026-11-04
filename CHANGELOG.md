@@ -1,5 +1,22 @@
 # Changelog
 
+## Phase 3: power layer and launch polish
+
+### Added
+
+- **Command menu.** Press ⌘K / Ctrl K to search calendar actions, views, navigation, Shelf, posting schedule, exports, channel filters, help, and more. Arrow keys move through results; recent commands rise when the search is empty.
+- **Quick add from search.** Type a plan such as “Fri: film B-roll” in the command menu and press Enter to save it through the existing date-aware quick-add flow.
+- **Calendar shortcuts.** T goes to today; arrows change periods or move day focus; M/W switch Month and Week; N opens quick add; ? opens the shortcut sheet. Shortcuts pause in fields and open dialogs.
+- **One-time hint.** The first use of + Add offers a small keyboard tip and records its dismissal in local storage.
+- **Keyboard help** in the calendar menu, plus an article that documents the command menu and shortcuts.
+
+### Changed
+
+- Refreshed the landing story around the two-layer calendar, open slots, Today, quick add, drag and undo, holidays, Shelf, and backups. Replaced the former hand-drawn mockup with a sample-data capture of the current app.
+- Updated the tour to describe the current calendar, posting schedule, and Compose experience.
+- Replaced browser checks that asserted the retired Queue Health page with checks for the current calendar-first product and keyboard layer.
+- Added the power-layer stylesheet and script to the offline shell; bumped the cache to `postiq-v23-editorial-default`.
+
 ## Phase 2: delight
 
 ### Added

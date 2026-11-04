@@ -1,7 +1,6 @@
 'use strict';
 // Captures the calendar screenshot used by the share image (postiq-og.png) from
-// the real app shell. Approvals, Library and Pulse are switched off through the
-// app's feature config so the sidebar shows only the calendar-first tools.
+// the real app shell, plus the command menu, shortcut sheet and landing page.
 // The account, channels, posts and notes are fictional sample data seeded into
 // browser storage. All remote requests are blocked; nothing is sent to Buffer.
 // Usage: CHROMIUM_PATH=/path/to/chromium node scripts/capture-landing-screenshots.js
@@ -48,7 +47,7 @@ function seed({ nowIso }) {
     orgId: { value: 'sample-org', ts },
     channels: { value: channels, ts },
     scheduled: { value: scheduled, ts, coverage: { complete: true, ts, count: scheduled.length } },
-    published: { value: [], ts },
+    published: { value: [{ id: 'pub1', channelId: 'sample-ig', status: 'sent', sentAt: at(-6, 15), text: 'The best planning tool is the one you open every morning. Ours has two layers: what is going out, and what we plan to do.' }], ts },
   };
   const note = (date, id, text, typeId, label, color, extra = {}) => ({ id, date, text, typeId, label, color, createdAt: now.toISOString(), updatedAt: now.toISOString(), ...extra });
   const notes = {
@@ -76,6 +75,23 @@ function seed({ nowIso }) {
   set('postiq_calendar_notes_v2', notes);
   set('postiqPlanningSettings', settings);
   set('postiq_tour_seen', '1');
+  set('postiq_getting_started_dismissed', '1');
+  set('postiq.workspacePreferences', { planning: true, create: true, ideas: true });
+  set('postiq_add_hint_seen', '1');
+  // A starred evergreen post, so the Today card can offer a one-tap fill.
+  set('postiq_library_starred_v1', ['pub1']);
+  const past = [
+    { id: 'pub1', channelId: 'sample-ig', service: 'instagram', status: 'sent', sentAt: at(-6, 15), text: 'The best planning tool is the one you open every morning. Ours has two layers: what is going out, and what we plan to do.' },
+    { id: 'pub2', channelId: 'sample-li', service: 'linkedin', status: 'sent', sentAt: at(-8, 14), text: 'Three questions we ask before every launch post: who is it for, what should they do next, and would we stop scrolling for it?' },
+    { id: 'pub3', channelId: 'sample-ig', service: 'instagram', status: 'sent', sentAt: at(-11, 15), text: 'Studio tour, part one: the corner where every idea starts as a sticky note.' },
+    { id: 'pub4', channelId: 'sample-li', service: 'linkedin', status: 'sent', sentAt: at(-15, 14), text: 'What we learned from a month of posting less, but planning more.' },
+    { id: 'pub5', channelId: 'sample-ig', service: 'instagram', status: 'sent', sentAt: at(-19, 15), text: 'Reader question: how do you keep a calendar full without burning out? Short answer: reuse what already worked.' },
+  ];
+  set('postiq_library_cache_v3', { posts: past, metricsMeta: { available: false, source: 'cache', error: null, permissionError: false, postMetricFields: [] }, organizationId: 'sample-org', limit: 50, ts });
+  set('postiq_library_starred_v1', ['pub1', 'pub5']);
+  set('postiq_holidays_v1', { country: 'US', cache: {
+    'US-2026': { ts, list: [{ date: '2026-11-11', name: 'Veterans Day' }, { date: '2026-11-26', name: 'Thanksgiving Day' }] },
+    'US-2027': { ts, list: [] } } });
   set('postiq_beta_banner_seen_persist', '1');
   sessionStorage.setItem('postiq_beta_banner_seen', '1');
   if (!localStorage.getItem('postiq_notebook_v1')) set('postiq_notebook_v1', notebook);
@@ -99,24 +115,65 @@ async function run() {
         // Trending is a read-only POST, as in the other browser checks.
         if (request.method() !== 'GET' && url.pathname !== '/.netlify/functions/trending') writes.push(url.pathname);
         if (url.origin !== base) return route.abort();
-        if (url.pathname === '/.netlify/functions/app-config') return route.fulfill({ json: { features: { approvals: false, library: false, pulse: false } } });
+        if (url.pathname === '/.netlify/functions/app-config') return route.fulfill({ json: { features: { approvals: false, pulse: false } } });
         if (url.pathname.startsWith('/.netlify/')) return route.fulfill({ json: {} });
         return route.continue();
       });
       await page.addInitScript(seed, { nowIso: NOW.toISOString() });
       await page.goto(`${base}/app.html?view=${shot.view}`);
-      await page.waitForFunction(() => window.YourPace && document.getElementById('paceStart').value);
+      await page.waitForFunction(() => window.PostIQToday && window.PostIQPower && document.querySelector('#calendarView.active #calGrid .cal-day'));
       await page.evaluate(() => document.querySelectorAll('#globalStatusBanner,.beta-banner').forEach(el => el.classList.add('hidden')));
-      for (const view of ['approvalsView', 'libraryView', 'pulseView']) {
+      if (!(await page.locator('.side-nav [data-shelf-nav]').isVisible())) throw new Error('Shelf should show in the sidebar');
+      for (const view of ['approvalsView', 'pulseView']) {
         if (await page.locator(`.side-nav [data-view="${view}"]`).isVisible()) throw new Error(`${view} should be hidden in screenshots`);
       }
       await page.waitForTimeout(400);
       const file = path.join(outDir, `${shot.name}.png`);
       await page.screenshot({ animations: 'disabled', path: file });
+      if (shot.view === 'calendarView') {
+        await page.evaluate(() => PostIQPower.open());
+        await page.screenshot({ animations: 'disabled', path: path.join(outDir, 'command-menu-desktop.png') });
+        await page.evaluate(() => { PostIQPower.close(); PostIQPower.openSheet(); });
+        await page.screenshot({ animations: 'disabled', path: path.join(outDir, 'shortcuts-desktop.png') });
+        await page.evaluate(() => document.querySelector('.power-sheet button')?.click());
+
+        // "One-tap planning": the Today card plus an open slot's fill suggestion, cropped close.
+        await page.keyboard.press('Escape');
+        await page.evaluate(() => setCalendarView('week'));
+        await page.waitForTimeout(200);
+        const slot = page.locator('#calWeek [data-calendar-date="2026-11-13"] .day-gap-slot');
+        await slot.click();
+        await page.waitForSelector('.fill-pop');
+        const box = await page.evaluate(() => {
+          const r = el => el.getBoundingClientRect();
+          const today = r(document.getElementById('todayStrip')), pop = r(document.querySelector('.fill-pop'));
+          const top = Math.max(0, today.top - 10), bottom = Math.min(innerHeight, Math.max(pop.bottom, today.bottom) + 24);
+          return { x: today.left - 24, y: top, width: today.width + 48, height: bottom - top };
+        });
+        await page.screenshot({ animations: 'disabled', path: path.join(outDir, 'fill-desktop.png'), clip: box });
+        await page.keyboard.press('Escape');
+        await page.evaluate(() => { document.querySelector('.fill-pop')?.remove(); setCalendarView('month'); });
+
+        // "Room for ideas": the Shelf with past posts and starred evergreens, without the sidebar.
+        await page.evaluate(() => activateView('libraryView', 'screenshot'));
+        await page.waitForFunction(() => document.querySelectorAll('#libraryView .lib-card, #libraryView [data-post-id], #libraryView .library-post').length >= 3);
+        await page.waitForTimeout(250);
+        const main = await page.evaluate(() => { const r = document.querySelector('.main').getBoundingClientRect(); return { x: r.left, y: 0, width: r.width, height: Math.min(innerHeight, 820) }; });
+        await page.screenshot({ animations: 'disabled', path: path.join(outDir, 'shelf-desktop.png'), clip: main });
+        await page.evaluate(() => activateView('calendarView', 'screenshot'));
+      }
       if (writes.length) throw new Error(`${shot.name}: unexpected network writes ${writes.join(', ')}`);
       console.log(`Wrote ${path.relative(root, file)}`);
       await page.close();
     }
+    const landing = await browser.newPage({ viewport: { width: 1440, height: 1000 }, serviceWorkers: 'block' });
+    await landing.route('**/*', route => new URL(route.request().url()).origin === base ? route.continue() : route.abort());
+    await landing.goto(base + '/index.html');
+    // Sections fade in on scroll; a full-page capture never scrolls, so reveal them all first.
+    await landing.evaluate(() => document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible')));
+    await landing.waitForTimeout(500);
+    await landing.screenshot({ animations: 'disabled', fullPage: true, path: path.join(outDir, 'landing-desktop.png') });
+    await landing.close();
     await captureShareImage(browser, base);
   } finally { await browser.close(); }
 }
@@ -142,8 +199,8 @@ async function captureShareImage(browser, base) {
     .tag{position:absolute;left:600px;bottom:40px;font:500 13px monospace;letter-spacing:.08em;text-transform:uppercase;color:#9a6212;background:#fffdf7;border:1px solid rgba(154,98,18,.4);padding:5px 10px;border-radius:2px}
   </style></head><body>
     <div class="copy"><div class="eyebrow">Calendar companion for Buffer</div>
-    <h1>Your Buffer calendar, <em>with room to think.</em></h1>
-    <p>Scheduled posts beside your notes. Gaps against your rhythm. Coverage before time away.</p></div>
+    <h1>Buffer publishes. <em>PostIQ plans.</em></h1>
+    <p>See scheduled posts, open slots, and the plans around them.</p></div>
     <div class="brand">PostIQ <span>BETA</span><small>postiq.netlify.app</small></div>
     <div class="shot"><img src="images/product/calendar-desktop.png" alt=""></div>
     <div class="tag">Sample data · independent of Buffer</div>

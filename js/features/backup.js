@@ -96,7 +96,7 @@ window.PostIQBackup = (() => {
     document.getElementById('backupRestoreBtn')?.addEventListener('click', pickAndRestore);
     document.getElementById('icsExportBtn')?.addEventListener('click', exportIcs);
   }
-  return { init, snapshot, restore, validate, buildIcs, KEYS };
+  return { init, snapshot, restore, validate, buildIcs, exportBackup, exportIcs, KEYS };
 })();
 
 document.addEventListener('DOMContentLoaded', () => { try { window.PostIQBackup.init(); } catch (e) { console.warn('[PostIQ backup]', e); } });

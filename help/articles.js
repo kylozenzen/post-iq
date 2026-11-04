@@ -25,7 +25,6 @@ const HELP_CATEGORIES = [
   "Getting Started",
   "Buffer Connection",
   "Plan / Calendar",
-  "Queue Health",
   "Compose",
   "Shelf",
   "Content Pillars",
@@ -47,11 +46,11 @@ window.POSTIQ_HELP_ARTICLES = [
     category: 'Settings',
     summary: 'Customize your workspace, understand what saves automatically, and manage your Buffer connection.',
     tags: ['settings', 'customize', 'theme', 'sidebar', 'sign out', 'logout', 'stay signed in', 'API key'],
-    relatedArticles: ['connect-buffer', 'queue-health-your-pace', 'privacy-storage-beta-limits'],
+    relatedArticles: ['connect-buffer', 'privacy-storage-beta-limits'],
     body: `<p>Open Settings from the sidebar or the mobile More menu. Section tabs stay available while you scroll.</p>
     <h2>Connection</h2><p>Check your Buffer connection, choose Sync now, or Sign out. You stay signed in on this browser until you sign out, clear site data, or Buffer requires authorization again. Advanced API key setup is optional: Session keeps a manual key for this tab, while Save locally keeps it between visits. Sign out removes both kinds of Buffer access.</p>
     <h2>Customize</h2><p>Workspace visibility, themes, posting days, queue-gap visibility, and note types save automatically in this browser. At least one workspace must stay visible. Reset workspace visibility restores the default sidebar choices. It does not delete your content.</p>
-    <h2>Posting rhythm</h2><p>Choose default posting days or override them for each synced channel. Your Pace in Queue Health offers further cadence and intentional-break controls. These settings guide coverage checks; they do not change your Buffer queue or schedule posts.</p>
+    <h2>Posting rhythm</h2><p>Choose default posting days or override them for each synced channel. The posting schedule guides open-slot suggestions. Changing it never changes your Buffer queue or scheduled posts.</p>
     <h2>AI and Discord</h2><p>AI Assist is optional and currently requires a beta unlock. Use its Save buttons when changing your Gemini key or voice. Discord has its own configuration and save controls. Never include keys or webhook URLs in screenshots or support messages.</p>
     <h2>Using a shared device</h2><p>Sign out clears Buffer access and cached Buffer data but keeps local work and other integration settings. Private browser windows can discard saved work when closed. Export or copy important work before clearing site data.</p>`
   },
@@ -62,17 +61,17 @@ window.POSTIQ_HELP_ARTICLES = [
     summary: 'Learn what PostIQ is, how it works with Buffer, and the calendar-first workflow: connect, check coverage, plan a gap, send.',
     tags: ['onboarding', 'workflow', 'buffer', 'queue', 'publish'],
     featured: true,
-    relatedArticles: ['connect-buffer', 'plan-content-calendar', 'queue-health-your-pace'],
+    relatedArticles: ['connect-buffer', 'plan-content-calendar', 'keyboard-shortcuts-command-menu'],
     body: `<p>PostIQ is an independent calendar companion for Buffer users. Buffer is still your publishing home. PostIQ shows your scheduled Buffer posts beside planning notes and actions, flags gaps against the posting rhythm you choose, and helps you turn saved content into a dated plan. It is not made by or affiliated with Buffer.</p>
     <h2>How PostIQ fits into your process</h2>
     <ol>
       <li><strong>Connect Buffer</strong> so PostIQ can load your channels and scheduled queue.</li>
-      <li><strong>Inspect coverage</strong> in Queue Health. Set your rhythm in Your Pace, then check a period.</li>
+      <li><strong>Set your posting schedule</strong> from the calendar’s ⋯ menu to show open slots that fit your rhythm.</li>
       <li><strong>Plan a gap</strong> from the calendar: add a note or action, date a Shelf idea, or start a draft for that day.</li>
       <li><strong>Send to Buffer</strong> from Compose only when you pick Draft, Queue, or Schedule.</li>
     </ol>
     <h2>Preview without signing in</h2>
-    <p>You can open the calendar without a Buffer account. Notes, actions, Shelf ideas, and Compose drafts are saved in your browser. Scheduled posts, Queue Health coverage, and sending to Buffer need Buffer sign-in.</p>
+    <p>You can open the calendar without a Buffer account. Notes, actions, Shelf ideas, and Compose drafts are saved in your browser. Scheduled posts and sending to Buffer need Buffer sign-in.</p>
     <h2>Take the tour</h2>
     <p>A three-step tour opens the first time you visit. To see it again, choose <strong>Take a tour</strong> in the sidebar, the calendar’s ⋯ menu, or the mobile More menu. It walks through the calendar, your posting schedule, and Compose. It only points at controls and never sends anything to Buffer. Skip or close it at any time and restart it from the same buttons.</p>
     <h2>What does not happen automatically</h2>
@@ -130,8 +129,8 @@ window.POSTIQ_HELP_ARTICLES = [
     summary: 'Learn how to review your Buffer queue on the calendar, read gap labels, add planning notes and actions, and share snapshots.',
     tags: ['calendar', 'queue', 'gaps', 'notes', 'actions', 'snapshot', 'planning'],
     featured: false,
-    relatedArticles: ['getting-started', 'queue-health-your-pace', 'share-content-for-review'],
-    body: `<p>The Calendar shows two layers. <strong>Posts</strong> from Buffer are solid cards with the platform’s icon. <strong>Plans</strong> you make yourself — notes, to-dos and Shelf ideas with a target date — are outlined. Switch between Month and Week at the top; on a phone you get a list of the week.</p>
+    relatedArticles: ['getting-started', 'keyboard-shortcuts-command-menu', 'share-content-for-review'],
+    body: `<p>The Calendar shows two layers. <strong>Posts</strong> from Buffer are solid cards with platform icons. <strong>Plans</strong> you make — notes, to-dos and dated Shelf ideas — are outlined. Switch between Month and Week at the top, or choose List view from the ⋯ menu.</p>
     <h2>How to use the calendar</h2>
     <ol>
       <li>Sign in with Buffer and sync.</li>
@@ -141,7 +140,7 @@ window.POSTIQ_HELP_ARTICLES = [
     </ol>
     <h2>Fast ways to plan</h2>
     <ul>
-      <li><strong>Quick add.</strong> Press <strong>+ Add</strong> (or <kbd>N</kbd>) and type a plan with its day: “Fri: reshare the press release”, “todo tomorrow: film B-roll”, “Nov 12: webinar promo”, or a holiday name like “Thanksgiving: thank-you post”. A preview shows the day before you press Enter.</li>
+      <li><strong>Quick add.</strong> Press <strong>⌘K / Ctrl K</strong>, choose Quick add, or press <kbd>N</kbd> and type a plan with its day: “Fri: reshare the press release”, “todo tomorrow: film B-roll”, “Nov 12: webinar promo”, or a holiday name like “Thanksgiving: thank-you post”. A preview shows the day before you press Enter.</li>
       <li><strong>Today.</strong> When you’re looking at the current month or week, the Today card shows what’s going out, today’s to-dos, and your next open slot.</li>
       <li><strong>Fill an open slot.</strong> Click a dashed open slot (or use the Today card). If you’ve starred evergreen posts on your Shelf, PostIQ suggests one and shows the exact day and time before you queue it in Buffer. Choose <strong>Another</strong> for a different post, or <strong>Write new</strong>.</li>
       <li><strong>Drag to reschedule.</strong> Drag a scheduled post or a plan to another day. Posts keep their time of day and move in Buffer; plans move in PostIQ. Every move has an <strong>Undo</strong>. Published posts and past days don’t move.</li>
@@ -185,29 +184,41 @@ window.POSTIQ_HELP_ARTICLES = [
     <p>Nothing is sent until you explicitly choose one of those Buffer actions.</p>`
   },
   {
-    slug: 'queue-health-your-pace',
-    title: 'Check Coverage with Queue Health and Your Pace',
-    category: 'Queue Health',
-    summary: 'Set a posting rhythm per channel, check a period for uncovered slots, and plan days off or a lighter stretch.',
-    tags: ['queue health', 'your pace', 'gaps', 'coverage', 'rhythm', 'days off', 'runway'],
+    slug: 'queue-health-your-pace', // Retained so older help links continue to resolve.
+    title: 'Choose a Posting Schedule',
+    category: 'Plan / Calendar',
+    summary: 'Choose posting days for each channel and understand how open slots appear on the calendar.',
+    tags: ['calendar', 'gaps', 'posting schedule', 'rhythm', 'days off'],
     featured: true,
     relatedArticles: ['plan-content-calendar', 'connect-buffer', 'getting-started'],
-    body: `<p>Queue Health shows each channel’s confirmed runway. Your Pace, on the same page, compares confirmed scheduled Buffer posts with the rhythm you choose.</p>
+    body: `<p>Your posting schedule tells PostIQ which days are useful opportunities to plan. It is a local planning preference and does not change what is scheduled in Buffer.</p>
     <h2>Set a rhythm</h2>
     <ol>
       <li>On the calendar, open the <strong>⋯ menu</strong> and choose <strong>Posting schedule</strong>.</li>
       <li>Under <strong>Channel rhythm</strong>, pick a channel, its posting days, and posts per selected day (0–10).</li>
-      <li>Choose a period of up to 92 days and select <strong>Check this period</strong>.</li>
-      <li>Use <strong>Plan this slot</strong> to open that date on the calendar with the channel selected.</li>
+      <li>Look for dashed <strong>Open slot</strong> buttons on days when the schedule expects a post and no confirmed post is loaded.</li>
+      <li>Choose an open slot to see one-tap fill suggestions or start a new plan for that date.</li>
     </ol>
     <h2>Before time away</h2>
-    <p>Use <strong>Intentional days off</strong> for one channel or all channels, or <strong>A lighter period</strong> to lower a target for selected dates. Days off are excluded from gaps.</p>
+    <p>Use the Holidays picker in the ⋯ menu to show public holidays for a country or turn them off. You can still add a note or to-do on any date.</p>
     <h3>Good to know</h3>
     <ul>
-      <li>Only confirmed scheduled posts count. Notes, drafts, and target dates do not.</li>
-      <li>Coverage needs Buffer sign-in and a recent sync; partial or stale data is labelled.</li>
-      <li>These are local planning settings. They never move, cancel, or delete Buffer posts.</li>
+      <li>Only confirmed Buffer posts appear as scheduled. Notes, drafts, and target dates stay in the outlined planning layer.</li>
+      <li>A recent Buffer sync is needed to show scheduled posts; partial or stale data is labelled.</li>
+      <li>The schedule is a local planning preference. It never moves, cancels, or deletes Buffer posts.</li>
     </ul>`
+  },
+  {
+    slug: 'keyboard-shortcuts-command-menu',
+    title: 'Keyboard shortcuts & command menu',
+    category: 'Plan / Calendar',
+    summary: 'Find actions with the command menu, add a plan in plain English, and move around the calendar from your keyboard.',
+    tags: ['keyboard', 'shortcuts', 'command menu', 'quick add', 'accessibility'],
+    relatedArticles: ['plan-content-calendar', 'getting-started'],
+    body: `<p>Press <kbd>⌘K</kbd> on a Mac or <kbd>Ctrl K</kbd> on Windows to open the command menu. Search for an action, use the arrow keys to choose it, press Enter to run it, or press Escape to close the menu.</p>
+    <h2>Quick add from the menu</h2><p>Type a plan such as “Fri: film B-roll” or “todo tomorrow: review captions” and press Enter. PostIQ reads the date, shows a preview, and saves it to the calendar. Press <kbd>N</kbd> or choose <strong>+ Add</strong> for the quick-add field.</p>
+    <h2>Calendar shortcuts</h2><ul><li><kbd>T</kbd>: go to today</li><li><kbd>←</kbd> / <kbd>→</kbd>: previous or next period</li><li><kbd>M</kbd> / <kbd>W</kbd> / <kbd>L</kbd>: Month, Week, or List view</li><li><kbd>Arrow keys</kbd>: move focus between days; press Enter to open a day</li><li><kbd>?</kbd>: show the shortcut sheet</li></ul>
+    <p>Shortcuts pause while you type in a field or when a dialog is open. The command menu can still be opened with its shortcut while you are in a field.</p>`
   },
   {
     slug: 'build-your-idea-system',
