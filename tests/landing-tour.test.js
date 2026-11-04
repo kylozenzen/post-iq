@@ -39,6 +39,8 @@ assert.match(tour, /aria-modal', 'false'/, 'tour is non-modal');
 assert.match(tour, /showWelcome\(\{ source:/, 'first visit shows welcome choice');
 assert.match(tour, /data-welcome="tour"/, 'tour is optional');
 assert.match(tour, /data-welcome="explore"/, 'exploration is optional');
+assert.match(tour, /params\.get\('welcome'\) === '1'/, 'welcome can be force-previewed after earlier visits');
+assert.match(tour, /params\.delete\('welcome'\)/, 'welcome preview flag is single-use');
 assert.match(app, /id="sideLearn"/, 'getting started is in sidebar');
 assert.match(app, /id="connStatusButton"/, 'connection has a compact status action');
 for (const id of ['calendar', 'plan', 'schedule']) assert.match(tour, new RegExp(`id: '${id}'`));
