@@ -60,3 +60,6 @@
 .postiq-welcome .postiq-welcome-footnote { font-size: 12px; }
 .postiq-welcome button:focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }
 @media (max-width: 520px) { .postiq-welcome-actions { flex-direction: column; } .postiq-welcome-actions .btn { justify-content: center; width: 100%; } }
+
+.tour-extra-action { display:block; margin:0 0 12px; }
+.tour-extra-action[hidden] { display:none; }
