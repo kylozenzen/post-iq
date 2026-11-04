@@ -530,7 +530,7 @@ function renderConnectionUI() {
   const connDot = qs('connDot'); if (connDot) { connDot.classList.toggle('on', connected); connDot.classList.toggle('warning', reconnectNeeded || syncIssue); }
   const connLabel = qs('connLabel'); if (connLabel) connLabel.textContent = syncIssue ? 'Sync issue' : connected ? 'Buffer connected' : (reconnectNeeded ? 'Reconnect Buffer' : 'Connect Buffer');
   const connStatusButton = qs('connStatusButton');
-  if (connStatusButton) connStatusButton.setAttribute('aria-label', (syncIssue ? 'Buffer sync needs attention. Open connection settings.' : connected ? 'Buffer connected. Open connection settings.' : reconnectNeeded ? 'Buffer needs reconnection. Open connection settings.' : 'Connect Buffer. Open connection settings.'));
+  if (connStatusButton) connStatusButton.setAttribute('aria-label', (syncIssue ? 'Sync issue' : connected ? 'Buffer connected' : reconnectNeeded ? 'Reconnect Buffer' : 'Connect Buffer') + '. Expand or collapse connection actions.');
   const connHeading = qs('connHeading');
   if (connHeading) {
     connHeading.textContent = primaryHeading;
@@ -556,7 +556,7 @@ function renderConnectionUI() {
   const revealBtn = qs('revealTokenBtn');
   if (revealBtn) {
     revealBtn.style.display = '';
-    revealBtn.textContent = 'Connection settings';
+    revealBtn.textContent = 'Advanced connection settings';
   }
 
   const tokenInput = qs('tokenInput');
