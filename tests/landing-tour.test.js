@@ -49,4 +49,6 @@ assert.match(tour, /CONNECTED_SEEN_KEY/, 'connected and preview tour completion 
 assert.match(tour, /relevantSteps\(\)/, 'tour adapts to connection state');
 assert.match(tour, /Ideas on the Shelf/, 'tour explains optional Shelf ideas');
 assert.match(tour, /selectSettingsTab\?\.\('customize'\)/, 'tour opens the Shelf setting');
+assert.match(tour, /#sharedDayModal\.open \[data-add-note\]/, 'plan step follows the day drawer action');
+assert.match(tour, /dayObserver = new MutationObserver/, 'tour repositions after a day drawer opens');
 console.log('Landing CTA, claim, screenshot and calendar tour wiring tests passed');
