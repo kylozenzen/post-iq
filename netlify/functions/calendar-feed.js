@@ -130,4 +130,14 @@ exports.handler=async event=>{
       /^Calendar feed|^This calendar feed|^Calendar provider/.test(e.message)?e.message:'Unable to read this public ICS feed.'});
   }
 };
+// Netlify enforces these per-IP limits at the edge across function instances.
+// Check deploy logs to verify the rule was accepted by Netlify.
+exports.config = {
+  path: '/.netlify/functions/calendar-feed',
+  rateLimit: {
+    windowLimit: 10,
+    windowSize: 60,
+    aggregateBy: ['ip','domain']
+  }
+};
 exports._test={feedUrl,parseIcs,parseDate,sameSite,throttled};
