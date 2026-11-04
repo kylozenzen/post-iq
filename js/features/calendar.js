@@ -320,6 +320,7 @@ function renderCalendarView() {
       ...calendarTargetsForDate(key).map(contentCalendarPill),
     ];
     html += pills.slice(0, MAX_VISIBLE).join('');
+    html += window.PostIQExternalCalendars?.cellHtml?.(key) || '';
     if (pills.length > MAX_VISIBLE) html += `<div class="more-indicator">+${pills.length - MAX_VISIBLE} more</div>`;
     html += window.PostIQCampaigns?.cellHtml?.(key) || '';
     html += dayGapSlotHtml(d);
@@ -370,6 +371,7 @@ function renderWeekView() {
     let html = `<div class="cal-week-day-title"><span class="cal-week-day-name">${d.toLocaleDateString(undefined,{ weekday:'short'})}</span><div class="cal-week-day-title-right"><strong class="cal-week-day-date">${d.toLocaleDateString(undefined,{ month:'short', day:'numeric'})}</strong><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add plan for ${safeText(formatDateWithYear(d))}">+</button></div></div><div class="cal-week-day-summary">${dayPosts.length ? plannerDaySummary(dayPosts) : ''}${dayNotes.length ? ` · ${dayNotes.length} note${dayNotes.length === 1 ? '' : 's'}` : ''}</div>`;
     html += window.PostIQHolidays?.cellHtml?.(key) || '';
 
+    html += window.PostIQExternalCalendars?.cellHtml?.(key) || '';
     dayPosts.forEach(p => { html += calendarPostPillHtml(p, 'data-week-post', key, 110); });
     dayNotes.forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="${calendarNoteClass(note)}" draggable="true" data-week-note="${safeText(note.id)}" style="${notePillStyle(meta)}">${calendarNoteCopy(note,70)}</button>`; });
     html += calendarTargetsForDate(key).map(contentCalendarPill).join('');
@@ -962,6 +964,8 @@ function openCalendarDayDetails(date) {
   titleEl.textContent = formatDateOnly(key);
   const sections = [];
   const coverageHtml = dayCoverageDetailHtml(date);
+  const externalHtml = window.PostIQExternalCalendars?.dayHtml?.(key) || '';
+  if (externalHtml) sections.push(externalHtml);
   if (coverageHtml) sections.push(coverageHtml);
   if (posts.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${posts.length} post${posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(posts)}</div>`);
   if (notes.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${notes.length} Planning note${notes.length > 1 ? 's' : ''}</div>${editableNoteCardsHtml(notes)}</div>`);
