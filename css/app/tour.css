@@ -47,3 +47,16 @@
 .tour-connect { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin: -4px 0 14px; padding: 10px 12px; background: var(--brand-dim); border-radius: var(--r2); font-size: 12.5px; color: var(--muted); }
 .tour-connect[hidden] { display: none; }
 @media (prefers-reduced-motion: reduce) { .tour-ring { transition: none; } }
+
+/* Standalone invitation before the optional contextual tour. */
+.postiq-welcome-backdrop { position: fixed; inset: 0; z-index: 210; display: grid; place-items: center; padding: 20px; background: rgba(10, 12, 19, .76); backdrop-filter: blur(7px); }
+.postiq-welcome { width: min(530px, 100%); max-height: min(90vh, 720px); overflow: auto; padding: clamp(24px, 5vw, 48px); border: 1px solid var(--border2); border-radius: 20px; background: var(--surface); color: var(--text); box-shadow: var(--shadow-float); }
+.postiq-welcome-eyebrow { display: block; font: 11px 'DM Mono', monospace; letter-spacing: .14em; color: var(--brand); margin-bottom: 20px; }
+.postiq-welcome h2 { font-family: var(--font-display); font-size: clamp(28px, 5vw, 40px); line-height: 1.07; margin: 0 0 18px; color: var(--ink); }
+.postiq-welcome h2 em { font-style: normal; color: var(--brand); }
+.postiq-welcome p { font-size: 15px; line-height: 1.6; color: var(--muted); margin: 0; }
+.postiq-welcome-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 28px 0 20px; }
+.postiq-welcome-actions .btn { min-height: 44px; padding-inline: 18px; }
+.postiq-welcome .postiq-welcome-footnote { font-size: 12px; }
+.postiq-welcome button:focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }
+@media (max-width: 520px) { .postiq-welcome-actions { flex-direction: column; } .postiq-welcome-actions .btn { justify-content: center; width: 100%; } }
