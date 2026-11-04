@@ -160,20 +160,18 @@
         <span class="nav-icon" style="opacity:.5;"><svg><use href="#i-buffer"/></svg></span>
         <span class="nav-text">Open Buffer</span>
       </a>
-      <button class="nav-btn" type="button" id="sideConnectionSettings" data-tooltip="Buffer connection"><span class="nav-icon" aria-hidden="true">◉</span><span class="nav-text">Buffer connection</span></button>
       <button class="nav-btn" id="openSettings" type="button" data-tooltip="Settings">
         <span class="nav-icon" style="opacity:.5;"><svg><use href="#i-settings"/></svg></span>
         <span class="nav-text">Settings</span>
       </button>
-      <details class="side-learn" id="sideLearn"><summary class="nav-btn" data-tooltip="Getting started"><span class="nav-icon" aria-hidden="true">✓</span><span class="nav-text">Getting started</span></summary><div id="gettingStarted" class="getting-started" hidden></div></details>
-      <button class="nav-btn" type="button" data-tour-start="sidebar" data-tooltip="Take a tour">
-        <span class="nav-icon" style="opacity:.5;" aria-hidden="true">◎</span>
-        <span class="nav-text">Take a tour</span>
-      </button>
-      <a class="nav-btn" href="/help/" data-tooltip="Help Center">
-        <span class="nav-icon" style="opacity:.5;">❓</span>
-        <span class="nav-text">Help Center</span>
-      </a>
+      <details class="side-learn" id="sideLearn">
+        <summary class="nav-btn" data-tooltip="Help &amp; getting started"><span class="nav-icon" aria-hidden="true">?</span><span class="nav-text">Help &amp; getting started</span><span class="side-learn-chevron" aria-hidden="true">⌄</span></summary>
+        <div class="side-learn-content">
+          <div id="gettingStarted" class="getting-started" hidden></div>
+          <button class="side-learn-link" type="button" data-tour-start="sidebar">↻ Replay product tour</button>
+          <a class="side-learn-link" href="/help/">Help Center</a>
+        </div>
+      </details>
     </div>
   </aside>
 
