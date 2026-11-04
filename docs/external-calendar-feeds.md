@@ -22,9 +22,9 @@ Outlook, Trello, Asana, and other provider links are **not supported in this bet
 - Events are never sent to Buffer or used as scheduled-post confirmation.
 
 ## Server safeguards and deployment limits
-The Netlify function supports only a strict public Google ICS path over HTTPS, blocks redirects, limits incoming and outgoing bytes, and times out network fetches. It checks browser same-origin metadata and uses a **best-effort in-instance** request throttle; these do **not** replace authentication or a durable edge/server-side rate limit.
+The Netlify function supports only a strict public Google ICS path over HTTPS, blocks redirects, limits incoming and outgoing bytes, and times out network fetches. It checks browser same-origin metadata and additionally uses a best-effort in-instance throttle. A **Netlify edge-enforced, per-IP rate limit** is declared in the Function config (10 requests per minute per IP/domain). Edge enforcement is eventually consistent, and same-origin metadata is not an authentication mechanism.
 
-**Before broad public rollout:** configure provider/edge-level rate limiting and test the live Netlify deployment. The function has no user authentication; a determined direct caller can spoof request metadata. Do not promise complete abuse prevention. Review privacy policy disclosures for calendar-event processing and retention in hosting logs.
+**Before broad public rollout:** verify Netlify accepted the code-based rate-limit rule in the deploy logs and test a 429 response under repeated requests. The function has no user authentication; a determined direct caller can spoof request metadata. Do not promise complete abuse prevention. Review privacy policy disclosures for calendar-event processing and retention in hosting logs.
 
 ## Known functional limits
 - Read-only; no write-back, project tasks, or OAuth.
