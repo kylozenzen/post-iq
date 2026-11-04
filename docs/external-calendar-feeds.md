@@ -1,22 +1,39 @@
-# External calendar feeds (ICS) — beta
+# External calendar feeds: security-first beta
 
-PostIQ supports read-only subscriptions to calendar feeds published as ICS URLs.
+## Supported today
+Only Google Calendar **public** ICS subscription links are supported. This is a read-only planning layer. It does not use your Buffer account to access Google and cannot edit calendars or Buffer posts.
 
-## Add a calendar
-1. Open **Calendar → ⋯ → Connect calendar feed (ICS)**.
-2. Give the source a name and paste its published HTTPS ICS subscription URL.
-3. Click **Add feed**. Read-only events appear on calendar dates and in the day drawer.
-4. Use **Refresh feeds** to check for changes. Remove a feed from the same window.
+## Find and add a public calendar
+1. In Google Calendar on desktop, choose **Settings → Settings for my calendars → [calendar] → Integrate calendar**.
+2. For a calendar you intentionally made public, copy **Public address in iCal format**, ending in `/public/basic.ics`.
+3. In PostIQ, open **Calendar → ⋯ → Connect calendar feed (ICS)**.
+4. Name the feed, paste the public link, and choose **Add feed**.
+5. Review your imported dates, refresh manually, or remove the feed.
 
-Google Calendar, Outlook, Trello, and Asana URLs are supported if they point directly to an ICS file. Not every provider exposes ICS exports on every plan or workspace. A regular project URL or API key is not an ICS feed.
+**Never paste “Secret address in iCal format.”** The server and client reject recognizable secret Google Calendar links. Public calendars can expose event information to anyone on the internet; check Google's sharing permissions before publishing a calendar.
 
-## Data and privacy
-Secret ICS URLs grant access to potentially private calendar events. Treat them like passwords. PostIQ stores feed URLs and event previews in your current browser. The feed URL goes through a Netlify Function to retrieve events; the server permits only explicitly supported provider hosts and HTTPS, blocks redirects, limits download size, and does not intentionally log URLs. Do not enter API keys in the feed field.
+Outlook, Trello, Asana, and other provider links are **not supported in this beta**, even if they offer an ICS feed. Private calendars should eventually use authenticated OAuth or encrypted server-side credential storage tied to an authenticated user.
 
-Feeds refresh approximately hourly while PostIQ is open. Up to five subscriptions are supported; each fetch imports up to 400 events. Recurring events are not expanded: only explicitly dated events in a feed are displayed. Time-of-day, cross-device synchronization, bidirectional updates, attachments and project task creation are not included. Imported events never alter the Buffer queue.
+## What is stored
+- The browser stores only up to five public feed URLs and their display names.
+- Imported titles and dates are kept in memory while the app runs. They are refreshed on reload, not written to persistent browser storage.
+- **Remove** deletes a feed URL and its current events. **Remove all calendar data** clears all subscriptions and cached event data on this browser.
+- A previous preview version's local storage key is cleared automatically.
+- Events are never sent to Buffer or used as scheduled-post confirmation.
+
+## Server safeguards and deployment limits
+The Netlify function supports only a strict public Google ICS path over HTTPS, blocks redirects, limits incoming and outgoing bytes, and times out network fetches. It checks browser same-origin metadata and uses a **best-effort in-instance** request throttle; these do **not** replace authentication or a durable edge/server-side rate limit.
+
+**Before broad public rollout:** configure provider/edge-level rate limiting and test the live Netlify deployment. The function has no user authentication; a determined direct caller can spoof request metadata. Do not promise complete abuse prevention. Review privacy policy disclosures for calendar-event processing and retention in hosting logs.
+
+## Known functional limits
+- Read-only; no write-back, project tasks, or OAuth.
+- Recurring events are not expanded unless the feed includes dated instances.
+- Up to five feeds and 250 events per feed; up to 400 KB response size.
+- Feeds refresh approximately hourly while the app is open.
+- Public calendar event details can be visible to anyone on the internet independently of PostIQ.
 
 ## Troubleshooting
-- **Unsupported feed host**: the allowlist intentionally excludes arbitrary URLs, including custom/private servers.
-- **Provider returns 403/404**: verify the link is an ICS subscription URL, not a calendar webpage.
-- **Events missing**: recurring events may need the provider to expand occurrences; large feeds may be truncated.
-- **Old data**: click Refresh feeds. Browsers only refresh while the app is open.
+- **Secret URL rejected:** copy the Public address, never the Secret address.
+- **403/404 from Google:** check that the calendar has been intentionally shared publicly and is available as an ICS feed.
+- **Too many requests:** wait before refreshing. Automatic refreshes do not run while PostIQ is closed.
