@@ -19,7 +19,7 @@ test('Agenda exact selection, draft date/channel and return preserve context',as
  assert.equal(d.querySelector('#sharedDayModal').classList.contains('open'),false);
  assert.equal(d.activeElement,post);
  const priorSchedule=d.querySelector('#composerWhen').value;
- d.querySelector('#calendarAddBtn').click();d.querySelector('[data-start-draft]').click();
+ d.querySelector('#calendarAddBtn').click();assert.equal(d.querySelector('#quickAddPop').hidden,false,'+ Add opens quick add');d.querySelector('[data-quick-more]').click();d.querySelector('[data-start-draft]').click();
  assert.ok(d.querySelector('#composerView.active'));assert.equal(d.querySelector('#composerChannel').value,'b');
  assert.equal(d.querySelector('#composerWhen').value,priorSchedule); // selected date never silently schedules
  d.querySelector('#composerReturnCalendar').click();

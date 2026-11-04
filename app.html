@@ -221,12 +221,19 @@
                 <select id="calendarChannelFilter" class="input"><option value="">All channels</option></select>
                 <label class="label" for="calendarFilter">Items</label>
                 <select id="calendarFilter" class="input"></select>
+                <label class="label" for="calendarHolidayCountry">Holidays</label>
+                <select id="calendarHolidayCountry" class="input"></select>
                 <button class="more-link" type="button" id="calendarFiltersReset">Reset filters</button>
               </div>
               <div class="more-section">
                 <button class="more-item" type="button" id="calendarViewAgendaBtn" data-calendar-view="agenda">List view</button>
                 <button class="more-item" type="button" id="openScheduleBtn" data-open-schedule="calendar">Posting schedule</button>
                 <button class="more-item" type="button" id="shareMonthBtn">Share a snapshot</button>
+              </div>
+              <div class="more-section">
+                <button class="more-item" type="button" id="icsExportBtn">Export to calendar app (.ics)</button>
+                <button class="more-item" type="button" id="backupDownloadBtn">Download a backup</button>
+                <button class="more-item" type="button" id="backupRestoreBtn">Restore from a backup…</button>
               </div>
               <div class="more-section">
                 <button class="more-item" type="button" data-tour-start="calendar_menu">Take a tour</button>
@@ -942,6 +949,11 @@
   <script src="./js/discord-integration.js" defer></script>
   <script src="./js/library.js" defer></script>
   <script src="./js/features/tour.js" defer></script>
+  <script src="./js/features/holidays.js" defer></script>
+  <script src="./js/features/quick-add.js" defer></script>
+  <script src="./js/features/calendar-drag.js" defer></script>
+  <script src="./js/features/today.js" defer></script>
+  <script src="./js/features/backup.js" defer></script>
 
 
 <!-- Reviewer page -->

@@ -433,3 +433,161 @@
 }
 .shelf-nudge { animation: shelf-nudge 1.2s ease-in-out 2; border-radius: var(--r); }
 @media (prefers-reduced-motion: reduce) { .shelf-nudge { animation: none; outline: 2px solid var(--brand-glow); } }
+
+/* ════════════════════════════════════════════════════════════════
+   Phase 2: delight — Today strip, fill cards, quick add, drag, holidays
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Today strip ───────────────────────────────────────────────── */
+.today-strip {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(300px, 1.3fr);
+  gap: var(--s5);
+  align-items: start;
+  margin: 0 0 var(--s4);
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--brand);
+  border-radius: calc(var(--r) + 2px);
+}
+.today-strip:not(:has(.today-right)) { grid-template-columns: 1fr; }
+.today-kicker {
+  font: 600 10px/1 'DM Mono', monospace;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+.today-date { margin: 6px 0 8px; font-family: var(--font-display); font-size: 20px; color: var(--ink); line-height: 1.15; }
+.today-going { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--text); }
+.today-icons { display: inline-flex; gap: 3px; }
+.today-muted { color: var(--muted); font-size: 13px; }
+.today-todos { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; font-size: 13px; }
+.today-todos label { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+.today-todos input { margin-top: 2px; accent-color: var(--brand); }
+.today-todos input:checked + span { text-decoration: line-through; color: var(--muted); }
+.today-calm { display: grid; gap: 6px; align-content: center; height: 100%; font-size: 13px; color: var(--muted); }
+.today-calm strong { color: var(--ink); font-weight: 600; }
+
+/* ── Fill card (Today strip and open-slot popover) ─────────────── */
+.fill-card { display: grid; gap: 10px; }
+.fill-head { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text); }
+.fill-head strong { color: var(--ink); }
+.fill-quote {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--border2);
+  border-radius: var(--r);
+  background: var(--surface2);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text);
+}
+.fill-empty { margin: 0; font-size: 13px; color: var(--muted); }
+.fill-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.fill-card.is-compact + .fill-card { padding-top: 12px; border-top: 1px solid var(--border); }
+
+.fill-pop {
+  position: absolute;
+  z-index: 60;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: calc(var(--r) + 3px);
+  box-shadow: var(--shadow-float);
+}
+.fill-pop-title { display: flex; justify-content: space-between; align-items: center; font-family: var(--font-display); font-size: 16px; color: var(--ink); }
+.fill-pop-close { border: 0; background: none; font-size: 20px; line-height: 1; color: var(--muted); cursor: pointer; padding: 0 4px; }
+.fill-pop-close:hover { color: var(--ink); }
+
+/* Open slots are buttons now */
+button.day-gap-slot {
+  appearance: none;
+  width: 100%;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+}
+button.day-gap-slot:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+
+/* ── Quick add ─────────────────────────────────────────────────── */
+.quick-add-pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 40px;
+  z-index: 40;
+  width: min(420px, calc(100vw - 32px));
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: calc(var(--r) + 3px);
+  box-shadow: var(--shadow-float);
+}
+.quick-add-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.2 inherit;
+  font-family: inherit;
+}
+.quick-add-input:focus { outline: 2px solid var(--brand-glow); border-color: var(--brand); }
+.quick-add-preview { margin: 8px 2px 10px; min-height: 18px; font-size: 12.5px; color: var(--subtle); }
+.quick-add-preview.is-ready { color: var(--ink); }
+.quick-add-preview.is-ready::before { content: '→ '; color: var(--brand); }
+.quick-add-actions { display: flex; align-items: center; gap: 10px; }
+.quick-add-hint { margin-left: auto; font-size: 11px; color: var(--subtle); }
+.quick-add-hint kbd { font: 10px/1 'DM Mono', monospace; padding: 2px 4px; border: 1px solid var(--border2); border-radius: 3px; background: var(--surface2); }
+
+@keyframes just-added { 0% { box-shadow: inset 0 0 0 2px var(--brand); } 100% { box-shadow: inset 0 0 0 2px transparent; } }
+.just-added { animation: just-added 1.4s ease-out; }
+
+/* ── Drag ─────────────────────────────────────────────────────── */
+#calendarView [draggable="true"] { cursor: grab; }
+#calendarView [draggable="true"]:active { cursor: grabbing; }
+#calendarView .is-dragging { opacity: .45; }
+#calendarView.is-dragging-item .cal-day,
+#calendarView.is-dragging-item .cal-week-day { transition: background .1s, border-color .1s; }
+#calendarView .is-drop-target { border-color: var(--brand) !important; background: var(--brand-dim) !important; }
+
+.toast.toast-action { display: flex; align-items: center; gap: 14px; }
+.toast-action-btn {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: 600 13px/1 inherit;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* ── Holidays ─────────────────────────────────────────────────── */
+.day-holiday {
+  margin-top: -1px;
+  font-size: 10px;
+  line-height: 1.25;
+  color: var(--accent);
+  font-style: italic;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cal-week-day .day-holiday, .calendar-agenda-day .day-holiday { font-size: 12px; margin: 2px 0 6px; }
+
+@media (max-width: 768px) {
+  .today-strip { grid-template-columns: 1fr; gap: var(--s3); }
+  .quick-add-pop { position: fixed; left: 12px; right: 12px; top: 64px; width: auto; }
+  .quick-add-hint { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .just-added { animation: none; } }
+
+/* Week cards: an empty day's summary line stays empty, not "NO LOADED POSTS" */
+.cal-week-day-summary:empty { display: none; }

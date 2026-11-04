@@ -210,7 +210,7 @@ function calendarPostPillHtml(post, dataAttribute, dateKey, limit) {
   const platform = platformIdentity(post);
   const published = isPublishedPost(post);
   const statusLabel = published ? 'Published' : 'Scheduled';
-  return `<button type="button" class="day-post-pill${published ? ' is-published' : ''}" ${dataAttribute}="${safeText(dateKey)}" data-post-id="${safeText(post.id)}" title="${safeText(statusLabel)} · ${safeText(platform.label)} · ${safeText(compact(post.text, 120))}">${platformLogoHtml(post)}${published ? '<span class="day-post-status" aria-hidden="true">✓</span>' : ''}<span class="sr-only">${statusLabel}: </span><span class="day-post-copy">${safeText(compact(post.text, limit))}</span></button>`;
+  return `<button type="button" class="day-post-pill${published ? ' is-published' : ''}"${published ? '' : ' draggable="true"'} ${dataAttribute}="${safeText(dateKey)}" data-post-id="${safeText(post.id)}" title="${safeText(statusLabel)} · ${safeText(platform.label)} · ${safeText(compact(post.text, 120))}">${platformLogoHtml(post)}${published ? '<span class="day-post-status" aria-hidden="true">✓</span>' : ''}<span class="sr-only">${statusLabel}: </span><span class="day-post-copy">${safeText(compact(post.text, limit))}</span></button>`;
 }
 function snapshotPostPayload(p) {
   const planningAt = getPostPlanningAt(p);
@@ -312,11 +312,11 @@ function renderCalendarView() {
     if (window.PostIQCampaigns?.covers?.(key)) cls += ' has-campaign';
     day.className = cls;
 
-    let html = `<div class="day-header"><div class="day-num">${d.getDate()}</div><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add plan for ${safeText(formatDateWithYear(d))}">+</button></div>`;
+    let html = `<div class="day-header"><div class="day-num">${d.getDate()}</div><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add plan for ${safeText(formatDateWithYear(d))}">+</button></div>${window.PostIQHolidays?.cellHtml?.(key) || ''}`;
     const MAX_VISIBLE = 3;
     const pills = [
       ...dayPosts.map(p => calendarPostPillHtml(p, 'data-post-detail', key, 60)),
-      ...dayNotes.map(note => { const meta = getNoteTypeMeta(note); return `<button type="button" class="${calendarNoteClass(note)}" data-note-detail="${safeText(note.id)}" style="${notePillStyle(meta)}" aria-label="Edit ${isActionNote(note) ? (note.completedAt ? 'completed action' : 'to-do action') : 'note'} for ${safeText(formatDateWithYear(d))}: ${safeText(compact(note.text,50))}">${calendarNoteCopy(note,50)}</button>`; }),
+      ...dayNotes.map(note => { const meta = getNoteTypeMeta(note); return `<button type="button" class="${calendarNoteClass(note)}" draggable="true" data-note-detail="${safeText(note.id)}" style="${notePillStyle(meta)}" aria-label="Edit ${isActionNote(note) ? (note.completedAt ? 'completed action' : 'to-do action') : 'note'} for ${safeText(formatDateWithYear(d))}: ${safeText(compact(note.text,50))}">${calendarNoteCopy(note,50)}</button>`; }),
       ...calendarTargetsForDate(key).map(contentCalendarPill),
     ];
     html += pills.slice(0, MAX_VISIBLE).join('');
@@ -341,6 +341,7 @@ function renderCalendarView() {
   renderAgenda();
   renderWeekView();
   updateCalendarViewUI();
+  try { window.PostIQToday?.render(); } catch {}
   try { window.PostIQAlerts?.render(); } catch (e) { console.error('[PostIQ] alerts render failed:', e); }
   try { window.PostIQGettingStarted?.render(); } catch (e) { console.error('[PostIQ] getting-started render failed:', e); }
 }
@@ -366,10 +367,11 @@ function renderWeekView() {
     const dayNotes = calendarFilterNotes(allDayNotes);
     const card = document.createElement('div');
     card.className = `cal-week-day${key === fmtDate(new Date()) ? ' today' : ''}${dayPosts.length ? ' has-posts' : ''}`;
-    let html = `<div class="cal-week-day-title"><span class="cal-week-day-name">${d.toLocaleDateString(undefined,{ weekday:'short'})}</span><div class="cal-week-day-title-right"><strong class="cal-week-day-date">${d.toLocaleDateString(undefined,{ month:'short', day:'numeric'})}</strong><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add plan for ${safeText(formatDateWithYear(d))}">+</button></div></div><div class="cal-week-day-summary">${dayPosts.length ? plannerDaySummary(dayPosts) : 'No loaded posts'}${dayNotes.length ? ` · ${dayNotes.length} note${dayNotes.length === 1 ? '' : 's'}` : ''}</div>`;
+    let html = `<div class="cal-week-day-title"><span class="cal-week-day-name">${d.toLocaleDateString(undefined,{ weekday:'short'})}</span><div class="cal-week-day-title-right"><strong class="cal-week-day-date">${d.toLocaleDateString(undefined,{ month:'short', day:'numeric'})}</strong><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add plan for ${safeText(formatDateWithYear(d))}">+</button></div></div><div class="cal-week-day-summary">${dayPosts.length ? plannerDaySummary(dayPosts) : ''}${dayNotes.length ? ` · ${dayNotes.length} note${dayNotes.length === 1 ? '' : 's'}` : ''}</div>`;
+    html += window.PostIQHolidays?.cellHtml?.(key) || '';
 
     dayPosts.forEach(p => { html += calendarPostPillHtml(p, 'data-week-post', key, 110); });
-    dayNotes.forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="${calendarNoteClass(note)}" data-week-note="${safeText(note.id)}" style="${notePillStyle(meta)}">${calendarNoteCopy(note,70)}</button>`; });
+    dayNotes.forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="${calendarNoteClass(note)}" draggable="true" data-week-note="${safeText(note.id)}" style="${notePillStyle(meta)}">${calendarNoteCopy(note,70)}</button>`; });
     html += calendarTargetsForDate(key).map(contentCalendarPill).join('');
     html += dayGapSlotHtml(d);
     card.innerHTML = html;
@@ -508,7 +510,7 @@ function dayGapSlotHtml(date) {
   const gaps = dayGapCount(date);
   if (!gaps) return '';
   // A gap is an invitation, not an error: a quiet dashed slot. The per-channel breakdown lives in the day detail.
-  return `<div class="day-gap-slot" title="${gaps} channel${gaps === 1 ? '' : 's'} could use a post — open the day to fill">${gaps === 1 ? 'Open slot' : `${gaps} open slots`}</div>`;
+  return `<button type="button" class="day-gap-slot" title="${gaps} channel${gaps === 1 ? '' : 's'} could use a post — click to fill">${gaps === 1 ? 'Open slot' : `${gaps} open slots`}</button>`;
 }
 function dayGapCount(date) { return dayCoverageRows(date).filter(r => r.status === 'gap').length; }
 // Per-platform coverage breakdown for the day-detail view — this is where the
@@ -716,7 +718,7 @@ function renderAgenda() {
     const notes=isContentCalendarMode()?[]:calendarFilterNotes(getNotesForDate(key));
     const targets=isContentCalendarMode()?contentCalendarEntries().filter(entry=>entry.date===key):calendarTargetsForDate(key);
     const day=document.createElement('section');day.className='calendar-agenda-day';
-    day.innerHTML=`<div class="calendar-agenda-heading"><strong>${safeText(date.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}))}</strong><button type="button" class="btn sm ghost" data-agenda-add aria-label="Add a plan for ${key}">+ Add</button></div>`
+    day.innerHTML=`<div class="calendar-agenda-heading"><strong>${safeText(date.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}))}</strong><button type="button" class="btn sm ghost" data-agenda-add aria-label="Add a plan for ${key}">+ Add</button></div>${window.PostIQHolidays?.cellHtml?.(key) || ''}`
       +posts.map(p=>calendarPostPillHtml(p,'data-agenda-post',key,180)).join('')
       +notes.map(n=>`<button type="button" class="${calendarNoteClass(n)}" data-agenda-note="${safeText(n.id)}" style="${notePillStyle(getNoteTypeMeta(n))}">${calendarNoteCopy(n)}</button>`).join('')
       +targets.map(contentCalendarPill).join('')
