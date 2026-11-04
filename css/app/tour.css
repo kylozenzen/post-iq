@@ -63,3 +63,8 @@
 
 .tour-extra-action { display:block; margin:0 0 12px; }
 .tour-extra-action[hidden] { display:none; }
+
+/* A calendar drawer should never cover an active tour explanation. */
+body.tour-active .tour-ring { z-index:205; }
+body.tour-active .tour-pop { z-index:206; }
+body.tour-active .tour-pop.is-docked { bottom:14px; }
