@@ -634,3 +634,19 @@
     }
     .side-bottom .nav-btn { font-size: 12px; color: rgba(255,255,255,.3); }
     .side-bottom .nav-btn:hover { color: rgba(255,255,255,.6); }
+
+/* Keep the sidebar calm: connection is a status shortcut, not a dashboard. */
+.side-connection.connection-card { display: flex; align-items: center; margin: 6px 12px 8px; padding: 8px 10px; animation: none; background: rgba(255,255,255,.035); }
+.side-connection.connection-card .conn-row, .side-connection.connection-card.compact .conn-row { margin: 0; width: 100%; }
+.side-connection .conn-heading, .side-connection .conn-helper, .side-connection .conn-actions, .side-connection .conn-last-sync { display: none !important; }
+.side-connection .conn-status-action { display: flex; align-items: center; justify-content: space-between; flex: 1; background: transparent; border: 0; padding: 3px 0; cursor: pointer; text-align: left; color: rgba(255,255,255,.85); font: 12px 'DM Mono', monospace; }
+.side-connection .conn-status-action:hover, .side-connection .conn-status-action:focus-visible { color: white; }
+.side-connection .conn-dot.warning { background: #eab968; box-shadow: 0 0 0 3px rgba(234,185,104,.16); }
+.side-sync { display: none; }
+.side-learn { margin: 0; }
+.side-learn summary { list-style: none; cursor: pointer; }
+.side-learn summary::-webkit-details-marker { display: none; }
+.side-learn[open] > summary { color: #fff; }
+.side-learn .getting-started { margin: 6px 6px 12px; max-height: 310px; overflow: auto; }
+.app.sidebar-collapsed .side-learn .getting-started { display: none; }
+.app.sidebar-collapsed .side-learn summary { justify-content: center; padding: 10px; width: 40px; }
