@@ -523,10 +523,13 @@ function renderConnectionUI() {
   if (sidebarCard) {
     sidebarCard.classList.toggle('compact', connected);
     sidebarCard.classList.toggle('connected', connected);
-    sidebarCard.classList.toggle('api-live-pulse', connected);
+    sidebarCard.classList.remove('api-live-pulse');
+    sidebarCard.classList.toggle('needs-attention', reconnectNeeded);
   }
-  const connDot = qs('connDot'); if (connDot) connDot.classList.toggle('on', connected);
-  const connLabel = qs('connLabel'); if (connLabel) connLabel.textContent = statusLabel;
+  const connDot = qs('connDot'); if (connDot) { connDot.classList.toggle('on', connected); connDot.classList.toggle('warning', reconnectNeeded); }
+  const connLabel = qs('connLabel'); if (connLabel) connLabel.textContent = connected ? 'Buffer connected' : (reconnectNeeded ? 'Reconnect Buffer' : 'Connect Buffer');
+  const connStatusButton = qs('connStatusButton');
+  if (connStatusButton) connStatusButton.setAttribute('aria-label', (connected ? 'Buffer connected. Open connection settings.' : reconnectNeeded ? 'Buffer needs reconnection. Open connection settings.' : 'Connect Buffer. Open connection settings.'));
   const connHeading = qs('connHeading');
   if (connHeading) {
     connHeading.textContent = primaryHeading;
