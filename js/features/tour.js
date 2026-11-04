@@ -11,6 +11,8 @@ window.PostIQTour = (() => {
   // Read before startup marks the app as visited, so only a first visit qualifies.
   const FIRST_VISIT = (() => { try { return localStorage.getItem('postiq_app_visited') !== '1'; } catch { return false; } })();
   const MOBILE_QUERY = '(max-width: 768px)';
+  let welcome = null;
+  let welcomeReturnFocus = null;
 
   // An orientation to planning, not a mandatory publishing tutorial.
   // Keep PR #193's Today card and Add button targets available.
@@ -220,6 +222,50 @@ window.PostIQTour = (() => {
     if (active && !navigating && event.detail?.source !== 'tour') stop();
   }
 
+  function closeWelcome({ remember = true } = {}) {
+    if (!welcome) return;
+    if (remember) markSeen();
+    welcome.remove(); welcome = null;
+    document.body.classList.remove('postiq-welcome-open');
+    if (welcomeReturnFocus?.isConnected) welcomeReturnFocus.focus({ preventScroll: true });
+    welcomeReturnFocus = null;
+  }
+
+  function showWelcome(options = {}) {
+    if (welcome || active) return;
+    welcomeReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    welcome = document.createElement('div');
+    welcome.className = 'postiq-welcome-backdrop';
+    welcome.innerHTML = `<section class="postiq-welcome" role="dialog" aria-modal="true" aria-labelledby="postiqWelcomeTitle" aria-describedby="postiqWelcomeDesc">
+      <span class="postiq-welcome-eyebrow">WELCOME TO POSTIQ</span>
+      <h2 id="postiqWelcomeTitle">Your content has a calendar.<br><em>Let's give it a plan.</em></h2>
+      <p id="postiqWelcomeDesc">Buffer handles publishing. PostIQ helps you see what is coming, spot open days, and make a plan before a post is ready.</p>
+      <div class="postiq-welcome-actions">
+        <button type="button" class="btn primary" data-welcome="tour">Take the tour <span aria-hidden="true">→</span></button>
+        <button type="button" class="btn ghost" data-welcome="explore">Look around</button>
+      </div>
+      <p class="postiq-welcome-footnote">${isConnected() ? 'Your Buffer account is connected. Your calendar is ready to explore.' : 'No Buffer account required to look around. Connect when you want to bring in your real posts.'}</p>
+    </section>`;
+    welcome.addEventListener('click', event => {
+      const choice = event.target.closest('[data-welcome]')?.dataset.welcome;
+      if (!choice) return;
+      closeWelcome();
+      if (choice === 'tour') start({ source: options.source || 'welcome' });
+    });
+    welcome.addEventListener('keydown', event => {
+      if (event.key === 'Escape') { event.preventDefault(); closeWelcome(); }
+      if (event.key === 'Tab') {
+        const buttons = [...welcome.querySelectorAll('button')];
+        const first = buttons[0], last = buttons[buttons.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
+    });
+    document.body.append(welcome);
+    document.body.classList.add('postiq-welcome-open');
+    welcome.querySelector('[data-welcome="tour"]')?.focus();
+  }
+
   function start(options = {}) {
     if (active) return;
     steps = relevantSteps().filter(step => viewAvailable(step.view));
@@ -268,7 +314,7 @@ window.PostIQTour = (() => {
         start({ source: button.dataset.tourStart || 'button', returnFocus: button });
       });
     });
-    // Opens automatically once: on a first visit, or when a link asks with
+    // Offers a welcome choice once: on a first visit, or when a link asks with
     // ?tour=1. The flag is removed right away and closing the tour records it as
     // seen, so refreshing, bookmarking, or returning from Buffer sign-in does not
     // reopen it.
@@ -279,12 +325,12 @@ window.PostIQTour = (() => {
       history.replaceState(history.state, document.title, `${location.pathname}${params.toString() ? `?${params}` : ''}${location.hash}`);
     }
     if (requested || (FIRST_VISIT && read(SEEN_KEY) !== '1') || (isConnected() && read(CONNECTED_SEEN_KEY) !== '1')) {
-      // Wait for app startup; reviewer and shared-snapshot pages hide the app shell.
-      setTimeout(() => { if (!document.getElementById('app')?.classList.contains('hidden')) start({ source: requested ? 'link' : 'first_visit' }); }, 600);
+      // Reviewer and shared-snapshot pages should never show onboarding.
+      setTimeout(() => { if (!document.getElementById('app')?.classList.contains('hidden')) showWelcome({ source: requested ? 'link' : 'first_visit' }); }, 600);
     }
   }
 
-  return { init, start, stop, isActive: () => active, hasSeen: () => read(isConnected() ? CONNECTED_SEEN_KEY : SEEN_KEY) === '1', steps: STEPS };
+  return { init, start, stop, showWelcome, isActive: () => active, hasSeen: () => read(isConnected() ? CONNECTED_SEEN_KEY : SEEN_KEY) === '1', steps: STEPS };
 })();
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(window.PostIQTour.init, 0));
