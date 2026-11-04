@@ -41,8 +41,10 @@ assert.match(tour, /data-welcome="tour"/, 'tour is optional');
 assert.match(tour, /data-welcome="explore"/, 'exploration is optional');
 assert.match(tour, /params\.get\('welcome'\) === '1'/, 'welcome can be force-previewed after earlier visits');
 assert.match(tour, /params\.delete\('welcome'\)/, 'welcome preview flag is single-use');
-assert.match(app, /id="sideLearn"/, 'getting started is in sidebar');
+assert.match(app, /id="gettingStartedDialog"/, 'getting started has its own dialog');
+assert.match(app, /id="sidebarBufferDetails"/, 'Buffer actions expand in sidebar');
 assert.match(app, /id="connStatusButton"/, 'connection has a compact status action');
+assert.match(app, /id="openGettingStarted"/, 'sidebar opens setup dialog');
 for (const id of ['calendar', 'plan', 'compose', 'shelf']) assert.match(tour, new RegExp(`id: '${id}'`));
 
 assert.match(tour, /CONNECTED_SEEN_KEY/, 'connected and preview tour completion are independent');
