@@ -1,5 +1,5 @@
 'use strict';
-// Optional sidebar checklist for unfinished setup, separate from the first-run tour.
+// Optional setup checklist in a standalone dialog, separate from the first-run tour.
 window.PostIQGettingStarted = (() => {
   const DISMISS_KEY = 'postiq_getting_started_dismissed';
   const FIRST_POST_KEY = 'postiq_first_post_sent';
@@ -76,8 +76,13 @@ window.PostIQGettingStarted = (() => {
   function init() {
     if (!el('gettingStarted')) return;
     ['postiq:synced', 'postiq:planning-changed', 'postiq:scheduled-updated', 'postiq:library-changed'].forEach(ev => window.addEventListener(ev, render));
-    const drawer = el('sideLearn');
-    drawer?.addEventListener('toggle', () => { if (drawer.open) render(); });
+    const dialog = el('gettingStartedDialog');
+    el('openGettingStarted')?.addEventListener('click', () => {
+      render();
+      if (dialog && !dialog.open) dialog.showModal();
+    });
+    el('closeGettingStarted')?.addEventListener('click', () => dialog?.close());
+    dialog?.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
     render();
   }
 
