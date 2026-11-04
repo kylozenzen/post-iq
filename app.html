@@ -233,7 +233,8 @@
                 <button class="more-item" type="button" id="shareMonthBtn">Share a snapshot</button>
               </div>
               <div class="more-section">
-                <button class="more-item" type="button" id="icsExportBtn">Export to calendar app (.ics)</button>
+                <button class="more-item" type="button" id="calendarFeedsBtn">Connect calendar feed (ICS)</button>
+                 <button class="more-item" type="button" id="icsExportBtn">Export to calendar app (.ics)</button>
                 <button class="more-item" type="button" id="backupDownloadBtn">Download a backup</button>
                 <button class="more-item" type="button" id="backupRestoreBtn">Restore from a backup…</button>
               </div>
@@ -953,6 +954,7 @@
   <script src="./js/library.js" defer></script>
   <script src="./js/features/tour.js" defer></script>
   <script src="./js/features/holidays.js" defer></script>
+  <script src="./js/features/external-calendars.js" defer></script>
   <script src="./js/features/quick-add.js" defer></script>
   <script src="./js/features/calendar-drag.js" defer></script>
   <script src="./js/features/today.js" defer></script>
@@ -1267,6 +1269,18 @@
   <div id="gettingStarted" class="getting-started" hidden></div>
 </dialog>
 
+<dialog id="externalCalendarDialog" class="external-calendar-dialog" aria-labelledby="externalCalendarTitle">
+ <div class="external-calendar-header"><div><h2 id="externalCalendarTitle">Connect a calendar feed</h2><p>See outside events beside your plans, without changing Buffer.</p></div><button type="button" class="btn sm ghost" id="externalCalendarClose">Close</button></div>
+ <div class="external-calendar-content">
+ <label for="externalCalendarName">Calendar name</label><input class="input" id="externalCalendarName" maxlength="60" placeholder="Campaign deadlines">
+ <label for="externalCalendarUrl">Secret or public ICS feed URL</label><input class="input" id="externalCalendarUrl" type="url" autocomplete="off" spellcheck="false" placeholder="https://calendar.google.com/calendar/ical/…">
+ <p class="external-calendar-warning">Feed URLs can grant access to private calendars. Only paste links you trust. URLs and event previews stay in this browser; the link is sent to PostIQ's server to fetch updates. Do not paste API keys.</p>
+ <div class="external-calendar-buttons"><button class="btn primary" id="externalCalendarAdd" type="button">Add feed</button><button class="btn ghost" id="externalCalendarRefresh" type="button">Refresh feeds</button></div>
+ <p id="externalCalendarStatus" role="status" aria-live="polite"></p>
+ <h3>Connected calendars</h3><ul id="externalCalendarList"></ul>
+ <p class="external-calendar-warning">Read-only. Supports direct ICS exports from Google Calendar, Outlook, Trello, and Asana. Repeating events only appear where the feed includes an explicit date; feeds refresh about once per hour when PostIQ is open. Five feeds maximum.</p>
+ </div>
+</dialog>
 <div id="noteModal" class="modal calendar-drawer" role="dialog" aria-modal="true" aria-labelledby="noteDateLabel">
   <div class="modal-card">
     <div class="modal-hdr">
