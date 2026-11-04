@@ -65,6 +65,7 @@ window.PostIQTour = (() => {
   let returnFocus = null;
   let navigating = false;
   let frame = 0;
+  let dayObserver = null;
 
   const read = key => { try { return localStorage.getItem(key); } catch { return null; } };
   const markSeen = () => { try { localStorage.setItem(isConnected() ? CONNECTED_SEEN_KEY : SEEN_KEY, '1'); } catch {} };
@@ -94,6 +95,12 @@ window.PostIQTour = (() => {
   }
 
   function findTarget(step) {
+    // If someone opens a day while learning to plan, guide the action *inside*
+    // the drawer instead of highlighting a calendar hidden behind it.
+    if (step.id === 'plan' && document.querySelector('#sharedDayModal.open')) {
+      const action = document.querySelector('#sharedDayModal.open [data-add-note]');
+      if (isVisible(action)) return action;
+    }
     for (const selector of step.targets) {
       const el = document.querySelector(selector);
       if (isVisible(el)) return el;
@@ -181,7 +188,11 @@ window.PostIQTour = (() => {
     pop.style.left = `${Math.round(x)}px`;
   }
 
-  function schedulePlace() { if (active && !frame) frame = requestAnimationFrame(place); }
+  function schedulePlace() {
+    if (!active) return;
+    if (steps[index]?.id === 'plan') target = findTarget(steps[index]) || target;
+    if (!frame) frame = requestAnimationFrame(place);
+  }
 
   function showView(viewId) {
     if (document.getElementById(viewId)?.classList.contains('active')) return true;
@@ -192,6 +203,11 @@ window.PostIQTour = (() => {
 
   function go(next) {
     if (!active) return;
+    // Finishing the day explanation restores the underlying calendar, so the
+    // subsequent Compose/Shelf steps never sit behind an open day drawer.
+    if (steps[index]?.id === 'plan' && next > index && document.querySelector('#sharedDayModal.open')) {
+      closeModal?.('sharedDayModal');
+    }
     const direction = next < index ? -1 : 1;
     // Adapt to the current layout: a step whose view or control is unavailable is skipped.
     for (let i = next; i >= 0 && i < steps.length; i += direction) {
@@ -299,6 +315,11 @@ window.PostIQTour = (() => {
     document.addEventListener('scroll', schedulePlace, true);
     document.addEventListener('keydown', onKey);
     window.addEventListener('postiq:view-changed', onViewChanged);
+    const dayDrawer = document.getElementById('sharedDayModal');
+    if (dayDrawer && typeof MutationObserver !== 'undefined') {
+      dayObserver = new MutationObserver(schedulePlace);
+      dayObserver.observe(dayDrawer, { attributes:true, attributeFilter:['class'] });
+    }
     try { window.gtag?.('event', 'tour_started', { source: options.source || 'button' }); } catch {}
     index = 0;
     go(0);
@@ -314,6 +335,7 @@ window.PostIQTour = (() => {
     document.removeEventListener('scroll', schedulePlace, true);
     document.removeEventListener('keydown', onKey);
     window.removeEventListener('postiq:view-changed', onViewChanged);
+    dayObserver?.disconnect(); dayObserver = null;
     pop?.remove(); ring?.remove();
     pop = ring = target = null;
     document.body.classList.remove('tour-active');
