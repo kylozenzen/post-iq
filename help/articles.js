@@ -139,6 +139,16 @@ window.POSTIQ_HELP_ARTICLES = [
       <li>Use <strong>+ Add</strong>, or the + that appears on a day, to add a note, a to-do, or a draft.</li>
       <li>Open the <strong>⋯ menu</strong> to filter by channel or item, set your posting schedule, switch to List view, or share a read-only snapshot. When a filter is on, a dot appears on ⋯ and a “Filtered · Clear” chip shows beside it.</li>
     </ol>
+    <h2>Fast ways to plan</h2>
+    <ul>
+      <li><strong>Quick add.</strong> Press <strong>+ Add</strong> (or <kbd>N</kbd>) and type a plan with its day: “Fri: reshare the press release”, “todo tomorrow: film B-roll”, “Nov 12: webinar promo”, or a holiday name like “Thanksgiving: thank-you post”. A preview shows the day before you press Enter.</li>
+      <li><strong>Today.</strong> When you’re looking at the current month or week, the Today card shows what’s going out, today’s to-dos, and your next open slot.</li>
+      <li><strong>Fill an open slot.</strong> Click a dashed open slot (or use the Today card). If you’ve starred evergreen posts on your Shelf, PostIQ suggests one and shows the exact day and time before you queue it in Buffer. Choose <strong>Another</strong> for a different post, or <strong>Write new</strong>.</li>
+      <li><strong>Drag to reschedule.</strong> Drag a scheduled post or a plan to another day. Posts keep their time of day and move in Buffer; plans move in PostIQ. Every move has an <strong>Undo</strong>. Published posts and past days don’t move.</li>
+      <li><strong>Holidays.</strong> Public holidays show under the date. Pick your country, or turn them off, in the ⋯ menu.</li>
+    </ul>
+    <h2>Keep a copy of your plans</h2>
+    <p>Plans are saved in this browser. From the ⋯ menu you can <strong>Download a backup</strong> (and later <strong>Restore</strong> it on any browser), or <strong>Export to calendar app</strong> to add your plans to Google, Apple or Outlook calendar. Backups never include your Buffer sign-in.</p>
     <p>Gap labels need a connected, recently synced queue. If data is partial or stale, the calendar says so instead of showing full coverage.</p>
     <h2>When to use Snapshot sharing</h2>
     <p>Use snapshots when you need to share a read-only plan quickly. Snapshot links are ideal for alignment, not for collecting line-by-line feedback.</p>

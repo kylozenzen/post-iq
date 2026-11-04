@@ -1,5 +1,33 @@
 # Changelog
 
+## Phase 2: delight
+
+### Added
+
+- **Today card** above the calendar (when you're viewing the current month or
+  week): what's going out today, today's to-dos with checkboxes, and the next
+  open slot in the coming week.
+- **One-tap fill.** Open slots (in the Today card or by clicking a dashed slot)
+  suggest a starred evergreen post, same channel or platform first, and say the
+  exact day and time ("Reshare Thu at 11:15 AM") before queuing it in Buffer at
+  that channel's usual time. "Another" cycles suggestions; "Write new" opens
+  Compose on that day and channel. With nothing starred, it points to the Shelf.
+- **Quick add.** "+ Add" (or N) opens a single input that reads plain English:
+  "Fri: …", "next Fri", "tomorrow", "Nov 12", "11/20", "in 3 days",
+  "todo …", and holiday names ("Thanksgiving: …"), with a live preview.
+  "More options" still opens the full day panel.
+- **Drag to reschedule** with Undo. Posts move in Buffer via `editPost`
+  (id, `customScheduled`, `dueAt` only, so text and media are untouched) and
+  keep their time of day; plans move locally. A rejected move snaps back.
+- **Holidays** under the date (Nager.Date via a cached Netlify function), with
+  a country picker and Off in the ⋯ menu.
+- **Backup, restore and .ics export** in the ⋯ menu. Backups exclude Buffer
+  tokens and Discord webhook URLs.
+
+### Changed
+
+- Empty week-view days no longer say "No loaded posts".
+
 ## Phase 1: calm calendar
 
 ### Changed
