@@ -31,6 +31,11 @@ The calendar is the home base and Compose is where you write. Everything else su
 ### 📅 Calendar — the home base
 Month, week and agenda views of confirmed Buffer posts alongside date-only planning notes and to-do actions. Once you set a posting schedule, the top of the calendar shows your **content runway** per channel — "Covered for 20 days — new content needed by Nov 21", counting non-posting days — plus a calm connection/health line that tells you when you're well ahead and a break is fine. Share a read-only snapshot link without a PostIQ account.
 
+### 🗓️ External calendar feeds (beta)
+From Calendar → ⋯ → **Connect calendar feed (ICS)**, subscribe to a supported Google Calendar, Outlook, Trello, or Asana ICS feed. Events appear as a distinct read-only layer alongside Buffer posts and PostIQ plans. Feeds stay on this browser and refresh when the app is open; no OAuth or API keys are required for this first version.
+
+**Privacy and limits:** Secret ICS URLs are effectively credentials. Feed URLs and event previews are stored in this browser; URLs are fetched through a Netlify Function restricted to known calendar-provider hosts. No arbitrary URL fetching or redirects are allowed. The importer caps feeds and events, and does not expand recurring events. You cannot modify outside calendars or schedule Buffer posts through imported events.
+
 ### ⏱️ Posting schedule
 A focused modal (open it from the Calendar) where you set, per channel, which days you post and how many times — that powers the runway. Mark **time off** so a planned break doesn't show as a gap, and turn on **evergreen reshares** to keep your streak alive: PostIQ can queue your starred evergreen posts into Buffer across the days you're away. These are local planning choices; your Buffer posts never change.
 
