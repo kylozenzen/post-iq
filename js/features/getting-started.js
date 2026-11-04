@@ -35,6 +35,8 @@ window.PostIQGettingStarted = (() => {
   function render() {
     const box = el('gettingStarted');
     if (!box) return;
+    // A permanent optional reference, not a competing onboarding prompt.
+    // Dismissing hides the card until someone explicitly opens it again.
     if (read(DISMISS_KEY) === '1') { box.hidden = true; box.innerHTML = ''; return; }
     const list = steps();
     const done = list.filter(s => s.done).length;
@@ -71,6 +73,10 @@ window.PostIQGettingStarted = (() => {
   function init() {
     if (!el('gettingStarted')) return;
     ['postiq:synced', 'postiq:planning-changed', 'postiq:scheduled-updated', 'postiq:library-changed'].forEach(ev => window.addEventListener(ev, render));
+    const drawer = el('sideLearn');
+    drawer?.addEventListener('toggle', () => {
+      if (drawer.open && read(DISMISS_KEY) === '1') { try { localStorage.removeItem(DISMISS_KEY); } catch {} render(); }
+    });
     render();
   }
 
