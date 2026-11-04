@@ -19,6 +19,9 @@ assert.doesNotMatch(landing, /href="[^"]*tour=1/, 'one preview entry point, not 
 const heroVisual = landing.match(/<figure class="hero-visual"[\s\S]*?<\/figure>/);
 assert.ok(heroVisual, 'hero shows the product next to the copy');
 assert.match(heroVisual[0], /calendar-desktop\.png/, 'hero uses the current product capture');
+const shots = [...landing.matchAll(/src="\/images\/product\/([a-z-]+\.png)"/g)].map(m => m[1]);
+assert.equal(new Set(shots).size, shots.length, `each landing image is different: ${shots.join(', ')}`);
+for (const shot of shots) assert.ok(require('node:fs').existsSync(require('node:path').join(__dirname, '..', 'images', 'product', shot)), `${shot} exists`);
 assert.match(landing, /Today card[\s\S]*Quick add[\s\S]*Drag to reschedule/);
 
 assert.ok(app.includes('./js/features/tour.js') && app.includes('./css/app/tour.css'));

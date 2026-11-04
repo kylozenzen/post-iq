@@ -76,10 +76,19 @@ function seed({ nowIso }) {
   set('postiqPlanningSettings', settings);
   set('postiq_tour_seen', '1');
   set('postiq_getting_started_dismissed', '1');
+  set('postiq.workspacePreferences', { planning: true, create: true, ideas: true });
   set('postiq_add_hint_seen', '1');
   // A starred evergreen post, so the Today card can offer a one-tap fill.
   set('postiq_library_starred_v1', ['pub1']);
-  set('postiq_library_cache_v3', { posts: [{ id: 'pub1', channelId: 'sample-ig', text: 'The best planning tool is the one you open every morning. Ours has two layers: what is going out, and what we plan to do.' }], ts });
+  const past = [
+    { id: 'pub1', channelId: 'sample-ig', service: 'instagram', status: 'sent', sentAt: at(-6, 15), text: 'The best planning tool is the one you open every morning. Ours has two layers: what is going out, and what we plan to do.' },
+    { id: 'pub2', channelId: 'sample-li', service: 'linkedin', status: 'sent', sentAt: at(-8, 14), text: 'Three questions we ask before every launch post: who is it for, what should they do next, and would we stop scrolling for it?' },
+    { id: 'pub3', channelId: 'sample-ig', service: 'instagram', status: 'sent', sentAt: at(-11, 15), text: 'Studio tour, part one: the corner where every idea starts as a sticky note.' },
+    { id: 'pub4', channelId: 'sample-li', service: 'linkedin', status: 'sent', sentAt: at(-15, 14), text: 'What we learned from a month of posting less, but planning more.' },
+    { id: 'pub5', channelId: 'sample-ig', service: 'instagram', status: 'sent', sentAt: at(-19, 15), text: 'Reader question: how do you keep a calendar full without burning out? Short answer: reuse what already worked.' },
+  ];
+  set('postiq_library_cache_v3', { posts: past, metricsMeta: { available: false, source: 'cache', error: null, permissionError: false, postMetricFields: [] }, organizationId: 'sample-org', limit: 50, ts });
+  set('postiq_library_starred_v1', ['pub1', 'pub5']);
   set('postiq_holidays_v1', { country: 'US', cache: {
     'US-2026': { ts, list: [{ date: '2026-11-11', name: 'Veterans Day' }, { date: '2026-11-26', name: 'Thanksgiving Day' }] },
     'US-2027': { ts, list: [] } } });
@@ -127,6 +136,31 @@ async function run() {
         await page.evaluate(() => { PostIQPower.close(); PostIQPower.openSheet(); });
         await page.screenshot({ animations: 'disabled', path: path.join(outDir, 'shortcuts-desktop.png') });
         await page.evaluate(() => document.querySelector('.power-sheet button')?.click());
+
+        // "One-tap planning": the Today card plus an open slot's fill suggestion, cropped close.
+        await page.keyboard.press('Escape');
+        await page.evaluate(() => setCalendarView('week'));
+        await page.waitForTimeout(200);
+        const slot = page.locator('#calWeek [data-calendar-date="2026-11-13"] .day-gap-slot');
+        await slot.click();
+        await page.waitForSelector('.fill-pop');
+        const box = await page.evaluate(() => {
+          const r = el => el.getBoundingClientRect();
+          const today = r(document.getElementById('todayStrip')), pop = r(document.querySelector('.fill-pop'));
+          const top = Math.max(0, today.top - 10), bottom = Math.min(innerHeight, Math.max(pop.bottom, today.bottom) + 24);
+          return { x: today.left - 24, y: top, width: today.width + 48, height: bottom - top };
+        });
+        await page.screenshot({ animations: 'disabled', path: path.join(outDir, 'fill-desktop.png'), clip: box });
+        await page.keyboard.press('Escape');
+        await page.evaluate(() => { document.querySelector('.fill-pop')?.remove(); setCalendarView('month'); });
+
+        // "Room for ideas": the Shelf with past posts and starred evergreens, without the sidebar.
+        await page.evaluate(() => activateView('libraryView', 'screenshot'));
+        await page.waitForFunction(() => document.querySelectorAll('#libraryView .lib-card, #libraryView [data-post-id], #libraryView .library-post').length >= 3);
+        await page.waitForTimeout(250);
+        const main = await page.evaluate(() => { const r = document.querySelector('.main').getBoundingClientRect(); return { x: r.left, y: 0, width: r.width, height: Math.min(innerHeight, 820) }; });
+        await page.screenshot({ animations: 'disabled', path: path.join(outDir, 'shelf-desktop.png'), clip: main });
+        await page.evaluate(() => activateView('calendarView', 'screenshot'));
       }
       if (writes.length) throw new Error(`${shot.name}: unexpected network writes ${writes.join(', ')}`);
       console.log(`Wrote ${path.relative(root, file)}`);
