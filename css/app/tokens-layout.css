@@ -675,3 +675,21 @@
 .side-learn .gs-step .btn { grid-column:2; width:fit-content; min-height:27px; font-size:10px; padding:4px 9px; }
 .app.sidebar-collapsed .side-learn-content { display:none; }
 @media(max-width:768px) { .side-learn .getting-started { max-height:45vh; } }
+
+/* Sidebar checklist must never inherit the light calendar card palette. */
+.side-bottom .side-learn-content { background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.08); padding:10px 8px; }
+.side-bottom .side-learn .getting-started,
+.side-bottom .side-learn .getting-started:not([hidden]) { background:transparent !important; border:0 !important; box-shadow:none !important; color:#e9e7e2 !important; padding:0 !important; border-radius:0 !important; }
+.side-bottom .side-learn .gs-head { background:none !important; padding:0 !important; }
+.side-bottom .side-learn .gs-title { color:#f6f3ec !important; font-size:12px; }
+.side-bottom .side-learn .gs-progress,
+.side-bottom .side-learn .gs-subtitle { color:#b8b3aa !important; }
+.side-bottom .side-learn .gs-steps { padding:0; background:none; }
+.side-bottom .side-learn .gs-step,
+.side-bottom .side-learn .gs-step.is-done { background:rgba(255,255,255,.055) !important; border:1px solid rgba(255,255,255,.09) !important; color:#fff !important; }
+.side-bottom .side-learn .gs-step-label { color:#f9f7f2 !important; }
+.side-bottom .side-learn .gs-step-desc { color:#c2beb7 !important; }
+.side-bottom .side-learn .gs-step .btn { color:#f9f7f2; border:1px solid rgba(255,255,255,.24); background:rgba(255,255,255,.09); box-shadow:none; white-space:normal; }
+.side-bottom .side-learn .gs-step .btn:hover { background:rgba(255,255,255,.18); }
+.side-bottom .side-learn .gs-check { color:#d1c9bb; }
+.side-bottom .side-learn .gs-step.is-done .gs-check { color:#86ddad; }
