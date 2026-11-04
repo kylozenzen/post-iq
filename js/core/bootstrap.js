@@ -164,6 +164,14 @@ function init() {
     else goToBufferConnect();
   });
   on('revealTokenBtn', 'click', (e) => { e.preventDefault(); openConnectionSettings(); });
+  on('connStatusButton', 'click', () => {
+    const panel = qs('sidebarBufferDetails');
+    const button = qs('connStatusButton');
+    if (!panel || !button) return;
+    panel.hidden = !panel.hidden;
+    button.setAttribute('aria-expanded', String(!panel.hidden));
+    document.querySelector('.side-connection')?.classList.toggle('expanded', !panel.hidden);
+  });
   on('saveTokenBtn', 'click', saveToken);
   on('clearTokenBtn', 'click', () => { const tokenInput = qs('tokenInput'); if (tokenInput) tokenInput.value = ''; saveToken(); });
   const connectBufferBtn = qs('connectBufferBtn'); if (connectBufferBtn) connectBufferBtn.onclick = goToBufferConnect;

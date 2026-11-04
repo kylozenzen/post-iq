@@ -518,15 +518,19 @@ function renderConnectionUI() {
     ? ''
     : (reconnectNeeded ? 'Your Buffer session expired. Sign in again to keep syncing.' : 'Sign in with Buffer to load your channels, plan posts, and publish from PostIQ.');
   const statusLabel = connected ? (oauthActive ? 'Connected to Buffer' : 'Connected') : (reconnectNeeded ? 'Reconnect Buffer' : 'Not connected');
+  const syncIssue = connected && /(?:sync|load|fetch).*(?:fail|error)|(?:fail|error).*(?:sync|load|fetch)/i.test(qs('syncStatus')?.textContent || '');
 
   const sidebarCard = document.querySelector('.side-connection.connection-card');
   if (sidebarCard) {
     sidebarCard.classList.toggle('compact', connected);
     sidebarCard.classList.toggle('connected', connected);
-    sidebarCard.classList.toggle('api-live-pulse', connected);
+    sidebarCard.classList.remove('api-live-pulse');
+    sidebarCard.classList.toggle('needs-attention', reconnectNeeded || syncIssue);
   }
-  const connDot = qs('connDot'); if (connDot) connDot.classList.toggle('on', connected);
-  const connLabel = qs('connLabel'); if (connLabel) connLabel.textContent = statusLabel;
+  const connDot = qs('connDot'); if (connDot) { connDot.classList.toggle('on', connected); connDot.classList.toggle('warning', reconnectNeeded || syncIssue); }
+  const connLabel = qs('connLabel'); if (connLabel) connLabel.textContent = syncIssue ? 'Sync issue' : connected ? 'Buffer connected' : (reconnectNeeded ? 'Reconnect Buffer' : 'Connect Buffer');
+  const connStatusButton = qs('connStatusButton');
+  if (connStatusButton) connStatusButton.setAttribute('aria-label', (syncIssue ? 'Sync issue' : connected ? 'Buffer connected' : reconnectNeeded ? 'Reconnect Buffer' : 'Connect Buffer') + '. Expand or collapse connection actions.');
   const connHeading = qs('connHeading');
   if (connHeading) {
     connHeading.textContent = primaryHeading;
@@ -552,7 +556,7 @@ function renderConnectionUI() {
   const revealBtn = qs('revealTokenBtn');
   if (revealBtn) {
     revealBtn.style.display = '';
-    revealBtn.textContent = 'Connection settings';
+    revealBtn.textContent = 'Advanced connection settings';
   }
 
   const tokenInput = qs('tokenInput');

@@ -634,3 +634,84 @@
     }
     .side-bottom .nav-btn { font-size: 12px; color: rgba(255,255,255,.3); }
     .side-bottom .nav-btn:hover { color: rgba(255,255,255,.6); }
+
+/* Keep the sidebar calm: connection is a status shortcut, not a dashboard. */
+.side-connection.connection-card { display: flex; align-items: center; margin: 6px 12px 8px; padding: 8px 10px; animation: none; background: rgba(255,255,255,.035); }
+.side-connection.connection-card .conn-row, .side-connection.connection-card.compact .conn-row { margin: 0; width: 100%; }
+.side-connection .conn-heading, .side-connection .conn-helper, .side-connection .conn-actions, .side-connection .conn-last-sync { display: none !important; }
+.side-connection .conn-status-action { display: flex; align-items: center; justify-content: space-between; flex: 1; background: transparent; border: 0; padding: 3px 0; cursor: pointer; text-align: left; color: rgba(255,255,255,.85); font: 12px 'DM Mono', monospace; }
+.side-connection .conn-status-action:hover, .side-connection .conn-status-action:focus-visible { color: white; }
+.side-connection .conn-dot.warning { background: #eab968; box-shadow: 0 0 0 3px rgba(234,185,104,.16); }
+.side-sync { display: none; }
+.side-learn { margin: 0; }
+.side-learn summary { list-style: none; cursor: pointer; }
+.side-learn summary::-webkit-details-marker { display: none; }
+.side-learn[open] > summary { color: #fff; }
+.side-learn .getting-started { margin: 6px 6px 12px; max-height: 310px; overflow: auto; }
+.app.sidebar-collapsed .side-learn .getting-started { display: none; }
+.app.sidebar-collapsed .side-learn summary { justify-content: center; padding: 10px; width: 40px; }
+
+/* Simplified navigation: one help section, one connection status. */
+.side-learn { margin-top: 4px; }
+.side-learn > summary { display:flex; align-items:center; user-select:none; }
+.side-learn-chevron { margin-left:auto; font-size:17px; color:rgba(255,255,255,.55); transition: transform .15s ease; }
+.side-learn[open] .side-learn-chevron { transform:rotate(180deg); }
+.side-learn-content { margin: 4px 4px 12px; padding: 10px 8px; border-radius: 10px; background: rgba(255,255,255,.055); }
+.side-learn .getting-started { margin: 0; max-height: min(42vh, 360px); overflow-y:auto; }
+.side-learn-link { display:block; width:100%; border:0; background:transparent; text-align:left; color:rgba(255,255,255,.72); text-decoration:none; padding:9px 10px; font-size:12px; border-radius:7px; cursor:pointer; }
+.side-learn-link:hover, .side-learn-link:focus-visible { background:rgba(255,255,255,.09); color:#fff; }
+.side-learn .gs-head { display:flex; justify-content:space-between; align-items:flex-start; gap:6px; margin-bottom:10px; }
+.side-learn .gs-head > div { display:flex; flex-direction:column; gap:2px; }
+.side-learn .gs-title { color:#fff; font-weight:700; font-size:13px; }
+.side-learn .gs-progress, .side-learn .gs-subtitle { color:rgba(255,255,255,.52); font-size:10px; }
+.side-learn .gs-subtitle { text-align:right; }
+.side-learn .gs-steps { list-style:none; padding:0; margin:0; display:grid; gap:7px; }
+.side-learn .gs-step { display:grid; grid-template-columns:16px minmax(0,1fr); gap:4px 7px; padding:10px 8px; background:rgba(0,0,0,.13); border:1px solid rgba(255,255,255,.06); border-radius:8px; }
+.side-learn .gs-step-body { min-width:0; display:flex; flex-direction:column; gap:3px; }
+.side-learn .gs-check { color:rgba(255,255,255,.48); font-size:13px; }
+.side-learn .gs-step.is-done .gs-check { color:#70d6ac; }
+.side-learn .gs-step-label { font-size:11px; font-weight:650; color:#fff; overflow-wrap:anywhere; }
+.side-learn .gs-step-desc { font-size:10.5px; line-height:1.45; color:rgba(255,255,255,.57); }
+.side-learn .gs-step .btn { grid-column:2; width:fit-content; min-height:27px; font-size:10px; padding:4px 9px; }
+.app.sidebar-collapsed .side-learn-content { display:none; }
+@media(max-width:768px) { .side-learn .getting-started { max-height:45vh; } }
+
+/* Sidebar checklist must never inherit the light calendar card palette. */
+.side-bottom .side-learn-content { background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.08); padding:10px 8px; }
+.side-bottom .side-learn .getting-started,
+.side-bottom .side-learn .getting-started:not([hidden]) { background:transparent !important; border:0 !important; box-shadow:none !important; color:#e9e7e2 !important; padding:0 !important; border-radius:0 !important; }
+.side-bottom .side-learn .gs-head { background:none !important; padding:0 !important; }
+.side-bottom .side-learn .gs-title { color:#f6f3ec !important; font-size:12px; }
+.side-bottom .side-learn .gs-progress,
+.side-bottom .side-learn .gs-subtitle { color:#b8b3aa !important; }
+.side-bottom .side-learn .gs-steps { padding:0; background:none; }
+.side-bottom .side-learn .gs-step,
+.side-bottom .side-learn .gs-step.is-done { background:rgba(255,255,255,.055) !important; border:1px solid rgba(255,255,255,.09) !important; color:#fff !important; }
+.side-bottom .side-learn .gs-step-label { color:#f9f7f2 !important; }
+.side-bottom .side-learn .gs-step-desc { color:#c2beb7 !important; }
+.side-bottom .side-learn .gs-step .btn { color:#f9f7f2; border:1px solid rgba(255,255,255,.24); background:rgba(255,255,255,.09); box-shadow:none; white-space:normal; }
+.side-bottom .side-learn .gs-step .btn:hover { background:rgba(255,255,255,.18); }
+.side-bottom .side-learn .gs-check { color:#d1c9bb; }
+.side-bottom .side-learn .gs-step.is-done .gs-check { color:#86ddad; }
+
+/* Connection status expands in place. No Settings round trip for everyday work. */
+.side-connection.connection-card { display:block; }
+.side-connection .conn-row { display:flex; align-items:center; }
+.side-connection .conn-status-action { min-width:0; }
+.side-connection .conn-chevron { transition: transform .15s ease; font-size:15px; }
+.side-connection.expanded .conn-chevron { transform:rotate(180deg); }
+.side-connection .conn-expanded[hidden] { display:none !important; }
+.side-connection.expanded .conn-expanded { display:block; padding-top:12px; margin-top:10px; border-top:1px solid rgba(255,255,255,.1); }
+.side-connection.expanded .conn-heading { display:none !important; }
+.side-connection.expanded .conn-helper { display:block !important; color:rgba(255,255,255,.72); font-size:11px; margin:0 0 10px; }
+.side-connection.expanded .conn-actions { display:flex !important; flex-direction:column; align-items:stretch; gap:7px; }
+.side-connection.expanded .conn-actions .btn { display:flex; width:100%; min-height:32px; }
+.side-connection.expanded .conn-actions .btn[hidden] { display:none !important; }
+.side-connection.expanded .conn-last-sync { display:block; margin:10px 0 0; font-size:10px; color:rgba(255,255,255,.62); }
+.side-connection.expanded .conn-last-sync[style*="display:none"] { display:none; }
+.side-connection .conn-advanced-link { display:none; }
+.side-connection.expanded .conn-advanced-link { display:block; width:100%; margin-top:9px; border:0; background:transparent; color:rgba(255,255,255,.68); font-size:11px; text-align:left; padding:6px 2px; cursor:pointer; }
+.side-connection.expanded .conn-advanced-link:hover { color:#fff; }
+
+.side-connection.expanded .conn-last-sync[style*="none"] { display:none !important; }
+.side-connection.expanded .conn-status-action:focus-visible, .side-connection.expanded .conn-actions button:focus-visible { outline:2px solid #fff; outline-offset:2px; }

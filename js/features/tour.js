@@ -7,36 +7,54 @@
 // popover is non-modal, so the app stays usable while it is open.
 window.PostIQTour = (() => {
   const SEEN_KEY = 'postiq_tour_seen';
+  const CONNECTED_SEEN_KEY = 'postiq_tour_connected_seen';
   // Read before startup marks the app as visited, so only a first visit qualifies.
   const FIRST_VISIT = (() => { try { return localStorage.getItem('postiq_app_visited') !== '1'; } catch { return false; } })();
   const MOBILE_QUERY = '(max-width: 768px)';
+  let welcome = null;
+  let welcomeReturnFocus = null;
 
-  // Three steps: see the calendar, set your schedule (coverage), write in Compose.
+  // Four quick moments: why the calendar, how to plan, where to write,
+  // and how to turn on the optional Ideas tab within Shelf.
   const STEPS = [
     {
       id: 'calendar',
       view: 'calendarView',
       targets: ['#todayStrip', '#calGrid', '#calWeek', '#calAgenda'],
-      title: 'Your calendar',
+      title: 'One calendar. A clearer plan.',
       body: () => isConnected()
-        ? 'Your Buffer posts are the solid cards; your own plans are the outlined ones. Dashed “open slots” are days that could use a post — tap one to fill it.'
-        : 'After you sign in with Buffer, scheduled posts appear as solid cards. Notes, to-dos, and dated Shelf ideas sit beside them as outlined plans.',
+        ? 'Solid cards are your scheduled Buffer posts. Outlined cards are plans still taking shape. See what is ready, and what needs your attention.'
+        : 'This is your planning calendar. You can explore without Buffer. Connect when you want to see your real scheduled posts alongside your plans.',
     },
     {
-      id: 'schedule',
+      id: 'plan',
       view: 'calendarView',
-      targets: ['#calendarAddBtn', '#calendarFilterSummary'],
-      title: 'Set your posting schedule',
-      body: () => 'Choose Posting schedule from the ⋯ menu to set your posting days. Dashed open slots mark useful opportunities to plan. Add in plain English with + Add or N, and use the Holidays picker when you want dates called out.',
+      targets: ['#calendarAddBtn', '#todayStrip', '#calGrid', '#calWeek', '#calAgenda'],
+      title: 'Give an idea a date',
+      body: () => 'Use + Add or pick a day to save a note, reminder, or idea. A plan is not a scheduled post. It is room to figure things out first.',
     },
     {
       id: 'compose',
       view: 'composerView',
       targets: ['#composerEditor', '#composerView .page-title'],
-      title: 'Write and send',
-      body: () => 'Compose your post here, or keep a rough idea on the Shelf until you are ready. Choose Draft, Queue, or Schedule to send it to Buffer; nothing publishes until you choose.',
+      title: 'Write when you are ready',
+      body: () => isConnected()
+        ? 'Compose is where a plan becomes a post. Write, choose your channels, then send a draft or schedule it in Buffer when you decide.'
+        : 'Compose is your writing space. Explore the editor now; connect Buffer when you want to send drafts or schedule real posts.',
+    },
+    {
+      id: 'shelf',
+      view: 'calendarView',
+      targets: ['#openSettings', '#calGrid', '#todayStrip'],
+      title: 'Keep ideas close',
+      body: () => 'Shelf keeps useful posts nearby. Want a dedicated place for new ideas too? Go to Settings → Customize and turn on “Ideas on the Shelf.” You can change it anytime.',
+      actionLabel: 'Show me that setting',
     },
   ];
+
+  function relevantSteps() {
+    return STEPS;
+  }
 
   let active = false;
   let steps = [];
@@ -47,9 +65,10 @@ window.PostIQTour = (() => {
   let returnFocus = null;
   let navigating = false;
   let frame = 0;
+  let dayObserver = null;
 
   const read = key => { try { return localStorage.getItem(key); } catch { return null; } };
-  const markSeen = () => { try { localStorage.setItem(SEEN_KEY, '1'); } catch {} };
+  const markSeen = () => { try { localStorage.setItem(isConnected() ? CONNECTED_SEEN_KEY : SEEN_KEY, '1'); } catch {} };
   const isMobile = () => window.matchMedia?.(MOBILE_QUERY).matches;
 
   function isConnected() {
@@ -76,6 +95,12 @@ window.PostIQTour = (() => {
   }
 
   function findTarget(step) {
+    // If someone opens a day while learning to plan, guide the action *inside*
+    // the drawer instead of highlighting a calendar hidden behind it.
+    if (step.id === 'plan' && document.querySelector('#sharedDayModal.open')) {
+      const action = document.querySelector('#sharedDayModal.open [data-add-note]');
+      if (isVisible(action)) return action;
+    }
     for (const selector of step.targets) {
       const el = document.querySelector(selector);
       if (isVisible(el)) return el;
@@ -101,9 +126,10 @@ window.PostIQTour = (() => {
       <h2 class="tour-title" id="tourTitle" tabindex="-1"></h2>
       <p class="tour-body" id="tourBody"></p>
       <div class="tour-connect" hidden>
-        <button class="btn sm primary" type="button" data-tour="connect">Sign in with Buffer</button>
-        <span>to load your scheduled posts and coverage.</span>
+        <button class="btn sm primary" type="button" data-tour="connect">Connect Buffer</button>
+        <span>to see your real scheduled posts.</span>
       </div>
+      <button class="btn sm ghost tour-extra-action" type="button" data-tour="setting" hidden></button>
       <div class="tour-actions">
         <button class="btn sm ghost tour-skip" type="button" data-tour="close">Skip tour</button>
         <span class="tour-nav">
@@ -116,6 +142,12 @@ window.PostIQTour = (() => {
       if (action === 'close') stop();
       if (action === 'back') go(index - 1);
       if (action === 'next') index >= steps.length - 1 ? stop({ finished: true }) : go(index + 1);
+      if (action === 'setting') {
+        stop({ finished: true });
+        if (typeof openModal === 'function') openModal('settingsModal');
+        window.selectSettingsTab?.('customize');
+        document.querySelector('[data-workspace-toggle="ideas"]')?.focus({ preventScroll: true });
+      }
       if (action === 'connect') {
         // Return to the calendar after Buffer sign-in.
         stop({ finished: true });
@@ -156,7 +188,11 @@ window.PostIQTour = (() => {
     pop.style.left = `${Math.round(x)}px`;
   }
 
-  function schedulePlace() { if (active && !frame) frame = requestAnimationFrame(place); }
+  function schedulePlace() {
+    if (!active) return;
+    if (steps[index]?.id === 'plan') target = findTarget(steps[index]) || target;
+    if (!frame) frame = requestAnimationFrame(place);
+  }
 
   function showView(viewId) {
     if (document.getElementById(viewId)?.classList.contains('active')) return true;
@@ -167,6 +203,11 @@ window.PostIQTour = (() => {
 
   function go(next) {
     if (!active) return;
+    // Finishing the day explanation restores the underlying calendar, so the
+    // subsequent Compose/Shelf steps never sit behind an open day drawer.
+    if (steps[index]?.id === 'plan' && next > index && document.querySelector('#sharedDayModal.open')) {
+      closeModal?.('sharedDayModal');
+    }
     const direction = next < index ? -1 : 1;
     // Adapt to the current layout: a step whose view or control is unavailable is skipped.
     for (let i = next; i >= 0 && i < steps.length; i += direction) {
@@ -186,12 +227,15 @@ window.PostIQTour = (() => {
     pop.querySelector('#tourCount').textContent = `Step ${index + 1} of ${steps.length}`;
     pop.querySelector('#tourTitle').textContent = step.title;
     pop.querySelector('#tourBody').textContent = step.body();
+    const action = pop.querySelector('[data-tour="setting"]');
+    action.hidden = !step.actionLabel;
+    if (step.actionLabel) action.textContent = step.actionLabel;
     const back = pop.querySelector('[data-tour="back"]');
     back.hidden = index === 0;
     const last = index === steps.length - 1;
     pop.querySelector('[data-tour="next"]').textContent = last ? 'Finish' : 'Next';
     pop.querySelector('[data-tour="next"]').classList.toggle('primary', !(last && !isConnected()));
-    pop.querySelector('.tour-connect').hidden = !(last && !isConnected());
+    pop.querySelector('.tour-connect').hidden = isConnected() || !last;
     // Instant scroll keeps the ring aligned; on phones, centre the control so
     // neither the sticky header nor the docked popover covers it.
     target.scrollIntoView({ block: isMobile() ? 'center' : 'nearest', behavior: 'auto' });
@@ -212,9 +256,53 @@ window.PostIQTour = (() => {
     if (active && !navigating && event.detail?.source !== 'tour') stop();
   }
 
+  function closeWelcome({ remember = true } = {}) {
+    if (!welcome) return;
+    if (remember) markSeen();
+    welcome.remove(); welcome = null;
+    document.body.classList.remove('postiq-welcome-open');
+    if (welcomeReturnFocus?.isConnected) welcomeReturnFocus.focus({ preventScroll: true });
+    welcomeReturnFocus = null;
+  }
+
+  function showWelcome(options = {}) {
+    if (welcome || active) return;
+    welcomeReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    welcome = document.createElement('div');
+    welcome.className = 'postiq-welcome-backdrop';
+    welcome.innerHTML = `<section class="postiq-welcome" role="dialog" aria-modal="true" aria-labelledby="postiqWelcomeTitle" aria-describedby="postiqWelcomeDesc">
+      <span class="postiq-welcome-eyebrow">WELCOME TO POSTIQ</span>
+      <h2 id="postiqWelcomeTitle">Your content has a calendar.<br><em>Let's give it a plan.</em></h2>
+      <p id="postiqWelcomeDesc">Buffer handles publishing. PostIQ helps you see what is coming, spot open days, and make a plan before a post is ready.</p>
+      <div class="postiq-welcome-actions">
+        <button type="button" class="btn primary" data-welcome="tour">Take the tour <span aria-hidden="true">→</span></button>
+        <button type="button" class="btn ghost" data-welcome="explore">Look around</button>
+      </div>
+      <p class="postiq-welcome-footnote">${isConnected() ? 'Your Buffer account is connected. Your calendar is ready to explore.' : 'No Buffer account required to look around. Connect when you want to bring in your real posts.'}</p>
+    </section>`;
+    welcome.addEventListener('click', event => {
+      const choice = event.target.closest('[data-welcome]')?.dataset.welcome;
+      if (!choice) return;
+      closeWelcome();
+      if (choice === 'tour') start({ source: options.source || 'welcome' });
+    });
+    welcome.addEventListener('keydown', event => {
+      if (event.key === 'Escape') { event.preventDefault(); closeWelcome(); }
+      if (event.key === 'Tab') {
+        const buttons = [...welcome.querySelectorAll('button')];
+        const first = buttons[0], last = buttons[buttons.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
+    });
+    document.body.append(welcome);
+    document.body.classList.add('postiq-welcome-open');
+    welcome.querySelector('[data-welcome="tour"]')?.focus();
+  }
+
   function start(options = {}) {
     if (active) return;
-    steps = STEPS.filter(step => viewAvailable(step.view));
+    steps = relevantSteps().filter(step => viewAvailable(step.view));
     if (!steps.length) {
       if (typeof showToast === 'function') showToast('The tour needs the Calendar. Turn it on in Settings.', 'info');
       return;
@@ -227,6 +315,11 @@ window.PostIQTour = (() => {
     document.addEventListener('scroll', schedulePlace, true);
     document.addEventListener('keydown', onKey);
     window.addEventListener('postiq:view-changed', onViewChanged);
+    const dayDrawer = document.getElementById('sharedDayModal');
+    if (dayDrawer && typeof MutationObserver !== 'undefined') {
+      dayObserver = new MutationObserver(schedulePlace);
+      dayObserver.observe(dayDrawer, { attributes:true, attributeFilter:['class'] });
+    }
     try { window.gtag?.('event', 'tour_started', { source: options.source || 'button' }); } catch {}
     index = 0;
     go(0);
@@ -242,6 +335,7 @@ window.PostIQTour = (() => {
     document.removeEventListener('scroll', schedulePlace, true);
     document.removeEventListener('keydown', onKey);
     window.removeEventListener('postiq:view-changed', onViewChanged);
+    dayObserver?.disconnect(); dayObserver = null;
     pop?.remove(); ring?.remove();
     pop = ring = target = null;
     document.body.classList.remove('tour-active');
@@ -260,23 +354,24 @@ window.PostIQTour = (() => {
         start({ source: button.dataset.tourStart || 'button', returnFocus: button });
       });
     });
-    // Opens automatically once: on a first visit, or when a link asks with
+    // Offers a welcome choice once: on a first visit, or when a link asks with
     // ?tour=1. The flag is removed right away and closing the tour records it as
     // seen, so refreshing, bookmarking, or returning from Buffer sign-in does not
     // reopen it.
     const params = new URLSearchParams(location.search);
-    const requested = params.get('tour') === '1';
+    const requested = params.get('tour') === '1' || params.get('welcome') === '1';
     if (requested) {
       params.delete('tour');
+      params.delete('welcome');
       history.replaceState(history.state, document.title, `${location.pathname}${params.toString() ? `?${params}` : ''}${location.hash}`);
     }
-    if (requested || (FIRST_VISIT && read(SEEN_KEY) !== '1')) {
-      // Wait for app startup; reviewer and shared-snapshot pages hide the app shell.
-      setTimeout(() => { if (!document.getElementById('app')?.classList.contains('hidden')) start({ source: requested ? 'link' : 'first_visit' }); }, 600);
+    if (requested || (FIRST_VISIT && read(SEEN_KEY) !== '1') || (isConnected() && read(CONNECTED_SEEN_KEY) !== '1')) {
+      // Reviewer and shared-snapshot pages should never show onboarding.
+      setTimeout(() => { if (!document.getElementById('app')?.classList.contains('hidden')) showWelcome({ source: requested ? 'link' : 'first_visit' }); }, 600);
     }
   }
 
-  return { init, start, stop, isActive: () => active, hasSeen: () => read(SEEN_KEY) === '1', steps: STEPS };
+  return { init, start, stop, showWelcome, isActive: () => active, hasSeen: () => read(isConnected() ? CONNECTED_SEEN_KEY : SEEN_KEY) === '1', steps: STEPS };
 })();
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(window.PostIQTour.init, 0));

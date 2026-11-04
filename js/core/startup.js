@@ -20,6 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Surface sync failures through the compact Buffer status, not a second dashboard.
+  const syncStatusNode = document.getElementById('syncStatus');
+  if (syncStatusNode && typeof MutationObserver !== 'undefined') {
+    new MutationObserver(() => {
+      try { renderConnectionUI(); } catch (error) { console.warn('[PostIQ] Connection status update failed:', error); }
+    }).observe(syncStatusNode, { childList: true, characterData: true, subtree: true });
+  }
   bindGlobalStatusDismiss();
   bindGlobalErrorHandlers();
   bindModalActionDelegates();

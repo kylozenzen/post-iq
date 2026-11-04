@@ -112,16 +112,18 @@
     <div class="side-connection connection-card api-live-pulse">
       <div class="conn-row">
         <div class="conn-dot" id="connDot"></div>
-        <span class="conn-label" id="connLabel">Not connected</span>
+        <button class="conn-label conn-status-action" id="connStatusButton" type="button" aria-expanded="false" aria-controls="sidebarBufferDetails" aria-label="Expand Buffer connection"><span id="connLabel">Not connected</span><span class="conn-chevron" aria-hidden="true">⌄</span></button>
       </div>
-      <h2 class="conn-heading" id="connHeading">Not connected</h2>
-      <p class="conn-helper" id="connHelper">Sign in with Buffer to load your channels, plan posts, and publish from PostIQ.</p>
-      <div class="conn-actions">
-        <button class="btn sm primary" id="manageTokenBtn">Sign in with Buffer</button>
-        <button class="btn sm ghost" id="revealTokenBtn">Connection settings</button>
-        <button class="btn sm ghost sign-out-btn" id="signOutBufferBtn" type="button" hidden>Sign out</button>
+      <div class="conn-expanded" id="sidebarBufferDetails" hidden>
+        <h2 class="conn-heading" id="connHeading">Not connected</h2>
+        <p class="conn-helper" id="connHelper">Connect Buffer to see your real scheduled posts.</p>
+        <div class="conn-actions">
+          <button class="btn sm primary" id="manageTokenBtn" type="button">Connect Buffer</button>
+          <button class="btn sm ghost sign-out-btn" id="signOutBufferBtn" type="button" hidden>Sign out</button>
+        </div>
+        <div class="conn-last-sync" id="connLastSync" style="display:none;"></div>
+        <button class="conn-advanced-link" id="revealTokenBtn" type="button">Advanced connection settings</button>
       </div>
-      <div class="conn-last-sync" id="connLastSync" style="display:none;"></div>
     </div>
 
     <!-- Sync status -->
@@ -164,14 +166,14 @@
         <span class="nav-icon" style="opacity:.5;"><svg><use href="#i-settings"/></svg></span>
         <span class="nav-text">Settings</span>
       </button>
-      <button class="nav-btn" type="button" data-tour-start="sidebar" data-tooltip="Take a tour">
-        <span class="nav-icon" style="opacity:.5;" aria-hidden="true">◎</span>
-        <span class="nav-text">Take a tour</span>
-      </button>
-      <a class="nav-btn" href="/help/" data-tooltip="Help Center">
-        <span class="nav-icon" style="opacity:.5;">❓</span>
-        <span class="nav-text">Help Center</span>
-      </a>
+      <details class="side-learn" id="sideLearn">
+        <summary class="nav-btn" data-tooltip="Help"><span class="nav-icon" aria-hidden="true">?</span><span class="nav-text">Help</span><span class="side-learn-chevron" aria-hidden="true">⌄</span></summary>
+        <div class="side-learn-content">
+          <button class="side-learn-link" type="button" id="openGettingStarted">✓ Getting started</button>
+          <button class="side-learn-link" type="button" data-tour-start="sidebar">↻ Replay product tour</button>
+          <a class="side-learn-link" href="/help/">Help Center</a>
+        </div>
+      </details>
     </div>
   </aside>
 
@@ -188,8 +190,7 @@
       <div class="calendar-layout">
       <div class="view-content calendar-main">
 
-      <!-- Getting started checklist — shown to new users until done or dismissed -->
-      <div id="gettingStarted" class="getting-started" hidden></div>
+      <!-- The optional Getting Started checklist lives in the sidebar. -->
 
 
       <!-- Calendar toolbar: turn the page, pick a zoom, add something. Everything else lives in the ⋯ menu. -->
@@ -1257,6 +1258,14 @@
     </div>
   </div>
 </div>
+
+<dialog id="gettingStartedDialog" class="getting-started-dialog" aria-labelledby="gettingStartedDialogTitle">
+  <div class="getting-started-dialog-head">
+    <div><span class="gs-eyebrow">MAKE IT YOURS</span><h2 id="gettingStartedDialogTitle">Getting started</h2><p>A few optional finishing touches. Your calendar is already yours to use.</p></div>
+    <button type="button" class="btn sm ghost" id="closeGettingStarted" aria-label="Close getting started">Close</button>
+  </div>
+  <div id="gettingStarted" class="getting-started" hidden></div>
+</dialog>
 
 <div id="noteModal" class="modal calendar-drawer" role="dialog" aria-modal="true" aria-labelledby="noteDateLabel">
   <div class="modal-card">

@@ -965,9 +965,9 @@ function openCalendarDayDetails(date) {
   if (coverageHtml) sections.push(coverageHtml);
   if (posts.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${posts.length} post${posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(posts)}</div>`);
   if (notes.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${notes.length} Planning note${notes.length > 1 ? 's' : ''}</div>${editableNoteCardsHtml(notes)}</div>`);
-  if (!posts.length && !notes.length) sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No plans yet</div><div class="empty-desc">Add a planning note or draft content for this day.</div></div>');
+  if (!posts.length && !notes.length) sections.push('<div class="empty-state day-empty-state"><div class="empty-title">No plans yet</div><div class="empty-desc">Start with a note or draft. Nothing is scheduled until you choose to send it to Buffer.</div></div>');
   sections.push(calendarTargetsForDate(key).map(contentCalendarPill).join(''));
-  sections.push('<div class="row mt8"><button class="btn primary" data-add-note>Add planning note</button><button class="btn" data-start-draft>Start draft</button><button class="btn" data-plan-campaign>Plan a campaign / newsletter</button></div><p class="calendar-state">A target date or note does not schedule a Buffer post. Choose a scheduling action in Compose.</p>');
+  sections.push('<div class="day-detail-actions" role="group" aria-label="Plan this day"><button class="btn primary" data-add-note>Add planning note</button><button class="btn" data-start-draft>Start draft</button><button class="btn" data-plan-campaign>Plan a campaign / newsletter</button></div><p class="calendar-state">Plans stay separate from scheduled Buffer posts. Schedule only when you are ready.</p>');
   bodyEl.innerHTML = sections.join('');
   bindPostDetailCopy(bodyEl);
   bindContentCalendar(bodyEl);

@@ -74,3 +74,13 @@
 #calendarView .day-note-pill.is-done .note-copy, .snap-modal-note.is-done .snap-modal-note-text { text-decoration:line-through; }
 .note-completion-status { padding:10px 12px; border:1px solid var(--border); border-radius:6px; font-weight:700; }
 @media(max-width:768px) { #queueHealthView .queue-health-header, #queueHealthView > .plan-health-strip, #queueHealthView > .calendar-pace { margin:16px; } .queue-health-header { flex-wrap:wrap; } }
+
+/* Empty-day actions have their own rhythm rather than one crowded button row. */
+#sharedDayBody .day-empty-state { padding:24px 16px; text-align:center; border:1px dashed var(--border2); border-radius:14px; background:var(--surface2); margin:12px 0 18px; }
+#sharedDayBody .day-empty-state .empty-title { margin-bottom:8px; }
+#sharedDayBody .day-empty-state .empty-desc { max-width:34ch; margin:auto; line-height:1.6; }
+#sharedDayBody .day-detail-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:18px 0 10px; }
+#sharedDayBody .day-detail-actions .btn { height:auto; min-height:46px; width:100%; padding:11px 14px; line-height:1.4; white-space:normal; text-align:center; }
+#sharedDayBody .day-detail-actions [data-plan-campaign] { grid-column:1/-1; }
+#sharedDayBody .day-detail-actions + .calendar-state { line-height:1.55; margin-top:14px; }
+@media(max-width:460px){ #sharedDayBody .day-detail-actions { grid-template-columns:1fr; } #sharedDayBody .day-detail-actions [data-plan-campaign] { grid-column:auto; } }

@@ -1,7 +1,5 @@
 'use strict';
-// Getting Started checklist. A calm, dismissible card on the calendar that walks
-// a new creator through the core loop. Each step detects its own completion from
-// real state — nothing to tick by hand. Hides itself once done or dismissed.
+// Optional setup checklist in a standalone dialog, separate from the first-run tour.
 window.PostIQGettingStarted = (() => {
   const DISMISS_KEY = 'postiq_getting_started_dismissed';
   const FIRST_POST_KEY = 'postiq_first_post_sent';
@@ -23,22 +21,29 @@ window.PostIQGettingStarted = (() => {
     try { return (JSON.parse(read(STARRED_KEY) || '[]') || []).length > 0; } catch { return false; }
   }
 
+  function ideasEnabled() {
+    try { return !!workspacePreferences.ideas; } catch { return false; }
+  }
   function steps() {
     return [
-      { id: 'connect', done: connected(), label: 'Connect Buffer', desc: 'Link your Buffer account so PostIQ can see your channels and queue.', cta: 'Connect', act: () => { try { typeof goToBufferConnect === 'function' ? goToBufferConnect() : (window.location.href = '/auth/connect.html'); } catch {} } },
-      { id: 'schedule', done: hasSchedule(), label: 'Set your posting schedule', desc: 'Tell PostIQ which days you post, per channel — that powers your runway.', cta: 'Set schedule', act: () => window.YourPace?.open?.() },
-      { id: 'write', done: read(FIRST_POST_KEY) === '1', label: 'Write your first post', desc: 'Draft in Compose and send it to Buffer as a draft, queue, or scheduled.', cta: 'Open Compose', act: () => window.activateView?.('composerView', 'getting_started') },
-      { id: 'evergreen', done: hasEvergreen(), label: 'Star an evergreen post', desc: 'Star a past post on your Shelf as evergreen so you can reshare it during a break.', cta: 'Open Shelf', act: () => window.activateView?.('libraryView', 'getting_started') },
+      { id: 'connect', done: connected(), label: 'Connect Buffer', desc: 'Bring your scheduled posts into PostIQ.', cta: 'Connect', act: () => { try { typeof goToBufferConnect === 'function' ? goToBufferConnect() : (window.location.href = '/auth/connect.html'); } catch {} } },
+      { id: 'schedule', done: hasSchedule(), label: 'Set a posting rhythm', desc: 'Show which days you usually post.', cta: 'Set days', act: () => window.YourPace?.open?.() },
+      { id: 'ideas', done: ideasEnabled(), label: 'Enable Shelf ideas', desc: 'Keep unfinished ideas next to past posts.', cta: 'Enable', act: () => { if (typeof openModal === 'function') openModal('settingsModal'); window.selectSettingsTab?.('customize'); document.querySelector('[data-workspace-toggle="ideas"]')?.focus(); } },
+      { id: 'write', done: read(FIRST_POST_KEY) === '1', label: 'Create a Buffer draft', desc: 'Use Compose whenever a plan is ready.', cta: 'Compose', act: () => window.activateView?.('composerView', 'getting_started') },
+      { id: 'evergreen', done: hasEvergreen(), label: 'Save something to reuse', desc: 'Star a useful past post on Shelf.', cta: 'Open Shelf', act: () => window.activateView?.('libraryView', 'getting_started') },
+
     ];
   }
 
   function render() {
     const box = el('gettingStarted');
     if (!box) return;
-    if (read(DISMISS_KEY) === '1') { box.hidden = true; box.innerHTML = ''; return; }
+    // A permanent optional reference, not a competing onboarding prompt.
+    // Dismissing hides the card until someone explicitly opens it again.
+    // Older dismissed states should not hide help after someone opens the sidebar.
     const list = steps();
     const done = list.filter(s => s.done).length;
-    if (done === list.length) { box.hidden = true; box.innerHTML = ''; return; } // all done — retire it
+    // Keep the checklist available after completion so it remains useful help.
 
     box.hidden = false;
     box.innerHTML = `
@@ -47,7 +52,7 @@ window.PostIQGettingStarted = (() => {
           <strong class="gs-title">Getting started</strong>
           <span class="gs-progress">${done} of ${list.length} done</span>
         </div>
-        <button type="button" class="gs-dismiss" data-gs-dismiss aria-label="Dismiss getting started">Dismiss</button>
+        <span class="gs-subtitle">Optional setup</span>
       </div>
       <ol class="gs-steps">
         ${list.map(s => `
@@ -61,9 +66,11 @@ window.PostIQGettingStarted = (() => {
           </li>`).join('')}
       </ol>`;
 
-    box.querySelector('[data-gs-dismiss]')?.addEventListener('click', () => { try { localStorage.setItem(DISMISS_KEY, '1'); } catch {} render(); });
+
     box.querySelectorAll('[data-gs-act]').forEach(btn => btn.addEventListener('click', () => {
       const step = list.find(s => s.id === btn.dataset.gsAct);
+      // Close the setup panel before navigating so the destination is visible.
+      el('gettingStartedDialog')?.close();
       try { step?.act?.(); } catch {}
     }));
   }
@@ -71,6 +78,13 @@ window.PostIQGettingStarted = (() => {
   function init() {
     if (!el('gettingStarted')) return;
     ['postiq:synced', 'postiq:planning-changed', 'postiq:scheduled-updated', 'postiq:library-changed'].forEach(ev => window.addEventListener(ev, render));
+    const dialog = el('gettingStartedDialog');
+    el('openGettingStarted')?.addEventListener('click', () => {
+      render();
+      if (dialog && !dialog.open) dialog.showModal();
+    });
+    el('closeGettingStarted')?.addEventListener('click', () => dialog?.close());
+    dialog?.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
     render();
   }
 
