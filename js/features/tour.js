@@ -14,38 +14,46 @@ window.PostIQTour = (() => {
   let welcome = null;
   let welcomeReturnFocus = null;
 
-  // An orientation to planning, not a mandatory publishing tutorial.
-  // Keep PR #193's Today card and Add button targets available.
+  // Four quick moments: why the calendar, how to plan, where to write,
+  // and how to turn on the optional Ideas tab within Shelf.
   const STEPS = [
     {
       id: 'calendar',
       view: 'calendarView',
       targets: ['#todayStrip', '#calGrid', '#calWeek', '#calAgenda'],
-      title: 'Your content has a calendar. Give it a plan.',
+      title: 'One calendar. A clearer plan.',
       body: () => isConnected()
-        ? 'Solid cards are your Buffer posts. Outlined cards are plans you are still working on. See what is scheduled and what comes next, all in one place.'
-        : 'This is your planning calendar. Connect Buffer to see your scheduled posts, or explore the planning tools without an account. Nothing here publishes on its own.',
+        ? 'Solid cards are your scheduled Buffer posts. Outlined cards are plans still taking shape. See what is ready, and what needs your attention.'
+        : 'This is your planning calendar. You can explore without Buffer. Connect when you want to see your real scheduled posts alongside your plans.',
     },
     {
       id: 'plan',
       view: 'calendarView',
       targets: ['#calendarAddBtn', '#todayStrip', '#calGrid', '#calWeek', '#calAgenda'],
-      title: 'Add one plan',
-      body: () => isConnected()
-        ? 'Use + Add, or choose a day, to add a note, to-do, or idea. Plans stay separate from Buffer posts until you choose to create a post.'
-        : 'Try + Add or choose a day to make a plan. You can explore the calendar before connecting Buffer. Only connected accounts can load real Buffer posts.',
+      title: 'Give an idea a date',
+      body: () => 'Use + Add or pick a day to save a note, reminder, or idea. A plan is not a scheduled post. It is room to figure things out first.',
     },
     {
-      id: 'schedule',
+      id: 'compose',
+      view: 'composerView',
+      targets: ['#composerEditor', '#composerView .page-title'],
+      title: 'Write when you are ready',
+      body: () => isConnected()
+        ? 'Compose is where a plan becomes a post. Write, choose your channels, then send a draft or schedule it in Buffer when you decide.'
+        : 'Compose is your writing space. Explore the editor now; connect Buffer when you want to send drafts or schedule real posts.',
+    },
+    {
+      id: 'shelf',
       view: 'calendarView',
-      targets: ['#calendarFilterSummary', '#todayStrip', '#calGrid', '#calWeek'],
-      title: 'Find room for what comes next',
-      body: () => 'Use Posting schedule in the calendar menu to set the days you normally post. Open slots show opportunities to plan, not a demand to post every day.',
+      targets: ['#openSettings', '#calGrid', '#todayStrip'],
+      title: 'Keep ideas close',
+      body: () => 'Shelf keeps useful posts nearby. Want a dedicated place for new ideas too? Go to Settings → Customize and turn on “Ideas on the Shelf.” You can change it anytime.',
+      actionLabel: 'Show me that setting',
     },
   ];
 
   function relevantSteps() {
-    return isConnected() ? STEPS : STEPS.filter(step => step.id !== 'schedule');
+    return STEPS;
   }
 
   let active = false;
@@ -114,6 +122,7 @@ window.PostIQTour = (() => {
         <button class="btn sm primary" type="button" data-tour="connect">Connect Buffer</button>
         <span>to see your real scheduled posts.</span>
       </div>
+      <button class="btn sm ghost tour-extra-action" type="button" data-tour="setting" hidden></button>
       <div class="tour-actions">
         <button class="btn sm ghost tour-skip" type="button" data-tour="close">Skip tour</button>
         <span class="tour-nav">
@@ -126,6 +135,12 @@ window.PostIQTour = (() => {
       if (action === 'close') stop();
       if (action === 'back') go(index - 1);
       if (action === 'next') index >= steps.length - 1 ? stop({ finished: true }) : go(index + 1);
+      if (action === 'setting') {
+        stop({ finished: true });
+        if (typeof openModal === 'function') openModal('settingsModal');
+        window.selectSettingsTab?.('customize');
+        document.querySelector('[data-workspace-toggle="ideas"]')?.focus({ preventScroll: true });
+      }
       if (action === 'connect') {
         // Return to the calendar after Buffer sign-in.
         stop({ finished: true });
@@ -196,12 +211,15 @@ window.PostIQTour = (() => {
     pop.querySelector('#tourCount').textContent = `Step ${index + 1} of ${steps.length}`;
     pop.querySelector('#tourTitle').textContent = step.title;
     pop.querySelector('#tourBody').textContent = step.body();
+    const action = pop.querySelector('[data-tour="setting"]');
+    action.hidden = !step.actionLabel;
+    if (step.actionLabel) action.textContent = step.actionLabel;
     const back = pop.querySelector('[data-tour="back"]');
     back.hidden = index === 0;
     const last = index === steps.length - 1;
     pop.querySelector('[data-tour="next"]').textContent = last ? 'Finish' : 'Next';
     pop.querySelector('[data-tour="next"]').classList.toggle('primary', !(last && !isConnected()));
-    pop.querySelector('.tour-connect').hidden = isConnected();
+    pop.querySelector('.tour-connect').hidden = isConnected() || !last;
     // Instant scroll keeps the ring aligned; on phones, centre the control so
     // neither the sticky header nor the docked popover covers it.
     target.scrollIntoView({ block: isMobile() ? 'center' : 'nearest', behavior: 'auto' });
