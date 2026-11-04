@@ -2,7 +2,7 @@
 
 PostIQ is an independent calendar companion for Buffer users, free during public beta. It puts scheduled Buffer posts beside planning notes and actions, flags queue gaps against the posting rhythm you choose, turns saved content into a dated plan, and shows coverage before you take time away. Buffer stays your publishing home.
 
-Connected features (scheduled posts, Queue Health coverage, sending to Buffer) require Buffer sign-in. The calendar preview works without an account and keeps notes, Content Bank items and drafts in your browser.
+Connected features (scheduled posts, Queue Health coverage, sending to Buffer) require Buffer sign-in. The calendar preview works without an account and keeps local plans, Shelf ideas, and drafts in your browser. It does not preload a real Buffer queue.
 
 → **[Open PostIQ](https://postiq.netlify.app)**
 
@@ -37,18 +37,21 @@ A focused modal (open it from the Calendar) where you set, per channel, which da
 ### ✍️ Compose — the writing tool
 Focused writing workspace with local draft autosave, distraction-free mode, rich text, media (URL, upload, or Unsplash), and searchable writing tools: saved hooks, hashtag sets, templates, **Trending** ideas (Reddit, Hacker News, Product Hunt, RSS — loaded only when you open the tab), and AI Assist, without leaving the draft. Send to Buffer as a draft, queue it, or schedule it. Nothing publishes until you choose.
 
-### 💡 Content Bank
-- **Saved content** — search references, source text, and independent channel versions; plan local target dates separately from Buffer scheduling; pin any card above your Compose editor.
-- **Templates** — save and reuse your best hooks, CTAs, announcements, and engagement questions.
+### 📚 Shelf
+**Past posts** shows previously published content available from Buffer. Star useful posts as **evergreen** for reuse, or take one back to Compose for a fresh version.
 
-### 📚 Library
-Your latest sent posts, for filling gaps fast. Star posts as **evergreen** to build a reuse pool; **Reshare** loads one back into Compose to send again, or **Rewrite** pins it as a reference for a fresh take.
+**Ideas on the Shelf** is an optional Ideas tab, enabled through **Settings → Customize**. Keep ideas, set local target dates, and develop content before it is ready to send. These planning dates never schedule Buffer posts.
 
-### 🧭 Take a tour
-PostIQ's onboarding — three steps (calendar & runway, posting schedule, Compose) that open once on a first visit and can be restarted from **Take a tour** in the sidebar, Calendar header, or mobile More menu (or `?tour=1`). Skippable, non-modal, never writes to Buffer.
+### ✍️ Writing resources
+Use templates, content pillars, and available Trending tools to develop drafts. Availability may depend on beta feature settings.
+
+### 🧭 Welcome, tour, and Getting Started
+The first visit offers **Take the tour** or **Look around**. The four-part tour introduces Calendar, planning a day, Compose, and how to enable **Ideas on the Shelf**. Revisit the welcome without clearing your Buffer login using `/app.html?welcome=1`. Replay the contextual tour from the sidebar's **Help** menu, the Calendar's ⋯ menu, or mobile More. The tour never sends content to Buffer.
+
+**Help → Getting started** opens a separate optional setup checklist. It does not appear above the calendar or occupy the sidebar. Tasks include connecting Buffer, setting a posting rhythm, enabling Ideas on the Shelf, drafting a post, and starring an evergreen post.
 
 ### 🎛️ Customize
-Turn the Content Bank workspace on or off so the sidebar matches your workflow (new accounts start with Calendar and Compose). Choose from five themes: PostIQ, Classic, After Dark, Studio, and Evergreen. Preferences are saved locally in your browser.
+Under **Settings → Customize**, choose workspace visibility and theme. **Ideas on the Shelf** adds an Ideas tab beside Past posts; disabling it hides the tab without deleting ideas. Calendar and Compose are the core workspaces. Browser preferences persist locally.
 
 ### 🔗 Snapshots
 Turn any week or month of planned content into a static, shareable link. Recipients see a clean read-only calendar view with full post text. No login required.
@@ -62,7 +65,7 @@ PostIQ uses Buffer's public API with OAuth (PKCE flow). When you sign in:
 - PostIQ loads your channels, scheduled queue, and recent published posts
 - You can create drafts, queue posts, or schedule content through Buffer
 - Nothing publishes automatically — every Buffer action is your choice
-- You can disconnect anytime from Settings → Connection
+- On desktop, click the compact Buffer status in the sidebar to expand Connect/Reconnect, Sync now, and Sign out actions; advanced options remain in Settings → Connection
 
 ```
 Sign in with Buffer → Sync channels + queue → Check coverage → Plan a gap → Send to Buffer
