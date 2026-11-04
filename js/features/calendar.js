@@ -501,7 +501,7 @@ function scheduledPlanningChannels() {
 function dayCoverageRows(date) {
   const scheduled = scheduledPlanningChannels();
   if (!getBufferConnectionState().connected || !scheduled.length) return [];
-  const daily = window.PostIQCoverage.calculate({ posts: state.scheduled, channels: state.channels, settings: getPlanningSettings(), now: date, days: 1, connected: true, meta: state.scheduledCoverage });
+  const daily = window.PostIQCoverage.calculate({ posts: state.scheduled, published: state.published, channels: state.channels, settings: getPlanningSettings(), now: date, days: 1, connected: true, meta: state.scheduledCoverage });
   const ids = new Set(scheduled.map(c => String(c.id)));
   return daily.rows.filter(r => ids.has(String(r.channelId)));
 }
@@ -906,6 +906,7 @@ function postDetailCardsHtml(posts) {
     const published = isPublishedPost(p);
     const statusLabel = published ? 'Published' : 'Scheduled';
     const externalLink = toSafeExternalUrl(p.externalLink);
+    const collapsible = (p.text || '').length > 240 || (p.text || '').split('\n').length > 4;
     return `<div class="snap-modal-post${published ? ' is-published' : ''}">
       <div class="snap-modal-post-hdr">
         <div class="snap-modal-post-meta">
@@ -916,7 +917,8 @@ function postDetailCardsHtml(posts) {
         </div>
         <span class="snap-scheduled-time">${safeText(formatDateTime(getPostPlanningAt(p)))}</span>
       </div>
-      <div class="snap-modal-post-body">${safeText(p.text || '(no copy)')}</div>
+      <div class="snap-modal-post-body${collapsible ? ' is-collapsed' : ''}" id="detail-post-copy-${idx}">${safeText(p.text || '(no copy)')}</div>
+      ${collapsible ? `<button type="button" class="btn sm ghost snap-post-expand" data-expand-post aria-expanded="false" aria-controls="detail-post-copy-${idx}">See more</button>` : ''}
       ${mediaPreviewHtml(p)}
       <div class="snap-modal-post-copy">
         <button class="btn sm ghost" data-copy="${safeText(p.text || '')}">Copy post</button>
@@ -932,6 +934,14 @@ function noteCardsHtml(notes, noteTypes = getNoteTypes()) {
   }).join('');
 }
 function bindPostDetailCopy(bodyEl) {
+  bodyEl.querySelectorAll('[data-expand-post]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const expanded = btn.getAttribute('aria-expanded') !== 'true';
+      btn.previousElementSibling.classList.toggle('is-collapsed', !expanded);
+      btn.setAttribute('aria-expanded', String(expanded));
+      btn.textContent = expanded ? 'See less' : 'See more';
+    });
+  });
   bodyEl.querySelectorAll('[data-copy]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const ok = await copyTextSafe(btn.dataset.copy);

@@ -18,17 +18,19 @@
     });
     return target;
   }
-  function calculate({posts=[], channels=[], settings={}, now=new Date(), days=90, connected=true, meta, zone=timezone}={}) {
+  function calculate({posts=[], published=[], channels=[], settings={}, now=new Date(), days=90, connected=true, meta, zone=timezone}={}) {
     const today=dayKey(now,zone), rows=[], counts=new Map(), seen=new Set();
     const timestamp=Number(meta?.ts);
     const stale=!!meta && (!Number.isFinite(timestamp) || Date.now()-timestamp>15*60*1000);
     const complete=connected && meta?.complete===true && !stale;
-    // Only the synchronized queue belongs here, never local targets or channel drafts.
-    (Array.isArray(posts)?posts:[]).forEach(post=>{
-      if(['draft','failed','local','target','sent','published'].includes(String(post.status || '').toLowerCase())) return;
+    // A published post still fulfils its day's target. Prefer it over a stale
+    // queued copy with the same ID, and use its actual publication date.
+    [...(Array.isArray(published)?published:[]), ...(Array.isArray(posts)?posts:[])].forEach(post=>{
+      if(['draft','failed','local','target'].includes(String(post.status || '').toLowerCase())) return;
       if(post.id && seen.has(String(post.id))) return;
       if(post.id) seen.add(String(post.id));
-      const key=dayKey(post.dueAt || post.due_at,zone);
+      const sent=['sent','published'].includes(String(post.status || '').toLowerCase());
+      const key=dayKey(sent ? (post.sentAt || post.publishedAt || post.dueAt || post.createdAt) : (post.dueAt || post.due_at),zone);
       if(!key) return;
       const id=String(post.channelId ?? post.channel_id ?? post.channel?.id);
       const bucket=id+'|'+key; counts.set(bucket,(counts.get(bucket)||0)+1);

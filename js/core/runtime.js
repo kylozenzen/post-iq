@@ -626,5 +626,5 @@ const maskToken = t => !t ? '—' : t.length <= 8 ? '••••' : `${t.slice(
 
 function getQueueCoverage(days = 90) {
   const meta = state.scheduledCoverage ? { ...state.scheduledCoverage, complete: state.scheduledCoverage.complete && state.syncState !== 'failed' } : undefined;
-  return window.PostIQCoverage.calculate({ posts: state.scheduled, channels: state.channels, settings: getPlanningSettings(), days, connected: getBufferConnectionState().connected, meta });
+  return window.PostIQCoverage.calculate({ posts: state.scheduled, published: state.published, channels: state.channels, settings: getPlanningSettings(), days, connected: getBufferConnectionState().connected, meta });
 }

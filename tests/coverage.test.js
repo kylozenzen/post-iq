@@ -12,6 +12,18 @@ test('one channel cannot cover another',()=>{
  const {rows}=C.calculate({...base,settings:{postingDays:['FRI']},posts:[{channelId:'a',dueAt:'2026-10-30T14:00Z'}]});
  assert.equal(rows[0].status,'scheduled'); assert.equal(rows[1].status,'gap');
 });
+test('published posts retain coverage on their actual local publication day without double counting',()=>{
+ const options={...base,days:2,settings:{postingDays:['FRI','SAT'],channelTargets:{a:2}}};
+ const published=[{id:'p',channelId:'a',status:'sent',sentAt:'2026-10-31T04:30Z',dueAt:'2026-10-31T14:00Z'}];
+ const {rows}=C.calculate({...options,published,posts:[{id:'p',channelId:'a',dueAt:'2026-10-31T14:00Z'}]});
+ assert.equal(rows[0].confirmedCount,1);
+ assert.equal(rows[0].missingCount,1);
+ assert.equal(rows[1].status,'gap', 'another channel remains uncovered');
+ assert.equal(rows[2].confirmedCount,0, 'scheduled date is not counted after publication on a different day');
+ const covered=C.calculate({...base,settings:{postingDays:['FRI']},published:[...published,{id:'q',channelId:'b',status:'published',publishedAt:'2026-10-30T16:00Z'}]}).rows;
+ assert.equal(covered[0].status,'scheduled');
+ assert.equal(covered[1].status,'scheduled');
+});
 test('midnight, DST and date-only notes',()=>{
  assert.equal(C.dayKey('2026-11-01T04:30Z','America/Chicago'),'2026-10-31');
  assert.equal(C.dayKey('2026-11-01T07:30Z','America/Chicago'),'2026-11-01');
