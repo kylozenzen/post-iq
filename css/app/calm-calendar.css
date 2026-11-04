@@ -422,3 +422,14 @@
   #calendarView .calendar-more-menu #calendarViewAgendaBtn { display: none; }
   #calendarView .calendar-more-menu .input { height: 42px; font-size: 15px; line-height: 1.2; padding-top: 0; padding-bottom: 0; }
 }
+
+/* Shelf tabs only make sense when both halves exist */
+.shelf-tabs:has([data-shelf-tab="libraryView"][hidden]) { display: none !important; }
+
+/* A gentle nudge on the Shelf entry when Ideas is switched on in Settings */
+@keyframes shelf-nudge {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  30% { box-shadow: 0 0 0 3px var(--brand-glow); }
+}
+.shelf-nudge { animation: shelf-nudge 1.2s ease-in-out 2; border-radius: var(--r); }
+@media (prefers-reduced-motion: reduce) { .shelf-nudge { animation: none; outline: 2px solid var(--brand-glow); } }

@@ -81,7 +81,7 @@
   <button class="mob-tab" data-view="composerView" data-workspace-nav="create" data-feature="composer">
     <svg><use href="#i-compose"/></svg>Compose
   </button>
-  <button class="mob-tab" data-view="libraryView" data-feature="library" data-shelf-nav>
+  <button class="mob-tab" data-view="libraryView" data-shelf-nav>
     <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
     Shelf
   </button>
@@ -143,7 +143,7 @@
         <span class="nav-icon"><svg><use href="#i-compose"/></svg></span>
         <span class="nav-text">Compose</span>
       </button>
-      <button class="nav-btn" data-view="libraryView" data-feature="library" data-tooltip="Shelf" data-shelf-nav>
+      <button class="nav-btn" data-view="libraryView" data-tooltip="Shelf" data-shelf-nav>
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
@@ -689,7 +689,7 @@
         </div>
       </div>
       <div class="shelf-tabs" role="tablist" aria-label="Shelf">
-        <button class="shelf-tab active" type="button" role="tab" aria-selected="true" data-shelf-tab="libraryView">Past posts</button>
+        <button class="shelf-tab active" type="button" role="tab" aria-selected="true" data-shelf-tab="libraryView" data-feature="library">Past posts</button>
         <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="ideasView" data-workspace-nav="ideas" data-feature="ideas">Ideas</button>
       </div>
       <div class="lib-content">
@@ -738,7 +738,7 @@
         </div>
       </div>
       <div class="shelf-tabs" role="tablist" aria-label="Shelf">
-        <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="libraryView">Past posts</button>
+        <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="libraryView" data-feature="library">Past posts</button>
         <button class="shelf-tab active" type="button" role="tab" aria-selected="true" data-shelf-tab="ideasView" data-workspace-nav="ideas" data-feature="ideas">Ideas</button>
       </div>
 
@@ -853,7 +853,7 @@
 
   <!-- Quick links -->
   <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">↗ Open Buffer</a>
-  <button class="btn ghost" data-view="libraryView" data-feature="library" data-shelf-nav>Shelf</button>
+  <button class="btn ghost" data-view="libraryView" data-shelf-nav>Shelf</button>
   <button class="btn ghost" id="mobOpenSettings" type="button" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">⚙ Settings</button>
   <button class="btn ghost" type="button" data-tour-start="mobile_drawer" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);margin-bottom:4px;">◎ Take a tour</button>
   <a class="btn ghost" href="/help/" style="width:100%;justify-content:flex-start;font-size:13px;color:var(--muted);">❓ Help Center</a>
@@ -1017,7 +1017,7 @@
               <input type="checkbox" data-workspace-toggle="create" aria-label="Show Create workspace" />
             </label>
             <label class="workspace-preference-card">
-              <span class="workspace-preference-copy"><strong>Ideas on the Shelf</strong><small>Save ideas, give them target dates, and keep templates handy.</small></span>
+              <span class="workspace-preference-copy"><strong>Ideas on the Shelf</strong><small>Adds an Ideas tab to the Shelf: save ideas, give them target dates, keep templates handy.</small></span>
               <input type="checkbox" data-workspace-toggle="ideas" aria-label="Show Ideas on the Shelf" />
             </label>
           </div>

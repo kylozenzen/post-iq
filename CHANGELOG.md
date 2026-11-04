@@ -20,6 +20,10 @@
 - **Shelf.** Content Bank and Library are now one place, the **Shelf**, with
   **Past posts** and **Ideas** tabs, and one entry in the sidebar and phone tab
   bar. Help articles use the same name.
+- Turning on **Ideas on the Shelf** in Settings now says where it went
+  ("Ideas now appear as a tab on your Shelf") and briefly highlights the
+  Shelf in the sidebar. The Shelf stays visible whenever either half (past
+  posts or ideas) is available, instead of depending on the Library switch.
 - **Phones.** The toolbar sticks to the top, the week label is short
   ("Nov 1–7"), the ⋯ menu opens as a sheet, empty days are a quiet
   "Nothing planned" line, and Shelf is in the tab bar.

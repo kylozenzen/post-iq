@@ -257,6 +257,28 @@ function renderWorkspacePreferences() {
     input.checked = !!workspacePreferences[workspace];
   });
   syncNavSectionVisibility();
+  renderShelfNav();
+}
+
+// The Shelf is one sidebar entry over two halves: past posts (Library feature)
+// and ideas (the "ideas" workspace). Show it when either half is available and
+// point it at whichever half exists.
+function shelfViews() {
+  const views = [];
+  const on = feature => typeof isFeatureEnabled !== 'function' || isFeatureEnabled(feature);
+  if (on('library')) views.push('libraryView');
+  if (workspacePreferences.ideas && on('ideas')) views.push('ideasView');
+  return views;
+}
+function renderShelfNav() {
+  const views = shelfViews();
+  document.querySelectorAll('[data-shelf-nav]').forEach(el => {
+    el.hidden = !views.length;
+    if (el.style) el.style.display = views.length ? '' : 'none';
+    if (views.length) el.dataset.view = views.includes(el.dataset.view) ? el.dataset.view : views[0];
+    if ('disabled' in el) el.disabled = !views.length;
+    el.setAttribute('aria-hidden', views.length ? 'false' : 'true');
+  });
 }
 
 function ensureActiveWorkspaceVisible() {
@@ -285,6 +307,11 @@ function setWorkspacePreference(workspace, enabled) {
   }
   if (note) note.textContent = '';
   saveWorkspacePreferences({ ...workspacePreferences, [workspace]: !!enabled });
+  if (workspace === 'ideas') {
+    // Ideas live inside the Shelf, not as a new sidebar item — say so, and point at it.
+    if (note) note.textContent = enabled ? 'Ideas now appear as a tab on your Shelf.' : 'Ideas tab removed from your Shelf. Your saved ideas are kept.';
+    if (enabled) document.querySelectorAll('[data-shelf-nav]').forEach(el => { el.classList.remove('shelf-nudge'); void el.offsetWidth; el.classList.add('shelf-nudge'); setTimeout(() => el.classList.remove('shelf-nudge'), 2400); });
+  }
   trackWorkspacePreference(`workspace_toggle_${workspace}`, { enabled: !!enabled });
 }
 

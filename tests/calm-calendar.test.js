@@ -85,3 +85,19 @@ test('Shelf is one nav entry; its tabs move between past posts and ideas', async
   assert.equal(d.querySelector('#ideasView [data-shelf-tab="ideasView"]').getAttribute('aria-selected'), 'true');
   assert.equal(d.body.textContent.includes('Content Bank'), false, 'one name throughout the app');
 }));
+
+test('turning on Ideas says where it went, and the Shelf survives with Library switched off', async () => app(w => {
+  const d = w.document, shelf = () => d.querySelector('.side-nav [data-shelf-nav]');
+  w.eval("setWorkspacePreference('ideas', true)");
+  assert.match(d.querySelector('#workspacePreferenceNote').textContent, /tab on your Shelf/);
+  assert.equal(shelf().hidden, false);
+  // Library flag off: Shelf stays, and opens the ideas half.
+  w.eval("const orig=isFeatureEnabled;isFeatureEnabled=f=>f==='library'?false:orig(f);applyInternalFeatureFlags()");
+  assert.equal(shelf().hidden, false, 'Shelf still visible');
+  assert.equal(shelf().dataset.view, 'ideasView');
+  shelf().click();
+  assert.ok(d.querySelector('#ideasView').classList.contains('active'));
+  // Both halves off: no empty Shelf.
+  w.eval("setWorkspacePreference('ideas', false)");
+  assert.equal(shelf().hidden, true);
+}));
