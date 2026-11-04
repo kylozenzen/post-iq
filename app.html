@@ -1273,12 +1273,13 @@
  <div class="external-calendar-header"><div><h2 id="externalCalendarTitle">Connect a calendar feed</h2><p>See outside events beside your plans, without changing Buffer.</p></div><button type="button" class="btn sm ghost" id="externalCalendarClose">Close</button></div>
  <div class="external-calendar-content">
  <label for="externalCalendarName">Calendar name</label><input class="input" id="externalCalendarName" maxlength="60" placeholder="Campaign deadlines">
- <label for="externalCalendarUrl">Secret or public ICS feed URL</label><input class="input" id="externalCalendarUrl" type="url" autocomplete="off" spellcheck="false" placeholder="https://calendar.google.com/calendar/ical/…">
- <p class="external-calendar-warning">Feed URLs can grant access to private calendars. Only paste links you trust. URLs and event previews stay in this browser; the link is sent to PostIQ's server to fetch updates. Do not paste API keys.</p>
+ <label for="externalCalendarUrl">Public Google Calendar ICS address</label><input class="input" id="externalCalendarUrl" type="url" autocomplete="off" spellcheck="false" placeholder="https://calendar.google.com/calendar/ical/…/public/basic.ics">
+ <p class="external-calendar-warning"><strong>Public calendars only.</strong> In Google Calendar → Settings → Integrate calendar, use <strong>Public address in iCal format</strong>, not Secret address. Never paste an API key or private calendar link. The public URL is stored in this browser; event details are kept in memory during the session.</p>
  <div class="external-calendar-buttons"><button class="btn primary" id="externalCalendarAdd" type="button">Add feed</button><button class="btn ghost" id="externalCalendarRefresh" type="button">Refresh feeds</button></div>
  <p id="externalCalendarStatus" role="status" aria-live="polite"></p>
+ <button class="btn sm ghost" id="externalCalendarClearAll" type="button" hidden>Remove all calendar data</button>
  <h3>Connected calendars</h3><ul id="externalCalendarList"></ul>
- <p class="external-calendar-warning">Read-only. Supports direct ICS exports from Google Calendar, Outlook, Trello, and Asana. Repeating events only appear where the feed includes an explicit date; feeds refresh about once per hour when PostIQ is open. Five feeds maximum.</p>
+ <p class="external-calendar-warning">Read-only public Google Calendar feeds for now. Private calendar connections and other providers are not enabled in this beta. Repeating events may be incomplete. Up to five feeds refresh about hourly while PostIQ is open.</p>
  </div>
 </dialog>
 <div id="noteModal" class="modal calendar-drawer" role="dialog" aria-modal="true" aria-labelledby="noteDateLabel">
