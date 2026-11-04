@@ -155,7 +155,11 @@ window.POSTIQ_HELP_ARTICLES = [
     <ul>
       <li>Snapshots are static views, so re-share after major updates.</li>
       <li>Plan helps you prepare; publishing still happens through Buffer actions.</li>
-    </ul>`
+    </ul>
+    <h2>Connect an outside calendar</h2>
+    <p>Open the calendar <strong>⋯</strong> menu and choose <strong>Connect calendar feed (ICS)</strong>. Paste an ICS subscription URL from a supported service such as Google Calendar, Outlook, Trello, or Asana, name the feed, and choose <strong>Add feed</strong>. Its events appear as distinct, read-only items beside your planned content. Open a day to see its imported events and source.</p>
+    <p>Feeds are stored in this browser and refreshed roughly hourly while PostIQ is open. The URL is sent to PostIQ's Netlify Function to retrieve events, and secret ICS URLs should be treated like passwords. Never paste a developer API key. Feed subscriptions do not change scheduled Buffer posts, create plans, or write back to the source calendar. Repeating events may be incomplete until the provider expands those occurrences in its feed.</p>
+
   },
   {
     // Slug kept from the retired thread-splitter guide so existing links still work.
