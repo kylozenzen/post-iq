@@ -39,4 +39,8 @@ assert.match(app,/src="\.\/js\/features\/external-calendars\.js"/);
 assert.match(cal,/PostIQExternalCalendars\?\.cellHtml/);
 assert.match(cal,/PostIQExternalCalendars\?\.dayHtml/);
 assert.match(sw,/\/js\/features\/external-calendars\.js/);
+const fn=require('../netlify/functions/calendar-feed.js');
+assert.equal(fn.config.rateLimit.windowLimit,10);
+assert.equal(fn.config.rateLimit.windowSize,60);
+assert.deepEqual(fn.config.rateLimit.aggregateBy,['ip','domain']);
 console.log('External calendar URL safety, ICS parsing, and app wiring passed');
