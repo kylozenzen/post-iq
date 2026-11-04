@@ -4,23 +4,23 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>PostIQ — Buffer publishes. PostIQ plans.</title>
-<meta name="description" content="PostIQ is an independent calendar companion for Buffer users. See scheduled posts beside planning notes and actions, find queue gaps against your posting rhythm, and turn saved content into a dated plan." />
+<meta name="description" content="PostIQ is an independent calendar-first planning companion for Buffer. See scheduled posts beside open slots, notes, to-dos, and dated ideas." />
 <meta name="theme-color" content="#f2efe6" />
 <link rel="canonical" href="https://postiq.netlify.app/" />
 <meta property="og:site_name" content="PostIQ" />
-<meta property="og:title" content="PostIQ — Your Buffer calendar, with room to think" />
-<meta property="og:description" content="An independent planning companion for Buffer. Plan your whole calendar — notes and to-dos, how many days of content each channel has left, campaigns, newsletters, reuse and more — on top of Buffer. Buffer publishes; PostIQ plans." />
+<meta property="og:title" content="PostIQ — Buffer publishes. PostIQ plans." />
+<meta property="og:description" content="A calendar-first planning companion for Buffer. See scheduled posts, open slots, notes, to-dos, dated ideas, holidays, and quick add in one calm view. Buffer publishes. PostIQ plans." />
 <meta property="og:image" content="https://postiq.netlify.app/postiq-og.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="PostIQ calendar showing sample scheduled posts, planning notes, and queue gaps beside the headline: Your Buffer calendar, with room to think." />
+<meta property="og:image:alt" content="PostIQ calendar showing sample scheduled posts, open slots, planning notes, and dated ideas." />
 <meta property="og:url" content="https://postiq.netlify.app/" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="PostIQ — Your Buffer calendar, with room to think" />
-<meta name="twitter:description" content="An independent calendar companion for Buffer users: scheduled posts beside planning notes, queue gaps against your rhythm, and coverage before time away." />
+<meta name="twitter:title" content="PostIQ — Buffer publishes. PostIQ plans." />
+<meta name="twitter:description" content="A calendar-first planning companion for Buffer: scheduled posts beside open slots, notes, to-dos, and dated ideas." />
 <meta name="twitter:image" content="https://postiq.netlify.app/postiq-og.png" />
-<meta name="twitter:image:alt" content="PostIQ calendar showing sample scheduled posts, planning notes, and queue gaps." />
+<meta name="twitter:image:alt" content="PostIQ calendar showing sample scheduled posts, open slots, planning notes, and dated ideas." />
 <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png" />
 <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -291,7 +291,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
 .slot:first-of-type .slot-btn{border-color:var(--brand);color:var(--brand);animation:ringPulse 2.4s ease-in-out infinite;}
 .away-chip{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-family:'DM Mono',monospace;font-size:9.5px;color:var(--green);background:color-mix(in srgb,var(--green) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--green) 30%,transparent);padding:3px 8px;border-radius:var(--r2);}
 
-/* Content Bank mockup */
+/* Shelf mockup */
 .bank-wrap{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.65fr);gap:14px;align-items:center;}
 .bank-card{border:1px solid var(--border);border-left:3px solid var(--brand);border-radius:var(--r2);background:var(--surface);padding:9px 11px;margin-bottom:8px;}
 .bank-card:last-child{margin-bottom:0;}
@@ -540,6 +540,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
   .bio-photo{width:56px;height:56px;}
   .bio-card .btn{grid-column:1/-1;}
 }
+.product-shot{width:100%;height:auto;border:1px solid var(--border2);border-radius:var(--r);box-shadow:var(--sh2);background:var(--surface);}.hero-product-shot{aspect-ratio:1440/900;object-fit:cover;object-position:top;}
 </style>
 </head>
 <body>
@@ -571,68 +572,24 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
       <div class="hero-copy">
         <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Independent planning companion for Buffer</div>
         <h1 id="heroTitle">Buffer publishes. <em>PostIQ plans.</em></h1>
-        <p class="hero-desc">The planning layer on top of Buffer — notes and to-dos on the calendar, how many days of content each channel has left, writing tools to fill a gap, an evergreen library to reuse what worked, and campaigns and newsletters mapped across dates.</p>
+        <p class="hero-desc">A calm place to see what’s scheduled, spot open slots, and plan what comes next. Posts from Buffer stay solid; notes, to-dos, dated Shelf ideas, and drafts sit beside them as plans.</p>
         <div class="hero-ctas">
           <a href="/auth/connect.html?return=%2Fapp.html%3Fview%3DcalendarView" class="btn primary lg" data-cta="hero">Sign in with Buffer</a>
           <a href="/app.html?view=calendarView" class="btn ghost lg" data-cta="hero">Preview the calendar</a>
         </div>
-        <p class="hero-note"><strong>Your scheduled posts, channel health and sending to Buffer need Buffer sign-in.</strong> The preview opens the same calendar without your account data, with a short tour you can skip. Free during public beta. Not made by, affiliated with, or endorsed by Buffer.</p>
+        <p class="hero-note"><strong>Buffer sign-in loads your scheduled posts and enables Buffer actions.</strong> The preview opens the same calendar without your account data, with a short tour you can skip. Free during public beta. Not made by, affiliated with, or endorsed by Buffer.</p>
       </div>
 
       <figure class="hero-visual" aria-labelledby="heroMockCaption">
-        <div class="float-pill warn" aria-hidden="true"><span class="float-pill-dot"></span>2 gaps<span class="ok-dates"> in the next 2 weeks</span></div>
-        <div class="float-pill ok" aria-hidden="true"><span class="float-pill-dot"></span>Away<span class="ok-dates"> Nov 23–27 ·</span> marked off</div>
-        <div class="ui-shell" role="img" aria-label="Illustration of the PostIQ calendar for November with sample data. Scheduled posts for two channels sit beside a planned action, a campaign note and a content target marked not scheduled. Two days are dashed as gaps against a Monday, Wednesday and Friday rhythm, one of which turns into a planned draft. November 23 to 27 is marked as intentional days off.">
-          <div class="ui-titlebar" aria-hidden="true">
-            <span class="ui-dot ui-dot-r"></span><span class="ui-dot ui-dot-y"></span><span class="ui-dot ui-dot-g"></span>
-            <div class="ui-tabs"><span class="ui-tab active">Calendar</span><span class="ui-tab">Compose</span><span class="ui-tab">Content Bank</span></div>
-            <span class="ui-bell" title="Alerts">◔ 1</span>
-            <span class="sample-tag">Sample data</span>
-          </div>
-          <div class="ui-body" aria-hidden="true">
-            <div class="cal-head">
-              <div class="cal-month"><span class="cal-nav">‹</span>November 2026<span class="cal-nav">›</span></div>
-              <div class="cal-legend"><i>◷ Buffer post</i><i>✎ Note</i><i>□ Action</i><i>◇ Target</i></div>
-            </div>
-            <div class="cal-dow"><span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span></div>
-            <div class="cal-grid">
-              <div class="mc off"><span class="mc-n">8</span></div>
-              <div class="mc today"><span class="mc-n">9<b>2</b></span><i class="chip post"><b class="pb pb-li">in</b>Behind the scenes</i><i class="chip post li"><b class="pb pb-th">@</b>Autumn lessons</i></div>
-              <div class="mc"><span class="mc-n">10</span><i class="chip action">□ Shoot flat-lays</i><i class="daygap">▲ 2 gaps</i></div>
-              <div class="mc camp"><span class="mc-n">11</span><i class="chip camp">◆ The Feed #14</i><i class="chip post"><b class="pb pb-li">in</b>Studio tour</i></div>
-              <div class="mc camp"><span class="mc-n">12</span><i class="chip action">□ Draft issue</i><i class="daygap">▲ 2 gaps</i></div>
-              <div class="mc camp"><span class="mc-n">13</span><i class="chip post"><b class="pb pb-bs">bs</b>Reader spotlight</i></div>
-              <div class="mc off"><span class="mc-n">14</span></div>
-              <div class="mc off"><span class="mc-n">15</span></div>
-              <div class="mc camp"><span class="mc-n">16</span><i class="chip camp end">The Feed #14 ◆</i><i class="chip post"><b class="pb pb-li">in</b>Issue is live</i></div>
-              <div class="mc"><span class="mc-n">17</span><i class="chip note">✎ Winter series idea</i></div>
-              <div class="mc"><span class="mc-n">18</span><i class="chip action">□ Reply to comments</i><i class="daygap">▲ 1 gap</i></div>
-              <div class="mc"><span class="mc-n">19</span><i class="chip post li"><b class="pb pb-th">@</b>Reading list</i><i class="chip target">◇ Year in review</i></div>
-              <div class="mc"><span class="mc-n">20</span><i class="chip post"><b class="pb pb-x">X</b>Holiday hours</i></div>
-              <div class="mc off"><span class="mc-n">21</span></div>
-              <div class="mc off"><span class="mc-n">22</span></div>
-              <div class="mc away"><span class="mc-n">23</span><i class="chip status">time off</i></div>
-              <div class="mc away"><span class="mc-n">24</span><i class="chip status">time off</i></div>
-              <div class="mc away"><span class="mc-n">25</span><i class="chip status">time off</i></div>
-              <div class="mc away"><span class="mc-n">26</span><i class="chip status">time off</i></div>
-              <div class="mc away"><span class="mc-n">27</span><i class="chip status">time off</i></div>
-              <div class="mc off"><span class="mc-n">28</span></div>
-            </div>
-          </div>
-          <div class="stat-strip" aria-hidden="true">
-            <div class="stat-item"><div class="stat-num">8</div><div class="stat-lbl">Scheduled</div></div>
-            <div class="stat-item"><div class="stat-num warn">2</div><div class="stat-lbl">Gaps</div></div>
-            <div class="stat-item"><div class="stat-num">3</div><div class="stat-lbl">Notes &amp; actions</div></div>
-          </div>
-        </div>
-        <figcaption class="mock-caption" id="heroMockCaption">Illustration of the PostIQ calendar with fictional sample data. Each channel shows how many days of content you have left, from the schedule you set.</figcaption>
+        <img class="product-shot hero-product-shot" src="/images/product/calendar-desktop.png" alt="PostIQ calendar with sample scheduled posts, open slots, and outlined plans">
+        <figcaption class="mock-caption" id="heroMockCaption">Sample data: fictional Buffer posts are scheduled; outlined items are plans.</figcaption>
       </figure>
     </div>
 
     <div class="preview-callouts">
-      <div class="callout reveal"><b>Posts and plans, kept apart</b><span>Buffer posts, date-only notes, actions and content targets each have their own marker. Notes never count as scheduled.</span></div>
-      <div class="callout reveal"><b>Gaps you define</b><span>A day is a gap only when your rhythm expects a post there and no confirmed post is loaded.</span></div>
-      <div class="callout reveal"><b>Honest about data</b><span>Stale or partial Buffer data is labelled as such instead of being shown as full coverage.</span></div>
+      <div class="callout reveal"><b>Posts and plans, kept apart</b><span>Buffer posts are solid cards; notes, to-dos and dated Shelf ideas are outlined plans. Plans are never shown as scheduled.</span></div>
+      <div class="callout reveal"><b>Gaps you define</b><span>Dashed open slots make room for a plan when a day in your posting schedule has no confirmed post.</span></div>
+      <div class="callout reveal"><b>Honest about data</b><span>If Buffer data is stale or incomplete, PostIQ labels it so you can make a sound call.</span></div>
     </div>
   </div>
 </section>
@@ -642,102 +599,52 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
   <div class="wrap">
     <div class="section-head reveal">
       <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>What PostIQ adds</div>
-      <h2 class="section-title" id="pillarsTitle">One calendar for your posts <em>and everything around them.</em></h2>
+      <h2 class="section-title" id="pillarsTitle">A calmer way to plan <em>what comes next.</em></h2>
       <p class="section-lede">Buffer stays where you publish. PostIQ is where you see what’s coming, decide what’s missing, and plan it — all in one place.</p>
     </div>
     <div class="pillar-grid">
       <article class="pillar reveal">
         <span class="pillar-num">01</span>
         <h3>Plan on the calendar</h3>
-        <p>See confirmed Buffer posts in month, week or agenda view, alongside planning notes and to-do actions on any day.</p>
+        <p>Switch between Month, Week, and List. Buffer posts are solid; notes, to-dos, and dated ideas are outlined.</p>
       </article>
       <article class="pillar reveal">
         <span class="pillar-num">02</span>
-        <h3>Know where you stand</h3>
-        <p>Set a posting schedule per channel and see how many days of content each one has left — so you can fill a gap, or step away with confidence.</p>
+        <h3>Spot a useful opening</h3>
+        <p>See dashed open slots against the posting schedule you choose, then decide which ones deserve a plan.</p>
       </article>
       <article class="pillar reveal">
         <span class="pillar-num">03</span>
         <h3>Reuse what worked</h3>
-        <p>Keep an evergreen library of past posts and reshare them in a click — fill a slow week or keep your streak alive while you’re away.</p>
+        <p>The Shelf holds past posts and ideas. Star an evergreen post, then use it to fill an open slot in a tap.</p>
       </article>
       <article class="pillar reveal">
         <span class="pillar-num">04</span>
-        <h3>Map campaigns &amp; newsletters</h3>
-        <p>Plan a newsletter issue or a campaign as a dated range with stages you tick off — right on the calendar, next to everything else.</p>
+        <h3>Move plans at your pace</h3>
+        <p>Add a note, a to-do, or a dated idea right beside your scheduled posts. Drag a plan to move it; drag a post to reschedule it in Buffer, with Undo.</p>
       </article>
     </div>
   </div>
 </section>
 
 <!-- FEATURE DETAIL -->
-<section class="features" aria-label="Channel health and Content Bank">
+<section class="features" aria-label="Planning tools in PostIQ">
   <div class="wrap">
     <div class="feature reveal">
-      <div class="feature-copy">
-        <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Channel health</div>
-        <h3>Know how far you’re covered.</h3>
-        <p>Set a posting schedule per channel and the calendar tells you how many days of content each one has left — and quietly alerts you before any channel runs dry.</p>
-        <ul>
-          <li>Per-channel posting days and posts-per-day targets</li>
-          <li>Mark time off so a planned break doesn’t show as a gap — your Buffer posts stay put</li>
-          <li>Alerts gather in one place, so the calendar stays calm until something needs you</li>
-        </ul>
-        <span class="requires">Channel health requires Buffer sign-in and a recent sync.</span>
+      <div class="feature-copy"><div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>One-tap planning</div>
+        <h3>See the day. Fill the gap. Keep moving.</h3>
+        <p>The Today card brings today’s posts and to-dos into view. A dashed open slot can suggest a starred evergreen post, so you can fill a gap without starting from zero.</p>
+        <ul><li>Solid cards are confirmed Buffer posts; outlined cards are your plans</li><li>Quick add understands “Fri: film B-roll” and “todo tomorrow: review captions”</li><li>Drag to reschedule, with Undo if you change your mind</li></ul>
       </div>
-      <figure>
-        <div class="ui-shell" role="img" aria-label="Illustration of channel health with sample data: one channel has 12 days of content left and another has 1 day left, due Thursday; a posting schedule shows Monday, Wednesday and Friday at one post per day; the calendar reads covered for 12 days with two channels needing content, and November 23 to 27 marked as time off.">
-          <div class="ui-titlebar" aria-hidden="true"><span class="ui-dot ui-dot-r"></span><span class="ui-dot ui-dot-y"></span><span class="ui-dot ui-dot-g"></span><span class="ui-title">Channel health</span><span class="sample-tag">Sample data</span></div>
-          <div class="ui-body" aria-hidden="true">
-            <div class="mock-label">Channel health</div>
-            <div class="qh-row"><span class="qh-dot" style="background:var(--green)"></span><b>Sample Studio</b><span>Covered</span><span class="qh-runway">12 days left</span></div>
-            <div class="qh-row"><span class="qh-dot" style="background:var(--amber)"></span><b>Sample Newsletter</b><span>1 day left</span><span class="qh-runway">add by Thu 12</span></div>
-            <div class="mock-card">
-              <div class="mock-label">Posting schedule · Sample Studio</div>
-              <div class="days"><span class="day">S</span><span class="day on">M</span><span class="day">T</span><span class="day on">W</span><span class="day">T</span><span class="day on">F</span><span class="day">S</span></div>
-              <div class="pace-meta"><span><b>1</b> post per selected day</span><span>Nov 9 – Nov 22</span></div>
-            </div>
-            <div class="mock-card">
-              <div class="mock-label">Alerts · 2 channels need content</div>
-              <div class="alert-mini"><span class="am-dot" style="background:var(--amber)"></span><b><span class="pb pb-th">@</span>The Feed</b><span class="am-detail">1 day left · by Thu 12</span><span class="am-add">Add</span></div>
-              <div class="alert-mini"><span class="am-dot" style="background:var(--amber)"></span><b><span class="pb pb-li">in</span>Studio</b><span class="am-detail">2 days left · by Wed 18</span><span class="am-add">Add</span></div>
-              <div class="alert-mini"><span class="am-dot" style="background:var(--green)"></span><b>Connected to Buffer</b><span class="am-detail">synced 2m ago</span></div>
-              <span class="away-chip">● Nov 23–27 · time off — won’t show as gaps</span>
-            </div>
-          </div>
-        </div>
-        <figcaption class="mock-caption">Illustration of channel health with fictional sample channels.</figcaption>
-      </figure>
+      <figure><img class="product-shot" src="/images/product/calendar-desktop.png" alt="PostIQ calendar with sample scheduled posts and outlined plans"><figcaption class="mock-caption">Sample calendar · fictional posts and plans</figcaption></figure>
     </div>
-
     <div class="feature flip reveal">
-      <div class="feature-copy">
-        <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Content Bank</div>
-        <h3>Turn saved material into a dated plan.</h3>
-        <p>Search what you’ve saved, find items without a date, and plan a local target. Buffer scheduling is shown separately, so a plan is never mistaken for a post.</p>
-        <ul>
-          <li>Filter by no target date, local target, or confirmed Buffer scheduling</li>
-          <li>Develop channel versions while the original source stays intact</li>
-          <li>Templates live under Resources; trending topics sit in Compose</li>
-        </ul>
-        <span class="requires">Saved locally in your browser; works in the preview.</span>
+      <div class="feature-copy"><div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Room for ideas</div>
+        <h3>A plan can stay a plan until you’re ready.</h3>
+        <p>Keep past posts and ideas on the Shelf. Give an idea a target date to see it beside the rest of your calendar; it stays clearly marked as not scheduled. Holidays, backups, and calendar exports are close at hand in the menu.</p>
+        <ul><li>Star evergreen posts for one-tap fill suggestions</li><li>Download or restore a backup of your local planning work</li><li>Export notes and plans to your calendar app</li></ul>
       </div>
-      <figure>
-        <div class="ui-shell" role="img" aria-label="Illustration of Content Bank with sample data: one saved item has no target date and a Plan a date button; another has a local target of November 19, planning only, which appears on the calendar as a target marked not scheduled.">
-          <div class="ui-titlebar" aria-hidden="true"><span class="ui-dot ui-dot-r"></span><span class="ui-dot ui-dot-y"></span><span class="ui-dot ui-dot-g"></span><span class="ui-title">Content Bank</span><span class="sample-tag">Sample data</span></div>
-          <div class="ui-body bank-wrap" aria-hidden="true">
-            <div>
-              <div class="bank-card"><span class="bank-stage">Developing</span><div class="bank-title">Winter workspace series</div><div class="bank-meta">No target date · no confirmed Buffer scheduling</div><div class="bank-actions"><span class="bank-btn go">Plan a date</span><span class="bank-btn dev">Develop</span></div></div>
-              <div class="bank-card"><span class="bank-stage">Developing</span><div class="bank-title">Year-in-review outline</div><div class="bank-meta target">◇ Local target: Nov 19 · planning only</div><div class="bank-actions"><span class="bank-btn">Change target</span><span class="bank-btn dev">Develop</span></div></div>
-            </div>
-            <div>
-              <svg class="bank-arrow" viewBox="0 0 120 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12 H108"/><path d="M102 6 L110 12 L102 18" stroke-dasharray="none"/></svg>
-              <div class="bank-day"><div class="mc-n">THU 19</div><i class="chip post li">Reading list</i><i class="chip target">◇ Year in review</i><i class="chip status">target · not scheduled</i></div>
-            </div>
-          </div>
-        </div>
-        <figcaption class="mock-caption">Illustration of Content Bank with fictional sample items.</figcaption>
-      </figure>
+      <figure><img class="product-shot" src="/images/product/calendar-desktop.png" alt="Sample PostIQ calendar showing dated plans and scheduled posts"><figcaption class="mock-caption">Plans stay separate from scheduled posts</figcaption></figure>
     </div>
   </div>
 </section>
@@ -747,7 +654,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
   <div class="wrap">
     <div class="section-head reveal">
       <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>How it works</div>
-      <h2 class="section-title" id="workflowTitle">Connect, check, plan, <em>send.</em></h2>
+      <h2 class="section-title" id="workflowTitle">See what’s coming, plan what’s missing, <em>send when ready.</em></h2>
       <p class="section-lede">PostIQ sits beside your Buffer queue. Nothing goes to Buffer until you choose a Buffer action.</p>
     </div>
     <div class="flow reveal">
@@ -757,7 +664,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
           <div class="step-icon" aria-hidden="true">🔗</div>
           <span class="step-num">01</span>
           <h3>Connect Buffer</h3>
-          <p>Sign in with Buffer’s OAuth and sync. PostIQ loads your channels and scheduled queue.</p>
+          <p>Sign in with Buffer. PostIQ loads your channels and scheduled queue.</p>
           <span class="step-where">Sidebar · Sign in with Buffer</span>
         </li>
         <li class="step">
@@ -765,7 +672,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
           <div class="step-icon" aria-hidden="true">◷</div>
           <span class="step-num">02</span>
           <h3>See where you stand</h3>
-          <p>Set a posting schedule per channel. The calendar shows how many days of content each has left.</p>
+          <p>See dashed open slots against your chosen posting schedule. Fill one with a starred past post or make a new plan.</p>
           <span class="step-where">Posting schedule · Calendar</span>
         </li>
         <li class="step">
@@ -773,8 +680,8 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
           <div class="step-icon" aria-hidden="true">📅</div>
           <span class="step-num">03</span>
           <h3>Plan it</h3>
-          <p>Open a day to add a note or action, map a campaign or newsletter, or reuse an evergreen post.</p>
-          <span class="step-where">Calendar day · Add</span>
+          <p>Add a note or to-do in plain English, drag a plan to move it, or drag a scheduled post and undo if needed.</p>
+          <span class="step-where">Calendar · + Add or ⌘K</span>
         </li>
         <li class="step">
           <div class="step-icon" aria-hidden="true">⚡</div>
@@ -807,7 +714,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
         <ul>
           <li>The calendar in month, week and agenda views</li>
           <li>Planning notes and to-do actions on any day</li>
-          <li>Content Bank: save material and plan target dates</li>
+          <li>Shelf: save material and plan target dates</li>
           <li>Compose drafts that autosave locally</li>
           <li>Workspace and theme settings</li>
         </ul>
@@ -818,14 +725,14 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
         <p>Needed for anything that reads or writes your Buffer account.</p>
         <ul>
           <li>Your scheduled posts on the calendar</li>
-          <li>Channel health — how many days of content each channel has left</li>
+          <li>Open slots — where open slots could use a plan</li>
           <li>Sending a draft, queued post or scheduled post to Buffer</li>
-          <li>An evergreen Library of sent posts to reuse and reshare</li>
+          <li>Starred evergreen posts for one-tap fill suggestions</li>
         </ul>
         <a href="/auth/connect.html?return=%2Fapp.html%3Fview%3DcalendarView" class="btn primary" data-cta="access">Sign in with Buffer</a>
       </div>
     </div>
-    <p class="access-note reveal">Without a connection, the calendar can’t tell a gap from an unloaded day, so the preview doesn’t show gap labels or coverage. Notes made in the preview stay in this browser when you connect later.</p>
+    <p class="access-note reveal">Without a Buffer connection, the preview uses sample-free local planning. Notes made in the preview stay in this browser.</p>
   </div>
 </section>
 
@@ -839,8 +746,8 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
     </div>
     <div class="tool-grid">
       <article class="tool reveal"><div class="tool-icon" aria-hidden="true">✍️</div><h3>Compose</h3><p>A focused editor with local autosave, Focus mode and media, plus writing tools — hooks, templates, trending topics and AI assist — to fill a gap fast.</p></article>
-      <article class="tool reveal"><div class="tool-icon" aria-hidden="true">🗓️</div><h3>Campaigns &amp; newsletters</h3><p>Map a newsletter issue or a campaign as a dated range with stages you tick off, right on the calendar.</p></article>
-      <article class="tool reveal"><div class="tool-icon" aria-hidden="true">📚</div><h3>Evergreen Library</h3><p>Your recently sent posts, ready to reuse. Star the evergreen ones and reshare to Buffer to keep your streak alive.</p></article>
+      <article class="tool reveal"><div class="tool-icon" aria-hidden="true">🗓️</div><h3>Holidays &amp; backups</h3><p>See public holidays on the calendar, choose a country, or turn them off. Download a backup or export your plans as an .ics file.</p></article>
+      <article class="tool reveal"><div class="tool-icon" aria-hidden="true">📚</div><h3>Today &amp; one-tap fill</h3><p>See today’s posts and to-dos, then fill an open slot with a starred evergreen post when one fits.</p></article>
       <article class="tool reveal"><div class="tool-icon" aria-hidden="true">🔗</div><h3>Shareable snapshots</h3><p>Share a read-only week or month of the calendar with a teammate or client. Anyone with the link can view it; no login required.</p></article>
       <article class="tool reveal">
         <div class="tool-icon" aria-hidden="true">🎨</div>
@@ -893,11 +800,11 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
     <div class="faq-grid reveal">
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq1"><span>Do I need a Buffer account?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
-        <div class="faq-a" id="faq1" hidden>To see your scheduled posts, check coverage, or send anything to Buffer, yes. You can open the calendar preview, add notes, and save content without one.</div>
+        <div class="faq-a" id="faq1" hidden>To see your scheduled posts or send anything to Buffer, yes. You can open the calendar preview, add notes, and save content without one.</div>
       </div>
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq2"><span>How does PostIQ decide what counts as a gap?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
-        <div class="faq-a" id="faq2" hidden>You set posting days and a posts-per-day target for each channel. The calendar then shows how many days of content each channel has left, counting non-posting days. Only confirmed scheduled Buffer posts count — notes, drafts and target dates don’t, and days off are excluded. If the loaded data is incomplete or stale, PostIQ says so instead of claiming you’re covered.</div>
+        <div class="faq-a" id="faq2" hidden>You choose posting days in the calendar’s Posting schedule. Dashed open slots show days where a confirmed Buffer post is not loaded; notes, drafts, and dated ideas remain plans.</div>
       </div>
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq3"><span>Will PostIQ post or change things in Buffer on its own?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
@@ -905,11 +812,11 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
       </div>
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq4"><span>What does the preview include?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
-        <div class="faq-a" id="faq4" hidden>The real app, without your Buffer data: the calendar, notes and actions, campaigns, Content Bank, Compose drafts and settings, all stored in your browser. Channel health needs connected channels to measure anything. A short three-step tour opens the first time you visit; skip it whenever you like, or restart it from Take a tour in the app.</div>
+        <div class="faq-a" id="faq4" hidden>The real app, without your Buffer data: the calendar, notes and actions, Shelf, Compose drafts and settings, all stored in your browser. Open slots needs connected channels to measure anything. A short three-step tour opens the first time you visit; skip it whenever you like, or restart it from Take a tour in the app.</div>
       </div>
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq5"><span>Where is my planning data stored?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
-        <div class="faq-a" id="faq5" hidden>Notes, schedules, days off, campaigns, Content Bank items and settings are kept in your browser’s local storage. A snapshot carries its shared content inside the link itself. See the <a href="/privacy.html">privacy policy</a> and the <a href="/help/?article=privacy-storage-beta-limits">beta limits guide</a>.</div>
+        <div class="faq-a" id="faq5" hidden>Notes, schedules, days off, dated Shelf ideas and settings are kept in your browser’s local storage. A snapshot carries its shared content inside the link itself. See the <a href="/privacy.html">privacy policy</a> and the <a href="/help/?article=privacy-storage-beta-limits">beta limits guide</a>.</div>
       </div>
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq6"><span>Is PostIQ made by Buffer?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
@@ -938,7 +845,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
   <div class="wrap">
     <div class="cta-card reveal">
       <h2 id="ctaTitle">See your queue <em>with room to think.</em></h2>
-      <p>Sign in with Buffer to load your scheduled posts and check coverage, or preview the calendar first.</p>
+      <p>Sign in with Buffer to load scheduled posts, or preview the calendar first.</p>
       <div class="cta-actions">
         <a href="/auth/connect.html?return=%2Fapp.html%3Fview%3DcalendarView" class="btn primary lg" data-cta="final">Sign in with Buffer</a>
         <a href="/app.html?view=calendarView" class="btn ghost lg" data-cta="final">Preview the calendar</a>

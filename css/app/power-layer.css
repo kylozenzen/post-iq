@@ -1,0 +1,26 @@
+/* Command menu and keyboard help. Keep the surfaces quiet and familiar. */
+.power-backdrop { position: fixed; inset: 0; z-index: 1100; display: grid; place-items: start center; padding: min(18vh,150px) 20px 24px; background: rgba(19,24,31,.34); backdrop-filter: blur(3px); }
+.power-backdrop[hidden] { display:none !important; }
+.power-palette,.power-sheet { width:min(560px,100%); color:var(--ink); background:var(--surface); border:1px solid var(--border); border-radius:calc(var(--r) + 7px); box-shadow:0 24px 80px rgba(20,30,40,.2); }
+.power-palette { overflow:hidden; }
+.power-palette input { display:block; width:100%; height:58px; padding:0 20px; border:0; border-bottom:1px solid var(--border); outline:0; color:var(--ink); background:transparent; font:16px/1.3 inherit; font-family:inherit; }
+.power-palette input:focus { box-shadow:inset 0 0 0 2px var(--brand-glow); }
+.power-results { max-height:min(440px,55vh); overflow:auto; padding:8px; }
+.power-result { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:11px 12px; border:0; border-radius:var(--r); color:var(--text); background:transparent; text-align:left; font:14px/1.3 inherit; font-family:inherit; cursor:pointer; }
+.power-result:hover,.power-result.is-active { color:var(--ink); background:var(--surface2); }
+.power-result kbd,.power-palette footer { color:var(--muted); font:11px/1.2 inherit; font-family:inherit; }
+.power-result kbd { min-width:24px; text-align:right; }
+.power-empty { margin:12px; color:var(--muted); font-size:13px; }
+.power-palette footer { display:flex; justify-content:flex-end; gap:16px; padding:10px 14px; border-top:1px solid var(--border); background:var(--surface2); }
+.power-shortcuts-link { width:28px; height:28px; border:1px solid var(--border); border-radius:50%; color:var(--muted); background:var(--surface); font:600 13px inherit; cursor:pointer; }
+.power-shortcuts-link:hover { border-color:var(--brand); color:var(--ink); }
+.power-sheet { position:relative; padding:24px; }
+.power-sheet h2 { margin:0 40px 18px 0; font:500 22px/1.2 var(--font-display); }
+.power-sheet > button { position:absolute; top:14px; right:14px; width:32px; height:32px; border:0; border-radius:50%; color:var(--muted); background:var(--surface2); font-size:20px; cursor:pointer; }
+.power-sheet dl { display:grid; gap:0; margin:0; }
+.power-sheet dl div { display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-top:1px solid var(--border); font-size:13px; }
+.power-sheet dt { color:var(--text); }.power-sheet dd { margin:0; color:var(--muted); font:12px 'DM Mono',monospace; }
+@media (prefers-reduced-motion:reduce) { .power-backdrop { backdrop-filter:none; } }
+.power-hint { position:fixed; z-index:90; right:24px; bottom:24px; display:flex; align-items:center; gap:14px; max-width:calc(100vw - 32px); padding:11px 12px 11px 15px; color:var(--ink); background:var(--surface); border:1px solid var(--border2); border-radius:var(--r); box-shadow:var(--shadow-float); font-size:13px; }
+.power-hint button { width:24px; height:24px; border:0; border-radius:50%; color:var(--muted); background:var(--surface2); font-size:17px; line-height:1; cursor:pointer; }
+@media (max-width:768px) { .power-hint { right:12px; bottom:calc(74px + env(safe-area-inset-bottom)); } }

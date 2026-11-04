@@ -1,7 +1,7 @@
 'use strict';
 // Captures the calendar screenshot used by the share image (postiq-og.png) from
-// the real app shell. Approvals, Library and Pulse are switched off through the
-// app's feature config so the sidebar shows only the calendar-first tools.
+// the real app shell. Approvals are switched off through the app's feature config so the sidebar
+// shows the calendar-first tools. Shelf remains available.
 // The account, channels, posts and notes are fictional sample data seeded into
 // browser storage. All remote requests are blocked; nothing is sent to Buffer.
 // Usage: CHROMIUM_PATH=/path/to/chromium node scripts/capture-landing-screenshots.js
@@ -107,16 +107,28 @@ async function run() {
       await page.goto(`${base}/app.html?view=${shot.view}`);
       await page.waitForFunction(() => window.YourPace && document.getElementById('paceStart').value);
       await page.evaluate(() => document.querySelectorAll('#globalStatusBanner,.beta-banner').forEach(el => el.classList.add('hidden')));
-      for (const view of ['approvalsView', 'libraryView', 'pulseView']) {
+      for (const view of ['approvalsView', 'pulseView']) {
         if (await page.locator(`.side-nav [data-view="${view}"]`).isVisible()) throw new Error(`${view} should be hidden in screenshots`);
       }
       await page.waitForTimeout(400);
       const file = path.join(outDir, `${shot.name}.png`);
       await page.screenshot({ animations: 'disabled', path: file });
+      if (shot.view === 'calendarView') {
+        await page.evaluate(() => PostIQPower.open());
+        await page.screenshot({ animations: 'disabled', path: path.join(outDir, 'command-menu-desktop.png') });
+        await page.evaluate(() => { PostIQPower.close(); PostIQPower.openSheet(); });
+        await page.screenshot({ animations: 'disabled', path: path.join(outDir, 'shortcuts-desktop.png') });
+        await page.evaluate(() => document.querySelector('.power-sheet button')?.click());
+      }
       if (writes.length) throw new Error(`${shot.name}: unexpected network writes ${writes.join(', ')}`);
       console.log(`Wrote ${path.relative(root, file)}`);
       await page.close();
     }
+    const landing = await browser.newPage({ viewport: { width: 1440, height: 1000 }, serviceWorkers: 'block' });
+    await landing.route('**/*', route => new URL(route.request().url()).origin === base ? route.continue() : route.abort());
+    await landing.goto(base + '/');
+    await landing.screenshot({ animations: 'disabled', fullPage: true, path: path.join(outDir, 'landing-desktop.png') });
+    await landing.close();
     await captureShareImage(browser, base);
   } finally { await browser.close(); }
 }
@@ -142,8 +154,8 @@ async function captureShareImage(browser, base) {
     .tag{position:absolute;left:600px;bottom:40px;font:500 13px monospace;letter-spacing:.08em;text-transform:uppercase;color:#9a6212;background:#fffdf7;border:1px solid rgba(154,98,18,.4);padding:5px 10px;border-radius:2px}
   </style></head><body>
     <div class="copy"><div class="eyebrow">Calendar companion for Buffer</div>
-    <h1>Your Buffer calendar, <em>with room to think.</em></h1>
-    <p>Scheduled posts beside your notes. Gaps against your rhythm. Coverage before time away.</p></div>
+    <h1>Buffer publishes. <em>PostIQ plans.</em></h1>
+    <p>See scheduled posts, open slots, and the plans around them.</p></div>
     <div class="brand">PostIQ <span>BETA</span><small>postiq.netlify.app</small></div>
     <div class="shot"><img src="images/product/calendar-desktop.png" alt=""></div>
     <div class="tag">Sample data · independent of Buffer</div>
