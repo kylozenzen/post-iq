@@ -112,7 +112,7 @@
     <div class="side-connection connection-card api-live-pulse">
       <div class="conn-row">
         <div class="conn-dot" id="connDot"></div>
-        <span class="conn-label" id="connLabel">Not connected</span>
+        <button class="conn-label conn-status-action" id="connStatusButton" type="button" aria-label="Open Buffer connection settings"><span id="connLabel">Not connected</span> <span aria-hidden="true">›</span></button>
       </div>
       <h2 class="conn-heading" id="connHeading">Not connected</h2>
       <p class="conn-helper" id="connHelper">Sign in with Buffer to load your channels, plan posts, and publish from PostIQ.</p>
@@ -160,10 +160,12 @@
         <span class="nav-icon" style="opacity:.5;"><svg><use href="#i-buffer"/></svg></span>
         <span class="nav-text">Open Buffer</span>
       </a>
+      <button class="nav-btn" type="button" id="sideConnectionSettings" data-tooltip="Buffer connection"><span class="nav-icon" aria-hidden="true">◉</span><span class="nav-text">Buffer connection</span></button>
       <button class="nav-btn" id="openSettings" type="button" data-tooltip="Settings">
         <span class="nav-icon" style="opacity:.5;"><svg><use href="#i-settings"/></svg></span>
         <span class="nav-text">Settings</span>
       </button>
+      <details class="side-learn" id="sideLearn"><summary class="nav-btn" data-tooltip="Getting started"><span class="nav-icon" aria-hidden="true">✓</span><span class="nav-text">Getting started</span></summary><div id="gettingStarted" class="getting-started" hidden></div></details>
       <button class="nav-btn" type="button" data-tour-start="sidebar" data-tooltip="Take a tour">
         <span class="nav-icon" style="opacity:.5;" aria-hidden="true">◎</span>
         <span class="nav-text">Take a tour</span>
@@ -189,7 +191,7 @@
       <div class="view-content calendar-main">
 
       <!-- Getting started checklist — shown to new users until done or dismissed -->
-      <div id="gettingStarted" class="getting-started" hidden></div>
+      <!-- Follow-up checklist lives in the sidebar, not above the calendar. -->
 
 
       <!-- Calendar toolbar: turn the page, pick a zoom, add something. Everything else lives in the ⋯ menu. -->
