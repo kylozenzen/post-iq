@@ -36,6 +36,11 @@ assert.match(tour, /action === 'connect'[\s\S]*goToBufferConnect/);
 assert.match(tour, /FIRST_VISIT && read\(SEEN_KEY\) !== '1'/, 'opens once on a first visit');
 assert.match(tour, /params\.delete\('tour'\)/, 'landing tour flag is single-use');
 assert.match(tour, /aria-modal', 'false'/, 'tour is non-modal');
+assert.match(tour, /showWelcome\(\{ source:/, 'first visit shows welcome choice');
+assert.match(tour, /data-welcome="tour"/, 'tour is optional');
+assert.match(tour, /data-welcome="explore"/, 'exploration is optional');
+assert.match(app, /id="sideLearn"/, 'getting started is in sidebar');
+assert.match(app, /id="connStatusButton"/, 'connection has a compact status action');
 for (const id of ['calendar', 'plan', 'schedule']) assert.match(tour, new RegExp(`id: '${id}'`));
 
 assert.match(tour, /CONNECTED_SEEN_KEY/, 'connected and preview tour completion are independent');
