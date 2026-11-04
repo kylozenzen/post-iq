@@ -712,3 +712,6 @@
 .side-connection .conn-advanced-link { display:none; }
 .side-connection.expanded .conn-advanced-link { display:block; width:100%; margin-top:9px; border:0; background:transparent; color:rgba(255,255,255,.68); font-size:11px; text-align:left; padding:6px 2px; cursor:pointer; }
 .side-connection.expanded .conn-advanced-link:hover { color:#fff; }
+
+.side-connection.expanded .conn-last-sync[style*="none"] { display:none !important; }
+.side-connection.expanded .conn-status-action:focus-visible, .side-connection.expanded .conn-actions button:focus-visible { outline:2px solid #fff; outline-offset:2px; }
