@@ -1,6 +1,6 @@
 'use strict';
 // Drag to reschedule. Plans move locally; Buffer posts move with editPost
-// (id + customScheduled + dueAt — text and media are left untouched by Buffer).
+// through the reschedule helper, including its live content-validation fallback.
 // Every move gets an Undo. Published posts and past days don't move.
 window.PostIQDrag = (() => {
   let dragging = null; // { kind:'post'|'note', id, fromKey }
@@ -67,7 +67,7 @@ window.PostIQDrag = (() => {
     post.dueAt = when.toISOString(); post._moving = true;
     persistScheduled();
     try {
-      const result = await editPost({ id: post.id, mode: 'customScheduled', dueAt: when.toISOString() });
+      const result = await rescheduleBufferPost(post.id, when.toISOString(), previous);
       if (result?.post?.dueAt) post.dueAt = result.post.dueAt;
       return true;
     } catch (error) {
@@ -81,7 +81,7 @@ window.PostIQDrag = (() => {
   }
   async function dropPost(postId, fromKey, toKey) {
     const post = findPost(postId);
-    if (!post || isPublishedPost(post) || fromKey === toKey) return;
+    if (!post || post._moving || isPublishedPost(post) || fromKey === toKey) return;
     const original = post.dueAt;
     const when = sameTimeOn(original, toKey);
     if (when <= new Date()) { showToast('That time has already passed — pick a later day.', 'error'); return; }
