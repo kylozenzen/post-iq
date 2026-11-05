@@ -14,7 +14,7 @@ assert.match(landing, /Buffer sign-in loads your scheduled posts and enables Buf
 assert.match(landing, /Sample data/);
 assert.match(landing, /not (?:made by, )?affiliated with/);
 assert.doesNotMatch(landing, /thread splitter|first companion app|demoInput/i, 'obsolete demo and claims stay removed');
-assert.ok(landing.indexOf('id="calendar"') < landing.indexOf('id="toolkit"'), 'toolkit follows the calendar story');
+assert.ok(landing.includes('id="try"') && landing.indexOf('id="try"') < landing.indexOf('id="benefits"'), 'interactive sample sits before the benefits story');
 assert.doesNotMatch(landing, /href="[^"]*tour=1/, 'one preview entry point, not a separate tour link');
 const heroVisual = landing.match(/<figure class="hero-visual"[\s\S]*?<\/figure>/);
 assert.ok(heroVisual, 'hero shows the product next to the copy');
