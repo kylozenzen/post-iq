@@ -1,4 +1,4 @@
-const CACHE = 'postiq-v24-editorial-default';
+const CACHE = 'postiq-v25-editorial-default';
 // Precache list mirrors the assets app.html loads (scripts/check-project.js verifies it).
 const SHELL = [
   '/',
@@ -42,6 +42,7 @@ const SHELL = [
   '/js/features/content-detail.js',
   '/js/features/media.js',
   '/js/integrations/post-creation.js',
+  '/js/features/scheduled-post-editor.js',
   '/js/core/navigation.js',
   '/js/core/bootstrap.js',
   '/js/features/calendar-experience.js',

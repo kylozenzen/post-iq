@@ -144,6 +144,7 @@ window.POSTIQ_HELP_ARTICLES = [
       <li><strong>Today.</strong> When you’re looking at the current month or week, the Today card shows what’s going out, today’s to-dos, and your next open slot.</li>
       <li><strong>Fill an open slot.</strong> Click a dashed open slot (or use the Today card). If you’ve starred evergreen posts on your Shelf, PostIQ suggests one and shows the exact day and time before you queue it in Buffer. Choose <strong>Another</strong> for a different post, or <strong>Write new</strong>.</li>
       <li><strong>Drag to reschedule.</strong> Drag a scheduled post or a plan to another day. Posts keep their time of day and move in Buffer; plans move in PostIQ. Every move has an <strong>Undo</strong>. Published posts and past days don’t move.</li>
+      <li><strong>Edit a scheduled post.</strong> Open the day or post, then choose <strong>Edit / reschedule</strong>. Change the text or publish date and choose <strong>Save changes</strong>, <strong>Move to drafts</strong>, or <strong>Publish now</strong>. Publishing now asks you to confirm. These actions update the existing Buffer post and keep its media and channel settings. Thread text is edited in Buffer; you can still change the thread’s schedule, move it to drafts, or publish it here. Shared snapshots stay read-only.</li>
       <li><strong>Holidays.</strong> Public holidays show under the date. Pick your country, or turn them off, in the ⋯ menu.</li>
     </ul>
     <h2>Keep a copy of your plans</h2>

@@ -47,22 +47,31 @@ async function editPost(input, options = {}) {
 // as empty content. Retry that explicit validation failure once, using a fresh
 // read rather than overwriting Buffer with the calendar's cached content.
 async function rescheduleBufferPost(id, dueAt, expectedDueAt) {
-  const input = { id, mode: 'customScheduled', dueAt };
+  return editBufferPostPreservingContent({ id, mode: 'customScheduled', dueAt }, expectedDueAt);
+}
+
+async function readBufferPostForEdit(id) {
+  const query = `query RescheduleSource($id:PostId!){post(input:{id:$id}){id channelId text status dueAt metadata{... on ThreadedPostMetadata{threadCount thread{text}}} assets{__typename source thumbnail ... on ImageAsset{image{altText animatedThumbnail userTags{handle x y}}} ... on VideoAsset{video{title thumbnailOffset}} ... on DocumentAsset{document{title}}}}}`;
+  const response = await callBuffer(query, { id });
+  return response?.data?.post;
+}
+
+async function editBufferPostPreservingContent(changes, expectedDueAt) {
+  const input = { ...changes }, id = input.id;
   try { return await editPost(input); }
   catch (error) {
     if (!['INVALID_INPUT_ERROR', 'POST_INVALID_INPUT_ERROR'].includes(error.code) || !/text.*media|media.*text/i.test(error.message || '')) throw error;
   }
-  const query = `query RescheduleSource($id:PostId!){post(input:{id:$id}){id text status dueAt assets{__typename source thumbnail ... on ImageAsset{image{altText animatedThumbnail userTags{handle x y}}} ... on VideoAsset{video{title thumbnailOffset}} ... on DocumentAsset{document{title}}}}}`;
-  const response = await callBuffer(query, { id });
-  const current = response?.data?.post;
+  const current = await readBufferPostForEdit(id);
   if (!current || String(current.id) !== String(id) || !['scheduled', 'buffer'].includes(String(current.status).toLowerCase())) {
     throw new Error('This post is no longer scheduled. Sync Buffer before moving it again.');
   }
   if (expectedDueAt && +new Date(current.dueAt) !== +new Date(expectedDueAt)) {
     throw new Error('This post’s schedule changed in Buffer. Sync before moving it again.');
   }
-  if (typeof current.text === 'string' && current.text.trim()) {
-    input.text = current.text;
+  const text = Object.prototype.hasOwnProperty.call(input, 'text') ? input.text : current.text;
+  if (typeof text === 'string' && text.trim()) {
+    input.text = text;
     // Omit assets and service metadata: Buffer keeps the stored values.
   } else {
     // Only media-only posts need their assets resent. Preserve their order and

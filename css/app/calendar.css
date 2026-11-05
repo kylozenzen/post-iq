@@ -27,6 +27,15 @@
 .snap-modal-post-body.is-collapsed { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; }
 .snap-post-expand { margin-top: 6px; }
 .snap-modal-post-copy { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border); }
+.scheduled-post-editor { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border2); }
+.scheduled-post-editor[hidden] { display: none; }
+.scheduled-post-editor .label { display: block; margin: 12px 0; line-height: 1.5; }
+.scheduled-post-editor textarea { display: block; width: 100%; min-height: 140px; resize: vertical; line-height: 1.6; margin-top: 6px; }
+.scheduled-post-editor input { display: block; width: 100%; min-width: 0; margin-top: 6px; }
+.scheduled-edit-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.scheduled-post-editor [data-publish-confirm] { padding: 12px; margin-top: 12px; background: var(--brand-dim); border: 1px solid var(--border2); border-radius: 8px; }
+.scheduled-post-editor [data-publish-confirm][hidden] { display: none; }
+.scheduled-post-editor [data-edit-status] { font-size: 13px; line-height: 1.5; margin-top: 12px; }
 
     /* ════════════════════════════════════
        VIEW: CALENDAR (Plan)
