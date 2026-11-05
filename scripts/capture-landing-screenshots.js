@@ -75,6 +75,8 @@ function seed({ nowIso }) {
   set('postiq_calendar_notes_v2', notes);
   set('postiqPlanningSettings', settings);
   set('postiq_tour_seen', '1');
+  set('postiq_tour_connected_seen', '1');
+  set('postiq_app_visited', '1');
   set('postiq_getting_started_dismissed', '1');
   set('postiq.workspacePreferences', { planning: true, create: true, ideas: true });
   set('postiq_add_hint_seen', '1');
