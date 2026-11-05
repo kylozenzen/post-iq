@@ -899,7 +899,7 @@ async function copyCurrentShareLink() {
 }
 
 
-function postDetailCardsHtml(posts) {
+function postDetailCardsHtml(posts, { editable = false } = {}) {
   return posts.map((p, idx) => {
     const platform = postPlatformLabel(p) || postChannelLabel(p);
     const channel = postChannelLabel(p);
@@ -910,6 +910,7 @@ function postDetailCardsHtml(posts) {
     return `<div class="snap-modal-post${published ? ' is-published' : ''}">
       <div class="snap-modal-post-hdr">
         <div class="snap-modal-post-meta">
+          ${platformLogoHtml(p)}
           <span class="snap-post-num">Post ${idx + 1}</span>
           ${platform ? '<span class="snap-platform-badge">' + safeText(platform) + '</span>' : ''}
           ${channel && channel !== platform ? '<span class="snap-platform-badge">' + safeText(channel) + '</span>' : ''}
@@ -917,13 +918,17 @@ function postDetailCardsHtml(posts) {
         </div>
         <span class="snap-scheduled-time">${safeText(formatDateTime(getPostPlanningAt(p)))}</span>
       </div>
-      <div class="snap-modal-post-body${collapsible ? ' is-collapsed' : ''}" id="detail-post-copy-${idx}">${safeText(p.text || '(no copy)')}</div>
-      ${collapsible ? `<button type="button" class="btn sm ghost snap-post-expand" data-expand-post aria-expanded="false" aria-controls="detail-post-copy-${idx}">See more</button>` : ''}
+      ${published ? `<details class="snap-sent-details"><summary><span class="snap-sent-preview">${safeText(p.text || '(no copy)')}</span><span class="snap-sent-open">Open post</span><span class="snap-sent-close">Close post</span></summary>` : ''}
+      <div class="snap-modal-post-body${!published && collapsible ? ' is-collapsed' : ''}" id="detail-post-copy-${idx}">${safeText(p.text || '(no copy)')}</div>
+      ${!published && collapsible ? `<button type="button" class="btn sm ghost snap-post-expand" data-expand-post aria-expanded="false" aria-controls="detail-post-copy-${idx}">See more</button>` : ''}
       ${mediaPreviewHtml(p)}
       <div class="snap-modal-post-copy">
+        ${editable && !published && p.id ? `<button type="button" class="btn sm primary" data-edit-scheduled="${safeText(p.id)}">Edit / reschedule</button>` : ''}
         <button class="btn sm ghost" data-copy="${safeText(p.text || '')}">Copy post</button>
         ${externalLink ? `<a class="btn sm ghost" href="${safeText(externalLink)}" target="_blank" rel="noopener">View post ↗</a>` : ''}
       </div>
+      <div class="scheduled-post-editor" data-scheduled-editor hidden></div>
+      ${published ? '</details>' : ''}
     </div>`;
   }).join('');
 }
@@ -934,6 +939,7 @@ function noteCardsHtml(notes, noteTypes = getNoteTypes()) {
   }).join('');
 }
 function bindPostDetailCopy(bodyEl) {
+  window.PostIQPostEditor?.bind(bodyEl);
   bodyEl.querySelectorAll('[data-expand-post]').forEach(btn => {
     btn.addEventListener('click', () => {
       const expanded = btn.getAttribute('aria-expanded') !== 'true';
@@ -971,13 +977,13 @@ function openCalendarDayDetails(date) {
   if (!titleEl || !bodyEl) return;
   titleEl.textContent = formatDateOnly(key);
   const sections = [];
+  sections.push('<div class="day-detail-actions" role="group" aria-label="Plan this day"><button class="btn primary" data-add-note>Add planning note</button><button class="btn" data-start-draft>Start draft</button><button class="btn" data-plan-campaign>Plan a campaign / newsletter</button></div><p class="calendar-state">Plans stay separate from scheduled Buffer posts. Schedule only when you are ready.</p>');
   const coverageHtml = dayCoverageDetailHtml(date);
   if (coverageHtml) sections.push(coverageHtml);
-  if (posts.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${posts.length} post${posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(posts)}</div>`);
+  if (posts.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${posts.length} post${posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(posts, { editable: true })}</div>`);
   if (notes.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${notes.length} Planning note${notes.length > 1 ? 's' : ''}</div>${editableNoteCardsHtml(notes)}</div>`);
   if (!posts.length && !notes.length) sections.push('<div class="empty-state day-empty-state"><div class="empty-title">No plans yet</div><div class="empty-desc">Start with a note or draft. Nothing is scheduled until you choose to send it to Buffer.</div></div>');
   sections.push(calendarTargetsForDate(key).map(contentCalendarPill).join(''));
-  sections.push('<div class="day-detail-actions" role="group" aria-label="Plan this day"><button class="btn primary" data-add-note>Add planning note</button><button class="btn" data-start-draft>Start draft</button><button class="btn" data-plan-campaign>Plan a campaign / newsletter</button></div><p class="calendar-state">Plans stay separate from scheduled Buffer posts. Schedule only when you are ready.</p>');
   bodyEl.innerHTML = sections.join('');
   bindPostDetailCopy(bodyEl);
   bindContentCalendar(bodyEl);
@@ -1010,7 +1016,7 @@ function openCalendarDayDetails(date) {
 }
 function openCalendarPostDetails(key, posts, notes = []) {
   window.CalendarExperience?.remember(key);
-  openPostDetails(key, { posts, notes }, { title: formatDateOnly(key), noteTypes: getNoteTypes() });
+  openPostDetails(key, { posts, notes }, { title: formatDateOnly(key), noteTypes: getNoteTypes(), editable: true });
 }
 function openPostDetails(key, data, options = {}) {
   const titleEl = qs('sharedDayTitle');
@@ -1019,7 +1025,7 @@ function openPostDetails(key, data, options = {}) {
   titleEl.textContent = options.title || formatDateOnly(key);
   const sections = [];
   if (data.posts && data.posts.length) {
-    sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${data.posts.length} post${data.posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(data.posts)}</div>`);
+    sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${data.posts.length} post${data.posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(data.posts, { editable: !!options.editable })}</div>`);
   } else {
     sections.push('<div class="empty-state" style="padding:20px 16px 10px;"><div class="empty-title">No post on this day</div><div class="empty-desc">No loaded post on this day. Check sync completeness before treating it as empty.</div></div>');
   }

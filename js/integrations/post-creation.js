@@ -43,6 +43,60 @@ async function editPost(input, options = {}) {
   return unwrapPostAction(res?.data?.editPost, 'Buffer rejected this edit.');
 }
 
+// Prefer a schedule-only edit. Some live Buffer validators still reject that
+// as empty content. Retry that explicit validation failure once, using a fresh
+// read rather than overwriting Buffer with the calendar's cached content.
+async function rescheduleBufferPost(id, dueAt, expectedDueAt) {
+  return editBufferPostPreservingContent({ id, mode: 'customScheduled', dueAt }, expectedDueAt);
+}
+
+async function readBufferPostForEdit(id) {
+  const query = `query RescheduleSource($id:PostId!){post(input:{id:$id}){id channelId text status dueAt metadata{... on ThreadedPostMetadata{threadCount thread{text}}} assets{__typename source thumbnail ... on ImageAsset{image{altText animatedThumbnail userTags{handle x y}}} ... on VideoAsset{video{title thumbnailOffset}} ... on DocumentAsset{document{title}}}}}`;
+  const response = await callBuffer(query, { id });
+  return response?.data?.post;
+}
+
+async function editBufferPostPreservingContent(changes, expectedDueAt) {
+  const input = { ...changes }, id = input.id;
+  try { return await editPost(input); }
+  catch (error) {
+    if (!['INVALID_INPUT_ERROR', 'POST_INVALID_INPUT_ERROR'].includes(error.code) || !/text.*media|media.*text/i.test(error.message || '')) throw error;
+  }
+  const current = await readBufferPostForEdit(id);
+  if (!current || String(current.id) !== String(id) || !['scheduled', 'buffer'].includes(String(current.status).toLowerCase())) {
+    throw new Error('This post is no longer scheduled. Sync Buffer before moving it again.');
+  }
+  if (expectedDueAt && +new Date(current.dueAt) !== +new Date(expectedDueAt)) {
+    throw new Error('This post’s schedule changed in Buffer. Sync before moving it again.');
+  }
+  const text = Object.prototype.hasOwnProperty.call(input, 'text') ? input.text : current.text;
+  if (typeof text === 'string' && text.trim()) {
+    input.text = text;
+    // Omit assets and service metadata: Buffer keeps the stored values.
+  } else {
+    // Only media-only posts need their assets resent. Preserve their order and
+    // editable metadata; never turn a partial/unknown list into a replacement.
+    if (!Array.isArray(current.assets) || !current.assets.length) throw new Error('Could not load this post’s content. Open it in Buffer to reschedule.');
+    input.assets = current.assets.map(asset => {
+      if (!asset?.source) throw new Error('Could not load the complete media. Open this post in Buffer to reschedule.');
+      if (asset.__typename === 'ImageAsset' && asset.image) {
+        const image = { url: asset.source, metadata: { altText: asset.image.altText, userTags: asset.image.userTags } };
+        if (asset.thumbnail) image.thumbnailUrl = asset.thumbnail;
+        if (asset.image.animatedThumbnail) image.metadata.animatedThumbnail = asset.image.animatedThumbnail;
+        return { image };
+      }
+      if (asset.__typename === 'VideoAsset' && asset.video) {
+        return { video: { url: asset.source, metadata: { title: asset.video.title, thumbnailOffset: asset.video.thumbnailOffset } } };
+      }
+      if (asset.__typename === 'DocumentAsset' && asset.document?.title && asset.thumbnail) {
+        return { document: { url: asset.source, title: asset.document.title, thumbnailUrl: asset.thumbnail } };
+      }
+      throw new Error('This media cannot be safely rescheduled here. Open the post in Buffer.');
+    });
+  }
+  return editPost(input);
+}
+
 function appendScheduled(post, sourceInput = {}) {
   const id = post?.id; if (!id || sourceInput.saveToDraft || post.status === 'draft') return;
   if (state.scheduled.some(p => p.id === id)) return;

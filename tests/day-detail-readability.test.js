@@ -30,7 +30,7 @@ test('day detail expands long posts independently and copies their full text', a
     let copied;
     w.navigator.clipboard.writeText = async text => { copied = text; };
     w.eval(`openPostDetails(fmtDate(new Date()), {posts:[
-      {id:'long',text:'Long post content. '.repeat(40),status:'sent',sentAt:new Date().toISOString()},
+      {id:'long',text:'Long post content. '.repeat(40),status:'scheduled',dueAt:new Date().toISOString()},
       {id:'short',text:'Short post',dueAt:new Date().toISOString()},
       {id:'lines',text:'One\\nTwo\\nThree\\nFour\\nFive',dueAt:new Date().toISOString()}
     ]})`);
@@ -49,5 +49,32 @@ test('day detail expands long posts independently and copies their full text', a
     cards[0].querySelector('[data-copy]').click();
     await new Promise(resolve => setTimeout(resolve, 0));
     assert.equal(copied, 'Long post content. '.repeat(40));
+  } finally { dom.window.close(); }
+});
+
+test('sent posts use compact disclosures with icons; day actions precede posts and coverage', async () => {
+  const dom = await loadApp();
+  try {
+    const w = dom.window;
+    w.eval(`state.channels=[{id:'a',displayName:'Ben',service:'linkedin'}];
+      state.scheduled=[{id:'next',channelId:'a',text:'Scheduled preview',dueAt:new Date().toISOString()}];
+      state.published=[{id:'sent',channelId:'a',status:'sent',text:'Sent copy. '.repeat(100),sentAt:new Date().toISOString(),externalLink:'https://example.com/post'}];
+      openCalendarDayDetails(new Date());`);
+    const body = w.document.querySelector('#sharedDayBody');
+    assert.ok(body.firstElementChild.classList.contains('day-detail-actions'));
+    const cards = body.querySelectorAll('.snap-modal-post');
+    assert.equal(cards.length, 2);
+    for (const card of cards) assert.equal(card.querySelector('.platform-logo').getAttribute('aria-label'), 'LinkedIn');
+    const sent = body.querySelector('.snap-modal-post.is-published');
+    const details = sent.querySelector('details');
+    assert.equal(details.open, false);
+    assert.equal(sent.querySelector('[data-expand-post]'), null);
+    details.querySelector('summary').click();
+    assert.equal(details.open, true);
+    assert.equal(details.querySelector('.snap-modal-post-body').textContent, 'Sent copy. '.repeat(100));
+    assert.ok(details.querySelector('[data-copy]'));
+    assert.equal(details.querySelector('a').getAttribute('href'), 'https://example.com/post');
+    details.querySelector('summary').click();
+    assert.equal(details.open, false);
   } finally { dom.window.close(); }
 });
