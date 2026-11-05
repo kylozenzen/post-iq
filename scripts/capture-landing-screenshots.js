@@ -107,7 +107,7 @@ async function run() {
   ];
   try {
     for (const shot of shots) {
-      const page = await browser.newPage({ viewport: { width: shot.width, height: shot.height }, timezoneId: 'UTC', serviceWorkers: 'block' });
+      const page = await browser.newPage({ viewport: { width: shot.width, height: shot.height }, timezoneId: 'UTC', serviceWorkers: 'block', deviceScaleFactor: 2 });
       const writes = [];
       await page.clock.install({ time: NOW });
       await page.route('**/*', route => {
