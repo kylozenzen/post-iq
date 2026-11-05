@@ -58,7 +58,7 @@ window.PostIQDrag = (() => {
     return new Date(y, m - 1, d, from.getHours(), from.getMinutes(), 0, 0);
   }
   function persistScheduled() {
-    try { cache.scheduled = { value: state.scheduled, ts: Date.now(), coverage: state.scheduledCoverage }; saveCacheState(); } catch {}
+    try { persistLocalScheduled(); } catch {}
     window.dispatchEvent(new Event('postiq:scheduled-updated'));
     renderCalendar();
   }

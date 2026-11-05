@@ -106,7 +106,7 @@ function appendScheduled(post, sourceInput = {}) {
     channelName: channel?.displayName || channel?.name || '', platform: channel?.service || '', status: 'scheduled',
     mediaUrls: mediaUrlsFromAssets(sourceInput.assets)
   }];
-  cache.scheduled = { value: state.scheduled, ts: Date.now(), coverage: state.scheduledCoverage }; saveCacheState();
+  persistLocalScheduled();
   window.dispatchEvent(new Event('postiq:scheduled-updated'));
 }
 
@@ -167,7 +167,7 @@ async function composerSend(action) {
       else {
         // A successful queue action without a confirmed date cannot fill a dated planning slot.
         state.scheduledCoverage = { ...state.scheduledCoverage, complete: false };
-        cache.scheduled = { value: state.scheduled, ts: Date.now(), coverage: state.scheduledCoverage }; saveCacheState();
+        persistLocalScheduled();
         window.dispatchEvent(new Event('postiq:scheduled-updated'));
       }
       renderCalendar();
