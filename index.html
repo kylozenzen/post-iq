@@ -543,7 +543,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
 .product-shot{width:100%;height:auto;border:1px solid var(--border2);border-radius:var(--r);box-shadow:var(--sh2);background:var(--surface);}.hero-product-shot{aspect-ratio:1440/900;object-fit:cover;object-position:top;}
 
 /* StoryBrand demo: one embedded hands-on experience, not a competing preview CTA. */
-.story-demo{padding:48px 0 30px;scroll-margin-top:82px}.story-demo-frame{display:block;width:100%;height:680px;background:#f2efe6;border:1px solid var(--border2);border-radius:var(--r);box-shadow:var(--sh1)}.story-demo-note{font-size:14px;color:var(--muted);margin-top:14px}.pillars{scroll-margin-top:82px}@media(max-width:850px){.story-demo-frame{height:820px}}@media(max-width:530px){.story-demo-frame{height:1040px}}
+.story-demo{padding:48px 0 30px;scroll-margin-top:82px}.story-demo postiq-sample-calendar{display:block;width:100%;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface);box-shadow:var(--sh1)}.story-demo-note{font-size:14px;color:var(--muted);margin-top:14px}.pillars{scroll-margin-top:82px}
 </style>
 </head>
 <body>
@@ -599,7 +599,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
       <h2 class="section-title" id="storyDemoTitle">Move the plan. <em>Not the goalposts.</em></h2>
       <p class="section-lede">Try adding a note or moving a sample post to another day. It’s an interactive example using fictional content — nothing connects to Buffer.</p>
     </div>
-    <iframe class="story-demo-frame" src="/demo.html?embed=1" title="Interactive PostIQ sample calendar: add ideas and move cards" loading="lazy"></iframe>
+    <postiq-sample-calendar aria-label="Interactive PostIQ sample calendar"></postiq-sample-calendar>
     <p class="story-demo-note">Want to make a real plan? <a class="text-link" href="/app.html?view=calendarView" data-cta="real-workspace">Open your own calendar without connecting Buffer</a>. Your local planning work stays in this browser.</p>
   </div>
 </section>
@@ -813,5 +813,7 @@ document.querySelectorAll('a[data-cta]').forEach(function(link){
   });
 });
 </script>
+<script src="/js/features/quick-add.js"></script>
+<script src="/js/landing-demo.js"></script>
 </body>
 </html>
