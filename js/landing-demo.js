@@ -11,8 +11,8 @@ class PostIQSampleCalendar extends HTMLElement {
 header{border-bottom:1px solid #ded7c7;background:#fffdf7}header .inner{max-width:1120px;margin:auto;padding:18px 22px;display:flex;align-items:center;gap:16px;justify-content:space-between;flex-wrap:wrap}header strong{font-size:22px;letter-spacing:-.05em}header small{display:block;color:#696356;font-weight:400;font-size:12px;letter-spacing:normal}
 main{max-width:none;margin:0;padding:0}h1{font-family:Georgia,serif;font-size:clamp(30px,5vw,48px);line-height:1.04;max-width:750px;margin:12px 0}p{line-height:1.6}.intro{max-width:760px;color:#635f55}.eyebrow{font-size:11px;letter-spacing:.12em;font-weight:800;color:#a43126;text-transform:uppercase}
 .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;background:#fffdf7;border:1px solid #beb4a2;border-radius:5px;color:#292720;padding:11px 14px;text-decoration:none;font-weight:700;min-height:42px}.btn.primary{background:var(--brand,#b52c20);color:white;border-color:var(--brand,#b52c20)}.btn:hover{filter:brightness(.96)}
-.panel{border:1px solid var(--border,#ded7c7);background:var(--surface,#fffdf7);padding:20px;border-radius:5px;margin:0 0 14px}.panel h2{font-size:18px;margin:0 0 8px}.hint{color:#696356;font-size:13px}.quick-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.quick-row input{flex:1;min-width:220px;padding:11px;border:1px solid #a69c89;border-radius:4px;background:#fff}#parsePreview{min-height:22px;margin-top:9px}
-.calendar-head{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;margin-bottom:12px}#weekLabel{font-weight:800;font-size:18px}.calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}.day{min-width:0;min-height:160px;background:var(--surface,#fffdf7);border:1px solid var(--border,#ded7c7);border-radius:6px;padding:9px;transition:background .12s,border-color .12s}.day.over,.day.target{border-color:#b52c20;background:#fff2e8}.day-head{font-size:12px;font-weight:800;margin-bottom:12px}.item{display:block;text-align:left;width:100%;border-radius:4px;padding:8px;min-height:41px;margin-bottom:8px;font-size:12px;line-height:1.35;overflow-wrap:anywhere}.item.post{background:#deefe4;border:1px solid #91b49f}.item.plan{background:#fffdf7;border:1px dashed #a78c60}.item.selected{outline:3px solid #b52c20;outline-offset:1px}.empty{color:#91897a;font-size:12px;border:1px dashed #ded7c7;border-radius:4px;padding:9px}
+.panel{border:1px solid var(--border,#ded7c7);background:var(--surface,#fffdf7);padding:20px;border-radius:5px;margin:0 0 14px}.panel h2{font-family:Georgia,serif;font-size:20px;margin:0 0 8px}.hint{color:#696356;font-size:13px}.quick-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.quick-row input{flex:1;min-width:220px;padding:11px;border:1px solid #a69c89;border-radius:4px;background:#fff}#parsePreview{min-height:22px;margin-top:9px}
+.calendar-head{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;margin-bottom:12px}#weekLabel{font-weight:800;font-size:18px}.calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}.day{min-width:0;min-height:175px;background:var(--surface,#fffdf7);border:1px solid var(--border,#ded7c7);border-radius:6px;padding:9px;transition:background .12s,border-color .12s}.day.over,.day.target{border-color:#b52c20;background:#fff2e8}.day-head{font-size:12px;font-weight:800;margin-bottom:12px}.item{display:block;text-align:left;width:100%;border-radius:4px;padding:8px;min-height:41px;margin-bottom:8px;font-size:12px;line-height:1.35;overflow-wrap:anywhere}.item.post{background:#deefe4;border:1px solid #91b49f}.item.plan{background:#fffdf7;border:1px dashed #a78c60}.item:hover{filter:brightness(.96)}.item.selected{outline:3px solid #b52c20;outline-offset:1px}.empty{color:#91897a;font-size:12px;border:1px dashed #ded7c7;border-radius:4px;padding:9px}
 .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:#635f55;margin-top:16px}.swatch{display:inline-block;width:13px;height:13px;vertical-align:-2px;margin-right:6px;border:1px solid #91b49f;background:#deefe4}.swatch.plan{background:#fffdf7;border:1px dashed #a78c60}
 #feedback{padding:12px 14px;border-radius:4px;background:#f3eadb;color:#292720;margin-top:14px;min-height:44px}#feedback:empty{display:none}.footer-cta{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:25px}.steps{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}.steps span{font-size:12px;padding:7px 10px;border:1px solid #ded7c7;border-radius:30px;background:#fffdf7}
 @media(max-width:850px){.calendar{grid-template-columns:repeat(4,minmax(0,1fr))}.day{min-height:130px}}
@@ -72,8 +72,8 @@ main{max-width:none;margin:0;padding:0}h1{font-family:Georgia,serif;font-size:cl
   }
   function render(){
     $('calendar').replaceChildren();
-    $('weekLabel').textContent=start.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' – '+plus(start,13).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
-    for(let i=0;i<14;i++){
+    $('weekLabel').textContent=start.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' – '+plus(start,6).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+    for(let i=0;i<7;i++){
       const date=plus(start,i), key=dayKey(date);
       const day=document.createElement('div');day.className='day';day.dataset.date=key;
       const head=document.createElement('div');head.className='day-head';head.textContent=date.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});day.append(head);
@@ -109,13 +109,13 @@ main{max-width:none;margin:0;padding:0}h1{font-family:Georgia,serif;font-size:cl
     const r=parser($('quickInput').value,new Date());
     if(!r.text){announce('Type a plan before adding it.');return;}
     items.push({id:nextId++,kind:'plan',date:r.dateKey,title:r.text});
-    if(r.dateKey<dayKey(start)||r.dateKey>dayKey(plus(start,13)))start=fromKey(r.dateKey);
+    if(r.dateKey<dayKey(start)||r.dateKey>dayKey(plus(start,6)))start=fromKey(r.dateKey);
     chosen=null;render();
     announce('Added “'+r.text+'” to '+fromKey(r.dateKey).toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})+'. This is a sample planning item, not a Buffer post.');
   });
   $('quickInput').addEventListener('input',preview);
-  $('prev').addEventListener('click',()=>{start=plus(start,-14);chosen=null;render();});
-  $('next').addEventListener('click',()=>{start=plus(start,14);chosen=null;render();});
+  $('prev').addEventListener('click',()=>{start=plus(start,-7);chosen=null;render();});
+  $('next').addEventListener('click',()=>{start=plus(start,7);chosen=null;render();});
   $('reset').addEventListener('click',reset);
   reset();preview();
 
