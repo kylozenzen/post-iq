@@ -14,11 +14,12 @@ assert.match(landing, /Buffer sign-in loads your scheduled posts and enables Buf
 assert.match(landing, /Sample data/);
 assert.match(landing, /not (?:made by, )?affiliated with/);
 assert.doesNotMatch(landing, /thread splitter|first companion app|demoInput/i, 'obsolete demo and claims stay removed');
-assert.ok(landing.includes('id="try"') && landing.indexOf('id="try"') < landing.indexOf('id="benefits"'), 'interactive sample sits before the benefits story');
+const order = ['id="heroTitle"', 'id="how"', 'id="try"', 'id="extras"'].map(id => landing.indexOf(id));
+assert.ok(order.every(i => i > -1) && order.every((i, k) => k === 0 || order[k - 1] < i), 'hero, how it works, sample, then extras');
+assert.match(landing, /<postiq-sample-calendar compact[^>]*><\/postiq-sample-calendar>/, 'hero runs the live compact sample');
+assert.match(landing, /<a class="signup-pill" href="https:\/\/join\.buffer\.com\/ben-campbell"[^>]*>Don’t have a Buffer account\? Sign up/, 'sign-up pill uses the partner link');
+assert.match(landing, /Partner link: Ben may earn a commission/, 'affiliate disclosure sits beside the pill');
 assert.doesNotMatch(landing, /href="[^"]*tour=1/, 'one preview entry point, not a separate tour link');
-const heroVisual = landing.match(/<figure class="hero-visual"[\s\S]*?<\/figure>/);
-assert.ok(heroVisual, 'hero shows the product next to the copy');
-assert.match(heroVisual[0], /calendar-desktop\.png/, 'hero uses the current product capture');
 const shots = [...landing.matchAll(/src="\/images\/product\/([a-z-]+\.png)"/g)].map(m => m[1]);
 assert.equal(new Set(shots).size, shots.length, `each landing image is different: ${shots.join(', ')}`);
 for (const shot of shots) assert.ok(require('node:fs').existsSync(require('node:path').join(__dirname, '..', 'images', 'product', shot)), `${shot} exists`);

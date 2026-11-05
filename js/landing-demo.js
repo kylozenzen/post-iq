@@ -62,10 +62,19 @@ main{margin:0;padding:0}h2{font-family:Georgia,serif;font-size:20px;margin:0 0 8
   .calendar{grid-template-columns:repeat(2,minmax(0,1fr))}.day{min-height:120px}.panel{padding:14px}
   .shelf{grid-template-columns:1fr}
 }
+/* Compact mode (hero): the week and fill loop only; Quick Add and the Shelf live in the full sample below. */
+:host([compact]) .quick-panel,:host([compact]) .shelf-panel{display:none}
+:host([compact]) .panel{padding:14px}
+:host([compact]) .calendar{gap:6px}
+:host([compact]) .day{min-height:138px;padding:7px}
+:host([compact]) .day-head{font-size:11px;margin-bottom:8px}
+:host([compact]) .item{font-size:11px;padding:6px;min-height:34px;margin-bottom:6px}
+:host([compact]) .open-slot{font-size:11px;padding:6px}
+:host([compact]) .hint,:host([compact]) .legend{display:none}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 <main>
-<section class="panel" aria-labelledby="quickTitle">
+<section class="panel quick-panel" aria-labelledby="quickTitle">
   <h2 id="quickTitle">Add an idea in everyday language</h2>
   <p class="hint">Try “Friday: film behind-the-scenes video” or “todo tomorrow: review captions”. This makes a plan, not a published post.</p>
   <form id="quickForm" class="quick-row">
@@ -99,7 +108,7 @@ main{margin:0;padding:0}h2{font-family:Georgia,serif;font-size:20px;margin:0 0 8
   <div id="feedback" role="status" aria-live="polite"></div>
 </section>
 
-<section class="panel" aria-labelledby="shelfTitle">
+<section class="panel shelf-panel" aria-labelledby="shelfTitle">
   <h2 id="shelfTitle">The Shelf: posts worth reusing</h2>
   <p class="hint">Pick a starred post, then fill an open slot with it. In the app, a fill queues a real Buffer post. Here it stays in this sample.</p>
   <div class="shelf" id="shelf"></div>
@@ -116,11 +125,11 @@ class PostIQSampleCalendar extends HTMLElement {
       root.getElementById('parsePreview').textContent = 'Quick Add is temporarily unavailable.';
       return;
     }
-    initSample(root, parser);
+    initSample(root, parser, this.hasAttribute('compact') ? 'hero' : 'full');
   }
 }
 
-function initSample(root, parser) {
+function initSample(root, parser, variant) {
   const $ = id => root.getElementById(id);
 
   const dayKey = d => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
@@ -141,7 +150,16 @@ function initSample(root, parser) {
   function announce(msg) { $('feedback').textContent = msg; }
 
   // Undo keeps a short history of whole-sample snapshots. The sample is tiny, so copying is fine.
+  // One analytics event per page load, on the first real change. Sample data never leaves the page.
+  let tracked = false;
+  function track() {
+    if (tracked || typeof window.gtag !== 'function') return;
+    tracked = true;
+    window.gtag('event', 'landing_sample_interaction', { variant });
+  }
+
   function checkpoint() {
+    track();
     history.push({ items: items.map(x => ({ ...x })), start: start.getTime(), nextId });
     if (history.length > 20) history.shift();
     $('undo').disabled = false;
