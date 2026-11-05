@@ -560,6 +560,17 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
 .how{padding:40px 0 16px;}
 @media(max-width:980px){.hero-inner{grid-template-columns:1fr;}.pillar-grid.three,.pillar-grid.six{grid-template-columns:1fr 1fr;}}
 @media(max-width:640px){.pillar-grid.three,.pillar-grid.six{grid-template-columns:1fr;}}
+
+/* ─── LOOK AROUND: three real app screens ─── */
+.look-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;}
+.look-card{display:flex;flex-direction:column;gap:10px;}
+.look-card figure{margin:0 0 6px;}
+.look-card .mock-caption{min-height:2.6em;}
+.look-card h3{font-family:var(--font-display);font-size:19px;letter-spacing:-.02em;color:var(--ink);margin-top:4px;}
+.look-card p{font-size:14px;color:var(--muted);line-height:1.6;}
+.look-card .text-link{align-self:flex-start;margin-top:auto;}
+.look-around{padding:40px 0 16px;}
+@media(max-width:980px){.look-grid{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -657,6 +668,46 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
         <ul><li>Star evergreen posts for one-tap fill suggestions</li><li>Download or restore a backup of your local planning work</li><li>Export notes and plans to your calendar app</li></ul>
       </div>
       <figure><img class="product-shot" src="/images/product/shelf-desktop.png" alt="PostIQ Shelf listing past posts with starred evergreen posts ready to reshare" loading="lazy"><figcaption class="mock-caption">The Shelf: past posts and ideas to reuse · sample data</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- LOOK AROUND THE APP -->
+<section class="look-around" id="look" aria-labelledby="lookTitle">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Look around</div>
+      <h2 class="section-title" id="lookTitle">The rest of the app, <em>one click away.</em></h2>
+      <p class="section-lede">Every view here opens in the preview, with sample data and no Buffer sign-in.</p>
+    </div>
+    <div class="look-grid reveal">
+      <article class="look-card">
+        <figure>
+          <img class="product-shot" src="/images/product/shortcuts-desktop.png" alt="PostIQ keyboard shortcut sheet listing the main keys" loading="lazy">
+          <figcaption class="mock-caption">Keyboard shortcuts · sample data</figcaption>
+        </figure>
+        <h3>Keyboard first</h3>
+        <p>Common actions have keyboard shortcuts, so planning stays fast with your hands on the keys.</p>
+        <a class="text-link" href="/app.html?view=calendarView" data-cta="look-shortcuts">Open the calendar</a>
+      </article>
+      <article class="look-card">
+        <figure>
+          <img class="product-shot" src="/images/product/compose-desktop.png" alt="PostIQ Compose editor with a draft, channel picker, and send options" loading="lazy">
+          <figcaption class="mock-caption">Compose: write, then choose draft, queue, or schedule · sample data</figcaption>
+        </figure>
+        <h3>Compose</h3>
+        <p>A focused editor with local autosave. Nothing goes to Buffer until you pick an action.</p>
+        <a class="text-link" href="/app.html?view=composerView" data-cta="look-compose">Open Compose</a>
+      </article>
+      <article class="look-card">
+        <figure>
+          <img class="product-shot" src="/images/product/command-menu-desktop.png" alt="PostIQ command menu open over the calendar" loading="lazy">
+          <figcaption class="mock-caption">Command menu over the calendar · sample data</figcaption>
+        </figure>
+        <h3>Command menu</h3>
+        <p>Jump to any view, add a plan, or find a post from one keyboard shortcut.</p>
+        <a class="text-link" href="/app.html?view=calendarView" data-cta="look-calendar">Open the calendar</a>
+      </article>
     </div>
   </div>
 </section>

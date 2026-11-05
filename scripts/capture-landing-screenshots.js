@@ -75,6 +75,11 @@ function seed({ nowIso }) {
   set('postiq_calendar_notes_v2', notes);
   set('postiqPlanningSettings', settings);
   set('postiq_tour_seen', '1');
+  set('postiq_composer_draft_v1', {
+    html: '<p>Behind the scenes: how this week’s collection came together.</p><p>Three things we learned while building it, and the one we would skip next time.</p>',
+    channelId: 'sample-ig',
+    updatedAt: ts,
+  });
   set('postiq_tour_connected_seen', '1');
   set('postiq_app_visited', '1');
   set('postiq_getting_started_dismissed', '1');
@@ -162,6 +167,12 @@ async function run() {
         await page.waitForTimeout(250);
         const main = await page.evaluate(() => { const r = document.querySelector('.main').getBoundingClientRect(); return { x: r.left, y: 0, width: r.width, height: Math.min(innerHeight, 820) }; });
         await page.screenshot({ animations: 'disabled', path: path.join(outDir, 'shelf-desktop.png'), clip: main });
+        await page.evaluate(() => activateView('calendarView', 'screenshot'));
+
+        // "Look around": Compose with a sample draft, without the Buffer connection state.
+        await page.evaluate(() => activateView('composerView', 'screenshot'));
+        await page.waitForTimeout(300);
+        await page.screenshot({ animations: 'disabled', path: path.join(outDir, 'compose-desktop.png') });
         await page.evaluate(() => activateView('calendarView', 'screenshot'));
       }
       if (writes.length) throw new Error(`${shot.name}: unexpected network writes ${writes.join(', ')}`);
