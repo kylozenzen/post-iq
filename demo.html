@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#f2efe6">
 <title>Try PostIQ — interactive sample calendar</title>
+<script>if(new URLSearchParams(location.search).get("embed")==="1")document.documentElement.classList.add("embedded");</script>
 <meta name="description" content="Try planning and moving content on a safe PostIQ sample calendar. No sign-in, no changes to Buffer.">
 <style>
 :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f2efe6;color:#292720;font-synthesis:none}
@@ -19,6 +20,7 @@ main{max-width:1120px;margin:auto;padding:28px 22px 60px}h1{font-family:Georgia,
 @media(max-width:850px){.calendar{grid-template-columns:repeat(4,minmax(0,1fr))}.day{min-height:130px}}
 @media(max-width:530px){.calendar{grid-template-columns:repeat(2,minmax(0,1fr))}.day{min-height:120px}.panel{padding:14px}header .inner,main{padding-left:14px;padding-right:14px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+.embedded header,.embedded .intro,.embedded .eyebrow,.embedded h1,.embedded .steps,.embedded .footer-cta{display:none}.embedded main{padding:14px;max-width:none}.embedded .panel{margin:8px 0 14px}.embedded .calendar-head{margin-bottom:8px}.embedded .day{min-height:135px}.embedded .panel h2{font-size:16px}.embedded .legend{margin-top:10px}@media(max-width:530px){.embedded .day{min-height:115px}.embedded main{padding:9px}}
 </style>
 </head>
 <body>
