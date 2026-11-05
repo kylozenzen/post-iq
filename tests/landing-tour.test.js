@@ -12,7 +12,8 @@ assert.match(landing, /href="\/auth\/connect\.html\?return=%2Fapp\.html%3Fview%3
 assert.match(landing, /href="\/app\.html\?view=calendarView"[^>]*>Preview the calendar</);
 assert.match(landing, /Buffer sign-in loads your scheduled posts and enables Buffer actions/);
 assert.match(landing, /Sample data/);
-assert.match(landing, /not (?:made by, )?affiliated with/);
+assert.match(landing, /not endorsed by Buffer/);
+assert.doesNotMatch(landing, /affiliated with/, 'no affiliation claim next to the partner link');
 assert.doesNotMatch(landing, /thread splitter|first companion app|demoInput/i, 'obsolete demo and claims stay removed');
 const order = ['id="heroTitle"', 'id="how"', 'id="try"', 'id="extras"'].map(id => landing.indexOf(id));
 assert.ok(order.every(i => i > -1) && order.every((i, k) => k === 0 || order[k - 1] < i), 'hero, how it works, sample, then extras');
