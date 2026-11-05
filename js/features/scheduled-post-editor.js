@@ -97,7 +97,7 @@ window.PostIQPostEditor = (() => {
         state.scheduled = state.scheduled.filter(post => String(post.id) !== String(current.id));
         if (action === 'now') state.scheduledCoverage = { ...state.scheduledCoverage, complete: false };
       }
-      cache.scheduled = { value: state.scheduled, ts: Date.now(), coverage: state.scheduledCoverage }; saveCacheState();
+      persistLocalScheduled();
       window.dispatchEvent(new Event('postiq:scheduled-updated'));
       closeModal('sharedDayModal'); renderCalendar();
       showToast(action === 'draft' ? 'Moved to Buffer drafts.' : action === 'now' ? 'Sent to Buffer for publishing now.' : 'Changes saved in Buffer.', 'success');

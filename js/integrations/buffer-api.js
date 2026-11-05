@@ -11,6 +11,14 @@ function loadCacheState() {
   } catch {}
 }
 function saveCacheState() { try { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch {} }
+// Local edits (drags, saves, optimistic adds) change what the calendar shows but
+// do not re-read Buffer. Keep the timestamp of the last real Buffer read so the
+// TTL and the 'Stale Buffer data' warning still reflect Buffer, not our writes.
+function persistLocalScheduled() {
+  const lastBufferRead = cache.scheduled?.ts || 0;
+  cache.scheduled = { value: state.scheduled, ts: lastBufferRead, coverage: state.scheduledCoverage };
+  saveCacheState();
+}
 function isCacheFresh(key) { return !!cache[key]?.ts && (Date.now() - cache[key].ts) < CACHE_TTL[key]; }
 function hydrateFromCache() {
   if (cache.orgId.value) state.organizationId = cache.orgId.value;
