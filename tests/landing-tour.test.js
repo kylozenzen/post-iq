@@ -6,11 +6,9 @@ const landing = fs.readFileSync('index.html', 'utf8');
 const app = fs.readFileSync('app.html', 'utf8');
 const tour = fs.readFileSync('js/features/tour.js', 'utf8');
 const sw = fs.readFileSync('sw.js', 'utf8');
-const start = fs.readFileSync('start.html', 'utf8');
 
 assert.match(landing, /<h1[^>]*>Buffer publishes\. <em>PostIQ plans\.<\/em><\/h1>/);
-assert.match(landing, /href="\/start\.html"[^>]*data-cta="get-started"[^>]*>Get started</, 'primary CTA opens the sandbox walkthrough');
-assert.doesNotMatch(landing, /id="look"|href="#look"/, 'look-around section removed in favour of the walkthrough');
+assert.match(landing, /href="\/auth\/connect\.html\?return=%2Fapp\.html%3Fview%3DcalendarView"[^>]*>Sign in with Buffer</, 'primary CTA returns to the calendar');
 assert.match(landing, /href="\/app\.html\?view=calendarView"[^>]*>Preview the calendar</);
 assert.match(landing, /Buffer sign-in loads your scheduled posts and enables Buffer actions/);
 assert.match(landing, /Sample data/);
@@ -60,19 +58,4 @@ assert.match(tour, /Ideas on the Shelf/, 'tour explains optional Shelf ideas');
 assert.match(tour, /selectSettingsTab\?\.\('customize'\)/, 'tour opens the Shelf setting');
 assert.match(tour, /#sharedDayModal\.open \[data-add-note\]/, 'plan step follows the day drawer action');
 assert.match(tour, /dayObserver = new MutationObserver/, 'tour repositions after a day drawer opens');
-// Sandbox walkthrough: labelled as sample data, never writes, final choices are clear.
-assert.match(start, /<title>[^<]*Sandbox walkthrough[^<]*<\/title>/);
-assert.match(start, /class="sandbox-banner"[\s\S]*sample data[\s\S]*Nothing you do is sent to Buffer/, 'sandbox banner states sample data and no Buffer writes');
-assert.match(start, /Sandbox · sample data/, 'sandbox pill beside the sample');
-assert.match(start, /<postiq-sample-calendar/, 'walkthrough uses the same sample calendar');
-assert.equal((start.match(/\{ title: '/g) || []).length, 4, 'four walkthrough steps');
-assert.match(start, /href="\/auth\/connect\.html\?return=%2Fapp\.html%3Fview%3DcalendarView"[^>]*>Sign in with Buffer</, 'final sign-in choice');
-assert.match(start, /href="https:\/\/join\.buffer\.com\/ben-campbell"[^>]*rel="sponsored noopener"[^>]*>Sign up for Buffer/, 'final sign-up choice uses the partner link');
-assert.match(start, /partner link: Ben may earn a commission/i, 'affiliate disclosure beside sign-up');
-assert.match(start, /id="keepExploring"[^>]*>Keep exploring the sample</, 'default choice stays in the sandbox');
-assert.match(start, /not endorsed by Buffer/);
-assert.doesNotMatch(start, /affiliated with/);
-for (const ev of ['start_view', 'start_step', 'start_choice']) assert.ok(start.includes(ev), `analytics ${ev}`);
-assert.doesNotMatch(start, /fetch\(|createPost|localStorage\.setItem/, 'the walkthrough never writes or calls Buffer');
-
 console.log('Landing CTA, claim, screenshot and calendar tour wiring tests passed');
