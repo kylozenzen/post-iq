@@ -39,8 +39,8 @@ function run(expression) {
 }
 
 stored.set('postiq.workspacePreferences', '{bad json');
-assert.deepEqual({ ...run('getWorkspacePreferences()') }, { planning: true, create: true, ideas: true });
-assert.equal(stored.get('postiq.workspacePreferences'), JSON.stringify({ planning: true, create: true, ideas: true }));
+assert.deepEqual({ ...run('getWorkspacePreferences()') }, { planning: true, create: true, ideas: false });
+assert.equal(stored.get('postiq.workspacePreferences'), JSON.stringify({ planning: true, create: true, ideas: false }));
 
 stored.set('postiq.workspacePreferences', JSON.stringify({ planning: false, create: false, ideas: false }));
 assert.deepEqual({ ...run('getWorkspacePreferences()') }, { planning: true, create: false, ideas: false });

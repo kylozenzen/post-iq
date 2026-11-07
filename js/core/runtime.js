@@ -23,7 +23,8 @@ const THEMES = Object.freeze(['default', 'classic', 'neon', 'studio', 'evergreen
 // Themes retired as standalone choices, mapped to the value that preserves the
 // look the person already had. Applied once, on first load after the change.
 const LEGACY_THEME_ALIASES = Object.freeze({ editorial: 'default' });
-const WORKSPACE_DEFAULTS = Object.freeze({ planning: true, create: true, ideas: true });
+// "ideas" is the writing tools switch: it turns on Shelf and the Compose tools together.
+const WORKSPACE_DEFAULTS = Object.freeze({ planning: true, create: true, ideas: false });
 const WORKSPACE_VIEWS = Object.freeze({ planning: 'calendarView', create: 'composerView', ideas: 'ideasView' });
 // Internal beta feature flags for safely rolling modules on/off. These are not user-facing settings.
 const FEATURE_FLAGS = {
@@ -218,13 +219,6 @@ function normalizeWorkspacePreferences(value) {
 function getWorkspacePreferences() {
   let parsed = null;
   try { parsed = JSON.parse(localStorage.getItem(WORKSPACE_PREFERENCES_KEY) || 'null'); } catch {}
-  // One-time move of Shelf (the "ideas" workspace) to on-by-default for everyone.
-  try {
-    if (!localStorage.getItem('postiq.shelfOnByDefaultV1')) {
-      if (parsed && typeof parsed === 'object') parsed.ideas = true;
-      localStorage.setItem('postiq.shelfOnByDefaultV1', '1');
-    }
-  } catch {}
   const normalized = normalizeWorkspacePreferences(parsed);
   try {
     if (JSON.stringify(parsed) !== JSON.stringify(normalized)) {
@@ -272,6 +266,7 @@ function renderWorkspacePreferences() {
 // point it at whichever half exists.
 function shelfViews() {
   const views = [];
+  if (!workspacePreferences.ideas) return views; // Shelf goes with the writing tools
   const on = feature => typeof isFeatureEnabled !== 'function' || isFeatureEnabled(feature);
   // Notebook first: Shelf opens on Notebook, with Past posts one tab away.
   if (workspacePreferences.ideas && on('ideas')) views.push('ideasView');
@@ -304,6 +299,11 @@ function saveWorkspacePreferences(nextPreferences) {
   return workspacePreferences;
 }
 
+// First draft in Compose turns the writing tools on, and says what is now live.
+function turnOnWritingTools() {
+  setWorkspacePreference('ideas', true);
+  if (typeof showToast === 'function') showToast('Writing tools are live. Shelf holds your Notebook, Snippets, Past posts and Trending, and Compose can pull from all of them.', 'success');
+}
 function setWorkspacePreference(workspace, enabled) {
   if (!(workspace in WORKSPACE_DEFAULTS)) return;
   const note = qs('workspacePreferenceNote');
