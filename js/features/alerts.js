@@ -24,12 +24,12 @@ window.PostIQAlerts = (() => {
     if (!conn.connected) {
       alerts.push({ tone: 'warn', kind: conn.reconnectNeeded ? 'reconnect' : 'connect',
         title: conn.reconnectNeeded ? 'Reconnect Buffer' : 'Connect Buffer',
-        detail: conn.reconnectNeeded ? 'Your Buffer session expired — sign in again so posts keep going out.' : 'Connect Buffer to see your channels and runway.' });
+        detail: conn.reconnectNeeded ? 'Your Buffer session expired — sign in again so posts keep going out.' : 'Connect Buffer to see your channels and days ahead.' });
       return alerts; // nothing else is measurable
     }
     const coverage = typeof getQueueCoverage === 'function' ? getQueueCoverage(90) : null;
     if (coverage && (coverage.stale || !coverage.complete)) {
-      alerts.push({ tone: 'warn', kind: 'stale', title: 'Queue data out of date', detail: 'Sync to refresh your calendar and runway.' });
+      alerts.push({ tone: 'warn', kind: 'stale', title: 'Queue data out of date', detail: 'Sync to refresh your calendar and days ahead.' });
     }
     if (tokenExpiringSoon()) {
       alerts.push({ tone: 'info', kind: 'token', title: 'Buffer sign-in expires soon', detail: 'It should renew on its own — reconnect if your next sync fails.' });

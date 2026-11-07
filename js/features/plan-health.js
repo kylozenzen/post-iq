@@ -57,7 +57,7 @@ window.PostIQPlanHealth = (() => {
 
     if (!connection.connected) {
       const reconnect = !!connection.reconnectNeeded;
-      setStrip('warn', `<strong>${reconnect ? 'Reconnect Buffer' : 'Connect Buffer'}</strong><span>${reconnect ? 'Your Buffer session expired. Sign in again so your posts keep going out.' : 'Connect Buffer to see your channels and content runway.'}</span>`);
+      setStrip('warn', `<strong>${reconnect ? 'Reconnect Buffer' : 'Connect Buffer'}</strong><span>${reconnect ? 'Your Buffer session expired. Sign in again so your posts keep going out.' : 'Connect Buffer to see your channels and days ahead.'}</span>`);
       return;
     }
 
@@ -71,7 +71,7 @@ window.PostIQPlanHealth = (() => {
     const stale = coverage.stale || !coverage.complete;
 
     if (stale) {
-      setStrip('warn', `<strong>Your queue data looks out of date</strong><span>Sync to refresh your calendar and runway.</span>`);
+      setStrip('warn', `<strong>Your queue data looks out of date</strong><span>Sync to refresh your calendar and days ahead.</span>`);
       return;
     }
     if (tokenWarning()) {

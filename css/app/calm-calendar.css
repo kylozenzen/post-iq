@@ -392,7 +392,6 @@
   border-radius: calc(var(--r) + 2px);
   background: var(--surface2);
 }
-.shelf-tabs:has([data-shelf-tab="ideasView"][hidden]) { display: none; }
 .shelf-tab {
   appearance: none;
   border: 0;
@@ -411,8 +410,6 @@
 #libraryView > .shelf-tabs, #ideasView > .shelf-tabs { margin-left: 32px; }
 @media (max-width: 768px) {
   #libraryView > .shelf-tabs, #ideasView > .shelf-tabs { margin: 8px 16px 12px; display: flex; }
-  #libraryView > .shelf-tabs:has([data-shelf-tab="ideasView"][hidden]),
-  #ideasView > .shelf-tabs:has([data-shelf-tab="ideasView"][hidden]) { display: none; }
   .shelf-tab { flex: 1; padding: 10px; }
 }
 
@@ -424,7 +421,6 @@
 }
 
 /* Shelf tabs only make sense when both halves exist */
-.shelf-tabs:has([data-shelf-tab="libraryView"][hidden]) { display: none !important; }
 
 /* A gentle nudge on the Shelf entry when Ideas is switched on in Settings */
 @keyframes shelf-nudge {

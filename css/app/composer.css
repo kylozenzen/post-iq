@@ -437,7 +437,7 @@
       border-radius: var(--r2);
       background: var(--surface2);
     }
-    .composer-support .support-tabs { flex: 0 0 auto; overflow-x: auto; scrollbar-width: none; }
+    .composer-support .support-tabs { flex: 0 0 auto; flex-wrap: wrap; overflow: visible; }
     .composer-support .support-tabs::-webkit-scrollbar { display: none; }
     .support-tab-count {
       display: inline-flex;

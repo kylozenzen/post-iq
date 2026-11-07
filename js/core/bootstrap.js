@@ -247,25 +247,35 @@ function init() {
   on('generateShare', 'click', shareSnapshot);
   on('copyShare', 'click', copyCurrentShareLink);
 
+  // Post text limits from Buffer's character-limit guide (post text, not first comment).
+  // X free is 280 (Premium allows 25,000); TikTok is 2,200 when a video is attached.
+  // Counts are UTF-16 length; Instagram counts each line break as 2. X's own weighting
+  // of URLs and emoji is not reproduced, so the X count is approximate.
+  const CHAR_LIMITS = [
+    [/twitter|^x-|^x$/, 280], [/bluesky/, 300], [/thread/, 500], [/mastodon/, 500],
+    [/pinterest/, 500], [/linkedin/, 3000], [/instagram/, 2196], [/tiktok/, 2200],
+    [/facebook/, 5000], [/youtube/, 5000], [/google/, 4000],
+  ];
+  const charLimitFor = (svc) => { const hit = CHAR_LIMITS.find(([re]) => re.test(svc)); return hit ? hit[1] : null; };
+  const charLengthFor = (svc, text) => text.length + (svc.includes('instagram') ? (text.match(/\n/g) || []).length : 0);
   const editor = qs('composerEditor');
   if (!editor) { applyFeatureFlags(); return; }
   editor.addEventListener('input', () => {
     const text = editorToText(editor.innerHTML);
     const ch = state.channels.find(c => c.id === qs('composerChannel')?.value);
     const svc = (ch?.service || '').toLowerCase();
-    let limit = null;
-    if (svc.includes('twitter') || svc.includes('x-')) limit = 280;
-    else if (svc.includes('thread')) limit = 500;
-    else if (svc.includes('linkedin')) limit = 3000;
-    else if (svc.includes('instagram')) limit = 2200;
+    const limit = charLimitFor(svc);
+    const len = charLengthFor(svc, text);
     const cc = qs('charCount');
     if (limit) {
-      const rem = limit - text.length;
-      cc.textContent = `${text.length}/${limit}`;
+      const rem = limit - len;
+      cc.textContent = `${len}/${limit}`;
+      cc.title = `${ch?.displayName || ch?.name || 'This channel'} allows ${limit} characters`;
       cc.className = 'char-count' + (rem < 0 ? ' over' : rem < 50 ? ' warn' : '');
     } else {
-      cc.textContent = `${text.length} chars`;
-      cc.className = 'char-count' + (text.length > 500 ? ' warn' : '');
+      cc.textContent = `${len} chars`;
+      cc.title = 'Pick a channel to see its character limit';
+      cc.className = 'char-count' + (len > 500 ? ' warn' : '');
     }
     if (!composerContentStartedTracked && text.trim().length > 0) { safeTrack(() => GA4_Composer.contentStarted()); composerContentStartedTracked = true; }
     [100, 280, 500].forEach(milestone => { if (text.length >= milestone && !composerMilestonesTracked.has(milestone)) { safeTrack(() => GA4_Composer.contentLengthMilestone(milestone)); composerMilestonesTracked.add(milestone); } });

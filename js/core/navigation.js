@@ -36,10 +36,9 @@ window.activateView = activateView;
 
 function setIdeasTab(tabId = 'notebook') {
   if (tabId === 'trending' && !getFeatureFlag('trending')) { showFeaturePaused('trending'); tabId = 'notebook'; }
-  const tab = ['notebook', 'templates'].includes(tabId) ? tabId : 'notebook';
+  const tab = ['notebook', 'templates', 'trending'].includes(tabId) ? tabId : 'notebook';
   currentIdeasTab = tab;
-  const resources=document.getElementById('bankResources');
-  if(resources) {resources.open=false;document.getElementById('bankResourcesSummary').textContent=tab==='notebook'?'Resources':`Resources · ${document.querySelector(`[data-ideas-tab="${tab}"]`)?.textContent || tab}`;}
+  if (tab === 'trending') { try { window.PostIQTrending?.ensureLoaded?.(); } catch {} }
   safeTrack(() => GA4_Ideas.tabSwitched(tab));
   document.querySelectorAll('.ideas-tab').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.ideasTab === tab);
