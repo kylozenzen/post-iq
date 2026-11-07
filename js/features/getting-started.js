@@ -28,9 +28,9 @@ window.PostIQGettingStarted = (() => {
     return [
       { id: 'connect', done: connected(), label: 'Connect Buffer', desc: 'Bring your scheduled posts into PostIQ.', cta: 'Connect', act: () => { try { typeof goToBufferConnect === 'function' ? goToBufferConnect() : (window.location.href = '/auth/connect.html'); } catch {} } },
       { id: 'schedule', done: hasSchedule(), label: 'Set a posting rhythm', desc: 'Show which days you usually post.', cta: 'Set days', act: () => window.YourPace?.open?.() },
-      { id: 'ideas', done: ideasEnabled(), label: 'Enable Shelf ideas', desc: 'Keep unfinished ideas next to past posts.', cta: 'Enable', act: () => { if (typeof openModal === 'function') openModal('settingsModal'); window.selectSettingsTab?.('customize'); document.querySelector('[data-workspace-toggle="ideas"]')?.focus(); } },
+      { id: 'ideas', done: ideasEnabled(), label: 'Write your first draft', desc: 'Writing tools and Shelf turn on after your first draft.', cta: 'Compose', act: () => window.activateView?.('composerView', 'getting_started') },
       { id: 'write', done: read(FIRST_POST_KEY) === '1', label: 'Create a Buffer draft', desc: 'Use Compose whenever a plan is ready.', cta: 'Compose', act: () => window.activateView?.('composerView', 'getting_started') },
-      { id: 'evergreen', done: hasEvergreen(), label: 'Save something to reuse', desc: 'Star a useful past post on Shelf.', cta: 'Open Shelf', act: () => window.activateView?.('libraryView', 'getting_started') },
+      { id: 'signin', done: connected(), label: 'Sign in to Buffer', desc: 'Connect your account so your posts and drafts sync.', cta: 'Sign in', act: () => steps()[0].act() },
 
     ];
   }

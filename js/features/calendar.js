@@ -451,7 +451,7 @@ function renderCalendarRunway() {
   if (!(state.channels || []).length) return;
   if (!scheduled.length) {
     box.classList.add('is-setup');
-    box.innerHTML = `<div class="runway-prompt"><span class="runway-ico" aria-hidden="true">◷</span><div><strong>See your content runway.</strong> Set a posting schedule per channel and the calendar will show how many days you're covered.</div><button class="btn sm" type="button" data-open-schedule="runway">Set posting schedule</button></div>`;
+    box.innerHTML = `<div class="runway-prompt"><span class="runway-ico" aria-hidden="true">◷</span><div><strong>See your days ahead.</strong> Set a posting schedule per channel and the calendar will show how many days you're covered.</div><button class="btn sm" type="button" data-open-schedule="runway">Set posting schedule</button></div>`;
     box.querySelector('[data-open-schedule]')?.addEventListener('click', () => window.YourPace?.open?.());
     return;
   }

@@ -23,6 +23,7 @@ const THEMES = Object.freeze(['default', 'classic', 'neon', 'studio', 'evergreen
 // Themes retired as standalone choices, mapped to the value that preserves the
 // look the person already had. Applied once, on first load after the change.
 const LEGACY_THEME_ALIASES = Object.freeze({ editorial: 'default' });
+// "ideas" is the writing tools switch: it turns on Shelf and the Compose tools together.
 const WORKSPACE_DEFAULTS = Object.freeze({ planning: true, create: true, ideas: false });
 const WORKSPACE_VIEWS = Object.freeze({ planning: 'calendarView', create: 'composerView', ideas: 'ideasView' });
 // Internal beta feature flags for safely rolling modules on/off. These are not user-facing settings.
@@ -265,9 +266,11 @@ function renderWorkspacePreferences() {
 // point it at whichever half exists.
 function shelfViews() {
   const views = [];
+  if (!workspacePreferences.ideas) return views; // Shelf goes with the writing tools
   const on = feature => typeof isFeatureEnabled !== 'function' || isFeatureEnabled(feature);
-  if (on('library')) views.push('libraryView');
+  // Notebook first: Shelf opens on Notebook, with Past posts one tab away.
   if (workspacePreferences.ideas && on('ideas')) views.push('ideasView');
+  if (on('library')) views.push('libraryView');
   return views;
 }
 function renderShelfNav() {
@@ -275,7 +278,7 @@ function renderShelfNav() {
   document.querySelectorAll('[data-shelf-nav]').forEach(el => {
     el.hidden = !views.length;
     if (el.style) el.style.display = views.length ? '' : 'none';
-    if (views.length) el.dataset.view = views.includes(el.dataset.view) ? el.dataset.view : views[0];
+    if (views.length) el.dataset.view = views[0]; // Notebook first
     if ('disabled' in el) el.disabled = !views.length;
     el.setAttribute('aria-hidden', views.length ? 'false' : 'true');
   });
@@ -296,6 +299,41 @@ function saveWorkspacePreferences(nextPreferences) {
   return workspacePreferences;
 }
 
+// First draft in Compose turns the writing tools on. The explainer waits for a
+// pause in typing, shows once, and is anchored to the Writing tools button.
+const WRITING_TOOLS_TIP_KEY = 'postiq.writingToolsTipSeenV1';
+let writingToolsTipTimer = null;
+function noteWritingDraft() {
+  if (!workspacePreferences.ideas) setWorkspacePreference('ideas', true);
+  if (localStorage.getItem(WRITING_TOOLS_TIP_KEY)) return;
+  clearTimeout(writingToolsTipTimer);
+  writingToolsTipTimer = setTimeout(showWritingToolsTip, 4000);
+}
+function dismissWritingToolsTip() {
+  try { localStorage.setItem(WRITING_TOOLS_TIP_KEY, '1'); } catch {}
+  document.querySelectorAll('.writing-tools-tip').forEach(el => el.remove());
+}
+function showWritingToolsTip() {
+  if (currentViewId !== 'composerView' || localStorage.getItem(WRITING_TOOLS_TIP_KEY)) return;
+  const anchor = [...document.querySelectorAll('[data-composer-resources-toggle]')].find(b => b.offsetParent);
+  if (!anchor) return;
+  dismissWritingToolsTip();
+  const tip = document.createElement('div');
+  tip.className = 'writing-tools-tip';
+  tip.setAttribute('role', 'dialog');
+  tip.setAttribute('aria-label', 'Writing tools');
+  tip.innerHTML = '<strong>Your writing tools are on</strong><p>Shelf holds your notes and proven posts. Compose pulls them in.</p><div class="wt-actions"><button class="btn sm ghost" type="button" data-wt="later">Later</button><button class="btn sm primary" type="button" data-wt="shelf">Show me Shelf</button></div>';
+  document.body.appendChild(tip);
+  const r = anchor.getBoundingClientRect();
+  tip.style.top = (r.bottom + 8) + 'px';
+  tip.style.left = Math.max(8, r.right - 300) + 'px';
+  tip.addEventListener('click', event => {
+    const action = event.target.closest('[data-wt]')?.dataset.wt;
+    if (!action) return;
+    dismissWritingToolsTip();
+    if (action === 'shelf') window.activateView?.('ideasView', 'writing_tools_tip');
+  });
+}
 function setWorkspacePreference(workspace, enabled) {
   if (!(workspace in WORKSPACE_DEFAULTS)) return;
   const note = qs('workspacePreferenceNote');

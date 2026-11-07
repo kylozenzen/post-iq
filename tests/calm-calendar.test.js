@@ -76,7 +76,7 @@ test('the agenda says "Nothing planned" once, quietly, for an empty day', async 
 
 test('Shelf is one nav entry; its tabs move between past posts and ideas', async () => app(w => {
   const d = w.document;
-  assert.equal(d.querySelectorAll('.side-nav [data-view="ideasView"], #mobileTabs [data-view="ideasView"]').length, 0, 'no separate Content Bank entry');
+  assert.equal(d.querySelectorAll('.side-nav [data-view="ideasView"]:not([data-shelf-nav]), #mobileTabs [data-view="ideasView"]:not([data-shelf-nav])').length, 0, 'no separate Content Bank entry');
   w.eval("workspacePreferences.ideas=true;renderWorkspacePreferences();activateView('libraryView')");
   assert.ok(d.querySelector('.side-nav [data-shelf-nav]').classList.contains('active'));
   d.querySelector('#libraryView [data-shelf-tab="ideasView"]').click();

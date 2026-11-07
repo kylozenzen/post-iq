@@ -9,9 +9,10 @@ window.PostIQComposerResources = (() => {
   const LIBRARY_CACHE_KEY = 'postiq_library_cache_v3';
   const LIBRARY_STARRED_KEY = 'postiq_library_starred_v1';
   const LAST_TAB_KEY = 'postiq_composer_resource_tab_v1';
-  const SEARCHABLE_TABS = new Set(['notebook', 'hooks', 'hashtags', 'templates']);
+  const SEARCHABLE_TABS = new Set(['notebook', 'hooks', 'hashtags', 'templates', 'kept']);
   const TAB_LABELS = {
-    notebook: 'Shelf',
+    notebook: 'notebook',
+    kept: 'past posts',
     hooks: 'hooks',
     hashtags: 'hashtag sets',
     templates: 'templates',
@@ -147,6 +148,22 @@ window.PostIQComposerResources = (() => {
     return combined.slice(0, 10);
   }
 
+  // Posts kept for writing (the Shelf's Past posts, starred). Read from the same cache as Library.
+  function readKeptPosts() {
+    const cached = readJson(LIBRARY_CACHE_KEY, {});
+    const posts = Array.isArray(cached?.posts) ? cached.posts : [];
+    const storedKept = readJson(LIBRARY_STARRED_KEY, []);
+    const keptIds = new Set((Array.isArray(storedKept) ? storedKept : []).map(String));
+    return posts
+      .filter(post => post && keptIds.has(String(post.id)) && String(post.text || '').trim())
+      .map(post => ({
+        id: String(post.id),
+        title: String(post.channelName || post.profileName || post.service || 'Past post'),
+        text: String(post.text || ''),
+        url: String(post.externalLink || ''),
+      }));
+  }
+
   // Calendar notes dated today. Reads through calendar.js so storage keys and
   // normalization stay in one place. Returns [] if the calendar has not loaded.
   function readTodayNotes() {
@@ -165,6 +182,7 @@ window.PostIQComposerResources = (() => {
       notebook: readNotebook(),
       hookTemplates: templates.filter(template => template.type === 'Hooks'),
       libraryHooks: readLibraryHooks(),
+      kept: readKeptPosts(),
       hashtags: templates.filter(template => template.type === 'Hashtag Sets'),
       templates: templates.filter(template => !['Hooks', 'Hashtag Sets'].includes(template.type)),
     };
@@ -232,7 +250,7 @@ window.PostIQComposerResources = (() => {
     if (!items.length) {
       list.innerHTML = emptyState(
         '✦',
-        searchQuery ? 'Nothing on your Shelf matches' : 'Your Shelf is ready when you are',
+        searchQuery ? 'Nothing in your notebook matches' : 'Your notebook is ready when you are',
         searchQuery ? 'Try a different search.' : 'Save an idea, article, or stray thought and it will appear here.',
         searchQuery ? '' : '<button class="btn sm primary" type="button" data-resource-new-notebook>+ Add idea</button>',
       );
@@ -279,6 +297,35 @@ window.PostIQComposerResources = (() => {
     }
     list.innerHTML = `${saved.length ? `<div class="resource-list-label">Saved hooks</div>${saved.map(hookTemplateCard).join('')}` : ''}
       ${library.length ? `<div class="resource-list-label">From your post Library</div>${library.map(libraryHookCard).join('')}` : ''}`;
+  }
+
+  function keptCard(post) {
+    const safeUrl = safeExternalUrl(post.url);
+    return `<article class="composer-resource-card">
+      <div class="composer-resource-meta"><span class="resource-chip">Past post</span><span>${escapeHtml(post.title)}</span></div>
+      <div class="composer-resource-quote">${escapeHtml(compact(post.text, 240))}</div>
+      <div class="composer-resource-actions">
+        <button class="btn sm primary" type="button" data-resource-action="insert-kept-post" data-resource-id="${escapeHtml(post.id)}">Insert</button>
+        <button class="btn sm" type="button" data-resource-action="pin-kept-post" data-resource-id="${escapeHtml(post.id)}">Pin reference</button>
+        ${safeUrl ? `<a class="btn sm ghost" href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener">Source ↗</a>` : ''}
+      </div>
+    </article>`;
+  }
+
+  function renderKept() {
+    const list = byId('composerKeptResources');
+    if (!list) return;
+    const items = resources.kept.filter(post => matchesSearch(post.title, post.text));
+    if (!items.length) {
+      list.innerHTML = emptyState(
+        '★',
+        searchQuery ? 'No kept posts match' : 'No kept posts yet',
+        searchQuery ? 'Try a different search.' : 'Keep posts for writing on the Shelf and they will appear here.',
+        searchQuery ? '' : '<button class="btn sm" type="button" data-resource-manage="library">Review past posts →</button>',
+      );
+      return;
+    }
+    list.innerHTML = items.map(keptCard).join('');
   }
 
   function renderHashtags() {
@@ -338,6 +385,7 @@ window.PostIQComposerResources = (() => {
       hooks: resources.hookTemplates.length + resources.libraryHooks.length,
       hashtags: resources.hashtags.length,
       templates: resources.templates.length,
+      kept: resources.kept.length,
       pillars: pillarCount(),
     };
     document.querySelectorAll('[data-resource-count]').forEach(element => {
@@ -352,6 +400,7 @@ window.PostIQComposerResources = (() => {
     renderDayNotes();
     renderNotebook();
     renderHooks();
+    renderKept();
     renderHashtags();
     renderTemplates();
     updateCounts();
@@ -449,9 +498,21 @@ window.PostIQComposerResources = (() => {
       track(() => window.GA4_Ideas?.notebookCardUsed?.());
       if (action === 'pin-notebook') {
         window.pinReferenceToComposer?.({ title: card.title, body: card.body, url: card.url });
-        finishAction('Pinned from your Shelf beside your draft');
+        finishAction('Pinned from your notebook beside your draft');
       } else if (insertText([card.title, card.body].filter(Boolean).join('\n\n'))) {
-        finishAction('Shelf notes inserted');
+        finishAction('Notebook notes inserted');
+      }
+      return;
+    }
+
+    if (action === 'insert-kept-post' || action === 'pin-kept-post') {
+      const post = resources.kept.find(item => item.id === id);
+      if (!post) return;
+      if (action === 'pin-kept-post') {
+        window.pinReferenceToComposer?.({ title: post.title, body: post.text, url: post.url });
+        finishAction('Pinned a past post beside your draft');
+      } else if (insertText(post.text)) {
+        finishAction('Past post inserted');
       }
       return;
     }

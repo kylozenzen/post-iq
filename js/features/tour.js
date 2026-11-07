@@ -42,14 +42,6 @@ window.PostIQTour = (() => {
         ? 'Compose is where a plan becomes a post. Write, choose your channels, then send a draft or schedule it in Buffer when you decide.'
         : 'Compose is your writing space. Explore the editor now; connect Buffer when you want to send drafts or schedule real posts.',
     },
-    {
-      id: 'shelf',
-      view: 'calendarView',
-      targets: ['#openSettings', '#calGrid', '#todayStrip'],
-      title: 'Keep ideas close',
-      body: () => 'Shelf keeps useful posts nearby. Want a dedicated place for new ideas too? Go to Settings → Customize and turn on “Ideas on the Shelf.” You can change it anytime.',
-      actionLabel: 'Show me that setting',
-    },
   ];
 
   function relevantSteps() {

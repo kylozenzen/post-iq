@@ -462,9 +462,9 @@ window.PostIQLibrary = (() => {
           <div class="lib-post-meta">
             ${channelLabel ? `<span class="lib-channel-badge">${window.PostIQChannelIcons ? window.PostIQChannelIcons.badge(service) + ' ' : ''}${safeText(channelLabel)}</span>` : (service ? `<span class="lib-service-badge">${safeText(service)}</span>` : '')}
             <span class="lib-date">${fmtDate(post.sentAt)}</span>
-            ${isStarred ? '<span class="lib-reuse-badge">★ Evergreen</span>' : (isOld ? '<span class="lib-reuse-badge">↺ Ready to reuse</span>' : '')}
+            ${isStarred ? '<span class="lib-reuse-badge">★ Kept for writing</span>' : (isOld ? '<span class="lib-reuse-badge">↺ Ready to reuse</span>' : '')}
           </div>
-          <button class="lib-star-btn ${isStarred ? 'starred' : ''}" data-star="${safeId}" aria-label="${isStarred ? 'Remove from evergreen' : 'Mark as evergreen'}" title="${isStarred ? 'Remove from evergreen' : 'Mark as evergreen to reshare later'}">
+          <button class="lib-star-btn ${isStarred ? 'starred' : ''}" data-star="${safeId}" aria-label="${isStarred ? 'Remove from kept posts' : 'Keep for writing'}" title="${isStarred ? 'Remove from kept posts' : 'Mark as evergreen to reshare later'}">
             ${isStarred ? '★' : '☆'}
           </button>
         </div>
@@ -487,8 +487,8 @@ window.PostIQLibrary = (() => {
     const filtered = filteredPosts();
     if (!filtered.length) {
       const msgs = {
-        reuse: 'Nothing to reuse yet. Star a post as evergreen, or older posts will collect here.',
-        starred: 'No evergreen posts yet. Star any post to save it for reshares.',
+        reuse: 'Nothing to reuse yet. Keep a post for writing, or older posts will collect here.',
+        starred: 'No kept posts yet. Keep any post for writing or reshares.',
         all: searchQuery ? 'No posts match that search.' : 'No sent posts found.',
       };
       list.innerHTML = metricsNoticeHtml() + emptyStateHtml(msgs[activeTab] || msgs.all);
@@ -524,7 +524,7 @@ window.PostIQLibrary = (() => {
 
     statsEl.innerHTML = `
       <div class="lib-stat"><span class="lib-stat-num">${total}</span><span class="lib-stat-lbl">sent posts loaded</span></div>
-      <div class="lib-stat"><span class="lib-stat-num">${evergreen}</span><span class="lib-stat-lbl">evergreen</span></div>
+      <div class="lib-stat"><span class="lib-stat-num">${evergreen}</span><span class="lib-stat-lbl">kept</span></div>
       ${syncAge != null ? `<div class="lib-stat lib-stat-muted"><span class="lib-stat-num">${syncAge}m</span><span class="lib-stat-lbl">ago</span></div>` : ''}
     `;
   }
