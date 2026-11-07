@@ -241,8 +241,6 @@
     el('contentBankPlanClose')?.addEventListener('click',()=>window.closeModal('contentBankPlanModal'));
     el('contentBankPlanSave')?.addEventListener('click',()=>savePlan());
     el('contentBankPlanClear')?.addEventListener('click',()=>savePlan(true));
-    el('bankResources')?.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();el('bankResources').open=false;el('bankResourcesSummary').focus();}});
-    document.addEventListener?.('click',event=>{if(el('bankResources') && !el('bankResources').contains(event.target))el('bankResources').open=false;});
     window.addEventListener('postiq:synced',render);window.addEventListener('postiq:scheduled-updated',render);
     render(); window.ContentDetail?.init?.();
   }
