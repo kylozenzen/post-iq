@@ -262,7 +262,7 @@ function init() {
   if (!editor) { applyFeatureFlags(); return; }
   editor.addEventListener('input', () => {
     const text = editorToText(editor.innerHTML);
-    if (text.trim() && !workspacePreferences.ideas) turnOnWritingTools();
+    if (text.trim()) noteWritingDraft();
     const ch = state.channels.find(c => c.id === qs('composerChannel')?.value);
     const svc = (ch?.service || '').toLowerCase();
     const limit = charLimitFor(svc);

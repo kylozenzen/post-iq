@@ -299,10 +299,40 @@ function saveWorkspacePreferences(nextPreferences) {
   return workspacePreferences;
 }
 
-// First draft in Compose turns the writing tools on, and says what is now live.
-function turnOnWritingTools() {
-  setWorkspacePreference('ideas', true);
-  if (typeof showToast === 'function') showToast('Writing tools are live. Shelf holds your Notebook, Snippets, Past posts and Trending, and Compose can pull from all of them.', 'success');
+// First draft in Compose turns the writing tools on. The explainer waits for a
+// pause in typing, shows once, and is anchored to the Writing tools button.
+const WRITING_TOOLS_TIP_KEY = 'postiq.writingToolsTipSeenV1';
+let writingToolsTipTimer = null;
+function noteWritingDraft() {
+  if (!workspacePreferences.ideas) setWorkspacePreference('ideas', true);
+  if (localStorage.getItem(WRITING_TOOLS_TIP_KEY)) return;
+  clearTimeout(writingToolsTipTimer);
+  writingToolsTipTimer = setTimeout(showWritingToolsTip, 4000);
+}
+function dismissWritingToolsTip() {
+  try { localStorage.setItem(WRITING_TOOLS_TIP_KEY, '1'); } catch {}
+  document.querySelectorAll('.writing-tools-tip').forEach(el => el.remove());
+}
+function showWritingToolsTip() {
+  if (currentViewId !== 'composerView' || localStorage.getItem(WRITING_TOOLS_TIP_KEY)) return;
+  const anchor = [...document.querySelectorAll('[data-composer-resources-toggle]')].find(b => b.offsetParent);
+  if (!anchor) return;
+  dismissWritingToolsTip();
+  const tip = document.createElement('div');
+  tip.className = 'writing-tools-tip';
+  tip.setAttribute('role', 'dialog');
+  tip.setAttribute('aria-label', 'Writing tools');
+  tip.innerHTML = '<strong>Your writing tools are on</strong><p>Shelf holds your notes and proven posts. Compose pulls them in.</p><div class="wt-actions"><button class="btn sm ghost" type="button" data-wt="later">Later</button><button class="btn sm primary" type="button" data-wt="shelf">Show me Shelf</button></div>';
+  document.body.appendChild(tip);
+  const r = anchor.getBoundingClientRect();
+  tip.style.top = (r.bottom + 8) + 'px';
+  tip.style.left = Math.max(8, r.right - 300) + 'px';
+  tip.addEventListener('click', event => {
+    const action = event.target.closest('[data-wt]')?.dataset.wt;
+    if (!action) return;
+    dismissWritingToolsTip();
+    if (action === 'shelf') window.activateView?.('ideasView', 'writing_tools_tip');
+  });
 }
 function setWorkspacePreference(workspace, enabled) {
   if (!(workspace in WORKSPACE_DEFAULTS)) return;
