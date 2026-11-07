@@ -26,11 +26,9 @@ window.PostIQGettingStarted = (() => {
   }
   function steps() {
     return [
-      { id: 'connect', done: connected(), label: 'Connect Buffer', desc: 'Bring your scheduled posts into PostIQ.', cta: 'Connect', act: () => { try { typeof goToBufferConnect === 'function' ? goToBufferConnect() : (window.location.href = '/auth/connect.html'); } catch {} } },
+      { id: 'connect', done: connected(), label: 'Connect Buffer', desc: 'Sign in and bring your scheduled posts into PostIQ.', cta: 'Connect', act: () => { try { typeof goToBufferConnect === 'function' ? goToBufferConnect() : (window.location.href = '/auth/connect.html'); } catch {} } },
       { id: 'schedule', done: hasSchedule(), label: 'Set a posting rhythm', desc: 'Show which days you usually post.', cta: 'Set days', act: () => window.YourPace?.open?.() },
-      { id: 'ideas', done: ideasEnabled(), label: 'Write your first draft', desc: 'Writing tools and Shelf turn on after your first draft.', cta: 'Compose', act: () => window.activateView?.('composerView', 'getting_started') },
-      { id: 'write', done: read(FIRST_POST_KEY) === '1', label: 'Create a Buffer draft', desc: 'Use Compose whenever a plan is ready.', cta: 'Compose', act: () => window.activateView?.('composerView', 'getting_started') },
-      { id: 'signin', done: connected(), label: 'Sign in to Buffer', desc: 'Connect your account so your posts and drafts sync.', cta: 'Sign in', act: () => steps()[0].act() },
+      { id: 'ideas', done: ideasEnabled(), label: 'Write your first draft', desc: 'Your writing tools turn on after your first draft.', cta: 'Compose', act: () => window.activateView?.('composerView', 'getting_started') },
 
     ];
   }

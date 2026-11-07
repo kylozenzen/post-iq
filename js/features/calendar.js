@@ -982,7 +982,7 @@ function openCalendarDayDetails(date) {
   if (coverageHtml) sections.push(coverageHtml);
   if (posts.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${posts.length} post${posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(posts, { editable: true })}</div>`);
   if (notes.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${notes.length} Planning note${notes.length > 1 ? 's' : ''}</div>${editableNoteCardsHtml(notes)}</div>`);
-  if (!posts.length && !notes.length) sections.push('<div class="empty-state day-empty-state"><div class="empty-title">No plans yet</div><div class="empty-desc">Start with a note or draft. Nothing is scheduled until you choose to send it to Buffer.</div></div>');
+  if (!posts.length && !notes.length) sections.push('<div class="empty-state day-empty-state"><div class="empty-title">No plans yet</div><div class="empty-desc">Start with a note or draft. Nothing is scheduled until you choose to send it to Buffer.</div><button class="btn sm primary" type="button" onclick="window.activateView?.(\'composerView\', \'empty_calendar\')">Write your first post</button></div>');
   sections.push(calendarTargetsForDate(key).map(contentCalendarPill).join(''));
   bodyEl.innerHTML = sections.join('');
   bindPostDetailCopy(bodyEl);
