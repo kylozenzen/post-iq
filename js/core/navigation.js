@@ -28,7 +28,7 @@ function activateView(viewId, source = 'navigation') {
   // Shelf is one place across two views (past posts and ideas): keep its nav lit and its tabs in step.
   const onShelf = viewId === 'libraryView' || viewId === 'ideasView';
   document.querySelectorAll('[data-shelf-nav]').forEach(x => x.classList.toggle('active', onShelf));
-  document.querySelectorAll('[data-shelf-tab]').forEach(tab => { const on = tab.dataset.shelfTab === viewId; tab.classList.toggle('active', on); tab.setAttribute('aria-selected', String(on)); });
+  document.querySelectorAll('[data-shelf-tab]').forEach(tab => { const on = tab.dataset.shelfSub ? (viewId === 'ideasView' && (currentIdeasTab || 'notebook') === tab.dataset.shelfSub) : tab.dataset.shelfTab === viewId; tab.classList.toggle('active', on); tab.setAttribute('aria-selected', String(on)); });
   if (viewId === 'ideasView') setIdeasTab(currentIdeasTab || 'notebook');
   window.dispatchEvent(new CustomEvent('postiq:view-changed', { detail: { viewId, source } }));
 }
@@ -43,6 +43,9 @@ function setIdeasTab(tabId = 'notebook') {
   document.querySelectorAll('.ideas-tab').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.ideasTab === tab);
   });
+  if (document.getElementById('ideasView')?.classList.contains('active')) {
+    document.querySelectorAll('[data-shelf-sub]').forEach(btn => { const on = btn.dataset.shelfSub === tab; btn.classList.toggle('active', on); btn.setAttribute('aria-selected', String(on)); });
+  }
   document.querySelectorAll('[data-ideas-panel]').forEach(panel => {
     panel.classList.toggle('active', panel.dataset.ideasPanel === tab);
   });
@@ -69,5 +72,5 @@ function syncComposerWhen() {
 
 document.addEventListener('click', event => {
   const tab = event.target.closest('[data-shelf-tab]');
-  if (tab) activateView(tab.dataset.shelfTab, 'shelf_tab');
+  if (tab) { activateView(tab.dataset.shelfTab, 'shelf_tab'); if (tab.dataset.shelfSub) setIdeasTab(tab.dataset.shelfSub); }
 });

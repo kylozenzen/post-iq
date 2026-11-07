@@ -638,8 +638,10 @@
         </div>
       </div>
       <div class="shelf-tabs" role="tablist" aria-label="Shelf">
-        <button class="shelf-tab active" type="button" role="tab" aria-selected="true" data-shelf-tab="libraryView" data-feature="library">Past posts</button>
-        <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="ideasView" data-workspace-nav="ideas" data-feature="ideas">Notebook</button>
+        <button class="shelf-tab active" type="button" role="tab" aria-selected="true" data-shelf-tab="ideasView" data-shelf-sub="notebook" data-workspace-nav="ideas" data-feature="ideas">Notebook</button>
+        <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="ideasView" data-shelf-sub="templates" data-workspace-nav="ideas" data-feature="ideas">Snippets</button>
+        <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="libraryView" data-feature="library">Past posts</button>
+        <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="ideasView" data-shelf-sub="trending" data-workspace-nav="ideas" data-feature="ideas">Trending</button>
       </div>
       <div class="lib-content">
         <div class="lib-stats-strip" id="libraryStats">
@@ -687,19 +689,13 @@
         </div>
       </div>
       <div class="shelf-tabs" role="tablist" aria-label="Shelf">
+        <button class="shelf-tab active" type="button" role="tab" aria-selected="true" data-shelf-tab="ideasView" data-shelf-sub="notebook" data-workspace-nav="ideas" data-feature="ideas">Notebook</button>
+        <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="ideasView" data-shelf-sub="templates" data-workspace-nav="ideas" data-feature="ideas">Snippets</button>
         <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="libraryView" data-feature="library">Past posts</button>
-        <button class="shelf-tab active" type="button" role="tab" aria-selected="true" data-shelf-tab="ideasView" data-workspace-nav="ideas" data-feature="ideas">Notebook</button>
+        <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="ideasView" data-shelf-sub="trending" data-workspace-nav="ideas" data-feature="ideas">Trending</button>
       </div>
 
       <div class="view-content">
-        <div class="ideas-tool-switcher" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:18px;box-shadow:var(--shadow-sm);">
-          <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">Saved</div>
-          <div class="ideas-tabs" role="group" aria-label="Notebook sections" style="margin:0;border:0;padding:0;">
-            <button class="ideas-tab active" type="button" data-ideas-tab="notebook">All items</button>
-            <button class="ideas-tab" type="button" data-ideas-tab="templates">Snippets</button>
-            <button class="ideas-tab" type="button" data-ideas-tab="trending">Trending</button>
-          </div>
-        </div>
 
         
         <section class="ideas-panel active" id="ideasNotebookPanel" data-ideas-panel="notebook">
