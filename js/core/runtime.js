@@ -23,7 +23,7 @@ const THEMES = Object.freeze(['default', 'classic', 'neon', 'studio', 'evergreen
 // Themes retired as standalone choices, mapped to the value that preserves the
 // look the person already had. Applied once, on first load after the change.
 const LEGACY_THEME_ALIASES = Object.freeze({ editorial: 'default' });
-const WORKSPACE_DEFAULTS = Object.freeze({ planning: true, create: true, ideas: false });
+const WORKSPACE_DEFAULTS = Object.freeze({ planning: true, create: true, ideas: true });
 const WORKSPACE_VIEWS = Object.freeze({ planning: 'calendarView', create: 'composerView', ideas: 'ideasView' });
 // Internal beta feature flags for safely rolling modules on/off. These are not user-facing settings.
 const FEATURE_FLAGS = {
@@ -218,6 +218,13 @@ function normalizeWorkspacePreferences(value) {
 function getWorkspacePreferences() {
   let parsed = null;
   try { parsed = JSON.parse(localStorage.getItem(WORKSPACE_PREFERENCES_KEY) || 'null'); } catch {}
+  // One-time move of Shelf (the "ideas" workspace) to on-by-default for everyone.
+  try {
+    if (!localStorage.getItem('postiq.shelfOnByDefaultV1')) {
+      if (parsed && typeof parsed === 'object') parsed.ideas = true;
+      localStorage.setItem('postiq.shelfOnByDefaultV1', '1');
+    }
+  } catch {}
   const normalized = normalizeWorkspacePreferences(parsed);
   try {
     if (JSON.stringify(parsed) !== JSON.stringify(normalized)) {
