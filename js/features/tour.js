@@ -273,7 +273,7 @@ window.PostIQTour = (() => {
     welcome.innerHTML = `<section class="postiq-welcome" role="dialog" aria-modal="true" aria-labelledby="postiqWelcomeTitle" aria-describedby="postiqWelcomeDesc">
       <span class="postiq-welcome-eyebrow">WELCOME TO POSTIQ</span>
       <h2 id="postiqWelcomeTitle">Your content has a calendar.<br><em>Let's give it a plan.</em></h2>
-      <p id="postiqWelcomeDesc">Buffer handles publishing. PostIQ helps you see what is coming, spot open days, and make a plan before a post is ready.</p>
+      <p id="postiqWelcomeDesc">Buffer handles publishing. PostIQ helps you see what is coming, spot open days, and make a plan before a post is ready. Compose works alongside your calendar, and Shelf and the writing tools turn on when you write your first draft.</p>
       <div class="postiq-welcome-actions">
         <button type="button" class="btn primary" data-welcome="tour">Take the tour <span aria-hidden="true">→</span></button>
         <button type="button" class="btn ghost" data-welcome="explore">Look around</button>
