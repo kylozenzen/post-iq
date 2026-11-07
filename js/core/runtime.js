@@ -273,8 +273,9 @@ function renderWorkspacePreferences() {
 function shelfViews() {
   const views = [];
   const on = feature => typeof isFeatureEnabled !== 'function' || isFeatureEnabled(feature);
-  if (on('library')) views.push('libraryView');
+  // Notebook first: Shelf opens on Notebook, with Past posts one tab away.
   if (workspacePreferences.ideas && on('ideas')) views.push('ideasView');
+  if (on('library')) views.push('libraryView');
   return views;
 }
 function renderShelfNav() {
@@ -282,7 +283,7 @@ function renderShelfNav() {
   document.querySelectorAll('[data-shelf-nav]').forEach(el => {
     el.hidden = !views.length;
     if (el.style) el.style.display = views.length ? '' : 'none';
-    if (views.length) el.dataset.view = views.includes(el.dataset.view) ? el.dataset.view : views[0];
+    if (views.length) el.dataset.view = views[0]; // Notebook first
     if ('disabled' in el) el.disabled = !views.length;
     el.setAttribute('aria-hidden', views.length ? 'false' : 'true');
   });
