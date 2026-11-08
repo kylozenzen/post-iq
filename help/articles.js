@@ -27,10 +27,6 @@ const HELP_CATEGORIES = [
   "Plan / Calendar",
   "Compose",
   "Shelf",
-  "Content Pillars",
-  "Templates",
-  "Notebook",
-  "Trending",
   "Snapshots",
   "Troubleshooting",
   "Privacy & Data",
@@ -49,9 +45,9 @@ window.POSTIQ_HELP_ARTICLES = [
     relatedArticles: ['connect-buffer', 'privacy-storage-beta-limits'],
     body: `<p>Open Settings from the sidebar or the mobile More menu. Section tabs stay available while you scroll.</p>
     <h2>Connection</h2><p>Check your Buffer connection, choose Sync now, or Sign out. You stay signed in on this browser until you sign out, clear site data, or Buffer requires authorization again. Advanced API key setup is optional: Session keeps a manual key for this tab, while Save locally keeps it between visits. Sign out removes both kinds of Buffer access.</p>
-    <h2>Customize</h2><p>Workspace visibility, themes, posting days, queue-gap visibility, and note types save automatically in this browser. At least one workspace must stay visible. Reset workspace visibility restores the default sidebar choices. It does not delete your content.</p>
+    <h2>Customize</h2><p>Workspace visibility, theme, planning options (queue gaps, week numbers in week view, posting days), and note types save automatically in this browser. Shelf ideas is on by default. At least one workspace must stay visible. Reset workspace visibility restores the default sidebar choices. It does not delete your content.</p>
     <h2>Posting rhythm</h2><p>Choose default posting days or override them for each synced channel. The posting schedule guides open-slot suggestions. Changing it never changes your Buffer queue or scheduled posts.</p>
-    <h2>AI and Discord</h2><p>AI Assist is optional and currently requires a beta unlock. Use its Save buttons when changing your Gemini key or voice. Discord has its own configuration and save controls. Never include keys or webhook URLs in screenshots or support messages.</p>
+    <h2>Features and Discord</h2><p>The Features tab shows which beta tools are available right now. If a tool is paused, PostIQ shows a notice instead of breaking your workflow. Discord has its own configuration and save controls. Never include keys or webhook URLs in screenshots or support messages.</p>
     <h2>Using a shared device</h2><p>Sign out clears Buffer access and cached Buffer data but keeps local work and other integration settings. Private browser windows can discard saved work when closed. Export or copy important work before clearing site data.</p>`
   },
   {
@@ -73,7 +69,7 @@ window.POSTIQ_HELP_ARTICLES = [
     <h2>Preview without signing in</h2>
     <p>You can open the calendar without a Buffer account. Notes, actions, Shelf ideas, and Compose drafts are saved in your browser. Scheduled posts and sending to Buffer need Buffer sign-in.</p>
     <h2>Take the tour</h2>
-    <p>A three-step tour opens the first time you visit. To see it again, choose <strong>Take a tour</strong> in the sidebar, the calendar’s ⋯ menu, or the mobile More menu. It walks through the calendar, your posting schedule, and Compose. It only points at controls and never sends anything to Buffer. Skip or close it at any time and restart it from the same buttons.</p>
+    <p>A four-step tour opens the first time you visit. To see it again, choose <strong>Take a tour</strong> in the sidebar, the calendar’s ⋯ menu, or the mobile More menu. It walks through the calendar, planning a day, Compose, and what Shelf is for. The first time you open Shelf, a short run-through offers a stop for each of its tabs. It only points at controls and never sends anything to Buffer. Skip or close it at any time and restart it from the same buttons.</p>
     <h2>What does not happen automatically</h2>
     <p>Nothing is published just because you typed it in PostIQ. Content only moves into Buffer when you choose a Buffer action (for example draft, queue, or scheduled send).</p>
     <h3>Good to know</h3>
@@ -225,23 +221,23 @@ window.POSTIQ_HELP_ARTICLES = [
     slug: 'build-your-idea-system',
     title: 'Build Your Idea System',
     category: 'Shelf',
-    summary: 'Learn how to use saved content, Content Pillars, Templates, and Trending to turn raw ideas into reusable content starters.',
-    tags: ['notebook', 'content pillars', 'templates', 'trending', 'ideas', 'starters'],
+    summary: 'Use the Shelf’s Notebook, Snippets, Past posts, and Trending tabs to collect ideas and turn them into content for your calendar.',
+    tags: ['shelf', 'notebook', 'snippets', 'past posts', 'trending', 'ideas', 'starters'],
     featured: false,
     relatedArticles: ['plan-content-calendar', 'write-split-send-posts', 'getting-started'],
-    body: `<p>The Shelf holds your saved ideas and past posts. Local target dates are planning reminders, not confirmed Buffer scheduling. Use the date controls to plan, and Develop to continue the existing workflow. Templates, Content Pillars and Trending are available under Resources. Instead of starting from zero each time, you store signals and transform them into usable drafts.</p>
+    body: `<p>The Shelf is on by default and is your go-to place for content: ideas, snippets, past posts, and trending topics. Add a Shelf item to your calendar when you need it. Local target dates are planning reminders, not confirmed Buffer scheduling. Instead of starting from zero each time, you save signals and turn them into drafts.</p>
     <h2>Use each tool for a specific job</h2>
     <ul>
-      <li><strong>Saved content</strong>: search existing material, identify items without a target, and plan a local date. Your original source and channel versions stay intact.</li>
-      <li><strong>Content Pillars</strong>: define recurring themes.</li>
-      <li><strong>Templates</strong>: save proven structures and CTAs.</li>
-      <li><strong>Trending</strong>: monitor timely topics to react faster.</li>
+      <li><strong>Notebook</strong>: capture ideas and notes, and give an idea a target date to plan it on the calendar.</li>
+      <li><strong>Snippets</strong>: save proven hooks, openings, calls to action, and hashtag sets. Compose pulls them in as you write.</li>
+      <li><strong>Past posts</strong>: star posts that worked. Starred posts can fill open calendar slots, or be reshared to keep your streak going.</li>
+      <li><strong>Trending</strong>: see what is trending on Reddit, Hacker News and Product Hunt, to react faster.</li>
     </ul>
     <h2>Simple weekly routine</h2>
     <ol>
-      <li>Save 5–10 new ideas to your Shelf or from Trending.</li>
-      <li>Map them to pillars.</li>
-      <li>Turn the strongest ideas into templates or starters.</li>
+      <li>Save 5–10 new ideas to your Notebook or from Trending.</li>
+      <li>Turn the strongest ideas into snippets.</li>
+      <li>Put the ones you are ready to post on your calendar.</li>
       <li>Open Compose and finalize for Buffer.</li>
     </ol>
     <h3>Common confusion</h3>
