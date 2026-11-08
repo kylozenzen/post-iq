@@ -47,7 +47,7 @@ const TEMPLATE_TYPES     = ['All','Hooks','CTAs','Announcements','Engagement','H
 const TEMPLATE_PLATFORMS = ['All Platforms','LinkedIn','X','Threads','Instagram','Universal'];
 const DAY_CODES = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
 const DAY_LABELS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-const DEFAULT_PLANNING_SETTINGS = { showQueueGaps: true, postingDays: ['MON','TUE','WED','THU','FRI'] };
+const DEFAULT_PLANNING_SETTINGS = { showQueueGaps: true, showWeekNumbers: false, postingDays: ['MON','TUE','WED','THU','FRI'] };
 const DEFAULT_NOTE_TYPES = [
   { id: 'note', label: 'Note', color: '#6366f1' },
   { id: 'idea', label: 'Idea', color: '#22c55e' },

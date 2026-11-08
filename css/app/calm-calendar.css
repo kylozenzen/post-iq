@@ -380,6 +380,7 @@
 .calendar-agenda-day button.day-note-pill { display: flex !important; align-items: flex-start; gap: 8px; width: 100%; margin: 8px 0 0; font-size: 13px; padding: 8px 10px; }
 .calendar-agenda-day .platform-logo { width: 18px; height: 18px; flex-basis: 18px; }
 .calendar-agenda-day .day-post-copy { -webkit-line-clamp: 3; }
+#calendarView .cal-week-day .day-post-copy { -webkit-line-clamp: 4; }
 .calendar-agenda-day .note-check { margin-top: 3px; }
 
 /* ── Shelf: one place for past posts and ideas ─────────────────── */
