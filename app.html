@@ -1076,10 +1076,20 @@
           <div class="settings-section-title">Get help</div>
           <p class="settings-copy">PostIQ is built and maintained by one person, so questions, bug reports, and feature requests come straight to Ben — no ticket queue in between.</p>
           <div class="row mt12">
-            <a class="btn primary" href="mailto:hirebencampbell@gmail.com?subject=PostIQ%20support" id="supportEmailLink">Email Ben</a>
             <a class="btn ghost" href="/help/">Help Center</a>
           </div>
         </div>
+        <details class="settings-section support-email-panel" id="supportEmailPanel">
+          <summary class="settings-section-title">Email support</summary>
+          <p class="settings-copy">Question about the Buffer connection or the calendar? Drop a message.</p>
+          <form name="postiq-support" method="POST" data-netlify="true" class="support-form">
+            <input type="hidden" name="form-name" value="postiq-support" />
+            <label><span>Your Name</span><input type="text" name="name" autocomplete="name" required /></label>
+            <label><span>Email</span><input type="email" name="email" autocomplete="email" required /></label>
+            <label><span>How can I help?</span><textarea name="message" rows="4" required></textarea></label>
+            <button type="submit" class="btn primary">Send Message</button>
+          </form>
+        </details>
         <div class="settings-section">
           <div class="settings-section-title">Community</div>
           <p class="settings-copy">Already posting through Discord? Webhook setup and destinations live on the <button class="btn sm ghost" id="supportOpenDiscordBtn" type="button">Discord</button> tab.</p>

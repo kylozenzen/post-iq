@@ -38,3 +38,14 @@
 .theme-swatch-studio i:nth-child(1) { background: #fff5ea; } .theme-swatch-studio i:nth-child(2) { background: #e45c3a; } .theme-swatch-studio i:nth-child(3) { background: #a83b78; }
 .theme-swatch-evergreen i:nth-child(1) { background: #edf3ec; } .theme-swatch-evergreen i:nth-child(2) { background: #267a55; } .theme-swatch-evergreen i:nth-child(3) { background: #d97941; }
 @media (max-width: 520px) { .theme-picker { grid-template-columns: 1fr; } }
+
+/* Settings → Support: "Email support" form, same fields as the landing and Help Center forms. */
+.support-email-panel > summary { cursor: pointer; list-style: none; }
+.support-email-panel > summary::-webkit-details-marker { display: none; }
+.support-email-panel > summary::after { content: ' ▾'; color: var(--muted); }
+.support-email-panel[open] > summary::after { content: ' ▴'; }
+.support-form { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.support-form label span { display: block; font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
+.support-form input, .support-form textarea { width: 100%; border: 1px solid var(--border2); border-radius: var(--r); padding: 10px 12px; font-family: inherit; font-size: 14px; background: var(--surface2); color: var(--text); }
+.support-form input:focus, .support-form textarea:focus { border-color: var(--brand); outline: 2px solid var(--brand-dim); }
+.support-form .btn { width: 100%; }
