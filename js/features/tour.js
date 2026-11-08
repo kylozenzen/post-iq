@@ -45,7 +45,8 @@ window.PostIQTour = (() => {
     {
       id: 'shelf',
       view: 'calendarView',
-      targets: ['[data-shelf-nav]', '#calGrid', '#todayStrip'],
+      // Highlight the Shelf entry in the left sidebar first; fall back to the calendar where the sidebar is hidden.
+      targets: ['.nav-btn[data-shelf-nav]', '[data-shelf-nav]', '#calGrid', '#todayStrip'],
       title: 'Your Shelf',
       body: () => 'Shelf is your go-to place for all things content. Keep ideas, snippets and past posts there, and add them to your calendar when you need them.',
     },
