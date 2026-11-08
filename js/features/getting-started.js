@@ -21,14 +21,15 @@ window.PostIQGettingStarted = (() => {
     try { return (JSON.parse(read(STARRED_KEY) || '[]') || []).length > 0; } catch { return false; }
   }
 
-  function ideasEnabled() {
-    try { return !!workspacePreferences.ideas; } catch { return false; }
+  // Shelf is on by default now, so progress comes from actual writing, not from the setting.
+  function hasDraftOrPost() {
+    return !!read('postiq_composer_draft_v1') || !!read(FIRST_POST_KEY);
   }
   function steps() {
     return [
       { id: 'connect', done: connected(), label: 'Connect Buffer', desc: 'Sign in and bring your scheduled posts into PostIQ.', cta: 'Connect', act: () => { try { typeof goToBufferConnect === 'function' ? goToBufferConnect() : (window.location.href = '/auth/connect.html'); } catch {} } },
       { id: 'schedule', done: hasSchedule(), label: 'Set a posting rhythm', desc: 'Show which days you usually post.', cta: 'Set days', act: () => window.YourPace?.open?.() },
-      { id: 'ideas', done: ideasEnabled(), label: 'Write your first draft', desc: 'Your writing tools turn on after your first draft.', cta: 'Compose', act: () => window.activateView?.('composerView', 'getting_started') },
+      { id: 'ideas', done: hasDraftOrPost(), label: 'Write your first draft', desc: 'Compose pulls in your Shelf as you write.', cta: 'Compose', act: () => window.activateView?.('composerView', 'getting_started') },
 
     ];
   }

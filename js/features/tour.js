@@ -14,7 +14,7 @@ window.PostIQTour = (() => {
   let welcome = null;
   let welcomeReturnFocus = null;
 
-  // Three quick moments: why the calendar, how to plan, and where to write.
+  // Four quick moments: why the calendar, how to plan, where to write, and what Shelf is for.
   // Shelf has its own short run-through, offered the first time it is opened.
   const STEPS = [
     {
@@ -41,6 +41,13 @@ window.PostIQTour = (() => {
       body: () => isConnected()
         ? 'Compose is where a plan becomes a post. Write, choose your channels, then send a draft or schedule it in Buffer when you decide.'
         : 'Compose is your writing space. Explore the editor now; connect Buffer when you want to send drafts or schedule real posts.',
+    },
+    {
+      id: 'shelf',
+      view: 'calendarView',
+      targets: ['[data-shelf-nav]', '#calGrid', '#todayStrip'],
+      title: 'Your Shelf',
+      body: () => 'Shelf is your go-to place for all things content. Keep ideas, snippets and past posts there, and add them to your calendar when you need them.',
     },
   ];
 
