@@ -451,7 +451,7 @@ function renderCalendarRunway() {
   if (!(state.channels || []).length) return;
   if (!scheduled.length) {
     box.classList.add('is-setup');
-    box.innerHTML = `<div class="runway-prompt"><span class="runway-ico" aria-hidden="true">◷</span><div><strong>See your content runway.</strong> Set a posting schedule per channel and the calendar will show how many days you're covered.</div><button class="btn sm" type="button" data-open-schedule="runway">Set posting schedule</button></div>`;
+    box.innerHTML = `<div class="runway-prompt"><span class="runway-ico" aria-hidden="true">◷</span><div><strong>See your days ahead.</strong> Set a posting schedule per channel and the calendar will show how many days you're covered.</div><button class="btn sm" type="button" data-open-schedule="runway">Set posting schedule</button></div>`;
     box.querySelector('[data-open-schedule]')?.addEventListener('click', () => window.YourPace?.open?.());
     return;
   }
@@ -982,7 +982,7 @@ function openCalendarDayDetails(date) {
   if (coverageHtml) sections.push(coverageHtml);
   if (posts.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${posts.length} post${posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(posts, { editable: true })}</div>`);
   if (notes.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${notes.length} Planning note${notes.length > 1 ? 's' : ''}</div>${editableNoteCardsHtml(notes)}</div>`);
-  if (!posts.length && !notes.length) sections.push('<div class="empty-state day-empty-state"><div class="empty-title">No plans yet</div><div class="empty-desc">Start with a note or draft. Nothing is scheduled until you choose to send it to Buffer.</div></div>');
+  if (!posts.length && !notes.length) sections.push('<div class="empty-state day-empty-state"><div class="empty-title">No plans yet</div><div class="empty-desc">Start with a note or draft. Nothing is scheduled until you choose to send it to Buffer.</div><button class="btn sm primary" type="button" onclick="window.activateView?.(\'composerView\', \'empty_calendar\')">Write your first post</button></div>');
   sections.push(calendarTargetsForDate(key).map(contentCalendarPill).join(''));
   bodyEl.innerHTML = sections.join('');
   bindPostDetailCopy(bodyEl);

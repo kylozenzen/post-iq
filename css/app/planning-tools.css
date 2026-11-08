@@ -37,9 +37,6 @@
  .queue-health-header h1 { display:none; }
  .content-bank-filters { gap:8px; }
 }
-.bank-resources { position:relative; }
-.bank-resource-menu { position:absolute; top:100%; left:0; z-index:15; min-width:190px; padding:8px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r2); box-shadow:var(--shadow-float); }
-.bank-resource-menu .ideas-tab { display:block; width:100%; text-align:left; }
 
 
 /* Keep Queue Health compact and bounded at every viewport size. */

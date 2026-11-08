@@ -36,7 +36,6 @@
   <link rel="stylesheet" href="./css/app/ideas-settings.css" />
   <link rel="stylesheet" href="./css/app/content-flow.css" />
   <link rel="stylesheet" href="./css/app/responsive.css" />
-  <link rel="stylesheet" href="./css/app/preferences-ai.css" />
   <link rel="stylesheet" href="./css/app/library.css" />
   <link rel="stylesheet" href="./css/app/plan-health.css" />
   <link rel="stylesheet" href="./css/app/calendar-experience.css" />
@@ -282,7 +281,7 @@
       <div class="mob-view-hdr">
         <span class="mob-view-title">✍️ Compose</span>
         <div class="mob-view-actions">
-          <button class="btn sm ghost composer-mobile-action" type="button" data-composer-resources-toggle aria-controls="composerSupportSection" aria-expanded="false" aria-label="Open writing tools">Tools</button>
+          <button class="btn sm ghost composer-mobile-action" type="button" data-composer-resources-toggle data-workspace-nav="ideas" aria-controls="composerSupportSection" aria-expanded="false" aria-label="Open writing tools">Tools</button>
           <button class="btn sm ghost composer-mobile-action" type="button" data-composer-focus-toggle aria-pressed="false" aria-label="Enter focus mode"><span class="composer-focus-label">Focus</span></button>
           <button class="btn sm ghost composer-mobile-action" id="mobMenuBtnDraft" type="button" aria-label="Open Compose menu">
             <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
@@ -296,7 +295,7 @@
           <p class="page-desc" id="composerDesc">Write your post, attach media, then choose a Buffer action when you’re ready.</p>
         </div>
         <div class="page-actions">
-          <button class="btn ghost" type="button" data-composer-resources-toggle aria-controls="composerSupportSection" aria-expanded="false">Writing tools</button>
+          <button class="btn ghost" type="button" data-composer-resources-toggle data-workspace-nav="ideas" aria-controls="composerSupportSection" aria-expanded="false">Writing tools</button>
           <button class="btn" type="button" data-composer-focus-toggle aria-pressed="false"><span class="composer-focus-label">Focus mode</span></button>
           <a class="btn ghost" href="/help/?article=write-split-send-posts">Help</a>
           <a class="btn ghost" href="https://publish.buffer.com/" target="_blank" rel="noopener">Open Buffer ↗</a>
@@ -310,7 +309,7 @@
         </div>
         <span class="composer-draft-status" data-composer-draft-status data-state="empty" aria-hidden="true">Draft autosaves locally</span>
         <div class="composer-focus-actions">
-          <button class="btn sm ghost" type="button" data-composer-resources-toggle aria-controls="composerSupportSection" aria-expanded="false">Writing tools</button>
+          <button class="btn sm ghost" type="button" data-composer-resources-toggle data-workspace-nav="ideas" aria-controls="composerSupportSection" aria-expanded="false">Writing tools</button>
           <button class="btn sm" type="button" data-composer-focus-toggle aria-pressed="true"><span class="composer-focus-label">Exit focus</span></button>
         </div>
       </div>
@@ -536,16 +535,15 @@
               <input class="input" id="composerResourceSearch" type="search" autocomplete="off" placeholder="Search your Shelf" />
             </div>
             <div class="support-tabs" role="tablist" aria-label="Compose tools">
-              <button class="support-tab active" id="composerToolTabNotebook" type="button" role="tab" aria-selected="true" aria-controls="composerToolPanelNotebook" data-stool="notebook">Shelf <span class="support-tab-count" data-resource-count="notebook" hidden></span></button>
+              <button class="support-tab active" id="composerToolTabNotebook" type="button" role="tab" aria-selected="true" aria-controls="composerToolPanelNotebook" data-stool="notebook">Notebook <span class="support-tab-count" data-resource-count="notebook" hidden></span></button>
               <button class="support-tab" id="composerToolTabHooks" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelHooks" data-stool="hooks">Hooks <span class="support-tab-count" data-resource-count="hooks" hidden></span></button>
               <button class="support-tab" id="composerToolTabHashtags" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelHashtags" data-stool="hashtags">Hashtags <span class="support-tab-count" data-resource-count="hashtags" hidden></span></button>
               <button class="support-tab" id="composerToolTabTemplates" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelTemplates" data-stool="templates">Templates <span class="support-tab-count" data-resource-count="templates" hidden></span></button>
-              <button class="support-tab" id="composerToolTabTrending" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelTrending" data-stool="trending">Trending</button>
-              <button class="support-tab" id="composerToolTabAi" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelAi" data-stool="ai">AI Assist <span class="support-tab-chip">Beta</span></button>
+              <button class="support-tab" id="composerToolTabKept" type="button" role="tab" aria-selected="false" aria-controls="composerToolPanelKept" data-stool="kept">Past posts <span class="support-tab-count" data-resource-count="kept" hidden></span></button>
             </div>
             <div class="support-panel active" id="composerToolPanelNotebook" role="tabpanel" aria-labelledby="composerToolTabNotebook" data-stool-panel="notebook">
               <div class="composer-support-hdr">
-                <div><div class="panel-card-title" style="margin-bottom:2px;">Shelf</div><div class="resource-panel-copy">Pin an idea beside your draft or insert its notes.</div></div>
+                <div><div class="panel-card-title" style="margin-bottom:2px;">Notebook</div><div class="resource-panel-copy">Ideas, notes, links and reminders. Pin one beside your draft or insert its notes.</div></div>
                 <button class="btn sm ghost" type="button" data-resource-manage="notebook">Open Shelf →</button>
               </div>
               <div class="composer-resource-list" id="composerNotebookResources"></div>
@@ -571,8 +569,141 @@
               </div>
               <div class="composer-resource-list template-list" id="composerTemplateList"></div>
             </div>
-            <div class="support-panel" id="composerToolPanelTrending" role="tabpanel" aria-labelledby="composerToolTabTrending" data-stool-panel="trending" hidden>
+            <div class="support-panel" id="composerToolPanelKept" role="tabpanel" aria-labelledby="composerToolTabKept" data-stool-panel="kept" hidden>
+              <div class="composer-support-hdr">
+                <div><div class="panel-card-title" style="margin-bottom:2px;">Past posts</div><div class="resource-panel-copy">Posts you have kept for writing. Start from one, or reuse its opening.</div></div>
+                <button class="btn sm ghost" type="button" data-resource-manage="library">Review past posts →</button>
+              </div>
+              <div class="composer-resource-list" id="composerKeptResources"></div>
+            </div>
+          </div>
+        </aside>
+        <button class="composer-resource-backdrop" id="composerResourceBackdrop" type="button" tabindex="-1" aria-label="Close writing tools"></button>
 
+      </div><!-- /composer-layout -->
+    </section>
+
+    <!-- ══════════ LIBRARY (Post Library) ══════════ -->
+    <section id="libraryView" class="view" data-feature="library">
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">Shelf</span>
+        <div class="mob-view-actions">
+          <button class="btn sm ghost" id="libraryRefreshBtnMob">↻</button>
+        </div>
+      </div>
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Shelf</h1>
+          <p class="page-desc">Save ideas, reuse past posts, and build snippets, then pin any of them into Compose.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn ghost" id="libraryRefreshBtn">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="shelf-tabs" role="tablist" aria-label="Shelf">
+        <button class="shelf-tab active" type="button" role="tab" aria-selected="true" data-shelf-tab="ideasView" data-shelf-sub="notebook" data-workspace-nav="ideas" data-feature="ideas">Notebook</button>
+        <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="ideasView" data-shelf-sub="templates" data-workspace-nav="ideas" data-feature="ideas">Snippets</button>
+        <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="libraryView" data-feature="library">Past posts</button>
+        <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="ideasView" data-shelf-sub="trending" data-workspace-nav="ideas" data-feature="ideas">Trending</button>
+      </div>
+      <div class="lib-content">
+        <div class="lib-stats-strip" id="libraryStats">
+          <div class="lib-stat">
+            <span class="lib-stat-num">—</span>
+            <span class="lib-stat-lbl">sent posts</span>
+          </div>
+        </div>
+        <div class="lib-toolbar">
+          <input id="librarySearch" class="input lib-search" type="search" placeholder="Search posts…" autocomplete="off" />
+          <select id="librarySort" class="input lib-sort">
+            <option value="date">Sort: most recent</option>
+            <option value="oldest">Sort: oldest first</option>
+          </select>
+        </div>
+        <div class="lib-tabs" role="tablist" aria-label="Past post filters">
+          <button class="lib-tab active" data-lib-tab="all" type="button">All posts <span class="lib-tab-count" id="libTabCount-all"></span></button>
+          <button class="lib-tab" data-lib-tab="reuse" type="button">↺ Ready to reuse <span class="lib-tab-count" id="libTabCount-reuse"></span></button>
+          <button class="lib-tab" data-lib-tab="starred" type="button">★ Kept for writing <span class="lib-tab-count" id="libTabCount-starred"></span></button>
+        </div>
+        <div id="libraryPostList" class="lib-post-list">
+          <div class="empty-state" style="margin-top:24px;">
+            <div class="empty-icon">📚</div>
+            <div class="empty-title">Your sent posts will appear here</div>
+            <div class="empty-desc">Connect Buffer and activate this view to load your post history with performance data.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+
+    <!-- ══════════ IDEAS LIBRARY ══════════ -->
+    <section id="ideasView" class="view" data-feature="ideas">
+      <div class="mob-view-hdr">
+        <span class="mob-view-title">Shelf</span>
+      </div>
+      <div class="page-hdr">
+        <div class="page-hdr-left">
+          <h1 class="page-title">Shelf</h1>
+          <p class="page-desc">Save ideas, reuse past posts, and build snippets, then pin any of them into Compose.</p>
+        </div>
+        <div class="page-actions">
+          <a class="btn ghost" href="/help/?article=build-your-idea-system">Help</a>
+        </div>
+      </div>
+      <div class="shelf-tabs" role="tablist" aria-label="Shelf">
+        <button class="shelf-tab active" type="button" role="tab" aria-selected="true" data-shelf-tab="ideasView" data-shelf-sub="notebook" data-workspace-nav="ideas" data-feature="ideas">Notebook</button>
+        <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="ideasView" data-shelf-sub="templates" data-workspace-nav="ideas" data-feature="ideas">Snippets</button>
+        <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="libraryView" data-feature="library">Past posts</button>
+        <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="ideasView" data-shelf-sub="trending" data-workspace-nav="ideas" data-feature="ideas">Trending</button>
+      </div>
+
+      <div class="view-content">
+
+        
+        <section class="ideas-panel active" id="ideasNotebookPanel" data-ideas-panel="notebook">
+          <div class="ideas-panel-hdr">
+            <p class="ideas-panel-copy">Notes, links, reminders, and items from Trending, RSS, or Reddit. Pin any of them into Compose.</p>
+            <div class="page-actions">
+              <button class="btn sm primary" id="newNotecardBtn" type="button">+ Add content</button>
+            </div>
+          </div>
+          <div class="content-bank-filters"><label>Search saved content<input class="input" type="search" id="contentBankSearch" placeholder="Title, source text, or channel version"></label><label>Show<select class="input" id="contentBankFilter"><option value="all">All content</option><option value="undated">No target date</option><option value="targeted">Has a local target</option><option value="scheduled">Confirmed Buffer scheduling</option><option value="unconfirmed">No confirmed scheduling</option></select></label><label>Stage<select class="input" id="contentBankStage"><option value="all">All stages</option><option value="idea">Idea</option><option value="developing">Developing</option><option value="ready">Ready</option><option value="scheduled">Scheduled</option><option value="published">Published</option></select></label></div>
+          <p id="contentBankCount" role="status"></p><p class="calendar-state">Scheduling reflects the last Buffer response; sync for the latest status. Local target dates never confirm scheduling.</p>
+          <div id="notebookEmpty" class="empty-state">
+            <div class="empty-icon">📓</div>
+            <div class="empty-title">Nothing saved yet</div>
+            <div class="empty-desc">Jot a note, paste a link, or save something from Trending, RSS, or Reddit. Everything you save lands here.</div>
+          </div>
+          <div id="notebookList"></div>
+        </section>
+
+        <section class="ideas-panel" id="ideasTemplatesPanel" data-ideas-panel="templates">
+          <div class="ideas-panel-hdr">
+            <p class="ideas-panel-copy">Snippets you build here: hooks, CTAs, hashtag sets, and templates. Compose shows each type in its own tab.</p>
+            <div class="page-actions">
+              <button class="btn sm primary ideas-mobile-only" id="newTemplateBtnMob" type="button">+ New</button>
+              <button class="btn primary ideas-desktop-only" id="newTemplateBtn" type="button">+ New Template</button>
+            </div>
+          </div>
+          <div class="templates-layout">
+            <div class="templates-sidebar" id="templateTypeFilters"></div>
+            <div>
+              <div class="row mb8">
+                <input id="templateSearch" class="input grow" placeholder="Search templates…" />
+                <select id="templatePlatformFilter" class="input" style="max-width:160px;"></select>
+              </div>
+              <div id="templatesEmpty" class="empty-state" style="display:none;">
+                <div class="empty-icon">⚡</div>
+                <div class="empty-title">No templates yet</div>
+                <div class="empty-desc">Create your first template to reuse hooks, CTAs, and openers across every post you write.</div>
+              </div>
+              <div class="templates-grid" id="templatesGrid"></div>
+            </div>
+          </div>
+        </section>
+
+<section class="ideas-panel" id="ideasTrendingPanel" data-ideas-panel="trending">
 <div class="ideas-panel-hdr">
   <p class="ideas-panel-copy">Trending ideas from Reddit, Hacker News, and Product Hunt — all routed through a server-side proxy so they actually load. Click any story to pin it as a reference in your draft.</p>
   <div class="page-actions">
@@ -638,172 +769,7 @@
 </div>
 
 
-            </div>
-            <div class="support-panel" id="composerToolPanelAi" role="tabpanel" aria-labelledby="composerToolTabAi" data-stool-panel="ai" hidden>
-            <article id="aiAssistGate" class="panel-card composer-support-card ai-beta-gate" style="border:none;background:transparent;padding:0;">
-              <div class="ai-eyebrow">Invite only</div>
-              <div class="panel-card-title">AI Assist Private Beta</div>
-              <p>Use your own Gemini API key to rewrite, shorten, humanize, and adapt posts inside Compose. AI Assist is currently available to invited testers only.</p>
-              <label class="label" for="aiInviteCode">Invite code</label>
-              <input class="input mono" id="aiInviteCode" type="text" autocomplete="off" placeholder="Enter invite code" />
-              <div class="row mt8"><button class="btn primary" id="aiInviteUnlock" type="button">Unlock AI Assist</button><button class="btn ghost" id="aiWaitlistToggle" type="button">Join Waitlist</button></div>
-              <div id="aiInviteStatus" class="ai-status" role="status" aria-live="polite"></div>
-              <form id="aiWaitlistForm" name="ai-assist-waitlist" method="POST" data-netlify="true" hidden>
-                <input type="hidden" name="form-name" value="ai-assist-waitlist" />
-                <div class="field"><label class="label" for="aiWaitlistName">Name</label><input class="input" id="aiWaitlistName" name="name" required /></div>
-                <div class="field"><label class="label" for="aiWaitlistEmail">Email</label><input class="input" id="aiWaitlistEmail" name="email" type="email" required /></div>
-                <div class="field"><label class="label" for="aiWaitlistUseCase">Use case</label><textarea class="input" id="aiWaitlistUseCase" name="use-case" placeholder="How would AI Assist help your workflow?"></textarea></div>
-                <button class="btn primary" type="submit">Join AI Assist waitlist</button>
-              </form>
-            </article>
-
-            <article id="aiAssistMissingKey" class="panel-card composer-support-card ai-assist-panel" style="border:none;background:transparent;padding:0;" hidden>
-              <div class="ai-eyebrow">Private beta unlocked</div>
-              <div class="panel-card-title">AI Assist</div>
-              <p>AI Assist is unlocked. Add your Gemini API key in AI Settings.</p>
-              <button class="btn primary" id="openAISettingsMissingKey" type="button">Open AI Settings</button>
-            </article>
-
-            <article id="aiAssistPanel" class="panel-card composer-support-card ai-assist-panel" style="border:none;background:transparent;padding:0;" hidden>
-              <div class="composer-support-hdr"><div><div class="ai-eyebrow">Private beta</div><div class="panel-card-title">AI Assist</div></div><button class="btn sm ghost" id="openAISettings" type="button">AI Settings →</button></div>
-              <p>Improve the current Compose draft using Gemini.</p>
-              <div class="ai-action-grid">
-                <button class="btn sm" type="button" data-ai-action="rewrite">Rewrite</button><button class="btn sm" type="button" data-ai-action="shorter">Make shorter</button><button class="btn sm" type="button" data-ai-action="punchier">Make punchier</button><button class="btn sm" type="button" data-ai-action="human">Make more human</button><button class="btn sm" type="button" data-ai-action="hooks">Generate hooks</button><button class="btn sm" type="button" data-ai-action="platforms">Create platform versions</button>
-              </div>
-              <div id="aiAssistStatus" class="ai-status" role="status" aria-live="polite"></div>
-              <div id="aiAssistResults" class="ai-results"></div>
-            </article>
-            </div>
-          </div>
-        </aside>
-        <button class="composer-resource-backdrop" id="composerResourceBackdrop" type="button" tabindex="-1" aria-label="Close writing tools"></button>
-
-      </div><!-- /composer-layout -->
-    </section>
-
-    <!-- ══════════ LIBRARY (Post Library) ══════════ -->
-    <section id="libraryView" class="view" data-feature="library">
-      <div class="mob-view-hdr">
-        <span class="mob-view-title">Shelf</span>
-        <div class="mob-view-actions">
-          <button class="btn sm ghost" id="libraryRefreshBtnMob">↻</button>
-        </div>
-      </div>
-      <div class="page-hdr">
-        <div class="page-hdr-left">
-          <h1 class="page-title">Shelf</h1>
-          <p class="page-desc">Everything you could post next. Reuse something that worked, or star an evergreen post so it can fill a gap while you take a break.</p>
-        </div>
-        <div class="page-actions">
-          <button class="btn ghost" id="libraryRefreshBtn">↻ Refresh</button>
-        </div>
-      </div>
-      <div class="shelf-tabs" role="tablist" aria-label="Shelf">
-        <button class="shelf-tab active" type="button" role="tab" aria-selected="true" data-shelf-tab="libraryView" data-feature="library">Past posts</button>
-        <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="ideasView" data-workspace-nav="ideas" data-feature="ideas">Ideas</button>
-      </div>
-      <div class="lib-content">
-        <div class="lib-stats-strip" id="libraryStats">
-          <div class="lib-stat">
-            <span class="lib-stat-num">—</span>
-            <span class="lib-stat-lbl">sent posts</span>
-          </div>
-        </div>
-        <div class="lib-toolbar">
-          <input id="librarySearch" class="input lib-search" type="search" placeholder="Search posts…" autocomplete="off" />
-          <select id="librarySort" class="input lib-sort">
-            <option value="date">Sort: most recent</option>
-            <option value="oldest">Sort: oldest first</option>
-          </select>
-        </div>
-        <div class="lib-tabs" role="tablist" aria-label="Past post filters">
-          <button class="lib-tab active" data-lib-tab="all" type="button">All posts <span class="lib-tab-count" id="libTabCount-all"></span></button>
-          <button class="lib-tab" data-lib-tab="reuse" type="button">↺ Ready to reuse <span class="lib-tab-count" id="libTabCount-reuse"></span></button>
-          <button class="lib-tab" data-lib-tab="starred" type="button">★ Evergreen <span class="lib-tab-count" id="libTabCount-starred"></span></button>
-        </div>
-        <div id="libraryPostList" class="lib-post-list">
-          <div class="empty-state" style="margin-top:24px;">
-            <div class="empty-icon">📚</div>
-            <div class="empty-title">Your sent posts will appear here</div>
-            <div class="empty-desc">Connect Buffer and activate this view to load your post history with performance data.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-
-
-    <!-- ══════════ IDEAS LIBRARY ══════════ -->
-    <section id="ideasView" class="view" data-feature="ideas">
-      <div class="mob-view-hdr">
-        <span class="mob-view-title">Shelf</span>
-      </div>
-      <div class="page-hdr">
-        <div class="page-hdr-left">
-          <h1 class="page-title">Shelf</h1>
-          <p class="page-desc">Ideas you have saved for later. Give one a target date to see it on the calendar, then develop it into channel versions.</p>
-        </div>
-        <div class="page-actions">
-          <a class="btn ghost" href="/help/?article=build-your-idea-system">Help</a>
-        </div>
-      </div>
-      <div class="shelf-tabs" role="tablist" aria-label="Shelf">
-        <button class="shelf-tab" type="button" role="tab" aria-selected="false" data-shelf-tab="libraryView" data-feature="library">Past posts</button>
-        <button class="shelf-tab active" type="button" role="tab" aria-selected="true" data-shelf-tab="ideasView" data-workspace-nav="ideas" data-feature="ideas">Ideas</button>
-      </div>
-
-      <div class="view-content">
-        <div class="ideas-tool-switcher" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:18px;box-shadow:var(--shadow-sm);">
-          <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;">Saved material and resources</div>
-          <div class="ideas-tabs" role="group" aria-label="Idea sections" style="margin:0;border:0;padding:0;">
-            <button class="ideas-tab active" type="button" data-ideas-tab="notebook">Saved content</button>
-            <details class="bank-resources" id="bankResources"><summary class="btn sm" id="bankResourcesSummary">Resources</summary><div class="bank-resource-menu">            <button class="ideas-tab" type="button" data-ideas-tab="templates">Templates</button></div></details>
-          </div>
-        </div>
-
-        
-        <section class="ideas-panel active" id="ideasNotebookPanel" data-ideas-panel="notebook">
-          <div class="ideas-panel-hdr">
-            <p class="ideas-panel-copy">Capture an idea, develop the source, then remix editable versions for your Buffer channels. Your original source always stays in PostIQ.</p>
-            <div class="page-actions">
-              <button class="btn sm primary" id="newNotecardBtn" type="button">+ Add content</button>
-            </div>
-          </div>
-          <div class="content-bank-filters"><label>Search saved content<input class="input" type="search" id="contentBankSearch" placeholder="Title, source text, or channel version"></label><label>Show<select class="input" id="contentBankFilter"><option value="all">All content</option><option value="undated">No target date</option><option value="targeted">Has a local target</option><option value="scheduled">Confirmed Buffer scheduling</option><option value="unconfirmed">No confirmed scheduling</option></select></label><label>Stage<select class="input" id="contentBankStage"><option value="all">All stages</option><option value="idea">Idea</option><option value="developing">Developing</option><option value="ready">Ready</option><option value="scheduled">Scheduled</option><option value="published">Published</option></select></label></div>
-          <p id="contentBankCount" role="status"></p><p class="calendar-state">Scheduling reflects the last Buffer response; sync for the latest status. Local target dates never confirm scheduling.</p>
-          <div id="notebookEmpty" class="empty-state">
-            <div class="empty-icon">📓</div>
-            <div class="empty-title">No saved content yet</div>
-            <div class="empty-desc">Capture content here or save it from Trending. Plan a target date when you are ready.</div>
-          </div>
-          <div id="notebookList"></div>
-        </section>
-
-        <section class="ideas-panel" id="ideasTemplatesPanel" data-ideas-panel="templates">
-          <div class="ideas-panel-hdr">
-            <p class="ideas-panel-copy">Reusable post starters — hooks, CTAs, announcements. Insert into Compose with one click.</p>
-            <div class="page-actions">
-              <button class="btn sm primary ideas-mobile-only" id="newTemplateBtnMob" type="button">+ New</button>
-              <button class="btn primary ideas-desktop-only" id="newTemplateBtn" type="button">+ New Template</button>
-            </div>
-          </div>
-          <div class="templates-layout">
-            <div class="templates-sidebar" id="templateTypeFilters"></div>
-            <div>
-              <div class="row mb8">
-                <input id="templateSearch" class="input grow" placeholder="Search templates…" />
-                <select id="templatePlatformFilter" class="input" style="max-width:160px;"></select>
-              </div>
-              <div id="templatesEmpty" class="empty-state" style="display:none;">
-                <div class="empty-icon">⚡</div>
-                <div class="empty-title">No templates yet</div>
-                <div class="empty-desc">Create your first template to reuse hooks, CTAs, and openers across every post you write.</div>
-              </div>
-              <div class="templates-grid" id="templatesGrid"></div>
-            </div>
-          </div>
-        </section>
-
+            </section>
       </div><!-- /view-content -->
     </section><!-- /ideasView -->
 
@@ -921,7 +887,6 @@
   </script>
   <!-- Main app -->
   <script src="./js/features/platform-guidance.js" defer></script>
-  <script src="./js/ai-assist.js" defer></script>
   <script src="./js/features/develop.js" defer></script>
   <script src="./js/features/coverage.js" defer></script>
   <script src="./js/core/runtime.js" defer></script>
@@ -972,7 +937,6 @@
       <div class="settings-tabs" role="tablist" aria-label="Settings sections">
         <button class="settings-tab active" id="settingsTabConnection" type="button" role="tab" aria-selected="true" aria-controls="settingsPanelConnection" data-stab="connection">Connection</button>
         <button class="settings-tab" id="settingsTabCustomize" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelCustomize" data-stab="customize">Customize</button>
-        <button class="settings-tab" id="settingsTabAI" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelAI" data-stab="ai">AI Settings</button>
         <button class="settings-tab" id="settingsTabFeatures" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelFeatures" data-stab="features">Features</button>
         <button class="settings-tab" id="settingsTabSupport" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelSupport" data-stab="support">Support</button>
         <button class="settings-tab" id="settingsTabAbout" type="button" role="tab" aria-selected="false" aria-controls="settingsPanelAbout" data-stab="about">About</button>
@@ -1086,33 +1050,6 @@
         </section>
       </div>
 
-      <div id="settingsPanelAI" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabAI" tabindex="0">
-        <div id="aiSettingsLocked" class="settings-section ai-settings-locked">
-          <p class="settings-save-note">Unlock status: Locked</p>
-          <div class="ai-eyebrow">Private beta</div>
-          <div class="settings-section-title">AI Settings</div>
-          <p class="settings-copy">AI Assist is currently in private beta. Unlock AI Assist in Compose to add your Gemini API key.</p>
-          <button class="btn sm primary mt12" id="aiSettingsOpenCompose" type="button">Go to Compose</button>
-        </div>
-        <div id="aiSettingsUnlocked" hidden>
-          <p class="settings-save-note">Unlock status: Unlocked</p>
-          <div class="settings-section">
-            <div class="settings-section-title">AI Settings</div>
-            <p class="settings-copy">Create a Gemini API key in Google AI Studio, then paste it here. Your Gemini API key is stored locally in this browser and is used only to power your AI Assist requests.</p>
-            <div class="field"><label class="label" for="aiApiKey">Gemini API key</label><input class="input mono" id="aiApiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Paste Gemini API key…" /></div>
-            <div class="field"><label class="label" for="aiModel">Gemini model</label><select class="input" id="aiModel"><option value="gemini-2.5-flash">Gemini 2.5 Flash</option><option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite</option><option value="gemini-2.5-pro">Gemini 2.5 Pro</option></select></div>
-            <div class="row"><button class="btn sm primary" id="aiSaveKey" type="button">Save Gemini API Key</button><button class="btn sm" id="aiTestKey" type="button">Test Gemini Connection</button><button class="btn sm ghost" id="aiClearKey" type="button">Clear Gemini API Key</button></div>
-            <div id="aiSettingsStatus" class="ai-status" role="status" aria-live="polite"></div>
-          </div>
-          <div class="settings-section">
-            <div class="settings-section-title">Voice Settings <span class="ai-optional">optional</span></div>
-            <p class="settings-copy">Give AI Assist lightweight guidance about how you write. Empty fields are ignored.</p>
-            <div class="ai-settings-grid"><div class="field"><label class="label" for="aiVoiceName">Voice name</label><input class="input" id="aiVoiceName" placeholder="e.g. Ben's practical voice" /></div><div class="field"><label class="label" for="aiVoiceTone">Tone</label><input class="input" id="aiVoiceTone" placeholder="Direct, useful, conversational" /></div><div class="field"><label class="label" for="aiVoiceAudience">Audience</label><input class="input" id="aiVoiceAudience" placeholder="Early-stage founders" /></div><div class="field"><label class="label" for="aiVoiceAvoid">Avoid phrases</label><input class="input" id="aiVoiceAvoid" placeholder="Unlock, game-changer, delve" /></div></div>
-            <div class="field"><label class="label" for="aiVoiceNotes">Notes about writing style</label><textarea class="input" id="aiVoiceNotes" placeholder="Short paragraphs, strong opinions, no fluff…"></textarea></div>
-            <button class="btn sm primary" id="aiSaveVoice" type="button">Save voice settings</button>
-          </div>
-        </div>
-      </div>
 
       <div id="settingsPanelFeatures" class="settings-panel" role="tabpanel" aria-labelledby="settingsTabFeatures" tabindex="0">
         <div class="settings-section">
@@ -1220,7 +1157,7 @@
       <span class="modal-title" id="scheduleTitle">Posting schedule</span>
       <button class="btn sm ghost" id="schedClose" type="button">Close</button>
     </div>
-    <p class="sched-intro">Tell PostIQ when you plan to post on each channel. The calendar uses this to show your content runway — how many days you're covered. These are local planning choices; your Buffer posts never change.</p>
+    <p class="sched-intro">Tell PostIQ when you plan to post on each channel. The calendar uses this to show your days ahead, meaning how many days you're covered. These are local planning choices; your Buffer posts never change.</p>
     <div class="sched-body">
       <label class="label" for="schedChannel">Channel</label>
       <select class="input" id="schedChannel"></select>
@@ -1233,7 +1170,7 @@
         <label class="label" for="schedTarget">Posts per selected day</label>
         <input class="input pace-number" id="schedTarget" type="number" min="0" max="10" value="1">
       </div>
-      <label class="sched-reshare"><input type="checkbox" id="schedReshare"> Keep this channel's streak alive with evergreen reshares when I take time off</label>
+      <label class="sched-reshare"><input type="checkbox" id="schedReshare"> Keep this channel's streak alive with reshares of kept posts when I take time off</label>
       <button class="btn primary" id="schedSave" type="button">Save schedule</button>
       <p id="schedStatus" class="sched-status" role="status"></p>
       <details class="sched-off">
@@ -1248,8 +1185,8 @@
           <select class="input" id="schedOffScope"><option value="*">All channels</option><option value="selected">Selected channel</option></select>
           <button class="btn" id="schedOffSave" type="button">Mark dates off</button>
           <div class="sched-fill">
-            <p class="sched-fill-copy">Want to keep posting while you're away? For every reshare-enabled channel, PostIQ can queue your evergreen posts (starred on your Shelf) into Buffer across the posting days in this range. Buffer publishes them on your normal schedule — your streak stays alive.</p>
-            <button class="btn" id="schedFill" type="button">Fill these days with evergreen reshares</button>
+            <p class="sched-fill-copy">Want to keep posting while you're away? For every reshare-enabled channel, PostIQ can queue your kept posts (from Past posts on the Shelf) into Buffer across the posting days in this range. Buffer publishes them on your normal schedule — your streak stays alive.</p>
+            <button class="btn" id="schedFill" type="button">Fill these days with reshares of kept posts</button>
             <button class="btn primary" id="schedFillConfirm" type="button" hidden>Confirm &amp; queue to Buffer</button>
             <p id="schedFillStatus" class="sched-status" role="status"></p>
           </div>
@@ -1419,7 +1356,7 @@
     <div class="field">
       <label class="label">Type</label>
       <select id="notecardType" class="input">
-        <option value="idea">idea</option><option value="article">article</option><option value="note">note</option><option value="reddit">reddit</option><option value="hn">hn</option>
+        <option value="idea">idea</option><option value="article">article</option><option value="note">note</option><option value="reminder">reminder</option><option value="link">link</option><option value="reddit">reddit</option><option value="hn">hn</option>
       </select>
     </div>
     <div class="row">

@@ -173,10 +173,10 @@
       }
       .type-filter-btn .type-filter-count { display: none; }
       .templates-grid { grid-template-columns: 1fr; }
+      /* Wrap instead of scrolling: an overflow container would clip the Resources dropdown. */
       .ideas-tabs {
-        overflow-x: auto;
-        white-space: nowrap;
-        scrollbar-width: thin;
+        flex-wrap: wrap;
+        overflow: visible;
       }
       .ideas-tab { flex: 0 0 auto; }
       .ideas-panel-hdr {
