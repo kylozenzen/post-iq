@@ -7,6 +7,7 @@ function renderPlanningSettings() {
   if (!show || !daysWrap) return;
   const settings = getPlanningSettings();
   show.checked = settings.showQueueGaps;
+  const weekNumbers = qs('showWeekNumbersSetting'); if (weekNumbers) weekNumbers.checked = settings.showWeekNumbers;
   daysWrap.innerHTML = DAY_CODES.map((code, idx) => `<label class="settings-check"><input type="checkbox" data-posting-day="${code}" ${settings.postingDays.includes(code) ? 'checked' : ''} /> ${DAY_LABELS[idx]}</label>`).join('');
   (state.channels || []).forEach(channel => {
     const row = document.createElement('div');
@@ -22,7 +23,8 @@ function renderPlanningSettings() {
 function savePlanningSettingsFromUI() {
   const show = qs('showQueueGapsSetting');
   const postingDays = [...document.querySelectorAll('[data-posting-day]')].filter(i => i.checked).map(i => i.dataset.postingDay);
-  const next = { ...getPlanningSettings(), showQueueGaps: !!show?.checked, postingDays };
+  const weekNumbers = qs('showWeekNumbersSetting');
+  const next = { ...getPlanningSettings(), showQueueGaps: !!show?.checked, showWeekNumbers: !!weekNumbers?.checked, postingDays };
   const groups = new Map();
   document.querySelectorAll('[data-channel-cadence]').forEach(input => {
     if (!groups.has(input.dataset.channelCadence)) groups.set(input.dataset.channelCadence, []);
@@ -32,6 +34,7 @@ function savePlanningSettingsFromUI() {
   setPlanningSettings(next);
   detectQueueGaps();
   window.PostIQPlanHealth?.render();
+  updateCalendarViewUI();
 }
 function renderNoteTypesSettings() {
   const wrap = qs('noteTypesSettings'); if (!wrap) return;
@@ -238,6 +241,7 @@ function init() {
   const shareNoteInput = qs('shareNote'); if (shareNoteInput) shareNoteInput.oninput = markShareNeedsRefresh;
   const calendarFilter = qs('calendarFilter'); if (calendarFilter) calendarFilter.onchange = e => { const mode = e.target.value === 'content' ? 'content' : 'posts'; if(mode === 'posts') state.calendarFilter = e.target.value || 'all'; setContentCalendarMode(mode); };
   const showQueue = qs('showQueueGapsSetting'); if (showQueue) showQueue.onchange = savePlanningSettingsFromUI;
+  const weekNumbers = qs('showWeekNumbersSetting'); if (weekNumbers) weekNumbers.onchange = savePlanningSettingsFromUI;
   const postingDays = qs('postingDaysSettings'); if (postingDays) postingDays.addEventListener('change', savePlanningSettingsFromUI);
   const noteTypesWrap = qs('noteTypesSettings'); if (noteTypesWrap) {
     noteTypesWrap.addEventListener('input', saveNoteTypesFromSettings);

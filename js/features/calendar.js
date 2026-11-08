@@ -65,7 +65,7 @@ function getPlanningSettings() {
   try {
     const saved = JSON.parse(localStorage.getItem(PLANNING_KEY) || 'null') || {};
     const postingDays = Array.isArray(saved.postingDays) ? saved.postingDays.filter(d => DAY_CODES.includes(d)) : DEFAULT_PLANNING_SETTINGS.postingDays;
-    return { ...saved, showQueueGaps: saved.showQueueGaps !== false, postingDays, channelPostingDays: saved.channelPostingDays || {} };
+    return { ...saved, showQueueGaps: saved.showQueueGaps !== false, showWeekNumbers: saved.showWeekNumbers === true, postingDays, channelPostingDays: saved.channelPostingDays || {} };
   } catch { return { ...DEFAULT_PLANNING_SETTINGS }; }
 }
 function setPlanningSettings(v) { localStorage.setItem(PLANNING_KEY, JSON.stringify(v)); window.dispatchEvent(new Event('postiq:planning-changed')); }
@@ -346,6 +346,14 @@ function renderCalendarView() {
   try { window.PostIQGettingStarted?.render(); } catch (e) { console.error('[PostIQ] getting-started render failed:', e); }
 }
 
+// ISO-8601 week number for a date (weeks start Monday; week 1 contains the year's first Thursday).
+function isoWeekNumber(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const day = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+}
 function weekStart(date) {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
@@ -370,7 +378,7 @@ function renderWeekView() {
     let html = `<div class="cal-week-day-title"><span class="cal-week-day-name">${d.toLocaleDateString(undefined,{ weekday:'short'})}</span><div class="cal-week-day-title-right"><strong class="cal-week-day-date">${d.toLocaleDateString(undefined,{ month:'short', day:'numeric'})}</strong><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add plan for ${safeText(formatDateWithYear(d))}">+</button></div></div><div class="cal-week-day-summary">${dayPosts.length ? plannerDaySummary(dayPosts) : ''}${dayNotes.length ? ` · ${dayNotes.length} note${dayNotes.length === 1 ? '' : 's'}` : ''}</div>`;
     html += window.PostIQHolidays?.cellHtml?.(key) || '';
 
-    dayPosts.forEach(p => { html += calendarPostPillHtml(p, 'data-week-post', key, 110); });
+    dayPosts.forEach(p => { html += calendarPostPillHtml(p, 'data-week-post', key, 160); });
     dayNotes.forEach(note => { const meta = getNoteTypeMeta(note); html += `<button type="button" class="${calendarNoteClass(note)}" draggable="true" data-week-note="${safeText(note.id)}" style="${notePillStyle(meta)}">${calendarNoteCopy(note,70)}</button>`; });
     html += calendarTargetsForDate(key).map(contentCalendarPill).join('');
     html += dayGapSlotHtml(d);
@@ -437,7 +445,10 @@ function updateCalendarViewUI() {
   updateTodayButton(mode);
   if(mode==='week' || mode==='agenda') {
     const start=weekStart(state.month), end=new Date(start); end.setDate(start.getDate()+6);
-    qs('monthLabel').textContent=weekRangeLabel(start,end,{year:!window.CalendarExperience?.narrow()});
+    const weekLabel=weekRangeLabel(start,end,{year:!window.CalendarExperience?.narrow()});
+    // Monday anchors the ISO week, so a Sunday-start grid is numbered by the working week it mostly contains.
+    const monday=new Date(start); monday.setDate(start.getDate()+1);
+    qs('monthLabel').textContent=mode==='week' && getPlanningSettings().showWeekNumbers ? `${weekLabel} · Wk ${isoWeekNumber(monday)}` : weekLabel;
   }
 }
 

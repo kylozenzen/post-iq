@@ -14,8 +14,8 @@ window.PostIQTour = (() => {
   let welcome = null;
   let welcomeReturnFocus = null;
 
-  // Four quick moments: why the calendar, how to plan, where to write,
-  // and how to turn on the optional Ideas tab within Shelf.
+  // Four quick moments: why the calendar, how to plan, where to write, and what Shelf is for.
+  // Shelf has its own short run-through, offered the first time it is opened.
   const STEPS = [
     {
       id: 'calendar',
@@ -41,6 +41,49 @@ window.PostIQTour = (() => {
       body: () => isConnected()
         ? 'Compose is where a plan becomes a post. Write, choose your channels, then send a draft or schedule it in Buffer when you decide.'
         : 'Compose is your writing space. Explore the editor now; connect Buffer when you want to send drafts or schedule real posts.',
+    },
+    {
+      id: 'shelf',
+      view: 'calendarView',
+      // Highlight the Shelf entry in the left sidebar first; fall back to the calendar where the sidebar is hidden.
+      targets: ['.nav-btn[data-shelf-nav]', '[data-shelf-nav]', '#calGrid', '#todayStrip'],
+      title: 'Your Shelf',
+      body: () => 'Shelf is your go-to place for all things content. Keep ideas, snippets and past posts there, and add them to your calendar when you need them.',
+    },
+  ];
+
+  // Shelf run-through: one step per Shelf tab. Steps with `sub` switch the Shelf tab first.
+  const SHELF_STEPS = [
+    {
+      id: 'shelf-notebook',
+      view: 'ideasView',
+      sub: 'notebook',
+      targets: ['[data-shelf-sub="notebook"]', '#ideasView'],
+      title: 'Notebook',
+      body: () => 'Jot down ideas, notes and to-dos. Give an idea a target date and it shows on your calendar, marked as not scheduled.',
+    },
+    {
+      id: 'shelf-snippets',
+      view: 'ideasView',
+      sub: 'templates',
+      targets: ['[data-shelf-sub="templates"]', '#ideasView'],
+      title: 'Snippets',
+      body: () => 'Keep hooks, openings, calls to action and hashtag sets you reuse. Compose pulls them in as you write.',
+    },
+    {
+      id: 'shelf-past-posts',
+      view: 'libraryView',
+      targets: ['[data-shelf-tab="libraryView"]', '#libraryView'],
+      title: 'Past posts',
+      body: () => 'Star posts that worked. Starred posts can fill open calendar slots in one tap, or be reshared to keep your streak going.',
+    },
+    {
+      id: 'shelf-trending',
+      view: 'ideasView',
+      sub: 'trending',
+      targets: ['[data-shelf-sub="trending"]', '#ideasView'],
+      title: 'Trending',
+      body: () => 'See what is trending on Reddit, Hacker News and Product Hunt, and use it as a starting point for your next post.',
     },
   ];
 
@@ -205,6 +248,7 @@ window.PostIQTour = (() => {
     for (let i = next; i >= 0 && i < steps.length; i += direction) {
       const step = steps[i];
       if (!showView(step.view)) continue;
+      if (step.sub) window.setIdeasTab?.(step.sub);
       const el = findTarget(step);
       if (!el) continue;
       index = i;
@@ -294,9 +338,9 @@ window.PostIQTour = (() => {
 
   function start(options = {}) {
     if (active) return;
-    steps = relevantSteps().filter(step => viewAvailable(step.view));
+    steps = (options.steps || relevantSteps()).filter(step => viewAvailable(step.view));
     if (!steps.length) {
-      if (typeof showToast === 'function') showToast('The tour needs the Calendar. Turn it on in Settings.', 'info');
+      if (typeof showToast === 'function') showToast(options.steps ? 'Shelf is not available right now.' : 'The tour needs the Calendar. Turn it on in Settings.', 'info');
       return;
     }
     returnFocus = options.returnFocus || (document.activeElement instanceof HTMLElement ? document.activeElement : null);
@@ -336,7 +380,38 @@ window.PostIQTour = (() => {
     returnFocus = null;
   }
 
+  // First time Shelf opens, offer its run-through once. Choosing either button
+  // records the offer as seen, so it never comes back on its own.
+  const SHELF_TIP_KEY = 'postiq_shelf_tip_seen';
+  const SHELF_VIEWS = ['ideasView', 'libraryView'];
+  function showShelfTip() {
+    if (read(SHELF_TIP_KEY) === '1' || active || document.querySelector('.shelf-tip')) return;
+    const anchor = [...document.querySelectorAll('.shelf-tabs')].find(el => el.offsetParent) || document.querySelector('.shelf-tabs');
+    if (!anchor) return;
+    const tip = document.createElement('div');
+    tip.className = 'writing-tools-tip shelf-tip';
+    tip.setAttribute('role', 'dialog');
+    tip.setAttribute('aria-label', 'Shelf run-through');
+    tip.innerHTML = '<strong>Want a quick run-through of Shelf?</strong><p>Shelf keeps your notebook, snippets, past posts and trending ideas in one place. A walk through takes about a minute.</p><div class="wt-actions"><button class="btn sm ghost" type="button" data-shelf-tip="later">Later</button><button class="btn sm primary" type="button" data-shelf-tip="show">Show me Shelf</button></div>';
+    document.body.appendChild(tip);
+    const r = anchor.getBoundingClientRect();
+    tip.style.top = (r.bottom + 8) + 'px';
+    tip.style.left = Math.max(8, r.left) + 'px';
+    const close = () => { try { localStorage.setItem(SHELF_TIP_KEY, '1'); } catch {} tip.remove(); };
+    tip.addEventListener('click', event => {
+      const action = event.target.closest('[data-shelf-tip]')?.dataset.shelfTip;
+      if (!action) return;
+      close();
+      if (action === 'show') start({ steps: SHELF_STEPS, source: 'shelf_tip' });
+    });
+  }
+  function onShelfViewChanged(event) {
+    if (!SHELF_VIEWS.includes(event.detail?.viewId)) return;
+    setTimeout(showShelfTip, 600);
+  }
+
   function init() {
+    window.addEventListener('postiq:view-changed', onShelfViewChanged);
     document.querySelectorAll('[data-tour-start]').forEach(button => {
       button.addEventListener('click', () => {
         if (button.closest('#mobDrawer')) {
@@ -363,7 +438,7 @@ window.PostIQTour = (() => {
     }
   }
 
-  return { init, start, stop, showWelcome, isActive: () => active, hasSeen: () => read(isConnected() ? CONNECTED_SEEN_KEY : SEEN_KEY) === '1', steps: STEPS };
+  return { init, start, stop, showWelcome, showShelfTip, isActive: () => active, hasSeen: () => read(isConnected() ? CONNECTED_SEEN_KEY : SEEN_KEY) === '1', steps: STEPS, shelfSteps: SHELF_STEPS };
 })();
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(window.PostIQTour.init, 0));
