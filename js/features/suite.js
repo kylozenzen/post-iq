@@ -1,9 +1,11 @@
 'use strict';
-// Suite: a dedicated queue-health space, reached from the calendar header or
-// the sidebar. Read-only: it reads the same coverage model the calendar uses.
-//   1. Channels: how many days until each channel runs out of queued posts.
-//   2. Break planner: for the dates you pick, how each week is covered and how
-//      many posts still need queuing before you leave.
+// Runway (internally "suite"): how far ahead you are, reached from the calendar
+// header or the sidebar. Uses the same coverage model the calendar uses.
+//   1. Channels: connection health, days until each queue runs out, and the
+//      posting schedule (days, posts per day, Shelf reshares) edited inline.
+//   2. Break planner: week-by-week coverage for a date range, and an optional
+//      fill that queues Shelf reshares on the exact empty days. That fill is
+//      the only Buffer write here, and it always previews first.
 window.PostIQSuite = (() => {
   const HORIZON_DAYS = 120;   // runway lookahead for the channel list
   const MAX_BREAK_DAYS = 365; // break planner never looks further than this
@@ -40,7 +42,7 @@ window.PostIQSuite = (() => {
       case 'incomplete':
         return { tone: 'muted', text: 'Not enough data yet', sub: 'Sync to load this channel’s queue' };
       default:
-        return { tone: 'muted', text: 'No posting days set', sub: 'Choose posting days in Settings' };
+        return { tone: 'muted', text: 'No posting days set', sub: 'Pick posting days below' };
     }
   }
 
@@ -79,7 +81,7 @@ window.PostIQSuite = (() => {
       });
       const missing = cells.reduce((n, cell) => n + cell.missing, 0);
       missingTotal += missing;
-      return { id: String(c.id), name: channelName(c), cells, missing };
+      return { id: String(c.id), name: channelName(c), service: c.service || '', cells, missing };
     });
     return { weeks, lines, missingTotal, channelsShort: lines.filter(l => l.missing > 0).length };
   }
@@ -88,11 +90,61 @@ window.PostIQSuite = (() => {
     return document.getElementById('suiteView')?.classList.contains('active');
   }
 
-  function setNotice(message) {
+  function setNotice(message, sync = false) {
     const box = el('suiteNotice');
     if (!box) return;
     box.hidden = !message;
-    box.textContent = message || '';
+    box.innerHTML = message ? `<span>${esc(message)}</span>${sync ? ' <button class="btn sm" type="button" data-suite-sync>Sync now</button>' : ''}` : '';
+  }
+
+  const DAY_CODES = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+  const DAY_LETTER = { MON: 'M', TUE: 'T', WED: 'W', THU: 'T', FRI: 'F', SAT: 'S', SUN: 'S' };
+  const DAY_NAME = { MON: 'Monday', TUE: 'Tuesday', WED: 'Wednesday', THU: 'Thursday', FRI: 'Friday', SAT: 'Saturday', SUN: 'Sunday' };
+
+  // Connection health for one channel, from Buffer's own channel flags.
+  function channelHealth(c) {
+    if (c.isDisconnected) return { tone: 'warn', text: 'Disconnected in Buffer', fix: true };
+    if (c.isLocked) return { tone: 'warn', text: 'Locked in Buffer', fix: true };
+    return { tone: 'ok', text: 'Connected', fix: false };
+  }
+
+  // A channel's schedule, falling back to the account-wide defaults.
+  function scheduleFor(id, settings = getPlanningSettings()) {
+    const explicit = Array.isArray(settings.channelPostingDays?.[id]);
+    const days = explicit ? settings.channelPostingDays[id] : (settings.postingDays || DAY_CODES);
+    const raw = settings.channelTargets?.[id];
+    return { days, explicit, target: Number.isInteger(raw) ? raw : 1, reshare: !!settings.channelReshare?.[id] };
+  }
+
+  function saveSchedule(id, patch) {
+    const settings = getPlanningSettings();
+    const current = scheduleFor(id, settings);
+    const next = { ...current, ...patch };
+    setPlanningSettings({
+      ...settings,
+      channelPostingDays: { ...settings.channelPostingDays, [id]: DAY_CODES.filter(d => next.days.includes(d)) },
+      channelTargets: { ...settings.channelTargets, [id]: next.target },
+      channelReshare: { ...settings.channelReshare, [id]: next.reshare },
+    });
+    try { if (typeof renderPlanningSettings === 'function') renderPlanningSettings(); } catch {}
+    try { if (typeof renderCalendar === 'function') renderCalendar(); } catch {}
+    try { window.PostIQPlanHealth?.render(); } catch {}
+    render();
+  }
+
+  function scheduleHtml(id) {
+    const sch = scheduleFor(id);
+    const days = DAY_CODES.map(d => {
+      const on = sch.days.includes(d);
+      return `<button type="button" class="suite-day${on ? ' is-on' : ''}" data-suite-day="${d}" aria-pressed="${on}" aria-label="${DAY_NAME[d]}" title="${DAY_NAME[d]}">${DAY_LETTER[d]}</button>`;
+    }).join('');
+    return `
+      <div class="suite-schedule" data-suite-channel="${esc(id)}">
+        <div class="suite-days" role="group" aria-label="Posting days">${days}</div>
+        <label class="suite-target">Posts per day <input type="number" min="0" max="10" step="1" value="${sch.target}" data-suite-target /></label>
+        <label class="suite-reshare"><input type="checkbox" data-suite-reshare ${sch.reshare ? 'checked' : ''} /> Fill gaps from Shelf</label>
+        ${sch.explicit ? '' : '<span class="suite-default-hint">Using your default days</span>'}
+      </div>`;
   }
 
   function renderChannels(today) {
@@ -103,17 +155,27 @@ window.PostIQSuite = (() => {
     const list = channels();
     if (!list.length) { mount.innerHTML = '<p class="suite-empty">No channels loaded yet. Sync to load them from Buffer.</p>'; return; }
     const rows = getQueueCoverage(HORIZON_DAYS).rows;
-    mount.innerHTML = channelRunways(rows, today).map(r => `
-      <div class="suite-channel suite-tone-${r.view.tone}">
-        <div class="suite-channel-name">
-          <strong>${esc(r.name)}</strong>
-          ${r.service ? `<span class="suite-service">${esc(r.service)}</span>` : ''}
+    mount.innerHTML = channelRunways(rows, today).map(r => {
+      const c = list.find(x => String(x.id) === r.id) || {};
+      const health = channelHealth(c);
+      const tone = health.tone === 'warn' ? 'warn' : r.view.tone;
+      return `
+      <div class="suite-channel suite-tone-${tone}">
+        <div class="suite-channel-head">
+          <div class="suite-channel-name">
+            <strong>${esc(r.name)}</strong>
+            ${r.service ? `<span class="suite-service">${esc(r.service)}</span>` : ''}
+            <span class="suite-health suite-health-${health.tone}"><span class="suite-health-dot" aria-hidden="true"></span>${esc(health.text)}</span>
+            ${health.fix ? '<a class="suite-fix" href="https://publish.buffer.com/" target="_blank" rel="noopener">Fix in Buffer ↗</a>' : ''}
+          </div>
+          <div class="suite-channel-status">
+            <span class="suite-runway">${esc(r.view.text)}</span>
+            <span class="suite-runway-sub">${esc(r.view.sub)}</span>
+          </div>
         </div>
-        <div class="suite-channel-status">
-          <span class="suite-runway">${esc(r.view.text)}</span>
-          <span class="suite-runway-sub">${esc(r.view.sub)}</span>
-        </div>
-      </div>`).join('');
+        ${scheduleHtml(r.id)}
+      </div>`;
+    }).join('');
   }
 
   function renderBreak(today) {
@@ -142,7 +204,7 @@ window.PostIQSuite = (() => {
     const head = plan.weeks.map(w => `<th scope="col">${esc(fmt(w.start, { month: 'short', day: 'numeric' }))}–${esc(fmt(w.end, { month: 'short', day: 'numeric' }))}</th>`).join('');
     const body = plan.lines.map(line => `
       <tr>
-        <th scope="row">${esc(line.name)}</th>
+        <th scope="row">${esc(line.name)}${line.service ? ` <span class="suite-service">${esc(line.service)}</span>` : ''}</th>
         ${line.cells.map(cell => {
           if (cell.planned === 0) return '<td class="suite-cell suite-cell-off" title="No posts planned">—</td>';
           const ok = cell.missing === 0;
@@ -151,6 +213,93 @@ window.PostIQSuite = (() => {
         }).join('')}
       </tr>`).join('');
     grid.innerHTML = `<thead><tr><th scope="col">Channel</th>${head}</tr></thead><tbody>${body}</tbody>`;
+    renderFill(plan, start, end);
+  }
+
+  // ── Fill a break from Shelf ─────────────────────────────
+  // Plans one reshare per missing post, on the exact empty day, at the
+  // channel's usual posting time. Only channels with "Fill gaps from Shelf" on.
+  const MAX_FILL = 50;
+  let pendingFill = null;
+  let filling = false;
+
+  function planBreakFill(start, end) {
+    const T = window.PostIQToday;
+    const settings = getPlanningSettings();
+    const reshareIds = new Set(channels().map(c => String(c.id)).filter(id => settings.channelReshare?.[id]));
+    const coverage = getQueueCoverage(daysBetween(todayKey(), end) + 1);
+    const gaps = coverage.rows.filter(r => r.date >= start && r.date <= end && r.status === 'gap' && r.missingCount > 0);
+    const skipped = new Set();
+    const items = [];
+    const used = new Map();
+    for (const r of gaps) {
+      if (!reshareIds.has(r.channelId)) { skipped.add(r.channelId); continue; }
+      const pool = T?.candidates ? T.candidates(r.channelId) : [];
+      if (!pool.length) continue;
+      const base = T.slotTime(r.date, r.channelId);
+      if (!base) continue; // too late today
+      for (let i = 0; i < r.missingCount && items.length < MAX_FILL; i++) {
+        const when = new Date(base.getTime() + i * 3 * 3600 * 1000);
+        if (cov().dayKey(when) !== r.date) break;
+        const n = used.get(r.channelId) || 0;
+        used.set(r.channelId, n + 1);
+        items.push({ channelId: r.channelId, date: r.date, dueAt: when.toISOString(), text: pool[n % pool.length].text });
+      }
+    }
+    return { items, stale: !!coverage.stale, skipped: [...skipped], capped: items.length >= MAX_FILL, reshareCount: reshareIds.size };
+  }
+
+  function shelfCount() {
+    try { return window.PostIQToday?.candidates && channels().length ? window.PostIQToday.candidates(String(channels()[0].id)).length : 0; } catch { return 0; }
+  }
+
+  function renderFill(plan, start, end) {
+    const box = el('suiteFill');
+    if (!box) return;
+    if (filling) return;
+    pendingFill = null;
+    if (!channels().length || plan.missingTotal === 0) { box.innerHTML = ''; return; }
+    const fill = planBreakFill(start, end);
+    let msg = '', action = '';
+    if (fill.stale) msg = 'Sync before filling, so nothing doubles up with posts Buffer already has.';
+    else if (!fill.reshareCount) msg = 'Turn on “Fill gaps from Shelf” for a channel above to fill these with reshares.';
+    else if (!shelfCount()) msg = 'Keep a few posts on your Shelf first. Those are what get reshared.';
+    else if (!fill.items.length) msg = 'None of the open slots are on channels set to fill from Shelf.';
+    else {
+      pendingFill = fill.items;
+      const per = new Map();
+      fill.items.forEach(i => per.set(i.channelId, (per.get(i.channelId) || 0) + 1));
+      const names = [...per].map(([id, n]) => `${channelName(channels().find(c => String(c.id) === id) || {})} ×${n}`).join(', ');
+      msg = `Fill ${plural(fill.items.length, 'open slot')} with Shelf reshares (${names}), each on its empty day at that channel's usual time. Posts already in Buffer don't change.`;
+      if (fill.capped) msg += ` That's the most per run; run it again for the rest.`;
+      if (fill.skipped.length) msg += ` ${plural(fill.skipped.length, 'channel')} with gaps ${fill.skipped.length === 1 ? 'is' : 'are'} set not to fill.`;
+      action = `<button class="btn sm" type="button" id="suiteFillBtn">Queue ${plural(fill.items.length, 'reshare')} in Buffer</button>`;
+    }
+    box.innerHTML = `<p class="suite-fill-msg">${esc(msg)}</p>${action}`;
+    el('suiteFillBtn')?.addEventListener('click', runFill);
+  }
+
+  async function runFill() {
+    if (!pendingFill || !pendingFill.length || filling) return;
+    const box = el('suiteFill');
+    const items = pendingFill; pendingFill = null; filling = true;
+    box.innerHTML = `<p class="suite-fill-msg" aria-live="polite">Queuing ${plural(items.length, 'reshare')}…</p>`;
+    let ok = 0, fail = 0;
+    for (const item of items) {
+      try {
+        const created = await createPost({ channelId: item.channelId, text: item.text, mode: 'customScheduled', dueAt: item.dueAt, schedulingType: 'automatic' });
+        ok++;
+        if (typeof appendScheduled === 'function') appendScheduled(created?.post, item);
+      } catch (e) { fail++; console.error('[PostIQ runway fill]', e); }
+    }
+    filling = false;
+    try { if (typeof renderCalendar === 'function') renderCalendar(); } catch {}
+    window.dispatchEvent(new Event('postiq:scheduled-updated'));
+    render();
+    const done = `Queued ${ok} of ${plural(items.length, 'reshare')}${fail ? `; ${fail} couldn't be queued, so try again or check Buffer` : ''}.`;
+    if (typeof showToast === 'function') showToast(done, fail ? 'error' : 'success');
+    const after = el('suiteFill');
+    if (after) after.insertAdjacentHTML('afterbegin', `<p class="suite-fill-done">${esc(done)}</p>`);
   }
 
   function render() {
@@ -161,7 +310,8 @@ window.PostIQSuite = (() => {
     if (!connection.connected) notice = 'Connect Buffer to see your channels and how many days each one has queued.';
     else if (!channels().length) notice = 'No channels loaded yet. Sync to load them from Buffer.';
     else if (getQueueCoverage(1).stale) notice = 'Your queue data looks out of date. Sync to refresh these numbers.';
-    setNotice(notice);
+    if (connection.reconnectNeeded) notice = 'Your Buffer sign-in expired. Reconnect so posts keep going out.';
+    setNotice(notice, !!notice && connection.connected && !connection.reconnectNeeded && channels().length > 0);
     renderChannels(today);
     renderBreak(today);
   }
@@ -170,6 +320,30 @@ window.PostIQSuite = (() => {
     el('calSuiteBtn')?.addEventListener('click', () => activateView('suiteView', 'calendar_header'));
     el('suiteBackBtn')?.addEventListener('click', () => activateView('calendarView', 'suite_back'));
     ['suiteBreakStart', 'suiteBreakEnd'].forEach(id => el(id)?.addEventListener('change', () => { if (isSuiteActive()) render(); }));
+    el('suiteNotice')?.addEventListener('click', e => {
+      if (e.target.closest('[data-suite-sync]')) { try { syncBuffer({ force: true }); } catch {} }
+    });
+    const channelsBox = el('suiteChannels');
+    channelsBox?.addEventListener('click', e => {
+      const btn = e.target.closest('[data-suite-day]');
+      if (!btn) return;
+      const id = btn.closest('[data-suite-channel]').dataset.suiteChannel;
+      const day = btn.dataset.suiteDay;
+      const { days } = scheduleFor(id);
+      saveSchedule(id, { days: days.includes(day) ? days.filter(d => d !== day) : [...days, day] });
+    });
+    channelsBox?.addEventListener('change', e => {
+      const row = e.target.closest('[data-suite-channel]');
+      if (!row) return;
+      const id = row.dataset.suiteChannel;
+      if (e.target.matches('[data-suite-target]')) {
+        const n = Number(e.target.value);
+        if (!Number.isInteger(n) || n < 0 || n > 10) { e.target.value = scheduleFor(id).target; return; }
+        saveSchedule(id, { target: n });
+      } else if (e.target.matches('[data-suite-reshare]')) {
+        saveSchedule(id, { reshare: e.target.checked });
+      }
+    });
     window.addEventListener('postiq:view-changed', e => { if (e.detail?.viewId === 'suiteView') render(); });
     ['postiq:synced', 'postiq:planning-changed', 'postiq:scheduled-updated'].forEach(ev =>
       window.addEventListener(ev, () => { if (isSuiteActive()) render(); }));
@@ -178,5 +352,5 @@ window.PostIQSuite = (() => {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 
-  return { render, breakPlan, channelRunways, describeRunway };
+  return { render, breakPlan, channelRunways, describeRunway, channelHealth, scheduleFor, planBreakFill };
 })();

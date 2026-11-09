@@ -32,3 +32,27 @@
 @media (max-width: 640px) {
   .suite-channel-status { align-items: flex-start; text-align: left; }
 }
+
+/* Runway additions: channel health, inline schedule, Shelf fill. */
+.suite-channel { flex-direction: column; align-items: stretch; }
+.suite-channel-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.suite-channel-name { flex-wrap: wrap; align-items: center; }
+.suite-health { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted, #6b6b6b); }
+.suite-health-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green, #2e7d32); }
+.suite-health-warn { color: var(--amber, #b26a00); font-weight: 600; }
+.suite-health-warn .suite-health-dot { background: var(--amber, #b26a00); }
+.suite-fix { font-size: 12px; color: var(--brand, inherit); }
+.suite-schedule { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid var(--border, rgba(0,0,0,.08)); font-size: 13px; color: var(--muted, #6b6b6b); }
+.suite-days { display: inline-flex; gap: 4px; }
+.suite-day { appearance: none; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border2, #ccc); background: transparent; color: var(--muted, #6b6b6b); font: 600 12px/1 inherit; cursor: pointer; }
+.suite-day.is-on { background: var(--brand, #333); border-color: var(--brand, #333); color: var(--on-brand, #fff); }
+.suite-day:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.suite-target, .suite-reshare { display: inline-flex; align-items: center; gap: 6px; }
+.suite-target input { width: 52px; font: inherit; padding: 4px 6px; border: 1px solid var(--border, rgba(0,0,0,.12)); border-radius: 6px; background: var(--surface, #fff); color: var(--ink, #111); }
+.suite-default-hint { font-size: 12px; color: var(--subtle, #999); font-style: italic; }
+.suite-notice { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.suite-notice[hidden] { display: none; }
+.suite-fill { margin-top: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.suite-fill:empty { display: none; }
+.suite-fill-msg, .suite-fill-done { margin: 0; font-size: 13px; }
+.suite-fill-done { color: var(--green, #2e7d32); font-weight: 600; }

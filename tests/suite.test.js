@@ -90,3 +90,91 @@ test('break planner says so when a break is fully covered',async()=>{
   assert.ok(d.querySelector('#suiteBreakGrid .suite-cell-ok'));
  }finally{dom.window.close();}
 });
+
+test('Runway is the visible name in the sidebar and page title',async()=>{
+ const dom=await loadApp('');
+ try{
+  const d=dom.window.document;
+  assert.match(d.querySelector('.side-nav [data-view="suiteView"]').textContent,/Runway/);
+  assert.equal(d.getElementById('suiteTitle').textContent,'Runway');
+ }finally{dom.window.close();}
+});
+
+test('each channel shows its Buffer connection health',async()=>{
+ const dom=await loadApp('');
+ try{
+  const w=dom.window, d=w.document;
+  connect(w, `state.channels=[{id:'c1',name:'Alpha',service:'threads'},{id:'c2',name:'Beta',service:'linkedin',isDisconnected:true},{id:'c3',name:'Gamma',service:'bluesky',isLocked:true}];`);
+  w.eval("PostIQSuite.render()");
+  const rows=[...d.querySelectorAll('#suiteChannels .suite-channel')];
+  assert.match(rows[0].textContent,/Connected/);
+  assert.match(rows[1].textContent,/Disconnected in Buffer/);
+  assert.ok(rows[1].querySelector('.suite-fix'),'links out to fix it');
+  assert.ok(rows[1].classList.contains('suite-tone-warn'));
+  assert.match(rows[2].textContent,/Locked in Buffer/);
+ }finally{dom.window.close();}
+});
+
+test('stale data shows a Sync button in the notice',async()=>{
+ const dom=await loadApp('');
+ try{
+  const w=dom.window, d=w.document;
+  connect(w, `state.scheduledCoverage={ts:Date.now()-60*60*1000,complete:true};`);
+  w.eval("PostIQSuite.render()");
+  assert.ok(!d.getElementById('suiteNotice').hidden);
+  assert.ok(d.querySelector('#suiteNotice [data-suite-sync]'));
+ }finally{dom.window.close();}
+});
+
+test('posting days, target and reshare are edited inline and saved to planning settings',async()=>{
+ const dom=await loadApp('');
+ try{
+  const w=dom.window, d=w.document;
+  connect(w);
+  w.eval("PostIQSuite.render()");
+  const row=()=>d.querySelector('#suiteChannels [data-suite-channel="c1"]');
+  assert.ok(row().querySelector('.suite-default-hint'),'starts on the default days');
+  const sat=row().querySelector('[data-suite-day="SAT"]');
+  const wasOn=sat.getAttribute('aria-pressed')==='true';
+  sat.click();
+  assert.equal(w.eval("getPlanningSettings().channelPostingDays.c1.includes('SAT')"),!wasOn);
+  assert.equal(row().querySelector('[data-suite-day="SAT"]').getAttribute('aria-pressed'),String(!wasOn));
+  const input=row().querySelector('[data-suite-target]');
+  input.value='2'; input.dispatchEvent(new w.Event('change',{bubbles:true}));
+  assert.equal(w.eval("getPlanningSettings().channelTargets.c1"),2);
+  input.value='99'; input.dispatchEvent(new w.Event('change',{bubbles:true}));
+  assert.equal(w.eval("getPlanningSettings().channelTargets.c1"),2,'out-of-range values are ignored');
+  const box=row().querySelector('[data-suite-reshare]');
+  box.checked=true; box.dispatchEvent(new w.Event('change',{bubbles:true}));
+  assert.equal(w.eval("getPlanningSettings().channelReshare.c1"),true);
+ }finally{dom.window.close();}
+});
+
+test('break fill plans one reshare per missing post on the exact empty day, and only after confirming',async()=>{
+ const dom=await loadApp('');
+ try{
+  const w=dom.window, d=w.document;
+  connect(w, `localStorage.setItem('postiq_library_starred_v1',JSON.stringify(['s1','s2']));
+    localStorage.setItem('postiq_library_cache_v3',JSON.stringify({posts:[{id:'s1',text:'Evergreen one',channelId:'c1'},{id:'s2',text:'Evergreen two',channelId:'c1'}]}));`);
+  const today=w.PostIQCoverage.dayKey(new Date());
+  const start=w.PostIQCoverage.addDays(today,2), end=w.PostIQCoverage.addDays(today,8);
+  w.eval(`setPlanningSettings({...getPlanningSettings(),postingDays:['SUN','MON','TUE','WED','THU','FRI','SAT'],channelPostingDays:{c1:['SUN','MON','TUE','WED','THU','FRI','SAT']},channelTargets:{c1:1},channelReshare:{c1:false}})`);
+  d.getElementById('suiteBreakStart').value=start; d.getElementById('suiteBreakEnd').value=end;
+  w.eval("PostIQSuite.render()");
+  assert.match(d.getElementById('suiteFill').textContent,/Turn on “Fill gaps from Shelf”/,'off by default');
+  w.eval(`setPlanningSettings({...getPlanningSettings(),channelReshare:{c1:true}});PostIQSuite.render()`);
+  const plan=w.eval(`PostIQSuite.planBreakFill('${start}','${end}')`);
+  assert.equal(plan.items.length,7,'one per empty day');
+  assert.ok(plan.items.every(i=>w.PostIQCoverage.dayKey(new Date(i.dueAt))===i.date),'each lands on its own day');
+  assert.notEqual(plan.items[0].text,plan.items[1].text,'rotates through the Shelf');
+  const calls=[];
+  w.eval(`createPost=async p=>{window.__calls=(window.__calls||[]);window.__calls.push(p);return {post:{id:'n'+window.__calls.length,channelId:p.channelId,text:p.text,dueAt:p.dueAt,status:'scheduled'}}}`);
+  assert.equal(w.eval('(window.__calls||[]).length'),0,'nothing written before confirming');
+  d.getElementById('suiteFillBtn').click();
+  await new Promise(r=>setTimeout(r,50));
+  const made=w.eval('window.__calls');
+  assert.equal(made.length,7);
+  assert.ok(made.every(p=>p.mode==='customScheduled'&&p.dueAt),'exact times, not next queue slot');
+  assert.match(d.getElementById('suiteBreakSummary').textContent,/stays covered/,'the break is covered afterwards');
+ }finally{dom.window.close();}
+});

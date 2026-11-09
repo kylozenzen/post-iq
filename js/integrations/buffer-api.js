@@ -128,8 +128,13 @@ async function getChannels({ force = false } = {}) {
   if (!force && state.channels.length && isCacheFresh('channels')) return state.channels;
   const orgId = await getOrgId({ force });
   if (!orgId) return [];
-  const q = 'query C($organizationId: OrganizationId!) { channels(input:{organizationId:$organizationId}){ id displayName name service } }';
-  const ch = await callBuffer(q, { organizationId: orgId });
+  // isDisconnected / isLocked power per-channel connection health. If Buffer
+  // ever rejects those fields, fall back to the basic query so channels still load.
+  const base = 'id displayName name service';
+  const q = f => `query C($organizationId: OrganizationId!) { channels(input:{organizationId:$organizationId}){ ${f} } }`;
+  let ch = null;
+  try { ch = await callBuffer(q(base + ' isDisconnected isLocked'), { organizationId: orgId }); } catch { ch = null; }
+  if (!Array.isArray(ch?.data?.channels)) ch = await callBuffer(q(base), { organizationId: orgId });
   state.channels = ch?.data?.channels || [];
   cache.channels = { value: state.channels, ts: Date.now() };
   return state.channels;

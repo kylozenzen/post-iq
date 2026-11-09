@@ -155,14 +155,14 @@
         </span>
         <span class="nav-text">Shelf</span>
       </button>
-      <button class="nav-btn" data-view="suiteView" data-tooltip="Suite">
+      <button class="nav-btn" data-view="suiteView" data-tooltip="Runway">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linejoin="round">
             <rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/>
             <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/>
           </svg>
         </span>
-        <span class="nav-text">Suite</span>
+        <span class="nav-text">Runway</span>
       </button>
     </nav>
 
@@ -213,7 +213,7 @@
 
         <div class="cal-toolbar-right">
           <button class="cal-filter-chip" id="calFilterChip" type="button" hidden>Filtered · <span>Clear</span></button>
-          <button class="cal-alert-bell cal-suite-btn" id="calSuiteBtn" type="button" aria-label="Open Suite: queue health and breaks" title="Suite: queue health and breaks"><span aria-hidden="true">▦</span></button>
+          <button class="cal-alert-bell cal-suite-btn" id="calSuiteBtn" type="button" aria-label="Open Runway: channel health, schedules and breaks" title="Runway: channel health, schedules and breaks"><span aria-hidden="true">▦</span></button>
           <button class="cal-alert-bell" id="calAlertBell" type="button" aria-label="Alerts" aria-haspopup="dialog"><span class="cal-alert-ico" aria-hidden="true">◔</span><span class="cal-alert-count" hidden>0</span></button>
           <div class="cal-view-toggle" role="group" aria-label="Calendar view">
             <button class="seg-btn active" id="calendarViewMonthBtn" type="button" data-calendar-view="month">Month</button>
@@ -786,12 +786,12 @@
 
     <section id="suiteView" class="view" aria-labelledby="suiteTitle">
       <div class="mob-view-hdr">
-        <span class="mob-view-title">Suite</span>
+        <span class="mob-view-title">Runway</span>
       </div>
       <div class="page-hdr">
         <div class="page-hdr-left">
-          <h1 class="page-title" id="suiteTitle">Suite</h1>
-          <p class="page-desc">Queue health for every channel: how many days each one has queued, and whether your weeks hold up through a break or trip.</p>
+          <h1 class="page-title" id="suiteTitle">Runway</h1>
+          <p class="page-desc">How far ahead you are. Each channel's connection, queue and posting schedule, plus whether your weeks hold up through a break.</p>
         </div>
         <div class="page-actions">
           <button class="btn ghost" id="suiteBackBtn" type="button">← Back to calendar</button>
@@ -807,7 +807,7 @@
 
         <section class="suite-card" aria-labelledby="suiteBreakTitle">
           <h2 class="suite-card-title" id="suiteBreakTitle">Break or vacation</h2>
-          <p class="suite-card-desc">Pick the dates you'll be away. Each cell shows posts already queued against posts planned that week.</p>
+          <p class="suite-card-desc">Pick the dates you'll be away. Each cell shows posts already queued against posts planned that week. Channels set to fill from Shelf can have their gaps filled in one step.</p>
           <div class="suite-break-inputs">
             <label>From <input type="date" id="suiteBreakStart" /></label>
             <label>To <input type="date" id="suiteBreakEnd" /></label>
@@ -816,6 +816,7 @@
           <div class="suite-grid-wrap">
             <table class="suite-grid" id="suiteBreakGrid"></table>
           </div>
+          <div class="suite-fill" id="suiteFill"></div>
         </section>
       </div>
     </section>

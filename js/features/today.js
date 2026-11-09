@@ -32,15 +32,20 @@ window.PostIQToday = (() => {
         .map(p => ({ id: p.id, text: String(p.text).trim(), channelId: String(p.channelId || ''), service: serviceOf(channelById(p.channelId)) || String(p.service || '').toLowerCase() }));
     } catch { return []; }
   }
-  function suggestionFor(dateKey, channelId) {
+  // Shelf posts for a channel, best fit first: its own posts, then the same
+  // platform, then the rest. Skips anything already queued on that channel.
+  function candidates(channelId) {
     const target = channelById(channelId);
     const pool = evergreen();
-    if (!pool.length) return null;
-    // Don't suggest something already queued on this channel.
+    if (!pool.length) return [];
     const queued = new Set((state.scheduled || []).filter(p => String(p.channelId) === String(channelId)).map(p => String(p.text || '').trim()));
     const fresh = pool.filter(p => !queued.has(p.text));
     const list = fresh.length ? fresh : pool;
-    const ranked = [...list.filter(p => p.channelId === String(channelId)), ...list.filter(p => p.channelId !== String(channelId) && p.service === serviceOf(target)), ...list.filter(p => p.channelId !== String(channelId) && p.service !== serviceOf(target))];
+    return [...list.filter(p => p.channelId === String(channelId)), ...list.filter(p => p.channelId !== String(channelId) && p.service === serviceOf(target)), ...list.filter(p => p.channelId !== String(channelId) && p.service !== serviceOf(target))];
+  }
+  function suggestionFor(dateKey, channelId) {
+    const ranked = candidates(channelId);
+    if (!ranked.length) return null;
     const offset = shuffle.get(`${dateKey}|${channelId}`) || 0;
     return { post: ranked[offset % ranked.length], total: ranked.length };
   }
@@ -226,7 +231,7 @@ window.PostIQToday = (() => {
     render();
   }
 
-  return { init, render, openSlots, suggestionFor, slotTime, usualTime, openPopover, queue, fillCardHtml };
+  return { init, render, openSlots, candidates, suggestionFor, slotTime, usualTime, openPopover, queue, fillCardHtml };
 })();
 
 document.addEventListener('DOMContentLoaded', () => { try { window.PostIQToday.init(); } catch (e) { console.warn('[PostIQ today]', e); } });
