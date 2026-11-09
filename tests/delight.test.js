@@ -141,7 +141,7 @@ test('with nothing starred, the fill card points to the Shelf instead of guessin
 test('open slots in day cells are buttons that open the fill card', async () => app(w => {
   const d = w.document;
   w.eval(`getBufferConnectionState=()=>({connected:true});state.channels=[{id:'li',displayName:'Ben',service:'linkedin'}];
-    window.dayGapCount=()=>1;dayCoverageRows=()=>[{channelId:'li',status:'gap'}];
+    window.dayGapCount=()=>1;dayCoverageRows=()=>[{channelId:'li',status:'gap',missingCount:1}];
     state.month=new Date();setCalendarView('month');`);
   const key = w.eval('(()=>{const x=new Date();x.setDate(x.getDate()+1);return fmtDate(x)})()');
   const cell = d.querySelector(`#calGrid [data-calendar-date="${key}"]`);

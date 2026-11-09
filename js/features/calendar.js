@@ -518,10 +518,26 @@ function dayCoverageRows(date) {
 }
 function dayGapSlotHtml(date) {
   if (fmtDate(date) < fmtDate(new Date())) return '';
-  const gaps = dayGapCount(date);
-  if (!gaps) return '';
-  // A gap is an invitation, not an error: a quiet dashed slot. The per-channel breakdown lives in the day detail.
-  return `<button type="button" class="day-gap-slot" title="${gaps} channel${gaps === 1 ? '' : 's'} could use a post — click to fill">${gaps === 1 ? 'Open slot' : `${gaps} open slots`}</button>`;
+  const { posts, channels, stale, names } = dayGapSummary(date);
+  if (!posts) return '';
+  // How many posts this day still needs, visible at a glance while planning.
+  // On stale Buffer data the last-known count stays up, just marked unconfirmed.
+  const label = `▲ ${posts} open slot${posts === 1 ? '' : 's'}`;
+  const detail = names.length ? ` (${names.join(', ')})` : '';
+  const title = `${posts} post${posts === 1 ? '' : 's'} still needed across ${channels} channel${channels === 1 ? '' : 's'}${detail}${stale ? ' · based on your last sync' : ''} — click to fill`;
+  return `<button type="button" class="day-gap-slot${stale ? ' is-stale' : ''}" title="${safeText(title)}" aria-label="${safeText(title)}">${label}</button>`;
+}
+// Posts still missing on a day, summed across channels. Stale rows count with
+// their last-known numbers so the per-day count doesn't vanish between syncs.
+function dayGapSummary(date) {
+  const rows = dayCoverageRows(date).filter(r => (r.status === 'gap' || r.status === 'stale') && (r.missingCount ?? 1) > 0);
+  const names = rows.map(r => {
+    const ch = (state.channels || []).find(c => String(c.id) === String(r.channelId));
+    const name = ch?.displayName || ch?.name || ch?.service || String(r.channelId);
+    const n = r.missingCount ?? 1;
+    return n > 1 ? `${name} ×${n}` : name;
+  });
+  return { posts: rows.reduce((sum, r) => sum + (r.missingCount ?? 1), 0), channels: rows.length, stale: rows.some(r => r.status === 'stale'), names };
 }
 function dayGapCount(date) { return dayCoverageRows(date).filter(r => r.status === 'gap').length; }
 // Per-platform coverage breakdown for the day-detail view — this is where the
