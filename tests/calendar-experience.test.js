@@ -21,7 +21,11 @@ test('Agenda exact selection, draft date/channel and return preserve context',as
  const priorSchedule=d.querySelector('#composerWhen').value;
  d.querySelector('#calendarAddBtn').click();assert.equal(d.querySelector('#quickAddPop').hidden,false,'+ Add opens quick add');d.querySelector('[data-quick-more]').click();d.querySelector('[data-start-draft]').click();
  assert.ok(d.querySelector('#composerView.active'));assert.equal(d.querySelector('#composerChannel').value,'b');
- assert.equal(d.querySelector('#composerWhen').value,priorSchedule); // selected date never silently schedules
+ // Writing for a calendar day points the schedule picker at that day (when it
+ // hasn't passed); nothing is sent until Schedule is pressed, and the banner says so.
+ const bannerText=d.querySelector('#composerCalendarDate').textContent, day=d.querySelector('#composerCalendarContext').dataset.date;
+ if(/schedule is set to that day/.test(bannerText)) { assert.equal(d.querySelector('#scheduleDate').value,day); assert.equal(w.eval(`fmtDate(new Date(qs('composerWhen').value))`),day); }
+ else { assert.match(bannerText,/pick a new date/); assert.equal(d.querySelector('#composerWhen').value,priorSchedule); }
  d.querySelector('#composerReturnCalendar').click();
  assert.ok(d.querySelector('#calendarView.active'));assert.equal(w.eval('state.calendarView'),'agenda');assert.equal(w.eval('state.calendarChannel'),'b');
  assert.equal(d.querySelectorAll('#calAgenda > [data-calendar-date]').length,7);

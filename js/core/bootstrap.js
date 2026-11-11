@@ -90,8 +90,8 @@ function init() {
   buildTimePickers();
   const scheduleDate = qs('scheduleDate');
   if (scheduleDate) {
-    scheduleDate.value = new Date().toISOString().slice(0, 10);
-    scheduleDate.min = new Date().toISOString().slice(0, 10);
+    scheduleDate.value = fmtDate(new Date());
+    scheduleDate.min = fmtDate(new Date());
   }
   renderChannelSelects();
   renderCalendar();
@@ -205,7 +205,9 @@ function init() {
       setSyncStatus('idle', hasCachedScheduledPosts
         ? 'Using cached Buffer data. Click Sync now to refresh.'
         : 'Connected. Click Sync now to load Buffer posts.');
-    } else if (connection.reconnectNeeded) {
+      if (typeof syncIfStale === 'function') syncIfStale();
+    }
+    if (typeof bindAutoSync === 'function') bindAutoSync(); else if (connection.reconnectNeeded) {
       setSyncStatus('failed', 'Reconnect Buffer to keep syncing.');
     }
   });

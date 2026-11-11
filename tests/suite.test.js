@@ -154,8 +154,9 @@ test('break fill plans one reshare per missing post on the exact empty day, and 
  const dom=await loadApp('');
  try{
   const w=dom.window, d=w.document;
-  connect(w, `localStorage.setItem('postiq_library_starred_v1',JSON.stringify(['s1','s2']));
-    localStorage.setItem('postiq_library_cache_v3',JSON.stringify({posts:[{id:'s1',text:'Evergreen one',channelId:'c1'},{id:'s2',text:'Evergreen two',channelId:'c1'}]}));`);
+  connect(w, `state.channels=[{ id: 'c1', name: 'Alpha', service: 'linkedin' }];
+    localStorage.setItem('postiq_library_starred_v1',JSON.stringify(['s1','s2','s3','s4','s5','s6','s7','s8']));
+    localStorage.setItem('postiq_library_cache_v3',JSON.stringify({posts:['one','two','three','four','five','six','seven','eight'].map((n,i)=>({id:'s'+(i+1),text:'Evergreen '+n,channelId:'c1'}))}));`);
   const today=w.PostIQCoverage.dayKey(new Date());
   const start=w.PostIQCoverage.addDays(today,2), end=w.PostIQCoverage.addDays(today,8);
   w.eval(`setPlanningSettings({...getPlanningSettings(),postingDays:['SUN','MON','TUE','WED','THU','FRI','SAT'],channelPostingDays:{c1:['SUN','MON','TUE','WED','THU','FRI','SAT']},channelTargets:{c1:1},channelReshare:{c1:false}})`);
@@ -166,7 +167,7 @@ test('break fill plans one reshare per missing post on the exact empty day, and 
   const plan=w.eval(`PostIQSuite.planBreakFill('${start}','${end}')`);
   assert.equal(plan.items.length,7,'one per empty day');
   assert.ok(plan.items.every(i=>w.PostIQCoverage.dayKey(new Date(i.dueAt))===i.date),'each lands on its own day');
-  assert.notEqual(plan.items[0].text,plan.items[1].text,'rotates through the Shelf');
+  assert.equal(new Set(plan.items.map(i=>i.text)).size,7,'each kept post goes out once per channel');
   const calls=[];
   w.eval(`createPost=async p=>{window.__calls=(window.__calls||[]);window.__calls.push(p);return {post:{id:'n'+window.__calls.length,channelId:p.channelId,text:p.text,dueAt:p.dueAt,status:'scheduled'}}}`);
   assert.equal(w.eval('(window.__calls||[]).length'),0,'nothing written before confirming');
@@ -176,5 +177,29 @@ test('break fill plans one reshare per missing post on the exact empty day, and 
   assert.equal(made.length,7);
   assert.ok(made.every(p=>p.mode==='customScheduled'&&p.dueAt),'exact times, not next queue slot');
   assert.match(d.getElementById('suiteBreakSummary').textContent,/stays covered/,'the break is covered afterwards');
+ }finally{dom.window.close();}
+});
+
+test('break fill never repeats a kept post on a channel, and skips channels that need media',async()=>{
+ const dom=await loadApp('');
+ try{
+  const w=dom.window, d=w.document;
+  connect(w, `state.channels=[{ id: 'c1', name: 'Alpha', service: 'linkedin' },{ id: 'c2', name: 'Gram', service: 'instagram' }];
+    state.scheduled=[{id:'q1',channelId:'c1',text:'Evergreen two',dueAt:new Date(Date.now()+30*864e5).toISOString(),status:'scheduled'}];
+    localStorage.setItem('postiq_library_starred_v1',JSON.stringify(['s1','s2','s3']));
+    localStorage.setItem('postiq_library_cache_v3',JSON.stringify({posts:[{id:'s1',text:'Evergreen one',channelId:'c1'},{id:'s2',text:'Evergreen two',channelId:'c1'},{id:'s3',text:'Evergreen three',channelId:'c1'}]}));`);
+  const today=w.PostIQCoverage.dayKey(new Date());
+  const start=w.PostIQCoverage.addDays(today,2), end=w.PostIQCoverage.addDays(today,8);
+  w.eval(`setPlanningSettings({...getPlanningSettings(),postingDays:['SUN','MON','TUE','WED','THU','FRI','SAT'],channelPostingDays:{c1:['SUN','MON','TUE','WED','THU','FRI','SAT'],c2:['SUN','MON','TUE','WED','THU','FRI','SAT']},channelTargets:{c1:1,c2:1},channelReshare:{c1:true,c2:true}})`);
+  const plan=JSON.parse(w.eval(`JSON.stringify(PostIQSuite.planBreakFill('${start}','${end}'))`));
+  assert.deepEqual(plan.items.map(i=>i.text).sort(),['Evergreen one','Evergreen three'],'two unused kept posts, once each; the queued one is skipped');
+  assert.ok(plan.items.every(i=>i.channelId==='c1'),'nothing text-only goes to Instagram');
+  assert.deepEqual(plan.mediaOnly,['c2']);
+  assert.equal(plan.short[0][1],5,'the rest of the week stays open and is reported');
+  d.getElementById('suiteBreakStart').value=start; d.getElementById('suiteBreakEnd').value=end;
+  w.eval('PostIQSuite.render()');
+  const msg=d.getElementById('suiteFill').textContent;
+  assert.match(msg,/once per channel/);
+  assert.match(msg,/photo or video/);
  }finally{dom.window.close();}
 });

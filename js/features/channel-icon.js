@@ -69,5 +69,14 @@ window.PostIQChannelIcons = (() => {
   // Plain-text platform tag for places that can't take HTML (option text, titles).
   function tag(service) { return identify(service).label; }
 
-  return { badge, label, displayName, duplicateNames, identify, tag };
+  // Plain-text name that stays unambiguous: "Ben Campbell (LinkedIn)" when two
+  // channels share a display name, otherwise just the name.
+  function plainName(channel) {
+    const c = resolve(channel);
+    if (!c) return displayName(channel) || 'Channel';
+    const name = c.displayName || c.name || String(c.id);
+    return duplicateNames().has(name.toLowerCase()) ? `${name} (${identify(c.service).label})` : name;
+  }
+
+  return { badge, label, displayName, plainName, duplicateNames, identify, tag };
 })();

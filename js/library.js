@@ -351,6 +351,8 @@ window.PostIQLibrary = (() => {
 
   // ── Actions ────────────────────────────────────
   function repurposePost(post) {
+    const target = takeFillTarget();
+    if (target && window.CalendarExperience?.compose) window.CalendarExperience.compose(target.date, target.channelId || '');
     // Use existing PostIQ function to pin as reference above composer
     if (typeof window.pinReferenceToComposer === 'function') {
       window.pinReferenceToComposer({
@@ -370,7 +372,18 @@ window.PostIQLibrary = (() => {
     if (typeof window.showToast === 'function') window.showToast('Pinned as reference — write your take', 'success');
   }
 
+  // Opened from a calendar gap ("Open Shelf" on a fill card)? Carry that day and
+  // channel into Compose so the reshare lands on the gap, not wherever Buffer's
+  // queue puts it. The hand-off expires so it can't surprise a later visit.
+  function takeFillTarget() {
+    const t = window.PostIQFillTarget;
+    window.PostIQFillTarget = null;
+    return t && Date.now() - t.at < 20 * 60 * 1000 ? t : null;
+  }
+
   function reschedulePost(post) {
+    const target = takeFillTarget();
+    if (target && window.CalendarExperience?.compose) window.CalendarExperience.compose(target.date, target.channelId || '');
     const editor = document.getElementById('composerEditor');
     if (editor) {
       editor.innerText = post.text || '';

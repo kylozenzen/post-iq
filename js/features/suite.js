@@ -14,7 +14,9 @@ window.PostIQSuite = (() => {
   const cov = () => window.PostIQCoverage;
   const todayKey = () => cov().dayKey(new Date());
   const channels = () => (Array.isArray(state?.channels) ? state.channels : []);
-  const channelName = c => c.displayName || c.name || 'Buffer channel';
+  const rowName = c => c.displayName || c.name || 'Buffer channel';
+  const channelName = c => window.PostIQChannelIcons?.plainName?.(c) || rowName(c);
+  const serviceLabel = service => (service && window.PostIQChannelIcons?.tag?.(service)) || service;
   const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
   function fmt(key, opts = { weekday: 'short', month: 'short', day: 'numeric' }) {
@@ -50,7 +52,7 @@ window.PostIQSuite = (() => {
   function channelRunways(rows, today) {
     return channels().map(c => {
       const info = cov().runwayInfo(rows, String(c.id), today);
-      return { id: String(c.id), name: channelName(c), service: c.service || '', info, view: describeRunway(info) };
+      return { id: String(c.id), name: rowName(c), service: serviceLabel(c.service || ''), info, view: describeRunway(info) };
     });
   }
 
@@ -81,7 +83,7 @@ window.PostIQSuite = (() => {
       });
       const missing = cells.reduce((n, cell) => n + cell.missing, 0);
       missingTotal += missing;
-      return { id: String(c.id), name: channelName(c), service: c.service || '', cells, missing };
+      return { id: String(c.id), name: rowName(c), service: serviceLabel(c.service || ''), cells, missing };
     });
     return { weeks, lines, missingTotal, channelsShort: lines.filter(l => l.missing > 0).length };
   }
@@ -223,34 +225,45 @@ window.PostIQSuite = (() => {
   let pendingFill = null;
   let filling = false;
 
-  function planBreakFill(start, end) {
+  function planBreakFill(start, end, { ignoreDaysOff = false } = {}) {
     const T = window.PostIQToday;
     const settings = getPlanningSettings();
     const reshareIds = new Set(channels().map(c => String(c.id)).filter(id => settings.channelReshare?.[id]));
-    const coverage = getQueueCoverage(daysBetween(todayKey(), end) + 1);
+    const coverage = getQueueCoverage(daysBetween(todayKey(), end) + 1, { ignoreDaysOff });
     const gaps = coverage.rows.filter(r => r.date >= start && r.date <= end && r.status === 'gap' && r.missingCount > 0);
     const skipped = new Set();
+    const mediaOnly = new Set();
+    const short = new Map(); // channelId → slots left open because the Shelf ran out
     const items = [];
-    const used = new Map();
+    const used = new Map(); // channelId → texts already planned this run
     for (const r of gaps) {
       if (!reshareIds.has(r.channelId)) { skipped.add(r.channelId); continue; }
-      const pool = T?.candidates ? T.candidates(r.channelId) : [];
-      if (!pool.length) continue;
-      const base = T.slotTime(r.date, r.channelId);
+      if (T?.needsMedia?.(r.channelId)) { mediaOnly.add(r.channelId); continue; }
+      const base = T?.slotTime ? T.slotTime(r.date, r.channelId) : null;
       if (!base) continue; // too late today
+      const taken = used.get(r.channelId) || [];
       for (let i = 0; i < r.missingCount && items.length < MAX_FILL; i++) {
         const when = new Date(base.getTime() + i * 3 * 3600 * 1000);
         if (cov().dayKey(when) !== r.date) break;
-        const n = used.get(r.channelId) || 0;
-        used.set(r.channelId, n + 1);
-        items.push({ channelId: r.channelId, date: r.date, dueAt: when.toISOString(), text: pool[n % pool.length].text });
+        // Each kept post goes out at most once per channel per fill, and never
+        // on a channel that already has it queued.
+        const next = T?.candidates ? T.candidates(r.channelId, { exclude: taken })[0] : null;
+        if (!next) { short.set(r.channelId, (short.get(r.channelId) || 0) + (r.missingCount - i)); break; }
+        taken.push(next.text);
+        items.push({ channelId: r.channelId, date: r.date, dueAt: when.toISOString(), text: next.text });
       }
+      used.set(r.channelId, taken);
     }
-    return { items, stale: !!coverage.stale, skipped: [...skipped], capped: items.length >= MAX_FILL, reshareCount: reshareIds.size };
+    return { items, stale: !!coverage.stale, skipped: [...skipped], mediaOnly: [...mediaOnly], short: [...short], capped: items.length >= MAX_FILL, reshareCount: reshareIds.size };
   }
 
   function shelfCount() {
-    try { return window.PostIQToday?.candidates && channels().length ? window.PostIQToday.candidates(String(channels()[0].id)).length : 0; } catch { return 0; }
+    // How many past posts are kept on the Shelf (what a fill can reshare).
+    try {
+      const starred = new Set(JSON.parse(localStorage.getItem('postiq_library_starred_v1') || '[]'));
+      const cache = JSON.parse(localStorage.getItem('postiq_library_cache_v3') || '{}');
+      return (Array.isArray(cache.posts) ? cache.posts : []).filter(p => starred.has(p.id) && String(p.text || '').trim()).length;
+    } catch { return 0; }
   }
 
   function renderFill(plan, start, end) {
@@ -264,6 +277,8 @@ window.PostIQSuite = (() => {
     if (fill.stale) msg = 'Sync before filling, so nothing doubles up with posts Buffer already has.';
     else if (!fill.reshareCount) msg = 'Turn on “Fill gaps from Shelf” for a channel above to fill these with reshares.';
     else if (!shelfCount()) msg = 'Keep a few posts on your Shelf first. Those are what get reshared.';
+    else if (!fill.items.length && fill.mediaOnly.length && !fill.short.length) msg = 'Those channels need a photo or video, so their gaps can’t be filled with text reshares. Write new posts for them.';
+    else if (!fill.items.length && fill.short.length) msg = 'Everything you’ve kept on your Shelf is already queued on these channels. Keep more past posts to fill the break.';
     else if (!fill.items.length) msg = 'None of the open slots are on channels set to fill from Shelf.';
     else {
       pendingFill = fill.items;
@@ -273,6 +288,9 @@ window.PostIQSuite = (() => {
       msg = `Fill ${plural(fill.items.length, 'open slot')} with Shelf reshares (${names}), each on its empty day at that channel's usual time. Posts already in Buffer don't change.`;
       if (fill.capped) msg += ` That's the most per run; run it again for the rest.`;
       if (fill.skipped.length) msg += ` ${plural(fill.skipped.length, 'channel')} with gaps ${fill.skipped.length === 1 ? 'is' : 'are'} set not to fill.`;
+      const shortBy = fill.short.reduce((n, [, k]) => n + k, 0);
+      if (shortBy) msg += ` ${plural(shortBy, 'slot')} stay${shortBy === 1 ? 's' : ''} open because each kept post goes out once per channel. Keep more posts on your Shelf to fill them.`;
+      if (fill.mediaOnly.length) msg += ` ${fill.mediaOnly.map(id => channelName(channels().find(c => String(c.id) === id) || {})).join(', ')} need${fill.mediaOnly.length === 1 ? 's' : ''} a photo or video, so ${fill.mediaOnly.length === 1 ? 'it isn’t' : 'they aren’t'} filled from Shelf.`;
       action = `<button class="btn sm" type="button" id="suiteFillBtn">Queue ${plural(fill.items.length, 'reshare')} in Buffer</button>`;
     }
     box.innerHTML = `<p class="suite-fill-msg">${esc(msg)}</p>${action}`;

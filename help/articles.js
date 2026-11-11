@@ -168,7 +168,7 @@ window.POSTIQ_HELP_ARTICLES = [
     <ol>
       <li>Start from a blank draft, a template, a Shelf idea, or a calendar day.</li>
       <li>Add copy and media.</li>
-      <li>If you started from the calendar, use the planning date in the schedule picker only if you want it.</li>
+      <li>If you started from a calendar day, the schedule picker is already set to that day at the channel’s usual time. Nothing is sent until you press Schedule, and “Not for this day” clears it.</li>
       <li>Choose the Draft, Queue, or Schedule action for Buffer.</li>
     </ol>
     <h2>Choosing the right Buffer action</h2>

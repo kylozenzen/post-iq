@@ -159,8 +159,7 @@
       <button class="nav-btn" data-view="suiteView" data-tooltip="Runway">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linejoin="round">
-            <rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/>
-            <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/>
+            <path d="M3.5 17.5a8.5 8.5 0 1 1 17 0" stroke-linecap="round"/><path d="M12 17.5l4.2-5.2" stroke-linecap="round"/><circle cx="12" cy="17.5" r="1.3"/>
           </svg>
         </span>
         <span class="nav-text">Runway</span>
@@ -214,8 +213,8 @@
 
         <div class="cal-toolbar-right">
           <button class="cal-filter-chip" id="calFilterChip" type="button" hidden>Filtered · <span>Clear</span></button>
-          <button class="cal-alert-bell cal-suite-btn" id="calSuiteBtn" type="button" aria-label="Open Runway: channel health, schedules and breaks" title="Runway: channel health, schedules and breaks"><span aria-hidden="true">▦</span></button>
-          <button class="cal-alert-bell" id="calAlertBell" type="button" aria-label="Alerts" aria-haspopup="dialog"><span class="cal-alert-ico" aria-hidden="true">◔</span><span class="cal-alert-count" hidden>0</span></button>
+          <button class="cal-alert-bell cal-suite-btn" id="calSuiteBtn" type="button" aria-label="Open Runway: channel health, schedules and breaks" title="Runway: channel health, schedules and breaks"><svg class="cal-hdr-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 17.5a8.5 8.5 0 1 1 17 0" stroke-linecap="round"/><path d="M12 17.5l4.2-5.2" stroke-linecap="round"/><circle cx="12" cy="17.5" r="1.3"/></svg></button>
+          <button class="cal-alert-bell" id="calAlertBell" type="button" aria-label="Alerts" aria-haspopup="dialog"><svg class="cal-hdr-ico cal-alert-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M6 16.5v-5a6 6 0 0 1 12 0v5l1.6 2H4.4z"/><path d="M10 21a2.2 2.2 0 0 0 4 0"/></svg><span class="cal-alert-count" hidden>0</span></button>
           <div class="cal-view-toggle" role="group" aria-label="Calendar view">
             <button class="seg-btn active" id="calendarViewMonthBtn" type="button" data-calendar-view="month">Month</button>
             <button class="seg-btn" id="calendarViewWeekBtn" type="button" data-calendar-view="week">Week</button>
@@ -1244,7 +1243,7 @@
           <select class="input" id="schedOffScope"><option value="*">All channels</option><option value="selected">Selected channel</option></select>
           <button class="btn" id="schedOffSave" type="button">Mark dates off</button>
           <div class="sched-fill">
-            <p class="sched-fill-copy">Want to keep posting while you're away? For every reshare-enabled channel, PostIQ can queue your kept posts (from Past posts on the Shelf) into Buffer across the posting days in this range. Buffer publishes them on your normal schedule — your streak stays alive.</p>
+            <p class="sched-fill-copy">Want to keep posting while you're away? For every reshare-enabled channel, PostIQ can queue your kept posts (from Past posts on the Shelf) into Buffer on each empty posting day in this range, at that channel’s usual time. Each kept post goes out once per channel, so your streak stays alive without repeats.</p>
             <button class="btn" id="schedFill" type="button">Fill these days with reshares of kept posts</button>
             <button class="btn primary" id="schedFillConfirm" type="button" hidden>Confirm &amp; queue to Buffer</button>
             <p id="schedFillStatus" class="sched-status" role="status"></p>

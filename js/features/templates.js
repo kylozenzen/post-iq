@@ -125,6 +125,7 @@ function clearComposer() {
   }));
 
   // Status message
+  window.CalendarExperience?.clearComposeContext?.();
   const status = qs('composerStatus');
   if (status) status.textContent = '';
 
@@ -134,7 +135,7 @@ function clearComposer() {
   const scheduleToggle = qs('composerScheduleToggle');
   if (scheduleToggle) scheduleToggle.style.display = 'inline-flex';
   const scheduleDate = qs('scheduleDate');
-  if (scheduleDate) scheduleDate.value = new Date().toISOString().slice(0, 10);
+  if (scheduleDate) scheduleDate.value = fmtDate(new Date());
   const scheduleHour = qs('scheduleHour');
   if (scheduleHour) scheduleHour.selectedIndex = 0;
   const scheduleMin = qs('scheduleMin');

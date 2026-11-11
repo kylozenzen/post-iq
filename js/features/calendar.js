@@ -8,7 +8,7 @@ function renderChannelSelects() {
   if (state.channels.length) {
     state.channels.forEach(c => {
       const o = document.createElement('option');
-      o.value = c.id; o.textContent = `${c.displayName || c.name} (${c.service})`; sel.appendChild(o);
+      o.value = c.id; o.textContent = `${c.displayName || c.name} (${window.PostIQChannelIcons?.tag?.(c.service) || c.service})`; sel.appendChild(o);
     });
     if (noChannels) noChannels.style.display = 'none'; sel.style.display = '';
   } else {
@@ -533,7 +533,7 @@ function dayGapSummary(date) {
   const rows = dayCoverageRows(date).filter(r => (r.status === 'gap' || r.status === 'stale') && (r.missingCount ?? 1) > 0);
   const names = rows.map(r => {
     const ch = (state.channels || []).find(c => String(c.id) === String(r.channelId));
-    const name = ch?.displayName || ch?.name || ch?.service || String(r.channelId);
+    const name = (ch && window.PostIQChannelIcons?.plainName?.(ch)) || ch?.displayName || ch?.name || ch?.service || String(r.channelId);
     const n = r.missingCount ?? 1;
     return n > 1 ? `${name} ×${n}` : name;
   });
@@ -551,9 +551,12 @@ function dayCoverageDetailHtml(date) {
     const ch = state.channels.find(c => String(c.id) === String(r.channelId));
     const label = window.PostIQChannelIcons ? window.PostIQChannelIcons.label(ch, { dups }) : safeText(ch?.displayName || r.channelId);
     const gap = r.status === 'gap';
-    return `<li class="day-cov-row ${gap ? 'is-gap' : 'is-ok'}"><span class="day-cov-status" aria-hidden="true">${gap ? '▲' : '✓'}</span>${label}<span class="day-cov-msg">${gap ? 'needs content' : 'covered'}</span>${gap ? `<button class="btn sm" type="button" data-cov-add="${safeText(r.channelId)}">Add</button>` : ''}</li>`;
+    // One-tap reshare when the Shelf has something that fits this channel.
+    const canReshare = gap && !!window.PostIQToday?.suggestionFor?.(fmtDate(date), String(r.channelId)) && !!window.PostIQToday?.slotTime?.(fmtDate(date), String(r.channelId));
+    const actions = gap ? `${canReshare ? `<button class="btn sm" type="button" data-cov-reshare="${safeText(r.channelId)}" title="Queue a kept Shelf post on this day">Reshare</button>` : ''}<button class="btn sm${canReshare ? ' ghost' : ''}" type="button" data-cov-add="${safeText(r.channelId)}">Write</button>` : '';
+    return `<li class="day-cov-row ${gap ? 'is-gap' : 'is-ok'}"><span class="day-cov-status" aria-hidden="true">${gap ? '▲' : '✓'}</span>${label}<span class="day-cov-msg">${gap ? 'needs content' : 'covered'}</span>${actions}</li>`;
   }).join('');
-  const head = gaps ? `${gaps} channel${gaps === 1 ? '' : 's'} need content` : 'All channels covered';
+  const head = gaps ? `${gaps} channel${gaps === 1 ? ' needs' : 's need'} content` : 'All channels covered';
   return `<div style="margin-bottom:16px;"><div class="post-detail-label">Coverage · ${head}</div><ul class="day-cov-list">${items}</ul></div>`;
 }
 
@@ -1019,10 +1022,14 @@ function openCalendarDayDetails(date) {
   bodyEl.querySelectorAll('[data-cov-add]').forEach(btn => btn.addEventListener('click', () => {
     const chId = String(btn.dataset.covAdd);
     closeModal('sharedDayModal');
-    state.calendarChannel = chId;
-    window.CalendarExperience?.compose(key);
-    const sel = qs('composerChannel'); if (sel) { sel.value = chId; sel.dispatchEvent(new Event('change')); }
-    showToast('Draft started for this channel');
+    // Pass the channel to Compose; don't touch the calendar's channel filter,
+    // or the calendar comes back quietly filtered to this one channel.
+    window.CalendarExperience?.compose(key, chId);
+    const sel = qs('composerChannel'); if (sel) sel.dispatchEvent(new Event('change'));
+  }));
+  bodyEl.querySelectorAll('[data-cov-reshare]').forEach(btn => btn.addEventListener('click', async () => {
+    await window.PostIQToday?.queue?.(key, String(btn.dataset.covReshare), btn);
+    if (qs('sharedDayModal')?.classList.contains('open')) openCalendarDayDetails(date);
   }));
   bodyEl.querySelector('[data-add-note]')?.addEventListener('click', () => { closeModal('sharedDayModal'); openAddNoteForDate(date); });
   bodyEl.querySelectorAll('[data-edit-note]').forEach(btn => btn.addEventListener('click', () => { closeModal('sharedDayModal'); openAddNoteForDate(date, btn.dataset.editNote); }));

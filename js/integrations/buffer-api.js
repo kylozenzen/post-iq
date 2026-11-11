@@ -126,7 +126,7 @@ async function getOrgId({ force = false } = {}) {
 
 async function getChannels({ force = false } = {}) {
   if (!force && state.channels.length && isCacheFresh('channels')) return state.channels;
-  const orgId = await getOrgId({ force });
+  const orgId = await getOrgId(); // syncBuffer already refreshed it this run
   if (!orgId) return [];
   // isDisconnected / isLocked power per-channel connection health. If Buffer
   // ever rejects those fields, fall back to the basic query so channels still load.
@@ -142,7 +142,7 @@ async function getChannels({ force = false } = {}) {
 
 async function getScheduledPosts({ force = false } = {}) {
   if (!force && state.scheduled.length && isCacheFresh('scheduled')) return state.scheduled;
-  const orgId = await getOrgId({ force });
+  const orgId = await getOrgId(); // syncBuffer already refreshed it this run
   if (!orgId) return [];
   const bounds = getScheduledBounds();
   let paginationComplete = false;
@@ -242,7 +242,7 @@ function plannerDaySummary(posts = []) {
 
 async function getPublishedPosts({ force = false } = {}) {
   if (!force && isCacheFresh('published')) return state.published || [];
-  const orgId = await getOrgId({ force });
+  const orgId = await getOrgId(); // syncBuffer already refreshed it this run
   if (!orgId) return [];
   const bounds = getScheduledBounds();
   let paginationComplete = false;
@@ -278,7 +278,7 @@ async function getPublishedPosts({ force = false } = {}) {
   return all;
 }
 
-async function syncBuffer({ force = false } = {}) {
+async function syncBuffer({ force = false, quiet = false } = {}) {
   const connection = syncBufferTokenFromState();
   const oauthToken = getStoredOAuthToken();
   if (connection.reconnectNeeded) { renderConnectionUI(); setSyncStatus('failed', 'Reconnect Buffer to keep syncing.'); return; }
@@ -305,7 +305,7 @@ async function syncBuffer({ force = false } = {}) {
     detectQueueGaps();
     setSyncStatus('success', `${scheduledPosts.length} scheduled · ${publishedPosts.length} published.`);
     renderConnectionUI();
-    showToast(`Loaded ${plannerPosts.length} planner posts`, 'success');
+    if (!quiet) showToast(`Loaded ${plannerPosts.length} planner posts`, 'success');
     safeTrack(() => GA4_Auth.syncComplete({ postCount: plannerPosts.length, channelCount: state.channels.length, syncTimeMs: Date.now() - syncStartTime, usedCache: false }));
     safeTrack(() => GA4_System.performanceMetric('buffer_sync', Date.now() - syncStartTime));
     if (state.organizationId) safeTrack(() => GA4.setUserIdentity(state.organizationId, { connected: true, channelCount: state.channels.length, queueDepth: state.scheduled.length, hasApprovals: getAllApprovalMetas().length > 0 }));
@@ -315,8 +315,45 @@ async function syncBuffer({ force = false } = {}) {
     const msg = getErrorMessage(e, 'Sync failed.');
     if (isAuthError(e)) handleAuthFailure(msg);
     else setSyncStatus('failed', msg);
-    showToast(msg, 'error');
+    if (!quiet || isAuthError(e)) showToast(msg, 'error');
     safeTrack(() => GA4_Auth.syncFailed(getErrorType(e)));
     safeTrack(() => GA4_System.applicationError(e, 'buffer_api'));
   } finally { btn.innerHTML = orig; btn.disabled = false; }
+}
+
+// ── KEEPING THE CALENDAR CURRENT ────────────────────
+// PostIQ used to re-read Buffer only when someone pressed Sync. Posts that went
+// out, were edited or deleted in Buffer, or were queued from a gap fill stayed on
+// the calendar exactly as PostIQ last saw them. Re-read quietly when the data is
+// old (on open, on returning to the tab, and on a slow timer for wall displays),
+// and once shortly after PostIQ itself writes to Buffer.
+const AUTO_SYNC_CHECK_MS = 5 * 60 * 1000;
+const RECONCILE_AFTER_WRITE_MS = 10 * 1000;
+let reconcileTimer = null;
+let autoSyncBound = false;
+
+function canAutoSync() {
+  const connection = getBufferConnectionState();
+  return connection.connected && !connection.reconnectNeeded && state.syncState !== 'syncing';
+}
+function syncIfStale() {
+  if (!canAutoSync() || document.hidden) return false;
+  if (state.channels.length && isCacheFresh('scheduled') && isCacheFresh('published')) return false;
+  syncBuffer({ force: true, quiet: true });
+  return true;
+}
+function reconcileAfterWrite(delay = RECONCILE_AFTER_WRITE_MS) {
+  clearTimeout(reconcileTimer);
+  reconcileTimer = setTimeout(() => {
+    reconcileTimer = null;
+    if (!canAutoSync()) return;
+    syncBuffer({ force: true, quiet: true });
+  }, delay);
+}
+function bindAutoSync() {
+  if (autoSyncBound) return;
+  autoSyncBound = true;
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) syncIfStale(); });
+  window.addEventListener('focus', () => syncIfStale());
+  setInterval(() => syncIfStale(), AUTO_SYNC_CHECK_MS);
 }

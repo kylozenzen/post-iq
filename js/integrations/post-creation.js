@@ -108,6 +108,7 @@ function appendScheduled(post, sourceInput = {}) {
   }];
   persistLocalScheduled();
   window.dispatchEvent(new Event('postiq:scheduled-updated'));
+  if (typeof reconcileAfterWrite === 'function') reconcileAfterWrite();
 }
 
 let composerSendPending = false;
@@ -169,9 +170,12 @@ async function composerSend(action) {
         state.scheduledCoverage = { ...state.scheduledCoverage, complete: false };
         persistLocalScheduled();
         window.dispatchEvent(new Event('postiq:scheduled-updated'));
+        // Buffer picked the slot; read it back so the calendar shows where it landed.
+        if (typeof reconcileAfterWrite === 'function') reconcileAfterWrite(3000);
       }
       renderCalendar();
     }
+    window.CalendarExperience?.clearComposeContext?.();
     if (qs('composerEditor').innerHTML !== editorSnapshot) return;
     qs('composerEditor').innerHTML = '';
     if (typeof clearStoredComposerDraft === 'function') clearStoredComposerDraft();

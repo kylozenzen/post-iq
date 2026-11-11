@@ -607,3 +607,6 @@ button.day-gap-slot:focus-visible { outline: 2px solid var(--brand); outline-off
   text-transform: none;
   color: var(--muted);
 }
+
+/* Calendar header icon buttons: crisp SVG instead of font glyphs that render as specks on some systems. */
+#calendarView .cal-hdr-ico { width: 16px; height: 16px; display: block; }
