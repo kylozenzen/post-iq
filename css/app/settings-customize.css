@@ -1,0 +1,51 @@
+/* Settings → Customize: workspace visibility cards, theme picker and notes panel.
+   Restored after the AI Assist cleanup removed these rules along with preferences-ai.css. */
+.customize-settings-panel { scrollbar-gutter: stable; }
+.customize-settings-intro { padding: 2px 2px 14px; }
+.customize-settings-intro h2 { margin: 0 0 6px; font-family: var(--font-display); font-size: 18px; color: var(--ink); }
+.customize-settings-panel .settings-section:last-child { margin-bottom: 2px; }
+
+.workspace-preference-list { display: grid; gap: 10px; margin: 16px 0 12px; }
+.workspace-preference-card {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s4);
+  padding: 13px 14px; border: 1px solid var(--border); border-radius: var(--r2);
+  background: var(--surface2); cursor: pointer;
+}
+.workspace-preference-card:hover { border-color: var(--border2); box-shadow: var(--shadow-sm); }
+.workspace-preference-card input { width: 18px; height: 18px; flex: 0 0 auto; accent-color: var(--brand); cursor: pointer; }
+.workspace-preference-card input:disabled { cursor: not-allowed; opacity: .55; }
+.workspace-preference-copy { display: flex; flex-direction: column; gap: var(--s1); color: var(--ink); }
+.workspace-preference-copy strong { font-size: 13px; }
+.workspace-preference-copy small { font-size: 12px; line-height: 1.5; color: var(--muted); }
+.workspace-preference-note { min-height: 18px; margin: 0 0 10px; color: var(--amber); font-size: 12px; font-weight: 600; }
+
+.theme-picker { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.theme-card {
+  display: flex; align-items: center; gap: 11px; min-width: 0; padding: 10px; text-align: left;
+  border: 1px solid var(--border); border-radius: var(--r2); background: var(--surface2); color: var(--text);
+  cursor: pointer; transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.theme-card:hover { transform: translateY(-1px); border-color: var(--border2); }
+.theme-card.selected, .theme-card[aria-checked="true"] { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-dim); }
+.theme-card > span:last-child { display: flex; flex-direction: column; min-width: 0; }
+.theme-card strong { font-size: 12px; }
+.theme-card small { font-size: 10px; color: var(--muted); }
+.theme-swatch { display: flex; width: 48px; height: 34px; overflow: hidden; flex: 0 0 auto; border: 1px solid rgba(0,0,0,.12); border-radius: var(--r2); }
+.theme-swatch i { display: block; flex: 1; }
+.theme-swatch-default i:nth-child(1) { background: #f2efe6; } .theme-swatch-default i:nth-child(2) { background: #b52c20; } .theme-swatch-default i:nth-child(3) { background: #1e5a78; }
+.theme-swatch-classic i:nth-child(1) { background: #f5f6fa; } .theme-swatch-classic i:nth-child(2) { background: #3a3fff; } .theme-swatch-classic i:nth-child(3) { background: #ff4f6a; }
+.theme-swatch-neon i:nth-child(1) { background: #080b12; } .theme-swatch-neon i:nth-child(2) { background: #24f4c7; } .theme-swatch-neon i:nth-child(3) { background: #ff3df2; }
+.theme-swatch-studio i:nth-child(1) { background: #fff5ea; } .theme-swatch-studio i:nth-child(2) { background: #e45c3a; } .theme-swatch-studio i:nth-child(3) { background: #a83b78; }
+.theme-swatch-evergreen i:nth-child(1) { background: #edf3ec; } .theme-swatch-evergreen i:nth-child(2) { background: #267a55; } .theme-swatch-evergreen i:nth-child(3) { background: #d97941; }
+@media (max-width: 520px) { .theme-picker { grid-template-columns: 1fr; } }
+
+/* Settings → Support: "Email support" form, same fields as the landing and Help Center forms. */
+.support-email-panel > summary { cursor: pointer; list-style: none; }
+.support-email-panel > summary::-webkit-details-marker { display: none; }
+.support-email-panel > summary::after { content: ' ▾'; color: var(--muted); }
+.support-email-panel[open] > summary::after { content: ' ▴'; }
+.support-form { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.support-form label span { display: block; font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
+.support-form input, .support-form textarea { width: 100%; border: 1px solid var(--border2); border-radius: var(--r); padding: 10px 12px; font-family: inherit; font-size: 14px; background: var(--surface2); color: var(--text); }
+.support-form input:focus, .support-form textarea:focus { border-color: var(--brand); outline: 2px solid var(--brand-dim); }
+.support-form .btn { width: 100%; }

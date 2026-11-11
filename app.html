@@ -34,6 +34,7 @@
   <link rel="stylesheet" href="./css/app/calendar.css" />
   <link rel="stylesheet" href="./css/app/composer.css" />
   <link rel="stylesheet" href="./css/app/ideas-settings.css" />
+  <link rel="stylesheet" href="./css/app/settings-customize.css" />
   <link rel="stylesheet" href="./css/app/content-flow.css" />
   <link rel="stylesheet" href="./css/app/responsive.css" />
   <link rel="stylesheet" href="./css/app/library.css" />
@@ -1035,7 +1036,7 @@
         </div>
 
         <section class="settings-section" aria-labelledby="customizeWorkspaceHeading">
-          <h3 class="settings-section-title" id="customizeWorkspaceHeading">Workspace</h3>
+          <div class="settings-section-title" id="customizeWorkspaceHeading">Workspace</div>
           <p class="settings-copy">Choose which PostIQ workspaces show in your sidebar. Keep your dashboard focused on the parts of your workflow you actually use.</p>
           <div class="workspace-preference-list" id="workspacePreferenceList">
             <label class="workspace-preference-card">
@@ -1047,8 +1048,8 @@
               <input type="checkbox" data-workspace-toggle="create" aria-label="Show Create workspace" />
             </label>
             <label class="workspace-preference-card">
-              <span class="workspace-preference-copy"><strong>Ideas on the Shelf</strong><small>Adds an Ideas tab to the Shelf: save ideas, give them target dates, keep templates handy.</small></span>
-              <input type="checkbox" data-workspace-toggle="ideas" aria-label="Show Ideas on the Shelf" />
+              <span class="workspace-preference-copy"><strong>Shelf ideas</strong><small>The Ideas tab on your Shelf: capture ideas, give them target dates, and keep snippets handy. Past posts stay on the Shelf either way.</small></span>
+              <input type="checkbox" data-workspace-toggle="ideas" aria-label="Show Shelf ideas" />
             </label>
           </div>
           <p class="workspace-preference-note" id="workspacePreferenceNote" role="status" aria-live="polite"></p>
@@ -1056,7 +1057,7 @@
         </section>
 
         <section class="settings-section" aria-labelledby="customizeThemeHeading">
-          <h3 class="settings-section-title" id="customizeThemeHeading">Theme</h3>
+          <div class="settings-section-title" id="customizeThemeHeading">Theme</div>
           <p class="settings-copy">Give your workspace a distinct atmosphere. Your choice stays with this browser.</p>
           <div class="theme-picker" id="themePicker" role="radiogroup" aria-label="Workspace theme">
             <button class="theme-card" type="button" data-theme-choice="default" role="radio" aria-checked="false">
@@ -1084,7 +1085,7 @@
         </section>
 
         <section class="settings-section" aria-labelledby="customizePlanningHeading">
-          <h3 class="settings-section-title" id="customizePlanningHeading">Planning</h3>
+          <div class="settings-section-title" id="customizePlanningHeading">Planning</div>
           <p class="settings-copy">Adjust how PostIQ helps you review your queue, spot gaps, and plan upcoming content.</p>
           <label class="settings-check mt12"><input type="checkbox" id="showQueueGapsSetting" /> Show queue gaps</label>
           <label class="settings-check"><input type="checkbox" id="showWeekNumbersSetting" /> Show week numbers in week view</label>
@@ -1093,7 +1094,7 @@
         </section>
 
         <section class="settings-section" aria-labelledby="customizeNotesHeading">
-          <h3 class="settings-section-title" id="customizeNotesHeading">Notes</h3>
+          <div class="settings-section-title" id="customizeNotesHeading">Notes</div>
           <p class="settings-copy">Customize how notes, reminders, ideas, and planning details appear across your workspace.</p>
           <div id="noteTypesSettings" class="note-types-settings mt12"></div>
           <button class="btn sm" id="addNoteTypeBtn" type="button">+ Add note type</button>
@@ -1110,9 +1111,7 @@
             <div class="settings-feature-item"><span>Compose</span><span class="settings-feature-status" data-settings-feature="composer">Available</span></div>
             
             <div class="settings-feature-item"><span>Shelf ideas</span><span class="settings-feature-status" data-settings-feature="ideas">Available</span></div>
-            <div class="settings-feature-item"><span>Content Pillars</span><span class="settings-feature-status" data-settings-feature="contentPillars">Available</span></div>
-            <div class="settings-feature-item"><span>Templates</span><span class="settings-feature-status is-static">Available</span></div>
-            <div class="settings-feature-item"><span>Trending ideas</span><span class="settings-feature-status" data-settings-feature="trending">Available</span></div>
+            <div class="settings-feature-item"><span>Trending on Shelf</span><span class="settings-feature-status" data-settings-feature="trending">Available</span></div>
             <div class="settings-feature-item"><span>Snapshot sharing</span><span class="settings-feature-status" data-settings-feature="snapshots">Available</span></div>
             <div class="settings-feature-item"><span>Media upload</span><span class="settings-feature-status" data-settings-feature="uploads">Available</span></div>
             <div class="settings-feature-item"><span>Unsplash search</span><span class="settings-feature-status" data-settings-feature="unsplash">Available</span></div>
@@ -1126,10 +1125,20 @@
           <div class="settings-section-title">Get help</div>
           <p class="settings-copy">PostIQ is built and maintained by one person, so questions, bug reports, and feature requests come straight to Ben — no ticket queue in between.</p>
           <div class="row mt12">
-            <a class="btn primary" href="mailto:REPLACE_WITH_SUPPORT_EMAIL?subject=PostIQ%20support" id="supportEmailLink">Email Ben</a>
             <a class="btn ghost" href="/help/">Help Center</a>
           </div>
         </div>
+        <details class="settings-section support-email-panel" id="supportEmailPanel">
+          <summary class="settings-section-title">Email support</summary>
+          <p class="settings-copy">Question about the Buffer connection or the calendar? Drop a message.</p>
+          <form name="postiq-support" method="POST" data-netlify="true" class="support-form">
+            <input type="hidden" name="form-name" value="postiq-support" />
+            <label><span>Your Name</span><input type="text" name="name" autocomplete="name" required /></label>
+            <label><span>Email</span><input type="email" name="email" autocomplete="email" required /></label>
+            <label><span>How can I help?</span><textarea name="message" rows="4" required></textarea></label>
+            <button type="submit" class="btn primary">Send Message</button>
+          </form>
+        </details>
         <div class="settings-section">
           <div class="settings-section-title">Community</div>
           <p class="settings-copy">Already posting through Discord? Webhook setup and destinations live on the <button class="btn sm ghost" id="supportOpenDiscordBtn" type="button">Discord</button> tab.</p>
