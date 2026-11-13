@@ -14,7 +14,8 @@ window.PostIQTour = (() => {
   let welcome = null;
   let welcomeReturnFocus = null;
 
-  // Four quick moments: why the calendar, how to plan, where to write, and what Shelf is for.
+  // Five quick moments: why the calendar, how to plan, how Pace keeps you ahead,
+  // where to write, and what Shelf is for. Pace is skipped when it is switched off.
   // Shelf has its own short run-through, offered the first time it is opened.
   const STEPS = [
     {
@@ -32,6 +33,18 @@ window.PostIQTour = (() => {
       targets: ['#calendarAddBtn', '#todayStrip', '#calGrid', '#calWeek', '#calAgenda'],
       title: 'Give an idea a date',
       body: () => 'Use + Add or pick a day to save a note, reminder, or idea. A plan is not a scheduled post. It is room to figure things out first.',
+    },
+    {
+      id: 'pace',
+      view: 'calendarView',
+      when: () => typeof isPaceEnabled !== 'function' || isPaceEnabled(),
+      targets: ['.nav-btn[data-view="suiteView"]', '#calSuiteBtn'],
+      title: 'Stay ahead with Pace',
+      body: () => isConnected()
+        ? 'Pick the days each channel posts. Pace shows how many days you are covered, flags open days, and lines up your queue before time away.'
+        : 'Once Buffer is connected, pick the days each channel posts and Pace shows how many days you are covered. It also plans your queue before time away.',
+      actionLabel: () => isConnected() ? 'Set my pace now' : '',
+      onAction: () => window.activateView?.('suiteView', 'tour'),
     },
     {
       id: 'compose',
@@ -88,7 +101,7 @@ window.PostIQTour = (() => {
   ];
 
   function relevantSteps() {
-    return STEPS;
+    return STEPS.filter(step => !step.when || step.when());
   }
 
   let active = false;
@@ -178,10 +191,9 @@ window.PostIQTour = (() => {
       if (action === 'back') go(index - 1);
       if (action === 'next') index >= steps.length - 1 ? stop({ finished: true }) : go(index + 1);
       if (action === 'setting') {
+        const step = steps[index];
         stop({ finished: true });
-        if (typeof openModal === 'function') openModal('settingsModal');
-        window.selectSettingsTab?.('customize');
-        document.querySelector('[data-workspace-toggle="ideas"]')?.focus({ preventScroll: true });
+        step?.onAction?.();
       }
       if (action === 'connect') {
         // Return to the calendar after Buffer sign-in.
@@ -264,8 +276,9 @@ window.PostIQTour = (() => {
     pop.querySelector('#tourTitle').textContent = step.title;
     pop.querySelector('#tourBody').textContent = step.body();
     const action = pop.querySelector('[data-tour="setting"]');
-    action.hidden = !step.actionLabel;
-    if (step.actionLabel) action.textContent = step.actionLabel;
+    const actionLabel = typeof step.actionLabel === 'function' ? step.actionLabel() : step.actionLabel;
+    action.hidden = !actionLabel;
+    if (actionLabel) action.textContent = actionLabel;
     const back = pop.querySelector('[data-tour="back"]');
     back.hidden = index === 0;
     const last = index === steps.length - 1;
@@ -306,7 +319,21 @@ window.PostIQTour = (() => {
     welcomeReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     welcome = document.createElement('div');
     welcome.className = 'postiq-welcome-backdrop';
-    welcome.innerHTML = `<section class="postiq-welcome" role="dialog" aria-modal="true" aria-labelledby="postiqWelcomeTitle" aria-describedby="postiqWelcomeDesc">
+    // Someone who looked around first and has now connected Buffer already knows
+    // the layout. Their next useful step is Pace, so lead with that.
+    const paceOn = typeof isPaceEnabled !== 'function' || isPaceEnabled();
+    if (isConnected() && read(SEEN_KEY) === '1' && paceOn && !options.full) {
+      welcome.innerHTML = `<section class="postiq-welcome" role="dialog" aria-modal="true" aria-labelledby="postiqWelcomeTitle" aria-describedby="postiqWelcomeDesc">
+      <span class="postiq-welcome-eyebrow">BUFFER CONNECTED</span>
+      <h2 id="postiqWelcomeTitle">Your posts are in.<br><em>Now set your pace.</em></h2>
+      <p id="postiqWelcomeDesc">Pick the days each channel posts. PostIQ shows how many days you are covered, marks the open days on your calendar, and helps fill them from your Shelf.</p>
+      <div class="postiq-welcome-actions">
+        <button type="button" class="btn primary" data-welcome="pace">Set my pace <span aria-hidden="true">→</span></button>
+        <button type="button" class="btn ghost" data-welcome="tour">Take the tour</button>
+      </div>
+      <p class="postiq-welcome-footnote">You can switch Pace off any time in Settings.</p>
+    </section>`;
+    } else welcome.innerHTML = `<section class="postiq-welcome" role="dialog" aria-modal="true" aria-labelledby="postiqWelcomeTitle" aria-describedby="postiqWelcomeDesc">
       <span class="postiq-welcome-eyebrow">WELCOME TO POSTIQ</span>
       <h2 id="postiqWelcomeTitle">Your content has a calendar.<br><em>Let's give it a plan.</em></h2>
       <p id="postiqWelcomeDesc">Buffer handles publishing. PostIQ helps you see what is coming, spot open days, and make a plan before a post is ready.</p>
@@ -321,6 +348,7 @@ window.PostIQTour = (() => {
       if (!choice) return;
       closeWelcome();
       if (choice === 'tour') start({ source: options.source || 'welcome' });
+      if (choice === 'pace') window.activateView?.('suiteView', 'welcome');
     });
     welcome.addEventListener('keydown', event => {
       if (event.key === 'Escape') { event.preventDefault(); closeWelcome(); }
@@ -333,7 +361,7 @@ window.PostIQTour = (() => {
     });
     document.body.append(welcome);
     document.body.classList.add('postiq-welcome-open');
-    welcome.querySelector('[data-welcome="tour"]')?.focus();
+    welcome.querySelector('.postiq-welcome-actions .btn.primary')?.focus();
   }
 
   function start(options = {}) {

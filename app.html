@@ -1051,28 +1051,19 @@
         <div class="customize-settings-intro">
           <p class="settings-save-note">Changes save automatically on this browser.</p>
           <h2>Customize</h2>
-          <p class="settings-copy">Shape PostIQ around how you actually work. Choose what appears in your sidebar, adjust your planning view, and fine-tune how notes support your content workflow.</p>
+          <p class="settings-copy">Shape PostIQ around how you actually work. Turn Pace on or off, pick a theme, adjust your planning view, and fine-tune your notes.</p>
         </div>
 
-        <section class="settings-section" aria-labelledby="customizeWorkspaceHeading">
-          <div class="settings-section-title" id="customizeWorkspaceHeading">Workspace</div>
-          <p class="settings-copy">Choose which PostIQ workspaces show in your sidebar. Keep your dashboard focused on the parts of your workflow you actually use.</p>
-          <div class="workspace-preference-list" id="workspacePreferenceList">
+        <section class="settings-section" aria-labelledby="customizePaceHeading">
+          <div class="settings-section-title" id="customizePaceHeading">Pace</div>
+          <p class="settings-copy">Calendar, Compose and Shelf are always on. Pace is the part you can switch off.</p>
+          <div class="workspace-preference-list">
             <label class="workspace-preference-card">
-              <span class="workspace-preference-copy"><strong>Planning</strong><small>Calendar, queue visibility, content gaps, and schedule notes.</small></span>
-              <input type="checkbox" data-workspace-toggle="planning" aria-label="Show Planning workspace" />
-            </label>
-            <label class="workspace-preference-card">
-              <span class="workspace-preference-copy"><strong>Create</strong><small>Composer, templates, and send-to-Buffer tools.</small></span>
-              <input type="checkbox" data-workspace-toggle="create" aria-label="Show Create workspace" />
-            </label>
-            <label class="workspace-preference-card">
-              <span class="workspace-preference-copy"><strong>Shelf ideas</strong><small>The Ideas tab on your Shelf: capture ideas, give them target dates, and keep snippets handy. Past posts stay on the Shelf either way.</small></span>
-              <input type="checkbox" data-workspace-toggle="ideas" aria-label="Show Shelf ideas" />
+              <span class="workspace-preference-copy"><strong>Show Pace</strong><small>Posting schedules, how many days each channel is covered, and planning for time away. Turn it off for a plain calendar. Your schedules are kept.</small></span>
+              <input type="checkbox" data-pace-toggle id="paceToggle" aria-label="Turn Pace on or off" checked />
             </label>
           </div>
-          <p class="workspace-preference-note" id="workspacePreferenceNote" role="status" aria-live="polite"></p>
-          <button class="btn sm ghost" id="resetWorkspaceBtn" type="button">Reset workspace visibility</button>
+          <p class="workspace-preference-note" id="pacePreferenceNote" role="status" aria-live="polite"></p>
         </section>
 
         <section class="settings-section" aria-labelledby="customizeThemeHeading">

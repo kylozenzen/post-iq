@@ -40,12 +40,12 @@ window.POSTIQ_HELP_ARTICLES = [
     slug: 'settings-and-sign-out',
     title: 'Settings, Saved Preferences, and Sign Out',
     category: 'Settings',
-    summary: 'Customize your workspace, understand what saves automatically, and manage your Buffer connection.',
+    summary: 'Turn Pace on or off, pick a theme, understand what saves automatically, and manage your Buffer connection.',
     tags: ['settings', 'customize', 'theme', 'sidebar', 'sign out', 'logout', 'stay signed in', 'API key'],
     relatedArticles: ['connect-buffer', 'privacy-storage-beta-limits'],
     body: `<p>Open Settings from the sidebar or the mobile More menu. Section tabs stay available while you scroll.</p>
     <h2>Connection</h2><p>Check your Buffer connection, choose Sync now, or Sign out. You stay signed in on this browser until you sign out, clear site data, or Buffer requires authorization again. Advanced API key setup is optional: Session keeps a manual key for this tab, while Save locally keeps it between visits. Sign out removes both kinds of Buffer access.</p>
-    <h2>Customize</h2><p>Workspace visibility, theme, planning options (queue gaps, week numbers in week view, posting days), and note types save automatically in this browser. Shelf ideas is on by default. At least one workspace must stay visible. Reset workspace visibility restores the default sidebar choices. It does not delete your content.</p>
+    <h2>Customize</h2><p>The Pace switch, theme, planning options (queue gaps, week numbers in week view, posting days), and note types save automatically in this browser. Calendar, Compose and Shelf are always on. Turning Pace off hides it from the sidebar and calendar header and keeps your posting schedules for when you turn it back on.</p>
     <h2>Posting rhythm</h2><p>Choose default posting days or override them for each synced channel. The posting schedule guides open-slot suggestions. Changing it never changes your Buffer queue or scheduled posts.</p>
     <h2>Features and Discord</h2><p>The Features tab shows which beta tools are available right now. If a tool is paused, PostIQ shows a notice instead of breaking your workflow. Discord has its own configuration and save controls. Never include keys or webhook URLs in screenshots or support messages.</p>
     <h2>Using a shared device</h2><p>Sign out clears Buffer access and cached Buffer data but keeps local work and other integration settings. Private browser windows can discard saved work when closed. Export or copy important work before clearing site data.</p>`
@@ -204,6 +204,8 @@ window.POSTIQ_HELP_ARTICLES = [
       <li><strong>Keep posting:</strong> queue reshares from your Shelf on the empty days, at each channel’s usual time. Each kept post goes out at most once per channel, and nothing doubles up with what’s already in Buffer.</li>
       <li><strong>Go quiet on purpose:</strong> choose <strong>Mark these days off</strong>. Those days stop counting as gaps on the calendar. Remove time off from the list anytime.</li>
     </ol>
+    <h2>Turning Pace off</h2>
+    <p>Don’t need it? Go to <strong>Settings → Customize</strong> and switch <strong>Pace</strong> off. It leaves the sidebar and calendar header, and your schedules are kept. Open slots on the calendar follow the separate <strong>Show queue gaps</strong> setting.</p>
     <h3>Good to know</h3>
     <ul>
       <li>PostIQ re-reads Buffer on its own when its copy is more than a few minutes old, and shortly after it queues anything, so Pace and the calendar stay current.</li>

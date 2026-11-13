@@ -7,7 +7,7 @@ test('normal entry, explicit destinations and disabled Planning preferences',asy
  await withApp('?view=composerView&connected=buffer',w=>assert.ok(w.document.querySelector('#composerView.active')));
  await withApp('?view=queueHealthView',w=>assert.ok(w.document.querySelector('#calendarView.active'))); // Queue Health folded into the calendar
  await withApp('?view=not-a-view',w=>assert.ok(w.document.querySelector('#calendarView.active')));
- await withApp('',w=>assert.ok(w.document.querySelector('#composerView.active')),w=>w.localStorage.setItem('postiq.workspacePreferences',JSON.stringify({planning:false,create:true,ideas:true,approvals:true})));
+ await withApp('',w=>assert.ok(w.document.querySelector('#calendarView.active'),'old saved choices that hid Planning are ignored'),w=>w.localStorage.setItem('postiq.workspacePreferences',JSON.stringify({planning:false,create:true,ideas:true,approvals:true})));
 });
 test('Agenda exact selection, draft date/channel and return preserve context',async()=>withApp('',w=>{
  const d=w.document;

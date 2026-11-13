@@ -462,6 +462,7 @@ function renderCalendarRunway() {
   const box = qs('calendarRunway'); if (!box) return;
   box.innerHTML = ''; box.className = 'calendar-runway';
   if (!getBufferConnectionState().connected) return; // nothing to measure until signed in
+  if (typeof isPaceEnabled === 'function' && !isPaceEnabled()) return; // Pace is switched off
   const settings = getPlanningSettings();
   const scheduled = (state.channels || []).filter(ch => Array.isArray(settings.channelPostingDays?.[String(ch.id)]) && settings.channelPostingDays[String(ch.id)].length);
   if (!(state.channels || []).length) return;

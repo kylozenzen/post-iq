@@ -206,14 +206,32 @@ function initThemePicker() {
   });
 }
 
-function normalizeWorkspacePreferences(value) {
-  const source = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
-  const normalized = {};
-  Object.keys(WORKSPACE_DEFAULTS).forEach(workspace => {
-    normalized[workspace] = typeof source[workspace] === 'boolean' ? source[workspace] : WORKSPACE_DEFAULTS[workspace];
-  });
-  if (!Object.values(normalized).some(Boolean)) normalized.planning = true;
-  return normalized;
+// Every workspace is always on. Older saved choices that hid a workspace are
+// ignored, so Calendar, Compose and Shelf (with its writing tools) are always there.
+function normalizeWorkspacePreferences() {
+  return { ...WORKSPACE_DEFAULTS };
+}
+
+// Pace (posting schedules, days covered, break planning) is the one part of
+// PostIQ that can be switched off, from Settings > Customize. On by default.
+const PACE_ENABLED_KEY = 'postiq.paceEnabled';
+function isPaceEnabled() {
+  try { return localStorage.getItem(PACE_ENABLED_KEY) !== '0'; } catch { return true; }
+}
+function applyPacePreference() {
+  const on = isPaceEnabled();
+  document.body?.classList.toggle('pace-off', !on);
+  document.querySelectorAll('[data-pace-toggle]').forEach(input => { input.checked = on; });
+}
+function setPaceEnabled(enabled) {
+  try { localStorage.setItem(PACE_ENABLED_KEY, enabled ? '1' : '0'); } catch {}
+  applyPacePreference();
+  const note = qs('pacePreferenceNote');
+  if (note) note.textContent = enabled ? 'Pace is on. Find it in the sidebar and at the top of your calendar.' : 'Pace is off. Your posting schedules are kept for when you turn it back on.';
+  if (!enabled && currentViewId === 'suiteView') activateView('calendarView', 'pace_off');
+  try { window.dispatchEvent(new CustomEvent('postiq:pace-changed', { detail: { enabled: !!enabled } })); } catch {}
+  if (typeof renderCalendar === 'function') { try { renderCalendar(); } catch {} }
+  safeTrack(() => window.gtag?.('event', 'pace_toggle', { enabled: !!enabled }));
 }
 
 function getWorkspacePreferences() {
@@ -299,40 +317,9 @@ function saveWorkspacePreferences(nextPreferences) {
   return workspacePreferences;
 }
 
-// Shelf is on by default. The first draft in Compose shows the writing tools explainer. The explainer waits for a
-// pause in typing, shows once, and is anchored to the Writing tools button.
-const WRITING_TOOLS_TIP_KEY = 'postiq.writingToolsTipSeenV1';
-let writingToolsTipTimer = null;
+// Writing tools are always on, so a first draft needs no prompt about them.
 function noteWritingDraft() {
-  if (!workspacePreferences.ideas) setWorkspacePreference('ideas', true);
-  if (localStorage.getItem(WRITING_TOOLS_TIP_KEY)) return;
-  clearTimeout(writingToolsTipTimer);
-  writingToolsTipTimer = setTimeout(showWritingToolsTip, 4000);
-}
-function dismissWritingToolsTip() {
-  try { localStorage.setItem(WRITING_TOOLS_TIP_KEY, '1'); } catch {}
-  document.querySelectorAll('.writing-tools-tip').forEach(el => el.remove());
-}
-function showWritingToolsTip() {
-  if (currentViewId !== 'composerView' || localStorage.getItem(WRITING_TOOLS_TIP_KEY)) return;
-  const anchor = [...document.querySelectorAll('[data-composer-resources-toggle]')].find(b => b.offsetParent);
-  if (!anchor) return;
-  dismissWritingToolsTip();
-  const tip = document.createElement('div');
-  tip.className = 'writing-tools-tip';
-  tip.setAttribute('role', 'dialog');
-  tip.setAttribute('aria-label', 'Writing tools');
-  tip.innerHTML = '<strong>Your writing tools are on</strong><p>Shelf holds your notes and proven posts. Compose pulls them in.</p><div class="wt-actions"><button class="btn sm ghost" type="button" data-wt="later">Later</button><button class="btn sm primary" type="button" data-wt="shelf">Show me Shelf</button></div>';
-  document.body.appendChild(tip);
-  const r = anchor.getBoundingClientRect();
-  tip.style.top = (r.bottom + 8) + 'px';
-  tip.style.left = Math.max(8, r.right - 300) + 'px';
-  tip.addEventListener('click', event => {
-    const action = event.target.closest('[data-wt]')?.dataset.wt;
-    if (!action) return;
-    dismissWritingToolsTip();
-    if (action === 'shelf') window.activateView?.('ideasView', 'writing_tools_tip');
-  });
+  if (!workspacePreferences.ideas) saveWorkspacePreferences({ ...WORKSPACE_DEFAULTS });
 }
 function setWorkspacePreference(workspace, enabled) {
   if (!(workspace in WORKSPACE_DEFAULTS)) return;

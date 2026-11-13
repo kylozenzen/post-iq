@@ -174,6 +174,14 @@ window.YourPace = (() => {
   // entry point (⋯ menu, command menu, Getting Started, Today) lands there.
   // The old modal stays in the markup for now but nothing opens it.
   function open() {
+    if (typeof isPaceEnabled === 'function' && !isPaceEnabled()) {
+      // Schedules belong to Pace; when it is off, point at the switch instead of a dead end.
+      if (typeof openModal === 'function') openModal('settingsModal');
+      window.selectSettingsTab?.('customize');
+      document.querySelector('[data-pace-toggle]')?.focus({ preventScroll: true });
+      if (typeof showToast === 'function') showToast('Posting schedules live in Pace. Turn Pace on to set them.', 'info');
+      return;
+    }
     if (typeof activateView === 'function' && document.getElementById('suiteView')) { activateView('suiteView', 'posting_schedule'); return; }
     openModal_();
   }

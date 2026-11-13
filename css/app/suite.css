@@ -72,3 +72,7 @@
 .pace-off-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .pace-off-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--border); }
 .pace-off-who { color: var(--muted); margin-left: 6px; font-size: 12px; }
+
+/* Pace switched off in Settings: hide its entry points. Schedules are kept. */
+body.pace-off .nav-btn[data-view="suiteView"],
+body.pace-off #calSuiteBtn { display: none !important; }
