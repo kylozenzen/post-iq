@@ -1,200 +1,282 @@
-# PostIQ — Your Buffer calendar, with room to think
+<div align="center">
 
-PostIQ is an independent calendar companion for Buffer users, free during public beta. It puts scheduled Buffer posts beside planning notes and actions, flags queue gaps against the posting rhythm you choose, turns saved content into a dated plan, and shows coverage before you take time away. Buffer stays your publishing home.
+# PostIQ
 
-Connected features (scheduled posts, Queue Health coverage, sending to Buffer) require Buffer sign-in. The calendar preview works without an account and keeps notes, Content Bank items and drafts in your browser.
+### Buffer publishes. *PostIQ plans.*
 
-→ **[Open PostIQ](https://postiq.netlify.app)**
+The calm calendar that sits beside your Buffer queue.<br>
+See how far ahead you are, fill the gaps, send to Buffer.
+
+[![Open PostIQ](https://img.shields.io/badge/open-postiq.netlify.app-b52c20?style=flat-square)](https://postiq.netlify.app)
+![Public beta](https://img.shields.io/badge/status-public%20beta-171713?style=flat-square)
+![Built on Buffer's public API](https://img.shields.io/badge/built%20on-Buffer's%20public%20API-171713?style=flat-square)
+![143 tests passing](https://img.shields.io/badge/tests-143%20passing-2f6b45?style=flat-square)
+![No build step](https://img.shields.io/badge/build%20step-none-696356?style=flat-square)
+
+<img src="images/product/calendar-desktop.png" alt="PostIQ month calendar: solid Buffer posts, outlined plans, dashed open slots and a newsletter band" width="860">
+
+<sub>Sample data. Independent, and not endorsed by Buffer.</sub>
+
+</div>
+
+---
+
+## The whole idea, in one line
+
+```
+ see how far ahead you are  ──▶  fill the gap or write something  ──▶  send to Buffer
+```
+
+Buffer is great at publishing. PostIQ is the planning layer around it: what's queued, what's planned, and which posting days are still empty. Nothing reaches Buffer until you press a button.
+
+## Reading the calendar
+
+```
+  MON            TUE            WED            THU            FRI
+┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐
+│███ Issue 14│ │░░░░░░░░░░░░│ │░░░░░░░░░░░░│ │░░░░░░░░░░░░│ │░░░░░ Sends │  ← a newsletter band
+│■ Reel 3pm  │ │○ Film reel │ │■ Thread 9am│ │┆ open slot┆│ │■ LinkedIn  │  ← posts, a plan, an open slot
+│■ LinkedIn  │ │            │ │            │ │            │ │            │
+└────────────┘ └────────────┘ └────────────┘ └────────────┘ └────────────┘
+```
+
+| You see | It means |
+|---|---|
+| **Solid card** ■ | A real post in your Buffer queue (or already published) |
+| **Outlined card** ○ | Your plan: a note, a to-do, or an idea with a target date. Never sent anywhere. |
+| **Dashed slot** ┆ | A posting day from your schedule with nothing queued yet. Tap it to fill it. |
+| **Band across days** ████ | A newsletter or campaign: solid on the first and last day, a light tint between |
+
+---
+
+## What's inside
+
+### 📅 The calendar
+Month, week and list views. A one-row toolbar (`‹ November ›` · Month/Week · **+ Add** · **⋯**). The **Today** card shows what's going out today, your to-dos, and your next open slot. Platform icons tell your channels apart, even when two of them are both called "Ben Campbell". Public holidays come from Nager.Date, for the country you pick.
+
+### 🧭 Pace
+<img src="images/product/pace-desktop.png" alt="Pace: a summary line, each channel's posting days and how far ahead it is, and a time-away planner" width="520" align="right">
+
+Know how far ahead you are, and take a break without going quiet.
+
+- Tap the days each channel posts and how many posts per day. That's your posting schedule.
+- Every channel says **Covered for 4 days · Next open day Tue**, or **Needs a post today**.
+- One line at the top sums it up: who needs something soon, and that the rest are fine.
+- **Time away:** pick the dates. Queue reshares from your Shelf on the empty days, or **mark the days off** so they never count as gaps.
+
+<br clear="right">
+
+### ⚡ One-tap fill
+<img src="images/product/fill-desktop.png" alt="An open slot offering Reshare Thu at 2:00 PM, Another and Write new" width="520" align="right">
+
+Tap a dashed slot. PostIQ suggests a past post you kept, at that channel's usual time, and the button says exactly what will happen: **Reshare Thu at 2:00 PM**. Don't love it? **Another**. Rather write? **Write new** opens Compose already set to that day.
+
+The fill is picky on purpose:
+- A kept post goes out **once per channel**, never on repeat.
+- **No text-only reshares** to Instagram, TikTok, YouTube or Pinterest.
+- Nothing longer than the platform allows (X 280, Bluesky 300, Threads 500…).
+
+<br clear="right">
+
+### 📰 Newsletters and campaigns
+<img src="images/product/campaign-desktop.png" alt="Two weeks of the calendar with a newsletter band and a campaign band" width="860">
+
+Plan the work, not just the posts. Each issue or campaign sits on the calendar as one band, with stages you tick off (Plan → Draft → Final → Publish → Substack note, all renamable). Open any day in the range to see **Day 3 of 5 · sends Fri, Nov 13 · 2/5 · next: Final**. Shows in month view, week view, the day drawer and the phone agenda.
+
+### ⌨️ Plain English, and dragging real posts
+Quick add reads what you'd type to a friend:
+
+```
+Fri: film B-roll for the winter series      → a note on Friday
+todo tomorrow: review captions              → a to-do for tomorrow
+Thanksgiving: holiday hours post            → a note on the holiday
+```
+
+Drag a scheduled Buffer post to another day and PostIQ **moves it in Buffer**, with Undo. Open a queued post to edit its text or time, move it back to drafts, or publish now.
+
+### 📚 Shelf
+<img src="images/product/shelf-desktop.png" alt="Shelf listing kept past posts with Reshare and Rewrite" width="520" align="right">
+
+One home for ideas: **Notebook** for notes and links, **Snippets** for hooks, hashtags and templates, **Past posts** where you star the ones worth reusing, and **Trending** when you need a spark. Give an idea a date to see it on the calendar. Pull anything into Compose.
+
+<br clear="right">
+
+### ✍️ Compose
+A focused editor with local autosave, media (link, upload or Unsplash), and a character counter that knows each network's real limit. Send as a **draft**, **queue** it, or **schedule** it. Starting from a calendar day sets the schedule to that day for you.
+
+### 🎛️ The extras
+- **⌘K command menu** and keyboard shortcuts (below)
+- **Shareable snapshots**: a read-only week or month for a client, no login
+- **Edit queued posts**: change a post's text or time, send it back to drafts, or publish now
+- **.ics export** of your plans, newsletters and campaigns, for Google or Apple Calendar
+- **Backup and restore** of your local planning work
+- **Five themes**: PostIQ, Classic, After Dark, Studio, Evergreen
+
+---
+
+## Keyboard shortcuts
+
+| Key | Does |
+|---|---|
+| <kbd>⌘</kbd> <kbd>K</kbd> / <kbd>Ctrl</kbd> <kbd>K</kbd> | Command menu |
+| <kbd>N</kbd> | Quick add |
+| <kbd>T</kbd> | Jump to today |
+| <kbd>←</kbd> <kbd>→</kbd> | Previous / next month or week |
+| <kbd>M</kbd> <kbd>W</kbd> <kbd>L</kbd> | Month / week / list |
+| Arrow keys, <kbd>Enter</kbd> | Move between days, open one |
+| <kbd>?</kbd> | Show all shortcuts |
+
+---
+
+## Buffer Commit, by the numbers
+
+PostIQ was rebuilt during Buffer's **Buffer Commit** window (Oct 28 – Nov 13, 2026).
+
+| | |
+|---|---|
+| **17** | days |
+| **28** | pull requests merged ([#172](https://github.com/kylozenzen/post-iq/pull/172) → [#216](https://github.com/kylozenzen/post-iq/pull/216)) |
+| **27.4k** | lines removed (13.1k added) |
+| **143** | tests passing |
+| **5** | features cut on purpose |
+
+<details>
+<summary><b>🪦 The cutting-room floor</b></summary>
+
+<br>
+
+Removed so the calendar could be the product.
+
+| Feature | Where it went |
+|---|---|
+| Pulse | Archived ([#179](https://github.com/kylozenzen/post-iq/pull/179)) |
+| Content Pillars | Archived ([#179](https://github.com/kylozenzen/post-iq/pull/179)) |
+| Approvals | Its own product now, Receipts ([#179](https://github.com/kylozenzen/post-iq/pull/179)) |
+| Home dashboard | Gone ([#190](https://github.com/kylozenzen/post-iq/pull/190)) |
+| AI Assist | Hidden from Compose ([#202](https://github.com/kylozenzen/post-iq/pull/202)) |
+| 20,903 lines of dead code | Gone ([#190](https://github.com/kylozenzen/post-iq/pull/190)) |
+
+</details>
+
+<details>
+<summary><b>🔧 Fixes you'll never notice (which is the point)</b></summary>
+
+<br>
+
+- The offline shell never installed: it tried to cache 11 files that no longer existed. ([#190](https://github.com/kylozenzen/post-iq/pull/190))
+- Open slots reappeared after posts went out. Published posts now count on the day they publish. ([#198](https://github.com/kylozenzen/post-iq/pull/198))
+- PostIQ only re-read Buffer when you pressed Sync. It now refreshes on its own, and right after it writes. ([#200](https://github.com/kylozenzen/post-iq/pull/200), [#216](https://github.com/kylozenzen/post-iq/pull/216))
+- "Fill my break" queued posts before the break even started. Reshares now land on the actual empty days. ([#216](https://github.com/kylozenzen/post-iq/pull/216))
+- Evenings in the US opened the date picker on tomorrow (it used the UTC date). ([#216](https://github.com/kylozenzen/post-iq/pull/216))
+- The Unsplash key lived in the browser. Image search goes through a server function now. ([#190](https://github.com/kylozenzen/post-iq/pull/190))
+
+</details>
+
+---
+
+## How it talks to Buffer
+
+PostIQ uses Buffer's public API with OAuth 2.0 + PKCE (a public client, so no secret in the browser).
+
+**It reads:** your channels, your scheduled queue, and recent published posts. It re-reads quietly when its copy is more than a few minutes old: when you open it, when you come back to the tab, every few minutes while it's open, and shortly after it writes.
+
+**It writes only when you do something:**
+- Draft, Queue or Schedule from Compose
+- One-tap **Reshare** on an open slot, or **Queue reshares** for time away
+- **Drag** a scheduled post to a new day (with Undo), or edit, move to drafts, or publish now from the post editor
+
+**It never touches Buffer when you:** change your posting schedule, mark days off, add notes, plan a newsletter, or use Shelf. That all stays in your browser.
+
+Sign out from the sidebar or Settings, or revoke access in Buffer, any time.
+
+---
+
+## Under the hood
+
+| Layer | What |
+|---|---|
+| Frontend | Plain HTML, CSS and JavaScript. No framework, no build step. |
+| Functions | Netlify Functions (Node): Buffer proxy and token exchange, holidays, trending, Unsplash search, app config, admin |
+| Auth | Buffer OAuth 2.0 with PKCE |
+| Storage | The browser (`localStorage`). Plans, schedules and drafts never leave it unless you export them. |
+| Offline | Service worker app shell (`sw.js`), plus a PWA manifest |
+| Hosting | Netlify |
+
+```
+index.html               landing page
+app.html                 the app shell
+css/app/                 styles, by area
+js/core/                 runtime, navigation, startup
+js/integrations/         Buffer auth, API calls, post creation
+js/features/             calendar, Today, Pace (suite.js), coverage, campaigns,
+                         quick add, command menu, composer, Shelf, holidays, backup
+js/library.js            Shelf's past posts
+help/                    Help Center
+netlify/functions/       serverless functions
+scripts/                 project checks, browser checks, screenshot capture
+tests/                   node:test suites
+images/product/          real-app screenshots (sample data)
+```
+
+---
+
+## Run it locally
+
+No build step. Serve the repo root.
+
+```sh
+npx serve .          # static only
+netlify dev          # with Netlify Functions
+```
+
+Checks:
+
+```sh
+node --test tests/*.test.js                 # all 143 tests
+node scripts/check-project.js               # asset references, syntax, offline cache list
+node scripts/smoke-browser.js               # DOM smoke test
+
+# Real-browser checks (need Chrome or Chromium)
+CHROMIUM_PATH=/path/to/chrome node scripts/check-calendar-browser.js
+CHROMIUM_PATH=/path/to/chrome node scripts/check-planning-tools-browser.js
+CHROMIUM_PATH=/path/to/chrome node scripts/check-landing-tour-browser.js
+
+# Regenerate the landing screenshots and share image from the real app, with sample data
+CHROMIUM_PATH=/path/to/chrome node scripts/capture-landing-screenshots.js
+```
+
+## Environment variables
+
+Set in Netlify → Site configuration → Environment variables, then redeploy.
+
+| Variable | What it's for |
+|---|---|
+| `BUFFER_ALLOWED_ORIGINS` | Comma-separated origins allowed to call the Buffer functions. Unset allows any origin. |
+| `UNSPLASH_ACCESS_KEY` | Unsplash image search in Compose |
+| `POSTIQ_BETA_MESSAGE` | Text for the beta banner |
+| `POSTIQ_FEATURE_TRENDING`, `POSTIQ_FEATURE_SNAPSHOTS`, `POSTIQ_FEATURE_UNSPLASH` | Feature switches, on by default |
+| `POSTIQ_FEATURE_UPLOADS` | Media uploads, off by default |
+| `POSTIQ_ADMIN_TOKEN`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Admin stats panel |
+| `BUFFER_API_KEY` / `BUFFER_TOKEN` | Local development only. The proxy uses it when a request carries no token, so **never set it in production**. |
 
 ---
 
 ## Why this exists
 
-I've spent years running social media for brands — including growing a single account to 6M+ followers and 470M+ impressions. The one thing that never got easier was the planning layer.
+I'm a social media strategist. Across my career I've grown audiences past 6M+ followers combined, most of it at the San Antonio Zoo. Buffer was always the easy part. The planning layer never got easier: is this week covered, what's missing, and can I take Friday off?
 
-Buffer is great at publishing. I wanted a calmer place to answer "is my queue covered this week, and what's missing?" When Buffer opened their API, I connected the internal tools I'd been using into something other creators and teams can actually use.
+PostIQ started as the tools I used alongside Buffer. Now it's a public beta for anyone who plans around a Buffer queue. It's built and run by one person on Buffer's public API: independent, and not endorsed by Buffer.
 
-It's independently built. Not affiliated with Buffer. Just someone who needed this badly enough to build it.
-
-— Ben Campbell · [bencampbell.netlify.app](https://bencampbell.netlify.app)
-
----
-
-## What it does
-
-```
-See your runway on the calendar → write in Compose → send to Buffer
-```
-
-The calendar is the home base and Compose is where you write. Everything else supports that loop.
-
-### 📅 Calendar — the home base
-Month, week and agenda views of confirmed Buffer posts alongside date-only planning notes and to-do actions. Once you set a posting schedule, the top of the calendar shows your **content runway** per channel — "Covered for 20 days — new content needed by Nov 21", counting non-posting days — plus a calm connection/health line that tells you when you're well ahead and a break is fine. Share a read-only snapshot link without a PostIQ account.
-
-### ⏱️ Posting schedule
-A focused modal (open it from the Calendar) where you set, per channel, which days you post and how many times — that powers the runway. Mark **time off** so a planned break doesn't show as a gap, and turn on **evergreen reshares** to keep your streak alive: PostIQ can queue your starred evergreen posts into Buffer across the days you're away. These are local planning choices; your Buffer posts never change.
-
-### ✍️ Compose — the writing tool
-Focused writing workspace with local draft autosave, distraction-free mode, rich text, media (URL, upload, or Unsplash), and searchable writing tools: saved hooks, hashtag sets, templates, **Trending** ideas (Reddit, Hacker News, Product Hunt, RSS — loaded only when you open the tab), and AI Assist, without leaving the draft. Send to Buffer as a draft, queue it, or schedule it. Nothing publishes until you choose.
-
-### 💡 Content Bank
-- **Saved content** — search references, source text, and independent channel versions; plan local target dates separately from Buffer scheduling; pin any card above your Compose editor.
-- **Templates** — save and reuse your best hooks, CTAs, announcements, and engagement questions.
-
-### 📚 Library
-Your latest sent posts, for filling gaps fast. Star posts as **evergreen** to build a reuse pool; **Reshare** loads one back into Compose to send again, or **Rewrite** pins it as a reference for a fresh take.
-
-### 🧭 Take a tour
-PostIQ's onboarding — three steps (calendar & runway, posting schedule, Compose) that open once on a first visit and can be restarted from **Take a tour** in the sidebar, Calendar header, or mobile More menu (or `?tour=1`). Skippable, non-modal, never writes to Buffer.
-
-### 🎛️ Customize
-Turn the Content Bank workspace on or off so the sidebar matches your workflow (new accounts start with Calendar and Compose). Choose from five themes: PostIQ, Classic, After Dark, Studio, and Evergreen. Preferences are saved locally in your browser.
-
-### 🔗 Snapshots
-Turn any week or month of planned content into a static, shareable link. Recipients see a clean read-only calendar view with full post text. No login required.
-
----
-
-## How it connects to Buffer
-
-PostIQ uses Buffer's public API with OAuth (PKCE flow). When you sign in:
-
-- PostIQ loads your channels, scheduled queue, and recent published posts
-- You can create drafts, queue posts, or schedule content through Buffer
-- Nothing publishes automatically — every Buffer action is your choice
-- You can disconnect anytime from Settings → Connection
-
-```
-Sign in with Buffer → Sync channels + queue → Check coverage → Plan a gap → Send to Buffer
-```
-
-The landing page's primary CTA returns to `/app.html?view=calendarView` after sign-in; the secondary CTA opens the same calendar without signing in.
-
----
-
-## Tech stack
-
-| Layer | What |
-|---|---|
-| Frontend | Static HTML / CSS / JS — no build step |
-| Functions | Netlify Functions (Node.js) |
-| Auth | Buffer OAuth 2.0 with PKCE (public client) |
-| Approvals | Upstash Redis (serverless) |
-| Deployment | Netlify |
-| Storage | Browser `localStorage` / `sessionStorage` |
-
-Primary files:
-
-```
-index.html               # Public landing page
-images/product/          # Real-app calendar screenshot (sample data) used for the share image
-app.html                 # App shell and ordered asset entry points
-css/app/                 # App styles grouped by workspace and responsibility
-js/core/                 # Shared runtime, navigation, bootstrap, and startup
-js/integrations/         # Buffer auth/API and post creation boundaries
-js/features/             # Calendar, runway, posting schedule, composer, media, templates
-js/*.js                  # Standalone modules (AI Assist, Library, trending wiring)
-manifest.json            # PWA manifest
-sw.js                    # Service worker and app-shell cache manifest
-netlify/functions/       # Buffer proxy, token exchange, trending, config
-```
-
----
-
-## Running locally
-
-No build step. Serve static files from the repo root.
-
-```sh
-# Static only (no Netlify Functions)
-npx serve .
-
-# Full stack including functions
-netlify dev
-
-# Verify local asset references, JavaScript syntax, and bundle size guardrails
-node scripts/check-project.js
-
-# Landing page links/accessibility/layout and the product tour (needs Chromium)
-CHROMIUM_PATH=/path/to/chromium node scripts/check-landing-tour-browser.js
-
-# Regenerate the share image (postiq-og.png) from the real app with sample data
-CHROMIUM_PATH=/path/to/chromium node scripts/capture-landing-screenshots.js
-```
-
----
-
-## Environment variables
-
-Set these in Netlify → Site configuration → Environment variables.
-
-```env
-# Approvals feature (required for approval links)
-UPSTASH_REDIS_REST_URL=...
-UPSTASH_REDIS_REST_TOKEN=...
-
-# Feature flags (all default to true except uploads)
-POSTIQ_FEATURE_SNAPSHOTS=true
-POSTIQ_FEATURE_APPROVALS=true
-POSTIQ_FEATURE_TRENDING=true
-POSTIQ_FEATURE_UPLOADS=false
-POSTIQ_FEATURE_UNSPLASH=true
-
-# Beta banner message
-POSTIQ_BETA_MESSAGE="PostIQ is in public beta. Some tools may change as Buffer's API evolves."
-```
-
-To pause the approvals feature cleanly (shows a user-facing notice instead of a 503):
-```env
-POSTIQ_FEATURE_APPROVALS=false
-```
-
----
-
-## Deployment
-
-Netlify static site with Functions.
-
-```toml
-[build]
-  publish = "."
-  functions = "netlify/functions"
-```
-
-After changing environment variables, redeploy so Netlify Functions pick up the new config.
-
----
-
-## Public beta notes
-
-- Some features may change as Buffer's API evolves
-- Snapshot links are static — anyone with the link can view included content
-- Browser storage is used for local planning data, templates, and settings
-- The OAuth client is public PKCE — no client secrets in the browser
-- Media previews depend on available post data from Buffer
-
----
+— **Ben Campbell** · [bencampbell.netlify.app](https://bencampbell.netlify.app)
 
 ## Feedback
 
-PostIQ is in public beta. If something feels off, broken, or missing:
-
-- Use the thumbs-down flow inside the app
-- Open an issue on this repo
-- Or reach out directly at [bencampbell.netlify.app](https://bencampbell.netlify.app)
-
----
-
-## Links
+Something feel off, broken, or missing? [Open an issue](https://github.com/kylozenzen/post-iq/issues), use the support form on [the landing page](https://postiq.netlify.app), or find me at [bencampbell.netlify.app](https://bencampbell.netlify.app).
 
 | | |
 |---|---|
 | App | [postiq.netlify.app/app.html](https://postiq.netlify.app/app.html) |
-| Sign in | [postiq.netlify.app/auth/connect.html](https://postiq.netlify.app/auth/connect.html) |
 | Help Center | [postiq.netlify.app/help/](https://postiq.netlify.app/help/) |
 | Privacy | [postiq.netlify.app/privacy.html](https://postiq.netlify.app/privacy.html) |
-| Portfolio | [bencampbell.netlify.app](https://bencampbell.netlify.app) |
 
----
-
-*PostIQ is independently built and is not officially affiliated with or endorsed by Buffer.*
+<sub>PostIQ is an independent product and is not endorsed by Buffer. Buffer is a trademark of its owner.</sub>
