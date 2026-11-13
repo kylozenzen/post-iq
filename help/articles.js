@@ -193,7 +193,7 @@ window.POSTIQ_HELP_ARTICLES = [
     <h2>Posting schedule</h2>
     <ol>
       <li>Each channel has a row. Tap the day letters it posts on and set <strong>posts per day</strong> (0–10). Changes save as you go.</li>
-      <li>The right side says how far ahead that channel is, like <em>Covered for 4 days · Next open day Tue</em>, or <em>Needs a post today</em>.</li>
+      <li>The right side says how far ahead that channel is, like <em>Covered for 4 days · Next open day Tue</em>, or <em>Today is open</em>.</li>
       <li>The line at the top sums it up: who needs something soon, and whether the rest are fine.</li>
       <li>Turn on <strong>Fill gaps from Shelf</strong> for channels where resharing a kept post is okay. Instagram, TikTok, YouTube and Pinterest need a photo or video, so they’re never filled with text.</li>
     </ol>

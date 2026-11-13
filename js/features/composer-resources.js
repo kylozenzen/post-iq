@@ -296,7 +296,7 @@ window.PostIQComposerResources = (() => {
       return;
     }
     list.innerHTML = `${saved.length ? `<div class="resource-list-label">Saved hooks</div>${saved.map(hookTemplateCard).join('')}` : ''}
-      ${library.length ? `<div class="resource-list-label">From your post Library</div>${library.map(libraryHookCard).join('')}` : ''}`;
+      ${library.length ? `<div class="resource-list-label">From your past posts</div>${library.map(libraryHookCard).join('')}` : ''}`;
   }
 
   function keptCard(post) {

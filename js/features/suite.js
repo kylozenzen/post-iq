@@ -33,8 +33,8 @@ window.PostIQSuite = (() => {
       case 'gap':
         return {
           tone: info.days <= 1 ? 'warn' : 'ok',
-          text: info.days === 0 ? 'Needs a post today' : `Covered for ${plural(info.days, 'day')}`,
-          sub: info.days === 0 ? 'Nothing queued for today yet' : `Next open day ${fmt(info.date)}`,
+          text: info.days === 0 ? 'Today is open' : `Covered for ${plural(info.days, 'day')}`,
+          sub: info.days === 0 ? 'Queue a post to get ahead' : `Next open day ${fmt(info.date)}`,
         };
       case 'covered':
         return { tone: 'ok', text: `Covered ${info.days}+ days`, sub: 'Nothing to do here' };

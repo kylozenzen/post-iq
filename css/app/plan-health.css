@@ -43,7 +43,7 @@
   font-size: 13px; color: var(--muted); line-height: 1.5;
 }
 .calendar-runway .runway-prompt strong { color: var(--ink); }
-.calendar-runway .runway-prompt .runway-ico { font-size: 18px; color: var(--muted); }
+.calendar-runway .runway-prompt .runway-ico { font-size: 18px; color: var(--muted); display: inline-flex; flex-shrink: 0; }
 .calendar-runway .runway-prompt button { margin-left: auto; white-space: nowrap; }
 .calendar-runway.is-active {
   border: 1px solid var(--border); border-radius: 10px;
