@@ -38,8 +38,8 @@ test('channel list reports days until a channel runs out',async()=>{
   w.eval("PostIQSuite.render()");
   const text=d.getElementById('suiteChannels').textContent;
   assert.match(text,/Alpha/);
-  assert.match(text,/Needs a post today|Covered for \d+ days?/,'nothing queued, so the channel runs out soon');
-  assert.match(text,/Nothing queued for today yet|Next open day/);
+  assert.match(text,/Today is open|Covered for \d+ days?/,'nothing queued, so the channel runs out soon');
+  assert.match(text,/Queue a post to get ahead|Next open day/);
   assert.match(d.getElementById('paceSummary').textContent,/Alpha needs a post today|Alpha runs out/,'summary line names who needs something');
   // Queue posts on every day for 10 days: the runway should move out to day 10.
   const today=w.PostIQCoverage.dayKey(new Date());

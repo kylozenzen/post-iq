@@ -62,7 +62,7 @@ Month, week and list views. A one-row toolbar (`‹ November ›` · Month/Week 
 Know how far ahead you are, and take a break without going quiet.
 
 - Tap the days each channel posts and how many posts per day. That's your posting schedule.
-- Every channel says **Covered for 4 days · Next open day Tue**, or **Needs a post today**.
+- Every channel says **Covered for 4 days · Next open day Tue**, or **Today is open**.
 - One line at the top sums it up: who needs something soon, and that the rest are fine.
 - **Time away:** pick the dates. Queue reshares from your Shelf on the empty days, or **mark the days off** so they never count as gaps.
 

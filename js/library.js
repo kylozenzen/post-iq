@@ -428,7 +428,7 @@ window.PostIQLibrary = (() => {
     return `
       <div class="empty-state" style="margin-top:24px;">
         <div class="empty-icon">📚</div>
-        <div class="empty-title">No posts found</div>
+        <div class="empty-title">Nothing here yet</div>
         <div class="empty-desc">${safeText(msg)}</div>
       </div>`;
   }
@@ -502,7 +502,7 @@ window.PostIQLibrary = (() => {
       const msgs = {
         reuse: 'Nothing to reuse yet. Keep a post for writing, or older posts will collect here.',
         starred: 'No kept posts yet. Keep any post for writing or reshares.',
-        all: searchQuery ? 'No posts match that search.' : 'No sent posts found.',
+        all: searchQuery ? 'No posts match that search.' : 'Once Buffer sends a post, it shows up here to reuse.',
       };
       list.innerHTML = metricsNoticeHtml() + emptyStateHtml(msgs[activeTab] || msgs.all);
       return;
@@ -538,7 +538,7 @@ window.PostIQLibrary = (() => {
     statsEl.innerHTML = `
       <div class="lib-stat"><span class="lib-stat-num">${total}</span><span class="lib-stat-lbl">sent posts loaded</span></div>
       <div class="lib-stat"><span class="lib-stat-num">${evergreen}</span><span class="lib-stat-lbl">kept</span></div>
-      ${syncAge != null ? `<div class="lib-stat lib-stat-muted"><span class="lib-stat-num">${syncAge}m</span><span class="lib-stat-lbl">ago</span></div>` : ''}
+      ${syncAge != null ? `<div class="lib-stat lib-stat-muted"><span class="lib-stat-num">${syncAge < 1 ? 'Now' : syncAge + 'm'}</span><span class="lib-stat-lbl">${syncAge < 1 ? 'synced' : 'ago'}</span></div>` : ''}
     `;
   }
 
