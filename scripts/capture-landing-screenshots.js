@@ -61,6 +61,7 @@ function seed({ nowIso }) {
     postingDays: ['MON', 'WED', 'FRI'],
     channelPostingDays: { 'sample-ig': ['MON', 'WED', 'FRI'], 'sample-li': ['MON', 'THU'] },
     channelTargets: { 'sample-ig': 1, 'sample-li': 1 },
+    channelReshare: { 'sample-li': true },
     daysOff: [{ channelId: '*', start: day(25), end: day(29) }],
   };
   const notebook = [
@@ -85,6 +86,7 @@ function seed({ nowIso }) {
   set('postiq_getting_started_dismissed', '1');
   set('postiq.workspacePreferences', { planning: true, create: true, ideas: true });
   set('postiq_add_hint_seen', '1');
+  set('postiq_shelf_tip_seen', '1');
   // A starred evergreen post, so the Today card can offer a one-tap fill.
   set('postiq_library_starred_v1', ['pub1']);
   const past = [
@@ -99,6 +101,13 @@ function seed({ nowIso }) {
   set('postiq_holidays_v1', { country: 'US', cache: {
     'US-2026': { ts, list: [{ date: '2026-11-11', name: 'Veterans Day' }, { date: '2026-11-26', name: 'Thanksgiving Day' }] },
     'US-2027': { ts, list: [] } } });
+  // A newsletter issue and a campaign, drawn as bands across their days.
+  set('postiq_campaigns_v1', [
+    { id: 'camp-feed', type: 'newsletter', title: 'The Weekly — Issue 14', start: day(0), end: day(4), color: '#6366f1',
+      stages: [{ label: 'Plan', done: true }, { label: 'Draft', done: true }, { label: 'Final', done: false }, { label: 'Publish', done: false }, { label: 'Substack note', done: false }] },
+    { id: 'camp-winter', type: 'campaign', title: 'Winter workspace series', start: day(7), end: day(11), color: '#a855f7',
+      stages: [{ label: 'Plan', done: true }, { label: 'Build', done: false }, { label: 'Launch', done: false }, { label: 'Wrap', done: false }] },
+  ]);
   set('postiq_beta_banner_seen_persist', '1');
   sessionStorage.setItem('postiq_beta_banner_seen', '1');
   if (!localStorage.getItem('postiq_notebook_v1')) set('postiq_notebook_v1', notebook);
@@ -148,7 +157,7 @@ async function run() {
         await page.keyboard.press('Escape');
         await page.evaluate(() => setCalendarView('week'));
         await page.waitForTimeout(200);
-        const slot = page.locator('#calWeek [data-calendar-date="2026-11-13"] .day-gap-slot');
+        const slot = page.locator('#calWeek [data-calendar-date="2026-11-12"] .day-gap-slot');
         await slot.click();
         await page.waitForSelector('.fill-pop');
         const box = await page.evaluate(() => {
@@ -168,6 +177,37 @@ async function run() {
         const main = await page.evaluate(() => { const r = document.querySelector('.main').getBoundingClientRect(); return { x: r.left, y: 0, width: r.width, height: Math.min(innerHeight, 820) }; });
         await page.screenshot({ animations: 'disabled', path: path.join(outDir, 'shelf-desktop.png'), clip: main });
         await page.evaluate(() => activateView('calendarView', 'screenshot'));
+
+        // "Pace": the summary line, per-channel schedules, and the time-away planner.
+        await page.evaluate(() => activateView('suiteView', 'screenshot'));
+        await page.waitForSelector('#paceSummary:not([hidden])');
+        await page.waitForTimeout(250);
+        const paceBox = await page.evaluate(() => { const r = document.querySelector('.main').getBoundingClientRect(); return { x: r.left, y: 0, width: r.width, height: innerHeight }; });
+        await page.screenshot({ animations: 'disabled', path: path.join(outDir, 'pace-desktop.png'), clip: paceBox });
+        await page.evaluate(() => activateView('calendarView', 'screenshot'));
+
+        // "Newsletters and campaigns": the month's first weeks, where the bands run.
+        await page.waitForSelector('#calGrid .camp-band.is-start');
+        await page.waitForTimeout(250);
+        const campBox = await page.evaluate(() => {
+          const cells = [...document.querySelectorAll('#calGrid .cal-day')];
+          const first = cells[7].getBoundingClientRect(), last = cells[20].getBoundingClientRect();
+          return { x: first.left - 16, y: first.top - 14, width: last.right - first.left + 32, height: last.bottom - first.top + 30 };
+        });
+        await page.screenshot({ animations: 'disabled', path: path.join(outDir, 'campaign-desktop.png'), clip: campBox });
+
+        // "Plain English": quick add with an entry typed and its date preview.
+        await page.evaluate(() => PostIQQuickAdd.open());
+        await page.keyboard.type('Fri: film B-roll for the winter series');
+        await page.waitForTimeout(250);
+        const qaBox = await page.evaluate(() => {
+          // The box opens under the header's Add button; frame it with the week below.
+          const p = document.getElementById('quickAddPop').getBoundingClientRect();
+          const x = Math.max(0, p.right - 760), y = Math.max(0, p.top - 70);
+          return { x, y, width: Math.min(innerWidth - x, 800), height: Math.min(innerHeight - y, 420) };
+        });
+        await page.screenshot({ animations: 'disabled', path: path.join(outDir, 'quickadd-desktop.png'), clip: qaBox });
+        await page.evaluate(() => PostIQQuickAdd.close({ restoreFocus: false }));
 
         // "Look around": Compose with a sample draft, without the Buffer connection state.
         await page.evaluate(() => activateView('composerView', 'screenshot'));
