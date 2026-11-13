@@ -54,15 +54,30 @@ test('plans are outlined in their colour and to-dos get a check circle instead o
   assert.match(pill.querySelector('.sr-only').textContent, /To do/);
 }));
 
-test('gaps render as a quiet open slot on future days only', async () => app(w => {
+test('each future day shows how many posts it still needs', async () => app(w => {
   const d = w.document;
-  w.eval(`window.dayGapCount=()=>2;state.month=new Date();setCalendarView('month')`);
-  const today = d.querySelector(`#calGrid [data-calendar-date="${todayKey(w)}"]`);
-  assert.match(today.querySelector('.day-gap-slot').textContent, /2 open slots/);
+  w.eval(`state.channels=[{id:'a',displayName:'Threads'},{id:'b',displayName:'LinkedIn'}];
+    window.dayCoverageRows=()=>[{channelId:'a',status:'gap',missingCount:2},{channelId:'b',status:'gap',missingCount:1},{channelId:'c',status:'scheduled',missingCount:0}];
+    state.month=new Date();setCalendarView('month')`);
+  const slot = d.querySelector(`#calGrid [data-calendar-date="${todayKey(w)}"] .day-gap-slot`);
+  assert.match(slot.textContent, /▲ 3 open slots/, 'counts posts, not channels');
+  assert.match(slot.title, /Threads ×2, LinkedIn/);
+  assert.equal(slot.classList.contains('is-stale'), false);
   const past = w.eval('(()=>{const x=new Date();x.setDate(x.getDate()-1);return fmtDate(x)})()');
   const pastCell = d.querySelector(`#calGrid [data-calendar-date="${past}"]`);
   if (pastCell) assert.equal(pastCell.querySelector('.day-gap-slot'), null);
-  assert.equal(d.querySelector('.day-gap-alert'), null, 'no ▲ warning');
+}));
+
+test('the per-day count stays visible on stale Buffer data, marked unconfirmed', async () => app(w => {
+  const d = w.document;
+  w.eval(`state.channels=[{id:'a',displayName:'Threads'}];
+    window.dayCoverageRows=()=>[{channelId:'a',status:'stale',missingCount:1}];
+    state.month=new Date();setCalendarView('month')`);
+  const slot = d.querySelector(`#calGrid [data-calendar-date="${todayKey(w)}"] .day-gap-slot`);
+  assert.ok(slot, 'still shown');
+  assert.match(slot.textContent, /▲ 1 open slot$/);
+  assert.ok(slot.classList.contains('is-stale'));
+  assert.match(slot.title, /last sync/);
 }));
 
 test('the agenda says "Nothing planned" once, quietly, for an empty day', async () => app(w => {

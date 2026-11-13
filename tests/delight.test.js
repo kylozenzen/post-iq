@@ -134,14 +134,14 @@ test('with nothing starred, the fill card points to the Shelf instead of guessin
   w.eval(`getBufferConnectionState=()=>({connected:true});state.channels=[{id:'li',displayName:'Ben',service:'linkedin'}];
     localStorage.removeItem('postiq_library_starred_v1');`);
   const html = w.eval(`PostIQToday.fillCardHtml({dateKey:fmtDate(new Date(Date.now()+2*864e5)),channelId:'li'})`);
-  assert.match(html, /Star a past post on your Shelf/);
+  assert.match(html, /Keep a past post on your Shelf/);
   assert.doesNotMatch(html, /data-fill-queue/);
 }));
 
 test('open slots in day cells are buttons that open the fill card', async () => app(w => {
   const d = w.document;
   w.eval(`getBufferConnectionState=()=>({connected:true});state.channels=[{id:'li',displayName:'Ben',service:'linkedin'}];
-    window.dayGapCount=()=>1;dayCoverageRows=()=>[{channelId:'li',status:'gap'}];
+    window.dayGapCount=()=>1;dayCoverageRows=()=>[{channelId:'li',status:'gap',missingCount:1}];
     state.month=new Date();setCalendarView('month');`);
   const key = w.eval('(()=>{const x=new Date();x.setDate(x.getDate()+1);return fmtDate(x)})()');
   const cell = d.querySelector(`#calGrid [data-calendar-date="${key}"]`);
@@ -194,4 +194,22 @@ test('.ics export writes all-day events for plans and campaigns', async () => ap
   assert.match(ics, /SUMMARY:☐ Reshare\\, the press release/);
   assert.match(ics, /DTSTART;VALUE=DATE:20261109\r\nDTEND;VALUE=DATE:20261114/, 'campaign end is inclusive');
   assert.match(ics, /END:VCALENDAR\r\n$/);
+}));
+
+test('fill cards never offer text-only reshares to Instagram, or repeat what is already queued', async () => app(w => {
+  w.eval(`getBufferConnectionState=()=>({connected:true});
+    state.channels=[{id:'ig',displayName:'Ben',service:'instagram'},{id:'li',displayName:'Ben',service:'linkedin'}];
+    localStorage.setItem('postiq_library_starred_v1',JSON.stringify(['a','b']));
+    localStorage.setItem('postiq_library_cache_v3',JSON.stringify({posts:[{id:'a',text:'Kept A',channelId:'li'},{id:'b',text:'Kept B',channelId:'li'}]}));
+    state.scheduled=[{id:'q',channelId:'li',text:'Kept A',dueAt:new Date(Date.now()+864e5).toISOString(),status:'scheduled'}];`);
+  const day = w.eval('fmtDate(new Date(Date.now()+2*864e5))');
+  const ig = w.eval(`PostIQToday.fillCardHtml({dateKey:'${day}',channelId:'ig'})`);
+  assert.doesNotMatch(ig, /data-fill-queue/);
+  assert.match(ig, /Instagram needs a photo or video/);
+  assert.deepEqual(JSON.parse(w.eval(`JSON.stringify(PostIQToday.candidates('li').map(p=>p.text))`)), ['Kept B']);
+  w.eval(`state.scheduled.push({id:'q2',channelId:'li',text:'Kept B',dueAt:new Date(Date.now()+864e5).toISOString(),status:'scheduled'})`);
+  const li = w.eval(`PostIQToday.fillCardHtml({dateKey:'${day}',channelId:'li'})`);
+  assert.doesNotMatch(li, /data-fill-queue/, 'no wrap-around to an already queued post');
+  assert.match(li, /already queued here/);
+  assert.match(w.eval(`PostIQToday.fillCardHtml({dateKey:'${day}',channelId:'li'})`), /Ben \(LinkedIn\)/, 'same-name channels are told apart');
 }));

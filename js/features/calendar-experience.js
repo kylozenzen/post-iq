@@ -66,11 +66,43 @@ window.CalendarExperience = (() => {
     document.querySelectorAll('.calendar-drawer.open').forEach(modal=>closeModal(modal.id));
     activateView('composerView','calendar_quick_add');
     const select=qs('composerChannel'); if(channel && [...select.options].some(o=>o.value===channel)) select.value=channel;
+    const chosen=channel || select.value;
+    const ch=(state.channels || []).find(c=>String(c.id)===String(channel));
+    const chName=ch ? (window.PostIQChannelIcons?.plainName?.(ch) || ch.displayName || ch.name) : '';
+    // Point the schedule picker at the day you came from, at the channel's
+    // usual time, so Schedule lands the post where the gap was.
+    const set=prefillSchedule(date, chosen);
     const banner=qs('composerCalendarContext'); banner.hidden=false;
-    qs('composerCalendarDate').textContent=`Planning for ${formatDateOnly(date)}${channel ? ' · '+(state.channels.find(c=>String(c.id)===channel)?.displayName || channel) : ''}. This is a draft; choose Queue or Schedule explicitly to send to Buffer.`;
+    qs('composerCalendarDate').textContent=`Writing for ${formatDateOnly(date)}${chName ? ' · '+chName : ''}. ${set ? 'The schedule is set to that day; nothing goes to Buffer until you press Schedule.' : 'That day has passed, so pick a new date before you schedule.'}`;
     banner.dataset.date=date;
     updateComposerButtonStates();
     qs('composerEditor').focus({preventScroll:true});
+  }
+  function prefillSchedule(date, channelId) {
+    const dateEl=qs('scheduleDate'), hourEl=qs('scheduleHour'), minEl=qs('scheduleMin'), ampmEl=qs('scheduleAmpm');
+    if(!dateEl || !hourEl || !minEl || !ampmEl || !date || date < fmtDate(new Date())) return false;
+    const T=window.PostIQToday;
+    let when=channelId && T?.slotTime ? T.slotTime(date, channelId) : null;
+    if(!when) {
+      const usual=channelId && T?.usualTime ? T.usualTime(channelId) : { h: 9, m: 0 };
+      when=new Date(date+'T00:00:00'); when.setHours(usual.h, usual.m, 0, 0);
+      if(when < new Date(Date.now()+20*60*1000)) return false;
+    }
+    dateEl.value=date;
+    const h=when.getHours(), m=when.getMinutes();
+    hourEl.value=String((h % 12) || 12);
+    const mins=[...minEl.options].map(o=>Number(o.value));
+    const nearest=mins.reduce((best, v)=>Math.abs(v-m) < Math.abs(best-m) ? v : best, mins[0] ?? 0);
+    minEl.value=String(nearest);
+    ampmEl.value=h >= 12 ? 'PM' : 'AM';
+    qs('schedulePanel')?.classList.add('open');
+    const toggle=qs('composerScheduleToggle'); if(toggle) toggle.style.display='none';
+    syncComposerWhen();
+    return true;
+  }
+  function clearComposeContext() {
+    const banner=qs('composerCalendarContext'); if(!banner) return;
+    banner.hidden=true; delete banner.dataset.date;
   }
   function add(date=selectedKey()) {
     remember(date);
@@ -114,10 +146,10 @@ window.CalendarExperience = (() => {
     document.addEventListener('click',event=>{if(!qs('calendarFilters').contains(event.target))qs('calendarFilters').open=false;});
     qs('calendarFilters').addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();qs('calendarFilters').open=false;qs('calendarFilterSummary').focus();}});
     const banner=document.createElement('div'); banner.id='composerCalendarContext'; banner.hidden=true;
-    banner.innerHTML='<span id="composerCalendarDate"></span><button type="button" class="btn sm" id="composerReturnCalendar">Back to Calendar</button><button type="button" class="btn sm ghost" id="composerUseCalendarDate">Use date in schedule picker</button>';
+    banner.innerHTML='<span id="composerCalendarDate"></span><button type="button" class="btn sm" id="composerReturnCalendar">Back to Calendar</button><button type="button" class="btn sm ghost" id="composerDismissCalendarDate" aria-label="Stop writing for this date">Not for this day</button>';
     qs('composerView').prepend(banner);
     qs('composerReturnCalendar').onclick=()=>{activateView('calendarView','calendar_return');restoreScroll();};
-    qs('composerUseCalendarDate').onclick=()=>{qs('scheduleDate').value=banner.dataset.date; qs('schedulePanel').classList.add('open'); syncComposerWhen();};
+    qs('composerDismissCalendarDate').onclick=()=>clearComposeContext();
     document.addEventListener('keydown',event=>{
       const modal=getTopOpenModal();
       if(!modal || (!modal.classList.contains('calendar-drawer') && modal.id !== 'settingsModal')) return;
@@ -140,5 +172,5 @@ window.CalendarExperience = (() => {
     },true);
     restoreScroll();
   }
-  return {init,remember,compose,add,onOpen,onClose,status,renderChannelFilter,narrow,highlight,updateFilterSummary};
+  return {init,remember,compose,clearComposeContext,prefillSchedule,add,onOpen,onClose,status,renderChannelFilter,narrow,highlight,updateFilterSummary};
 })();

@@ -446,14 +446,38 @@
 .alert-detail { font-size: 12px; color: var(--muted); line-height: 1.45; margin-top: 2px; }
 .alert-row .btn { flex: none; }
 
-/* ── Campaigns & newsletters (date-range plans, style B) ───── */
-.cal-day.has-campaign { background: color-mix(in srgb, var(--muted) 8%, var(--surface)); }
-.campaign-pill { display: flex; align-items: center; gap: 5px; width: 100%; margin-top: 4px; padding: 3px 6px; border: 1px solid var(--border); border-left: 3px solid var(--camp, #6366f1); border-radius: 5px; background: var(--surface); cursor: pointer; font-size: 11px; color: var(--ink); text-align: left; overflow: hidden; }
-.campaign-pill:hover { border-color: var(--camp, #6366f1); }
-.campaign-pill-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--camp, #6366f1); flex: none; }
-.campaign-pill-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
-.campaign-pill-tag { flex: none; font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); }
-.campaign-pill.is-end { border-left-style: dashed; opacity: .9; }
+/* ── Campaigns & newsletters: a band across the range ─────────
+   First and last day solid and labelled; the days between a quiet tint of the
+   same colour. Bands reach the cell's inner edge so the range reads as one
+   stretch, broken only by the grid gap. Each campaign keeps its lane. */
+.camp-bands { display: flex; flex-direction: column; gap: 2px; margin: 4px -8px 0; }
+.camp-band { display: flex; align-items: center; gap: 4px; height: 17px; padding: 0 8px; border: 0; border-radius: 0; background: color-mix(in srgb, var(--camp, #6366f1) 15%, transparent); color: var(--ink); font-family: inherit; font-size: 10.5px; font-weight: 600; line-height: 1; text-align: left; cursor: pointer; overflow: hidden; white-space: nowrap; min-width: 0; }
+.camp-band.is-empty { background: none; cursor: default; pointer-events: none; }
+.camp-band.is-start, .camp-band.is-end, .camp-band.is-single { background: var(--camp, #6366f1); color: #fff; }
+.camp-band.is-start, .camp-band.is-single { margin-left: 6px; border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
+.camp-band.is-end, .camp-band.is-single { margin-right: 6px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
+.camp-band.is-end { justify-content: flex-end; }
+.camp-band.is-row-start:not(.is-start):not(.is-single) { border-top-left-radius: 0; border-bottom-left-radius: 0; box-shadow: inset 2px 0 0 color-mix(in srgb, var(--camp, #6366f1) 45%, transparent); }
+.camp-band.is-mid { height: 17px; }
+.camp-band:hover { filter: brightness(.96); }
+.camp-band.is-mid:hover { background: color-mix(in srgb, var(--camp, #6366f1) 24%, transparent); filter: none; }
+.camp-band:focus-visible { outline: 2px solid var(--camp, #6366f1); outline-offset: 1px; }
+.camp-band.is-done.is-start, .camp-band.is-done.is-end, .camp-band.is-done.is-single { background: color-mix(in srgb, var(--camp, #6366f1) 70%, var(--surface)); }
+.camp-band-label { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.camp-band-label.is-quiet { font-weight: 500; color: color-mix(in srgb, var(--camp, #6366f1) 65%, var(--ink)); }
+.camp-band-tag { flex: none; margin-left: auto; font-family: 'DM Mono', monospace; font-size: 9px; opacity: .85; }
+/* Week view cards: wider cells, a touch more height */
+.cal-week-day .camp-bands { margin: 6px -10px 2px; }
+.cal-week-day .camp-band { height: 20px; font-size: 11px; }
+/* Day drawer + agenda: what's running that day */
+.day-camp-list { margin: 0 0 16px; display: flex; flex-direction: column; gap: 6px; }
+.day-camp-row { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-left: 3px solid var(--camp, #6366f1); border-radius: 6px; background: color-mix(in srgb, var(--camp, #6366f1) 6%, var(--surface)); color: var(--ink); font-size: 13px; text-align: left; cursor: pointer; }
+.day-camp-row:hover { border-color: var(--camp, #6366f1); }
+.day-camp-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--camp, #6366f1); flex: none; }
+.day-camp-name { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.day-camp-meta { margin-left: auto; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.calendar-agenda-day .day-camp-list { margin: 8px 0 0; }
+#campDelete.danger { color: var(--brand); border-color: var(--brand); }
 /* Campaign editor modal */
 .camp-intro { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0 0 14px; }
 .camp-body { display: flex; flex-direction: column; gap: 6px; }

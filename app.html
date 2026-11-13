@@ -34,6 +34,7 @@
   <link rel="stylesheet" href="./css/app/calendar.css" />
   <link rel="stylesheet" href="./css/app/composer.css" />
   <link rel="stylesheet" href="./css/app/ideas-settings.css" />
+  <link rel="stylesheet" href="./css/app/settings-customize.css" />
   <link rel="stylesheet" href="./css/app/content-flow.css" />
   <link rel="stylesheet" href="./css/app/responsive.css" />
   <link rel="stylesheet" href="./css/app/library.css" />
@@ -155,14 +156,13 @@
         </span>
         <span class="nav-text">Shelf</span>
       </button>
-      <button class="nav-btn" data-view="suiteView" data-tooltip="Suite">
+      <button class="nav-btn" data-view="suiteView" data-tooltip="Pace">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linejoin="round">
-            <rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/>
-            <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/>
+            <path d="M3.5 17.5a8.5 8.5 0 1 1 17 0" stroke-linecap="round"/><path d="M12 17.5l4.2-5.2" stroke-linecap="round"/><circle cx="12" cy="17.5" r="1.3"/>
           </svg>
         </span>
-        <span class="nav-text">Suite</span>
+        <span class="nav-text">Pace</span>
       </button>
     </nav>
 
@@ -213,8 +213,8 @@
 
         <div class="cal-toolbar-right">
           <button class="cal-filter-chip" id="calFilterChip" type="button" hidden>Filtered · <span>Clear</span></button>
-          <button class="cal-alert-bell cal-suite-btn" id="calSuiteBtn" type="button" aria-label="Open Suite: queue health and breaks" title="Suite: queue health and breaks"><span aria-hidden="true">▦</span></button>
-          <button class="cal-alert-bell" id="calAlertBell" type="button" aria-label="Alerts" aria-haspopup="dialog"><span class="cal-alert-ico" aria-hidden="true">◔</span><span class="cal-alert-count" hidden>0</span></button>
+          <button class="cal-alert-bell cal-suite-btn" id="calSuiteBtn" type="button" aria-label="Open Pace: posting schedules, how far ahead you are, and breaks" title="Pace: posting schedules and breaks"><svg class="cal-hdr-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 17.5a8.5 8.5 0 1 1 17 0" stroke-linecap="round"/><path d="M12 17.5l4.2-5.2" stroke-linecap="round"/><circle cx="12" cy="17.5" r="1.3"/></svg></button>
+          <button class="cal-alert-bell" id="calAlertBell" type="button" aria-label="Alerts" aria-haspopup="dialog"><svg class="cal-hdr-ico cal-alert-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M6 16.5v-5a6 6 0 0 1 12 0v5l1.6 2H4.4z"/><path d="M10 21a2.2 2.2 0 0 0 4 0"/></svg><span class="cal-alert-count" hidden>0</span></button>
           <div class="cal-view-toggle" role="group" aria-label="Calendar view">
             <button class="seg-btn active" id="calendarViewMonthBtn" type="button" data-calendar-view="month">Month</button>
             <button class="seg-btn" id="calendarViewWeekBtn" type="button" data-calendar-view="week">Week</button>
@@ -786,12 +786,12 @@
 
     <section id="suiteView" class="view" aria-labelledby="suiteTitle">
       <div class="mob-view-hdr">
-        <span class="mob-view-title">Suite</span>
+        <span class="mob-view-title">Pace</span>
       </div>
       <div class="page-hdr">
         <div class="page-hdr-left">
-          <h1 class="page-title" id="suiteTitle">Suite</h1>
-          <p class="page-desc">Queue health for every channel: how many days each one has queued, and whether your weeks hold up through a break or trip.</p>
+          <h1 class="page-title" id="suiteTitle">Pace</h1>
+          <p class="page-desc">When you post, how far ahead you are, and what a break needs.</p>
         </div>
         <div class="page-actions">
           <button class="btn ghost" id="suiteBackBtn" type="button">← Back to calendar</button>
@@ -799,15 +799,17 @@
       </div>
       <div class="view-content suite-content">
         <p class="suite-notice" id="suiteNotice" hidden></p>
+        <p class="pace-summary" id="paceSummary" aria-live="polite" hidden></p>
 
         <section class="suite-card" aria-labelledby="suiteChannelsTitle">
-          <h2 class="suite-card-title" id="suiteChannelsTitle">Channels</h2>
+          <h2 class="suite-card-title" id="suiteChannelsTitle">Posting schedule</h2>
+          <p class="suite-card-desc">Tap the days each channel posts. Open slots on the calendar come from this.</p>
           <div class="suite-channels" id="suiteChannels"></div>
         </section>
 
         <section class="suite-card" aria-labelledby="suiteBreakTitle">
-          <h2 class="suite-card-title" id="suiteBreakTitle">Break or vacation</h2>
-          <p class="suite-card-desc">Pick the dates you'll be away. Each cell shows posts already queued against posts planned that week.</p>
+          <h2 class="suite-card-title" id="suiteBreakTitle">Time away</h2>
+          <p class="suite-card-desc">Pick the dates you’ll be away. Keep posting with Shelf reshares, or mark the days off so they don’t count as gaps.</p>
           <div class="suite-break-inputs">
             <label>From <input type="date" id="suiteBreakStart" /></label>
             <label>To <input type="date" id="suiteBreakEnd" /></label>
@@ -816,6 +818,8 @@
           <div class="suite-grid-wrap">
             <table class="suite-grid" id="suiteBreakGrid"></table>
           </div>
+          <div class="suite-fill" id="suiteFill"></div>
+          <div class="pace-timeoff" id="paceTimeOff"></div>
         </section>
       </div>
     </section>
@@ -1034,7 +1038,7 @@
         </div>
 
         <section class="settings-section" aria-labelledby="customizeWorkspaceHeading">
-          <h3 class="settings-section-title" id="customizeWorkspaceHeading">Workspace</h3>
+          <div class="settings-section-title" id="customizeWorkspaceHeading">Workspace</div>
           <p class="settings-copy">Choose which PostIQ workspaces show in your sidebar. Keep your dashboard focused on the parts of your workflow you actually use.</p>
           <div class="workspace-preference-list" id="workspacePreferenceList">
             <label class="workspace-preference-card">
@@ -1046,8 +1050,8 @@
               <input type="checkbox" data-workspace-toggle="create" aria-label="Show Create workspace" />
             </label>
             <label class="workspace-preference-card">
-              <span class="workspace-preference-copy"><strong>Ideas on the Shelf</strong><small>Adds an Ideas tab to the Shelf: save ideas, give them target dates, keep templates handy.</small></span>
-              <input type="checkbox" data-workspace-toggle="ideas" aria-label="Show Ideas on the Shelf" />
+              <span class="workspace-preference-copy"><strong>Shelf ideas</strong><small>The Ideas tab on your Shelf: capture ideas, give them target dates, and keep snippets handy. Past posts stay on the Shelf either way.</small></span>
+              <input type="checkbox" data-workspace-toggle="ideas" aria-label="Show Shelf ideas" />
             </label>
           </div>
           <p class="workspace-preference-note" id="workspacePreferenceNote" role="status" aria-live="polite"></p>
@@ -1055,7 +1059,7 @@
         </section>
 
         <section class="settings-section" aria-labelledby="customizeThemeHeading">
-          <h3 class="settings-section-title" id="customizeThemeHeading">Theme</h3>
+          <div class="settings-section-title" id="customizeThemeHeading">Theme</div>
           <p class="settings-copy">Give your workspace a distinct atmosphere. Your choice stays with this browser.</p>
           <div class="theme-picker" id="themePicker" role="radiogroup" aria-label="Workspace theme">
             <button class="theme-card" type="button" data-theme-choice="default" role="radio" aria-checked="false">
@@ -1083,7 +1087,7 @@
         </section>
 
         <section class="settings-section" aria-labelledby="customizePlanningHeading">
-          <h3 class="settings-section-title" id="customizePlanningHeading">Planning</h3>
+          <div class="settings-section-title" id="customizePlanningHeading">Planning</div>
           <p class="settings-copy">Adjust how PostIQ helps you review your queue, spot gaps, and plan upcoming content.</p>
           <label class="settings-check mt12"><input type="checkbox" id="showQueueGapsSetting" /> Show queue gaps</label>
           <label class="settings-check"><input type="checkbox" id="showWeekNumbersSetting" /> Show week numbers in week view</label>
@@ -1092,7 +1096,7 @@
         </section>
 
         <section class="settings-section" aria-labelledby="customizeNotesHeading">
-          <h3 class="settings-section-title" id="customizeNotesHeading">Notes</h3>
+          <div class="settings-section-title" id="customizeNotesHeading">Notes</div>
           <p class="settings-copy">Customize how notes, reminders, ideas, and planning details appear across your workspace.</p>
           <div id="noteTypesSettings" class="note-types-settings mt12"></div>
           <button class="btn sm" id="addNoteTypeBtn" type="button">+ Add note type</button>
@@ -1109,9 +1113,7 @@
             <div class="settings-feature-item"><span>Compose</span><span class="settings-feature-status" data-settings-feature="composer">Available</span></div>
             
             <div class="settings-feature-item"><span>Shelf ideas</span><span class="settings-feature-status" data-settings-feature="ideas">Available</span></div>
-            <div class="settings-feature-item"><span>Content Pillars</span><span class="settings-feature-status" data-settings-feature="contentPillars">Available</span></div>
-            <div class="settings-feature-item"><span>Templates</span><span class="settings-feature-status is-static">Available</span></div>
-            <div class="settings-feature-item"><span>Trending ideas</span><span class="settings-feature-status" data-settings-feature="trending">Available</span></div>
+            <div class="settings-feature-item"><span>Trending on Shelf</span><span class="settings-feature-status" data-settings-feature="trending">Available</span></div>
             <div class="settings-feature-item"><span>Snapshot sharing</span><span class="settings-feature-status" data-settings-feature="snapshots">Available</span></div>
             <div class="settings-feature-item"><span>Media upload</span><span class="settings-feature-status" data-settings-feature="uploads">Available</span></div>
             <div class="settings-feature-item"><span>Unsplash search</span><span class="settings-feature-status" data-settings-feature="unsplash">Available</span></div>
@@ -1125,10 +1127,20 @@
           <div class="settings-section-title">Get help</div>
           <p class="settings-copy">PostIQ is built and maintained by one person, so questions, bug reports, and feature requests come straight to Ben — no ticket queue in between.</p>
           <div class="row mt12">
-            <a class="btn primary" href="mailto:REPLACE_WITH_SUPPORT_EMAIL?subject=PostIQ%20support" id="supportEmailLink">Email Ben</a>
             <a class="btn ghost" href="/help/">Help Center</a>
           </div>
         </div>
+        <details class="settings-section support-email-panel" id="supportEmailPanel">
+          <summary class="settings-section-title">Email support</summary>
+          <p class="settings-copy">Question about the Buffer connection or the calendar? Drop a message.</p>
+          <form name="postiq-support" method="POST" data-netlify="true" class="support-form">
+            <input type="hidden" name="form-name" value="postiq-support" />
+            <label><span>Your Name</span><input type="text" name="name" autocomplete="name" required /></label>
+            <label><span>Email</span><input type="email" name="email" autocomplete="email" required /></label>
+            <label><span>How can I help?</span><textarea name="message" rows="4" required></textarea></label>
+            <button type="submit" class="btn primary">Send Message</button>
+          </form>
+        </details>
         <div class="settings-section">
           <div class="settings-section-title">Community</div>
           <p class="settings-copy">Already posting through Discord? Webhook setup and destinations live on the <button class="btn sm ghost" id="supportOpenDiscordBtn" type="button">Discord</button> tab.</p>
@@ -1234,7 +1246,7 @@
           <select class="input" id="schedOffScope"><option value="*">All channels</option><option value="selected">Selected channel</option></select>
           <button class="btn" id="schedOffSave" type="button">Mark dates off</button>
           <div class="sched-fill">
-            <p class="sched-fill-copy">Want to keep posting while you're away? For every reshare-enabled channel, PostIQ can queue your kept posts (from Past posts on the Shelf) into Buffer across the posting days in this range. Buffer publishes them on your normal schedule — your streak stays alive.</p>
+            <p class="sched-fill-copy">Want to keep posting while you're away? For every reshare-enabled channel, PostIQ can queue your kept posts (from Past posts on the Shelf) into Buffer on each empty posting day in this range, at that channel’s usual time. Each kept post goes out once per channel, so your streak stays alive without repeats.</p>
             <button class="btn" id="schedFill" type="button">Fill these days with reshares of kept posts</button>
             <button class="btn primary" id="schedFillConfirm" type="button" hidden>Confirm &amp; queue to Buffer</button>
             <p id="schedFillStatus" class="sched-status" role="status"></p>

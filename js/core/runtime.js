@@ -662,7 +662,10 @@ const rgbaFromHex = (hex, alpha = 0.1) => {
 };
 const maskToken = t => !t ? '—' : t.length <= 8 ? '••••' : `${t.slice(0,4)}••••${t.slice(-4)}`;
 
-function getQueueCoverage(days = 90) {
+function getQueueCoverage(days = 90, { ignoreDaysOff = false } = {}) {
   const meta = state.scheduledCoverage ? { ...state.scheduledCoverage, complete: state.scheduledCoverage.complete && state.syncState !== 'failed' } : undefined;
-  return window.PostIQCoverage.calculate({ posts: state.scheduled, published: state.published, channels: state.channels, settings: getPlanningSettings(), days, connected: getBufferConnectionState().connected, meta });
+  const settings = getPlanningSettings();
+  // ignoreDaysOff: treat marked time off as normal posting days (used when
+  // filling that time off with reshares, which is the point of marking it).
+  return window.PostIQCoverage.calculate({ posts: state.scheduled, published: state.published, channels: state.channels, settings: ignoreDaysOff ? { ...settings, daysOff: [] } : settings, days, connected: getBufferConnectionState().connected, meta });
 }

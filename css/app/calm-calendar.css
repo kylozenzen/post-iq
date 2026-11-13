@@ -292,21 +292,24 @@
   color: var(--muted);
 }
 
-/* Gaps: an empty, dashed slot that invites a post */
+/* Gaps: how many posts the day still needs — readable at a glance while planning */
 .day-gap-slot {
   margin-top: auto;
   padding: 4px 6px;
-  border: 1px dashed var(--border2);
+  border: 1px dashed color-mix(in srgb, var(--amber) 55%, transparent);
   border-radius: var(--r);
-  color: var(--subtle);
-  font-size: 10.5px;
+  background: color-mix(in srgb, var(--amber) 8%, transparent);
+  color: var(--amber);
+  font-size: 11px;
+  font-weight: 600;
   line-height: 1.3;
   text-align: center;
   transition: border-color .15s, color .15s, background .15s;
 }
+.day-gap-slot.is-stale { border-style: dotted; opacity: .7; }
 .cal-day:hover .day-gap-slot,
 .cal-week-day:hover .day-gap-slot,
-.calendar-agenda-day:hover .day-gap-slot { border-color: var(--brand-glow); color: var(--brand); background: var(--brand-dim); }
+.calendar-agenda-day:hover .day-gap-slot { border-color: var(--amber); background: color-mix(in srgb, var(--amber) 14%, transparent); }
 
 /* Week view: cards stay consistent with month cells */
 #calendarView .cal-week-day .day-gap-slot { margin-top: var(--s2); }
@@ -588,6 +591,10 @@ button.day-gap-slot:focus-visible { outline: 2px solid var(--brand); outline-off
 
 /* Week cards: an empty day's summary line stays empty, not "NO LOADED POSTS" */
 .cal-week-day-summary:empty { display: none; }
+/* When a range runs through the week, keep every day's header the same height
+   (empty summaries hold their line) so the bands line up across the row. */
+#calWeek.has-campaign-bands .cal-week-day-summary:empty { display: block; visibility: hidden; }
+#calWeek.has-campaign-bands .cal-week-day-summary:empty::before { content: '\00a0'; }
 
 /* Dated Shelf ideas in month cells: title first, a quiet status line under it
    (the badge used to squeeze the title into a sliver beside it) */
@@ -604,3 +611,6 @@ button.day-gap-slot:focus-visible { outline: 2px solid var(--brand); outline-off
   text-transform: none;
   color: var(--muted);
 }
+
+/* Calendar header icon buttons: crisp SVG instead of font glyphs that render as specks on some systems. */
+#calendarView .cal-hdr-ico { width: 16px; height: 16px; display: block; }

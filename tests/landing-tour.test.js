@@ -27,7 +27,9 @@ assert.doesNotMatch(landing, /href="[^"]*tour=1/, 'one preview entry point, not 
 const shots = [...landing.matchAll(/src="\/images\/product\/([a-z-]+\.png)"/g)].map(m => m[1]);
 assert.equal(new Set(shots).size, shots.length, `each landing image is different: ${shots.join(', ')}`);
 for (const shot of shots) assert.ok(require('node:fs').existsSync(require('node:path').join(__dirname, '..', 'images', 'product', shot)), `${shot} exists`);
-assert.match(landing, /Today card[\s\S]*Quick add[\s\S]*Drag to reschedule/);
+assert.match(landing, /id="pace"[\s\S]*Take a break without going quiet[\s\S]*Today card[\s\S]*id="newsletters"[\s\S]*Quick add reads plain English[\s\S]*moves it in Buffer/, 'Pace, one-tap fill, newsletters, plain English and drag each get a beat');
+assert.match(landing, /Does it sync with Google Calendar\?[\s\S]*Not live yet/, 'no Google Calendar sync claim');
+for (const shot of ['pace-desktop.png', 'campaign-desktop.png', 'quickadd-desktop.png']) assert.ok(landing.includes(shot), `${shot} is on the page`);
 
 assert.ok(app.includes('./js/features/tour.js') && app.includes('./css/app/tour.css'));
 assert.ok(!app.includes('onboarding.js') && !sw.includes('onboarding'), 'the tour is the only onboarding');

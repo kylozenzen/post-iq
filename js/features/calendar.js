@@ -8,7 +8,7 @@ function renderChannelSelects() {
   if (state.channels.length) {
     state.channels.forEach(c => {
       const o = document.createElement('option');
-      o.value = c.id; o.textContent = `${c.displayName || c.name} (${c.service})`; sel.appendChild(o);
+      o.value = c.id; o.textContent = `${c.displayName || c.name} (${window.PostIQChannelIcons?.tag?.(c.service) || c.service})`; sel.appendChild(o);
     });
     if (noChannels) noChannels.style.display = 'none'; sel.style.display = '';
   } else {
@@ -312,7 +312,11 @@ function renderCalendarView() {
     if (window.PostIQCampaigns?.covers?.(key)) cls += ' has-campaign';
     day.className = cls;
 
-    let html = `<div class="day-header"><div class="day-num">${d.getDate()}</div><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add plan for ${safeText(formatDateWithYear(d))}">+</button></div>${window.PostIQHolidays?.cellHtml?.(key) || ''}`;
+    // Ranges sit right under the date (before holidays and posts) so a band
+    // lines up across its week row.
+    const rowKey = new Date(start); rowKey.setDate(start.getDate() + i - (i % 7));
+    const campaignBands = window.PostIQCampaigns?.cellHtml?.(key, { rowStart: i % 7 === 0, rowEnd: i % 7 === 6, rowKey: fmtDate(rowKey) }) || '';
+    let html = `<div class="day-header"><div class="day-num">${d.getDate()}</div><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add plan for ${safeText(formatDateWithYear(d))}">+</button></div>${campaignBands}${window.PostIQHolidays?.cellHtml?.(key) || ''}`;
     const MAX_VISIBLE = 3;
     const pills = [
       ...dayPosts.map(p => calendarPostPillHtml(p, 'data-post-detail', key, 60)),
@@ -321,7 +325,6 @@ function renderCalendarView() {
     ];
     html += pills.slice(0, MAX_VISIBLE).join('');
     if (pills.length > MAX_VISIBLE) html += `<div class="more-indicator">+${pills.length - MAX_VISIBLE} more</div>`;
-    html += window.PostIQCampaigns?.cellHtml?.(key) || '';
     html += dayGapSlotHtml(d);
     day.innerHTML = html;
     bindContentCalendar(day);
@@ -366,6 +369,7 @@ function renderWeekView() {
   const start = weekStart(state.month);
   const end = new Date(start); end.setDate(start.getDate() + 6);
   weekEl.innerHTML = '';
+  weekEl.classList.toggle('has-campaign-bands', [0,1,2,3,4,5,6].some(n => { const x = new Date(start); x.setDate(start.getDate() + n); return window.PostIQCampaigns?.covers?.(fmtDate(x)); }));
   for (let i = 0; i < 7; i++) {
     const d = new Date(start); d.setDate(start.getDate() + i);
     const key = fmtDate(d);
@@ -376,6 +380,7 @@ function renderWeekView() {
     const card = document.createElement('div');
     card.className = `cal-week-day${key === fmtDate(new Date()) ? ' today' : ''}${dayPosts.length ? ' has-posts' : ''}`;
     let html = `<div class="cal-week-day-title"><span class="cal-week-day-name">${d.toLocaleDateString(undefined,{ weekday:'short'})}</span><div class="cal-week-day-title-right"><strong class="cal-week-day-date">${d.toLocaleDateString(undefined,{ month:'short', day:'numeric'})}</strong><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add plan for ${safeText(formatDateWithYear(d))}">+</button></div></div><div class="cal-week-day-summary">${dayPosts.length ? plannerDaySummary(dayPosts) : ''}${dayNotes.length ? ` · ${dayNotes.length} note${dayNotes.length === 1 ? '' : 's'}` : ''}</div>`;
+    html += window.PostIQCampaigns?.cellHtml?.(key, { rowStart: i === 0, rowEnd: i === 6, rowKey: fmtDate(start) }) || '';
     html += window.PostIQHolidays?.cellHtml?.(key) || '';
 
     dayPosts.forEach(p => { html += calendarPostPillHtml(p, 'data-week-post', key, 160); });
@@ -518,10 +523,26 @@ function dayCoverageRows(date) {
 }
 function dayGapSlotHtml(date) {
   if (fmtDate(date) < fmtDate(new Date())) return '';
-  const gaps = dayGapCount(date);
-  if (!gaps) return '';
-  // A gap is an invitation, not an error: a quiet dashed slot. The per-channel breakdown lives in the day detail.
-  return `<button type="button" class="day-gap-slot" title="${gaps} channel${gaps === 1 ? '' : 's'} could use a post — click to fill">${gaps === 1 ? 'Open slot' : `${gaps} open slots`}</button>`;
+  const { posts, channels, stale, names } = dayGapSummary(date);
+  if (!posts) return '';
+  // How many posts this day still needs, visible at a glance while planning.
+  // On stale Buffer data the last-known count stays up, just marked unconfirmed.
+  const label = `▲ ${posts} open slot${posts === 1 ? '' : 's'}`;
+  const detail = names.length ? ` (${names.join(', ')})` : '';
+  const title = `${posts} post${posts === 1 ? '' : 's'} still needed across ${channels} channel${channels === 1 ? '' : 's'}${detail}${stale ? ' · based on your last sync' : ''} — click to fill`;
+  return `<button type="button" class="day-gap-slot${stale ? ' is-stale' : ''}" title="${safeText(title)}" aria-label="${safeText(title)}">${label}</button>`;
+}
+// Posts still missing on a day, summed across channels. Stale rows count with
+// their last-known numbers so the per-day count doesn't vanish between syncs.
+function dayGapSummary(date) {
+  const rows = dayCoverageRows(date).filter(r => (r.status === 'gap' || r.status === 'stale') && (r.missingCount ?? 1) > 0);
+  const names = rows.map(r => {
+    const ch = (state.channels || []).find(c => String(c.id) === String(r.channelId));
+    const name = (ch && window.PostIQChannelIcons?.plainName?.(ch)) || ch?.displayName || ch?.name || ch?.service || String(r.channelId);
+    const n = r.missingCount ?? 1;
+    return n > 1 ? `${name} ×${n}` : name;
+  });
+  return { posts: rows.reduce((sum, r) => sum + (r.missingCount ?? 1), 0), channels: rows.length, stale: rows.some(r => r.status === 'stale'), names };
 }
 function dayGapCount(date) { return dayCoverageRows(date).filter(r => r.status === 'gap').length; }
 // Per-platform coverage breakdown for the day-detail view — this is where the
@@ -535,9 +556,12 @@ function dayCoverageDetailHtml(date) {
     const ch = state.channels.find(c => String(c.id) === String(r.channelId));
     const label = window.PostIQChannelIcons ? window.PostIQChannelIcons.label(ch, { dups }) : safeText(ch?.displayName || r.channelId);
     const gap = r.status === 'gap';
-    return `<li class="day-cov-row ${gap ? 'is-gap' : 'is-ok'}"><span class="day-cov-status" aria-hidden="true">${gap ? '▲' : '✓'}</span>${label}<span class="day-cov-msg">${gap ? 'needs content' : 'covered'}</span>${gap ? `<button class="btn sm" type="button" data-cov-add="${safeText(r.channelId)}">Add</button>` : ''}</li>`;
+    // One-tap reshare when the Shelf has something that fits this channel.
+    const canReshare = gap && !!window.PostIQToday?.suggestionFor?.(fmtDate(date), String(r.channelId)) && !!window.PostIQToday?.slotTime?.(fmtDate(date), String(r.channelId));
+    const actions = gap ? `${canReshare ? `<button class="btn sm" type="button" data-cov-reshare="${safeText(r.channelId)}" title="Queue a kept Shelf post on this day">Reshare</button>` : ''}<button class="btn sm${canReshare ? ' ghost' : ''}" type="button" data-cov-add="${safeText(r.channelId)}">Write</button>` : '';
+    return `<li class="day-cov-row ${gap ? 'is-gap' : 'is-ok'}"><span class="day-cov-status" aria-hidden="true">${gap ? '▲' : '✓'}</span>${label}<span class="day-cov-msg">${gap ? 'needs content' : 'covered'}</span>${actions}</li>`;
   }).join('');
-  const head = gaps ? `${gaps} channel${gaps === 1 ? '' : 's'} need content` : 'All channels covered';
+  const head = gaps ? `${gaps} channel${gaps === 1 ? ' needs' : 's need'} content` : 'All channels covered';
   return `<div style="margin-bottom:16px;"><div class="post-detail-label">Coverage · ${head}</div><ul class="day-cov-list">${items}</ul></div>`;
 }
 
@@ -733,8 +757,9 @@ function renderAgenda() {
       +posts.map(p=>calendarPostPillHtml(p,'data-agenda-post',key,180)).join('')
       +notes.map(n=>`<button type="button" class="${calendarNoteClass(n)}" data-agenda-note="${safeText(n.id)}" style="${notePillStyle(getNoteTypeMeta(n))}">${calendarNoteCopy(n)}</button>`).join('')
       +targets.map(contentCalendarPill).join('')
+      +(isContentCalendarMode()?'':(window.PostIQCampaigns?.detailHtml?.(key,{heading:false})||''))
       +dayGapSlotHtml(date);
-    const empty=!posts.length&&!notes.length&&!targets.length;
+    const empty=!posts.length&&!notes.length&&!targets.length&&!window.PostIQCampaigns?.covers?.(key);
     day.classList.toggle('is-empty',empty);
     if(empty && !day.querySelector('.day-gap-slot')) day.insertAdjacentHTML('beforeend',`<p class="calendar-agenda-empty">${calendarFiltersActive()?'Nothing matches your filters':'Nothing planned'}</p>`);
     bindCalendarDate(day,date);bindContentCalendar(day);
@@ -991,9 +1016,11 @@ function openCalendarDayDetails(date) {
   sections.push('<div class="day-detail-actions" role="group" aria-label="Plan this day"><button class="btn primary" data-add-note>Add planning note</button><button class="btn" data-start-draft>Start draft</button><button class="btn" data-plan-campaign>Plan a campaign / newsletter</button></div><p class="calendar-state">Plans stay separate from scheduled Buffer posts. Schedule only when you are ready.</p>');
   const coverageHtml = dayCoverageDetailHtml(date);
   if (coverageHtml) sections.push(coverageHtml);
+  const campHtml = window.PostIQCampaigns?.detailHtml?.(key);
+  if (campHtml) sections.push(campHtml);
   if (posts.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${posts.length} post${posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(posts, { editable: true })}</div>`);
   if (notes.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${notes.length} Planning note${notes.length > 1 ? 's' : ''}</div>${editableNoteCardsHtml(notes)}</div>`);
-  if (!posts.length && !notes.length) sections.push('<div class="empty-state day-empty-state"><div class="empty-title">No plans yet</div><div class="empty-desc">Start with a note or draft. Nothing is scheduled until you choose to send it to Buffer.</div><button class="btn sm primary" type="button" onclick="window.activateView?.(\'composerView\', \'empty_calendar\')">Write your first post</button></div>');
+  if (!posts.length && !notes.length && !campHtml) sections.push('<div class="empty-state day-empty-state"><div class="empty-title">No plans yet</div><div class="empty-desc">Start with a note or draft. Nothing is scheduled until you choose to send it to Buffer.</div><button class="btn sm primary" type="button" onclick="window.activateView?.(\'composerView\', \'empty_calendar\')">Write your first post</button></div>');
   sections.push(calendarTargetsForDate(key).map(contentCalendarPill).join(''));
   bodyEl.innerHTML = sections.join('');
   bindPostDetailCopy(bodyEl);
@@ -1003,10 +1030,14 @@ function openCalendarDayDetails(date) {
   bodyEl.querySelectorAll('[data-cov-add]').forEach(btn => btn.addEventListener('click', () => {
     const chId = String(btn.dataset.covAdd);
     closeModal('sharedDayModal');
-    state.calendarChannel = chId;
-    window.CalendarExperience?.compose(key);
-    const sel = qs('composerChannel'); if (sel) { sel.value = chId; sel.dispatchEvent(new Event('change')); }
-    showToast('Draft started for this channel');
+    // Pass the channel to Compose; don't touch the calendar's channel filter,
+    // or the calendar comes back quietly filtered to this one channel.
+    window.CalendarExperience?.compose(key, chId);
+    const sel = qs('composerChannel'); if (sel) sel.dispatchEvent(new Event('change'));
+  }));
+  bodyEl.querySelectorAll('[data-cov-reshare]').forEach(btn => btn.addEventListener('click', async () => {
+    await window.PostIQToday?.queue?.(key, String(btn.dataset.covReshare), btn);
+    if (qs('sharedDayModal')?.classList.contains('open')) openCalendarDayDetails(date);
   }));
   bodyEl.querySelector('[data-add-note]')?.addEventListener('click', () => { closeModal('sharedDayModal'); openAddNoteForDate(date); });
   bodyEl.querySelectorAll('[data-edit-note]').forEach(btn => btn.addEventListener('click', () => { closeModal('sharedDayModal'); openAddNoteForDate(date, btn.dataset.editNote); }));

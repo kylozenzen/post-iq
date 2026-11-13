@@ -27,10 +27,6 @@ const HELP_CATEGORIES = [
   "Plan / Calendar",
   "Compose",
   "Shelf",
-  "Content Pillars",
-  "Templates",
-  "Notebook",
-  "Trending",
   "Snapshots",
   "Troubleshooting",
   "Privacy & Data",
@@ -49,9 +45,9 @@ window.POSTIQ_HELP_ARTICLES = [
     relatedArticles: ['connect-buffer', 'privacy-storage-beta-limits'],
     body: `<p>Open Settings from the sidebar or the mobile More menu. Section tabs stay available while you scroll.</p>
     <h2>Connection</h2><p>Check your Buffer connection, choose Sync now, or Sign out. You stay signed in on this browser until you sign out, clear site data, or Buffer requires authorization again. Advanced API key setup is optional: Session keeps a manual key for this tab, while Save locally keeps it between visits. Sign out removes both kinds of Buffer access.</p>
-    <h2>Customize</h2><p>Workspace visibility, themes, posting days, queue-gap visibility, and note types save automatically in this browser. At least one workspace must stay visible. Reset workspace visibility restores the default sidebar choices. It does not delete your content.</p>
+    <h2>Customize</h2><p>Workspace visibility, theme, planning options (queue gaps, week numbers in week view, posting days), and note types save automatically in this browser. Shelf ideas is on by default. At least one workspace must stay visible. Reset workspace visibility restores the default sidebar choices. It does not delete your content.</p>
     <h2>Posting rhythm</h2><p>Choose default posting days or override them for each synced channel. The posting schedule guides open-slot suggestions. Changing it never changes your Buffer queue or scheduled posts.</p>
-    <h2>AI and Discord</h2><p>AI Assist is optional and currently requires a beta unlock. Use its Save buttons when changing your Gemini key or voice. Discord has its own configuration and save controls. Never include keys or webhook URLs in screenshots or support messages.</p>
+    <h2>Features and Discord</h2><p>The Features tab shows which beta tools are available right now. If a tool is paused, PostIQ shows a notice instead of breaking your workflow. Discord has its own configuration and save controls. Never include keys or webhook URLs in screenshots or support messages.</p>
     <h2>Using a shared device</h2><p>Sign out clears Buffer access and cached Buffer data but keeps local work and other integration settings. Private browser windows can discard saved work when closed. Export or copy important work before clearing site data.</p>`
   },
   {
@@ -66,14 +62,14 @@ window.POSTIQ_HELP_ARTICLES = [
     <h2>How PostIQ fits into your process</h2>
     <ol>
       <li><strong>Connect Buffer</strong> so PostIQ can load your channels and scheduled queue.</li>
-      <li><strong>Set your posting schedule</strong> from the calendar’s ⋯ menu to show open slots that fit your rhythm.</li>
+      <li><strong>Set your posting schedule</strong> in <strong>Pace</strong> (sidebar) to show open slots that fit your rhythm.</li>
       <li><strong>Plan a gap</strong> from the calendar: add a note or action, date a Shelf idea, or start a draft for that day.</li>
       <li><strong>Send to Buffer</strong> from Compose only when you pick Draft, Queue, or Schedule.</li>
     </ol>
     <h2>Preview without signing in</h2>
     <p>You can open the calendar without a Buffer account. Notes, actions, Shelf ideas, and Compose drafts are saved in your browser. Scheduled posts and sending to Buffer need Buffer sign-in.</p>
     <h2>Take the tour</h2>
-    <p>A three-step tour opens the first time you visit. To see it again, choose <strong>Take a tour</strong> in the sidebar, the calendar’s ⋯ menu, or the mobile More menu. It walks through the calendar, your posting schedule, and Compose. It only points at controls and never sends anything to Buffer. Skip or close it at any time and restart it from the same buttons.</p>
+    <p>A four-step tour opens the first time you visit. To see it again, choose <strong>Take a tour</strong> in the sidebar, the calendar’s ⋯ menu, or the mobile More menu. It walks through the calendar, planning a day, Compose, and what Shelf is for. The first time you open Shelf, a short run-through offers a stop for each of its tabs. It only points at controls and never sends anything to Buffer. Skip or close it at any time and restart it from the same buttons.</p>
     <h2>What does not happen automatically</h2>
     <p>Nothing is published just because you typed it in PostIQ. Content only moves into Buffer when you choose a Buffer action (for example draft, queue, or scheduled send).</p>
     <h3>Good to know</h3>
@@ -135,6 +131,7 @@ window.POSTIQ_HELP_ARTICLES = [
     <ol>
       <li>Sign in with Buffer and sync.</li>
       <li>Look for dashed <strong>open slots</strong>: a day where your posting schedule expects a post and none is in Buffer yet. Open the day to fill it.</li>
+      <li>Newsletters and campaigns show as a band across their days: solid on the first and last day, a light tint between. Open any day in the range to see where it stands, like <em>Day 3 of 5 · next: Final</em>.</li>
       <li>Use <strong>+ Add</strong>, or the + that appears on a day, to add a note, a to-do, or a draft.</li>
       <li>Open the <strong>⋯ menu</strong> to filter by channel or item, set your posting schedule, switch to List view, or share a read-only snapshot. When a filter is on, a dot appears on ⋯ and a “Filtered · Clear” chip shows beside it.</li>
     </ol>
@@ -172,7 +169,7 @@ window.POSTIQ_HELP_ARTICLES = [
     <ol>
       <li>Start from a blank draft, a template, a Shelf idea, or a calendar day.</li>
       <li>Add copy and media.</li>
-      <li>If you started from the calendar, use the planning date in the schedule picker only if you want it.</li>
+      <li>If you started from a calendar day, the schedule picker is already set to that day at the channel’s usual time. Nothing is sent until you press Schedule, and “Not for this day” clears it.</li>
       <li>Choose the Draft, Queue, or Schedule action for Buffer.</li>
     </ol>
     <h2>Choosing the right Buffer action</h2>
@@ -186,27 +183,32 @@ window.POSTIQ_HELP_ARTICLES = [
   },
   {
     slug: 'queue-health-your-pace', // Retained so older help links continue to resolve.
-    title: 'Choose a Posting Schedule',
+    title: 'Pace: Posting Schedules and Time Away',
     category: 'Plan / Calendar',
-    summary: 'Choose posting days for each channel and understand how open slots appear on the calendar.',
-    tags: ['calendar', 'gaps', 'posting schedule', 'rhythm', 'days off'],
+    summary: 'Set which days each channel posts, see how far ahead you are, and plan a break so nothing goes quiet.',
+    tags: ['pace', 'calendar', 'gaps', 'posting schedule', 'rhythm', 'days off', 'time off', 'vacation', 'break', 'runway'],
     featured: true,
     relatedArticles: ['plan-content-calendar', 'connect-buffer', 'getting-started'],
-    body: `<p>Your posting schedule tells PostIQ which days are useful opportunities to plan. It is a local planning preference and does not change what is scheduled in Buffer.</p>
-    <h2>Set a rhythm</h2>
+    body: `<p><strong>Pace</strong> is where your posting rhythm lives. Open it from the sidebar, the gauge icon on the calendar, or <strong>Posting schedule</strong> in the calendar’s ⋯ menu. Nothing here changes your Buffer queue unless you press a Queue button.</p>
+    <h2>Posting schedule</h2>
     <ol>
-      <li>On the calendar, open the <strong>⋯ menu</strong> and choose <strong>Posting schedule</strong>.</li>
-      <li>Under <strong>Channel rhythm</strong>, pick a channel, its posting days, and posts per selected day (0–10).</li>
-      <li>Look for dashed <strong>Open slot</strong> buttons on days when the schedule expects a post and no confirmed post is loaded.</li>
-      <li>Choose an open slot to see one-tap fill suggestions or start a new plan for that date.</li>
+      <li>Each channel has a row. Tap the day letters it posts on and set <strong>posts per day</strong> (0–10). Changes save as you go.</li>
+      <li>The right side says how far ahead that channel is, like <em>Covered for 4 days · Next open day Tue</em>, or <em>Needs a post today</em>.</li>
+      <li>The line at the top sums it up: who needs something soon, and whether the rest are fine.</li>
+      <li>Turn on <strong>Fill gaps from Shelf</strong> for channels where resharing a kept post is okay. Instagram, TikTok, YouTube and Pinterest need a photo or video, so they’re never filled with text.</li>
     </ol>
-    <h2>Before time away</h2>
-    <p>Use the Holidays picker in the ⋯ menu to show public holidays for a country or turn them off. You can still add a note or to-do on any date.</p>
+    <p>On the calendar, dashed <strong>open slots</strong> are days your schedule expects a post and Buffer has none yet. Tap one to reshare from Shelf or write something new.</p>
+    <h2>Time away</h2>
+    <ol>
+      <li>Pick the dates you’ll be away. The table shows, week by week, posts queued against posts your schedule expects.</li>
+      <li><strong>Keep posting:</strong> queue reshares from your Shelf on the empty days, at each channel’s usual time. Each kept post goes out at most once per channel, and nothing doubles up with what’s already in Buffer.</li>
+      <li><strong>Go quiet on purpose:</strong> choose <strong>Mark these days off</strong>. Those days stop counting as gaps on the calendar. Remove time off from the list anytime.</li>
+    </ol>
     <h3>Good to know</h3>
     <ul>
-      <li>Only confirmed Buffer posts appear as scheduled. Notes, drafts, and target dates stay in the outlined planning layer.</li>
-      <li>A recent Buffer sync is needed to show scheduled posts; partial or stale data is labelled.</li>
-      <li>The schedule is a local planning preference. It never moves, cancels, or deletes Buffer posts.</li>
+      <li>PostIQ re-reads Buffer on its own when its copy is more than a few minutes old, and shortly after it queues anything, so Pace and the calendar stay current.</li>
+      <li>Public holidays are in the calendar’s ⋯ menu under Holidays.</li>
+      <li>Your schedule and time off are local planning preferences. They never move, cancel, or delete Buffer posts.</li>
     </ul>`
   },
   {
@@ -225,23 +227,23 @@ window.POSTIQ_HELP_ARTICLES = [
     slug: 'build-your-idea-system',
     title: 'Build Your Idea System',
     category: 'Shelf',
-    summary: 'Learn how to use saved content, Content Pillars, Templates, and Trending to turn raw ideas into reusable content starters.',
-    tags: ['notebook', 'content pillars', 'templates', 'trending', 'ideas', 'starters'],
+    summary: 'Use the Shelf’s Notebook, Snippets, Past posts, and Trending tabs to collect ideas and turn them into content for your calendar.',
+    tags: ['shelf', 'notebook', 'snippets', 'past posts', 'trending', 'ideas', 'starters'],
     featured: false,
     relatedArticles: ['plan-content-calendar', 'write-split-send-posts', 'getting-started'],
-    body: `<p>The Shelf holds your saved ideas and past posts. Local target dates are planning reminders, not confirmed Buffer scheduling. Use the date controls to plan, and Develop to continue the existing workflow. Templates, Content Pillars and Trending are available under Resources. Instead of starting from zero each time, you store signals and transform them into usable drafts.</p>
+    body: `<p>The Shelf is on by default and is your go-to place for content: ideas, snippets, past posts, and trending topics. Add a Shelf item to your calendar when you need it. Local target dates are planning reminders, not confirmed Buffer scheduling. Instead of starting from zero each time, you save signals and turn them into drafts.</p>
     <h2>Use each tool for a specific job</h2>
     <ul>
-      <li><strong>Saved content</strong>: search existing material, identify items without a target, and plan a local date. Your original source and channel versions stay intact.</li>
-      <li><strong>Content Pillars</strong>: define recurring themes.</li>
-      <li><strong>Templates</strong>: save proven structures and CTAs.</li>
-      <li><strong>Trending</strong>: monitor timely topics to react faster.</li>
+      <li><strong>Notebook</strong>: capture ideas and notes, and give an idea a target date to plan it on the calendar.</li>
+      <li><strong>Snippets</strong>: save proven hooks, openings, calls to action, and hashtag sets. Compose pulls them in as you write.</li>
+      <li><strong>Past posts</strong>: star posts that worked. Starred posts can fill open calendar slots, or be reshared to keep your streak going.</li>
+      <li><strong>Trending</strong>: see what is trending on Reddit, Hacker News and Product Hunt, to react faster.</li>
     </ul>
     <h2>Simple weekly routine</h2>
     <ol>
-      <li>Save 5–10 new ideas to your Shelf or from Trending.</li>
-      <li>Map them to pillars.</li>
-      <li>Turn the strongest ideas into templates or starters.</li>
+      <li>Save 5–10 new ideas to your Notebook or from Trending.</li>
+      <li>Turn the strongest ideas into snippets.</li>
+      <li>Put the ones you are ready to post on your calendar.</li>
       <li>Open Compose and finalize for Buffer.</li>
     </ol>
     <h3>Common confusion</h3>

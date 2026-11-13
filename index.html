@@ -4,12 +4,12 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>PostIQ — Buffer publishes. PostIQ plans.</title>
-<meta name="description" content="PostIQ is an independent calendar-first planning companion for Buffer. See scheduled posts beside open slots, notes, to-dos, and dated ideas." />
+<meta name="description" content="PostIQ is an independent calendar-first planning companion for Buffer. See how far ahead you are, fill open slots in one tap, plan newsletters and campaigns, and take a break without going quiet." />
 <meta name="theme-color" content="#f2efe6" />
 <link rel="canonical" href="https://postiq.netlify.app/" />
 <meta property="og:site_name" content="PostIQ" />
 <meta property="og:title" content="PostIQ — Buffer publishes. PostIQ plans." />
-<meta property="og:description" content="A calendar-first planning companion for Buffer. See scheduled posts, open slots, notes, to-dos, dated ideas, holidays, and quick add in one calm view. Buffer publishes. PostIQ plans." />
+<meta property="og:description" content="A calendar-first planning companion for Buffer. Know how far ahead you are, fill gaps in one tap, plan newsletters and campaigns, and take a break without going quiet. Buffer publishes. PostIQ plans." />
 <meta property="og:image" content="https://postiq.netlify.app/postiq-og.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
@@ -631,7 +631,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
     </div>
     <div class="pillar-grid three reveal">
       <article class="pillar"><span class="pillar-num">01</span><h3>Connect Buffer</h3><p>Sign in and PostIQ loads your channels and scheduled queue. Nothing is sent to Buffer until you choose an action.</p></article>
-      <article class="pillar"><span class="pillar-num">02</span><h3>See the gaps</h3><p>Open slots appear on the posting days you choose, so you can spot the thin parts of the week at a glance.</p></article>
+      <article class="pillar"><span class="pillar-num">02</span><h3>Set your pace</h3><p>Tap the days each channel posts. PostIQ shows how far ahead you are, and dashed open slots mark the days that still need something.</p></article>
       <article class="pillar"><span class="pillar-num">03</span><h3>Fill or plan</h3><p>Fill a slot from the Shelf in one tap, or add a note, to-do, or idea. Send to Buffer when you’re ready.</p></article>
     </div>
   </div>
@@ -653,21 +653,45 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
 <!-- FEATURE DETAIL -->
 <section class="features" aria-label="Planning tools in PostIQ">
   <div class="wrap">
-    <div class="feature reveal">
-      <div class="feature-copy"><div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>One-tap planning</div>
-        <h3>See the whole plan. Not just the scheduled posts.</h3>
-        <p>The Today card brings today’s posts and to-dos into view. A dashed open slot can suggest a starred evergreen post, so you can fill a gap without starting from zero.</p>
-        <ul><li>Solid cards are confirmed Buffer posts; outlined cards are your plans</li><li>Quick add understands “Fri: film B-roll” and “todo tomorrow: review captions”</li><li>Drag to reschedule, with Undo if you change your mind</li></ul>
+    <div class="feature reveal" id="pace">
+      <div class="feature-copy"><div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Pace</div>
+        <h3>Know how far ahead you are. Take a break without going quiet.</h3>
+        <p>Pace keeps your posting schedule and tells you, in one line, who needs a post today and who’s covered. Before time away, pick the dates: keep posting with reshares from your Shelf, or mark the days off so they don’t count as gaps.</p>
+        <ul><li>“Covered for 4 days · next open day Tue” for every channel</li><li>A week-by-week check of any break, with the gaps filled in one step</li><li>Days off you choose never show up as gaps</li></ul>
       </div>
-      <figure><img class="product-shot" src="/images/product/fill-desktop.png" alt="PostIQ week view with the Today card and an open slot suggesting a starred evergreen post to reshare" loading="lazy"><figcaption class="mock-caption">Today card and a one-tap fill · sample data</figcaption></figure>
+      <figure><img class="product-shot" src="/images/product/pace-desktop.png" alt="PostIQ Pace page: a summary line, each channel's posting days and how far ahead it is, and a time-away planner" loading="lazy"><figcaption class="mock-caption">Pace: posting schedule and time away · sample data</figcaption></figure>
     </div>
     <div class="feature flip reveal">
+      <div class="feature-copy"><div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>One-tap fill</div>
+        <h3>Fill a gap in one tap, and never with the same post twice.</h3>
+        <p>Tap a dashed open slot and PostIQ suggests a past post you kept on your Shelf, at that channel’s usual time. Don’t love it? Tap Another to swap it. Or write something new for that exact day.</p>
+        <ul><li>A kept post goes out once per channel, never on repeat</li><li>Text-only reshares never go to Instagram, TikTok or YouTube</li><li>Nothing longer than the platform allows</li></ul>
+      </div>
+      <figure><img class="product-shot" src="/images/product/fill-desktop.png" alt="PostIQ Today card and an open slot suggesting a kept post to reshare, with Another and Write new" loading="lazy"><figcaption class="mock-caption">Today card and a one-tap fill · sample data</figcaption></figure>
+    </div>
+    <div class="feature reveal" id="newsletters">
+      <div class="feature-copy"><div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Newsletters and campaigns</div>
+        <h3>Plan the work, not just the posts.</h3>
+        <p>A newsletter issue or a campaign sits on the calendar as one band: solid on the first and last day, a light tint for the days of work in between. Tick off stages as you go, and open any day to see where it stands.</p>
+        <ul><li>“Day 3 of 5 · sends Fri · next: Final”</li><li>Stages you can rename: Plan, Draft, Final, Publish, Substack note</li><li>Local plans; they never schedule a Buffer post</li></ul>
+      </div>
+      <figure><img class="product-shot" src="/images/product/campaign-desktop.png" alt="PostIQ calendar with a newsletter and a campaign drawn as bands across several days, and the day drawer showing their progress" loading="lazy"><figcaption class="mock-caption">A newsletter and a campaign across the week · sample data</figcaption></figure>
+    </div>
+    <div class="feature flip reveal">
+      <div class="feature-copy"><div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Plain English</div>
+        <h3>Type it how you’d say it. Move it when plans change.</h3>
+        <p>Quick add reads plain English, so “Fri: film B-roll” lands on Friday and “todo tomorrow: review captions” becomes a to-do. Changed your mind about a Buffer post? Drag it to another day and PostIQ moves it in Buffer, with Undo right there.</p>
+        <ul><li>Notes, to-dos and ideas from one box</li><li>Drag scheduled Buffer posts to reschedule them for real</li><li>Undo on every move</li></ul>
+      </div>
+      <figure><img class="product-shot" src="/images/product/quickadd-desktop.png" alt="PostIQ quick add box with a plain-English entry and a preview of the date it will land on" loading="lazy"><figcaption class="mock-caption">Quick add in plain English · sample data</figcaption></figure>
+    </div>
+    <div class="feature reveal">
       <div class="feature-copy"><div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Room for ideas</div>
         <h3>Keep the ideas that aren’t ready yet.</h3>
-        <p>Keep past posts and ideas on the Shelf. Give an idea a target date to see it beside the rest of your calendar; it stays clearly marked as not scheduled. Holidays, backups, and calendar exports are close at hand in the menu.</p>
-        <ul><li>Star evergreen posts for one-tap fill suggestions</li><li>Download or restore a backup of your local planning work</li><li>Export notes and plans to your calendar app</li></ul>
+        <p>Shelf holds your ideas, snippets and past posts. Star the past posts worth reusing and they become your one-tap fills. Give an idea a target date to see it on the calendar; it stays clearly marked as not scheduled.</p>
+        <ul><li>Star past posts to keep them for reuse</li><li>Notebook, snippets and trending ideas in one place</li><li>Pull any of it into Compose when you write</li></ul>
       </div>
-      <figure><img class="product-shot" src="/images/product/shelf-desktop.png" alt="PostIQ Shelf listing past posts with starred evergreen posts ready to reshare" loading="lazy"><figcaption class="mock-caption">The Shelf: past posts and ideas to reuse · sample data</figcaption></figure>
+      <figure><img class="product-shot" src="/images/product/shelf-desktop.png" alt="PostIQ Shelf listing past posts, with kept posts ready to reshare" loading="lazy"><figcaption class="mock-caption">The Shelf: past posts and ideas to reuse · sample data</figcaption></figure>
     </div>
   </div>
 </section>
@@ -723,9 +747,9 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
       <article class="pillar"><span class="pillar-num">01</span><h3>Holidays</h3><p>Public holidays on your calendar. Pick a country, or turn them off.</p></article>
       <article class="pillar"><span class="pillar-num">02</span><h3>Shareable snapshots</h3><p>Share a read-only week or month with a client or teammate. No login needed.</p></article>
       <article class="pillar"><span class="pillar-num">03</span><h3>Zen mode</h3><p>A calendar-only view for a screen in the room.</p></article>
-      <article class="pillar"><span class="pillar-num">04</span><h3>Compose</h3><p>A focused editor with local autosave, hooks, and templates to fill a gap fast.</p></article>
+      <article class="pillar"><span class="pillar-num">04</span><h3>Google and Apple Calendar</h3><p>Export your plans, newsletters and campaigns as an .ics file and import them into the calendar you already use.</p></article>
       <article class="pillar"><span class="pillar-num">05</span><h3>Themes</h3><p>Five themes, saved in your browser.</p></article>
-      <article class="pillar"><span class="pillar-num">06</span><h3>Export and backup</h3><p>Export plans as an .ics file for your calendar app, or download a backup of your local work.</p></article>
+      <article class="pillar"><span class="pillar-num">06</span><h3>Backup and restore</h3><p>Download a backup of your local planning work and restore it in any browser.</p></article>
     </div>
   </div>
 </section>
@@ -741,7 +765,9 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
         <ul class="connect-list">
           <li>Read your channels, scheduled queue and recent posts</li>
           <li>Create a draft, queue a post or schedule one only when you choose that action</li>
-          <li>Leave existing Buffer posts alone when you change plans, rhythms or days off</li>
+          <li>Move a Buffer post only when you drag it to a new day, with Undo</li>
+          <li>Leave existing Buffer posts alone when you change plans, schedules or days off</li>
+          <li>Re-read Buffer on its own when its copy is a few minutes old, so the calendar matches what’s really queued</li>
           <li>Disconnect from PostIQ settings, or revoke access in Buffer, at any time</li>
         </ul>
         <div class="connect-actions">
@@ -773,15 +799,19 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
       </div>
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq2"><span>How does PostIQ decide what counts as a gap?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
-        <div class="faq-a" id="faq2" hidden>You choose posting days in the calendar’s Posting schedule. Dashed open slots show days where a confirmed Buffer post is not loaded; notes, drafts, and dated ideas remain plans.</div>
+        <div class="faq-a" id="faq2" hidden>You choose each channel’s posting days in Pace. A dashed open slot is a posting day with no confirmed Buffer post yet. Notes, drafts and dated ideas stay plans, and days you mark off never count as gaps.</div>
       </div>
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq3"><span>Will PostIQ post or change things in Buffer on its own?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
-        <div class="faq-a" id="faq3" hidden>No. Content goes to Buffer only when you choose Draft, Queue or Schedule. Changing a rhythm, marking days off, or planning a target date never moves, cancels or deletes a Buffer post.</div>
+        <div class="faq-a" id="faq3" hidden>No. Buffer changes only when you take an action: Draft, Queue, Schedule, a one-tap Reshare, or dragging a Buffer post to a new day (with Undo). Changing your schedule, marking days off, or planning a newsletter never moves, cancels or deletes a Buffer post.</div>
+      </div>
+      <div class="faq-item">
+        <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq7"><span>Does it sync with Google Calendar?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
+        <div class="faq-a" id="faq7" hidden>Not live yet. You can export your plans, newsletters and campaigns as an .ics file from the calendar’s ⋯ menu and import it into Google Calendar or Apple Calendar. Your Buffer posts stay in Buffer.</div>
       </div>
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq4"><span>What does the preview include?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
-        <div class="faq-a" id="faq4" hidden>The real app, without your Buffer data: the calendar, notes and actions, Shelf, Compose drafts and settings, all stored in your browser. Open slots needs connected channels to measure anything. A short three-step tour opens the first time you visit; skip it whenever you like, or restart it from Take a tour in the app.</div>
+        <div class="faq-a" id="faq4" hidden>The real app, without your Buffer data: the calendar, notes and actions, Shelf, Compose drafts and settings, all stored in your browser. Open slots needs connected channels to measure anything. A short four-step tour opens the first time you visit, and Shelf offers its own quick run-through the first time you open it. Skip either whenever you like, or restart the tour from Take a tour in the app.</div>
       </div>
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq5"><span>Where is my planning data stored?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>

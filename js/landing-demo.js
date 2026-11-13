@@ -230,7 +230,7 @@ function initSample(root, parser, variant) {
       btn.setAttribute('aria-pressed', String(s.id === shelfPick));
       btn.textContent = s.title;
       const meta = document.createElement('small');
-      meta.textContent = 'Starred · evergreen';
+      meta.textContent = 'Kept · ready to reuse';
       btn.append(meta);
       btn.addEventListener('click', () => {
         shelfPick = s.id;

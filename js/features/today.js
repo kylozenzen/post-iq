@@ -20,7 +20,7 @@ window.PostIQToday = (() => {
     const c = typeof idOrChannel === 'object' ? idOrChannel : channelById(idOrChannel);
     return window.PostIQChannelIcons?.badge?.(serviceOf(c) || c?.displayName) || '';
   };
-  const channelName = id => { const c = channelById(id); return c?.displayName || c?.name || 'Channel'; };
+  const channelName = id => { const c = channelById(id); return window.PostIQChannelIcons?.plainName?.(c || id) || c?.displayName || c?.name || 'Channel'; };
 
   // ── Evergreen candidates: starred past posts, same platform first ──
   function evergreen() {
@@ -32,15 +32,28 @@ window.PostIQToday = (() => {
         .map(p => ({ id: p.id, text: String(p.text).trim(), channelId: String(p.channelId || ''), service: serviceOf(channelById(p.channelId)) || String(p.service || '').toLowerCase() }));
     } catch { return []; }
   }
-  function suggestionFor(dateKey, channelId) {
+  // Platforms where a text-only post can't go out: Buffer needs a photo or video.
+  const MEDIA_FIRST = ['instagram', 'tiktok', 'youtube', 'pinterest'];
+  const TEXT_LIMITS = { twitter: 280, x: 280, bluesky: 300, threads: 500, mastodon: 500 };
+  const needsMedia = channelId => MEDIA_FIRST.includes(serviceOf(channelById(channelId)));
+  const platformName = channelId => window.PostIQChannelIcons?.tag?.(serviceOf(channelById(channelId))) || 'This channel';
+  // Shelf posts for a channel, best fit first: its own posts, then the same
+  // platform, then the rest. Never offers text already queued on that channel
+  // (so a fill can't post the same thing twice), text too long for the platform,
+  // or text-only posts to platforms that need media.
+  function candidates(channelId, { exclude = [] } = {}) {
+    if (needsMedia(channelId)) return [];
     const target = channelById(channelId);
-    const pool = evergreen();
-    if (!pool.length) return null;
-    // Don't suggest something already queued on this channel.
-    const queued = new Set((state.scheduled || []).filter(p => String(p.channelId) === String(channelId)).map(p => String(p.text || '').trim()));
-    const fresh = pool.filter(p => !queued.has(p.text));
-    const list = fresh.length ? fresh : pool;
-    const ranked = [...list.filter(p => p.channelId === String(channelId)), ...list.filter(p => p.channelId !== String(channelId) && p.service === serviceOf(target)), ...list.filter(p => p.channelId !== String(channelId) && p.service !== serviceOf(target))];
+    const limit = TEXT_LIMITS[serviceOf(target)] || Infinity;
+    const pool = evergreen().filter(p => p.text.length <= limit);
+    if (!pool.length) return [];
+    const taken = new Set([...(state.scheduled || []).filter(p => String(p.channelId) === String(channelId)).map(p => String(p.text || '').trim()), ...exclude]);
+    const list = pool.filter(p => !taken.has(p.text));
+    return [...list.filter(p => p.channelId === String(channelId)), ...list.filter(p => p.channelId !== String(channelId) && p.service === serviceOf(target)), ...list.filter(p => p.channelId !== String(channelId) && p.service !== serviceOf(target))];
+  }
+  function suggestionFor(dateKey, channelId) {
+    const ranked = candidates(channelId);
+    if (!ranked.length) return null;
     const offset = shuffle.get(`${dateKey}|${channelId}`) || 0;
     return { post: ranked[offset % ranked.length], total: ranked.length };
   }
@@ -85,9 +98,14 @@ window.PostIQToday = (() => {
     const time = when?.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) || '';
     const head = `<div class="fill-head">${icon(slot.channelId)}<span><strong>${esc(relativeDay(slot.dateKey))}</strong> · ${esc(channelName(slot.channelId))} has an open slot</span></div>`;
     if (!s) {
+      const why = needsMedia(slot.channelId)
+        ? `${esc(platformName(slot.channelId))} needs a photo or video, so this one takes a new post.`
+        : evergreen().length
+          ? 'Everything you’ve kept on your Shelf is already queued here. Write something new, or keep a few more past posts.'
+          : 'Keep a past post on your Shelf and you can fill slots like this in one tap.';
       return `<div class="fill-card${compact ? ' is-compact' : ''}">${head}
-        <p class="fill-empty">Star a past post on your Shelf and you can fill slots like this in one tap.</p>
-        <div class="fill-actions"><button type="button" class="btn sm primary" data-fill-write="${slot.dateKey}|${slot.channelId}">Write a post</button><button type="button" class="btn sm ghost" data-fill-shelf>Open Shelf</button></div></div>`;
+        <p class="fill-empty">${why}</p>
+        <div class="fill-actions"><button type="button" class="btn sm primary" data-fill-write="${slot.dateKey}|${slot.channelId}">Write a post</button>${needsMedia(slot.channelId) ? '' : `<button type="button" class="btn sm ghost" data-fill-shelf="${slot.dateKey}|${slot.channelId}">Open Shelf</button>`}</div></div>`;
     }
     return `<div class="fill-card${compact ? ' is-compact' : ''}">${head}
       <blockquote class="fill-quote">${esc(compactText(s.post.text, compact ? 90 : 140))}</blockquote>
@@ -170,7 +188,8 @@ window.PostIQToday = (() => {
       ? `<ul class="today-todos">${todos.slice(0, 3).map(n => `<li><label><input type="checkbox" data-today-done="${esc(n.id)}" ${n.completedAt ? 'checked' : ''}><span>${esc(compactText(n.text, 60))}</span></label></li>`).join('')}${todos.length > 3 ? `<li class="today-muted">+${todos.length - 3} more</li>` : ''}</ul>`
       : '';
     let right;
-    if (slots.length) right = fillCardHtml(slots[0]);
+    // Lead with a slot that can be filled in one tap; media-only gaps come after.
+    if (slots.length) right = fillCardHtml(slots.find(sl => suggestionFor(sl.dateKey, sl.channelId)) || slots[0]);
     else if (connected && scheduledPlanningChannels?.().length) right = `<div class="today-calm"><strong>You’re covered this week.</strong><span>No open slots in the next ${LOOKAHEAD_DAYS} days.</span></div>`;
     else if (connected) right = `<div class="today-calm"><span>Set a posting schedule and open slots show up here, ready to fill.</span><button type="button" class="more-link" data-open-schedule="today">Set posting schedule</button></div>`;
     else right = '';
@@ -192,7 +211,12 @@ window.PostIQToday = (() => {
     }
     const w = e.target.closest('[data-fill-write]');
     if (w) { const [k, c] = w.dataset.fillWrite.split('|'); closePopover(); window.CalendarExperience?.compose(k, c); return; }
-    if (e.target.closest('[data-fill-shelf]')) { closePopover(); activateView('libraryView', 'fill'); return; }
+    const sh = e.target.closest('[data-fill-shelf]');
+    if (sh) {
+      const [k, c] = String(sh.dataset.fillShelf || '').split('|');
+      if (k) window.PostIQFillTarget = { date: k, channelId: c || '', at: Date.now() };
+      closePopover(); activateView('libraryView', 'fill'); return;
+    }
     const d = e.target.closest('[data-fill-day]');
     if (d) { closePopover(); window.CalendarExperience?.add(d.dataset.fillDay); return; }
     const slot = e.target.closest('.day-gap-slot');
@@ -226,7 +250,7 @@ window.PostIQToday = (() => {
     render();
   }
 
-  return { init, render, openSlots, suggestionFor, slotTime, usualTime, openPopover, queue, fillCardHtml };
+  return { init, render, openSlots, candidates, needsMedia, suggestionFor, slotTime, usualTime, openPopover, queue, fillCardHtml };
 })();
 
 document.addEventListener('DOMContentLoaded', () => { try { window.PostIQToday.init(); } catch (e) { console.warn('[PostIQ today]', e); } });

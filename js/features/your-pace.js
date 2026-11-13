@@ -64,26 +64,11 @@ window.YourPace = (() => {
   }
 
   // ── Evergreen reshare / "fill my break" ──────────────────
-  // Queues starred evergreen posts (from Library) into Buffer so a break
-  // doesn't break the streak. addToQueue lets Buffer slot each one into the
-  // channel's own schedule — no timestamp math, no change to existing posts.
-  function evergreenTexts() {
-    try {
-      const starred = new Set(JSON.parse(localStorage.getItem('postiq_library_starred_v1') || '[]'));
-      const cache = JSON.parse(localStorage.getItem('postiq_library_cache_v3') || '{}');
-      return (Array.isArray(cache.posts) ? cache.posts : [])
-        .filter(p => starred.has(p.id))
-        .map(p => String(p.text || '').trim())
-        .filter(Boolean);
-    } catch { return []; }
-  }
-  function postingDaysInRange(id, start, end, settings) {
-    const codes = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-    const days = settings.channelPostingDays?.[id] ?? settings.postingDays ?? DAY_CODES;
-    let n = 0, d = start;
-    while (d <= end) { if (days.includes(codes[new Date(d + 'T12:00:00Z').getUTCDay()])) n++; d = C.addDays(d, 1); }
-    return n;
-  }
+  // Queues kept Shelf posts into Buffer on the exact empty posting days of the
+  // time-off range, at each channel's usual time. Same planner as Pace's break
+  // fill: each kept post goes out at most once per channel, and nothing doubles
+  // up with what Buffer already has. (This used to use addToQueue, which put the
+  // reshares in Buffer's next open slots, usually before the break even began.)
   let pendingFill = null;
   function planFill() {
     const status = el('schedFillStatus'), confirmBtn = el('schedFillConfirm');
@@ -91,18 +76,20 @@ window.YourPace = (() => {
     try {
       const dates = offPeriod();
       const settings = getPlanningSettings();
-      const channels = (state.channels || []).filter(c => settings.channelReshare?.[String(c.id)]);
-      if (!channels.length) { status.textContent = 'Turn on reshares for at least one channel first (the checkbox above).'; return; }
-      const texts = evergreenTexts();
-      if (!texts.length) { status.textContent = 'Keep some posts for writing on your Shelf first — those are what get reshared.'; return; }
-      const plan = [];
-      channels.forEach(c => {
-        const n = postingDaysInRange(String(c.id), dates.start, dates.end, settings);
-        for (let i = 0; i < n; i++) plan.push({ channelId: String(c.id), text: texts[plan.length % texts.length] });
-      });
-      if (!plan.length) { status.textContent = 'No posting days fall in that range for your reshare channels.'; return; }
-      pendingFill = plan;
-      status.textContent = `Ready to queue ${plan.length} reshare${plan.length === 1 ? '' : 's'} across ${channels.length} channel${channels.length === 1 ? '' : 's'}. They'll post on your normal Buffer schedule.`;
+      if (!(state.channels || []).some(c => settings.channelReshare?.[String(c.id)])) { status.textContent = 'Turn on reshares for at least one channel first (the checkbox above).'; return; }
+      const fill = window.PostIQSuite?.planBreakFill?.(dates.start, dates.end, { ignoreDaysOff: true });
+      if (!fill) { status.textContent = 'Reshare planning isn’t available right now. Try Pace.'; return; }
+      if (fill.stale) { status.textContent = 'Sync Buffer first, so nothing doubles up with posts already queued.'; return; }
+      if (!fill.items.length) {
+        status.textContent = fill.short.length
+          ? 'Everything you’ve kept on your Shelf is already queued on these channels. Keep more past posts first.'
+          : fill.mediaOnly.length ? 'Those channels need a photo or video, so they can’t be filled with text reshares.'
+          : 'Those days are already covered, or no posting days fall in that range for your reshare channels.';
+        return;
+      }
+      pendingFill = fill.items;
+      const n = fill.items.length;
+      status.textContent = `Ready to queue ${n} reshare${n === 1 ? '' : 's'}, each on an empty posting day between ${dates.start} and ${dates.end} at that channel’s usual time.${fill.short.length ? ' Some days stay open because each kept post goes out once per channel.' : ''}`;
       confirmBtn.hidden = false;
     } catch (error) { status.textContent = error.message; }
   }
@@ -114,7 +101,7 @@ window.YourPace = (() => {
     let ok = 0, fail = 0;
     for (const item of plan) {
       try {
-        const created = await createPost({ channelId: item.channelId, text: item.text, mode: 'addToQueue', schedulingType: 'automatic' });
+        const created = await createPost({ channelId: item.channelId, text: item.text, mode: 'customScheduled', dueAt: item.dueAt, schedulingType: 'automatic' });
         ok++; if (created?.post?.dueAt && typeof appendScheduled === 'function') appendScheduled(created.post, item);
       } catch (e) { fail++; console.error('[PostIQ reshare]', e); }
     }
@@ -183,7 +170,14 @@ window.YourPace = (() => {
     renderExceptions();
   }
 
+  // Posting schedules live on the Pace page now; every "Posting schedule"
+  // entry point (⋯ menu, command menu, Getting Started, Today) lands there.
+  // The old modal stays in the markup for now but nothing opens it.
   function open() {
+    if (typeof activateView === 'function' && document.getElementById('suiteView')) { activateView('suiteView', 'posting_schedule'); return; }
+    openModal_();
+  }
+  function openModal_() {
     if (!el('scheduleModal')) return;
     refresh(true);
     if (!el('schedOffStart').value) el('schedOffStart').value = today();
