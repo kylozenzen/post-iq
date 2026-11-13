@@ -34,7 +34,10 @@ exports.handler = async function handler(event) {
 
   const bodyToken = payload.token;
   const headerToken = event.headers && (event.headers['x-buffer-token'] || event.headers['X-Buffer-Token']);
-  const envToken = process.env.BUFFER_API_KEY || process.env.BUFFER_TOKEN;
+  // A personal Buffer key is a local-development convenience only. On any
+  // deployed site (production, previews, branch deploys) a request with no
+  // token of its own is refused, so it can never act on the site owner's account.
+  const envToken = process.env.CONTEXT === 'dev' ? (process.env.BUFFER_API_KEY || process.env.BUFFER_TOKEN) : null;
   const token = bodyToken || headerToken || envToken;
 
   if (!token) {

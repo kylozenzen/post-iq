@@ -13,15 +13,18 @@
 <meta property="og:image" content="https://postiq.netlify.app/postiq-og.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="PostIQ calendar showing sample scheduled posts, open slots, planning notes, and dated ideas." />
+<meta property="og:image:alt" content="PostIQ calendar showing sample scheduled posts, open slots, plans and a newsletter band." />
 <meta property="og:url" content="https://postiq.netlify.app/" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="PostIQ — Buffer publishes. PostIQ plans." />
-<meta name="twitter:description" content="A calendar-first planning companion for Buffer: scheduled posts beside open slots, notes, to-dos, and dated ideas." />
+<meta name="twitter:description" content="A calendar-first planning companion for Buffer. Know how far ahead you are, fill gaps in one tap, plan newsletters and campaigns, and take a break without going quiet." />
 <meta name="twitter:image" content="https://postiq.netlify.app/postiq-og.png" />
-<meta name="twitter:image:alt" content="PostIQ calendar showing sample scheduled posts, open slots, planning notes, and dated ideas." />
+<meta name="twitter:image:alt" content="PostIQ calendar showing sample scheduled posts, open slots, plans and a newsletter band." />
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg" />
 <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png" />
+<link rel="manifest" href="/manifest.json" />
 <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:opsz,wght@12..60,700;12..60,800&family=Lato:wght@400;600;700&display=swap" rel="stylesheet">
@@ -196,7 +199,14 @@ h1{
   color:var(--ink);
   margin-bottom:20px;
 }
-h1 em{font-style:normal;color:var(--brand);display:block;}
+h1 em{font-style:normal;color:var(--brand);display:table;padding-bottom:.08em;background:linear-gradient(currentColor,currentColor) no-repeat 0 100%/0% .07em;animation:inkline .8s .6s cubic-bezier(.6,0,.2,1) forwards;}
+@keyframes inkline{to{background-size:100% .07em;}}
+.hero-product-shot{animation:settle .9s .3s cubic-bezier(.2,.8,.2,1) both;transform-origin:50% 100%;}
+@keyframes settle{from{opacity:0;transform:perspective(1400px) rotateX(9deg) translateY(22px);}to{opacity:1;transform:none;}}
+.feature figure .product-shot{transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s ease;}
+.feature figure:hover .product-shot{transform:translate(-3px,-4px);box-shadow:11px 11px 0 rgba(23,23,19,.14);}
+.pillar:hover .pillar-num{color:var(--brand);}
+.pillar-num{transition:color .2s ease;}
 .hero-desc{font-size:clamp(16px,1.5vw,17px);color:var(--muted);line-height:1.75;max-width:50ch;margin-bottom:26px;}
 .hero-ctas{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
 .hero-note{font-size:13px;color:var(--muted);line-height:1.65;max-width:52ch;}
@@ -610,7 +620,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
           <a class="signup-pill" href="https://join.buffer.com/ben-campbell" target="_blank" rel="sponsored noopener" data-cta="signup-affiliate">Don’t have a Buffer account? Sign up<span class="sr-only"> (opens in a new tab)</span> →</a>
           <span class="affiliate-note">Partner link: Ben may earn a commission.</span>
         </div>
-        <p class="hero-note"><strong>Buffer sign-in loads your scheduled posts and enables Buffer actions.</strong> Free during public beta. One of the earliest companion apps built on Buffer’s public API. Independent; not endorsed by Buffer.</p>
+        <p class="hero-note"><strong>Buffer sign-in loads your scheduled posts and enables Buffer actions.</strong> PostIQ is free during public beta. One of the earliest companion apps built on Buffer’s public API. Independent; not endorsed by Buffer.</p>
       </div>
 
       <figure class="hero-visual" aria-labelledby="heroMockCaption">
@@ -746,7 +756,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
     <div class="pillar-grid six reveal">
       <article class="pillar"><span class="pillar-num">01</span><h3>Holidays</h3><p>Public holidays on your calendar. Pick a country, or turn them off.</p></article>
       <article class="pillar"><span class="pillar-num">02</span><h3>Shareable snapshots</h3><p>Share a read-only week or month with a client or teammate. No login needed.</p></article>
-      <article class="pillar"><span class="pillar-num">03</span><h3>Zen mode</h3><p>A calendar-only view for a screen in the room.</p></article>
+      <article class="pillar"><span class="pillar-num">03</span><h3>Edit queued posts</h3><p>Change a queued post’s text or time, send it back to drafts, or publish now.</p></article>
       <article class="pillar"><span class="pillar-num">04</span><h3>Google and Apple Calendar</h3><p>Export your plans, newsletters and campaigns as an .ics file and import them into the calendar you already use.</p></article>
       <article class="pillar"><span class="pillar-num">05</span><h3>Themes</h3><p>Five themes, saved in your browser.</p></article>
       <article class="pillar"><span class="pillar-num">06</span><h3>Backup and restore</h3><p>Download a backup of your local planning work and restore it in any browser.</p></article>
@@ -795,7 +805,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
     <div class="faq-grid reveal">
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq1"><span>Do I need a Buffer account?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
-        <div class="faq-a" id="faq1" hidden>To see your scheduled posts or send anything to Buffer, yes. You can open the calendar preview, add notes, and save content without one.</div>
+        <div class="faq-a" id="faq1" hidden>To see your scheduled posts or send anything to Buffer, yes. You can open the calendar preview, add notes, and save content without one. PostIQ is free during the public beta; your Buffer account and plan are separate and set by Buffer.</div>
       </div>
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq2"><span>How does PostIQ decide what counts as a gap?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
@@ -819,7 +829,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
       </div>
       <div class="faq-item">
         <h3><button class="faq-q" type="button" aria-expanded="false" aria-controls="faq6"><span>Is PostIQ made by Buffer?</span><span class="faq-icon" aria-hidden="true">+</span></button></h3>
-        <div class="faq-a" id="faq6" hidden>No. PostIQ is independently built by Ben Campbell using Buffer’s public API, one of the earliest companion apps for it. It is not endorsed by Buffer. It’s free during the public beta, and features may change as Buffer’s API evolves.</div>
+        <div class="faq-a" id="faq6" hidden>No. PostIQ is independently built by Ben Campbell using Buffer’s public API, one of the earliest companion apps for it. It is not endorsed by Buffer. PostIQ is free during the public beta (your Buffer plan is separate), and features may change as Buffer’s API evolves.</div>
       </div>
     </div>
   </div>
@@ -850,7 +860,7 @@ h1 em{font-style:normal;color:var(--brand);display:block;}
         <a href="/app.html?view=calendarView" class="btn ghost lg" data-cta="final">Preview the calendar</a>
       </div>
       <p class="signup-row signup-row-center"><a class="signup-pill" href="https://join.buffer.com/ben-campbell" target="_blank" rel="sponsored noopener" data-cta="signup-affiliate-final">Don’t have a Buffer account? Sign up<span class="sr-only"> (opens in a new tab)</span> →</a></p>
-      <p class="cta-note">Free during public beta · Independent of Buffer</p>
+      <p class="cta-note">PostIQ is free during public beta · Independent of Buffer</p>
     </div>
   </div>
 </section>

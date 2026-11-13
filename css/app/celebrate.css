@@ -1,0 +1,40 @@
+/* Satisfying moments (see js/features/celebrate.js). All one-shot, all
+   skipped under prefers-reduced-motion. */
+.celebrate-layer { position: fixed; width: 0; height: 0; pointer-events: none; z-index: 9999; }
+.celebrate-layer i { position: absolute; left: -3px; top: -3px; width: 6px; height: 6px; border-radius: 50%; animation: celebrate-dot .8s cubic-bezier(.15,.7,.3,1) forwards; }
+.celebrate-layer i.is-bar { width: 3px; height: 9px; border-radius: 1px; }
+@keyframes celebrate-dot {
+  0% { transform: translate(0, 0) rotate(0) scale(.6); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translate(var(--x), calc(var(--y) + 14px)) rotate(var(--r)) scale(1); opacity: 0; }
+}
+
+/* A gap filled from Shelf: the post drops in with a little stamp. */
+@keyframes just-filled {
+  0% { transform: translateY(-6px) scale(1.06); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 35%, transparent); }
+  45% { transform: translateY(0) scale(.98); }
+  100% { transform: none; box-shadow: 0 0 0 0 transparent; }
+}
+.just-filled { animation: just-filled .7s cubic-bezier(.2,.9,.3,1.3); position: relative; z-index: 1; }
+
+/* Time away covered: the break table fills in left to right. */
+@keyframes pace-cell-in { 0% { transform: scale(.7); opacity: .2; } 60% { transform: scale(1.08); } 100% { transform: none; opacity: 1; } }
+.pace-wave td.suite-cell { animation: pace-cell-in .45s cubic-bezier(.2,.9,.3,1.3) both; animation-delay: calc(var(--i, 0) * 40ms); }
+.pace-done-note { display: flex; align-items: center; gap: 10px; margin: 12px 0 0; padding: 10px 14px; border: 1px solid color-mix(in srgb, #2f6b45 40%, var(--border)); background: color-mix(in srgb, #2f6b45 7%, var(--surface)); border-radius: 6px; font-size: 14px; }
+.pace-done-note svg { flex: none; color: #2f6b45; }
+@keyframes pace-sun { 0% { transform: translateY(6px) rotate(-30deg); opacity: 0; } 100% { transform: none; opacity: 1; } }
+.pace-done-note svg { animation: pace-sun .6s cubic-bezier(.2,.9,.3,1.2) both; }
+.pace-done-note .rays { transform-origin: 12px 12px; animation: pace-rays 6s linear infinite; }
+@keyframes pace-rays { to { transform: rotate(360deg); } }
+
+/* A newsletter or campaign with every stage ticked: a shine across its band. */
+@keyframes camp-shine { 0% { background-position: -120% 0; } 100% { background-position: 220% 0; } }
+.camp-band.camp-just-done { background-image: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.75) 50%, transparent 70%); background-size: 60% 100%; background-repeat: no-repeat; animation: camp-shine .9s ease-out; }
+
+/* Pace summary line settles in when it changes. */
+@keyframes pace-summary-in { from { transform: translateY(4px); opacity: .3; } to { transform: none; opacity: 1; } }
+.pace-summary.is-fresh { animation: pace-summary-in .45s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .celebrate-layer, .just-filled, .pace-wave td.suite-cell, .pace-done-note svg, .pace-done-note .rays, .camp-band.camp-just-done, .pace-summary.is-fresh { animation: none !important; }
+}

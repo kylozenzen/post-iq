@@ -57,6 +57,12 @@ main{margin:0;padding:0}h2{font-family:Georgia,serif;font-size:20px;margin:0 0 8
 #feedback{padding:12px 14px;border-radius:4px;background:#f3eadb;color:#292720;margin-top:14px;min-height:44px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 #feedback:empty{display:none}
 @keyframes land{0%{transform:scale(.9);opacity:.35}60%{transform:scale(1.03);opacity:1}100%{transform:none}}
+.item.filled{animation:stamp .6s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes stamp{0%{transform:translateY(-8px) scale(1.08);box-shadow:0 0 0 3px rgba(181,44,32,.35)}50%{transform:translateY(0) scale(.97)}100%{transform:none;box-shadow:0 0 0 0 transparent}}
+.pop{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none}
+.pop i{position:absolute;left:-3px;top:-3px;width:6px;height:6px;border-radius:50%;animation:pop .7s cubic-bezier(.15,.7,.3,1) forwards}
+@keyframes pop{0%{transform:translate(0,0) scale(.6);opacity:1}100%{transform:translate(var(--x),var(--y)) scale(1);opacity:0}}
+@media(prefers-reduced-motion:reduce){.item.filled,.item.fresh,.pop i{animation:none}}
 @media(max-width:850px){.calendar{grid-template-columns:repeat(4,minmax(0,1fr))}.day{min-height:130px}}
 @media(max-width:530px){
   .calendar{grid-template-columns:repeat(2,minmax(0,1fr))}.day{min-height:120px}.panel{padding:14px}
@@ -215,10 +221,31 @@ function initSample(root, parser, variant) {
   function fill(dateKey) {
     const pick = SHELF.find(s => s.id === shelfPick) || SHELF[0];
     checkpoint();
-    items.push({ id: nextId++, kind: 'post', date: dateKey, title: 'Reshare · ' + pick.title, fresh: true });
+    const id = nextId++;
+    items.push({ id, kind: 'post', date: dateKey, title: 'Reshare · ' + pick.title, fresh: true });
     chosen = null;
     announce('Filled ' + label(dateKey) + ' with “' + pick.title + '”. Sample only; nothing was queued in Buffer.');
     render();
+    celebrateFill(id);
+  }
+
+  // The gap you just filled: the card stamps down and a few dots pop.
+  function celebrateFill(id) {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const card = [...root.querySelectorAll('.item')].find(el => el.dataset.id === String(id));
+    if (!card) return;
+    card.classList.remove('fresh'); card.classList.add('filled');
+    const pop = document.createElement('span');
+    pop.className = 'pop'; pop.setAttribute('aria-hidden', 'true');
+    const colors = ['#b52c20', '#e0a526', '#2f6b45', '#5b5bd6', '#171713'];
+    for (let i = 0; i < 10; i++) {
+      const dot = document.createElement('i'), a = (Math.PI * 2 * i) / 10, d = 22 + Math.random() * 22;
+      dot.style.setProperty('--x', Math.cos(a) * d + 'px'); dot.style.setProperty('--y', Math.sin(a) * d + 'px');
+      dot.style.background = colors[i % colors.length];
+      pop.append(dot);
+    }
+    card.style.position = 'relative'; card.append(pop);
+    setTimeout(() => { pop.remove(); card.classList.remove('filled'); }, 800);
   }
 
   function renderShelf() {
@@ -268,6 +295,7 @@ function initSample(root, parser, variant) {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'item ' + item.kind + (chosen === item.id ? ' selected' : '') + (item.fresh ? ' fresh' : '');
+        btn.dataset.id = String(item.id);
         item.fresh = false;
         btn.draggable = true;
         btn.textContent = item.title;

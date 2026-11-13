@@ -131,6 +131,7 @@ window.PostIQToday = (() => {
       showToast(`Queued in Buffer for ${dayLabel(dateKey)} at ${when.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`, 'success');
       closePopover();
       renderCalendar();
+      window.PostIQCelebrate?.filled(dateKey, created?.post?.id);
     } catch (error) {
       showToast(error?.message || 'Buffer didn’t accept that post.', 'error');
       if (button) { button.disabled = false; button.textContent = 'Try again'; }
