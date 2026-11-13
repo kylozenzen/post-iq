@@ -218,6 +218,7 @@ netlify/functions/       serverless functions
 scripts/                 project checks, browser checks, screenshot capture
 tests/                   node:test suites
 images/product/          real-app screenshots (sample data)
+brand/                   logo, icons, colors, type, social graphics, motion
 ```
 
 ---
@@ -272,6 +273,10 @@ I'm a social media strategist. Across my career I've grown audiences past 6M+ fo
 PostIQ started as the tools I used alongside Buffer. Now it's a public beta for anyone who plans around a Buffer queue. It's built and run by one person on Buffer's public API: independent, and not endorsed by Buffer.
 
 — **Ben Campbell** · [bencampbell.netlify.app](https://bencampbell.netlify.app)
+
+## Brand
+
+Logo files, colors, type, social graphics and copy rules live in [`brand/`](brand/README.md).
 
 ## Feedback
 

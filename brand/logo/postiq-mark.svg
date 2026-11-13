@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="PostIQ">
+  <rect width="64" height="64" rx="14" fill="#171713"/>
+  <path d="M22 42 Q32 30 42 42" stroke="#f2efe6" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+  <path d="M13 33 Q32 14 51 33" stroke="#f2efe6" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+  <circle cx="32" cy="50" r="5" fill="#b52c20"/>
+</svg>

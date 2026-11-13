@@ -1,17 +1,39 @@
 {
-  "name": "PostIQ — Calendar companion for Buffer",
+  "name": "PostIQ — Your Buffer planning calendar",
   "short_name": "PostIQ",
-  "description": "An independent calendar companion for Buffer users: scheduled posts beside planning notes, queue gaps against your rhythm, and saved content you can plan.",
+  "description": "A calendar-first planning companion for Buffer: see how far ahead you are, fill gaps in one tap, plan newsletters and campaigns, and take a break without going quiet.",
   "start_url": "/app.html",
   "display": "standalone",
-  "background_color": "#f5f6fa",
-  "theme_color": "#3a3fff",
-  "orientation": "portrait-primary",
+  "background_color": "#f2efe6",
+  "theme_color": "#f2efe6",
   "icons": [
-    { "src": "/images/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/images/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/images/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
-    { "src": "/images/favicon-32.png", "sizes": "32x32", "type": "image/png" },
-    { "src": "/images/favicon-16.png", "sizes": "16x16", "type": "image/png" }
+    {
+      "src": "/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/images/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
   ]
 }
