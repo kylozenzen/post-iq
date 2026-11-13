@@ -327,6 +327,23 @@ window.PostIQSuite = (() => {
     if (typeof showToast === 'function') showToast(done, fail ? 'error' : 'success');
     const after = el('suiteFill');
     if (after) after.insertAdjacentHTML('afterbegin', `<p class="suite-fill-done">${esc(done)}</p>`);
+    if (ok && !fail) celebrateBreak('Your break is covered. Buffer will keep posting while you’re away.');
+  }
+
+  // Time away sorted (reshares queued, or days marked off): the break table
+  // fills in left to right, a small sun comes up, and a few dots pop.
+  function celebrateBreak(message) {
+    const grid = el('suiteBreakGrid');
+    if (grid) {
+      grid.querySelectorAll('td.suite-cell').forEach((td, i) => td.style.setProperty('--i', i % 14));
+      window.PostIQCelebrate?.pulse(grid, 'pace-wave', 1400);
+    }
+    const box = el('suiteFill');
+    if (box) {
+      box.querySelector('.pace-done-note')?.remove();
+      box.insertAdjacentHTML('beforeend', `<p class="pace-done-note" role="status"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><g class="rays"><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></g></svg><span>${esc(message)}</span></p>`);
+      window.PostIQCelebrate?.burst(box.querySelector('.pace-done-note svg'), { count: 10 });
+    }
   }
 
   // One calm line at the top: who needs something soon, and how far ahead the
@@ -372,6 +389,7 @@ window.PostIQSuite = (() => {
     setPlanningSettings({ ...settings, daysOff: [...(settings.daysOff || []), entry] });
     afterPlanningChange();
     if (typeof showToast === 'function') showToast(`${fmt(start)} – ${fmt(end)} marked as time off`, 'success');
+    celebrateBreak('Enjoy the time off. Those days won’t count as gaps.');
   }
   function removeTimeOff(btn) {
     const settings = getPlanningSettings();
@@ -409,6 +427,7 @@ window.PostIQSuite = (() => {
     const summary = el('paceSummary');
     if (summary) {
       const text = connection.connected && channels().length ? paceSummary(channelRunways(getQueueCoverage(HORIZON_DAYS).rows, today)) : '';
+      if (text && summary.textContent && summary.textContent !== text) window.PostIQCelebrate?.pulse(summary, 'is-fresh', 500);
       summary.textContent = text; summary.hidden = !text;
     }
   }

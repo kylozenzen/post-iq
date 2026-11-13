@@ -140,9 +140,19 @@ window.PostIQCampaigns = (() => {
     if (!title) { el('campStatus').textContent = 'Give it a title.'; return; }
     if (!start || !end || end < start) { el('campStatus').textContent = 'Choose a start and end (end on or after start).'; return; }
     const c = { id: editingId || uid(), type, title, start, end, color: TYPES[type]?.color, stages: draftStages.filter(s => s.label.trim()).map(s => ({ label: s.label.trim(), done: !!s.done })) };
+    const before = editingId ? get(editingId) : null;
+    const wasDone = !!before?.stages?.length && before.stages.every(st => st.done);
     upsert(c);
     closeModal('campaignModal');
     if (typeof renderCalendar === 'function') renderCalendar();
+    // Every stage ticked for the first time: a shine across the band and a
+    // little burst from its last day.
+    if (c.stages.length && c.stages.every(st => st.done) && !wasDone) {
+      const bands = [...document.querySelectorAll(`.camp-band[data-campaign="${CSS.escape(c.id)}"]`)];
+      bands.forEach(b => window.PostIQCelebrate?.pulse(b, 'camp-just-done', 1000));
+      window.PostIQCelebrate?.burst(bands.find(b => b.classList.contains('is-end') || b.classList.contains('is-single')) || bands.at(-1), { count: 14 });
+      if (typeof showToast === 'function') showToast(`“${nameOf(c)}” is done. Nice work.`, 'success');
+    }
   }
 
   function init() {

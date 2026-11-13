@@ -10,7 +10,7 @@ See how far ahead you are, fill the gaps, send to Buffer.
 [![Open PostIQ](https://img.shields.io/badge/open-postiq.netlify.app-b52c20?style=flat-square)](https://postiq.netlify.app)
 ![Public beta](https://img.shields.io/badge/status-public%20beta-171713?style=flat-square)
 ![Built on Buffer's public API](https://img.shields.io/badge/built%20on-Buffer's%20public%20API-171713?style=flat-square)
-![143 tests passing](https://img.shields.io/badge/tests-143%20passing-2f6b45?style=flat-square)
+![144 tests passing](https://img.shields.io/badge/tests-144%20passing-2f6b45?style=flat-square)
 ![No build step](https://img.shields.io/badge/build%20step-none-696356?style=flat-square)
 
 <img src="images/product/calendar-desktop.png" alt="PostIQ month calendar: solid Buffer posts, outlined plans, dashed open slots and a newsletter band" width="860">
@@ -26,6 +26,8 @@ See how far ahead you are, fill the gaps, send to Buffer.
 ```
  see how far ahead you are  ──▶  fill the gap or write something  ──▶  send to Buffer
 ```
+
+**PostIQ is free during the public beta.** You'll need a Buffer account to connect your queue; your Buffer plan is separate and set by Buffer.
 
 Buffer is great at publishing. PostIQ is the planning layer around it: what's queued, what's planned, and which posting days are still empty. Nothing reaches Buffer until you press a button.
 
@@ -232,7 +234,7 @@ netlify dev          # with Netlify Functions
 Checks:
 
 ```sh
-node --test tests/*.test.js                 # all 143 tests
+node --test tests/*.test.js                 # all 144 tests
 node scripts/check-project.js               # asset references, syntax, offline cache list
 node scripts/smoke-browser.js               # DOM smoke test
 
@@ -257,7 +259,9 @@ Set in Netlify → Site configuration → Environment variables, then redeploy.
 | `POSTIQ_FEATURE_TRENDING`, `POSTIQ_FEATURE_SNAPSHOTS`, `POSTIQ_FEATURE_UNSPLASH` | Feature switches, on by default |
 | `POSTIQ_FEATURE_UPLOADS` | Media uploads, off by default |
 | `POSTIQ_ADMIN_TOKEN`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Admin stats panel |
-| `BUFFER_API_KEY` / `BUFFER_TOKEN` | Local development only. The proxy uses it when a request carries no token, so **never set it in production**. |
+| `BUFFER_API_KEY` / `BUFFER_TOKEN` | Local development only: a personal Buffer key the proxy can fall back to under `netlify dev`. It's ignored on every deployed site, so a request with no sign-in can never act on your account. |
+
+The Buffer **OAuth client ID** is not an environment variable. It lives in `app.html`, `auth/connect.js` and `auth/callback.js`, and it's public by design: sign-in uses PKCE, so there's no secret to keep.
 
 ---
 
