@@ -56,3 +56,19 @@
 .suite-fill:empty { display: none; }
 .suite-fill-msg, .suite-fill-done { margin: 0; font-size: 13px; }
 .suite-fill-done { color: var(--green, #2e7d32); font-weight: 600; }
+
+/* ── Pace: summary line, quieter break section, time off ─────── */
+.pace-summary { margin: 0 0 var(--s4, 16px); padding: 12px 16px; border: 1px solid var(--border); border-left: 3px solid var(--ink); border-radius: 6px; background: var(--surface); font-size: 15px; line-height: 1.45; color: var(--ink); }
+.suite-tone-warn .suite-runway { color: var(--brand); }
+.suite-tone-ok .suite-runway { color: var(--ink); }
+.suite-cell-gap { background: color-mix(in srgb, var(--brand) 6%, transparent); color: var(--ink); }
+.suite-fill-msg { margin: 12px 0 8px; font-size: 13px; line-height: 1.5; }
+.suite-fill-why { margin-top: 8px; font-size: 12px; color: var(--muted); }
+.suite-fill-why summary { cursor: pointer; width: max-content; text-decoration: underline; text-underline-offset: 2px; }
+.suite-fill-why p { margin: 6px 0 0; line-height: 1.5; }
+.pace-timeoff { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border); }
+.pace-off-action { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.pace-off-title { margin: 14px 0 6px; font-size: 12px; font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 500; }
+.pace-off-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.pace-off-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.pace-off-who { color: var(--muted); margin-left: 6px; font-size: 12px; }

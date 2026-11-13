@@ -38,14 +38,15 @@ test('channel list reports days until a channel runs out',async()=>{
   w.eval("PostIQSuite.render()");
   const text=d.getElementById('suiteChannels').textContent;
   assert.match(text,/Alpha/);
-  assert.match(text,/Runs out (today|in \d+ days?)/,'nothing queued, so the channel runs out soon');
-  assert.match(text,/First empty posting day/);
+  assert.match(text,/Needs a post today|Covered for \d+ days?/,'nothing queued, so the channel runs out soon');
+  assert.match(text,/Nothing queued for today yet|Next open day/);
+  assert.match(d.getElementById('paceSummary').textContent,/Alpha needs a post today|Alpha runs out/,'summary line names who needs something');
   // Queue posts on every day for 10 days: the runway should move out to day 10.
   const today=w.PostIQCoverage.dayKey(new Date());
   const posts=[];
   for(let i=0;i<10;i++) posts.push({id:'p'+i,channelId:'c1',status:'scheduled',dueAt:w.PostIQCoverage.addDays(today,i)+'T15:00:00Z'});
   w.eval(`state.scheduled = ${JSON.stringify(posts)}; PostIQSuite.render();`);
-  const later=d.getElementById('suiteChannels').textContent.match(/Runs out in (\d+) days?/);
+  const later=d.getElementById('suiteChannels').textContent.match(/Covered for (\d+) days?/);
   assert.ok(later && Number(later[1])>=9,'runway moves out once posts are queued');
  }finally{dom.window.close();}
 });
@@ -91,12 +92,15 @@ test('break planner says so when a break is fully covered',async()=>{
  }finally{dom.window.close();}
 });
 
-test('Runway is the visible name in the sidebar and page title',async()=>{
+test('Pace is the visible name, and Posting schedule opens it',async()=>{
  const dom=await loadApp('');
  try{
-  const d=dom.window.document;
-  assert.match(d.querySelector('.side-nav [data-view="suiteView"]').textContent,/Runway/);
-  assert.equal(d.getElementById('suiteTitle').textContent,'Runway');
+  const d=dom.window.document, w=dom.window;
+  assert.match(d.querySelector('.side-nav [data-view="suiteView"]').textContent,/Pace/);
+  assert.equal(d.getElementById('suiteTitle').textContent,'Pace');
+  w.eval('YourPace.open()');
+  assert.ok(d.getElementById('suiteView').classList.contains('active'),'one home for schedules');
+  assert.ok(!d.getElementById('scheduleModal').classList.contains('open'));
  }finally{dom.window.close();}
 });
 
@@ -201,5 +205,24 @@ test('break fill never repeats a kept post on a channel, and skips channels that
   const msg=d.getElementById('suiteFill').textContent;
   assert.match(msg,/once per channel/);
   assert.match(msg,/photo or video/);
+ }finally{dom.window.close();}
+});
+
+test('time off can be marked and removed from Pace',async()=>{
+ const dom=await loadApp('');
+ try{
+  const w=dom.window, d=w.document;
+  connect(w);
+  const today=w.PostIQCoverage.dayKey(new Date());
+  d.getElementById('suiteBreakStart').value=w.PostIQCoverage.addDays(today,3);
+  d.getElementById('suiteBreakEnd').value=w.PostIQCoverage.addDays(today,5);
+  w.eval('PostIQSuite.render()');
+  d.getElementById('paceMarkOff').click();
+  const off=JSON.parse(w.eval('JSON.stringify(getPlanningSettings().daysOff)'));
+  assert.equal(off.length,1); assert.equal(off[0].channelId,'*');
+  assert.match(d.getElementById('paceTimeOff').textContent,/Time off/);
+  assert.ok(d.getElementById('paceMarkOff').disabled,'same range can’t be marked twice');
+  d.querySelector('[data-pace-off-remove]').click();
+  assert.equal(JSON.parse(w.eval('JSON.stringify(getPlanningSettings().daysOff)')).length,0);
  }finally{dom.window.close();}
 });

@@ -156,13 +156,13 @@
         </span>
         <span class="nav-text">Shelf</span>
       </button>
-      <button class="nav-btn" data-view="suiteView" data-tooltip="Runway">
+      <button class="nav-btn" data-view="suiteView" data-tooltip="Pace">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linejoin="round">
             <path d="M3.5 17.5a8.5 8.5 0 1 1 17 0" stroke-linecap="round"/><path d="M12 17.5l4.2-5.2" stroke-linecap="round"/><circle cx="12" cy="17.5" r="1.3"/>
           </svg>
         </span>
-        <span class="nav-text">Runway</span>
+        <span class="nav-text">Pace</span>
       </button>
     </nav>
 
@@ -213,7 +213,7 @@
 
         <div class="cal-toolbar-right">
           <button class="cal-filter-chip" id="calFilterChip" type="button" hidden>Filtered · <span>Clear</span></button>
-          <button class="cal-alert-bell cal-suite-btn" id="calSuiteBtn" type="button" aria-label="Open Runway: channel health, schedules and breaks" title="Runway: channel health, schedules and breaks"><svg class="cal-hdr-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 17.5a8.5 8.5 0 1 1 17 0" stroke-linecap="round"/><path d="M12 17.5l4.2-5.2" stroke-linecap="round"/><circle cx="12" cy="17.5" r="1.3"/></svg></button>
+          <button class="cal-alert-bell cal-suite-btn" id="calSuiteBtn" type="button" aria-label="Open Pace: posting schedules, how far ahead you are, and breaks" title="Pace: posting schedules and breaks"><svg class="cal-hdr-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 17.5a8.5 8.5 0 1 1 17 0" stroke-linecap="round"/><path d="M12 17.5l4.2-5.2" stroke-linecap="round"/><circle cx="12" cy="17.5" r="1.3"/></svg></button>
           <button class="cal-alert-bell" id="calAlertBell" type="button" aria-label="Alerts" aria-haspopup="dialog"><svg class="cal-hdr-ico cal-alert-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M6 16.5v-5a6 6 0 0 1 12 0v5l1.6 2H4.4z"/><path d="M10 21a2.2 2.2 0 0 0 4 0"/></svg><span class="cal-alert-count" hidden>0</span></button>
           <div class="cal-view-toggle" role="group" aria-label="Calendar view">
             <button class="seg-btn active" id="calendarViewMonthBtn" type="button" data-calendar-view="month">Month</button>
@@ -786,12 +786,12 @@
 
     <section id="suiteView" class="view" aria-labelledby="suiteTitle">
       <div class="mob-view-hdr">
-        <span class="mob-view-title">Runway</span>
+        <span class="mob-view-title">Pace</span>
       </div>
       <div class="page-hdr">
         <div class="page-hdr-left">
-          <h1 class="page-title" id="suiteTitle">Runway</h1>
-          <p class="page-desc">How far ahead you are. Each channel's connection, queue and posting schedule, plus whether your weeks hold up through a break.</p>
+          <h1 class="page-title" id="suiteTitle">Pace</h1>
+          <p class="page-desc">When you post, how far ahead you are, and what a break needs.</p>
         </div>
         <div class="page-actions">
           <button class="btn ghost" id="suiteBackBtn" type="button">← Back to calendar</button>
@@ -799,15 +799,17 @@
       </div>
       <div class="view-content suite-content">
         <p class="suite-notice" id="suiteNotice" hidden></p>
+        <p class="pace-summary" id="paceSummary" aria-live="polite" hidden></p>
 
         <section class="suite-card" aria-labelledby="suiteChannelsTitle">
-          <h2 class="suite-card-title" id="suiteChannelsTitle">Channels</h2>
+          <h2 class="suite-card-title" id="suiteChannelsTitle">Posting schedule</h2>
+          <p class="suite-card-desc">Tap the days each channel posts. Open slots on the calendar come from this.</p>
           <div class="suite-channels" id="suiteChannels"></div>
         </section>
 
         <section class="suite-card" aria-labelledby="suiteBreakTitle">
-          <h2 class="suite-card-title" id="suiteBreakTitle">Break or vacation</h2>
-          <p class="suite-card-desc">Pick the dates you'll be away. Each cell shows posts already queued against posts planned that week. Channels set to fill from Shelf can have their gaps filled in one step.</p>
+          <h2 class="suite-card-title" id="suiteBreakTitle">Time away</h2>
+          <p class="suite-card-desc">Pick the dates you’ll be away. Keep posting with Shelf reshares, or mark the days off so they don’t count as gaps.</p>
           <div class="suite-break-inputs">
             <label>From <input type="date" id="suiteBreakStart" /></label>
             <label>To <input type="date" id="suiteBreakEnd" /></label>
@@ -817,6 +819,7 @@
             <table class="suite-grid" id="suiteBreakGrid"></table>
           </div>
           <div class="suite-fill" id="suiteFill"></div>
+          <div class="pace-timeoff" id="paceTimeOff"></div>
         </section>
       </div>
     </section>

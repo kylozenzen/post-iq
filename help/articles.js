@@ -62,7 +62,7 @@ window.POSTIQ_HELP_ARTICLES = [
     <h2>How PostIQ fits into your process</h2>
     <ol>
       <li><strong>Connect Buffer</strong> so PostIQ can load your channels and scheduled queue.</li>
-      <li><strong>Set your posting schedule</strong> from the calendar’s ⋯ menu to show open slots that fit your rhythm.</li>
+      <li><strong>Set your posting schedule</strong> in <strong>Pace</strong> (sidebar) to show open slots that fit your rhythm.</li>
       <li><strong>Plan a gap</strong> from the calendar: add a note or action, date a Shelf idea, or start a draft for that day.</li>
       <li><strong>Send to Buffer</strong> from Compose only when you pick Draft, Queue, or Schedule.</li>
     </ol>
@@ -131,6 +131,7 @@ window.POSTIQ_HELP_ARTICLES = [
     <ol>
       <li>Sign in with Buffer and sync.</li>
       <li>Look for dashed <strong>open slots</strong>: a day where your posting schedule expects a post and none is in Buffer yet. Open the day to fill it.</li>
+      <li>Newsletters and campaigns show as a band across their days: solid on the first and last day, a light tint between. Open any day in the range to see where it stands, like <em>Day 3 of 5 · next: Final</em>.</li>
       <li>Use <strong>+ Add</strong>, or the + that appears on a day, to add a note, a to-do, or a draft.</li>
       <li>Open the <strong>⋯ menu</strong> to filter by channel or item, set your posting schedule, switch to List view, or share a read-only snapshot. When a filter is on, a dot appears on ⋯ and a “Filtered · Clear” chip shows beside it.</li>
     </ol>
@@ -182,27 +183,32 @@ window.POSTIQ_HELP_ARTICLES = [
   },
   {
     slug: 'queue-health-your-pace', // Retained so older help links continue to resolve.
-    title: 'Choose a Posting Schedule',
+    title: 'Pace: Posting Schedules and Time Away',
     category: 'Plan / Calendar',
-    summary: 'Choose posting days for each channel and understand how open slots appear on the calendar.',
-    tags: ['calendar', 'gaps', 'posting schedule', 'rhythm', 'days off'],
+    summary: 'Set which days each channel posts, see how far ahead you are, and plan a break so nothing goes quiet.',
+    tags: ['pace', 'calendar', 'gaps', 'posting schedule', 'rhythm', 'days off', 'time off', 'vacation', 'break', 'runway'],
     featured: true,
     relatedArticles: ['plan-content-calendar', 'connect-buffer', 'getting-started'],
-    body: `<p>Your posting schedule tells PostIQ which days are useful opportunities to plan. It is a local planning preference and does not change what is scheduled in Buffer.</p>
-    <h2>Set a rhythm</h2>
+    body: `<p><strong>Pace</strong> is where your posting rhythm lives. Open it from the sidebar, the gauge icon on the calendar, or <strong>Posting schedule</strong> in the calendar’s ⋯ menu. Nothing here changes your Buffer queue unless you press a Queue button.</p>
+    <h2>Posting schedule</h2>
     <ol>
-      <li>On the calendar, open the <strong>⋯ menu</strong> and choose <strong>Posting schedule</strong>.</li>
-      <li>Under <strong>Channel rhythm</strong>, pick a channel, its posting days, and posts per selected day (0–10).</li>
-      <li>Look for dashed <strong>Open slot</strong> buttons on days when the schedule expects a post and no confirmed post is loaded.</li>
-      <li>Choose an open slot to see one-tap fill suggestions or start a new plan for that date.</li>
+      <li>Each channel has a row. Tap the day letters it posts on and set <strong>posts per day</strong> (0–10). Changes save as you go.</li>
+      <li>The right side says how far ahead that channel is, like <em>Covered for 4 days · Next open day Tue</em>, or <em>Needs a post today</em>.</li>
+      <li>The line at the top sums it up: who needs something soon, and whether the rest are fine.</li>
+      <li>Turn on <strong>Fill gaps from Shelf</strong> for channels where resharing a kept post is okay. Instagram, TikTok, YouTube and Pinterest need a photo or video, so they’re never filled with text.</li>
     </ol>
-    <h2>Before time away</h2>
-    <p>Use the Holidays picker in the ⋯ menu to show public holidays for a country or turn them off. You can still add a note or to-do on any date.</p>
+    <p>On the calendar, dashed <strong>open slots</strong> are days your schedule expects a post and Buffer has none yet. Tap one to reshare from Shelf or write something new.</p>
+    <h2>Time away</h2>
+    <ol>
+      <li>Pick the dates you’ll be away. The table shows, week by week, posts queued against posts your schedule expects.</li>
+      <li><strong>Keep posting:</strong> queue reshares from your Shelf on the empty days, at each channel’s usual time. Each kept post goes out at most once per channel, and nothing doubles up with what’s already in Buffer.</li>
+      <li><strong>Go quiet on purpose:</strong> choose <strong>Mark these days off</strong>. Those days stop counting as gaps on the calendar. Remove time off from the list anytime.</li>
+    </ol>
     <h3>Good to know</h3>
     <ul>
-      <li>Only confirmed Buffer posts appear as scheduled. Notes, drafts, and target dates stay in the outlined planning layer.</li>
-      <li>A recent Buffer sync is needed to show scheduled posts; partial or stale data is labelled.</li>
-      <li>The schedule is a local planning preference. It never moves, cancels, or deletes Buffer posts.</li>
+      <li>PostIQ re-reads Buffer on its own when its copy is more than a few minutes old, and shortly after it queues anything, so Pace and the calendar stay current.</li>
+      <li>Public holidays are in the calendar’s ⋯ menu under Holidays.</li>
+      <li>Your schedule and time off are local planning preferences. They never move, cancel, or delete Buffer posts.</li>
     </ul>`
   },
   {

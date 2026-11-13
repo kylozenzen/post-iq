@@ -312,7 +312,11 @@ function renderCalendarView() {
     if (window.PostIQCampaigns?.covers?.(key)) cls += ' has-campaign';
     day.className = cls;
 
-    let html = `<div class="day-header"><div class="day-num">${d.getDate()}</div><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add plan for ${safeText(formatDateWithYear(d))}">+</button></div>${window.PostIQHolidays?.cellHtml?.(key) || ''}`;
+    // Ranges sit right under the date (before holidays and posts) so a band
+    // lines up across its week row.
+    const rowKey = new Date(start); rowKey.setDate(start.getDate() + i - (i % 7));
+    const campaignBands = window.PostIQCampaigns?.cellHtml?.(key, { rowStart: i % 7 === 0, rowEnd: i % 7 === 6, rowKey: fmtDate(rowKey) }) || '';
+    let html = `<div class="day-header"><div class="day-num">${d.getDate()}</div><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add plan for ${safeText(formatDateWithYear(d))}">+</button></div>${campaignBands}${window.PostIQHolidays?.cellHtml?.(key) || ''}`;
     const MAX_VISIBLE = 3;
     const pills = [
       ...dayPosts.map(p => calendarPostPillHtml(p, 'data-post-detail', key, 60)),
@@ -321,7 +325,6 @@ function renderCalendarView() {
     ];
     html += pills.slice(0, MAX_VISIBLE).join('');
     if (pills.length > MAX_VISIBLE) html += `<div class="more-indicator">+${pills.length - MAX_VISIBLE} more</div>`;
-    html += window.PostIQCampaigns?.cellHtml?.(key) || '';
     html += dayGapSlotHtml(d);
     day.innerHTML = html;
     bindContentCalendar(day);
@@ -366,6 +369,7 @@ function renderWeekView() {
   const start = weekStart(state.month);
   const end = new Date(start); end.setDate(start.getDate() + 6);
   weekEl.innerHTML = '';
+  weekEl.classList.toggle('has-campaign-bands', [0,1,2,3,4,5,6].some(n => { const x = new Date(start); x.setDate(start.getDate() + n); return window.PostIQCampaigns?.covers?.(fmtDate(x)); }));
   for (let i = 0; i < 7; i++) {
     const d = new Date(start); d.setDate(start.getDate() + i);
     const key = fmtDate(d);
@@ -376,6 +380,7 @@ function renderWeekView() {
     const card = document.createElement('div');
     card.className = `cal-week-day${key === fmtDate(new Date()) ? ' today' : ''}${dayPosts.length ? ' has-posts' : ''}`;
     let html = `<div class="cal-week-day-title"><span class="cal-week-day-name">${d.toLocaleDateString(undefined,{ weekday:'short'})}</span><div class="cal-week-day-title-right"><strong class="cal-week-day-date">${d.toLocaleDateString(undefined,{ month:'short', day:'numeric'})}</strong><button type="button" class="day-add-note-btn" data-add-note-date="${key}" aria-label="Add plan for ${safeText(formatDateWithYear(d))}">+</button></div></div><div class="cal-week-day-summary">${dayPosts.length ? plannerDaySummary(dayPosts) : ''}${dayNotes.length ? ` · ${dayNotes.length} note${dayNotes.length === 1 ? '' : 's'}` : ''}</div>`;
+    html += window.PostIQCampaigns?.cellHtml?.(key, { rowStart: i === 0, rowEnd: i === 6, rowKey: fmtDate(start) }) || '';
     html += window.PostIQHolidays?.cellHtml?.(key) || '';
 
     dayPosts.forEach(p => { html += calendarPostPillHtml(p, 'data-week-post', key, 160); });
@@ -752,8 +757,9 @@ function renderAgenda() {
       +posts.map(p=>calendarPostPillHtml(p,'data-agenda-post',key,180)).join('')
       +notes.map(n=>`<button type="button" class="${calendarNoteClass(n)}" data-agenda-note="${safeText(n.id)}" style="${notePillStyle(getNoteTypeMeta(n))}">${calendarNoteCopy(n)}</button>`).join('')
       +targets.map(contentCalendarPill).join('')
+      +(isContentCalendarMode()?'':(window.PostIQCampaigns?.detailHtml?.(key,{heading:false})||''))
       +dayGapSlotHtml(date);
-    const empty=!posts.length&&!notes.length&&!targets.length;
+    const empty=!posts.length&&!notes.length&&!targets.length&&!window.PostIQCampaigns?.covers?.(key);
     day.classList.toggle('is-empty',empty);
     if(empty && !day.querySelector('.day-gap-slot')) day.insertAdjacentHTML('beforeend',`<p class="calendar-agenda-empty">${calendarFiltersActive()?'Nothing matches your filters':'Nothing planned'}</p>`);
     bindCalendarDate(day,date);bindContentCalendar(day);
@@ -1010,9 +1016,11 @@ function openCalendarDayDetails(date) {
   sections.push('<div class="day-detail-actions" role="group" aria-label="Plan this day"><button class="btn primary" data-add-note>Add planning note</button><button class="btn" data-start-draft>Start draft</button><button class="btn" data-plan-campaign>Plan a campaign / newsletter</button></div><p class="calendar-state">Plans stay separate from scheduled Buffer posts. Schedule only when you are ready.</p>');
   const coverageHtml = dayCoverageDetailHtml(date);
   if (coverageHtml) sections.push(coverageHtml);
+  const campHtml = window.PostIQCampaigns?.detailHtml?.(key);
+  if (campHtml) sections.push(campHtml);
   if (posts.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${posts.length} post${posts.length > 1 ? 's' : ''}</div>${postDetailCardsHtml(posts, { editable: true })}</div>`);
   if (notes.length) sections.push(`<div style="margin-bottom:16px;"><div class="post-detail-label">${notes.length} Planning note${notes.length > 1 ? 's' : ''}</div>${editableNoteCardsHtml(notes)}</div>`);
-  if (!posts.length && !notes.length) sections.push('<div class="empty-state day-empty-state"><div class="empty-title">No plans yet</div><div class="empty-desc">Start with a note or draft. Nothing is scheduled until you choose to send it to Buffer.</div><button class="btn sm primary" type="button" onclick="window.activateView?.(\'composerView\', \'empty_calendar\')">Write your first post</button></div>');
+  if (!posts.length && !notes.length && !campHtml) sections.push('<div class="empty-state day-empty-state"><div class="empty-title">No plans yet</div><div class="empty-desc">Start with a note or draft. Nothing is scheduled until you choose to send it to Buffer.</div><button class="btn sm primary" type="button" onclick="window.activateView?.(\'composerView\', \'empty_calendar\')">Write your first post</button></div>');
   sections.push(calendarTargetsForDate(key).map(contentCalendarPill).join(''));
   bodyEl.innerHTML = sections.join('');
   bindPostDetailCopy(bodyEl);

@@ -591,6 +591,10 @@ button.day-gap-slot:focus-visible { outline: 2px solid var(--brand); outline-off
 
 /* Week cards: an empty day's summary line stays empty, not "NO LOADED POSTS" */
 .cal-week-day-summary:empty { display: none; }
+/* When a range runs through the week, keep every day's header the same height
+   (empty summaries hold their line) so the bands line up across the row. */
+#calWeek.has-campaign-bands .cal-week-day-summary:empty { display: block; visibility: hidden; }
+#calWeek.has-campaign-bands .cal-week-day-summary:empty::before { content: '\00a0'; }
 
 /* Dated Shelf ideas in month cells: title first, a quiet status line under it
    (the badge used to squeeze the title into a sliver beside it) */

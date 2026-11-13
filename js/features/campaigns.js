@@ -1,7 +1,7 @@
 'use strict';
 // Campaigns & newsletters — date-range planning items on the calendar.
-// Style B: the covered days get a subtle tint, the start day shows a labelled
-// pill, the end day shows an end marker. Each item carries stages you tick off
+// Each range is a band across its days: solid and labelled on the first and
+// last day, a quiet tint in between. Each item carries stages you tick off
 // (Plan → Draft → Final → Publish → …). One mechanism serves newsletter issues
 // and campaign ranges. These are local planning items; they never touch Buffer.
 window.PostIQCampaigns = (() => {
@@ -28,27 +28,80 @@ window.PostIQCampaigns = (() => {
   function colorFor(c) { return c.color || TYPES[c.type]?.color || '#6366f1'; }
 
   const dayKey = v => window.PostIQCoverage.dayKey(v);
+  const sorted = () => load().filter(c => c.start && c.end && c.end >= c.start).sort((x, y) => x.start.localeCompare(y.start) || y.end.localeCompare(x.end) || String(x.id).localeCompare(String(y.id)));
   // Campaigns covering a given day, each with its role for that day.
   function forDate(key) {
-    return load().filter(c => c.start && c.end && key >= c.start && key <= c.end).map(c => ({
+    return sorted().filter(c => key >= c.start && key <= c.end).map(c => ({
       c, role: c.start === c.end ? 'single' : key === c.start ? 'start' : key === c.end ? 'end' : 'mid',
     }));
   }
+  // Each campaign keeps one lane (row) for the whole week it's drawn in, so its
+  // band lines up from cell to cell even when another range starts or ends
+  // mid-week. Lanes are worked out per week row, so a range that ended last
+  // week doesn't leave an empty row behind.
+  const addDays = (key, n) => window.PostIQCoverage.addDays(key, n);
+  function lanes(rowStart = null) {
+    const rowEnd = rowStart ? addDays(rowStart, 6) : null;
+    const list = sorted().filter(c => !rowStart || (c.start <= rowEnd && c.end >= rowStart));
+    const laneEnds = [], out = new Map();
+    for (const c of list) {
+      const from = rowStart && c.start < rowStart ? rowStart : c.start;
+      let lane = laneEnds.findIndex(end => end < from);
+      if (lane < 0) lane = laneEnds.length;
+      laneEnds[lane] = c.end; out.set(c.id, lane);
+    }
+    return out;
+  }
+  const progress = c => { const st = c.stages || []; return { done: st.filter(x => x.done).length, total: st.length, next: st.find(x => !x.done)?.label || '' }; };
+  const nameOf = c => c.title || TYPES[c.type]?.label || 'Campaign';
 
-  // HTML added inside a calendar day cell (pills on start/end).
-  function cellHtml(key) {
+  // Bands inside a calendar day cell. The first and last day are solid and
+  // labelled; the days between are a quiet tint of the same colour, so a
+  // range reads as one stretch of work. rowStart/rowEnd: the cell is the first
+  // or last of its week row, where the band is capped and (mid-range) relabelled.
+  function cellHtml(key, { rowStart = false, rowEnd = false, rowKey = null } = {}) {
     const items = forDate(key);
     if (!items.length) return '';
-    return items.map(({ c, role }) => {
-      const color = colorFor(c);
-      const done = (c.stages || []).filter(s => s.done).length, total = (c.stages || []).length;
-      if (role === 'mid') return '';
-      const title = esc(c.title || TYPES[c.type]?.label || 'Campaign');
-      const tag = role === 'end' ? '◆ ends' : (total ? `${done}/${total}` : '');
-      return `<button type="button" class="campaign-pill is-${role}" style="--camp:${esc(color)}" data-campaign="${esc(c.id)}" title="${title} · ${esc(c.start)}–${esc(c.end)}"><span class="campaign-pill-dot" aria-hidden="true"></span><span class="campaign-pill-label">${title}</span>${tag ? `<span class="campaign-pill-tag">${esc(tag)}</span>` : ''}</button>`;
-    }).join('');
+    const laneOf = lanes(rowKey);
+    const byLane = [];
+    items.forEach(it => { byLane[laneOf.get(it.c.id) ?? 0] = it; });
+    const html = [];
+    for (let lane = 0; lane < byLane.length; lane++) {
+      const it = byLane[lane];
+      if (!it) { html.push('<span class="camp-band is-empty" aria-hidden="true"></span>'); continue; }
+      const { c, role } = it;
+      const name = esc(nameOf(c));
+      const p = progress(c);
+      const range = `${esc(c.start)} to ${esc(c.end)}`;
+      const status = p.total ? `${p.done} of ${p.total} stages done${p.next ? `, next: ${esc(p.next)}` : ''}` : '';
+      let inner = '';
+      if (role === 'start' || role === 'single') inner = `<span class="camp-band-label">${name}</span>${p.total ? `<span class="camp-band-tag">${p.done}/${p.total}</span>` : ''}`;
+      else if (role === 'end') inner = `<span class="camp-band-label">${p.done === p.total && p.total ? '✓ ' : ''}${esc(TYPES[c.type]?.label === 'Newsletter' ? 'Sends' : 'Ends')}</span>`;
+      else if (rowStart) inner = `<span class="camp-band-label is-quiet">${name}</span>`;
+      const cls = `camp-band is-${role}${rowStart ? ' is-row-start' : ''}${rowEnd ? ' is-row-end' : ''}${p.total && p.done === p.total ? ' is-done' : ''}`;
+      html.push(`<button type="button" class="${cls}" style="--camp:${esc(colorFor(c))}" data-campaign="${esc(c.id)}" title="${name} · ${range}${status ? ' · ' + status : ''}" aria-label="${name}, ${role === 'mid' ? 'in progress' : role === 'end' ? 'last day' : 'first day'}, ${range}${status ? ', ' + status : ''}">${inner}</button>`);
+    }
+    return `<div class="camp-bands">${html.join('')}</div>`;
   }
-  // Does any campaign cover this day? (drives the cell tint class)
+  // Rows for the day drawer: what's running that day and where it stands.
+  const daysBetween = (a, b) => Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 864e5);
+  const shortDay = key => new Date(key + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  // Where a day sits in its range: "Day 3 of 5", "Send day · 5 of 5".
+  function dayInRange(c, key) {
+    const total = daysBetween(c.start, c.end) + 1, n = daysBetween(c.start, key) + 1;
+    if (total === 1) return c.type === 'newsletter' ? 'Send day' : 'One day';
+    if (n === total) return `${c.type === 'newsletter' ? 'Send day' : 'Last day'} · ${n} of ${total}`;
+    return `Day ${n} of ${total} · ${c.type === 'newsletter' ? 'sends' : 'ends'} ${shortDay(c.end)}`;
+  }
+  function detailHtml(key, { heading = true } = {}) {
+    const items = forDate(key);
+    if (!items.length) return '';
+    return `<div class="day-camp-list">${heading ? '<div class="day-cov-head">Newsletters and campaigns</div>' : ''}${items.map(({ c }) => {
+      const p = progress(c);
+      return `<button type="button" class="day-camp-row" style="--camp:${esc(colorFor(c))}" data-campaign="${esc(c.id)}"><span class="day-camp-dot" aria-hidden="true"></span><span class="day-camp-name">${esc(nameOf(c))}</span><span class="day-camp-meta">${esc(dayInRange(c, key))}${p.total ? ` · ${p.done}/${p.total}${p.next ? ` · next: ${esc(p.next)}` : ''}` : ''}</span></button>`;
+    }).join('')}</div>`;
+  }
+  // Does any campaign cover this day?
   function covers(key) { return forDate(key).length > 0; }
 
   // ── Editor modal ──────────────────────────────────────────
@@ -73,6 +126,7 @@ window.PostIQCampaigns = (() => {
     draftStages = c ? (c.stages || []).map(s => ({ ...s })) : defaultStages(el('campType').value);
     renderStages(draftStages);
     el('campDelete').hidden = !c;
+    el('campDelete').dataset.confirm = ''; el('campDelete').textContent = 'Delete'; el('campDelete').classList.remove('danger');
     el('campStatus').textContent = '';
     openModal('campaignModal');
   }
@@ -96,11 +150,22 @@ window.PostIQCampaigns = (() => {
     el('campType').addEventListener('change', onTypeChange);
     el('campAddStage').addEventListener('click', () => { draftStages.push({ label: '', done: false }); renderStages(draftStages); });
     el('campSave').addEventListener('click', saveFromForm);
-    el('campDelete').addEventListener('click', () => { if (editingId) { remove(editingId); closeModal('campaignModal'); if (typeof renderCalendar === 'function') renderCalendar(); } });
+    // Delete asks once inline (no browser dialog), then offers Undo.
+    el('campDelete').addEventListener('click', () => {
+      if (!editingId) return;
+      const btn = el('campDelete');
+      if (btn.dataset.confirm !== '1') { btn.dataset.confirm = '1'; btn.textContent = 'Delete for good?'; btn.classList.add('danger'); return; }
+      const removed = get(editingId);
+      remove(editingId); closeModal('campaignModal');
+      if (typeof renderCalendar === 'function') renderCalendar();
+      const undo = () => { upsert(removed); if (typeof renderCalendar === 'function') renderCalendar(); };
+      if (removed && window.PostIQDrag?.actionToast) window.PostIQDrag.actionToast(`Deleted “${nameOf(removed)}”`, { onAction: undo });
+      else if (removed && typeof showToast === 'function') showToast(`Deleted “${nameOf(removed)}”`);
+    });
     el('campClose').addEventListener('click', () => closeModal('campaignModal'));
     // Click a campaign pill anywhere on the calendar to edit it.
     document.addEventListener('click', e => { const pill = e.target.closest('[data-campaign]'); if (pill) { e.stopPropagation(); open(pill.dataset.campaign); } });
   }
 
-  return { init, open, list, get, cellHtml, covers, forDate };
+  return { init, open, list, get, cellHtml, detailHtml, covers, forDate, lanes };
 })();

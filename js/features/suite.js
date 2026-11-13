@@ -1,6 +1,7 @@
 'use strict';
-// Runway (internally "suite"): how far ahead you are, reached from the calendar
-// header or the sidebar. Uses the same coverage model the calendar uses.
+// Pace (internally "suite"): posting schedules, how far ahead you are, and time
+// away. Reached from the sidebar, the calendar header, and every "Posting
+// schedule" entry point. Uses the same coverage model the calendar uses.
 //   1. Channels: connection health, days until each queue runs out, and the
 //      posting schedule (days, posts per day, Shelf reshares) edited inline.
 //   2. Break planner: week-by-week coverage for a date range, and an optional
@@ -31,12 +32,12 @@ window.PostIQSuite = (() => {
     switch (info.state) {
       case 'gap':
         return {
-          tone: info.days <= 2 ? 'warn' : 'ok',
-          text: info.days === 0 ? 'Runs out today' : `Runs out in ${plural(info.days, 'day')}`,
-          sub: `First empty posting day: ${fmt(info.date)}`,
+          tone: info.days <= 1 ? 'warn' : 'ok',
+          text: info.days === 0 ? 'Needs a post today' : `Covered for ${plural(info.days, 'day')}`,
+          sub: info.days === 0 ? 'Nothing queued for today yet' : `Next open day ${fmt(info.date)}`,
         };
       case 'covered':
-        return { tone: 'ok', text: `Covered ${info.days}+ days`, sub: 'Queued through the planning horizon' };
+        return { tone: 'ok', text: `Covered ${info.days}+ days`, sub: 'Nothing to do here' };
       case 'stale':
         return { tone: 'warn', text: 'Queue data out of date', sub: 'Sync to refresh this number' };
       case 'disconnected':
@@ -199,7 +200,11 @@ window.PostIQSuite = (() => {
     const plan = breakPlan(getQueueCoverage(days).rows, start, end);
     if (!channels().length) { grid.innerHTML = ''; summary.textContent = ''; return; }
 
-    summary.textContent = plan.missingTotal === 0
+    const plannedTotal = plan.lines.reduce((n, l) => n + l.cells.reduce((m, c) => m + c.planned, 0), 0);
+    const offHere = (getPlanningSettings().daysOff || []).some(e => e.channelId === '*' && e.start <= start && e.end >= end);
+    summary.textContent = plannedTotal === 0
+      ? (offHere ? `${fmt(start)} to ${fmt(end)} is marked as time off, so those days won’t show as gaps.` : `No posting days fall between ${fmt(start)} and ${fmt(end)}.`)
+      : plan.missingTotal === 0
       ? `Every channel stays covered from ${fmt(start)} to ${fmt(end)}.`
       : `Queue ${plural(plan.missingTotal, 'more post')} across ${plural(plan.channelsShort, 'channel')} before you leave, so nothing goes quiet from ${fmt(start)} to ${fmt(end)}.`;
 
@@ -273,7 +278,7 @@ window.PostIQSuite = (() => {
     pendingFill = null;
     if (!channels().length || plan.missingTotal === 0) { box.innerHTML = ''; return; }
     const fill = planBreakFill(start, end);
-    let msg = '', action = '';
+    let msg = '', action = '', detail = '';
     if (fill.stale) msg = 'Sync before filling, so nothing doubles up with posts Buffer already has.';
     else if (!fill.reshareCount) msg = 'Turn on “Fill gaps from Shelf” for a channel above to fill these with reshares.';
     else if (!shelfCount()) msg = 'Keep a few posts on your Shelf first. Those are what get reshared.';
@@ -285,15 +290,19 @@ window.PostIQSuite = (() => {
       const per = new Map();
       fill.items.forEach(i => per.set(i.channelId, (per.get(i.channelId) || 0) + 1));
       const names = [...per].map(([id, n]) => `${channelName(channels().find(c => String(c.id) === id) || {})} ×${n}`).join(', ');
-      msg = `Fill ${plural(fill.items.length, 'open slot')} with Shelf reshares (${names}), each on its empty day at that channel's usual time. Posts already in Buffer don't change.`;
-      if (fill.capped) msg += ` That's the most per run; run it again for the rest.`;
-      if (fill.skipped.length) msg += ` ${plural(fill.skipped.length, 'channel')} with gaps ${fill.skipped.length === 1 ? 'is' : 'are'} set not to fill.`;
+      msg = `Keep posting while you’re away: ${plural(fill.items.length, 'reshare')} from your Shelf (${names}), each on an empty day at that channel’s usual time.`;
+      const notes = [];
+      if (fill.capped) notes.push('That’s the most per run; run it again for the rest.');
+      if (fill.skipped.length) notes.push(`${plural(fill.skipped.length, 'channel')} with gaps ${fill.skipped.length === 1 ? 'is' : 'are'} set not to fill from Shelf.`);
       const shortBy = fill.short.reduce((n, [, k]) => n + k, 0);
-      if (shortBy) msg += ` ${plural(shortBy, 'slot')} stay${shortBy === 1 ? 's' : ''} open because each kept post goes out once per channel. Keep more posts on your Shelf to fill them.`;
-      if (fill.mediaOnly.length) msg += ` ${fill.mediaOnly.map(id => channelName(channels().find(c => String(c.id) === id) || {})).join(', ')} need${fill.mediaOnly.length === 1 ? 's' : ''} a photo or video, so ${fill.mediaOnly.length === 1 ? 'it isn’t' : 'they aren’t'} filled from Shelf.`;
+      if (shortBy) notes.push(`${plural(shortBy, 'slot')} stay${shortBy === 1 ? 's' : ''} open because each kept post goes out once per channel. Keep more posts on your Shelf to fill them.`);
+      if (fill.mediaOnly.length) notes.push(`${fill.mediaOnly.map(id => channelName(channels().find(c => String(c.id) === id) || {})).join(', ')} need${fill.mediaOnly.length === 1 ? 's' : ''} a photo or video, so ${fill.mediaOnly.length === 1 ? 'it isn’t' : 'they aren’t'} filled from Shelf.`);
+      notes.push('Posts already in Buffer don’t change.');
+      const why = shortBy || fill.mediaOnly.length || fill.skipped.length;
+      detail = notes.length > 1 ? `<details class="suite-fill-why"><summary>${why ? 'Why some days stay open' : 'Details'}</summary><p>${esc(notes.join(' '))}</p></details>` : '';
       action = `<button class="btn sm" type="button" id="suiteFillBtn">Queue ${plural(fill.items.length, 'reshare')} in Buffer</button>`;
     }
-    box.innerHTML = `<p class="suite-fill-msg">${esc(msg)}</p>${action}`;
+    box.innerHTML = `<p class="suite-fill-msg">${esc(msg)}</p>${action}${detail}`;
     el('suiteFillBtn')?.addEventListener('click', runFill);
   }
 
@@ -308,7 +317,7 @@ window.PostIQSuite = (() => {
         const created = await createPost({ channelId: item.channelId, text: item.text, mode: 'customScheduled', dueAt: item.dueAt, schedulingType: 'automatic' });
         ok++;
         if (typeof appendScheduled === 'function') appendScheduled(created?.post, item);
-      } catch (e) { fail++; console.error('[PostIQ runway fill]', e); }
+      } catch (e) { fail++; console.error('[PostIQ pace fill]', e); }
     }
     filling = false;
     try { if (typeof renderCalendar === 'function') renderCalendar(); } catch {}
@@ -318,6 +327,70 @@ window.PostIQSuite = (() => {
     if (typeof showToast === 'function') showToast(done, fail ? 'error' : 'success');
     const after = el('suiteFill');
     if (after) after.insertAdjacentHTML('afterbegin', `<p class="suite-fill-done">${esc(done)}</p>`);
+  }
+
+  // One calm line at the top: who needs something soon, and how far ahead the
+  // rest are. Quiet when nothing has a schedule yet.
+  function paceSummary(runways) {
+    const known = runways.filter(r => r.info.state === 'gap' || r.info.state === 'covered');
+    if (!known.length) return '';
+    const name = r => channelName(channels().find(c => String(c.id) === r.id) || {});
+    const list = names => names.length <= 2 ? names.join(' and ') : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
+    const today = known.filter(r => r.info.state === 'gap' && r.info.days === 0);
+    const soon = known.filter(r => r.info.state === 'gap' && r.info.days > 0 && r.info.days <= 2);
+    const parts = [];
+    if (today.length) parts.push(`${list(today.map(name))} ${today.length === 1 ? 'needs' : 'need'} a post today.`);
+    if (soon.length) parts.push(`${list(soon.map(name))} ${soon.length === 1 ? 'runs' : 'run'} out ${soon.length === 1 ? `on ${fmt(soon[0].info.date, { weekday: 'long' })}` : 'in the next two days'}.`);
+    if (!parts.length) {
+      const nearest = known.filter(r => r.info.state === 'gap').sort((a, b) => a.info.days - b.info.days)[0];
+      return nearest ? `Every channel is covered through ${fmt(cov().addDays(nearest.info.date, -1))}. Nothing needs you right now.` : 'Every channel is covered well ahead. Nothing needs you right now.';
+    }
+    const fine = known.length - today.length - soon.length;
+    if (fine) parts.push(fine === 1 ? 'The other channel is fine.' : `The other ${fine} are fine.`);
+    return parts.join(' ');
+  }
+
+  // Time off: days marked off don't count as gaps on the calendar or here.
+  function renderTimeOff() {
+    const mount = el('paceTimeOff');
+    if (!mount) return;
+    const settings = getPlanningSettings();
+    const list = (settings.daysOff || []).filter(e => e && e.end >= todayKey());
+    const start = el('suiteBreakStart')?.value, end = el('suiteBreakEnd')?.value;
+    const already = list.some(e => e.channelId === '*' && e.start === start && e.end === end);
+    const rows = list.map(e => {
+      const who = e.channelId === '*' ? 'All channels' : channelName(channels().find(c => String(c.id) === String(e.channelId)) || {});
+      return `<li class="pace-off-row"><span>${esc(fmt(e.start))} – ${esc(fmt(e.end))} <span class="pace-off-who">${esc(who)}</span></span><button type="button" class="btn sm ghost" data-pace-off-remove="${esc(e.id || '')}" data-pace-off-start="${esc(e.start)}" data-pace-off-end="${esc(e.end)}">Remove</button></li>`;
+    }).join('');
+    mount.innerHTML = `<div class="pace-off-action"><span>Going quiet on purpose?</span><button type="button" class="btn sm ghost" id="paceMarkOff" ${already || !start || !end ? 'disabled' : ''}>${already ? 'Marked as time off' : 'Mark these days off'}</button></div>${rows ? `<h3 class="pace-off-title">Time off</h3><ul class="pace-off-list">${rows}</ul>` : ''}`;
+  }
+  function markTimeOff() {
+    const start = el('suiteBreakStart')?.value, end = el('suiteBreakEnd')?.value;
+    if (!start || !end || end < start) return;
+    const settings = getPlanningSettings();
+    const entry = { id: 'off_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), channelId: '*', start, end };
+    setPlanningSettings({ ...settings, daysOff: [...(settings.daysOff || []), entry] });
+    afterPlanningChange();
+    if (typeof showToast === 'function') showToast(`${fmt(start)} – ${fmt(end)} marked as time off`, 'success');
+  }
+  function removeTimeOff(btn) {
+    const settings = getPlanningSettings();
+    const { paceOffRemove: id, paceOffStart: start, paceOffEnd: end } = btn.dataset;
+    let removed = false;
+    const daysOff = (settings.daysOff || []).filter(e => {
+      if (removed) return true;
+      const match = id ? e.id === id : (e.start === start && e.end === end);
+      if (match) removed = true;
+      return !match;
+    });
+    setPlanningSettings({ ...settings, daysOff });
+    afterPlanningChange();
+  }
+  function afterPlanningChange() {
+    try { if (typeof renderPlanningSettings === 'function') renderPlanningSettings(); } catch {}
+    try { if (typeof renderCalendar === 'function') renderCalendar(); } catch {}
+    try { window.PostIQPlanHealth?.render(); } catch {}
+    render();
   }
 
   function render() {
@@ -332,12 +405,23 @@ window.PostIQSuite = (() => {
     setNotice(notice, !!notice && connection.connected && !connection.reconnectNeeded && channels().length > 0);
     renderChannels(today);
     renderBreak(today);
+    renderTimeOff();
+    const summary = el('paceSummary');
+    if (summary) {
+      const text = connection.connected && channels().length ? paceSummary(channelRunways(getQueueCoverage(HORIZON_DAYS).rows, today)) : '';
+      summary.textContent = text; summary.hidden = !text;
+    }
   }
 
   function init() {
     el('calSuiteBtn')?.addEventListener('click', () => activateView('suiteView', 'calendar_header'));
     el('suiteBackBtn')?.addEventListener('click', () => activateView('calendarView', 'suite_back'));
     ['suiteBreakStart', 'suiteBreakEnd'].forEach(id => el(id)?.addEventListener('change', () => { if (isSuiteActive()) render(); }));
+    el('paceTimeOff')?.addEventListener('click', e => {
+      if (e.target.closest('#paceMarkOff')) markTimeOff();
+      const rm = e.target.closest('[data-pace-off-remove]');
+      if (rm) removeTimeOff(rm);
+    });
     el('suiteNotice')?.addEventListener('click', e => {
       if (e.target.closest('[data-suite-sync]')) { try { syncBuffer({ force: true }); } catch {} }
     });

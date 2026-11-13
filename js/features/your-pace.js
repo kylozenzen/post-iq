@@ -65,7 +65,7 @@ window.YourPace = (() => {
 
   // ── Evergreen reshare / "fill my break" ──────────────────
   // Queues kept Shelf posts into Buffer on the exact empty posting days of the
-  // time-off range, at each channel's usual time. Same planner as Runway's break
+  // time-off range, at each channel's usual time. Same planner as Pace's break
   // fill: each kept post goes out at most once per channel, and nothing doubles
   // up with what Buffer already has. (This used to use addToQueue, which put the
   // reshares in Buffer's next open slots, usually before the break even began.)
@@ -78,7 +78,7 @@ window.YourPace = (() => {
       const settings = getPlanningSettings();
       if (!(state.channels || []).some(c => settings.channelReshare?.[String(c.id)])) { status.textContent = 'Turn on reshares for at least one channel first (the checkbox above).'; return; }
       const fill = window.PostIQSuite?.planBreakFill?.(dates.start, dates.end, { ignoreDaysOff: true });
-      if (!fill) { status.textContent = 'Reshare planning isn’t available right now. Try Runway.'; return; }
+      if (!fill) { status.textContent = 'Reshare planning isn’t available right now. Try Pace.'; return; }
       if (fill.stale) { status.textContent = 'Sync Buffer first, so nothing doubles up with posts already queued.'; return; }
       if (!fill.items.length) {
         status.textContent = fill.short.length
@@ -170,7 +170,14 @@ window.YourPace = (() => {
     renderExceptions();
   }
 
+  // Posting schedules live on the Pace page now; every "Posting schedule"
+  // entry point (⋯ menu, command menu, Getting Started, Today) lands there.
+  // The old modal stays in the markup for now but nothing opens it.
   function open() {
+    if (typeof activateView === 'function' && document.getElementById('suiteView')) { activateView('suiteView', 'posting_schedule'); return; }
+    openModal_();
+  }
+  function openModal_() {
     if (!el('scheduleModal')) return;
     refresh(true);
     if (!el('schedOffStart').value) el('schedOffStart').value = today();
