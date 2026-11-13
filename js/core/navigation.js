@@ -4,6 +4,7 @@
 function activateView(viewId, source = 'navigation') {
   if (viewId === 'contentBankView') viewId = 'ideasView';
   if (viewId === 'homeView') viewId = 'calendarView'; // legacy saved view
+  if (viewId === 'suiteView' && typeof isPaceEnabled === 'function' && !isPaceEnabled()) viewId = 'calendarView';
   const requestedFeature = getFeatureForView(viewId);
   if (requestedFeature && !isFeatureEnabled(requestedFeature)) {
     viewId = getSafeFeatureFallbackView();

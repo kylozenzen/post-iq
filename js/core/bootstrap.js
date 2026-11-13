@@ -105,10 +105,10 @@ function init() {
   const validDestination = destination && document.getElementById(destination)?.classList.contains('view');
   activateView(validDestination ? destination : WORKSPACE_VIEWS[getFirstEnabledWorkspace(workspacePreferences)]);
 
-  document.querySelectorAll('[data-workspace-toggle]').forEach(input => {
-    input.addEventListener('change', () => setWorkspacePreference(input.dataset.workspaceToggle, input.checked));
+  applyPacePreference();
+  document.querySelectorAll('[data-pace-toggle]').forEach(input => {
+    input.addEventListener('change', () => setPaceEnabled(input.checked));
   });
-  on('resetWorkspaceBtn', 'click', resetWorkspacePreferences);
 
   selectSettingsTab(document.querySelector('.settings-tab.active')?.dataset.stab || 'connection');
   document.querySelectorAll('.settings-tab').forEach(tab => {

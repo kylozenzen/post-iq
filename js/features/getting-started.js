@@ -28,10 +28,9 @@ window.PostIQGettingStarted = (() => {
   function steps() {
     return [
       { id: 'connect', done: connected(), label: 'Connect Buffer', desc: 'Sign in and bring your scheduled posts into PostIQ.', cta: 'Connect', act: () => { try { typeof goToBufferConnect === 'function' ? goToBufferConnect() : (window.location.href = '/auth/connect.html'); } catch {} } },
-      { id: 'schedule', done: hasSchedule(), label: 'Set a posting rhythm', desc: 'Show which days you usually post.', cta: 'Set days', act: () => window.YourPace?.open?.() },
+      { id: 'schedule', done: hasSchedule(), label: 'Set your pace', desc: 'Pick the days each channel posts.', cta: 'Open Pace', act: () => window.YourPace?.open?.() },
       { id: 'ideas', done: hasDraftOrPost(), label: 'Write your first draft', desc: 'Compose pulls in your Shelf as you write.', cta: 'Compose', act: () => window.activateView?.('composerView', 'getting_started') },
-
-    ];
+    ].filter(s => s.id !== 'schedule' || typeof isPaceEnabled !== 'function' || isPaceEnabled());
   }
 
   function render() {
@@ -76,7 +75,7 @@ window.PostIQGettingStarted = (() => {
 
   function init() {
     if (!el('gettingStarted')) return;
-    ['postiq:synced', 'postiq:planning-changed', 'postiq:scheduled-updated', 'postiq:library-changed'].forEach(ev => window.addEventListener(ev, render));
+    ['postiq:synced', 'postiq:planning-changed', 'postiq:scheduled-updated', 'postiq:library-changed', 'postiq:pace-changed'].forEach(ev => window.addEventListener(ev, render));
     const dialog = el('gettingStartedDialog');
     el('openGettingStarted')?.addEventListener('click', () => {
       render();

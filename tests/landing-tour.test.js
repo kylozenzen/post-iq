@@ -52,12 +52,14 @@ assert.match(app, /id="gettingStartedDialog"/, 'getting started has its own dial
 assert.match(app, /id="sidebarBufferDetails"/, 'Buffer actions expand in sidebar');
 assert.match(app, /id="connStatusButton"/, 'connection has a compact status action');
 assert.match(app, /id="openGettingStarted"/, 'sidebar opens setup dialog');
-for (const id of ['calendar', 'plan', 'compose']) assert.match(tour, new RegExp(`id: '${id}'`));
+for (const id of ['calendar', 'plan', 'pace', 'compose', 'shelf']) assert.match(tour, new RegExp(`id: '${id}'`));
 
 assert.match(tour, /CONNECTED_SEEN_KEY/, 'connected and preview tour completion are independent');
 assert.match(tour, /relevantSteps\(\)/, 'tour adapts to connection state');
 assert.doesNotMatch(tour, /Ideas on the Shelf/, 'tour no longer points at a Settings toggle');
-assert.match(tour, /selectSettingsTab\?\.\('customize'\)/, 'tour opens the Shelf setting');
+assert.match(tour, /id: 'pace'[\s\S]*when: \(\) =>[\s\S]*isPaceEnabled\(\)/, 'Pace step is skipped when Pace is off');
+assert.match(tour, /data-welcome="pace"[\s\S]*activateView\?\.\('suiteView', 'welcome'\)/, 'connected welcome leads to Pace');
+assert.doesNotMatch(tour, /data-workspace-toggle/, 'tour no longer points at workspace toggles');
 assert.match(tour, /#sharedDayModal\.open \[data-add-note\]/, 'plan step follows the day drawer action');
 assert.match(tour, /dayObserver = new MutationObserver/, 'tour repositions after a day drawer opens');
 console.log('Landing CTA, claim, screenshot and calendar tour wiring tests passed');

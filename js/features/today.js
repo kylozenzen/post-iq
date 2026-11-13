@@ -192,7 +192,7 @@ window.PostIQToday = (() => {
     // Lead with a slot that can be filled in one tap; media-only gaps come after.
     if (slots.length) right = fillCardHtml(slots.find(sl => suggestionFor(sl.dateKey, sl.channelId)) || slots[0]);
     else if (connected && scheduledPlanningChannels?.().length) right = `<div class="today-calm"><strong>You’re covered this week.</strong><span>No open slots in the next ${LOOKAHEAD_DAYS} days.</span></div>`;
-    else if (connected) right = `<div class="today-calm"><span>Set a posting schedule and open slots show up here, ready to fill.</span><button type="button" class="more-link" data-open-schedule="today">Set posting schedule</button></div>`;
+    else if (connected && (typeof isPaceEnabled !== 'function' || isPaceEnabled())) right = `<div class="today-calm"><span>Set a posting schedule and open slots show up here, ready to fill.</span><button type="button" class="more-link" data-open-schedule="today">Set posting schedule</button></div>`;
     else right = '';
 
     box.innerHTML = `<div class="today-left"><div class="today-kicker">Today</div><div class="today-date">${esc(dayLabel(key, { weekday: 'long', month: 'long', day: 'numeric' }))}</div><div class="today-going">${going}</div>${todoHtml}</div>${right ? `<div class="today-right">${right}</div>` : ''}`;
