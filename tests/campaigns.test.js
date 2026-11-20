@@ -24,6 +24,8 @@ test('campaigns render as one band: solid first and last day, quiet tint between
     assert.equal(d.querySelectorAll('.camp-band.is-mid').length, 3, 'every day between is covered');
     assert.ok([...d.querySelectorAll('.camp-band.is-mid')].every(b => !b.querySelector('.camp-band-label') || b.classList.contains('is-row-start')), 'middle days stay unlabelled unless a week row starts there');
     assert.match(d.querySelector('.camp-band.is-start').getAttribute('aria-label'), /first day.*next: Publish/);
+    const bandsEl = d.querySelector('.cal-day .camp-bands');
+    assert.ok(bandsEl.previousElementSibling.classList.contains('day-header'), 'the band sits across the top of the day, right under its header');
   } finally { dom.window.close(); }
 });
 
