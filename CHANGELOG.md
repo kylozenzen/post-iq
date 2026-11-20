@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **Campaign and newsletter bands run across the top of the days.** Each range is now one full-width strip right under the day header, edge to edge in every cell it covers, instead of inset pills on the first and last day. The first and last day stay solid and labelled (name and stage count, then Sends or Ends), the days between are a slightly stronger tint, and the week view gets a taller band that sits on the header line.
+
 ## Phase 3: power layer and launch polish
 
 ### Added
